@@ -1,0 +1,39 @@
+{
+    "name": "@superfluid/contracts",
+    "version": "0.0.1",
+    "description": "Superfluid smart contracts.",
+    "license": "MIT",
+    "dependencies": {
+        "@openzeppelin/contracts": "2.5.0"
+    },
+    "peerDependencies": {
+        "@truffle/contract": "4.1.12"
+    },
+    "devDependencies": {
+        "dotenv": "8.2.0",
+        "@truffle/hdwallet-provider": "1.0.32",
+        "@openzeppelin/test-helpers": "0.5.4",
+        "@decentral.ee/web3-test-helpers": "0.2.4",
+        "sol-proxy": "0.1.2",
+        "solhint": "2.3.0",
+        "solidity-coverage": "0.7.2",
+        "truffle": "5.1.16",
+        "truffle-flattener": "1.4.2",
+        "truffle-plugin-verify": "0.3.9",
+        "eslint": "6.8.0",
+        "npm-run-all": "4.1.5"
+    },
+    "scripts": {
+        "build": "run-s build:*",
+        "build:truffle-compile": "rm -f build/contracts/*;truffle compile",
+        "test": "run-s lint:* test:*",
+        "test:contracts": "truffle test test/contracts.test.js",
+        "test:package": "mocha test/package.test.js",
+        "test-coverage": "truffle run coverage --file test/contracts.js",
+        "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
+        "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
+        "lint": "run-s lint:*",
+        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+        "lint:sol": "solhint contracts/*.sol && echo '✔  Your .sol files look good.'"
+    }
+}

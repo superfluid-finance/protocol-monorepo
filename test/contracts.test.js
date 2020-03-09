@@ -1,0 +1,1 @@
+require("./SimpleVault.test.js");

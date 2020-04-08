@@ -20,16 +20,12 @@ contract FlowPayment {
         ISuperToken token,
         address sender,
         address receiver,
-        uint8 flowType,
-        FlowAgreement.FlowRateType flowRate) external {
-        bytes memory senderState = token.getState(sender);
-        bytes memory receiverState = token.getState(receiver);
-        bytes memory senderNewFLow = new bytes(4);
-        bytes memory receiverNewFLow = new bytes(4);
-        bytes memory senderNewState = flow.composeState(senderNewFLow, senderState);
-        bytes memory receiverNewState = flow.composeState(senderNewState, senderState);
-        token.updateState(sender, senderNewState);
-        token.updateState(receiver, receiverNewState);
+        FlowAgreement.FlowRateType flowType,
+        int256 flowRate) external {
+        (bytes memory senderNewFlow, bytes memory receiverNewFlow) =
+            flow.createFlow(flowType, flowRate);
+        flow.updateState(token, sender, senderNewFlow);
+        flow.updateState(token, receiver, receiverNewFlow);
     }
 
 }

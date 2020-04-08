@@ -15,13 +15,18 @@ contract SuperToken is ISuperToken {
 
     mapping(address => AccountStates) private accountStatesMap;
 
-    function getState(address account) external view
+    function getState(
+        address agreementClass,
+        address account) external view
         returns (bytes memory state) {
         AccountStates storage accountStates = accountStatesMap[account];
         return accountStates.agreementStateMap[msg.sender];
     }
 
-    function updateState(address account, bytes calldata newState) external {
+    function updateState(
+        address agreementClass,
+        address account,
+        bytes calldata newState) external {
         AccountStates storage accountStates = accountStatesMap[account];
         accountStates.agreementStateMap[msg.sender] = newState;
     }

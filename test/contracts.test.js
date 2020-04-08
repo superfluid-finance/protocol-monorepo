@@ -1,1 +1,1 @@
-require("./SimpleVault.test.js");
+require("./FlowPayment.test.js");

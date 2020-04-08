@@ -7,10 +7,13 @@ pragma solidity >= 0.5.0;
  */
 interface ISuperToken {
 
-    function getState(address account) external view
+    function getState(
+            address agreementClass,
+            address account) external view
             returns (bytes memory state);
 
     function updateState(
+            address agreementClass,
             address account,
             bytes calldata newState) external;
 

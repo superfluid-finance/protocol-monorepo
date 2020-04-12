@@ -1,17 +1,23 @@
-pragma solidity 0.5.17;
+pragma solidity 0.6.6;
 
 import "./ISuperAgreement.sol";
 
 /**
- * @title Superfluid's base super agreement
- * @notice 
+ * @title Superfluid's base super agreement implementation
  * @author Superfluid
  */
-contract SuperAgreementBase is ISuperAgreement {
+abstract contract SuperAgreementBase is ISuperAgreement {
+
+    function composeState(
+        bytes memory currentState,
+        bytes memory additionalState)
+        internal pure virtual
+        returns (bytes memory newState);
 
     function getState(
         ISuperToken token,
-        address account) external view
+        address account)
+        internal view
         returns (bytes memory currentState) {
         currentState = token.getState(address(this), account);
     }
@@ -19,9 +25,9 @@ contract SuperAgreementBase is ISuperAgreement {
     function updateState(
         ISuperToken token,
         address account,
-        bytes calldata additionalState) external {
+        bytes memory additionalState) internal {
         bytes memory currentState = token.getState(address(this), account);
-        bytes memory newState = this.composeState(currentState, additionalState);
+        bytes memory newState = composeState(currentState, additionalState);
         token.updateState(address(this), account, newState);
     }
 

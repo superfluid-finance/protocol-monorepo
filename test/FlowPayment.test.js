@@ -1,4 +1,5 @@
 const SuperToken = artifacts.require("SuperToken");
+const ERC20Mintable = artifacts.require("ERC20Mintable");
 const FlowPayment = artifacts.require("FlowPayment");
 const FlowAgreement = artifacts.require("FlowAgreement");
 // const {
@@ -16,8 +17,9 @@ contract("FlowPayment", accounts => {
     const admin = accounts[0];
     const user1 = accounts[1];
     const user2 = accounts[1];
-
+    
     let token;
+    let superToken;
     let fp;    
 
     before(async () => {
@@ -38,7 +40,12 @@ contract("FlowPayment", accounts => {
     });
     
     beforeEach(async () => {
-        token = await web3tx(SuperToken.new, "SuperToken.new")(
+        token = await web3tx(ERC20Mintable.new, "ERC20Mintable.new")(
+            {
+                from: admin
+            });
+        superToken = await web3tx(SuperToken.new, "SuperToken.new")(
+            token.address,
             {
                 from: admin
             });
@@ -46,7 +53,7 @@ contract("FlowPayment", accounts => {
 
     it("basic operations", async () => {
         await web3tx(fp.connect, "fp.connect user1 -> user2 9.99/mo")(
-            token.address,
+            superToken.address,
             user1,
             user2,
             2 /* FLOW_PER_MONTH */,

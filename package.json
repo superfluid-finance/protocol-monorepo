@@ -4,10 +4,10 @@
     "description": "Superfluid smart contracts.",
     "license": "MIT",
     "dependencies": {
-        "@openzeppelin/contracts": "2.5.0"
+        "@openzeppelin/contracts": "3.0.0-rc.1"
     },
     "peerDependencies": {
-        "@truffle/contract": "4.1.15"
+        "@truffle/contract": "4.2.0"
     },
     "devDependencies": {
         "dotenv": "8.2.0",
@@ -16,8 +16,8 @@
         "@decentral.ee/web3-test-helpers": "0.2.4",
         "sol-proxy": "0.1.2",
         "solhint": "2.3.1",
-        "solidity-coverage": "0.7.2",
-        "truffle": "5.1.20",
+        "solidity-coverage": "0.7.4",
+        "truffle": "5.1.21",
         "truffle-flattener": "1.4.2",
         "truffle-plugin-verify": "0.3.10",
         "eslint": "6.8.0",
@@ -26,7 +26,7 @@
     "scripts": {
         "build": "run-s build:*",
         "build:truffle-compile": "rm -f build/contracts/*;truffle compile",
-        "test": "run-s lint:* test:*",
+        "test": "run-s lint:* build:* test:*",
         "test:contracts": "truffle test test/contracts.test.js",
         "test:package": "mocha test/package.test.js",
         "test-coverage": "truffle run coverage --file test/contracts.js",

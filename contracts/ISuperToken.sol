@@ -2,7 +2,6 @@ pragma solidity >= 0.5.0;
 
 /**
  * @title Superfluid's token interface
- * @notice 
  * @author Superfluid
  */
 interface ISuperToken {
@@ -16,5 +15,7 @@ interface ISuperToken {
             address agreementClass,
             address account,
             bytes calldata newState) external;
+
+    function upgrade(uint256 amount) external;
 
 }

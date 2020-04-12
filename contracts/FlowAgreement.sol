@@ -1,10 +1,11 @@
-pragma solidity 0.5.17;
+pragma solidity 0.6.6;
 
 import { SuperAgreementBase } from "./SuperAgreementBase.sol";
+import "./ISuperToken.sol";
 
 /**
  * @title Superfluid's flow agreement
- * @notice 
+ * @notice A realtime finance primitive that facilitate payments in streams.
  * @author Superfluid
  */
 contract FlowAgreement is SuperAgreementBase {
@@ -16,30 +17,34 @@ contract FlowAgreement is SuperAgreementBase {
         FLOW_PER_YEAR
     }
 
-    function balanceOf(bytes calldata state) external pure
+    function balanceOf(bytes calldata state, uint256 time)
+        external pure override
         returns (uint256 amount) {
         return 0;
     }
 
+    function createFlow(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        FlowAgreement.FlowRateType flowType,
+        int256 flowRate) external {
+        bytes memory senderNewFlow = encodeFlow(flowRate);
+        bytes memory receiverNewFlow = encodeFlow(-flowRate);
+        updateState(token, sender, senderNewFlow);
+        updateState(token, receiver, receiverNewFlow);
+    }
+
     function composeState(
-        bytes calldata currentState,
-        bytes calldata additionalState) external pure
+        bytes memory currentState,
+        bytes memory additionalState)
+        internal pure override
         returns (bytes memory newState) {
         (int256 cRate) = currentState.length >= 4 ?
             decodeFlow(currentState) : 0;
         (int256 aRate) = decodeFlow(additionalState);
         int256 newRate = cRate + aRate;
         newState = encodeFlow(newRate);
-    }
-
-    function createFlow(
-        FlowAgreement.FlowRateType flowType,
-        int256 flowRate) external pure
-        returns (
-            bytes memory senderNewFlow,
-            bytes memory receiverNewFlow) {
-        senderNewFlow = encodeFlow(flowRate);
-        receiverNewFlow = encodeFlow(flowRate);
     }
 
     function encodeFlow(int256 flowRate) private pure

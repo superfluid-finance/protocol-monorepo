@@ -1,4 +1,4 @@
-pragma solidity 0.5.17;
+pragma solidity 0.6.6;
 
 import "../FlowAgreement.sol";
 import "../ISuperToken.sol";
@@ -22,10 +22,7 @@ contract FlowPayment {
         address receiver,
         FlowAgreement.FlowRateType flowType,
         int256 flowRate) external {
-        (bytes memory senderNewFlow, bytes memory receiverNewFlow) =
-            flow.createFlow(flowType, flowRate);
-        flow.updateState(token, sender, senderNewFlow);
-        flow.updateState(token, receiver, receiverNewFlow);
+        flow.createFlow(token, sender, receiver, flowType, flowRate);
     }
 
 }

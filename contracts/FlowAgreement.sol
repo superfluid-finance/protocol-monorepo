@@ -11,10 +11,8 @@ import "./ISuperToken.sol";
 contract FlowAgreement is SuperAgreementBase {
 
     enum FlowRateType {
-        FLOW_PER_BLOCK,
-        FLOW_PER_DAY,
-        FLOW_PER_MONTH,
-        FLOW_PER_YEAR
+        FLOW_PER_SECOND,
+        FLOW_PER_MONTH
     }
 
     function balanceOf(bytes calldata state, uint256 time)

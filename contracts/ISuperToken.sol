@@ -12,7 +12,6 @@ interface ISuperToken {
             returns (bytes memory state);
 
     function updateState(
-            address agreementClass,
             address account,
             bytes calldata newState) external;
 

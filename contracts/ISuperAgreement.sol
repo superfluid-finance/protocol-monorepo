@@ -10,6 +10,6 @@ interface ISuperAgreement {
 
     function balanceOf(bytes calldata state, uint256 time)
         external pure
-        returns (uint256 amount);
+        returns (int256 amount);
 
 }

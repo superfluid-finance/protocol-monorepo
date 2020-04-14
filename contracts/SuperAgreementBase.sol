@@ -28,7 +28,7 @@ abstract contract SuperAgreementBase is ISuperAgreement {
         bytes memory additionalState) internal {
         bytes memory currentState = token.getState(address(this), account);
         bytes memory newState = composeState(currentState, additionalState);
-        token.updateState(address(this), account, newState);
+        token.updateState(account, newState);
     }
 
 }

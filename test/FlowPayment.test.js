@@ -11,21 +11,19 @@ const {
     toWad
 } = require("@decentral.ee/web3-test-helpers");
 
-
 contract("FlowPayment", accounts => {
 
     const admin = accounts[0];
     const user1 = accounts[1];
     const user2 = accounts[1];
-    
+
     let token;
     let superToken;
-    let fp;    
+    let fp;
 
     before(async () => {
-        console.log("admin is", admin);
-        console.log("user1 is", user1);
-        console.log("user2 is", user2);
+        console.log("admin is %s \nuser1 is %s \nuser2 is %s", admin, user1, user2);
+
         const fa = await web3tx(FlowAgreement.new, "FlowAgreement.new")(
             {
                 from: admin
@@ -38,7 +36,7 @@ contract("FlowPayment", accounts => {
             }
         );
     });
-    
+
     beforeEach(async () => {
         token = await web3tx(ERC20Mintable.new, "ERC20Mintable.new")(
             {
@@ -46,6 +44,8 @@ contract("FlowPayment", accounts => {
             });
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            "SuperToken",
+            "STK",
             {
                 from: admin
             });

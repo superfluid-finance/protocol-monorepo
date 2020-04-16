@@ -79,8 +79,14 @@ Each contracts test suite is named as `test/ContractName.test.js`.
 
 Package test is for other packages that use this package as a dependency.
 
-Code Coveraege
+Code Coverage
 --------------
+
+To run the coverage tests please use:
+
+```
+$ truffle run coverage
+```
 
 Integration Steps
 -----------------

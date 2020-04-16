@@ -20,7 +20,7 @@ contract FlowPayment {
         ISuperToken token,
         address sender,
         address receiver,
-        FlowAgreement.FlowRateType flowType,
+        uint256 flowType,
         int256 flowRate) external {
         flow.createFlow(token, sender, receiver, flowType, flowRate);
     }

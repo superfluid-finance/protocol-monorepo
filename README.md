@@ -88,5 +88,7 @@ To run the coverage tests please use:
 $ truffle run coverage
 ```
 
+This step is not integraded with the unit test because of the time it consumes to execute.
+
 Integration Steps
 -----------------

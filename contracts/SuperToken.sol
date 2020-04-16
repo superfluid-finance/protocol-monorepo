@@ -13,24 +13,22 @@ import "./ISuperAgreement.sol";
  */
 contract SuperToken is ISuperToken, ERC20Base {
 
-    /*
-    struct AccountStates {
-        mapping(address => bytes) agreementStateMap;
-    }
-
-    mapping(address => AccountStates) private accountStatesMap;
-    */
-
     //Agreements => User => Data
     mapping(address => mapping(address => bytes)) private _dataAgreements;
+    //Save the relation between user and aggrement contract
     mapping(address => address[]) private _userToAgreements;
 
+    //Underlaying ERC20 token
     IERC20 private _token;
 
-    constructor(IERC20 token, string memory name, string memory symbol) ERC20Base("SuperToken", "STK") public {
+    constructor(IERC20 token, string memory name, string memory symbol) ERC20Base(name, symbol) public {
         _token = token;
     }
 
+    /// @notice Get the state of an user and agreement
+    /// @param agreementClass Contract of the FlowAgreement
+    /// @param account User that is part of this aggrement
+    /// @return state of agreement
     function getState
     (
         address agreementClass,
@@ -44,6 +42,9 @@ contract SuperToken is ISuperToken, ERC20Base {
         return _dataAgreements[agreementClass][account];
     }
 
+    /// @notice Register or update a agreement
+    /// @param account User that is part of this aggrement
+    /// @param newState State of agreement that will be register
     function updateState
     (
         address account,
@@ -57,7 +58,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         require(msg.sender != account, "Use the agreement contract");
         //is a update or a new aggrement?
-        if(_dataAgreements[msg.sender][account].length == 0) {
+        if (_dataAgreements[msg.sender][account].length == 0) {
             //register relation
             _userToAgreements[account].push(msg.sender);
         }
@@ -65,24 +66,24 @@ contract SuperToken is ISuperToken, ERC20Base {
         _dataAgreements[msg.sender][account] = newState;
     }
 
+    /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
+    /// @param amount Number of tokens to be upgraded
     function upgrade(uint256 amount) external override {
-        address owner = msg.sender;
-        _token.transferFrom(owner, address(this), amount);
-       // _mint(owner, amount);
+        _token.transferFrom(msg.sender, address(this), amount);
+        _mint(msg.sender, amount);
     }
 
-    function balanceOf(address account) public view override returns (int256) {
+    /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
+    /// @param account User to calculate balance
+    /// @return balance User balance
+    function balanceOf(address account) public view override returns (int256 balance) {
 
         //query each agreement contract
         int256 _agreeBalances;
 
-        for(uint256 i = 0; i < _userToAgreements[account].length; i++) {
-            _agreeBalances += ISuperAgreement(
-                _userToAgreements[account][i]
-            ).balanceOf(
-                _dataAgreements[_userToAgreements[account][i]][msg.sender],
-                block.timestamp
-            );
+        for (uint256 i = 0; i < _userToAgreements[account].length; i++) {
+            _agreeBalances += ISuperAgreement(_userToAgreements[account][0]).balanceOf(_dataAgreements[_userToAgreements[account][0]][account], block.timestamp);
+
         }
 
         return int256(_balances[account]) + _agreeBalances;

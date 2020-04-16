@@ -10,11 +10,11 @@ import "./ISuperToken.sol";
  */
 contract FlowAgreement is SuperAgreementBase {
 
-    enum FlowRateType {
-        FLOW_PER_SECOND,
-        FLOW_PER_MONTH
-    }
-
+    /// @notice Calculate the moving balance. This method don't calculate the real balance
+    /// @dev Calculate balance based on the state and time
+    /// @param state Bytes that save the agreement state
+    /// @param time Time used to calculate balance. Normally is the block timestamp
+    /// @return amount of the moving balance
     function balanceOf
     (
         bytes calldata state,
@@ -25,33 +25,40 @@ contract FlowAgreement is SuperAgreementBase {
     override
     returns (int256 amount)
     {
-        FlowRateType _type;
+        uint256 _type;
         uint256 _startDate;
         int256 _flowRate;
-        (_type, _startDate, _flowRate) = decodeFlow(state);
-
         int256 _balance;
 
-        if(_type == FlowRateType.FLOW_PER_SECOND) {
+        (_type, _startDate, _flowRate) = decodeFlow(state);
+
+        //if (_type == 0) {
             _balance = int256(time - _startDate) * _flowRate;
-        }
+        //}
         // awaiting for others types of flows
 
         return _balance;
     }
 
+    /// @notice Create a new flow between two users
+    /// @dev This function will make a external call to register the agreement
+    /// @param token Contract of the the SuperToken that will manage the agreement
+    /// @param sender Who is sending SuperToken
+    /// @param receiver Who is receiving SuperToken
+    /// @param flowType What type of flow should this agreement implement
+    /// @param flowRate What is the periodicity of payments
     function createFlow
     (
         ISuperToken token,
         address sender,
         address receiver,
-        FlowAgreement.FlowRateType flowType,
+        uint256 flowType,
         int256 flowRate
     )
     external
     {
-        bytes memory senderNewFlow = encodeFlow(flowType, block.timestamp, flowRate);
-        bytes memory receiverNewFlow = encodeFlow(flowType, block.timestamp, -flowRate);
+        bytes memory senderNewFlow = encodeFlow(flowType, block.timestamp, -flowRate);
+        bytes memory receiverNewFlow = encodeFlow(flowType, block.timestamp, flowRate);
 
         token.updateState(sender, senderNewFlow);
         token.updateState(receiver, receiverNewFlow);
@@ -73,9 +80,10 @@ contract FlowAgreement is SuperAgreementBase {
         //newState = encodeFlow(newRate);
     }
 
+    /// @dev Encode the parameters into a bytes type
     function encodeFlow
     (
-        FlowRateType flowtype,
+        uint256 flowtype,
         uint256 timestamp,
         int256 flowRate
     )
@@ -86,6 +94,7 @@ contract FlowAgreement is SuperAgreementBase {
         return abi.encodePacked(flowtype, timestamp, flowRate);
     }
 
+    /// @dev Decode the parameter into the original types
     function decodeFlow
     (
         bytes memory state
@@ -94,11 +103,11 @@ contract FlowAgreement is SuperAgreementBase {
     pure
     returns
     (
-        FlowRateType,
+        uint256,
         uint256,
         int256
     )
     {
-        return abi.decode(state, (FlowRateType, uint256, int256));
+        return abi.decode(state, (uint256, uint256, int256));
     }
 }

@@ -21,7 +21,9 @@ contract SuperToken is ISuperToken, ERC20Base {
     //Underlaying ERC20 token
     IERC20 private _token;
 
-    constructor(IERC20 token, string memory name, string memory symbol) ERC20Base(name, symbol) public {
+    constructor (IERC20 token, string memory name, string memory symbol)
+    public
+    ERC20Base(name, symbol) {
         _token = token;
     }
 
@@ -82,7 +84,12 @@ contract SuperToken is ISuperToken, ERC20Base {
         int256 _agreeBalances;
 
         for (uint256 i = 0; i < _userToAgreements[account].length; i++) {
-            _agreeBalances += ISuperAgreement(_userToAgreements[account][0]).balanceOf(_dataAgreements[_userToAgreements[account][0]][account], block.timestamp);
+            /* solhint-disable not-rely-on-time, mark-callable-contracts */
+            _agreeBalances += ISuperAgreement(_userToAgreements[account][0])
+                .balanceOf(
+                    _dataAgreements[_userToAgreements[account][0]][account],
+                    block.timestamp
+                );
 
         }
 

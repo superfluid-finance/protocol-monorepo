@@ -1,3 +1,4 @@
+/* solhint-disable not-rely-on-time */
 pragma solidity 0.6.6;
 
 import { SuperAgreementBase } from "./SuperAgreementBase.sol";
@@ -33,7 +34,7 @@ contract FlowAgreement is SuperAgreementBase {
         (_type, _startDate, _flowRate) = decodeFlow(state);
 
         //if (_type == 0) {
-            _balance = int256(time - _startDate) * _flowRate;
+        _balance = int256(time - _startDate) * _flowRate;
         //}
         // awaiting for others types of flows
 
@@ -66,7 +67,7 @@ contract FlowAgreement is SuperAgreementBase {
 
     function composeState
     (
-        bytes memory currentState,
+        bytes memory,/* currentState */
         bytes memory additionalState
     )
     internal
@@ -74,6 +75,7 @@ contract FlowAgreement is SuperAgreementBase {
     override
     returns (bytes memory newState)
     {
+        return additionalState;
         //(,,int256 cRate) = currentState.length >= 4 ? decodeFlow(currentState) : 0;
         //(,,int256 aRate) = decodeFlow(additionalState);
         //int256 newRate = cRate + aRate;

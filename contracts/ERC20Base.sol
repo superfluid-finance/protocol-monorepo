@@ -28,7 +28,7 @@ import {SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-
+abstract // stupid solhint
 contract ERC20Base {
 
     /**
@@ -114,8 +114,7 @@ contract ERC20Base {
     /**
      * @dev See {IERC20-balanceOf}.
      */
-    function balanceOf(address account) public view virtual returns (int256) {
-    }
+    function balanceOf(address account) public view virtual returns (int256);
 
     /**
      * @dev See {IERC20-transfer}.

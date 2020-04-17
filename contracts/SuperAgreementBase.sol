@@ -6,7 +6,8 @@ import "./ISuperAgreement.sol";
  * @title Superfluid's base super agreement implementation
  * @author Superfluid
  */
-abstract contract SuperAgreementBase is ISuperAgreement {
+abstract // stupid solhint
+contract SuperAgreementBase is ISuperAgreement {
 
     function composeState(
         bytes memory currentState,
@@ -18,7 +19,8 @@ abstract contract SuperAgreementBase is ISuperAgreement {
         ISuperToken token,
         address account)
         internal view
-        returns (bytes memory currentState) {
+        returns (bytes memory currentState)
+    {
         currentState = token.getState(address(this), account);
     }
 

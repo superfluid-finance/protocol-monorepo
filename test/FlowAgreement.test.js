@@ -1,6 +1,6 @@
-const FlowAgreement = artifacts.require("FlowAgreement");
 const SuperToken = artifacts.require("SuperToken");
 const ERC20Mintable = artifacts.require("ERC20Mintable");
+const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
     web3tx,
@@ -11,7 +11,6 @@ const {
 const traveler = require("ganache-time-traveler");
 
 const ADV_TIME = 2;
-const FLOW_PER_SECOND = 0;
 const FLOW_RATE = toWad(1);
 
 contract("Flow Agreement", accounts => {
@@ -66,7 +65,6 @@ contract("Flow Agreement", accounts => {
             superToken.address,
             user1,
             user2,
-            FLOW_PER_SECOND,
             100, {
                 from: user1
             }
@@ -77,16 +75,14 @@ contract("Flow Agreement", accounts => {
         let stateUser1 = await superToken.getState.call(agreement.address, user1);
         let stateUser2 = await superToken.getState.call(agreement.address, user2);
 
-        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "uint256", "int256"], stateUser1);
-        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "uint256", "int256"], stateUser2);
+        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
+        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
 
-        assert.equal(splitUser1[0], FLOW_PER_SECOND, "User1 Flow type incorrect");
-        assert.equal(splitUser1[1], timestamp, "User1 start date don't match");
-        assert.equal(splitUser1[2], -100, "User 1 Flow Rate incorrect");
+        assert.equal(splitUser1[0], timestamp, "User1 start date don't match");
+        assert.equal(splitUser1[1], -100, "User 1 Flow Rate incorrect");
 
-        assert.equal(splitUser2[0], FLOW_PER_SECOND, "User 2 Flow type incorrect");
-        assert.equal(splitUser2[1], timestamp, "User2 start date don't match");
-        assert.equal(splitUser2[2], 100, "User2 Flow Rate incorrect");
+        assert.equal(splitUser2[0], timestamp, "User2 start date don't match");
+        assert.equal(splitUser2[1], 100, "User2 Flow Rate incorrect");
 
     });
 
@@ -101,15 +97,25 @@ contract("Flow Agreement", accounts => {
             superToken.address,
             user1,
             user2,
-            FLOW_PER_SECOND,
             FLOW_RATE, {
                 from: user1
             }
         );
 
+        const oldBlockNumber = await web3.eth.getBlockNumber();
+        let oldBlock = await web3.eth.getBlock(oldBlockNumber);
+
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
-        assert.equal(wad4human(await superToken.balanceOf.call(user2)), wad4human(ADV_TIME * FLOW_RATE), "Super balance incorrect");
+        const currentBlockNumber = await web3.eth.getBlockNumber();
+        let block = await web3.eth.getBlock(currentBlockNumber);
+
+        //avoid inconsistance times in differents tests runs
+        let adv = block.timestamp - oldBlock.timestamp;
+
+
+
+        assert.equal(wad4human(await superToken.balanceOf.call(user2)), wad4human(adv * FLOW_RATE), "Super balance incorrect");
     });
 });

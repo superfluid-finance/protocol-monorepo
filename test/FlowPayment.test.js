@@ -56,7 +56,6 @@ contract("FlowPayment", accounts => {
             superToken.address,
             user1,
             user2,
-            0 /* FLOW_PER_SECOND */,
             toWad(9.99),
             {
                 from: user1

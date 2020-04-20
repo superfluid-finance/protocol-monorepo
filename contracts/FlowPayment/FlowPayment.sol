@@ -1,7 +1,7 @@
 pragma solidity 0.6.6;
 
 import "../FlowAgreement.sol";
-import "../ISuperToken.sol";
+import "../interface/ISuperToken.sol";
 
 /**
  * @title Superfluid's agreement interface
@@ -20,9 +20,8 @@ contract FlowPayment {
         ISuperToken token,
         address sender,
         address receiver,
-        uint256 flowType,
         int256 flowRate) external {
-        flow.createFlow(token, sender, receiver, flowType, flowRate);
+        flow.createFlow(token, sender, receiver, flowRate);
     }
 
 }

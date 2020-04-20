@@ -1,6 +1,4 @@
-pragma solidity >= 0.5.0;
-
-import { ISuperToken } from "./ISuperToken.sol";
+pragma solidity 0.6.6;
 
 /**
  * @title Superfluid's agreement interface
@@ -9,7 +7,8 @@ import { ISuperToken } from "./ISuperToken.sol";
 interface ISuperAgreement {
 
     function balanceOf(bytes calldata state, uint256 time)
-        external pure
+        external
+        pure
         returns (int256 amount);
 
 }

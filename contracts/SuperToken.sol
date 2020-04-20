@@ -1,9 +1,9 @@
 pragma solidity 0.6.6;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ISuperToken } from "./ISuperToken.sol";
+import { IERC20 } from "./interface/IERC20.sol";
+import { ISuperToken } from "./interface/ISuperToken.sol";
 import "./ERC20Base.sol";
-import "./ISuperAgreement.sol";
+import "./interface/ISuperAgreement.sol";
 
 /**
  * @title Superfluid's token contract
@@ -85,6 +85,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         for (uint256 i = 0; i < _userToAgreements[account].length; i++) {
             /* solhint-disable not-rely-on-time, mark-callable-contracts */
+            //Atention : External call
             _agreeBalances += ISuperAgreement(_userToAgreements[account][0])
                 .balanceOf(
                     _dataAgreements[_userToAgreements[account][0]][account],

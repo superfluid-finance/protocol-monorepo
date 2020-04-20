@@ -1,6 +1,6 @@
 pragma solidity 0.6.6;
 
-import {SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 /*Basic implementation of ERC20 by OpenZeppelin, but without the Context addon*/
 

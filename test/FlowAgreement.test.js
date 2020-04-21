@@ -122,7 +122,7 @@ contract("Flow Agreement", accounts => {
 
         const {timestamp} = await web3.eth.getBlock("latest");
 
-        const addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [timestamp, 3]);
+        const addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [timestamp, "2000000000000000000"]);
 
         await web3tx(agreement.createFlow, "user1 -> user2 new Agreement")(
             superToken.address,
@@ -147,8 +147,7 @@ contract("Flow Agreement", accounts => {
         let adv_oldbalance = block.timestamp - oldBlock.timestamp;
 
         //Here we have 2 Token in balance, see the last test
-
-        await web3tx(agreement.updateState, "user1 -> user2 updating Agreement")(
+        await web3tx(agreement.updateFlow, "user1 -> user2 updating Agreement")(
             superToken.address,
             user1,
             user2,
@@ -167,12 +166,9 @@ contract("Flow Agreement", accounts => {
         block = await web3.eth.getBlock(currentBlockNumber);
 
         let adv_newBalance = block.timestamp - oldBlock.timestamp;
-
-
-        let totalBalance = (adv_oldbalance * FLOW_RATE) + (adv_newBalance * FLOW_RATE_UPDATED);
+        let totalBalance = (adv_oldbalance * FLOW_RATE) + (adv_newBalance * FLOW_RATE_UPDATED) + (adv_newBalance * FLOW_RATE);
 
         //We update the state to be 2 per second.
-
-        assert.equal(wad4human(await superToken.balanceOf.call(user2)), wad4human(totalBalance), "Update state - User2 don't add up");
+        assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Update state - User2 don't add up");
     });
 });

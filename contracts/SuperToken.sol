@@ -13,18 +13,12 @@ import "./interface/ISuperAgreement.sol";
  */
 contract SuperToken is ISuperToken, ERC20Base {
 
-    struct Account {
-        bytes debit;
-        bytes credit;
-    }
-
-    mapping(address => Account) private _accounts;
-
     //This is needed because when we change the starting timestamp
-    mapping(address => int256) private _balanceSnapshot;
+    mapping(address => mapping(address => int256)) private _balanceSnapshot;
 
     //Agreements => User => Data
     mapping(address => mapping(address => bytes)) private _dataAgreements;
+
     //Save the relation between user and aggrement contract
     mapping(address => address[]) private _userToAgreements;
 
@@ -80,13 +74,13 @@ contract SuperToken is ISuperToken, ERC20Base {
         if (_newSender) {
             _userToAgreements[sender].push(msg.sender);
         } else {
-            snapshot(sender);
+            _takeSnapshot(msg.sender, sender);
         }
 
         if (_newReciever) {
             _userToAgreements[receiver].push(msg.sender);
         } else {
-            snapshot(receiver);
+            _takeSnapshot(msg.sender, receiver);
         }
 
         _dataAgreements[msg.sender][sender] = senderState;
@@ -111,19 +105,22 @@ contract SuperToken is ISuperToken, ERC20Base {
         for (uint256 i = 0; i < _userToAgreements[account].length; i++) {
             /* solhint-disable not-rely-on-time, mark-callable-contracts */
             //Atention: External call
-            _agreeBalances += ISuperAgreement(_userToAgreements[account][0])
-                .balanceOf(
-                    _dataAgreements[_userToAgreements[account][0]][account],
-                    block.timestamp
-                );
+            _agreeBalances += ISuperAgreement(
+                _userToAgreements[account][i]
+            ).balanceOf(
+                _dataAgreements[_userToAgreements[account][i]][account],
+                block.timestamp
+            );
+
+            _agreeBalances += _balanceSnapshot[_userToAgreements[account][i]][account];
         }
 
-        return int256(_balances[account]) + _agreeBalances + _balanceSnapshot[account];
+        return int256(_balances[account]) + _agreeBalances;
     }
 
     /// @notice Save the balance until now
     /// @param account User to snapshot balance
-    function snapshot(address account) internal {
-        _balanceSnapshot[account] += balanceOf(account);
+    function _takeSnapshot(address agreementClass, address account) internal {
+        _balanceSnapshot[agreementClass][account] += balanceOf(account);
     }
 }

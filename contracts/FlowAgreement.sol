@@ -11,6 +11,8 @@ import "./interface/ISuperToken.sol";
  */
 contract FlowAgreement is SuperAgreementBase {
 
+    uint256 public constant UINT_LIMIT = uint256(-1);
+
     /// @notice Calculate the moving balance. This method don't calculate the real balance
     /// @dev Calculate balance based on the state and time
     /// @param state Bytes that save the agreement state
@@ -44,15 +46,15 @@ contract FlowAgreement is SuperAgreementBase {
         ISuperToken token,
         address sender,
         address receiver,
-        int256 flowRate
+        uint256 flowRate
     )
     external
     {
-        bytes memory senderNewFlow = encodeFlow(block.timestamp, -flowRate);
-        bytes memory receiverNewFlow = encodeFlow(block.timestamp, flowRate);
+        require(flowRate < (UINT_LIMIT / 2) - 1, "FlowRate not valid");
 
-        token.updateState(sender, senderNewFlow);
-        token.updateState(receiver, receiverNewFlow);
+        bytes memory _newReceiverState = encodeFlow(block.timestamp, int256(flowRate));
+        //Atention: External call
+        token.updateState(sender, receiver, mirrorState(_newReceiverState), _newReceiverState);
     }
 
     function composeState
@@ -70,6 +72,19 @@ contract FlowAgreement is SuperAgreementBase {
 
         int256 _newRate = _cRate + _aRate;
         return encodeFlow(_aTimestamp, _newRate);
+    }
+
+    /// @dev mirrorState reverts the flow rate maintains the same timestamp
+    function mirrorState(
+        bytes memory state
+    )
+        internal
+        pure
+        override
+        returns(bytes memory mirror)
+    {
+        (uint256 _startDate, int256 _flowRate) = decodeFlow(state);
+        return encodeFlow(_startDate, (-1 * _flowRate));
     }
 
     /// @dev Encode the parameters into a bytes type

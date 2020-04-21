@@ -12,8 +12,11 @@ interface ISuperToken {
             returns (bytes memory state);
 
     function updateState(
-            address account,
-            bytes calldata newState) external;
+        address sender,
+        address receiver,
+        bytes calldata senderState,
+        bytes calldata receiverState
+    ) external;
 
     function upgrade(uint256 amount) external;
 

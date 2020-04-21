@@ -61,6 +61,8 @@ contract("Super Token Behaviour", accounts => {
         try {
             await web3tx(superToken.updateState, "Invoking method directly")(
                 user1,
+                user2,
+                noise,
                 noise, {
                     from: user1
                 });

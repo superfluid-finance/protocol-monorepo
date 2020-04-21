@@ -20,6 +20,14 @@ contract SuperAgreementBase is ISuperAgreement {
         virtual
         returns (bytes memory newState);
 
+    function mirrorState(
+        bytes memory state
+    )
+        internal
+        pure
+        virtual
+        returns(bytes memory mirror);
+
     function getState(
         ISuperToken token,
         address account
@@ -33,13 +41,19 @@ contract SuperAgreementBase is ISuperAgreement {
 
     function updateState(
         ISuperToken token,
-        address account,
+        address sender,
+        address receiver,
         bytes memory additionalState
     )
-        internal
+        public
     {
-        bytes memory currentState = token.getState(address(this), account);
-        bytes memory newState = composeState(currentState, additionalState);
-        token.updateState(account, newState);
+        //sender
+        bytes memory _currentSenderState = token.getState(address(this), sender);
+        bytes memory _newSenderState = composeState(_currentSenderState, mirrorState(additionalState));
+        //receiver
+        bytes memory _currentReceiverState = token.getState(address(this), receiver);
+        bytes memory _newReceiverState = composeState(_currentReceiverState, additionalState);
+
+        token.updateState(sender, receiver, _newSenderState, _newReceiverState);
     }
 }

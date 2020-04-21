@@ -12,6 +12,7 @@ const traveler = require("ganache-time-traveler");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
+const FLOW_RATE_UPDATED = toWad(2);
 
 contract("Flow Agreement", accounts => {
 
@@ -114,8 +115,64 @@ contract("Flow Agreement", accounts => {
         //avoid inconsistance times in differents tests runs
         let adv = block.timestamp - oldBlock.timestamp;
 
-
-
         assert.equal(wad4human(await superToken.balanceOf.call(user2)), wad4human(adv * FLOW_RATE), "Super balance incorrect");
+    });
+
+    it("Should update a existing flow", async () => {
+
+        const {timestamp} = await web3.eth.getBlock("latest");
+
+        const addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [timestamp, 3]);
+
+        await web3tx(agreement.createFlow, "user1 -> user2 new Agreement")(
+            superToken.address,
+            user1,
+            user2,
+            FLOW_RATE, {
+                from: user1
+            }
+        );
+
+
+        let oldBlockNumber = await web3.eth.getBlockNumber();
+        let oldBlock = await web3.eth.getBlock(oldBlockNumber);
+
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
+
+        let currentBlockNumber = await web3.eth.getBlockNumber();
+        let block = await web3.eth.getBlock(currentBlockNumber);
+
+        //avoid inconsistance times in differents tests runs
+        let adv_oldbalance = block.timestamp - oldBlock.timestamp;
+
+        //Here we have 2 Token in balance, see the last test
+
+        await web3tx(agreement.updateState, "user1 -> user2 updating Agreement")(
+            superToken.address,
+            user1,
+            user2,
+            addicionalState, {
+                from: user1
+            }
+        );
+
+        oldBlockNumber = await web3.eth.getBlockNumber();
+        oldBlock = await web3.eth.getBlock(oldBlockNumber);
+
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
+
+        currentBlockNumber = await web3.eth.getBlockNumber();
+        block = await web3.eth.getBlock(currentBlockNumber);
+
+        let adv_newBalance = block.timestamp - oldBlock.timestamp;
+
+
+        let totalBalance = (adv_oldbalance * FLOW_RATE) + (adv_newBalance * FLOW_RATE_UPDATED);
+
+        //We update the state to be 2 per second.
+
+        assert.equal(wad4human(await superToken.balanceOf.call(user2)), wad4human(totalBalance), "Update state - User2 don't add up");
     });
 });

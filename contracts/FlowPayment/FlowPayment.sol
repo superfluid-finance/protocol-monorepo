@@ -20,7 +20,10 @@ contract FlowPayment {
         ISuperToken token,
         address sender,
         address receiver,
-        int256 flowRate) external {
+        uint256 flowRate
+    )
+        external
+    {
         flow.createFlow(token, sender, receiver, flowRate);
     }
 

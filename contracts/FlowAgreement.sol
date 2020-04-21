@@ -11,8 +11,6 @@ import "./interface/ISuperToken.sol";
  */
 contract FlowAgreement is SuperAgreementBase {
 
-    uint256 public constant UINT_LIMIT = uint256(-1);
-
     /// @notice Calculate the moving balance. This method don't calculate the real balance
     /// @dev Calculate balance based on the state and time
     /// @param state Bytes that save the agreement state

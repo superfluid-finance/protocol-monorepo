@@ -45,7 +45,7 @@ contract SuperAgreementBase is ISuperAgreement {
         address receiver,
         bytes memory additionalState
     )
-        public
+        internal
     {
         //sender
         bytes memory _currentSenderState = token.getState(address(this), sender);
@@ -53,7 +53,7 @@ contract SuperAgreementBase is ISuperAgreement {
         //receiver
         bytes memory _currentReceiverState = token.getState(address(this), receiver);
         bytes memory _newReceiverState = composeState(_currentReceiverState, additionalState);
-
+        //Atention: External call
         token.updateState(sender, receiver, _newSenderState, _newReceiverState);
     }
 }

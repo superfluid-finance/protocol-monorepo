@@ -48,7 +48,7 @@ contract FlowAgreement is SuperAgreementBase {
     )
     external
     {
-        require(flowRate < (UINT_LIMIT / 2) - 1, "FlowRate not valid");
+        require(flowRate < (uint256(-1) / 2) - 1, "FlowRate not valid");
 
         bytes memory _newReceiverState = encodeFlow(block.timestamp, int256(flowRate));
         //Atention: External call

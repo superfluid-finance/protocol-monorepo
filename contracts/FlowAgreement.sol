@@ -55,6 +55,20 @@ contract FlowAgreement is SuperAgreementBase {
         token.updateState(sender, receiver, mirrorState(_newReceiverState), _newReceiverState);
     }
 
+    function updateFlow
+    (
+        ISuperToken token,
+        address sender,
+        address receiver,
+        uint256 flowRate
+    )
+    public
+    {
+        require(flowRate < ((uint256(-1) / 2) - 1), "FlowRate not valid");
+
+        bytes memory _newState = encodeFlow(block.timestamp, int256(flowRate));
+        updateState(token, sender, receiver, _newState);
+    }
     function composeState
     (
         bytes memory currentState,

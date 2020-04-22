@@ -195,8 +195,6 @@ contract("Flow Agreement", accounts => {
         let currentBlockNumber = await web3.eth.getBlockNumber();
         let block = await web3.eth.getBlock(currentBlockNumber);
 
-        let snap = await superToken.debugSnap.call(agreement.address, user2);
-
         //avoid inconsistance times in differents tests runs
         let adv_oldbalance = block.timestamp - oldBlock.timestamp;
 
@@ -219,13 +217,8 @@ contract("Flow Agreement", accounts => {
         block = await web3.eth.getBlock(currentBlockNumber);
 
         let totalBalance = (adv_oldbalance * FLOW_RATE);
-        await traveler.advanceTime(ADV_TIME * 1000000);
+        await traveler.advanceTime(ADV_TIME * 10000);
         await traveler.advanceBlock();
-
-        let snap2 = await superToken.debugSnap.call(agreement.address, user2);
-
-        console.log("snap 1: ", snap.toString());
-        console.log("snap 2: ", snap2.toString());
 
         //We update the state to be 2 per second.
         assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Delete state - User2 don't add up");

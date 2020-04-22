@@ -22,6 +22,10 @@ contract SuperToken is ISuperToken, ERC20Base {
     //Save the relation between user and aggrement contract
     mapping(address => address[]) private _userToAgreements;
 
+    //Sender => Receiver => Agreement
+    //@notice We are only saving one part of the agreement, the other part is the mirrored value
+    mapping(address => mapping(address => bytes)) private _usersInAgreements;
+
     //Underlaying ERC20 token
     IERC20 private _token;
 
@@ -85,6 +89,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         _dataAgreements[msg.sender][sender] = senderState;
         _dataAgreements[msg.sender][receiver] = receiverState;
+        _usersInAgreements[sender][receiver] = senderState;
     }
 
     /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
@@ -116,6 +121,10 @@ contract SuperToken is ISuperToken, ERC20Base {
         }
 
         return int256(_balances[account]) + _agreeBalances;
+    }
+
+    function currentState(address sender, address receiver) external view override returns(bytes memory state) {
+        return _usersInAgreements[sender][receiver];
     }
 
     /// @notice Save the balance until now

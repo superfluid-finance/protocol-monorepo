@@ -79,6 +79,18 @@ contract FlowAgreement is SuperAgreementBase {
     {
         updateFlow(token, sender, receiver, 0);
     }
+    function getFlowRate(
+        ISuperToken token,
+        address sender,
+        address receiver
+    )
+        external
+        view
+        returns(int256 flowRate)
+    {
+        (, int256 _flowRate) = decodeFlow(token.currentState(sender, receiver));
+        return _flowRate;
+    }
     function composeState
     (
         bytes memory currentState,

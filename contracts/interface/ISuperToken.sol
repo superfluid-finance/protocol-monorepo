@@ -7,9 +7,12 @@ pragma solidity >= 0.6.6;
 interface ISuperToken {
 
     function getState(
-            address agreementClass,
-            address account) external view
-            returns (bytes memory state);
+        address agreementClass,
+        address account
+    )
+        external
+        view
+        returns (bytes memory state);
 
     function updateState(
         address sender,
@@ -20,4 +23,11 @@ interface ISuperToken {
 
     function upgrade(uint256 amount) external;
 
+    function currentState(
+        address sender,
+        address receiver
+    )
+        external
+        view
+        returns(bytes memory state);
 }

@@ -223,4 +223,39 @@ contract("Flow Agreement", accounts => {
         //We update the state to be 2 per second.
         assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Delete state - User2 don't add up");
     });
+
+    it("Create a new flow and Test FlowRate", async () => {
+
+        const finalFlowRate = "-2000000000000000100";
+
+        await web3tx(agreement.createFlow, "user1 -> user2 new agreement")(
+            superToken.address,
+            user1,
+            user2,
+            100, {
+                from: user1
+            }
+        );
+
+        let stateUser1 = await superToken.getState.call(agreement.address, user1);
+        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
+        let flowRate = await agreement.getFlowRate.call(superToken.address, user1, user2);
+
+        assert.equal(flowRate, splitUser1[1], 'FlowRate changed');
+
+        const {timestamp} = await web3.eth.getBlock("latest");
+        const addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [timestamp, "2000000000000000000"]);
+
+        await web3tx(agreement.updateFlow, "user1 -> user2 updating Agreement")(
+            superToken.address,
+            user1,
+            user2,
+            addicionalState, {
+                from: user1
+            }
+        );
+
+        flowRate = await agreement.getFlowRate.call(superToken.address, user1, user2);
+        assert.equal(flowRate, finalFlowRate, "Not getting the correct flow Rate");
+    });
 });

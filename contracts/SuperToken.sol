@@ -13,6 +13,14 @@ import "./interface/ISuperAgreement.sol";
  */
 contract SuperToken is ISuperToken, ERC20Base {
 
+    enum AccountType { Creditor, Debitor }
+
+    //keeping the same type for clarity
+    struct Account {
+        int256 creditFlow;
+        int256 debitFlow;
+    }
+
     //This is needed because when we change the starting timestamp
     mapping(address => mapping(address => int256)) private _balanceSnapshot;
 
@@ -25,6 +33,9 @@ contract SuperToken is ISuperToken, ERC20Base {
     //Sender => Receiver => Agreement
     //@notice We are only saving one part of the agreement, the other part is the mirrored value
     mapping(address => mapping(address => bytes)) private _usersInAgreements;
+
+    //Save the most recent account setting for queries
+    mapping(address => Account) private _userAccount;
 
     //Underlaying ERC20 token
     IERC20 private _token;
@@ -127,9 +138,33 @@ contract SuperToken is ISuperToken, ERC20Base {
         return _usersInAgreements[sender][receiver];
     }
 
+    function getAccountPosition(address account) external view returns(int256 creditor, int256 debitor) {
+        int256 _cred = _userAccount[account].creditFlow;
+        int256 _deb = _userAccount[account].debitFlow;
+        return (_cred, _deb);
+    }
+
     /// @notice Save the balance until now
     /// @param account User to snapshot balance
     function _takeSnapshot(address agreementClass, address account) internal {
         _balanceSnapshot[agreementClass][account] += balanceOf(account);
+    }
+
+    function _updateAccount(
+        AccountType actype,
+        address agreement,
+        address account,
+        bytes memory oldState,
+        bytes memory newState
+    )
+        internal
+    {
+        int256 _updateValue = ISuperAgreement(agreement).updateAccount(oldState, newState);
+        //if the account the sender
+        if(actype == AccountType.Creditor) {
+            _userAccount[account].creditFlow += _updateValue;
+        } else {
+            _userAccount[account].debitFlow += _updateValue;
+        }
     }
 }

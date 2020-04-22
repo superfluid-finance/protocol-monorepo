@@ -43,8 +43,7 @@ contract FlowAgreement is SuperAgreementBase {
     (
         ISuperToken token,
         address sender,
-        address receiver,
-        uint256 flowRate
+        address receiver, uint256 flowRate
     )
         external
     {
@@ -79,6 +78,7 @@ contract FlowAgreement is SuperAgreementBase {
     {
         updateFlow(token, sender, receiver, 0);
     }
+
     function getFlowRate(
         ISuperToken token,
         address sender,
@@ -91,6 +91,38 @@ contract FlowAgreement is SuperAgreementBase {
         (, int256 _flowRate) = decodeFlow(token.currentState(sender, receiver));
         return _flowRate;
     }
+
+    function getTotalInFlowRate(
+        ISuperToken token,
+        address sender
+    )
+        external
+    {
+    }
+
+    function getTotalOutFlowRate(
+        ISuperToken token,
+        address sender
+    )
+        external
+    {
+        //should check if token is approved
+    }
+
+
+    function updateAccount(
+        bytes memory oldState,
+        bytes memory newState
+    )
+        public
+        pure
+        override
+        returns(int256 flowRate)
+    {
+        (, int256 _flowRate) = decodeFlow(composeState(oldState, newState));
+        return _flowRate;
+    }
+
     function composeState
     (
         bytes memory currentState,

@@ -15,7 +15,7 @@ contract("FlowPayment", accounts => {
 
     const admin = accounts[0];
     const user1 = accounts[1];
-    const user2 = accounts[1];
+    const user2 = accounts[2];
 
     let token;
     let superToken;

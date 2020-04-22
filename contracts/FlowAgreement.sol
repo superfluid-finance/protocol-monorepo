@@ -46,7 +46,7 @@ contract FlowAgreement is SuperAgreementBase {
         address receiver,
         uint256 flowRate
     )
-    external
+        external
     {
         require(flowRate < (uint256(-1) / 2) - 1, "FlowRate not valid");
 
@@ -62,12 +62,22 @@ contract FlowAgreement is SuperAgreementBase {
         address receiver,
         uint256 flowRate
     )
-    public
+        public
     {
         require(flowRate < ((uint256(-1) / 2) - 1), "FlowRate not valid");
 
         bytes memory _newState = encodeFlow(block.timestamp, int256(flowRate));
         updateState(token, sender, receiver, _newState);
+    }
+
+    function deleteFlow(
+        ISuperToken token,
+        address sender,
+        address receiver
+    )
+        external
+    {
+        updateFlow(token, sender, receiver, 0);
     }
     function composeState
     (
@@ -82,7 +92,7 @@ contract FlowAgreement is SuperAgreementBase {
         (, int256 _cRate) = decodeFlow(currentState);
         (uint256 _aTimestamp, int256 _aRate) = decodeFlow(additionalState);
 
-        int256 _newRate = _cRate + _aRate;
+        int256 _newRate = _aRate == 0 ? 0 : _cRate + _aRate;
         return encodeFlow(_aTimestamp, _newRate);
     }
 

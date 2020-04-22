@@ -171,4 +171,63 @@ contract("Flow Agreement", accounts => {
         //We update the state to be 2 per second.
         assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Update state - User2 don't add up");
     });
+
+
+    it("Should delete an existing flow", async () => {
+
+
+        await web3tx(agreement.createFlow, "user1 -> user2 new Agreement")(
+            superToken.address,
+            user1,
+            user2,
+            FLOW_RATE, {
+                from: user1
+            }
+        );
+
+
+        let oldBlockNumber = await web3.eth.getBlockNumber();
+        let oldBlock = await web3.eth.getBlock(oldBlockNumber);
+
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
+
+        let currentBlockNumber = await web3.eth.getBlockNumber();
+        let block = await web3.eth.getBlock(currentBlockNumber);
+
+        let snap = await superToken.debugSnap.call(agreement.address, user2);
+
+        //avoid inconsistance times in differents tests runs
+        let adv_oldbalance = block.timestamp - oldBlock.timestamp;
+
+        //Here we have 2 Token in balance, see the last test
+        await web3tx(agreement.deleteFlow, "user1 -> user2 Delete an Agreement")(
+            superToken.address,
+            user1,
+            user2, {
+                from: user1
+            }
+        );
+
+        oldBlockNumber = await web3.eth.getBlockNumber();
+        oldBlock = await web3.eth.getBlock(oldBlockNumber);
+
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
+
+        currentBlockNumber = await web3.eth.getBlockNumber();
+        block = await web3.eth.getBlock(currentBlockNumber);
+
+        let totalBalance = (adv_oldbalance * FLOW_RATE);
+        await traveler.advanceTime(ADV_TIME * 1000000);
+        await traveler.advanceBlock();
+
+        let snap2 = await superToken.debugSnap.call(agreement.address, user2);
+
+        console.log("snap 1: ", snap.toString());
+        console.log("snap 2: ", snap2.toString());
+
+        //We update the state to be 2 per second.
+        assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Delete state - User2 don't add up");
+    });
 });

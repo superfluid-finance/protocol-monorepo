@@ -43,11 +43,12 @@ contract FlowAgreement is SuperAgreementBase {
     (
         ISuperToken token,
         address sender,
-        address receiver, uint256 flowRate
+        address receiver,
+        int256 flowRate
     )
         external
     {
-        require(flowRate < (uint256(-1) / 2) - 1, "FlowRate not valid");
+        //require(flowRate < (uint256(-1) / 2) - 1, "FlowRate not valid");
 
         bytes memory _newReceiverState = encodeFlow(block.timestamp, int256(flowRate));
         //Atention: External call
@@ -59,13 +60,13 @@ contract FlowAgreement is SuperAgreementBase {
         ISuperToken token,
         address sender,
         address receiver,
-        uint256 flowRate
+        int256 flowRate
     )
         public
     {
-        require(flowRate < ((uint256(-1) / 2) - 1), "FlowRate not valid");
+        //require(flowRate < ((uint256(-1) / 2) - 1), "FlowRate not valid");
 
-        bytes memory _newState = encodeFlow(block.timestamp, int256(flowRate));
+        bytes memory _newState = encodeFlow(block.timestamp, flowRate);
         updateState(token, sender, receiver, _newState);
     }
 
@@ -97,7 +98,12 @@ contract FlowAgreement is SuperAgreementBase {
         address sender
     )
         external
+        view
+        returns(int256)
     {
+        //should check if token is approved
+        (int256 creditor, ) = token.getAccountRateFlows(sender);
+        return creditor;
     }
 
     function getTotalOutFlowRate(
@@ -105,13 +111,15 @@ contract FlowAgreement is SuperAgreementBase {
         address sender
     )
         external
+        view
+        returns(int256)
     {
-        //should check if token is approved
+        //should check if token is  pproved
+        (, int256 debitor) = token.getAccountRateFlows(sender);
+        return debitor;
     }
 
-
     function updateAccount(
-        bytes memory oldState,
         bytes memory newState
     )
         public
@@ -119,7 +127,10 @@ contract FlowAgreement is SuperAgreementBase {
         override
         returns(int256 flowRate)
     {
-        (, int256 _flowRate) = decodeFlow(composeState(oldState, newState));
+
+        int256 _flowRate;
+        (, _flowRate) = decodeFlow(newState);
+
         return _flowRate;
     }
 
@@ -136,7 +147,7 @@ contract FlowAgreement is SuperAgreementBase {
         (, int256 _cRate) = decodeFlow(currentState);
         (uint256 _aTimestamp, int256 _aRate) = decodeFlow(additionalState);
 
-        int256 _newRate = _aRate == 0 ? 0 : _cRate + _aRate;
+        int256 _newRate = _aRate == 0 ? 0 : (_cRate + _aRate);
         return encodeFlow(_aTimestamp, _newRate);
     }
 

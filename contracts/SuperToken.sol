@@ -31,7 +31,6 @@ contract SuperToken is ISuperToken, ERC20Base {
     mapping(address => address[]) private _userToAgreements;
 
     //Sender => Receiver => Agreement
-    //@notice We are only saving one part of the agreement, the other part is the mirrored value
     mapping(address => mapping(address => bytes)) private _usersInAgreements;
 
     //Save the most recent account setting for queries
@@ -98,9 +97,18 @@ contract SuperToken is ISuperToken, ERC20Base {
             _takeSnapshot(msg.sender, receiver);
         }
 
+        //Must update accounts before changing the state
+        //_updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
+        //_updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
+
+        _updateAccount(AccountType.Debitor, msg.sender, sender, senderState);
+        _updateAccount(AccountType.Creditor, msg.sender, receiver, receiverState);
+
         _dataAgreements[msg.sender][sender] = senderState;
         _dataAgreements[msg.sender][receiver] = receiverState;
+
         _usersInAgreements[sender][receiver] = senderState;
+        _usersInAgreements[receiver][sender] = receiverState;
     }
 
     /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
@@ -138,7 +146,14 @@ contract SuperToken is ISuperToken, ERC20Base {
         return _usersInAgreements[sender][receiver];
     }
 
-    function getAccountPosition(address account) external view returns(int256 creditor, int256 debitor) {
+    function getAccountRateFlows(
+        address account
+    )
+        external
+        view
+        override
+        returns(int256 creditor, int256 debitor)
+    {
         int256 _cred = _userAccount[account].creditFlow;
         int256 _deb = _userAccount[account].debitFlow;
         return (_cred, _deb);
@@ -154,17 +169,16 @@ contract SuperToken is ISuperToken, ERC20Base {
         AccountType actype,
         address agreement,
         address account,
-        bytes memory oldState,
         bytes memory newState
     )
         internal
     {
-        int256 _updateValue = ISuperAgreement(agreement).updateAccount(oldState, newState);
-        //if the account the sender
-        if(actype == AccountType.Creditor) {
-            _userAccount[account].creditFlow += _updateValue;
+        int256 _updateValue = ISuperAgreement(agreement).updateAccount(newState);
+
+        if (actype == AccountType.Creditor) {
+            _userAccount[account].creditFlow = _updateValue;
         } else {
-            _userAccount[account].debitFlow += _updateValue;
+            _userAccount[account].debitFlow = _updateValue;
         }
     }
 }

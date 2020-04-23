@@ -20,7 +20,7 @@ contract FlowPayment {
         ISuperToken token,
         address sender,
         address receiver,
-        uint256 flowRate
+        int256 flowRate
     )
         external
     {

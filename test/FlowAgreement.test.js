@@ -36,6 +36,7 @@ contract("Flow Agreement", accounts => {
             {
                 from:admin
             });
+
         token = await web3tx(ERC20Mintable.new, "ERC20Mintable.new")(
             {
                 from: admin
@@ -56,6 +57,13 @@ contract("Flow Agreement", accounts => {
             superToken.address,
             MAX_UINT256, {
                 from: user1
+            }
+        );
+
+        await web3tx(token.approve, "token.approve from user1 to SuperToken")(
+            superToken.address,
+            MAX_UINT256, {
+                from: user2
             }
         );
     });
@@ -79,10 +87,10 @@ contract("Flow Agreement", accounts => {
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
 
-        assert.equal(splitUser1[0], timestamp, "User1 start date don't match");
+        assert.equal(splitUser1[0], timestamp, "User1 start date dont match");
         assert.equal(splitUser1[1], -100, "User 1 Flow Rate incorrect");
 
-        assert.equal(splitUser2[0], timestamp, "User2 start date don't match");
+        assert.equal(splitUser2[0], timestamp, "User2 start date dont match");
         assert.equal(splitUser2[1], 100, "User2 Flow Rate incorrect");
 
     });
@@ -221,7 +229,7 @@ contract("Flow Agreement", accounts => {
         await traveler.advanceBlock();
 
         //We update the state to be 2 per second.
-        assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Delete state - User2 don't add up");
+        assert.equal(wad4human(await superToken.balanceOf(user2)), wad4human(totalBalance), "Delete state - User2 dont add up");
     });
 
     it("Create a new flow and Test FlowRate", async () => {
@@ -241,7 +249,7 @@ contract("Flow Agreement", accounts => {
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
         let flowRate = await agreement.getFlowRate.call(superToken.address, user1, user2);
 
-        assert.equal(flowRate, splitUser1[1], 'FlowRate changed');
+        assert.equal(flowRate, splitUser1[1], "FlowRate changed");
 
         const {timestamp} = await web3.eth.getBlock("latest");
         const addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [timestamp, "2000000000000000000"]);
@@ -257,5 +265,77 @@ contract("Flow Agreement", accounts => {
 
         flowRate = await agreement.getFlowRate.call(superToken.address, user1, user2);
         assert.equal(flowRate, finalFlowRate, "Not getting the correct flow Rate");
+    });
+
+
+    it("Account Balances", async () => {
+
+        await web3tx(agreement.createFlow, "user1 -> user2 new agreement")(
+            superToken.address,
+            user1,
+            user2,
+            100, {
+                from: user1
+            }
+        );
+
+        let user1Debitor = await agreement.getTotalOutFlowRate.call(superToken.address, user1);
+        let user1Creditor = await agreement.getTotalInFlowRate.call(superToken.address, user1);
+
+        let user2Debitor = await agreement.getTotalOutFlowRate.call(superToken.address, user2);
+        let user2Creditor = await agreement.getTotalInFlowRate.call(superToken.address, user2);
+
+        //at this stage the user 1 should have a debit of -100 and 0 credits
+        assert.equal(user1Debitor, -100, "User 1 Debit account not correct");
+        assert.equal(user1Creditor, 0, "User 1 Credit account nor correct");
+
+        //at this state user 2 should have a credit of +100 and debit of 0
+        assert.equal(user2Debitor, 0, "User 2 Debit account not correct");
+        assert.equal(user2Creditor, 100, "User 2 Credit account nor correct");
+
+        await web3tx(agreement.createFlow, "user2 -> user1 update agreement")(
+            superToken.address,
+            user2,
+            user1,
+            1000, {
+                from: user2
+            }
+        );
+
+        user1Debitor = await agreement.getTotalOutFlowRate.call(superToken.address, user1);
+        user1Creditor = await agreement.getTotalInFlowRate.call(superToken.address, user1);
+        user2Debitor = await agreement.getTotalOutFlowRate.call(superToken.address, user2);
+        user2Creditor = await agreement.getTotalInFlowRate.call(superToken.address, user2);
+
+        //at this stage the user 1 should have a debit of -100 and 1000 credits
+        assert.equal(user1Debitor, -100, "User 1 Debit account not correct");
+        assert.equal(user1Creditor, 1000, "User 1 Credit account nor correct");
+
+        //at this state user 2 should have a credit of +100 and debit of -1000
+        assert.equal(user2Debitor, -1000, "User 2 Debit account not correct");
+        assert.equal(user2Creditor, 100, "User 2 Credit account nor correct");
+
+        await web3tx(agreement.updateFlow, "user2 -> user1 update agreement")(
+            superToken.address,
+            user2,
+            user1,
+            -102, {
+                from: user2
+            }
+        );
+
+        user1Debitor = await agreement.getTotalOutFlowRate.call(superToken.address, user1);
+        user1Creditor = await agreement.getTotalInFlowRate.call(superToken.address, user1);
+
+        user2Debitor = await agreement.getTotalOutFlowRate.call(superToken.address, user2);
+        user2Creditor = await agreement.getTotalInFlowRate.call(superToken.address, user2);
+
+        //at this stage the user 1 should have a debit of -100 and 898 credits
+        assert.equal(user1Debitor, -100, "User 1 Debit account not correct");
+        assert.equal(user1Creditor, 898, "User 1 Credit account nor correct");
+
+        //at this state user 2 should have a credit of +100 and debit of -898
+        assert.equal(user2Debitor, -898, "User 2 Debit account not correct");
+        assert.equal(user2Creditor, 100, "User 2 Credit account nor correct");
     });
 });

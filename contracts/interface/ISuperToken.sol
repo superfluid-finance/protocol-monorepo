@@ -30,4 +30,11 @@ interface ISuperToken {
         external
         view
         returns(bytes memory state);
+
+    function getAccountRateFlows(
+        address account
+    )
+        external
+        view
+        returns(int256 creditor, int256 debitor);
 }

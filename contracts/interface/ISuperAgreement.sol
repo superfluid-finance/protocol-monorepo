@@ -12,11 +12,9 @@ interface ISuperAgreement {
         returns (int256 amount);
 
     function updateAccount(
-        bytes calldata oldState,
         bytes calldata newState
     )
         external
         pure
         returns(int256 flowRate);
-
 }

@@ -10,10 +10,6 @@ const {
 
 const traveler = require("ganache-time-traveler");
 
-const ADV_TIME = 2;
-const FLOW_RATE = toWad(1);
-const FLOW_RATE_UPDATED = toWad(2);
-
 contract("Flow Agreement Stories", accounts => {
 
     const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
@@ -74,8 +70,6 @@ contract("Flow Agreement Stories", accounts => {
         console.log("Spotifai Price: ", SpotifaiPricePerSecond.toString());
         console.log("Zoomer Price: ", ZoomerPricePerSecond.toString());
 
-        const {timestamp} = await web3.eth.getBlock("latest");
-
         await web3tx(agreement.createFlow, "User1 -> Netflic new Agreement")(
             superToken.address,
             user1,
@@ -119,7 +113,7 @@ contract("Flow Agreement Stories", accounts => {
         console.log("zoomer: ", wad4human(zomBalance));
 
         // User receives the bill and think he is paying to much for Zoomer
-        await web3tx(agreement.deleteFlow, 'User1  -> Zoomer Cancel Subscription')(
+        await web3tx(agreement.deleteFlow, "User1  -> Zoomer Cancel Subscription")(
             superToken.address,
             user1,
             Zoomer, {
@@ -142,7 +136,7 @@ contract("Flow Agreement Stories", accounts => {
 
         //User upgrade netflic to family pack - more 5 DAI per month
         let NetflicFamilyAddOn = toWad(5 / 30 / 24 /3600);
-        await web3tx(agreement.updateFlow, 'User1 -> Netfic Upgrade Subscription')(
+        await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
             user1,
             Netflic,
@@ -165,7 +159,7 @@ contract("Flow Agreement Stories", accounts => {
         console.log("zoomer: ", wad4human(zomBalance));
 
         //User dicover that he can listen to music on youfube for free
-        await web3tx(agreement.deleteFlow, 'User1  -> Spotifai Cancel Subscription')(
+        await web3tx(agreement.deleteFlow, "User1  -> Spotifai Cancel Subscription")(
             superToken.address,
             user1,
             Spotifai, {
@@ -187,7 +181,7 @@ contract("Flow Agreement Stories", accounts => {
         console.log("zoomer: ", wad4human(zomBalance));
 
         //User downgrade the Netflic family pack
-        await web3tx(agreement.updateFlow, 'User1 -> Netfic Upgrade Subscription')(
+        await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
             user1,
             Netflic,

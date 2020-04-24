@@ -30,7 +30,7 @@ contract FlowAgreement is SuperAgreementBase {
         int256 _flowRate;
 
         (_startDate, _flowRate) = decodeFlow(state);
-        return int256(time - _startDate) * _flowRate;
+        return int256(time - _startDaate) * _flowRate;
     }
 
     /// @notice Create a new flow between two users
@@ -48,8 +48,6 @@ contract FlowAgreement is SuperAgreementBase {
     )
         external
     {
-        //require(flowRate < (uint256(-1) / 2) - 1, "FlowRate not valid");
-
         bytes memory _newReceiverState = encodeFlow(block.timestamp, int256(flowRate));
         //Atention: External call
         token.updateState(sender, receiver, mirrorState(_newReceiverState), _newReceiverState);
@@ -64,8 +62,6 @@ contract FlowAgreement is SuperAgreementBase {
     )
         public
     {
-        //require(flowRate < ((uint256(-1) / 2) - 1), "FlowRate not valid");
-
         bytes memory _newState = encodeFlow(block.timestamp, flowRate);
         updateState(token, sender, receiver, _newState);
     }
@@ -114,7 +110,7 @@ contract FlowAgreement is SuperAgreementBase {
         view
         returns(int256)
     {
-        //should check if token is  pproved
+        //should check if token is  approved
         (, int256 debitor) = token.getAccountRateFlows(sender);
         return debitor;
     }

@@ -33,27 +33,28 @@ jobs:
         npm run build
         npm run test
 
-  # coverage:
-  # 
-  #   runs-on: ubuntu-latest
-  # 
-  #   steps:
-  # 
-  #   - uses: actions/checkout@v1
-  # 
-  #   - name: Use Node.js 12.x
-  #     uses: actions/setup-node@v1
-  #     with:
-  #       node-version: 12.x
-  # 
-  #   - name: npm install, build, and test
-  #     run: |
-  #       npm ci
-  #       npm run test-coverage
-  # 
-  #   - name: Coveralls
-  #     # only report coverage for master branch push
-  #     if: github.event_name  == 'push'
-  #     uses: coverallsapp/github-action@master
-  #     with:
-  #       github-token: ${{ secrets.GITHUB_TOKEN }}
+  coverage:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v1
+
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: npm install, build, and test
+      run: |
+        npm ci
+        npm run test-coverage
+
+    - name: Create coverage artifact
+      # only report coverage for master branch push
+      if: github.event_name  == 'push'
+      uses: actions/upload-artifact@v1
+      with:
+        name: coverage
+        path: coverage

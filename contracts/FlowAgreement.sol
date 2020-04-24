@@ -30,7 +30,7 @@ contract FlowAgreement is SuperAgreementBase {
         int256 _flowRate;
 
         (_startDate, _flowRate) = decodeFlow(state);
-        return int256(time - _startDaate) * _flowRate;
+        return int256(time - _startDate) * _flowRate;
     }
 
     /// @notice Create a new flow between two users

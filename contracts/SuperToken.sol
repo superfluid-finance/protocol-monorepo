@@ -101,8 +101,8 @@ contract SuperToken is ISuperToken, ERC20Base {
         //_updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
         //_updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
 
-        _updateAccount(AccountType.Debitor, msg.sender, sender, senderState);
-        _updateAccount(AccountType.Creditor, msg.sender, receiver, receiverState);
+        _updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
+        _updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
 
         _dataAgreements[msg.sender][sender] = senderState;
         _dataAgreements[msg.sender][receiver] = receiverState;
@@ -169,16 +169,19 @@ contract SuperToken is ISuperToken, ERC20Base {
         AccountType actype,
         address agreement,
         address account,
+        bytes memory oldState,
         bytes memory newState
     )
         internal
     {
+        //Atention: External calls
         int256 _updateValue = ISuperAgreement(agreement).updateAccount(newState);
+        int256 _oldValue = oldState.length == 0 ? 0 : ISuperAgreement(agreement).updateAccount(oldState);
 
         if (actype == AccountType.Creditor) {
-            _userAccount[account].creditFlow = _updateValue;
+            _userAccount[account].creditFlow += (_updateValue - _oldValue);
         } else {
-            _userAccount[account].debitFlow = _updateValue;
+            _userAccount[account].debitFlow += (_updateValue - _oldValue);
         }
     }
 }

@@ -48,9 +48,7 @@ contract FlowAgreement is SuperAgreementBase {
     )
         external
     {
-        bytes memory _newReceiverState = encodeFlow(block.timestamp, int256(flowRate));
-        //Atention: External call
-        token.updateState(sender, receiver, mirrorState(_newReceiverState), _newReceiverState);
+        updateFlow(token, sender, receiver, flowRate);
     }
 
     function updateFlow
@@ -140,9 +138,14 @@ contract FlowAgreement is SuperAgreementBase {
         override
         returns (bytes memory newState)
     {
-        (, int256 _cRate) = decodeFlow(currentState);
-        (uint256 _aTimestamp, int256 _aRate) = decodeFlow(additionalState);
+        int256 _cRate;
+        //We are not updating a new flow
+        if (currentState.length != 0) {
+            (, _cRate) = decodeFlow(currentState);
 
+        } 
+        
+        (uint256 _aTimestamp, int256 _aRate) = decodeFlow(additionalState);
         int256 _newRate = _aRate == 0 ? 0 : (_cRate + _aRate);
         return encodeFlow(_aTimestamp, _newRate);
     }

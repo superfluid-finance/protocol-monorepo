@@ -23,7 +23,7 @@ contract("Super Token", accounts => {
     });
 
     beforeEach(async () => {
-        token = await web3tx(ERC20Mintable.new, "ERC20Mintable.new")(
+        token = await web3tx(ERC20Mintable.new, "Call: ERC20Mintable.new")(
             {
                 from: admin
             });
@@ -31,7 +31,7 @@ contract("Super Token", accounts => {
         await token.mint(user1, toWad(10));
         await token.mint(user2, toWad(10));
 
-        superToken = await web3tx(SuperToken.new, "SuperToken.new")(
+        superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             token.address,
             "SuperToken",
             "STK",
@@ -39,7 +39,7 @@ contract("Super Token", accounts => {
                 from: admin
             });
 
-        await web3tx(token.approve, "token.approve from user1 to SuperToken")(
+        await web3tx(token.approve, "Call: ERC20Mintable.approve - from user1 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user1
@@ -47,7 +47,7 @@ contract("Super Token", accounts => {
         );
 
 
-        await web3tx(token.approve, "token.approve from user2 to SuperToken")(
+        await web3tx(token.approve, "Call: ERC20Mintable.approve - from user2 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user2
@@ -59,16 +59,16 @@ contract("Super Token", accounts => {
 
         let initialBalance = await token.balanceOf.call(user1);
 
-        await web3tx(superToken.upgrade, "SuperToken upgrade from user1") (
+        await web3tx(superToken.upgrade, "Call. SuperToken.upgrade - from user1") (
             toWad(2), {
                 from: user1
             });
 
         let finalBalance = await token.balanceOf.call(user1);
 
-        assert.isOk(initialBalance.gt(finalBalance), "Token balance is wrong");
+        assert.isOk(initialBalance.gt(finalBalance), "Call: ERC20Mintable.balanceOf - is wrong");
 
-        assert.equal(wad4human(await superToken.balanceOf.call(user1)), "2.00000", "SuperToken balance is wrong");
+        assert.equal(wad4human(await superToken.balanceOf.call(user1)), "2.00000", "Call: SuperToken.balanceOf -  balance is wrong");
 
     });
 });

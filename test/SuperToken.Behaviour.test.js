@@ -38,7 +38,7 @@ contract("Super Token Behaviour", accounts => {
                 from: admin
             });
 
-        await web3tx(token.approve, "token.approve from user1 to SuperToken")(
+        await web3tx(token.approve, "Call: ERC20Mintable.approve - from user1 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user1
@@ -46,7 +46,7 @@ contract("Super Token Behaviour", accounts => {
         );
 
 
-        await web3tx(token.approve, "token.approve from user2 to SuperToken")(
+        await web3tx(token.approve, "Call: ERC20Mintabl.approve - from user2 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user2
@@ -59,7 +59,7 @@ contract("Super Token Behaviour", accounts => {
         let noise = "0x00000000000000000001";
         let emitError = false;
         try {
-            await web3tx(superToken.updateState, "Invoking method directly")(
+            await web3tx(superToken.updateState, "Call: SuperToken.updateState - Invoking method directly")(
                 user1,
                 user2,
                 noise,
@@ -74,7 +74,7 @@ contract("Super Token Behaviour", accounts => {
         }
 
         if(!emitError) {
-            throw ("error not emitted");
+            throw ("Call: SuperToken.updateState - error not emitted");
         }
     });
 

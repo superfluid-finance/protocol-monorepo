@@ -10,18 +10,19 @@
         "@truffle/contract": "4.2.0"
     },
     "devDependencies": {
-        "dotenv": "8.2.0",
-        "@truffle/hdwallet-provider": "1.0.34",
-        "@openzeppelin/test-helpers": "0.5.5",
         "@decentral.ee/web3-test-helpers": "0.2.4",
+        "@openzeppelin/test-helpers": "0.5.5",
+        "@truffle/hdwallet-provider": "1.0.34",
+        "dotenv": "8.2.0",
+        "eslint": "6.8.0",
+        "ganache-time-traveler": "^1.0.14",
+        "npm-run-all": "4.1.5",
         "sol-proxy": "0.1.2",
         "solhint": "2.3.1",
         "solidity-coverage": "0.7.4",
         "truffle": "5.1.21",
         "truffle-flattener": "1.4.2",
-        "truffle-plugin-verify": "0.3.10",
-        "eslint": "6.8.0",
-        "npm-run-all": "4.1.5"
+        "truffle-plugin-verify": "0.3.10"
     },
     "scripts": {
         "build": "run-s build:*",
@@ -34,6 +35,6 @@
         "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
         "lint": "run-s lint:*",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-        "lint:sol": "solhint contracts/*.sol && echo '✔  Your .sol files look good.'"
+        "lint:sol": "solhint -w 0 contracts/*.sol && echo '✔  Your .sol files look good.'"
     }
 }

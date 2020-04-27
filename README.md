@@ -79,8 +79,29 @@ Each contracts test suite is named as `test/ContractName.test.js`.
 
 Package test is for other packages that use this package as a dependency.
 
-Code Coveraege
+
+Scenario Script
 --------------
+
+The is one folder inside the test directory that contains the scenario scripts.
+This script are not unit testing, but provide some information about the system scope and interactions.
+
+```
+$ truffle test test/bbox/*.js
+```
+
+This step is not integraded with the unit test because they are time consuming scripts.
+
+Code Coverage
+--------------
+
+To run the coverage tests please use:
+
+```
+$ truffle run coverage
+```
+
+This step is not integraded with the unit test because of the time it consumes to execute.
 
 Integration Steps
 -----------------

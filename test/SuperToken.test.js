@@ -1,11 +1,18 @@
 const SuperToken = artifacts.require("SuperToken");
 const ERC20Mintable = artifacts.require("ERC20Mintable");
+const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
     web3tx,
     wad4human,
     toWad
 } = require("@decentral.ee/web3-test-helpers");
+
+const traveler = require("ganache-time-traveler");
+
+const ADV_TIME = 2;
+const FLOW_RATE = toWad(1);
+const INI_BALANCE = toWad(10);
 
 contract("Super Token", accounts => {
 
@@ -17,19 +24,22 @@ contract("Super Token", accounts => {
 
     let token;
     let superToken;
+    let agreement;
 
     before(async () => {
         console.log("admin is %s \nuser1 is %s \nuser2 is %s", admin, user1, user2);
     });
 
     beforeEach(async () => {
+
         token = await web3tx(ERC20Mintable.new, "Call: ERC20Mintable.new")(
             {
                 from: admin
             });
 
-        await token.mint(user1, toWad(10));
-        await token.mint(user2, toWad(10));
+        await token.mint(user1, INI_BALANCE);
+        await token.mint(user2, INI_BALANCE);
+        await token.mint(admin, INI_BALANCE);
 
         superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             token.address,
@@ -39,13 +49,19 @@ contract("Super Token", accounts => {
                 from: admin
             });
 
+        await web3tx(token.approve, "Call: ERC20Mintable.approve - from admin to SuperToken")(
+            superToken.address,
+            MAX_UINT256, {
+                from: admin
+            }
+        );
+
         await web3tx(token.approve, "Call: ERC20Mintable.approve - from user1 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user1
             }
         );
-
 
         await web3tx(token.approve, "Call: ERC20Mintable.approve - from user2 to SuperToken")(
             superToken.address,
@@ -69,6 +85,89 @@ contract("Super Token", accounts => {
         assert.isOk(initialBalance.gt(finalBalance), "Call: ERC20Mintable.balanceOf - is wrong");
 
         assert.equal(wad4human(await superToken.balanceOf.call(user1)), "2.00000", "Call: SuperToken.balanceOf -  balance is wrong");
+
+    });
+
+    it("Downgrade ERC20 Token", async () => {
+
+        let initialBalance = await token.balanceOf.call(user1);
+        let initialSuperBalance = await superToken.balanceOf.call(user1);
+
+        await superToken.upgrade(toWad(2), {from: user1});
+
+        await web3tx(superToken.downgrade, "Call. SuperToken.downgrade - from user1") (
+            toWad(2), {
+                from: user1
+            });
+
+        let finalBalance = await token.balanceOf.call(user1);
+        let finalSuperBalance = await superToken.balanceOf.call(user1);
+
+        assert.equal(wad4human(initialBalance), wad4human(finalBalance), "Call: ERC20Mintable.balanceOf - not correct");
+        assert.equal(wad4human(initialSuperBalance), wad4human(finalSuperBalance), "Call: SuperToken.balanceOf - not correct");
+
+    });
+
+    it("Downgrade ERC20 Token with other users", async () => {
+
+        let initialBalanceUser1 = await token.balanceOf.call(user1);
+        let initialSuperBalanceUser1 = await superToken.balanceOf.call(user1);
+
+
+        await superToken.upgrade(toWad(2), {from: user1});
+        await superToken.upgrade(toWad(1), {from: user2});
+
+        let initialSuperBalanceUser2 = await superToken.balanceOf.call(user2);
+
+        await web3tx(superToken.downgrade, "Call. SuperToken.downgrade - from user1") (
+            toWad(2), {
+                from: user1
+            });
+
+        let finalBalanceUser1 = await token.balanceOf.call(user1);
+        let finalSuperBalanceUser1 = await superToken.balanceOf.call(user1);
+
+        let finalSuperBalanceUser2 = await superToken.balanceOf.call(user2);
+
+        assert.equal(wad4human(initialBalanceUser1), wad4human(finalBalanceUser1), "Call: ERC20Mintable.balanceOf - not correct for user 1");
+        assert.equal(wad4human(initialSuperBalanceUser1), wad4human(finalSuperBalanceUser1), "Call: SuperToken.balanceOf - not correct for user 1");
+        assert.equal(wad4human(initialSuperBalanceUser2), wad4human(finalSuperBalanceUser2), "Call: SuperToken.balanceOf - not correct for user 2");
+    });
+
+    it("Downgrade token in running flows", async() => {
+
+
+        await superToken.upgrade(toWad(10), {from : admin});
+
+        agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")(
+            {
+                from:admin
+            });
+
+        await agreement.createFlow(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
+
+        let finalSuperBalance = await superToken.balanceOf.call(user2);
+
+        const finalBalance = INI_BALANCE.add(finalSuperBalance);
+
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
+            finalSuperBalance, {
+                from: user2
+            }
+        );
+
+        let userBalance = await token.balanceOf.call(user2);
+        assert.ok(userBalance.eq(finalBalance), "User 2 token balance is not correct");
+
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
+
+        finalSuperBalance = await superToken.balanceOf.call(user2);
+
+        assert.equal(wad4human(finalSuperBalance), wad4human(ADV_TIME * FLOW_RATE));
 
     });
 });

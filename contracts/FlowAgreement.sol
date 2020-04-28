@@ -51,6 +51,12 @@ contract FlowAgreement is SuperAgreementBase {
         updateFlow(token, sender, receiver, flowRate);
     }
 
+    /// @notice Update an flow between two users
+    /// @dev This function will make a external call to register the agreement
+    /// @param token Contract of the the SuperToken that will manage the agreement
+    /// @param sender Who is sending SuperToken
+    /// @param receiver Who is receiving SuperToken
+    /// @param flowRate What is the updated periodicity of payments
     function updateFlow
     (
         ISuperToken token,
@@ -64,6 +70,11 @@ contract FlowAgreement is SuperAgreementBase {
         updateState(token, sender, receiver, _newState);
     }
 
+    /// @notice Delete an flow between two users
+    /// @dev This function will make a external call to delete the agreement
+    /// @param token Contract of the the SuperToken that will manage the agreement
+    /// @param sender Who is sending SuperToken
+    /// @param receiver Who is receiving SuperToken
     function deleteFlow(
         ISuperToken token,
         address sender,
@@ -74,6 +85,11 @@ contract FlowAgreement is SuperAgreementBase {
         updateFlow(token, sender, receiver, 0);
     }
 
+    /// @notice Gets the flow between two users
+    /// @dev This function will make a external call to get the agreement data
+    /// @param token Contract of the the SuperToken that will manage the agreement
+    /// @param sender Who is sending SuperToken
+    /// @param receiver Who is receiving SuperToken
     function getFlowRate(
         ISuperToken token,
         address sender,
@@ -87,32 +103,43 @@ contract FlowAgreement is SuperAgreementBase {
         return _flowRate;
     }
 
+    /// @notice Gets the total in flow rate to the user 
+    /// @dev This function will make a external call to get the agreement data
+    /// @param account to query 
     function getTotalInFlowRate(
         ISuperToken token,
-        address sender
+        address account
     )
         external
         view
         returns(int256)
     {
         //should check if token is approved
-        (int256 creditor, ) = token.getAccountRateFlows(sender);
+        (int256 creditor, ) = token.getAccountRateFlows(account);
         return creditor;
     }
 
+    /// @notice Gets the total out flow rate to the user 
+    /// @dev This function will make a external call to get the agreement data
+    /// @param account to query 
+    /// @return total of out flow rate
     function getTotalOutFlowRate(
         ISuperToken token,
-        address sender
+        address account
     )
         external
         view
         returns(int256)
     {
         //should check if token is  approved
-        (, int256 debitor) = token.getAccountRateFlows(sender);
+        (, int256 debitor) = token.getAccountRateFlows(account);
         return debitor;
     }
 
+    /// @notice Extract the Flow rate from the given state.
+    /// @dev Call internal method `decodeFlow`
+    /// @param newState to query 
+    /// @return flowRate decoded
     function updateAccount(
         bytes memory newState
     )
@@ -128,6 +155,11 @@ contract FlowAgreement is SuperAgreementBase {
         return _flowRate;
     }
 
+    /// @notice Compose in one state the states passed as arguments.
+    /// @dev Will add the two state and update the `timestamp` to block.timestamp
+    /// @param currentState the user actual state of agreement
+    /// @param additionalState new state to be addeed to previous state
+    /// @return newState composed
     function composeState
     (
         bytes memory currentState,
@@ -143,13 +175,21 @@ contract FlowAgreement is SuperAgreementBase {
         if (currentState.length != 0) {
             (, _cRate) = decodeFlow(currentState);
 
-        } 
-        
+        }
+
         (uint256 _aTimestamp, int256 _aRate) = decodeFlow(additionalState);
         int256 _newRate = _aRate == 0 ? 0 : (_cRate + _aRate);
         return encodeFlow(_aTimestamp, _newRate);
     }
 
+    /// @notice touch the timestamp of the current aggreement, update only the `timestamp`
+    /// @param currentState is the user current state to be updated
+    /// @return newState updated
+    function touch(bytes memory currentState, uint256 timestamp) public pure override returns(bytes memory newState) {
+        (, int256 _cRate) = decodeFlow(currentState);
+        return encodeFlow(timestamp, _cRate);
+    }
+ 
     /// @dev mirrorState reverts the flow rate maintains the same timestamp
     function mirrorState(
         bytes memory state

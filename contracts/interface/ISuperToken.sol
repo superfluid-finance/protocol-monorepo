@@ -23,6 +23,8 @@ interface ISuperToken {
 
     function upgrade(uint256 amount) external;
 
+    function downgrade(uint256 amount) external;
+
     function currentState(
         address sender,
         address receiver

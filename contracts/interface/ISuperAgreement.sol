@@ -17,4 +17,9 @@ interface ISuperAgreement {
         external
         pure
         returns(int256 flowRate);
+
+    function touch(bytes calldata currentAgreement, uint256 timestamp)
+        external
+        pure
+        returns(bytes memory newState);
 }

@@ -98,11 +98,20 @@ contract SuperToken is ISuperToken, ERC20Base {
         }
 
         //Must update accounts before changing the state
-        //_updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
-        //_updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
+        _updateAccount(
+            AccountType.Debitor,
+            msg.sender, sender,
+            _dataAgreements[msg.sender][sender],
+            senderState
+        );
 
-        _updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
-        _updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
+        _updateAccount(
+            AccountType.Creditor,
+            msg.sender,
+            receiver,
+            _dataAgreements[msg.sender][receiver],
+            receiverState
+        );
 
         _dataAgreements[msg.sender][sender] = senderState;
         _dataAgreements[msg.sender][receiver] = receiverState;
@@ -116,6 +125,13 @@ contract SuperToken is ISuperToken, ERC20Base {
     function upgrade(uint256 amount) external override {
         _token.transferFrom(msg.sender, address(this), amount);
         _mint(msg.sender, amount);
+    }
+
+    function downgrade(uint256 amount) external override {
+        require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
+        _touch(msg.sender);
+        _burn(msg.sender, amount);
+        _token.transfer(msg.sender, amount);
     }
 
     /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
@@ -183,5 +199,33 @@ contract SuperToken is ISuperToken, ERC20Base {
         } else {
             _userAccount[account].debitFlow += (_updateValue - _oldValue);
         }
+    }
+
+    /// @notice this function is a bootstrap function to test the rest of smart contract
+    /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
+    function _touch(address account) internal {
+        address _endpoint;
+        bytes memory _touchState;
+        for (uint256 i = 0; i < _userToAgreements[account].length; i++) {
+            _endpoint = _userToAgreements[account][i];
+            _touchState = ISuperAgreement(_endpoint).touch(_dataAgreements[_endpoint][account], block.timestamp);
+            _dataAgreements[_endpoint][account] = _touchState;
+
+            _balanceSnapshot[_endpoint][account] = 0;
+        }
+
+    }
+
+    /// @notice is function is a bootstarp function to test the rest of smart contract
+    /// @notice will burn token that are not settled to user account
+    function _burn(address account, uint256 amount) internal override {
+        if (_balances[account] >= amount) {
+            _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        } else {
+            _balances[account] = 0;
+        }
+
+        _totalSupply = _totalSupply.sub(amount);
+        emit Transfer(account, address(0), amount);
     }
 }

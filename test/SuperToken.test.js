@@ -71,6 +71,28 @@ contract("Super Token", accounts => {
         );
     });
 
+    /*global afterEach*/
+    /*eslint no-undef: "error"*/
+    afterEach(async () => {
+
+        let adminTokenBalance = await token.balanceOf.call(admin);
+        let adminSuperTokenBalance = await superToken.balanceOf.call(admin);
+
+        let user1TokenBalance = await token.balanceOf.call(user1);
+        let user1SuperTokenBalance = await superToken.balanceOf.call(user1);
+
+        let user2TokenBalance = await token.balanceOf.call(user2);
+        let user2SuperTokenBalance = await superToken.balanceOf.call(user2);
+
+        console.log("Report: admin (%s) Token Balance: %s",admin, adminTokenBalance);
+        console.log("Report: admin (%s) SuperToken Balance: %s",admin, adminSuperTokenBalance);
+        console.log("Report: user 1 (%s) Token Balance: %s",user1, user1TokenBalance);
+        console.log("Report: user 1 (%s) SuperToken Balance: %s",user1, user1SuperTokenBalance);
+        console.log("Report: user 2 (%s) Token Balance: %s",user2, user2TokenBalance);
+        console.log("Report: user 2 (%s) SuperToken Balance: %s",user2, user2SuperTokenBalance);
+
+    });
+
     it("Upgrade ERC20 Token", async () => {
 
         let initialBalance = await token.balanceOf.call(user1);
@@ -137,7 +159,7 @@ contract("Super Token", accounts => {
     it("Downgrade token in running flows", async() => {
 
 
-        await superToken.upgrade(toWad(10), {from : admin});
+        await superToken.upgrade(toWad(10), {from : user1});
 
         agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")(
             {

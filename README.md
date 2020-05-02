@@ -90,7 +90,22 @@ This script are not unit testing, but provide some information about the system 
 $ truffle test test/bbox/*.js
 ```
 
-This step is not integraded with the unit test because they are time consuming scripts.
+Time tests Script
+--------------
+
+Testing smart contract with the factor of time is not a linear and can introduce non deterministic error when running tests.
+To give a more robust testing environment there is a script in the folder scripts that will run the tests x amount of times.
+
+```bash
+./consistency.sh 20
+```
+
+The argument of 20 tells to script to run 20x. The script will only output Errors.
+You should run before trying to execute the script.
+
+```bash
+chmod u+x consistency.sh
+```
 
 Code Coverage
 --------------

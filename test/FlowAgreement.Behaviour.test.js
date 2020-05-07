@@ -28,16 +28,15 @@ contract("Flow Agreement", accounts => {
 
         let noise = await web3.eth.abi.encodeParameter("uint256", 10);
         let emitError = false;
-
         try {
-            await agreement.updateAccount.call(noise);
+            await agreement.decodeFlow.call(noise);
         } catch(err) {
             emitError = true;
             assert.ok(err.toString().includes("invalid state"), "invalid state");
         }
 
         if(!emitError) {
-            throw ("Call: FlowAgreement.updateAccount - error not emitted");
+            throw ("Call: FlowAgreement.decodeFlow - error not emitted");
         }
     });
 });

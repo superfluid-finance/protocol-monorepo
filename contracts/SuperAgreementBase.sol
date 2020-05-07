@@ -1,5 +1,6 @@
 pragma solidity 0.6.6;
 
+
 import "./interface/ISuperAgreement.sol";
 import "./interface/ISuperToken.sol";
 
@@ -43,17 +44,19 @@ contract SuperAgreementBase is ISuperAgreement {
         ISuperToken token,
         address sender,
         address receiver,
+        bool termination,
         bytes memory additionalState
     )
         internal
     {
-        //Atention: External call
+        //Atention: External calls
         //sender
         bytes memory _currentSenderState = token.getState(address(this), sender);
         bytes memory _newSenderState = composeState(_currentSenderState, mirrorState(additionalState));
         //receiver
         bytes memory _currentReceiverState = token.getState(address(this), receiver);
         bytes memory _newReceiverState = composeState(_currentReceiverState, additionalState);
-        token.updateState(sender, receiver, _newSenderState, _newReceiverState);
+
+        token.updateState(sender, receiver, termination, _newSenderState, _newReceiverState);
     }
 }

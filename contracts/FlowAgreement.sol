@@ -67,7 +67,8 @@ contract FlowAgreement is SuperAgreementBase {
         public
     {
         bytes memory _newState = encodeFlow(block.timestamp, flowRate);
-        updateState(token, sender, receiver, _newState);
+        bool termination = flowRate == 0;
+        updateState(token, sender, receiver, termination, _newState);
     }
 
     /// @notice Delete an flow between two users
@@ -99,13 +100,13 @@ contract FlowAgreement is SuperAgreementBase {
         view
         returns(int256 flowRate)
     {
-        (, int256 _flowRate) = decodeFlow(token.currentState(sender, receiver));
+        (, int256 _flowRate) = decodeFlow(token.currentState(address(this), sender, receiver));
         return _flowRate;
     }
 
-    /// @notice Gets the total in flow rate to the user 
+    /// @notice Gets the total in flow rate to the user
     /// @dev This function will make a external call to get the agreement data
-    /// @param account to query 
+    /// @param account to query
     function getTotalInFlowRate(
         ISuperToken token,
         address account
@@ -119,9 +120,9 @@ contract FlowAgreement is SuperAgreementBase {
         return creditor;
     }
 
-    /// @notice Gets the total out flow rate to the user 
+    /// @notice Gets the total out flow rate to the user
     /// @dev This function will make a external call to get the agreement data
-    /// @param account to query 
+    /// @param account to query
     /// @return total of out flow rate
     function getTotalOutFlowRate(
         ISuperToken token,
@@ -134,25 +135,6 @@ contract FlowAgreement is SuperAgreementBase {
         //should check if token is  approved
         (, int256 debitor) = token.getAccountRateFlows(account);
         return debitor;
-    }
-
-    /// @notice Extract the Flow rate from the given state.
-    /// @dev Call internal method `decodeFlow`
-    /// @param newState to query 
-    /// @return flowRate decoded
-    function updateAccount(
-        bytes memory newState
-    )
-        public
-        pure
-        override
-        returns(int256 flowRate)
-    {
-
-        int256 _flowRate;
-        (, _flowRate) = decodeFlow(newState);
-
-        return _flowRate;
     }
 
     /// @notice Compose in one state the states passed as arguments.
@@ -189,7 +171,7 @@ contract FlowAgreement is SuperAgreementBase {
         (, int256 _cRate) = decodeFlow(currentState);
         return encodeFlow(timestamp, _cRate);
     }
- 
+
     /// @dev mirrorState reverts the flow rate maintains the same timestamp
     function mirrorState(
         bytes memory state
@@ -209,8 +191,9 @@ contract FlowAgreement is SuperAgreementBase {
         uint256 timestamp,
         int256 flowRate
     )
-        internal
+        public
         pure
+        override
         returns (bytes memory)
     {
         return abi.encodePacked(timestamp, flowRate);
@@ -221,15 +204,16 @@ contract FlowAgreement is SuperAgreementBase {
     (
         bytes memory state
     )
-        internal
+        public
         pure
+        override
         returns
     (
         uint256,
         int256
     )
     {
-        require(state.length == 64, "invalid state");
+        require(state.length == 64, "invalid state size");
         return abi.decode(state, (uint256, int256));
     }
 }

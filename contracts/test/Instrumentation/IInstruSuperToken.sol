@@ -16,6 +16,7 @@ interface IInstrSuperToken {
     (
         address sender,
         address receiver,
+        bool termination,
         bytes calldata senderState,
         bytes calldata receiverState
     )

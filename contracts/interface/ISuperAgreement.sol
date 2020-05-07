@@ -11,12 +11,9 @@ interface ISuperAgreement {
         pure
         returns (int256 amount);
 
-    function updateAccount(
-        bytes calldata newState
-    )
-        external
-        pure
-        returns(int256 flowRate);
+    function encodeFlow(uint256 timestamp, int256 flowRate) external pure returns(bytes memory state);
+
+    function decodeFlow(bytes calldata state) external pure returns(uint256, int256);
 
     function touch(bytes calldata currentAgreement, uint256 timestamp)
         external

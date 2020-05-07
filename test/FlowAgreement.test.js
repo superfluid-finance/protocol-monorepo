@@ -56,7 +56,7 @@ contract("Flow Agreement", accounts => {
                 from: admin
             });
 
-        superTokenDebug = await web3tx(InstruSuperToken.new, "Call InstruSuperToken.new")(
+        superTokenDebug = await web3tx(InstruSuperToken.new, "Call: InstruSuperToken.new")(
             superToken.address
         );
 
@@ -75,7 +75,7 @@ contract("Flow Agreement", accounts => {
         );
     });
 
-    it("Create a new flow", async () => {
+    it("#1.1 - Create a new flow - assert global state", async () => {
 
         let tx = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User2 new Agreement")(
             superToken.address,
@@ -101,7 +101,128 @@ contract("Flow Agreement", accounts => {
 
     });
 
-    it("Super Balance", async() => {
+    it("#1.2 - Create multiple flow - assert local state", async () => {
+
+        await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User2 new Agreement")(
+            superToken.address,
+            user1,
+            user2,
+            100, {
+                from: user1
+            }
+        );
+
+        await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User3 new Agreement")(
+            superToken.address,
+            user1,
+            user3,
+            10, {
+                from: user1
+            }
+        );
+
+        let u1ToU2LocalState = web3.eth.abi.decodeParameters(["uint256" ,"int256"], await superToken.currentState.call(agreement.address, user1, user2));
+        let u1ToU3LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user1, user3));
+        let u2ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user2, user1));
+        let u3ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user3, user1));
+
+        assert.equal(u1ToU2LocalState[1].toString(), "-100", "Call: SuperToken.currentState - User 1 -> User 2 state is not correct");
+        assert.equal(u2ToU1LocalState[1].toString(), "100", "Call: SuperToken.currentState - User 2 -> User 1 state is not correct");
+        assert.equal(u1ToU3LocalState[1].toString(), "-10", "Call: SuperToken.currentState - User 1 -> User 3 state is not correct");
+        assert.equal(u3ToU1LocalState[1].toString(), "10", "Call: SuperToken.currentState - User 3 -> User 1 state is not correct");
+
+        //Initial State
+        let addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [1, FLOW_RATE_UPDATED.toString()]);
+        let addicionalState2 = web3.eth.abi.encodeParameters(["uint256","int256"], [1, "5"]);
+
+        await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
+            superToken.address, user1,
+            user2,
+            addicionalState, {
+                from: user1
+            }
+        );
+
+        await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user3 updating Agreement")(
+            superToken.address,
+            user1,
+            user3,
+            addicionalState2, {
+                from: user1
+            }
+        );
+
+        u1ToU2LocalState = web3.eth.abi.decodeParameters(["uint256" ,"int256"], await superToken.currentState.call(agreement.address, user1, user2));
+        u1ToU3LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user1, user3));
+        u2ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user2, user1));
+        u3ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user3, user1));
+
+        assert.equal(u1ToU2LocalState[1].toString(), "-3000000000000000100", "Call: SuperToken.currentState - User 1 -> User 2 state is not correct");
+        assert.equal(u2ToU1LocalState[1].toString(), "3000000000000000100", "Call: SuperToken.currentState - User 2 -> User 1 state is not correct");
+        assert.equal(u1ToU3LocalState[1].toString(), "-15", "Call: SuperToken.currentState - User 1 -> User 3 state is not correct");
+        assert.equal(u3ToU1LocalState[1].toString(), "15", "Call: SuperToken.currentState - User 3 -> User 1 state is not correct");
+
+        addicionalState = web3.eth.abi.encodeParameters(["uint256","int256"], [1, "-500000000000000000"]);
+        addicionalState2 = web3.eth.abi.encodeParameters(["uint256","int256"], [1, "-15"]);
+
+        //Test update states - go to zero in one, upgrade the other
+        await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
+            superToken.address,
+            user1,
+            user2,
+            addicionalState, {
+                from: user1
+            }
+        );
+
+        await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
+            superToken.address,
+            user1,
+            user3,
+            addicionalState2, {
+                from: user1
+            }
+        );
+
+        u1ToU2LocalState = web3.eth.abi.decodeParameters(["uint256" ,"int256"], await superToken.currentState.call(agreement.address, user1, user2));
+        u1ToU3LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user1, user3));
+        u2ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user2, user1));
+        u3ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user3, user1));
+
+        assert.equal(u1ToU2LocalState[1].toString(), "-2500000000000000100", "Call: SuperToken.currentState - User 1 -> User 2 state is not correct");
+        assert.equal(u2ToU1LocalState[1].toString(), "2500000000000000100", "Call: SuperToken.currentState - User 2 -> User 1 state is not correct");
+        assert.equal(u1ToU3LocalState[1].toString(), "0", "Call: SuperToken.currentState - User 1 -> User 3 state is not correct");
+        assert.equal(u3ToU1LocalState[1].toString(), "0", "Call: SuperToken.currentState - User 3 -> User 1 state is not correct");
+
+        //Close all flows
+        await web3tx(agreement.deleteFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
+            superToken.address,
+            user1,
+            user2, {
+                from: user1
+            }
+        );
+
+        await web3tx(agreement.deleteFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
+            superToken.address,
+            user1,
+            user3, {
+                from: user1
+            }
+        );
+
+        u1ToU2LocalState = web3.eth.abi.decodeParameters(["uint256" ,"int256"], await superToken.currentState.call(agreement.address, user1, user2));
+        u1ToU3LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user1, user3));
+        u2ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user2, user1));
+        u3ToU1LocalState = web3.eth.abi.decodeParameters(["uint256", "int256"], await superToken.currentState.call(agreement.address, user3, user1));
+
+        assert.equal(u1ToU2LocalState[1].toString(), "0", "Call: SuperToken.currentState - User 1 -> User 2 state is not correct");
+        assert.equal(u2ToU1LocalState[1].toString(), "0", "Call: SuperToken.currentState - User 2 -> User 1 state is not correct");
+        assert.equal(u1ToU3LocalState[1].toString(), "0", "Call: SuperToken.currentState - User 1 -> User 3 state is not correct");
+        assert.equal(u3ToU1LocalState[1].toString(), "0", "Call: SuperToken.currentState - User 3 -> User 1 state is not correct");
+    });
+
+    it("#2 - Super Balance - assert user final balance", async() => {
 
         await web3tx(superToken.upgrade, "Call: SuperToken.upgrade - From user1") (
             toWad(2), {
@@ -128,7 +249,7 @@ contract("Flow Agreement", accounts => {
         assert.equal(result.balance, finalBalance, "Call: SuperToken.balanceOf - User 2 Super balance incorrect");
     });
 
-    it("Super Balance Additional flow", async() => {
+    it("#3 - Super Balance Additional flow - assert users balances after new flow", async() => {
 
         await web3tx(superToken.upgrade, "Call: SuperToken.update - From user1") (
             toWad(2), {
@@ -174,7 +295,7 @@ contract("Flow Agreement", accounts => {
 
     });
 
-    it("Should update a existing flow", async () => {
+    it("#4 - Should update a existing flow - assert user final balance after updating balance", async () => {
 
         let tx1 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
@@ -213,7 +334,7 @@ contract("Flow Agreement", accounts => {
         assert.equal(result.balance.toString(), totalBalance.toString(), "Call: SuperToken.balanceOf - Update state - User2 don't add up");
     });
 
-    it("Should delete an existing flow", async () => {
+    it("#5 - Should delete an existing flow - assert user balance after deleting flow", async () => {
 
         let tx1 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
@@ -227,6 +348,7 @@ contract("Flow Agreement", accounts => {
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
+
         //Here we have 2 Token in balance, see the last test
         let tx2 = await web3tx(agreement.deleteFlow, "Call: FlowAgreement.deleteFlow - user1 -> user2 Delete an Agreement")(
             superToken.address,
@@ -237,18 +359,15 @@ contract("Flow Agreement", accounts => {
         );
 
         let span = tx2.timestamp - tx1.timestamp;
-        console.log("SPAN: ", span);
-
         let totalBalance = (span * FLOW_RATE);
 
         await traveler.advanceTime(ADV_TIME * 10000);
         await traveler.advanceBlock();
         let result = await superTokenDebug.balanceOf.call(user2);
-
         assert.equal(result.balance.toString(), totalBalance.toString(), "Call: SuperToken.balanceOf - Delete state - User2 dont add up");
     });
 
-    it("Create a new flow and Test FlowRate", async () => {
+    it("#6 - Create a new flow and Test FlowRate - assert flow rate after updating flow rate", async () => {
 
         const finalFlowRate = "-2000000000000000100";
 
@@ -283,7 +402,7 @@ contract("Flow Agreement", accounts => {
         assert.equal(flowRate, finalFlowRate, "Call: FlowAgreement.getFlowRate - Not getting the correct flow Rate");
     });
 
-    it("Account Balances", async () => {
+    it("#7 - Account Balances - assert in/out flows of users", async () => {
 
         await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new agreement")(
             superToken.address,
@@ -354,4 +473,10 @@ contract("Flow Agreement", accounts => {
         assert.equal(user2Debitor, -900, "Call: FlowAgreement.getTotalOutFlowRate - User 2 Debit account not correct #3");
         assert.equal(user2Creditor, 100, "Call: FlowAgreement.getTotalInFlowRate - User 2 Credit account nor correct #3");
     });
+
+
+    //#8 - One user multiply sends
+    //#9 - Two users sending and updating flows
+    //#10 - One user receiving multiply flows
+
 });

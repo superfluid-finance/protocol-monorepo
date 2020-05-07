@@ -51,8 +51,7 @@ contract ERC20Base {
 
     mapping (address => mapping (address => uint256)) private _allowances;
 
-    ///@notice this shoudl be defined as private. internal is just to bootstrap tests
-    uint256 internal _totalSupply;
+    uint256 private _totalSupply;
 
     string private _name;
     string private _symbol;

@@ -29,13 +29,14 @@ contract InstruSuperToken is InstruEventsDebug {
     (
         address sender,
         address receiver,
+        bool termination,
         bytes calldata senderState,
         bytes calldata receiverState
     )
         external
         returns(uint256 blocktime)
     {
-        target.updateState(sender, receiver, senderState, receiverState);
+        target.updateState(sender, receiver, termination, senderState, receiverState);
         return block.timestamp;
     }
 

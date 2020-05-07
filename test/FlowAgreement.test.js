@@ -73,13 +73,18 @@ contract("Flow Agreement", accounts => {
                 from: user2
             }
         );
+
+        await web3tx(superToken.addAgreement, "Call: SuperToken.addAgreement")(
+            agreement.address, {
+                from: admin
+            }
+        );
     });
 
     it("#1.1 - Create a new flow - assert global state", async () => {
 
         let tx = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User2 new Agreement")(
             superToken.address,
-            user1,
             user2,
             100, {
                 from: user1
@@ -105,7 +110,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User2 new Agreement")(
             superToken.address,
-            user1,
             user2,
             100, {
                 from: user1
@@ -114,7 +118,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User3 new Agreement")(
             superToken.address,
-            user1,
             user3,
             10, {
                 from: user1
@@ -136,7 +139,7 @@ contract("Flow Agreement", accounts => {
         let addicionalState2 = web3.eth.abi.encodeParameters(["uint256","int256"], [1, "5"]);
 
         await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
-            superToken.address, user1,
+            superToken.address,
             user2,
             addicionalState, {
                 from: user1
@@ -145,7 +148,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user3 updating Agreement")(
             superToken.address,
-            user1,
             user3,
             addicionalState2, {
                 from: user1
@@ -168,7 +170,6 @@ contract("Flow Agreement", accounts => {
         //Test update states - go to zero in one, upgrade the other
         await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
             superToken.address,
-            user1,
             user2,
             addicionalState, {
                 from: user1
@@ -177,7 +178,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
             superToken.address,
-            user1,
             user3,
             addicionalState2, {
                 from: user1
@@ -197,7 +197,6 @@ contract("Flow Agreement", accounts => {
         //Close all flows
         await web3tx(agreement.deleteFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
             superToken.address,
-            user1,
             user2, {
                 from: user1
             }
@@ -205,7 +204,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.deleteFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
             superToken.address,
-            user1,
             user3, {
                 from: user1
             }
@@ -231,7 +229,6 @@ contract("Flow Agreement", accounts => {
 
         let tx = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
-            user1,
             user2,
             FLOW_RATE, {
                 from: user1
@@ -258,7 +255,6 @@ contract("Flow Agreement", accounts => {
 
         let tx = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
-            user1,
             user2,
             FLOW_RATE, {
                 from: user1
@@ -267,7 +263,6 @@ contract("Flow Agreement", accounts => {
 
         let tx2 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user2 -> user3 new Agreement")(
             superToken.address,
-            user2,
             user3,
             SECONDARY_FLOW_RATE, {
                 from: user2
@@ -299,7 +294,6 @@ contract("Flow Agreement", accounts => {
 
         let tx1 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
-            user1,
             user2,
             FLOW_RATE, {
                 from: user1
@@ -314,7 +308,6 @@ contract("Flow Agreement", accounts => {
 
         let tx2 = await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
             superToken.address,
-            user1,
             user2,
             addicionalState, {
                 from: user1
@@ -338,7 +331,6 @@ contract("Flow Agreement", accounts => {
 
         let tx1 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
-            user1,
             user2,
             FLOW_RATE, {
                 from: user1
@@ -352,7 +344,6 @@ contract("Flow Agreement", accounts => {
         //Here we have 2 Token in balance, see the last test
         let tx2 = await web3tx(agreement.deleteFlow, "Call: FlowAgreement.deleteFlow - user1 -> user2 Delete an Agreement")(
             superToken.address,
-            user1,
             user2, {
                 from: user1
             }
@@ -373,7 +364,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new agreement")(
             superToken.address,
-            user1,
             user2,
             100, {
                 from: user1
@@ -391,7 +381,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user1 -> user2 updating Agreement")(
             superToken.address,
-            user1,
             user2,
             addicionalState, {
                 from: user1
@@ -406,7 +395,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new agreement")(
             superToken.address,
-            user1,
             user2,
             100, {
                 from: user1
@@ -429,7 +417,6 @@ contract("Flow Agreement", accounts => {
 
         await web3tx(agreement.createFlow, "user2 -> user1 update agreement")(
             superToken.address,
-            user2,
             user1,
             1000, {
                 from: user2
@@ -452,7 +439,6 @@ contract("Flow Agreement", accounts => {
         await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow - user2 -> user1 update agreement")(
 
             superToken.address,
-            user2,
             user1,
             -100, {
                 from: user2

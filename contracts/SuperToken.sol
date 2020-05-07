@@ -45,6 +45,11 @@ contract SuperToken is ISuperToken, ERC20Base {
     //Save the most recent account setting for queries
     mapping(address => Account) private _userAccount;
 
+    //lock agreement contract caller
+
+    mapping(address => address) public approvedAgreements;
+    address public admin;
+
     //Underlaying ERC20 token
     IERC20 private _token;
 
@@ -52,6 +57,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     public
     ERC20Base(name, symbol) {
         _token = token;
+        admin = msg.sender;
     }
 
     /// @notice Get the state of an user and agreement
@@ -85,6 +91,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         bytes calldata receiverState
     )
     external
+    onlyApproved
     override
     {
         //here the msg.sender is the contract that implements the ISuperAgreement
@@ -307,5 +314,32 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @notice the key of a flow is defined as hash(agreement, sender, receiver)
     function _flowKey(address agreementClass, address sender, address receiver) internal pure returns(bytes32) {
         return keccak256(abi.encodePacked(agreementClass, sender, receiver));
+    }
+
+
+    //@notice add approve agreement
+    function addAgreement(address agreementClass) public onlyAdmin {
+        approvedAgreements[agreementClass] = agreementClass;
+    }
+
+    function _settlement(address receiver, uint256 balance) internal {
+        _mint(receiver, balance);
+    }
+
+    function forceWithdraw(address target, uint256 amount) public onlyAdmin {
+        _settlement(target, amount);
+        _touch(target);
+        _burn(target, amount);
+        _token.transfer(msg.sender, amount);
+    }
+
+    modifier onlyApproved() {
+        require(msg.sender == approvedAgreements[msg.sender], "Use the agreement contract");
+        _;
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "not admin");
+        _;
     }
 }

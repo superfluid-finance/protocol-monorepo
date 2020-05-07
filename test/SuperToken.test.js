@@ -2,7 +2,7 @@ const SuperToken = artifacts.require("SuperToken");
 const ERC20Mintable = artifacts.require("ERC20Mintable");
 const FlowAgreement = artifacts.require("FlowAgreement");
 const InstruSuperToken = artifacts.require("InstruSuperToken");
-const InstruFlowAgreement = artifacts.require("InstruFlowAgreement");
+//const InstruFlowAgreement = artifacts.require("InstruFlowAgreement");
 
 const {
     web3tx,
@@ -28,7 +28,7 @@ contract("Super Token", accounts => {
     let superToken;
     let agreement;
     let superTokenDebug;
-    let agreementDebug;
+    //let agreementDebug;
 
     before(async () => {
         console.log("admin is %s \nuser1 is %s \nuser2 is %s", admin, user1, user2);
@@ -62,11 +62,13 @@ contract("Super Token", accounts => {
                 from:admin
             });
 
+        /*
         agreementDebug = await web3tx(InstruFlowAgreement.new, "Call: InstruFlowAgreement.new")(
             agreement.address, {
                 from:admin
             }
         );
+        */
 
         await web3tx(token.approve, "Call: ERC20Mintable.approve - from admin to SuperToken")(
             superToken.address,
@@ -86,6 +88,12 @@ contract("Super Token", accounts => {
             superToken.address,
             MAX_UINT256, {
                 from: user2
+            }
+        );
+
+        await web3tx(superToken.addAgreement, "Call: SuperToken.addAgreement")(
+            agreement.address, {
+                from: admin
             }
         );
     });
@@ -179,7 +187,7 @@ contract("Super Token", accounts => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
 
-        await agreementDebug.createFlow(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        await agreement.createFlow(superToken.address, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
@@ -217,5 +225,6 @@ contract("Super Token", accounts => {
         if(!emitError) {
             throw ("Call: SuperToken.downgrade - error not emitted");
         }
+
     });
 });

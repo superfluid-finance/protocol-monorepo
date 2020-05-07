@@ -18,13 +18,12 @@ contract FlowPayment {
 
     function connect(
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
         external
     {
-        flow.createFlow(token, sender, receiver, flowRate);
+        flow.createFlow(token, receiver, flowRate);
     }
 
 }

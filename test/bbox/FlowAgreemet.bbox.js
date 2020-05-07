@@ -52,6 +52,13 @@ contract("Flow Agreement Stories", accounts => {
                 from: user1
             }
         );
+
+
+        await web3tx(superToken.addAgreement, "SuperToken.addAgreement")(
+            agreement.address, {
+                from: admin
+            }
+        );
     });
 
     /*
@@ -72,7 +79,6 @@ contract("Flow Agreement Stories", accounts => {
 
         await web3tx(agreement.createFlow, "User1 -> Netflic new Agreement")(
             superToken.address,
-            user1,
             Netflic,
             NetflicPricePerSecond, {
                 from: user1
@@ -81,7 +87,6 @@ contract("Flow Agreement Stories", accounts => {
 
         await web3tx(agreement.createFlow, "User1 -> Spotifai new Agreement")(
             superToken.address,
-            user1,
             Spotifai,
             SpotifaiPricePerSecond, {
                 from: user1
@@ -90,7 +95,6 @@ contract("Flow Agreement Stories", accounts => {
 
         await web3tx(agreement.createFlow, "User1 -> Zoomer new Agreement")(
             superToken.address,
-            user1,
             Zoomer,
             ZoomerPricePerSecond, {
                 from: user1
@@ -115,7 +119,6 @@ contract("Flow Agreement Stories", accounts => {
         // User receives the bill and think he is paying to much for Zoomer
         await web3tx(agreement.deleteFlow, "User1  -> Zoomer Cancel Subscription")(
             superToken.address,
-            user1,
             Zoomer, {
                 from: user1
             }
@@ -138,7 +141,6 @@ contract("Flow Agreement Stories", accounts => {
         let NetflicFamilyAddOn = toWad(5 / 30 / 24 /3600);
         await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
-            user1,
             Netflic,
             NetflicFamilyAddOn, {
                 from: user1
@@ -161,7 +163,6 @@ contract("Flow Agreement Stories", accounts => {
         //User dicover that he can listen to music on youfube for free
         await web3tx(agreement.deleteFlow, "User1  -> Spotifai Cancel Subscription")(
             superToken.address,
-            user1,
             Spotifai, {
                 from: user1
             }
@@ -183,7 +184,6 @@ contract("Flow Agreement Stories", accounts => {
         //User downgrade the Netflic family pack
         await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
-            user1,
             Netflic,
             (-1 * NetflicFamilyAddOn), {
                 from: user1

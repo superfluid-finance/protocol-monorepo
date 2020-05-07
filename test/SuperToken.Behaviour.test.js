@@ -1,5 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const ERC20Mintable = artifacts.require("ERC20Mintable");
+const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
     web3tx,
@@ -16,12 +17,14 @@ contract("Super Token Behaviour", accounts => {
 
     let token;
     let superToken;
+    let agreement;
 
     before(async () => {
         console.log("admin is %s \nuser1 is %s \nuser2 is %s", admin, user1, user2);
     });
 
     beforeEach(async () => {
+
         token = await web3tx(ERC20Mintable.new, "ERC20Mintable.new")(
             {
                 from: admin
@@ -38,6 +41,13 @@ contract("Super Token Behaviour", accounts => {
                 from: admin
             });
 
+
+
+        agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")(
+            {
+                from:admin
+            });
+
         await web3tx(token.approve, "Call: ERC20Mintable.approve - from user1 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
@@ -50,6 +60,12 @@ contract("Super Token Behaviour", accounts => {
             superToken.address,
             MAX_UINT256, {
                 from: user2
+            }
+        );
+
+        await web3tx(superToken.addAgreement, "Call: SuperToken.addAgreement")(
+            agreement.address, {
+                from: admin
             }
         );
     });

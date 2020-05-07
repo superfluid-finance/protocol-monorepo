@@ -36,31 +36,27 @@ contract FlowAgreement is SuperAgreementBase {
     /// @notice Create a new flow between two users
     /// @dev This function will make a external call to register the agreement
     /// @param token Contract of the the SuperToken that will manage the agreement
-    /// @param sender Who is sending SuperToken
     /// @param receiver Who is receiving SuperToken
     /// @param flowRate What is the periodicity of payments
     function createFlow
     (
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
         external
     {
-        updateFlow(token, sender, receiver, flowRate);
+        updateFlow(token, receiver, flowRate);
     }
 
     /// @notice Update an flow between two users
     /// @dev This function will make a external call to register the agreement
     /// @param token Contract of the the SuperToken that will manage the agreement
-    /// @param sender Who is sending SuperToken
     /// @param receiver Who is receiving SuperToken
     /// @param flowRate What is the updated periodicity of payments
     function updateFlow
     (
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
@@ -68,28 +64,25 @@ contract FlowAgreement is SuperAgreementBase {
     {
         bytes memory _newState = encodeFlow(block.timestamp, flowRate);
         bool termination = flowRate == 0;
-        updateState(token, sender, receiver, termination, _newState);
+        updateState(token, msg.sender, receiver, termination, _newState);
     }
 
     /// @notice Delete an flow between two users
     /// @dev This function will make a external call to delete the agreement
     /// @param token Contract of the the SuperToken that will manage the agreement
-    /// @param sender Who is sending SuperToken
     /// @param receiver Who is receiving SuperToken
     function deleteFlow(
         ISuperToken token,
-        address sender,
         address receiver
     )
         external
     {
-        updateFlow(token, sender, receiver, 0);
+        updateFlow(token, receiver, 0);
     }
 
     /// @notice Gets the flow between two users
     /// @dev This function will make a external call to get the agreement data
     /// @param token Contract of the the SuperToken that will manage the agreement
-    /// @param sender Who is sending SuperToken
     /// @param receiver Who is receiving SuperToken
     function getFlowRate(
         ISuperToken token,

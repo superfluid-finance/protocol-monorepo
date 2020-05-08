@@ -4,16 +4,29 @@ const configs = require("./configs");
 module.exports = async function (callback) {
     try {
         global.web3 = web3;
-        const network = await web3.eth.net.getNetworkType();
 
+        const SuperToken = artifacts.require("SuperToken");
+        const FlowAgreement = artifacts.require("FlowAgreement");
+
+        const network = await web3.eth.net.getNetworkType();
         console.log("network: ", network);
-        const SimpleVault = artifacts.require("SimpleVault");
+
         const config = configs[network];
 
-        const vault = await web3tx(SimpleVault.new, "SimpleVault.new")(
-            config.token.address
-        );
-        console.log("vault address", vault.address);
+        console.log("Token address", config.token.address);
+
+        const agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")({
+            gas: 1500000,
+        });
+        console.log("FlowAgreement address", agreement.address);
+
+        const superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
+            config.token.address,
+            "SuperToken",
+            "STK", {
+                gas: 2600000
+            });
+        console.log("SuperToken address", superToken.address);
 
         callback();
     } catch (err) {

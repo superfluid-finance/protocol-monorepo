@@ -20,7 +20,7 @@ module.exports = async function (callback) {
         });
         console.log("FlowAgreement address", agreement.address);
 
-        superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
+        const superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             config.token.address,
             "SuperToken",
             "STK", {

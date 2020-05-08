@@ -62,6 +62,7 @@ contract("Super Token Behaviour", accounts => {
             await web3tx(superToken.updateState, "Call: SuperToken.updateState - Invoking method directly")(
                 user1,
                 user2,
+                true,
                 noise,
                 noise, {
                     from: user1
@@ -78,7 +79,22 @@ contract("Super Token Behaviour", accounts => {
         }
     });
 
+    it("should not transfer if user don't have balance", async () => {
 
+        let emitError = false;
+        try {
+            await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - bad balance")(
+                toWad(1), {
+                    from: user1
+                });
+        } catch(err) {
+            emitError = true;
+            console.log(err.reason);
+            assert.strictEqual(err.reason, "amount not allowed");
+        }
 
-
+        if(!emitError) {
+            throw ("Call: SuperToken.downgrade - error not emitted");
+        }
+    });
 });

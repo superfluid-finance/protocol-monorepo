@@ -19,19 +19,28 @@ contract SuperToken is ISuperToken, ERC20Base {
     struct Account {
         int256 creditFlow;
         int256 debitFlow;
+        address[] userAgreements;
+    }
+
+    struct Counter {
+        uint256 flowIn;
+        uint256 flowOut;
     }
 
     //This is needed because when we change the starting timestamp
-    mapping(address => mapping(address => int256)) private _balanceSnapshot;
+    mapping(address => int256) private _balanceSnapshot;
 
     //Agreements => User => Data
     mapping(address => mapping(address => bytes)) private _dataAgreements;
+    // agreement Data
+    // Key: keccak(agreement, sender, receiver) => data
+    mapping(bytes32 => bytes) private _usersInAgreements;
 
-    //Save the relation between user and aggrement contract
-    mapping(address => address[]) private _userToAgreements;
+    ////Save the relation between user and aggrement contract
+    //mapping(address => address[]) private _serToAgreements;
 
-    //Sender => Receiver => Agreement
-    mapping(address => mapping(address => bytes)) private _usersInAgreements;
+    //Save the number of flows by each agreement type
+    mapping(address => mapping(address => Counter)) private _flowCounterPerAgreement;
 
     //Save the most recent account setting for queries
     mapping(address => Account) private _userAccount;
@@ -71,44 +80,119 @@ contract SuperToken is ISuperToken, ERC20Base {
     (
         address sender,
         address receiver,
+        bool termination,
         bytes calldata senderState,
         bytes calldata receiverState
     )
     external
     override
     {
-        //here the sender is the contract that implements the ISuperAgreement
+        //here the msg.sender is the contract that implements the ISuperAgreement
         //TODO: validate the approved implementations of agreements
         require(msg.sender != sender && msg.sender != receiver, "Use the agreement contract");
-        //is a update or a new aggrement?
-        bool _newSender = _dataAgreements[msg.sender][sender].length == 0;
-        bool _newReciever = _dataAgreements[msg.sender][receiver].length == 0;
-
-        //if new account register so we can query later
-        if (_newSender) {
-            _userToAgreements[sender].push(msg.sender);
-        } else {
-            _takeSnapshot(msg.sender, sender);
-        }
-
-        if (_newReciever) {
-            _userToAgreements[receiver].push(msg.sender);
-        } else {
-            _takeSnapshot(msg.sender, receiver);
-        }
+        _cleaningState(msg.sender, sender, receiver, termination);
 
         //Must update accounts before changing the state
-        //_updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
-        //_updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
+        _updateAccount(
+            AccountType.Debitor,
+            _flowKey(msg.sender, sender, receiver),
+            sender,
+            _dataAgreements[msg.sender][sender],
+            senderState
+        );
 
-        _updateAccount(AccountType.Debitor, msg.sender, sender, _dataAgreements[msg.sender][sender], senderState);
-        _updateAccount(AccountType.Creditor, msg.sender, receiver, _dataAgreements[msg.sender][receiver], receiverState);
+        _updateAccount(
+            AccountType.Creditor,
+            _flowKey(msg.sender, receiver, sender),
+            receiver,
+            _dataAgreements[msg.sender][receiver],
+            receiverState
+        );
 
         _dataAgreements[msg.sender][sender] = senderState;
         _dataAgreements[msg.sender][receiver] = receiverState;
+    }
 
-        _usersInAgreements[sender][receiver] = senderState;
-        _usersInAgreements[receiver][sender] = receiverState;
+    function _indexOf(address agreementClass, address account) internal returns(int256) {
+        int256 i;
+        int256 bound = int256(_userAccount[account].userAgreements.length);
+
+        while (i < bound) {
+            if (_userAccount[account].userAgreements[uint256(i)] == agreementClass) {
+                return i;
+            }
+
+            i++;
+        }
+
+        return -1;
+    }
+
+    function _removeAgreement(address agreementClass, address account) internal {
+        //if we only have one agreement then is just need it to pop that element
+        if (_userAccount[account].userAgreements.length == 1) {
+            _userAccount[account].userAgreements.pop();
+        }
+
+        int256 _idx = _indexOf(agreementClass, account);
+        uint256 _size = _userAccount[account].userAgreements.length;
+
+        //If we have a valid index then that element exist
+        if (_idx >= 0) {
+            if (_size - 1 == uint256(_idx)) {
+                _userAccount[account].userAgreements.pop();
+            } else {
+                _userAccount[account].userAgreements[uint256(_idx)] = _userAccount[account].userAgreements[_size - 1];
+                _userAccount[account].userAgreements.pop();
+            }
+        }
+    }
+
+    function _cleaningState(address agreementClass, address sender, address receiver, bool termination) internal {
+
+        uint256 _senderLength = _userAccount[sender].userAgreements.length;
+        uint256 _receiverLength = _userAccount[receiver].userAgreements.length;
+        Counter storage senderCounter = _flowCounterPerAgreement[agreementClass][sender];
+        Counter storage receiverCounter = _flowCounterPerAgreement[agreementClass][receiver];
+
+        if (termination) {
+
+            _takeSnapshot(receiver);
+            if (senderCounter.flowIn == 0 && senderCounter.flowOut == 1) {
+                _removeAgreement(agreementClass, sender);
+                senderCounter.flowOut = 0;
+            } else {
+                senderCounter.flowOut--;
+            }
+
+            //Receiver user has only this in flow
+            if (receiverCounter.flowIn == 1 && receiverCounter.flowOut == 0) {
+                _removeAgreement(agreementClass, receiver);
+                receiverCounter.flowIn = 0;
+            } else {
+                receiverCounter.flowIn--;
+            }
+
+        } else {
+            //if new account register so we can query later
+            if (_senderLength == 0 && _indexOf(agreementClass, sender) == -1) {
+
+                _userAccount[sender].userAgreements.push(msg.sender);
+                senderCounter.flowOut++;
+
+            } else {
+                _takeSnapshot(sender);
+            }
+
+            //if new account register so we can query later
+            if (_receiverLength == 0 && _indexOf(agreementClass, receiver) == -1) {
+                _userAccount[receiver].userAgreements.push(msg.sender);
+                receiverCounter.flowIn++;
+
+            } else {
+                _takeSnapshot(receiver);
+            }
+        }
     }
 
     /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
@@ -116,6 +200,13 @@ contract SuperToken is ISuperToken, ERC20Base {
     function upgrade(uint256 amount) external override {
         _token.transferFrom(msg.sender, address(this), amount);
         _mint(msg.sender, amount);
+    }
+
+    function downgrade(uint256 amount) external override {
+        require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
+        _touch(msg.sender);
+        _burn(msg.sender, amount);
+        _token.transfer(msg.sender, amount);
     }
 
     /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
@@ -126,24 +217,22 @@ contract SuperToken is ISuperToken, ERC20Base {
         //query each agreement contract
         int256 _agreeBalances;
 
-        for (uint256 i = 0; i < _userToAgreements[account].length; i++) {
+        for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
             /* solhint-disable not-rely-on-time, mark-callable-contracts */
             //Atention: External call
             _agreeBalances += ISuperAgreement(
-                _userToAgreements[account][i]
+                _userAccount[account].userAgreements[i]
             ).balanceOf(
-                _dataAgreements[_userToAgreements[account][i]][account],
+                _dataAgreements[_userAccount[account].userAgreements[i]][account],
                 block.timestamp
             );
-
-            _agreeBalances += _balanceSnapshot[_userToAgreements[account][i]][account];
         }
 
-        return int256(_balances[account]) + _agreeBalances;
+        return int256(_balances[account]) + _agreeBalances + _balanceSnapshot[account];
     }
 
-    function currentState(address sender, address receiver) external view override returns(bytes memory state) {
-        return _usersInAgreements[sender][receiver];
+    function currentState(address agreementClass, address sender, address receiver) external view override returns(bytes memory state) {
+        return _usersInAgreements[_flowKey(agreementClass, sender, receiver)];
     }
 
     function getAccountRateFlows(
@@ -161,13 +250,17 @@ contract SuperToken is ISuperToken, ERC20Base {
 
     /// @notice Save the balance until now
     /// @param account User to snapshot balance
-    function _takeSnapshot(address agreementClass, address account) internal {
-        _balanceSnapshot[agreementClass][account] += balanceOf(account);
+    function _takeSnapshot(address account) internal {
+        _balanceSnapshot[account] += balanceOf(account);
+    }
+
+    function getSnapshot(address account) public view returns(int256) {
+        return _balanceSnapshot[account];
     }
 
     function _updateAccount(
         AccountType actype,
-        address agreement,
+        bytes32 flowKey,
         address account,
         bytes memory oldState,
         bytes memory newState
@@ -175,13 +268,44 @@ contract SuperToken is ISuperToken, ERC20Base {
         internal
     {
         //Atention: External calls
-        int256 _updateValue = ISuperAgreement(agreement).updateAccount(newState);
-        int256 _oldValue = oldState.length == 0 ? 0 : ISuperAgreement(agreement).updateAccount(oldState);
+        (uint256 _updateTime, int256 _updateValue) = ISuperAgreement(msg.sender).decodeFlow(newState);
+        int256 _oldValue;
+        int256 _local;
+        if (oldState.length > 0) {
+            (, _oldValue) = ISuperAgreement(msg.sender).decodeFlow(oldState);
+        }
+
+        if (_usersInAgreements[flowKey].length > 0) {
+            (, _local) = ISuperAgreement(msg.sender).decodeFlow(_usersInAgreements[flowKey]);
+        }
+
+        int256 _finalValue = _updateValue - _oldValue;
+        bytes memory _finalState = ISuperAgreement(msg.sender).encodeFlow(_updateTime, _local + _finalValue);
 
         if (actype == AccountType.Creditor) {
-            _userAccount[account].creditFlow += (_updateValue - _oldValue);
+            _userAccount[account].creditFlow += _finalValue;
         } else {
-            _userAccount[account].debitFlow += (_updateValue - _oldValue);
+            _userAccount[account].debitFlow += _finalValue;
         }
+
+        _usersInAgreements[flowKey] = _finalState;
+    }
+
+    /// @notice this function is a bootstrap function to test the rest of smart contract
+    /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
+    function _touch(address account) internal {
+        address _endpoint;
+        bytes memory _touchState;
+        for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
+            _endpoint = _userAccount[account].userAgreements[i];
+            _touchState = ISuperAgreement(_endpoint).touch(_dataAgreements[_endpoint][account], block.timestamp);
+            _dataAgreements[_endpoint][account] = _touchState;
+            _balanceSnapshot[account] = 0;
+        }
+    }
+
+    /// @notice the key of a flow is defined as hash(agreement, sender, receiver)
+    function _flowKey(address agreementClass, address sender, address receiver) internal pure returns(bytes32) {
+        return keccak256(abi.encodePacked(agreementClass, sender, receiver));
     }
 }

@@ -208,17 +208,24 @@ contract("Super Token", accounts => {
 
         assert.ok(userTokenBalance.eq(finalBalance), "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
 
+        let slippage = await superTokenDebug.balanceOf.call(user2);
+
+        if(slippage.balance > 0) {
+            console.warn("Detected blockchain time inconsistancy");
+        }
+
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
         let result3 = await superTokenDebug.balanceOf.call(user1);
         let result4 = await superTokenDebug.balanceOf.call(user2);
 
-        let span1 = result4.blocktime - tx1.timestamp;
-        let span2 = result3.blocktime - tx2.timestamp;
+
+        let span1 = result3.blocktime - tx1.timestamp;
+        let span2 = web3.utils.toBN(result4.blocktime - tx2.timestamp);
 
         let final1 = INI_BALANCE.sub(web3.utils.toBN(span1 * FLOW_RATE));
-        let final2 = span2 * FLOW_RATE;
+        let final2 = slippage.balance.add(span2.mul(FLOW_RATE));
 
         assert.equal(result3.balance.toString(), final1.toString(), "Call: SuperToken.balanceOf - not correct for user1");
         assert.equal(result4.balance.toString(), final2.toString(), "Call: SuperToken.balanceOf - not correct for user2");
@@ -253,8 +260,8 @@ contract("Super Token", accounts => {
         let result3 = await superTokenDebug.balanceOf.call(user1);
         let result4 = await superTokenDebug.balanceOf.call(user2);
 
-        let span1 = result4.blocktime - tx1.timestamp;
-        let span2 = result3.blocktime - tx2.timestamp;
+        let span1 = result3.blocktime - tx1.timestamp;
+        let span2 = result4.blocktime - tx2.timestamp;
 
         let final1 = INI_BALANCE.sub(web3.utils.toBN(span1 * FLOW_RATE));
         let final2 = (span2 * FLOW_RATE) + (result1.balance - half_balance);

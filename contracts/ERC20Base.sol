@@ -47,7 +47,7 @@ contract ERC20Base {
 
     using SafeMath for uint256;
 
-    mapping (address => uint256) internal _balances;
+    mapping (address => uint256) internal _settledBalances;
 
     mapping (address => mapping (address => uint256)) private _allowances;
 
@@ -220,8 +220,8 @@ contract ERC20Base {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
-        _balances[recipient] = _balances[recipient].add(amount);
+        _settledBalances[sender] = _settledBalances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        _settledBalances[recipient] = _settledBalances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
 
@@ -238,7 +238,7 @@ contract ERC20Base {
         require(account != address(0), "ERC20: mint to the zero address");
 
         _totalSupply = _totalSupply.add(amount);
-        _balances[account] = _balances[account].add(amount);
+        _settledBalances[account] = _settledBalances[account].add(amount);
         emit Transfer(address(0), account, amount);
     }
 
@@ -256,7 +256,7 @@ contract ERC20Base {
     function _burn(address account, uint256 amount) internal virtual {
         require(account != address(0), "ERC20: burn from the zero address");
 
-        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        _settledBalances[account] = _settledBalances[account].sub(amount, "ERC20: burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }

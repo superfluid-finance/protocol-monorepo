@@ -98,16 +98,14 @@ contract("Flow Agreement Stories", accounts => {
         let balance = await superToken.balanceOf.call(user3);
 
         console.log("HERE ---- > User 3 balance: ", balance.toString());
-
-        await web3tx(superToken.forceWithdraw, "User 3 is downgrading tokens")(
-            user3,
+        await web3tx(superToken.downgrade, "User 3 is downgrading tokens")(
             balance, {
-                from: admin
+                from: user3
             }
         );
 
         let finalbalance = await token.balanceOf.call(user3);
+        assert.equal(balance.toString(), finalbalance.toString(), "User 3 final balance is not the flow balance");
         console.log("User 3 Downgraded token balance: ", finalbalance.toString());
-
     });
 });

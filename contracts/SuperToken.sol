@@ -36,9 +36,6 @@ contract SuperToken is ISuperToken, ERC20Base {
     // Key: keccak(agreement, sender, receiver) => data
     mapping(bytes32 => bytes) private _usersInAgreements;
 
-    ////Save the relation between user and aggrement contract
-    //mapping(address => address[]) private _serToAgreements;
-
     //Save the number of flows by each agreement type
     mapping(address => mapping(address => Counter)) private _flowCounterPerAgreement;
 
@@ -235,7 +232,7 @@ contract SuperToken is ISuperToken, ERC20Base {
             );
         }
 
-        return int256(_balances[account]) + _agreeBalances + _balanceSnapshot[account];
+        return int256(_settledBalances[account]) + _agreeBalances + _balanceSnapshot[account];
     }
 
     function currentState(address agreementClass, address sender, address receiver) external view override returns(bytes memory state) {
@@ -303,11 +300,17 @@ contract SuperToken is ISuperToken, ERC20Base {
     function _touch(address account) internal {
         address _endpoint;
         bytes memory _touchState;
+        int256 _settleBalance = balanceOf(account) - int256(_settledBalances[account]);
+
         for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
             _endpoint = _userAccount[account].userAgreements[i];
             _touchState = ISuperAgreement(_endpoint).touch(_dataAgreements[_endpoint][account], block.timestamp);
             _dataAgreements[_endpoint][account] = _touchState;
             _balanceSnapshot[account] = 0;
+        }
+
+        if (_settleBalance > 0) {
+            _mint(account, uint256(_settleBalance));
         }
     }
 
@@ -316,21 +319,9 @@ contract SuperToken is ISuperToken, ERC20Base {
         return keccak256(abi.encodePacked(agreementClass, sender, receiver));
     }
 
-
     //@notice add approve agreement
     function addAgreement(address agreementClass) public onlyAdmin {
         approvedAgreements[agreementClass] = agreementClass;
-    }
-
-    function _settlement(address receiver, uint256 balance) internal {
-        _mint(receiver, balance);
-    }
-
-    function forceWithdraw(address target, uint256 amount) public onlyAdmin {
-        _settlement(target, amount);
-        _touch(target);
-        _burn(target, amount);
-        _token.transfer(msg.sender, amount);
     }
 
     modifier onlyApproved() {

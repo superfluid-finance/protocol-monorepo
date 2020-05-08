@@ -107,7 +107,6 @@ contract("Super Token", accounts => {
 
         let user1TokenBalance = await token.balanceOf.call(user1);
         let user1SuperTokenBalance = await superToken.balanceOf.call(user1);
-
         let user2TokenBalance = await token.balanceOf.call(user2);
         let user2SuperTokenBalance = await superToken.balanceOf.call(user2);
 
@@ -152,6 +151,10 @@ contract("Super Token", accounts => {
         let finalBalance = await token.balanceOf.call(user1);
         let finalSuperBalance = await superToken.balanceOf.call(user1);
 
+
+        console.log("Initial SuperbalanceBalance: ", initialSuperBalance.toString());
+        console.log("Final Superbalance", finalSuperBalance.toString());
+
         assert.equal(wad4human(initialBalance), wad4human(finalBalance), "Call: ERC20Mintable.balanceOf - not correct");
         assert.equal(wad4human(initialSuperBalance), wad4human(finalSuperBalance), "Call: SuperToken.balanceOf - not correct");
 
@@ -194,37 +197,24 @@ contract("Super Token", accounts => {
 
         let result1 = await superTokenDebug.balanceOf.call(user2);
 
-        let emitError = false;
-        try {
+        let tx2 = await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")( 
+            result1.balance, {
+                from: user2
+            }
+        );
 
-            let tx2 = await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
-                result1.balance, {
-                    from: user2
-                }
-            );
+        let finalBalance = INI_BALANCE.add(result1.balance);
+        let userTokenBalance = await token.balanceOf.call(user2);
 
-            let finalBalance = INI_BALANCE.add(result1.balance);
-            let userTokenBalance = await token.balanceOf.call(user2);
+        assert.ok(userTokenBalance.eq(finalBalance), "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
 
-            assert.ok(userTokenBalance.eq(finalBalance), "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
+        await traveler.advanceTime(ADV_TIME);
+        await traveler.advanceBlock();
 
-            await traveler.advanceTime(ADV_TIME);
-            await traveler.advanceBlock();
+        let result3 = await superTokenDebug.balanceOf.call(user2);
 
-            let result3 = await superTokenDebug.balanceOf.call(user2);
-
-            let span = result3.blocktime - tx2.timestamp;
-            let final = span * FLOW_RATE;
-            assert.equal(result3.balance, final, "Call: SuperToken.balanceOf - not correct for user1");
-
-        } catch(err) {
-            emitError = true;
-            assert.strictEqual(err.reason, "ERC20: burn amount exceeds balance");
-        }
-
-        if(!emitError) {
-            throw ("Call: SuperToken.downgrade - error not emitted");
-        }
-
+        let span = result3.blocktime - tx2.timestamp;
+        let final = span * FLOW_RATE;
+        assert.equal(result3.balance, final, "Call: SuperToken.balanceOf - not correct for user1");
     });
 });

@@ -25,31 +25,6 @@ contract InstruSuperToken is InstruEventsDebug {
         return (block.timestamp, _state);
     }
 
-    function updateState
-    (
-        address sender,
-        address receiver,
-        bool termination,
-        bytes calldata senderState,
-        bytes calldata receiverState
-    )
-        external
-        returns(uint256 blocktime)
-    {
-        target.updateState(sender, receiver, termination, senderState, receiverState);
-        return block.timestamp;
-    }
-
-    function upgrade(uint256 amount) external returns(uint256 blocktime) {
-        target.upgrade(amount);
-        return block.timestamp;
-    }
-
-    function downgrade(uint256 amount) external returns(uint256 blocktime) {
-        target.downgrade(amount);
-        return block.timestamp;
-    }
-
     function balanceOf(
         address account
     )

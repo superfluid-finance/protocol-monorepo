@@ -12,20 +12,6 @@ interface IInstrSuperToken {
     view
     returns (bytes memory state);
 
-    function updateState
-    (
-        address sender,
-        address receiver,
-        bool termination,
-        bytes calldata senderState,
-        bytes calldata receiverState
-    )
-        external;
-
-    function upgrade(uint256 amount) external;
-
-    function downgrade(uint256 amount) external;
-
     function balanceOf(
         address account
     )

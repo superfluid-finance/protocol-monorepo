@@ -14,6 +14,7 @@ const ADV_TIME = 2;
 const FLOW_RATE = toWad(2);
 const SECONDARY_FLOW_RATE = toWad(1);
 const FLOW_RATE_UPDATED = toWad(3);
+const INI_BALANCE = toWad(10);
 
 contract("Flow Agreement", accounts => {
 
@@ -45,8 +46,8 @@ contract("Flow Agreement", accounts => {
                 from: admin
             });
 
-        await token.mint(user1, toWad(10));
-        await token.mint(user2, toWad(10));
+        await token.mint(user1, INI_BALANCE);
+        await token.mint(user2, INI_BALANCE);
 
         superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             token.address,
@@ -249,11 +250,11 @@ contract("Flow Agreement", accounts => {
     it("#3 - Super Balance Additional flow - assert users balances after new flow", async() => {
 
         await web3tx(superToken.upgrade, "Call: SuperToken.update - From user1") (
-            toWad(2), {
+            INI_BALANCE, {
                 from: user1
             });
 
-        let tx = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
+        let tx1 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - user1 -> user2 new Agreement")(
             superToken.address,
             user2,
             FLOW_RATE, {
@@ -269,23 +270,26 @@ contract("Flow Agreement", accounts => {
             }
         );
 
-        await traveler.advanceTime(ADV_TIME * 2);
+        await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
-        let result = await superTokenDebug.balanceOf.call(user2);
-        let result2 = await superTokenDebug.balanceOf.call(user3);
+        let result1 = await superTokenDebug.balanceOf.call(user1);
+        let result2 = await superTokenDebug.balanceOf.call(user2);
+        let result3 = await superTokenDebug.balanceOf.call(user3);
 
         //avoid inconsistance times in differents tests runs
-        let span = result.blocktime - tx.timestamp;
-        let span2 = result2.blocktime - tx2.timestamp;
-        let userBalance = FLOW_RATE * span;
-        let otherBalance = SECONDARY_FLOW_RATE * span2;
-        let user2Balance = userBalance - otherBalance;
-        let user3Balance = SECONDARY_FLOW_RATE * span2;
+        let span1 = result1.blocktime - tx1.timestamp;
+        let span2 = result3.blocktime - tx2.timestamp;
+        let span3 = result3.blocktime - tx2.timestamp;
 
-        assert.equal(result.balance, user2Balance, "Call: SuperToken.balanceOf - User 2 Super balance incorrect");
-        assert.equal(result2.balance, user3Balance, "Call: SuperToken.balanceOf - User 3 Super balance incorrect");
 
+        let user1Balance = INI_BALANCE - (FLOW_RATE * span1);
+        let user2Balance = (FLOW_RATE * span2) - (SECONDARY_FLOW_RATE * span3);
+        let user3Balance = SECONDARY_FLOW_RATE * span3;
+
+        assert.equal(result1.balance, user1Balance, "Call: SuperToken.balanceOf user 1 is not correct");
+        assert.equal(result2.balance, user2Balance, "Call: SuperToken.balanceOf user 2 is not correct");
+        assert.equal(result3.balance, user3Balance, "Call: SuperToken.balanceOf user 3 is not correct");
     });
 
     it("#4 - Should update a existing flow - assert user final balance after updating balance", async () => {

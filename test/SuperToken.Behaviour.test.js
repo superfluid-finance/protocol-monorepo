@@ -70,7 +70,7 @@ contract("Super Token Behaviour", accounts => {
         );
     });
 
-    it("should not invoke update directly", async () => {
+    it("#1 should not invoke update directly - assert revert message", async () => {
 
         let noise = "0x00000000000000000001";
         let emitError = false;
@@ -95,7 +95,7 @@ contract("Super Token Behaviour", accounts => {
         }
     });
 
-    it("should not transfer if user don't have balance", async () => {
+    it("#2 should not transfer if user don't have balance - assert revert message", async () => {
 
         let emitError = false;
         try {

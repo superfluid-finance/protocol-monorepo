@@ -81,7 +81,7 @@ contract("Flow Agreement", accounts => {
         );
     });
 
-    it("#1.1 - Create a new flow - assert global state", async () => {
+    it("#1 - Create a new flow - assert global state", async () => {
 
         let tx = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User2 new Agreement")(
             superToken.address,
@@ -106,7 +106,7 @@ contract("Flow Agreement", accounts => {
 
     });
 
-    it("#1.2 - Create multiple flow - assert local state", async () => {
+    it("#1.1 - Create multiple flow - assert local state", async () => {
 
         await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow - User1 -> User2 new Agreement")(
             superToken.address,
@@ -278,11 +278,9 @@ contract("Flow Agreement", accounts => {
         //avoid inconsistance times in differents tests runs
         let span = result.blocktime - tx.timestamp;
         let span2 = result2.blocktime - tx2.timestamp;
-
         let userBalance = FLOW_RATE * span;
         let otherBalance = SECONDARY_FLOW_RATE * span2;
         let user2Balance = userBalance - otherBalance;
-
         let user3Balance = SECONDARY_FLOW_RATE * span2;
 
         assert.equal(result.balance, user2Balance, "Call: SuperToken.balanceOf - User 2 Super balance incorrect");

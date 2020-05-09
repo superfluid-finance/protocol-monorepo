@@ -183,9 +183,6 @@ contract SuperToken is ISuperToken, ERC20Base {
 
                 _userAccount[sender].userAgreements.push(msg.sender);
                 senderCounter.flowOut++;
-
-            } else {
-                _takeSnapshot(sender);
             }
 
             //if new account register so we can query later

@@ -10,7 +10,7 @@ const {
 
 const traveler = require("ganache-time-traveler");
 
-contract("Flow Agreement Stories", accounts => {
+contract("Usecase 1 Stories", accounts => {
 
     const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
 

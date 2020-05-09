@@ -62,7 +62,7 @@ contract("FlowPayment", accounts => {
         );
     });
 
-    it("basic operations", async () => {
+    it("#1 basic operations - run connect function", async () => {
 
         await web3tx(fp.connect, "Call: FlowPayment.connect - user1 -> user2 9.99/mo")(
             superToken.address,

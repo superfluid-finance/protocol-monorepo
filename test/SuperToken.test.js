@@ -266,8 +266,6 @@ contract("Super Token", accounts => {
         snapshot1 = await superToken.getSnapshot.call(user1);
         snapshot2 = await superToken.getSnapshot.call(user2);
 
-        let balance1 = await superToken.balanceOf.call(user1);
-        let balance2 = await superToken.balanceOf.call(user2);
         let span1 = tx2.timestamp - tx1.timestamp;
         let result1 = FLOW_RATE * span1;
 

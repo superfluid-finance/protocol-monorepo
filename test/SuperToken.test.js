@@ -125,7 +125,7 @@ contract("Super Token", accounts => {
 
     });
 
-    it("#2 Downgrade ERC20 Token - assert final balance after downgrading to Token", async () => {
+    it("#2 - Downgrade ERC20 Token - assert final balance after downgrading to Token", async () => {
 
         let initialBalance = await token.balanceOf.call(user1);
         let initialSuperBalance = await superToken.balanceOf.call(user1);
@@ -145,7 +145,7 @@ contract("Super Token", accounts => {
 
     });
 
-    it("#2.1 Downgrade ERC20 Token with other users - assert final balance after downgrading to Token with other balances in SuperToken", async () => {
+    it("#2.1 - Downgrade ERC20 Token with other users - assert final balance after downgrading to Token with other balances in SuperToken", async () => {
 
         let initialBalanceUser1 = await token.balanceOf.call(user1);
         let initialSuperBalanceUser1 = await superToken.balanceOf.call(user1);
@@ -170,7 +170,7 @@ contract("Super Token", accounts => {
         assert.equal(wad4human(initialSuperBalanceUser2), wad4human(finalSuperBalanceUser2), "Call: SuperToken.balanceOf - not correct for user 2");
     });
 
-    it("#2.2 Downgrade token in running flows - assert final balance after a total downgrade of balance with flows running", async() => {
+    it("#2.2 - Downgrade token in running flows - assert final balance after a total downgrade of balance with flows running", async() => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
 
@@ -210,7 +210,7 @@ contract("Super Token", accounts => {
         assert.equal(result4.balance.toString(), final2.toString(), "Call: SuperToken.balanceOf - not correct for user2");
     });
 
-    it("#2.3 Downgrade small amount SuperToken balance in running flows - assert final balance after a partial amount downgraded with flows running", async() => {
+    it("#2.3 - Downgrade small amount SuperToken balance in running flows - assert final balance after a partial amount downgraded with flows running", async() => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
 
@@ -245,8 +245,8 @@ contract("Super Token", accounts => {
         assert.equal(result3.balance.toString(), final1.toString(), "Call: SuperToken.balanceOf - not correct for user1");
         assert.equal(result4.balance.toString(), final2.toString(), "Call: SuperToken.balanceOf - not correct for user2");
     });
-    
-    it("#3 Snapshot of Balance - assert passed balance after an update", async() => {
+
+    it("#3 - Snapshot of Balance - assert passed balance after an update", async() => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
 

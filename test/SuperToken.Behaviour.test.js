@@ -70,7 +70,7 @@ contract("Super Token Behaviour", accounts => {
         );
     });
 
-    it("#1 should not invoke update directly - assert revert message", async () => {
+    it("#1 - Should not invoke update directly - assert revert message", async () => {
 
         let noise = "0x00000000000000000001";
         let emitError = false;
@@ -95,7 +95,7 @@ contract("Super Token Behaviour", accounts => {
         }
     });
 
-    it("#2 should not transfer if user don't have balance - assert revert message", async () => {
+    it("#2 - Should not transfer if user don't have balance - assert revert message", async () => {
 
         let emitError = false;
         try {
@@ -111,6 +111,25 @@ contract("Super Token Behaviour", accounts => {
 
         if(!emitError) {
             throw ("Call: SuperToken.downgrade - error not emitted");
+        }
+    });
+
+    it("#3 - Should not upgrade SuperToken without underlaying Token balance", async() => {
+
+        let emitError = false;
+        try {
+            await web3tx(superToken.upgrade, "Call: SuperToken.upgrade - bad balance")(
+                toWad(11), {
+                    from: user1
+                });
+        } catch(err) {
+            emitError = true;
+            console.log(err.reason);
+            assert.strictEqual(err.reason, "ERC20: transfer amount exceeds balance");
+        }
+
+        if(!emitError) {
+            throw ("Call: SuperToken.upgrade - error not emitted");
         }
     });
 });

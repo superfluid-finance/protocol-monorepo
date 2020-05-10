@@ -18,10 +18,19 @@ def CLP(initialLa, initialLb, newLa, newLb):
 
 def solveUniswap():
     """
-    @description Solve uniswap equations:
+    @description Solve uniswap equations.
 
-    - Output function
-    - Price function
+    initial conditions:
+    - L_a - liquidity of a
+    - L_b - liquidity of b
+
+    inputs:
+    - Delta_a - delta of a
+    - Delta_b - delta of b
+
+    inquiries:
+    - Output function: Delta_b
+    - Price function: - Delta_b / Delta_a
     """
     print "==== Uniswap Equations ===="
     L_a, Delta_a, L_b, Delta_b = var("L_a","Delta_a", "L_b", "Delta_b")
@@ -44,8 +53,18 @@ def solveUniswap():
 
 def solveFlowswap():
     """
-    @description Solve uniswap equations:
+    @description Solve flowswap equations.
 
+    initial conditions:
+    - L_a - liquidity of a
+    - L_b - liquidity of b
+
+    inputs:
+    - t - time
+    - f_a - flow function of a -> b
+    - f_b - flow function of b -> a
+
+    inquiries:
     - q function
     - Price function
     - Output function (TODO)

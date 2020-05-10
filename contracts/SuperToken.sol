@@ -43,8 +43,8 @@ contract SuperToken is ISuperToken, ERC20Base {
     mapping(address => Account) private _userAccount;
 
     //lock agreement contract caller
-
     mapping(address => address) public approvedAgreements;
+
     address public admin;
 
     //Underlaying ERC20 token
@@ -55,6 +55,33 @@ contract SuperToken is ISuperToken, ERC20Base {
     ERC20Base(name, symbol) {
         _token = token;
         admin = msg.sender;
+    }
+
+    /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
+    /// @param account User to calculate balance
+    /// @return balance User balance
+    function balanceOf(address account) public view override returns (int256 balance) {
+
+        //query each agreement contract
+        int256 _agreeBalances;
+
+        for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
+            /* solhint-disable not-rely-on-time, mark-callable-contracts */
+            //Atention: External call
+            _agreeBalances += ISuperAgreement(
+                _userAccount[account].userAgreements[i]
+            ).balanceOf(
+                _dataAgreements[_userAccount[account].userAgreements[i]][account],
+                block.timestamp
+            );
+        }
+
+        return int256(_settledBalances[account]) + _agreeBalances + _balanceSnapshot[account];
+    }
+
+    //@notice add approve agreement
+    function addAgreement(address agreementClass) external onlyAdmin {
+        approvedAgreements[agreementClass] = agreementClass;
     }
 
     /// @notice Get the state of an user and agreement
@@ -117,7 +144,38 @@ contract SuperToken is ISuperToken, ERC20Base {
         _dataAgreements[msg.sender][receiver] = receiverState;
     }
 
-    function _indexOf(address agreementClass, address account) internal returns(int256) {
+    /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
+    /// @param amount Number of tokens to be upgraded
+    function upgrade(uint256 amount) external override {
+        _token.transferFrom(msg.sender, address(this), amount);
+        _mint(msg.sender, amount);
+    }
+
+    function downgrade(uint256 amount) external override {
+        require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
+        _touch(msg.sender);
+        _burn(msg.sender, amount);
+        _token.transfer(msg.sender, amount);
+    }
+
+    function currentState(address agreementClass, address sender, address receiver) external view override returns(bytes memory state) {
+        return _usersInAgreements[_flowKey(agreementClass, sender, receiver)];
+    }
+
+    function getAccountRateFlows(
+        address account
+    )
+        external
+        view
+        override
+        returns(int256 creditor, int256 debitor)
+    {
+        int256 _cred = _userAccount[account].creditFlow;
+        int256 _deb = _userAccount[account].debitFlow;
+        return (_cred, _deb);
+    }
+
+    function _indexOf(address agreementClass, address account) internal view returns(int256) {
         int256 i;
         int256 bound = int256(_userAccount[account].userAgreements.length);
 
@@ -196,59 +254,6 @@ contract SuperToken is ISuperToken, ERC20Base {
         }
     }
 
-    /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
-    /// @param amount Number of tokens to be upgraded
-    function upgrade(uint256 amount) external override {
-        _token.transferFrom(msg.sender, address(this), amount);
-        _mint(msg.sender, amount);
-    }
-
-    function downgrade(uint256 amount) external override {
-        require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
-        _touch(msg.sender);
-        _burn(msg.sender, amount);
-        _token.transfer(msg.sender, amount);
-    }
-
-    /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
-    /// @param account User to calculate balance
-    /// @return balance User balance
-    function balanceOf(address account) public view override returns (int256 balance) {
-
-        //query each agreement contract
-        int256 _agreeBalances;
-
-        for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
-            /* solhint-disable not-rely-on-time, mark-callable-contracts */
-            //Atention: External call
-            _agreeBalances += ISuperAgreement(
-                _userAccount[account].userAgreements[i]
-            ).balanceOf(
-                _dataAgreements[_userAccount[account].userAgreements[i]][account],
-                block.timestamp
-            );
-        }
-
-        return int256(_settledBalances[account]) + _agreeBalances + _balanceSnapshot[account];
-    }
-
-    function currentState(address agreementClass, address sender, address receiver) external view override returns(bytes memory state) {
-        return _usersInAgreements[_flowKey(agreementClass, sender, receiver)];
-    }
-
-    function getAccountRateFlows(
-        address account
-    )
-        external
-        view
-        override
-        returns(int256 creditor, int256 debitor)
-    {
-        int256 _cred = _userAccount[account].creditFlow;
-        int256 _deb = _userAccount[account].debitFlow;
-        return (_cred, _deb);
-    }
-
     /// @notice Save the balance until now
     /// @param account User to snapshot balance
     function _takeSnapshot(address account) internal {
@@ -316,16 +321,14 @@ contract SuperToken is ISuperToken, ERC20Base {
         return keccak256(abi.encodePacked(agreementClass, sender, receiver));
     }
 
-    //@notice add approve agreement
-    function addAgreement(address agreementClass) public onlyAdmin {
-        approvedAgreements[agreementClass] = agreementClass;
-    }
 
+    /// @notice The caller should be pre approved
     modifier onlyApproved() {
         require(msg.sender == approvedAgreements[msg.sender], "Use the agreement contract");
         _;
     }
 
+    /// @notice Only the admin address can make some operations
     modifier onlyAdmin() {
         require(msg.sender == admin, "not admin");
         _;

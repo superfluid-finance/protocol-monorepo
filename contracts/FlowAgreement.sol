@@ -106,11 +106,10 @@ contract FlowAgreement is SuperAgreementBase {
     )
         external
         view
-        returns(int256)
+        returns (int256 flowRate)
     {
-        //should check if token is approved
-        (int256 creditor, ) = token.getAccountRateFlows(account);
-        return creditor;
+        bytes memory data = token.getAgreementState(address(this), account);(
+        (uint256, int256 flowRate) = decodeFlow(data);
     }
 
     /// @notice Gets the total out flow rate to the user
@@ -125,7 +124,7 @@ contract FlowAgreement is SuperAgreementBase {
         view
         returns(int256)
     {
-        //should check if token is  approved
+        //should check if token is approved
         (, int256 debitor) = token.getAccountRateFlows(account);
         return debitor;
     }
@@ -202,8 +201,8 @@ contract FlowAgreement is SuperAgreementBase {
         override
         returns
     (
-        uint256,
-        int256
+        uint256 timestamp,
+        int256 flowRate
     )
     {
         require(state.length == 64, "invalid state size");

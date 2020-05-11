@@ -13,9 +13,31 @@ import "./interface/ISuperAgreement.sol";
  */
 contract SuperToken is ISuperToken, ERC20Base {
 
+///////// preferred storage layout
+
+    /// Underlaying ERC20 token
+    IERC20 private _token;
+
+    /// Mapping from sha3(agreementClass, agreementID) to agreement data
+    mapping(bytes32 => bytes) private _agreementData;
+
+    /// Mapping from sha3(agreementClass, account) to agreement state of the account
+    mapping(bytes32 => bytes) private _agreementStates;
+
+    /// List of enabled agreement classes for the account
+    mapping(address => address[]) private _accountActiveAgreementClasses;
+
+    /// Settled balance for the account
+    mapping(address => int256) private _settledBalances;
+
+///////// END
+
+
+///////// TO BE DELETED
+
     enum AccountType { Creditor, Debitor }
 
-    //keeping the same type for clarity
+    // keeping the same type for clarity
     struct Account {
         int256 creditFlow;
         int256 debitFlow;
@@ -32,6 +54,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
     //Agreements => User => Data
     mapping(address => mapping(address => bytes)) private _dataAgreements;
+
     // agreement Data
     // Key: keccak(agreement, sender, receiver) => data
     mapping(bytes32 => bytes) private _usersInAgreements;
@@ -39,16 +62,13 @@ contract SuperToken is ISuperToken, ERC20Base {
     //Save the number of flows by each agreement type
     mapping(address => mapping(address => Counter)) private _flowCounterPerAgreement;
 
-    //Save the most recent account setting for queries
-    mapping(address => Account) private _userAccount;
+///////////////////////// END
 
-    //lock agreement contract caller
+    // lock agreement contract caller TODO it shoudl go to registry contract
     mapping(address => address) public approvedAgreements;
 
+    // FIXME go away
     address public admin;
-
-    //Underlaying ERC20 token
-    IERC20 private _token;
 
     constructor (IERC20 token, string memory name, string memory symbol)
     public
@@ -144,8 +164,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         _dataAgreements[msg.sender][receiver] = receiverState;
     }
 
-    /// @notice Upgrade ERC20 to SuperToken. This method will ´transferFrom´ the tokens. Before calling this function you should ´approve´ this contract
-    /// @param amount Number of tokens to be upgraded
+    /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
         _token.transferFrom(msg.sender, address(this), amount);
         _mint(msg.sender, amount);
@@ -174,6 +193,64 @@ contract SuperToken is ISuperToken, ERC20Base {
         int256 _deb = _userAccount[account].debitFlow;
         return (_cred, _deb);
     }
+
+//////////// TO BE IMPLEMENTED 
+
+    function createAgreement(
+        address agreementClass,
+        bytes32 id,
+        bytes data,
+    )
+        external
+        override {
+        // TODO
+    }
+
+    function getAgreementData(
+        address agreementClass,
+        bytes32 id
+    )
+        external
+        view
+        returns(bytes memory state) {
+        // TODO
+    }
+
+    function terminateAgreement(
+        address agreementClass,
+        bytes32 id
+    )
+        external
+        override {
+        // TODO
+    }
+
+    /**
+     * @dev if the state is bytes(0), it should be removed from the _accountActiveAgreementClasses
+     */
+    function updateAgreementState(
+        address agreementClass,
+        bytes account,
+        bytes calldata state
+    )
+        external
+        override {
+        // TODO
+    };
+
+    function getAgreementState(
+        address agreementClass,
+        bytes account
+    )
+        external
+        view
+        override
+        returns (bytes memory data) {
+        // TODO
+    }
+
+
+////////////// END TBI
 
     function _indexOf(address agreementClass, address account) internal view returns(int256) {
         int256 i;

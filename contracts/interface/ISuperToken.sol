@@ -6,39 +6,63 @@ pragma solidity >= 0.6.6;
  */
 interface ISuperToken {
 
-    function getState(
+    /// @notice Register or update a agreement TODO fix comments
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    function createAgreement(
         address agreementClass,
-        address account
-    )
-        external
-        view
-        returns (bytes memory state);
-
-    function updateState(
-        address sender,
-        address receiver,
-        bool termination,
-        bytes calldata senderState,
-        bytes calldata receiverState
+        bytes32 id,
+        bytes data,
     ) external;
 
-    function upgrade(uint256 amount) external;
-
-    function downgrade(uint256 amount) external;
-
-    function currentState(
+    /// @notice Register or update a agreement TODO fix comments
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    function getAgreementData(
         address agreementClass,
-        address sender,
-        address receiver
+        bytes32 id
     )
         external
         view
         returns(bytes memory state);
 
-    function getAccountRateFlows(
-        address account
+    /// @notice Register or update a agreement TODO fix comments
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    function terminateAgreement(
+        address agreementClass,
+        bytes32 id
+    ) external;
+
+    /// @notice ... TODO fix comments
+    /// @param account Account of the agrement
+    /// @param state Agreement state of the account
+    function updateAgreementState(
+        address agreementClass,
+        bytes account,
+        bytes calldata state
+    ) external;
+
+    /// @notice ... TODO fix comments
+    /// @param agreementClass Contract address of the agreement
+    /// @param account Account of the agrement
+    function getAgreementState(
+        address agreementClass,
+        bytes account
     )
         external
         view
-        returns(int256 creditor, int256 debitor);
+        returns (bytes memory data);
+
+    /// @notice Upgrade ERC20 to SuperToken.
+    /// @dev This method will ´transferFrom´ the tokens. Before calling this
+    ///      function you should ´approve´ this contract
+    /// @param amount Number of tokens to be upgraded
+    function upgrade(uint256 amount) external;
+
+    /// @notice Downgrade SuperToken to ERC20.
+    /// @dev TODO ....
+    /// @param amount Number of tokens to be downgraded
+    function downgrade(uint256 amount) external;
+
 }

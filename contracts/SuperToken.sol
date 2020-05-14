@@ -2,27 +2,45 @@ pragma solidity 0.6.6;
 
 import { IERC20 } from "./interface/IERC20.sol";
 import { ISuperToken } from "./interface/ISuperToken.sol";
+
 import "./ERC20Base.sol";
 import "./interface/ISuperAgreement.sol";
 
-/**
- * @title Superfluid's token contract
- * @notice The token contract that can upgrade any ERC20 token with realtime
- *         finance capabilities, while being ERC20 compatible itself.
- * @author Superfluid
- */
 contract SuperToken is ISuperToken, ERC20Base {
-
-///////// preferred storage layout
-
     /// Underlaying ERC20 token
     IERC20 private _token;
 
+    /*
+     * Example:
+     *
+     * - a1/agreement data 1: Fran -> Nuno: 10 DAI / mo
+     * - a2/agreement data 2: Miao -> Nuno: 10 DAI / mo
+     * - a3/agreement data 3: Mike -> Nuno: 10 DAI / mo
+     *
+     * 3 agreements data:
+     * a1: sha3(flowAgreement, sha3(Fran, Nuno)) -> (10 DAI / mo)
+     * a2: sha3(flowAgreement, sha3(Miao, Nuno)) -> (10 DAI / mo)
+     * a3: sha3(flowAgreement, sha3(Mike, Nuno)) -> (10 DAI / mo)
+     *
+     *
+     *
+     *
+     * 4 agreement account STATES:
+     * sha3(flowAgreement, account) -> state
+     *
+     * Fran: outflow 10 dai / mo, inflow 0 dai / mo
+     * Miao: outflow 10 dai / mo, inflow 0 dai / mo
+     * Mike: outflow 10 dai / mo, inflow 0 dai / mo
+     * Nuno: outflow 0 dai / mo, inflow 30 dai / mo
+     */
+
     /// Mapping from sha3(agreementClass, agreementID) to agreement data
+    /// the generation of agreementID is the logic of agreement contract
     mapping(bytes32 => bytes) private _agreementData;
 
-    /// Mapping from sha3(agreementClass, account) to agreement state of the account
-    mapping(bytes32 => bytes) private _agreementStates;
+    /// Mapping from account to agreement state of the account
+    /// It is like RUNTIME state of the agreement for each account
+    mapping(address => bytes) private _agreementAccountStates;
 
     /// List of enabled agreement classes for the account
     mapping(address => address[]) private _accountActiveAgreementClasses;
@@ -30,139 +48,116 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// Settled balance for the account
     mapping(address => int256) private _settledBalances;
 
-///////// END
-
-
-///////// TO BE DELETED
-
-    enum AccountType { Creditor, Debitor }
-
-    // keeping the same type for clarity
-    struct Account {
-        int256 creditFlow;
-        int256 debitFlow;
-        address[] userAgreements;
-    }
-
-    struct Counter {
-        uint256 flowIn;
-        uint256 flowOut;
-    }
-
-    //This is needed because when we change the starting timestamp
-    mapping(address => int256) private _balanceSnapshot;
-
-    //Agreements => User => Data
-    mapping(address => mapping(address => bytes)) private _dataAgreements;
-
-    // agreement Data
-    // Key: keccak(agreement, sender, receiver) => data
-    mapping(bytes32 => bytes) private _usersInAgreements;
-
-    //Save the number of flows by each agreement type
-    mapping(address => mapping(address => Counter)) private _flowCounterPerAgreement;
-
-///////////////////////// END
-
-    // lock agreement contract caller TODO it shoudl go to registry contract
-    mapping(address => address) public approvedAgreements;
-
-    // FIXME go away
-    address public admin;
-
     constructor (IERC20 token, string memory name, string memory symbol)
     public
     ERC20Base(name, symbol) {
         _token = token;
-        admin = msg.sender;
+    }
+
+     /// @dev ISuperToken.balanceOf implementation
+    function balanceOf(
+        address account
+    )
+        public
+        view
+        returns(uint256 balance)
+    {
+         // can return negative
+        (uint256 _balance,) = _calculateBalance(account, block.timestamp);
+        return _balance;
     }
 
     /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
+    ///         Used by solvency agent
     /// @param account User to calculate balance
-    /// @return balance User balance
-    function balanceOf(address account) public view override returns (int256 balance) {
-
-        //query each agreement contract
-        int256 _agreeBalances;
-
-        for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
-            /* solhint-disable not-rely-on-time, mark-callable-contracts */
-            //Atention: External call
-            _agreeBalances += ISuperAgreement(
-                _userAccount[account].userAgreements[i]
-            ).balanceOf(
-                _dataAgreements[_userAccount[account].userAgreements[i]][account],
-                block.timestamp
-            );
-        }
-
-        return int256(_settledBalances[account]) + _agreeBalances + _balanceSnapshot[account];
+    /// @param timestamp Time of balance
+    /// @return balance Account balance
+    function realtimeBalanceOf(
+        address account,
+        uint256 timestamp
+    )
+    public
+    view
+    returns (int256)
+    {
+        // can return negative
+        (, int256 _balance) = _calculateBalance(account, timestamp);
+        return _balance;
     }
 
-    //@notice add approve agreement
-    function addAgreement(address agreementClass) external onlyAdmin {
-        approvedAgreements[agreementClass] = agreementClass;
-    }
 
-    /// @notice Get the state of an user and agreement
-    /// @param agreementClass Contract of the FlowAgreement
-    /// @param account User that is part of this aggrement
-    /// @return state of agreement
-    function getState
-    (
-        address agreementClass,
+    /*
+    *   Agreement Account States
+    */
+
+    /// @dev ISuperToken.getAgreementAccountState implementation
+    function getAgreementAccountState(
         address account
     )
-    external
-    view
-    override
-    returns (bytes memory state)
+        external
+        view
+        override
+        returns (bytes memory data)
     {
-        return _dataAgreements[agreementClass][account];
+        return _agreementAccountStates[account];
     }
 
-    /// @notice Register or update a agreement, for each positive flow there is a negative one
-    /// @param sender User that is sending tokens in this aggrement
-    /// @param receiver User that is receiving tokens in this aggrement
-    /// @param senderState Sender state of agreement that will be register
-    /// @param receiverState Receiver state of agreement that will be register
-    function updateState
-    (
-        address sender,
-        address receiver,
-        bool termination,
-        bytes calldata senderState,
-        bytes calldata receiverState
+    /// @dev ISuperToken.updateAgreementAccountState implementation
+    function updateAgreementAccountState(
+        address account,
+        bytes calldata state
     )
-    external
-    onlyApproved
-    override
+        external
+        override
     {
-        //here the msg.sender is the contract that implements the ISuperAgreement
-        //TODO: validate the approved implementations of agreements
-        require(msg.sender != sender && msg.sender != receiver, "Use the agreement contract");
-        _cleaningState(msg.sender, sender, receiver, termination);
-
-        //Must update accounts before changing the state
-        _updateAccount(
-            AccountType.Debitor,
-            _flowKey(msg.sender, sender, receiver),
-            sender,
-            _dataAgreements[msg.sender][sender],
-            senderState
-        );
-
-        _updateAccount(
-            AccountType.Creditor,
-            _flowKey(msg.sender, receiver, sender),
-            receiver,
-            _dataAgreements[msg.sender][receiver],
-            receiverState
-        );
-
-        _dataAgreements[msg.sender][sender] = senderState;
-        _dataAgreements[msg.sender][receiver] = receiverState;
+        _agreementAccountStates[account] = state;
     }
+
+
+    /*
+    * Agreement Data
+    */
+
+    /// @dev ISuperToken.createAgreement implementation
+    function createAgreement(
+        address agreementClass,
+        bytes32 id,
+        bytes calldata data
+    ) 
+        external
+        override
+    {
+       _agreementData[_agreementDataId(agreementClass, id)] = data;
+    }
+
+    /// @dev ISuperToken.getAgreementData implementation
+    function getAgreementData(
+        address agreementClass,
+        bytes32 id
+    )
+        external
+        view
+        override
+        returns(bytes memory state)
+    {
+        return _agreementData[_agreementDataId(agreementClass, id)];
+    }
+    /// @dev ISuperToken.terminateAgreement implementation
+    function terminateAgreement(
+        address agreementClass,
+        bytes32 id
+    )
+        external
+        override
+    {
+        _takeBalanceSnapshot(msg.sender);
+        delete _agreementData[_agreementDataId(agreementClass, id)];
+        _removeActiveAgreement(agreementClass, msg.sender);
+    }
+
+    /*
+    * SuperToken 
+    */
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
@@ -170,94 +165,67 @@ contract SuperToken is ISuperToken, ERC20Base {
         _mint(msg.sender, amount);
     }
 
+    /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
         require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
+
         _touch(msg.sender);
         _burn(msg.sender, amount);
         _token.transfer(msg.sender, amount);
     }
 
-    function currentState(address agreementClass, address sender, address receiver) external view override returns(bytes memory state) {
-        return _usersInAgreements[_flowKey(agreementClass, sender, receiver)];
-    }
 
-    function getAccountRateFlows(
-        address account
-    )
-        external
-        view
-        override
-        returns(int256 creditor, int256 debitor)
-    {
-        int256 _cred = _userAccount[account].creditFlow;
-        int256 _deb = _userAccount[account].debitFlow;
-        return (_cred, _deb);
-    }
+    /*
+    *  Internal functions
+    */
 
-//////////// TO BE IMPLEMENTED 
+     /// @dev Calculate balance as split result if negative return as zero.
+    function _calculateBalance(address account, uint256 timestamp) internal view returns(uint256, int256) {
+        int256 _eachAgreementClassBalance;
+        int256 _balance;
+        address _agreementClass;
 
-    function createAgreement(
-        address agreementClass,
-        bytes32 id,
-        bytes data,
-    )
-        external
-        override {
-        // TODO
-    }
+        for(uint256 i = 0; i < _accountActiveAgreementClasses[account].length; i++)  {
+            _agreementClass = _accountActiveAgreementClasses[account][i];
+            _eachAgreementClassBalance += ISuperAgreement(_agreementClass).balanceOf(
+                _agreementAccountStates[account], timestamp
+            );
+        }
 
-    function getAgreementData(
-        address agreementClass,
-        bytes32 id
-    )
-        external
-        view
-        returns(bytes memory state) {
-        // TODO
-    }
-
-    function terminateAgreement(
-        address agreementClass,
-        bytes32 id
-    )
-        external
-        override {
-        // TODO
-    }
-
-    /**
-     * @dev if the state is bytes(0), it should be removed from the _accountActiveAgreementClasses
-     */
-    function updateAgreementState(
-        address agreementClass,
-        bytes account,
-        bytes calldata state
-    )
-        external
-        override {
-        // TODO
-    };
-
-    function getAgreementState(
-        address agreementClass,
-        bytes account
-    )
-        external
-        view
-        override
-        returns (bytes memory data) {
-        // TODO
+        _balance = _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
+        return _balance < 0 ? (0, _balance) : (uint256(_balance), _balance);
     }
 
 
-////////////// END TBI
+    /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
+    /// TODO: Let think about how we are getting the idAgreement
+    function _touch(address account) internal {
+        address _agreementClass;
+        bytes memory _touchState;
+        int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
 
-    function _indexOf(address agreementClass, address account) internal view returns(int256) {
+        for(uint256 i = 0; i < _accountActiveAgreementClasses[account].length; i++) {
+
+            _agreementClass = _accountActiveAgreementClasses[account][i];
+            _touchState = ISuperAgreement(_agreementClass).touch(_agreementAccountStates[account], block.timestamp);
+            _agreementAccountStates[account] = _touchState;
+            _settledBalances[account] = 0;
+        }
+
+        if(_balance > 0) {
+            _mint(account, uint256(_balance));
+        }
+    }
+
+
+     /// @dev if returns -1 agreement is not active
+    function _indexOfActiveAgreement(address agreementClass, address account) internal view returns(int256) {
         int256 i;
-        int256 bound = int256(_userAccount[account].userAgreements.length);
+        int256 _size = int256(_accountActiveAgreementClasses[account].length);
 
-        while (i < bound) {
-            if (_userAccount[account].userAgreements[uint256(i)] == agreementClass) {
+        while (i < _size) {
+
+            if (_accountActiveAgreementClasses[account][uint256(i)] == agreementClass) {
                 return i;
             }
 
@@ -267,147 +235,31 @@ contract SuperToken is ISuperToken, ERC20Base {
         return -1;
     }
 
-    function _removeAgreement(address agreementClass, address account) internal {
-        //if we only have one agreement then is just need it to pop that element
-        if (_userAccount[account].userAgreements.length == 1) {
-            _userAccount[account].userAgreements.pop();
-        }
 
-        int256 _idx = _indexOf(agreementClass, account);
-        uint256 _size = _userAccount[account].userAgreements.length;
+    function _removeActiveAgreement(address agreementClass, address account) internal {
+        int256 _idx = _indexOfActiveAgreement(agreementClass, account);
+        uint256 _size = _accountActiveAgreementClasses[account].length;
 
-        //If we have a valid index then that element exist
+        //If we have a valid index then that element can be removed
         if (_idx >= 0) {
             if (_size - 1 == uint256(_idx)) {
-                _userAccount[account].userAgreements.pop();
+                _accountActiveAgreementClasses[account].pop();
             } else {
-                _userAccount[account].userAgreements[uint256(_idx)] = _userAccount[account].userAgreements[_size - 1];
-                _userAccount[account].userAgreements.pop();
+                //swap element and pop
+                _accountActiveAgreementClasses[account][uint256(_idx)] = _accountActiveAgreementClasses[account][_size - 1];
+                _accountActiveAgreementClasses[account].pop();
             }
         }
     }
 
-    function _cleaningState(address agreementClass, address sender, address receiver, bool termination) internal {
-
-        uint256 _senderLength = _userAccount[sender].userAgreements.length;
-        uint256 _receiverLength = _userAccount[receiver].userAgreements.length;
-        Counter storage senderCounter = _flowCounterPerAgreement[agreementClass][sender];
-        Counter storage receiverCounter = _flowCounterPerAgreement[agreementClass][receiver];
-
-        if (termination) {
-
-            _takeSnapshot(receiver);
-            if (senderCounter.flowIn == 0 && senderCounter.flowOut == 1) {
-                _removeAgreement(agreementClass, sender);
-                senderCounter.flowOut = 0;
-            } else {
-                senderCounter.flowOut--;
-            }
-
-            //Receiver user has only this in flow
-            if (receiverCounter.flowIn == 1 && receiverCounter.flowOut == 0) {
-                _removeAgreement(agreementClass, receiver);
-                receiverCounter.flowIn = 0;
-            } else {
-                receiverCounter.flowIn--;
-            }
-
-        } else {
-            //if new account register so we can query later
-            if (_senderLength == 0 && _indexOf(agreementClass, sender) == -1) {
-
-                _userAccount[sender].userAgreements.push(msg.sender);
-                senderCounter.flowOut++;
-            }
-
-            //if new account register so we can query later
-            if (_receiverLength == 0 && _indexOf(agreementClass, receiver) == -1) {
-                _userAccount[receiver].userAgreements.push(msg.sender);
-                receiverCounter.flowIn++;
-
-            } else {
-                _takeSnapshot(receiver);
-            }
-        }
-    }
-
-    /// @notice Save the balance until now
+    /// @dev Save the balance until now
     /// @param account User to snapshot balance
-    function _takeSnapshot(address account) internal {
-        _balanceSnapshot[account] += balanceOf(account);
+    function _takeBalanceSnapshot(address account) internal {
+        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp);
     }
 
-    function getSnapshot(address account) public view returns(int256) {
-        return _balanceSnapshot[account];
-    }
-
-    function _updateAccount(
-        AccountType actype,
-        bytes32 flowKey,
-        address account,
-        bytes memory oldState,
-        bytes memory newState
-    )
-        internal
-    {
-        //Atention: External calls
-        (uint256 _updateTime, int256 _updateValue) = ISuperAgreement(msg.sender).decodeFlow(newState);
-        int256 _oldValue;
-        int256 _local;
-        if (oldState.length > 0) {
-            (, _oldValue) = ISuperAgreement(msg.sender).decodeFlow(oldState);
-        }
-
-        if (_usersInAgreements[flowKey].length > 0) {
-            (, _local) = ISuperAgreement(msg.sender).decodeFlow(_usersInAgreements[flowKey]);
-        }
-
-        int256 _finalValue = _updateValue - _oldValue;
-        bytes memory _finalState = ISuperAgreement(msg.sender).encodeFlow(_updateTime, _local + _finalValue);
-
-        if (actype == AccountType.Creditor) {
-            _userAccount[account].creditFlow += _finalValue;
-        } else {
-            _userAccount[account].debitFlow += _finalValue;
-        }
-
-        _usersInAgreements[flowKey] = _finalState;
-    }
-
-    /// @notice this function is a bootstrap function to test the rest of smart contract
-    /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
-    function _touch(address account) internal {
-        address _endpoint;
-        bytes memory _touchState;
-        int256 _settleBalance = balanceOf(account) - int256(_settledBalances[account]);
-
-        for (uint256 i = 0; i < _userAccount[account].userAgreements.length; i++) {
-            _endpoint = _userAccount[account].userAgreements[i];
-            _touchState = ISuperAgreement(_endpoint).touch(_dataAgreements[_endpoint][account], block.timestamp);
-            _dataAgreements[_endpoint][account] = _touchState;
-            _balanceSnapshot[account] = 0;
-        }
-
-        if (_settleBalance > 0) {
-            _mint(account, uint256(_settleBalance));
-        }
-    }
-
-    /// @notice the key of a flow is defined as hash(agreement, sender, receiver)
-    function _flowKey(address agreementClass, address sender, address receiver) internal pure returns(bytes32) {
-        return keccak256(abi.encodePacked(agreementClass, sender, receiver));
-    }
-
-
-    /// @notice The caller should be pre approved
-    modifier onlyApproved() {
-        require(msg.sender == approvedAgreements[msg.sender], "Use the agreement contract");
-        _;
-    }
-
-    /// @notice Only the admin address can make some operations
-    modifier onlyAdmin() {
-        require(msg.sender == admin, "not admin");
-        _;
+    /// @dev Hash agreement with accounts
+    function _agreementDataId(address agreementClass, bytes32 accounts) public pure returns(bytes32) {
+        return keccak256(abi.encodePacked(agreementClass,accounts));
     }
 }

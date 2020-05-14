@@ -11,17 +11,16 @@ contract InstruSuperToken is InstruEventsDebug {
         target = IInstrSuperToken(_wrapping);
     }
 
-    function getState
-    (
+   function getAgreementData(
         address agreementClass,
-        address account
+        bytes32 id
     )
-    external
-    returns (uint256 blocktime, bytes memory state)
+        external
+        returns(uint256 blocktime, bytes memory state)
     {
         emit LogAddress("agreementClass", agreementClass);
-        emit LogAddress("account", account);
-        bytes memory _state = target.getState(agreementClass, account);
+        emit LogBytes32("id", id);
+        bytes memory _state = target.getAgreementData(agreementClass, id);
         return (block.timestamp, _state);
     }
 
@@ -29,21 +28,32 @@ contract InstruSuperToken is InstruEventsDebug {
         address account
     )
         public
-        returns (uint256 blocktime, int256 balance)
+        returns (uint256 blocktime, uint256 balance)
     {
-        int256 _balance = target.balanceOf(account);
+        uint256 _balance = target.balanceOf(account);
         return (block.timestamp, _balance);
     }
 
-    function currentState(
-        address sender,
-        address receiver
+    function realtimeBalanceOf(
+        address account,
+        uint256 timestamp
+    )
+        public
+        view
+        returns (uint256 blocktime, int256 balance)
+    {
+        int256 _balance = target.realtimeBalanceOf(account, timestamp);
+        return (block.timestamp, _balance);
+    }
+
+    function getAgreementAccountState(
+        address account
     )
         external
-        returns(uint256 blocktime, bytes memory state)
+        view
+        returns (uint256 blocktime, bytes memory data)
     {
-
-        bytes memory _state = target.currentState(sender, receiver);
+        bytes memory _state = target.getAgreementAccountState(account);
         return (block.timestamp, _state);
     }
 }

@@ -10,3 +10,5 @@ yarn.lock
 .DS_Store
 
 *.env
+
+.vscode/

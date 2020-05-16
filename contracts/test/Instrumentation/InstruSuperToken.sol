@@ -56,4 +56,15 @@ contract InstruSuperToken is InstruEventsDebug {
         bytes memory _state = target.getAgreementAccountState(account);
         return (block.timestamp, _state);
     }
+
+    function nowBalanceOf(
+        address account
+    )
+        external
+        view
+        returns (uint256 blocktime, int256 balance)
+    {
+        int256 _balance = target.realtimeBalanceOf(account, block.timestamp);
+        return (block.timestamp, _balance);
+    }
 }

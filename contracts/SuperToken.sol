@@ -35,7 +35,7 @@ contract SuperToken is ISuperToken, ERC20Base {
      */
 
     /// Mapping from sha3(agreementClass, agreementID) to agreement data
-    /// the generation of agreementID is the logic of agreement contract
+    /// the generation of agreementDataID is the logic of agreement contract
     mapping(bytes32 => bytes) private _agreementData;
 
     /// Mapping from account to agreement state of the account
@@ -43,7 +43,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     mapping(address => bytes) private _agreementAccountStates;
 
     /// List of enabled agreement classes for the account
-    mapping(address => address[]) private _accountActiveAgreementClasses;
+    mapping(address => address[]) public accountActiveAgreementClasses;
 
     /// Settled balance for the account
     mapping(address => int256) private _settledBalances;
@@ -54,7 +54,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         _token = token;
     }
 
-     /// @dev ISuperToken.balanceOf implementation
+    function getAccountActiveAgreements(address account) public view returns(address[] memory) {
+        return accountActiveAgreementClasses[account];
+    }
+
+    /// @dev ISuperToken.balanceOf implementation
     function balanceOf(
         address account
     )
@@ -62,11 +66,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         view
         returns(uint256 balance)
     {
-         // can return negative
-        (uint256 _balance,) = _calculateBalance(account, block.timestamp);
-        return _balance;
+        (int256 _balance) = _calculateBalance(account, block.timestamp);
+        return _balance < 0 ? 0 : uint256(_balance);
     }
 
+    /// review ok
     /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
     ///         Used by solvency agent
     /// @param account User to calculate balance
@@ -76,13 +80,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         address account,
         uint256 timestamp
     )
-    public
-    view
-    returns (int256)
+        public
+        view
+        returns (int256)
     {
-        // can return negative
-        (, int256 _balance) = _calculateBalance(account, timestamp);
-        return _balance;
+        return _calculateBalance(account, timestamp);
     }
 
 
@@ -90,6 +92,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     *   Agreement Account States
     */
 
+   //review ok
     /// @dev ISuperToken.getAgreementAccountState implementation
     function getAgreementAccountState(
         address account
@@ -110,7 +113,10 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         override
     {
+        require(msg.sender != account, "Use the agreement contract");
+        _takeBalanceSnapshot(account);
         _agreementAccountStates[account] = state;
+        state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
     }
 
 
@@ -118,12 +124,13 @@ contract SuperToken is ISuperToken, ERC20Base {
     * Agreement Data
     */
 
+
     /// @dev ISuperToken.createAgreement implementation
     function createAgreement(
         address agreementClass,
         bytes32 id,
         bytes calldata data
-    ) 
+    )
         external
         override
     {
@@ -142,6 +149,8 @@ contract SuperToken is ISuperToken, ERC20Base {
     {
         return _agreementData[_agreementDataId(agreementClass, id)];
     }
+
+    //review - let dig a little more
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
         address agreementClass,
@@ -150,13 +159,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         override
     {
-        _takeBalanceSnapshot(msg.sender);
         delete _agreementData[_agreementDataId(agreementClass, id)];
-        _removeActiveAgreement(agreementClass, msg.sender);
     }
 
     /*
-    * SuperToken 
+    * SuperToken
     */
 
     /// @dev ISuperToken.upgrade implementation
@@ -168,10 +175,14 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
         require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
-
+        //review TODO touch only need, by the requirement amount
         _touch(msg.sender);
         _burn(msg.sender, amount);
         _token.transfer(msg.sender, amount);
+    }
+
+    function getSettledBalance(address account) external view returns(int256 settledBalance) {
+       return _settledBalances[account];
     }
 
 
@@ -179,53 +190,54 @@ contract SuperToken is ISuperToken, ERC20Base {
     *  Internal functions
     */
 
-     /// @dev Calculate balance as split result if negative return as zero.
-    function _calculateBalance(address account, uint256 timestamp) internal view returns(uint256, int256) {
+
+    /// @dev Calculate balance as split result if negative return as zero.
+    function _calculateBalance(address account, uint256 timestamp) internal view returns(int256) {
+
         int256 _eachAgreementClassBalance;
-        int256 _balance;
         address _agreementClass;
 
-        for(uint256 i = 0; i < _accountActiveAgreementClasses[account].length; i++)  {
-            _agreementClass = _accountActiveAgreementClasses[account][i];
-            _eachAgreementClassBalance += ISuperAgreement(_agreementClass).balanceOf(
-                _agreementAccountStates[account], timestamp
-            );
+        for(uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++)  {
+            _agreementClass = accountActiveAgreementClasses[account][i];
+            _eachAgreementClassBalance +=
+                ISuperAgreement(_agreementClass).balanceOf(_agreementAccountStates[account], timestamp);
         }
 
-        _balance = _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
-        return _balance < 0 ? (0, _balance) : (uint256(_balance), _balance);
+        return _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
     }
 
 
     /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
-    /// TODO: Let think about how we are getting the idAgreement
     function _touch(address account) internal {
+
         address _agreementClass;
         bytes memory _touchState;
         int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
 
-        for(uint256 i = 0; i < _accountActiveAgreementClasses[account].length; i++) {
+        for(uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++) {
 
-            _agreementClass = _accountActiveAgreementClasses[account][i];
+            _agreementClass = accountActiveAgreementClasses[account][i];
             _touchState = ISuperAgreement(_agreementClass).touch(_agreementAccountStates[account], block.timestamp);
+
             _agreementAccountStates[account] = _touchState;
-            _settledBalances[account] = 0;
         }
 
+        _settledBalances[account] = 0;
         if(_balance > 0) {
             _mint(account, uint256(_balance));
         }
     }
 
 
-     /// @dev if returns -1 agreement is not active
-    function _indexOfActiveAgreement(address agreementClass, address account) internal view returns(int256) {
+    /// @dev if returns -1 agreement is not active
+    function _indexOfAgreementClass(address agreementClass, address account) internal view returns(int256) {
+
         int256 i;
-        int256 _size = int256(_accountActiveAgreementClasses[account].length);
+        int256 _size = int256(accountActiveAgreementClasses[account].length);
 
         while (i < _size) {
 
-            if (_accountActiveAgreementClasses[account][uint256(i)] == agreementClass) {
+            if (accountActiveAgreementClasses[account][uint256(i)] == agreementClass) {
                 return i;
             }
 
@@ -235,31 +247,39 @@ contract SuperToken is ISuperToken, ERC20Base {
         return -1;
     }
 
+    function _delAgreementClass(address agreementClass, address account) internal {
 
-    function _removeActiveAgreement(address agreementClass, address account) internal {
-        int256 _idx = _indexOfActiveAgreement(agreementClass, account);
-        uint256 _size = _accountActiveAgreementClasses[account].length;
+        int256 _idx = _indexOfAgreementClass(agreementClass, account);
+        uint256 _size = accountActiveAgreementClasses[account].length;
 
-        //If we have a valid index then that element can be removed
         if (_idx >= 0) {
+
             if (_size - 1 == uint256(_idx)) {
-                _accountActiveAgreementClasses[account].pop();
+                accountActiveAgreementClasses[account].pop();
             } else {
                 //swap element and pop
-                _accountActiveAgreementClasses[account][uint256(_idx)] = _accountActiveAgreementClasses[account][_size - 1];
-                _accountActiveAgreementClasses[account].pop();
+                accountActiveAgreementClasses[account][uint256(_idx)] = accountActiveAgreementClasses[account][_size - 1];
+                accountActiveAgreementClasses[account].pop();
             }
+        }
+    }
+
+    /// review: ok
+    function _addAgreementClass(address agreementClass, address account) internal {
+        if(_indexOfAgreementClass(agreementClass, account) == -1) {
+            accountActiveAgreementClasses[account].push(agreementClass);
         }
     }
 
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp);
+        int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
+        _settledBalances[account] = _balance < 0 ? 0 : _balance;
     }
 
     /// @dev Hash agreement with accounts
-    function _agreementDataId(address agreementClass, bytes32 accounts) public pure returns(bytes32) {
-        return keccak256(abi.encodePacked(agreementClass,accounts));
+    function _agreementDataId(address agreementClass, bytes32 agreementId) public pure returns(bytes32) {
+        return keccak256(abi.encodePacked(agreementClass, agreementId));
     }
 }

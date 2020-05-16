@@ -26,6 +26,8 @@ interface IInstrSuperToken {
         view
         returns (int256 balance);
 
+
+
     function getAgreementAccountState(
         address account
     )

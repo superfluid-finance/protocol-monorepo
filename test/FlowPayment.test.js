@@ -54,12 +54,6 @@ contract("FlowPayment", accounts => {
             {
                 from: admin
             });
-
-        await web3tx(superToken.addAgreement, "SuperToken.addAgreement")(
-            fa.address, {
-                from: admin
-            }
-        );
     });
 
     it("#1 - Basic operations - run connect function", async () => {

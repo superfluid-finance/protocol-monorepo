@@ -52,13 +52,6 @@ contract("Flow Agreement Stories", accounts => {
                 from: user1
             }
         );
-
-
-        await web3tx(superToken.addAgreement, "SuperToken.addAgreement")(
-            agreement.address, {
-                from: admin
-            }
-        );
     });
 
     /*

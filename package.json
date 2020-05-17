@@ -2,6 +2,7 @@
     "name": "@superfluid/contracts",
     "version": "0.0.1",
     "description": "Superfluid smart contracts.",
+    "repository": "github:superfluid-finance/superfluid-protocol",
     "license": "MIT",
     "dependencies": {
         "@openzeppelin/contracts": "3.0.0-rc.1"

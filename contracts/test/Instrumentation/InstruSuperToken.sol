@@ -28,6 +28,7 @@ contract InstruSuperToken is InstruEventsDebug {
         address account
     )
         public
+        view
         returns (uint256 blocktime, uint256 balance)
     {
         uint256 _balance = target.balanceOf(account);

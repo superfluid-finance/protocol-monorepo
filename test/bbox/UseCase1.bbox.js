@@ -62,7 +62,6 @@ contract("Usecase 1 Stories", accounts => {
             }
         );
 
-
         await web3tx(token.approve, "token.approve from Mike to SuperToken")(
             superToken.address,
             MAX_UINT256, {
@@ -118,9 +117,9 @@ contract("Usecase 1 Stories", accounts => {
         console.log("Fran Balance: ", wad4human(FranBalance));
         console.log("Mike Balance: ", wad4human(MikeBalance));
 
-        console.log("Nuno balance after one week is ", NunoBalance.toString());
+        console.log("Nuno balance after one week is ", wad4human(NunoBalance));
 
-        await web3tx(superToken.downgrade, "User 3 is downgrading tokens")(
+        await web3tx(superToken.downgrade, "Nuno is downgrading tokens")(
             NunoBalance, {
                 from: Nuno
             }

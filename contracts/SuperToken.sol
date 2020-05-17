@@ -1,3 +1,4 @@
+/* solhint-disable not-rely-on-time */
 pragma solidity 0.6.6;
 
 import { IERC20 } from "./interface/IERC20.sol";
@@ -134,7 +135,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         override
     {
-       _agreementData[_agreementDataId(agreementClass, id)] = data;
+        _agreementData[_agreementDataId(agreementClass, id)] = data;
     }
 
     /// @dev ISuperToken.getAgreementData implementation
@@ -182,7 +183,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     }
 
     function getSettledBalance(address account) external view returns(int256 settledBalance) {
-       return _settledBalances[account];
+        return _settledBalances[account];
     }
 
 
@@ -191,13 +192,14 @@ contract SuperToken is ISuperToken, ERC20Base {
     */
 
 
+    /* solhint-disable mark-callable-contracts */
     /// @dev Calculate balance as split result if negative return as zero.
     function _calculateBalance(address account, uint256 timestamp) internal view returns(int256) {
 
         int256 _eachAgreementClassBalance;
         address _agreementClass;
 
-        for(uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++)  {
+        for (uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++) {
             _agreementClass = accountActiveAgreementClasses[account][i];
             _eachAgreementClassBalance +=
                 ISuperAgreement(_agreementClass).balanceOf(_agreementAccountStates[account], timestamp);
@@ -205,8 +207,9 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         return _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
     }
+    /* solhint-enable mark-callable-contracts */
 
-
+    /* solhint-disable mark-callable-contracts */
     /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
     function _touch(address account) internal {
 
@@ -214,7 +217,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         bytes memory _touchState;
         int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
 
-        for(uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++) {
+        for (uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++) {
 
             _agreementClass = accountActiveAgreementClasses[account][i];
             _touchState = ISuperAgreement(_agreementClass).touch(_agreementAccountStates[account], block.timestamp);
@@ -223,10 +226,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         }
 
         _settledBalances[account] = 0;
-        if(_balance > 0) {
+        if (_balance > 0) {
             _mint(account, uint256(_balance));
         }
     }
+    /* solhint-enable mark-callable-contracts */
 
 
     /// @dev if returns -1 agreement is not active
@@ -266,7 +270,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
     /// review: ok
     function _addAgreementClass(address agreementClass, address account) internal {
-        if(_indexOfAgreementClass(agreementClass, account) == -1) {
+        if (_indexOfAgreementClass(agreementClass, account) == -1) {
             accountActiveAgreementClasses[account].push(agreementClass);
         }
     }
@@ -274,8 +278,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
-        _settledBalances[account] = _balance < 0 ? 0 : _balance;
+        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
     }
 
     /// @dev Hash agreement with accounts

@@ -5,7 +5,6 @@ const InstruSuperToken = artifacts.require("InstruSuperToken");
 
 const {
     web3tx,
-    wad4human,
     toWad
 } = require("@decentral.ee/web3-test-helpers");
 
@@ -180,14 +179,13 @@ contract("Super Token", accounts => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});  //10 tokens
 
-        let test = await superToken.balanceOf.call(user1);
+        await superToken.balanceOf.call(user1);
         let tx1 = await web3tx(agreement.createFlow, "Call: FlowAgreement.createFlow")(superToken.address, user2, FLOW_RATE, {from: user1});
-        let test1 = await superToken.balanceOf.call(user1);
+        await superToken.balanceOf.call(user1);
 
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
-        let timestamp = (await web3.eth.getBlock("latest")).timestamp;
         let result2 = await superTokenDebug.balanceOf.call(user2);
 
         let tx2 = await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
@@ -210,7 +208,7 @@ contract("Super Token", accounts => {
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
-        timestamp = (await web3.eth.getBlock("latest")).timestamp;
+        await web3.eth.getBlock("latest");
         let result3 = await superTokenDebug.balanceOf.call(user1);
         let result4 = await superTokenDebug.balanceOf.call(user2);
 
@@ -429,7 +427,7 @@ contract("Super Token", accounts => {
         let span1 = tx2.timestamp - tx1.timestamp;
         let result1 = FLOW_RATE * span1;
 
-        assert.equal(snapshot1, 0, "Call: SuperToken.getSnapshot first call user 1 is incorrect");
+        assert.equal(snapshot1, (-1 * snapshot2), "Call: SuperToken.getSnapshot first call user 1 is incorrect");
         assert.equal(snapshot2, result1, "Call: SuperToken.getSnapshot first call user 2 is incorrect");
 
         await traveler.advanceTime(ADV_TIME);
@@ -443,7 +441,7 @@ contract("Super Token", accounts => {
         console.log("SPAN 2 : ", span2);
         let result2 = (span2 * FLOW_RATE);
 
-        //assert.equal(snapshot3.toString(), 0, "Call: SuperToken.getSnapshot second call user 1 is incorrect");
+        assert.equal(snapshot3.toString(), (-1 * snapshot4), "Call: SuperToken.getSnapshot second call user 1 is incorrect");
         assert.equal(snapshot4.toString(), result2.toString(), "Call: SuperToken.getSnapshot second call user 2 is incorrect");
     });
 
@@ -454,7 +452,7 @@ contract("Super Token", accounts => {
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();
 
-        let tx2 = await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow")(superToken.address, user2, FLOW_RATE, {from: user1});
+        await web3tx(agreement.updateFlow, "Call: FlowAgreement.updateFlow")(superToken.address, user2, FLOW_RATE, {from: user1});
         let snapshot1 = await superToken.getSettledBalance.call(user2);
 
         await traveler.advanceTime(ADV_TIME * 1000);

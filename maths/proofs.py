@@ -18,8 +18,17 @@ def CLP(initialLa, initialLb, newLa, newLb):
 
 def solveUniswap():
     """
-    @description Solve uniswap equations:
+    @description Solve uniswap equations.
 
+    initial conditions:
+    - L_a - liquidity of a
+    - L_b - liquidity of b
+
+    inputs:
+    - Delta_a - delta of a
+    - Delta_b - delta of b
+
+    inquiries:
     - Output function
     - Price function
     """
@@ -44,11 +53,21 @@ def solveUniswap():
 
 def solveFlowswap():
     """
-    @description Solve uniswap equations:
+    @description Solve flowswap equations.
 
+    initial conditions:
+    - L_a - liquidity of a
+    - L_b - liquidity of b
+
+    inputs:
+    - t - time
+    - f_a - flow function of a -> b
+    - f_b - flow function of b -> a
+
+    inquiries:
     - q function
+    - Output function
     - Price function
-    - Output function (TODO)
     """
     print "==== Flowswap Equations ===="
     L_a, L_b, T, t, q = var("L_a", "L_b", "T", "t", "q")
@@ -61,16 +80,18 @@ def solveFlowswap():
         L_a + f_a(t) + q * f_b(t),
         L_b + f_b(t) + 1/q * f_a(t)
     )
-    print "Liquidity Equation: \t", liquidityEquation
+    print "Liquidity Equation:  \t", liquidityEquation
 
     solutions_q = solve(liquidityEquation, q)
-    print "q Function:         \t", solutions_q
+    print "q Function Solutions:\t", solutions_q
 
     q1 = solutions_q[0].right()
     Delta_a = f_a(t) + q1 * f_b(t)
     Delta_b = f_b(t) + 1/q1 * f_a(t)
+    print "Output Function:     \t", Delta_b
+
     Price = - Delta_b / Delta_a
-    print "Price Function:     \t", Price
+    print "Price Function:      \t", Price
 
 solveUniswap()
 solveFlowswap()

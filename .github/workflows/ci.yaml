@@ -33,6 +33,12 @@ jobs:
         npm run build
         npm run test
 
+    - name: Upload eth gas report
+      uses: actions/upload-artifact@v1
+      with:
+        name: eth-gas-report
+        path: build/eth-gas-report.txt
+
   coverage:
 
     runs-on: ubuntu-latest

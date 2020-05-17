@@ -16,10 +16,11 @@ contract InstruSuperToken is InstruEventsDebug {
         bytes32 id
     )
         external
+        view
         returns(uint256 blocktime, bytes memory state)
     {
-        emit LogAddress("agreementClass", agreementClass);
-        emit LogBytes32("id", id);
+        //emit LogAddress("agreementClass", agreementClass);
+        //emit LogBytes32("id", id);
         bytes memory _state = target.getAgreementData(agreementClass, id);
         return (block.timestamp, _state);
     }

@@ -1,44 +1,84 @@
-pragma solidity >= 0.6.6;
+pragma solidity 0.6.6;
+
+//import { IERC20 } from "./IERC20.sol";
 
 /**
  * @title Superfluid's token interface
  * @author Superfluid
  */
-interface ISuperToken {
+interface ISuperToken /*is IERC20*/ {
 
-    function getState(
-        address agreementClass,
+    /*
+    *   Agreement Account States
+    */
+
+    /// @notice Get state of Agreement Account
+    /// @param account Account to query
+    function getAgreementAccountState(
         address account
     )
         external
         view
-        returns (bytes memory state);
+        returns (bytes memory data);
 
-    function updateState(
-        address sender,
-        address receiver,
-        bool termination,
-        bytes calldata senderState,
-        bytes calldata receiverState
-    ) external;
+    /// @notice Update Account state
+    /// @param account Account of the agrement
+    /// @param state Agreement state of the account
+    function updateAgreementAccountState(
+        address account,
+        bytes calldata state
+    )
+        external;
 
-    function upgrade(uint256 amount) external;
+    /*
+    * Agreement Data
+    */
 
-    function downgrade(uint256 amount) external;
-
-    function currentState(
+    /// @notice Register or update a agreement TODO fix comments
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    function createAgreement(
         address agreementClass,
-        address sender,
-        address receiver
+        bytes32 id,
+        bytes calldata data
+    )
+        external;
+        
+    /// @notice Get data from agreement
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    function getAgreementData(
+        address agreementClass,
+        bytes32 id
     )
         external
         view
         returns(bytes memory state);
-
-    function getAccountRateFlows(
-        address account
+    
+    /// @notice Close Agreement
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    function terminateAgreement(
+        address agreementClass,
+        bytes32 id
     )
-        external
-        view
-        returns(int256 creditor, int256 debitor);
+        external;
+
+
+    /*
+    * SuperToken 
+    */
+
+    /// @notice Upgrade ERC20 to SuperToken.
+    /// @dev Will use ´transferFrom´ to get tokens. Before calling this
+    ///      function you should ´approve´ this contract
+    /// @param amount Number of tokens to be upgraded
+    function upgrade(uint256 amount) external;
+        
+
+    /// @notice Downgrade SuperToken to ERC20.
+    /// @dev Will call transfer to send tokens
+    /// @param amount Number of tokens to be downgraded
+    function downgrade(uint256 amount) external;
+       
 }

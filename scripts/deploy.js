@@ -18,6 +18,7 @@ module.exports = async function (callback) {
         const agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")({
             gas: 1500000,
         });
+
         console.log("FlowAgreement address", agreement.address);
 
         const superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
@@ -27,6 +28,8 @@ module.exports = async function (callback) {
                 gas: 2600000
             });
         console.log("SuperToken address", superToken.address);
+
+        await superToken.addAgreement(agreement.address);
 
         callback();
     } catch (err) {

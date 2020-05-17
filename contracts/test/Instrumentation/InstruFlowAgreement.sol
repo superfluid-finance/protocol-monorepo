@@ -24,46 +24,6 @@ contract InstruFlowAgreement {
         return (block.timestamp, _amount);
     }
 
-    function createFlow
-    (
-        ISuperToken token,
-        address sender,
-        address receiver,
-        int256 flowRate
-    )
-        external
-        returns(uint256 blocktime)
-    {
-        target.createFlow(token, sender, receiver, flowRate);
-        return block.timestamp;
-    }
-
-    function updateFlow
-    (
-        ISuperToken token,
-        address sender,
-        address receiver,
-        int256 flowRate
-    )
-        external
-        returns(uint256 blocktime)
-    {
-        target.updateFlow(token, sender, receiver, flowRate);
-        return block.timestamp;
-    }
-
-    function deleteFlow(
-        ISuperToken token,
-        address sender,
-        address receiver
-    )
-        external
-        returns(uint256 blocktime)
-    {
-        target.deleteFlow(token, sender, receiver);
-        return block.timestamp;
-    }
-
     function getFlowRate(
         ISuperToken token,
         address sender,
@@ -99,28 +59,5 @@ contract InstruFlowAgreement {
     {
         int256 _flowRate = target.getTotalOutFlowRate(token, account);
         return (block.timestamp, _flowRate);
-    }
-
-    function updateAccount(
-        bytes memory newState
-    )
-        public
-        view
-        returns(uint256 blocktime, int256 flowRate)
-    {
-        int256 _flowRate = target.updateAccount(newState);
-        return (block.timestamp, _flowRate);
-    }
-
-    function touch(
-        bytes memory currentState,
-        uint256 timestamp
-    )
-        public
-        view
-        returns(uint256 blocktime, bytes memory newState)
-    {
-        bytes memory _newState = target.touch(currentState, timestamp);
-        return (block.timestamp, _newState);
     }
 }

@@ -4,7 +4,7 @@ const {
     web3tx
 } = require("@decentral.ee/web3-test-helpers");
 
-contract("Flow Agreement", accounts => {
+contract("Flow Agreement Behaviour", accounts => {
 
     const admin = accounts[0];
     const user1 = accounts[1];
@@ -24,7 +24,7 @@ contract("Flow Agreement", accounts => {
             });
     });
 
-    it("should not work with wrong state size", async () => {
+    it("#1 - Should not work with wrong state size - assert rever message", async () => {
 
         let noise = await web3.eth.abi.encodeParameter("uint256", 10);
         let emitError = false;

@@ -112,11 +112,6 @@ contract ERC20Base {
     }
 
     /**
-     * @dev See {IERC20-balanceOf}.
-     */
-    function balanceOf(address account) public view virtual returns (int256);
-
-    /**
      * @dev See {IERC20-transfer}.
      *
      * Requirements:

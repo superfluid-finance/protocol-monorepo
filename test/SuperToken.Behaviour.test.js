@@ -61,7 +61,9 @@ contract("Super Token Behaviour", accounts => {
         let noise = "0x00000000000000000001";
         let emitError = false;
         try {
-            await web3tx(superToken.updateAgreementAccountState, "Call: SuperToken.updateAgreementAccountState - Invoking method directly")(
+            await web3tx(
+                superToken.updateAgreementAccountState,
+                "Call: SuperToken.updateAgreementAccountState - Invoking method directly")(
                 user1,
                 noise, {
                     from: user1

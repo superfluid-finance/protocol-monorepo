@@ -15,21 +15,17 @@ module.exports = async function (callback) {
 
         console.log("Token address", config.token.address);
 
-        const agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")({
-            gas: 1500000,
-        });
+        const agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")();
 
         console.log("FlowAgreement address", agreement.address);
 
         const superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             config.token.address,
             "SuperToken",
-            "STK", {
-                gas: 2600000
-            });
+            "STK");
         console.log("SuperToken address", superToken.address);
 
-        await superToken.addAgreement(agreement.address);
+        //await superToken.addAgreement(agreement.address);
 
         callback();
     } catch (err) {

@@ -41,10 +41,10 @@ contract SuperToken is ISuperToken, ERC20Base {
 
     /// Mapping from account to agreement state of the account
     /// It is like RUNTIME state of the agreement for each account
-    mapping(address => bytes) private _agreementAccountStates;
+    mapping(address => bytes) private _accountStates;
 
     /// List of enabled agreement classes for the account
-    mapping(address => address[]) public accountActiveAgreementClasses;
+    mapping(address => address[]) public _activeAgreementClasses;
 
     /// Settled balance for the account
     mapping(address => int256) private _settledBalances;
@@ -56,7 +56,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     }
 
     function getAccountActiveAgreements(address account) public view returns(address[] memory) {
-        return accountActiveAgreementClasses[account];
+        return _activeAgreementClasses[account];
     }
 
     /// @dev ISuperToken.balanceOf implementation
@@ -103,7 +103,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         override
         returns (bytes memory data)
     {
-        return _agreementAccountStates[account];
+        return _accountStates[account];
     }
 
     /// @dev ISuperToken.updateAgreementAccountState implementation
@@ -116,7 +116,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     {
         require(msg.sender != account, "Use the agreement contract");
         _takeBalanceSnapshot(account);
-        _agreementAccountStates[account] = state;
+        _accountStates[account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
     }
 
@@ -199,10 +199,10 @@ contract SuperToken is ISuperToken, ERC20Base {
         int256 _eachAgreementClassBalance;
         address _agreementClass;
 
-        for (uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++) {
-            _agreementClass = accountActiveAgreementClasses[account][i];
+        for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
+            _agreementClass = _activeAgreementClasses[account][i];
             _eachAgreementClassBalance +=
-                ISuperAgreement(_agreementClass).balanceOf(_agreementAccountStates[account], timestamp);
+                ISuperAgreement(_agreementClass).balanceOf(_accountStates[account], timestamp);
         }
 
         return _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
@@ -217,12 +217,12 @@ contract SuperToken is ISuperToken, ERC20Base {
         bytes memory _touchState;
         int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
 
-        for (uint256 i = 0; i < accountActiveAgreementClasses[account].length; i++) {
+        for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
 
-            _agreementClass = accountActiveAgreementClasses[account][i];
-            _touchState = ISuperAgreement(_agreementClass).touch(_agreementAccountStates[account], block.timestamp);
+            _agreementClass = _activeAgreementClasses[account][i];
+            _touchState = ISuperAgreement(_agreementClass).touch(_accountStates[account], block.timestamp);
 
-            _agreementAccountStates[account] = _touchState;
+            _accountStates[account] = _touchState;
         }
 
         _settledBalances[account] = 0;
@@ -237,11 +237,11 @@ contract SuperToken is ISuperToken, ERC20Base {
     function _indexOfAgreementClass(address agreementClass, address account) internal view returns(int256) {
 
         int256 i;
-        int256 _size = int256(accountActiveAgreementClasses[account].length);
+        int256 _size = int256(_activeAgreementClasses[account].length);
 
         while (i < _size) {
 
-            if (accountActiveAgreementClasses[account][uint256(i)] == agreementClass) {
+            if (_activeAgreementClasses[account][uint256(i)] == agreementClass) {
                 return i;
             }
 
@@ -254,16 +254,16 @@ contract SuperToken is ISuperToken, ERC20Base {
     function _delAgreementClass(address agreementClass, address account) internal {
 
         int256 _idx = _indexOfAgreementClass(agreementClass, account);
-        uint256 _size = accountActiveAgreementClasses[account].length;
+        uint256 _size = _activeAgreementClasses[account].length;
 
         if (_idx >= 0) {
 
             if (_size - 1 == uint256(_idx)) {
-                accountActiveAgreementClasses[account].pop();
+                _activeAgreementClasses[account].pop();
             } else {
                 //swap element and pop
-                accountActiveAgreementClasses[account][uint256(_idx)] = accountActiveAgreementClasses[account][_size - 1];
-                accountActiveAgreementClasses[account].pop();
+                _activeAgreementClasses[account][uint256(_idx)] = _activeAgreementClasses[account][_size - 1];
+                _activeAgreementClasses[account].pop();
             }
         }
     }
@@ -271,7 +271,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// review: ok
     function _addAgreementClass(address agreementClass, address account) internal {
         if (_indexOfAgreementClass(agreementClass, account) == -1) {
-            accountActiveAgreementClasses[account].push(agreementClass);
+            _activeAgreementClasses[account].push(agreementClass);
         }
     }
 

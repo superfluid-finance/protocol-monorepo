@@ -29,7 +29,7 @@ def solveUniswap():
     - Delta_b - delta of b
 
     inquiries:
-    - Output function
+    - Delta_b function
     - Price function
     """
     print "==== Uniswap Equations ===="
@@ -46,7 +46,7 @@ def solveUniswap():
     solutions_Delta_b = solve(liquidityEquation, Delta_b)
     assert len(solutions_Delta_b) == 1
     Delta_b1 = solutions_Delta_b[0].right()
-    print "Output Function:    \t", Delta_b1
+    print "Delta_b Function:    \t", Delta_b1
 
     Price = - Delta_b1 / Delta_a
     print "Price Function:     \t", Price
@@ -88,7 +88,8 @@ def solveFlowswap():
     q1 = solutions_q[0].right()
     Delta_a = f_a(t) + q1 * f_b(t)
     Delta_b = f_b(t) + 1/q1 * f_a(t)
-    print "Output Function:     \t", Delta_b
+    print "Delta_a Function:     \t", Delta_a
+    print "Delta_b Function:     \t", Delta_b
 
     Price = - Delta_b / Delta_a
     print "Price Function:      \t", Price

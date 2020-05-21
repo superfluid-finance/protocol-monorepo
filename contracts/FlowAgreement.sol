@@ -99,7 +99,39 @@ contract FlowAgreement is ISuperAgreement {
         return encodeState(timestamp, _cRate, _ins, _outs);
     }
 
+    function getTotalInFlowRate
+    (
+        ISuperToken token,
+        address account
+    )
+        public
+        view
+        returns
+    (
+        int256 flowRate
+    )
+    {
+        bytes memory state = token.getAgreementAccountState(account);
+        (, int256 _cRate, ,) = decodeState(state);
+        return _cRate;
+    }
 
+    function getTotalOutFlowRate
+    (
+        ISuperToken token,
+        address account
+    )
+        public
+        view
+        returns
+    (
+        int256 flowRate
+    )
+    {
+        bytes memory state = token.getAgreementAccountState(account);
+        (, int256 _cRate, ,) = decodeState(state);
+        return _cRate;
+    }
 
     /*
      * Internal Functions
@@ -144,7 +176,9 @@ contract FlowAgreement is ISuperAgreement {
 
         if (_senderAccountState.length > 0) {
 
-            bool _changeCounters = (token.getAgreementData(address(this), _hashAccounts(accountA, accountB))).length == 0;
+            bool _changeCounters = (token.getAgreementData(
+                address(this), _hashAccounts(accountA, accountB))
+            ).length == 0;
             _senderNewAccountState = composeState(_senderAccountState, _invFlowRate, block.timestamp, _changeCounters);
 
         } else {
@@ -152,7 +186,9 @@ contract FlowAgreement is ISuperAgreement {
         }
 
         if (_receiverAccountState.length > 0) {
-            bool _changeCounters = (token.getAgreementData(address(this), _hashAccounts(accountB, accountA))).length == 0;
+            bool _changeCounters = (token.getAgreementData(
+                address(this), _hashAccounts(accountB, accountA))
+            ).length == 0;
             _receiverNewAccountState = composeState(_receiverAccountState, flowRate, block.timestamp, _changeCounters);
         } else {
             _receiverNewAccountState = encodeState(block.timestamp, flowRate, 1, 0);
@@ -305,6 +341,7 @@ contract FlowAgreement is ISuperAgreement {
         uint256 outs
     )
     {
+        if (state.length == 0) return (0, 0, 0, 0);
         require(state.length == 128, "invalid agreement size must be 128");
         return abi.decode(state, (uint256, int256, uint256, uint256));
     }

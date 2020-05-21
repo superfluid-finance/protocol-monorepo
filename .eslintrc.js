@@ -6,7 +6,7 @@ module.exports = {
         es2017: true
     },
     rules: {
-        //"max-len": ["error", 120, 4],
+        "max-len": ["error", 120, { code: 80, ignoreUrls: true }],
         "indent": ["error", 4],
         "linebreak-style": ["error", "unix"],
         "quotes": ["error", "double"],

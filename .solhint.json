@@ -2,7 +2,6 @@
     "extends": ["solhint:recommended"],
     "rules": {
         "max-states-count": "off",
-        "max-line-length": "off",
         "no-inline-assembly": "off",
         "max-line-length": ["error", 120],
         "private-vars-leading-underscore": "error",

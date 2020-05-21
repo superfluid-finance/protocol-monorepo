@@ -5,6 +5,8 @@
         "max-line-length": "off",
         "no-inline-assembly": "off",
         "max-line-length": ["error", 120],
+        "private-vars-leading-underscore": "error",
+        "reason-string": ["error", { "maxLength": 64 } ],
         "compiler-version": ["error", ">=0.5.0"]
     }
 }

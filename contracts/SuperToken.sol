@@ -1,13 +1,13 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.6.6;
 
-import { IERC20 } from "./interface/IERC20.sol";
-import { ISuperToken } from "./interface/ISuperToken.sol";
+import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 
 import "./ERC20Base.sol";
 import "./interface/ISuperAgreement.sol";
 
 contract SuperToken is ISuperToken, ERC20Base {
+
     /// Underlaying ERC20 token
     IERC20 private _token;
 
@@ -22,9 +22,6 @@ contract SuperToken is ISuperToken, ERC20Base {
      * a1: sha3(flowAgreement, sha3(Fran, Nuno)) -> (10 DAI / mo)
      * a2: sha3(flowAgreement, sha3(Miao, Nuno)) -> (10 DAI / mo)
      * a3: sha3(flowAgreement, sha3(Mike, Nuno)) -> (10 DAI / mo)
-     *
-     *
-     *
      *
      * 4 agreement account STATES:
      * sha3(flowAgreement, account) -> state
@@ -44,7 +41,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     mapping(address => bytes) private _accountStates;
 
     /// List of enabled agreement classes for the account
-    mapping(address => address[]) public _activeAgreementClasses;
+    mapping(address => address[]) private _activeAgreementClasses;
 
     /// Settled balance for the account
     mapping(address => int256) private _settledBalances;
@@ -65,6 +62,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     )
         public
         view
+        override
         returns(uint256 balance)
     {
         (int256 _balance) = _calculateBalance(account, block.timestamp);
@@ -282,7 +280,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     }
 
     /// @dev Hash agreement with accounts
-    function _agreementDataId(address agreementClass, bytes32 agreementId) public pure returns(bytes32) {
+    function _agreementDataId(address agreementClass, bytes32 agreementId) private pure returns(bytes32) {
         return keccak256(abi.encodePacked(agreementClass, agreementId));
     }
 }

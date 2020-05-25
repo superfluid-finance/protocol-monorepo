@@ -64,3 +64,23 @@ jobs:
       with:
         name: coverage
         path: coverage
+
+    deploy:
+
+      needs: build
+
+      runs-on: ubuntu-latest
+
+      steps:
+
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+          registry-url: 'https://npm.pkg.github.com'
+
+      - name: npm publish
+        run: |
+          npm ci
+          npm run build
+          ./scripts/npm-publish.sh

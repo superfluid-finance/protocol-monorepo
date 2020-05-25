@@ -1,48 +1,54 @@
 {
-    "name": "@superfluid/contracts",
-    "version": "0.0.1",
-    "description": "Superfluid smart contracts.",
-    "repository": "github:superfluid-finance/superfluid-protocol",
-    "license": "MIT",
-    "dependencies": {
-        "@openzeppelin/contracts": "3.0.1"
-    },
-    "peerDependencies": {
-        "@truffle/contract": "4.2.5"
-    },
-    "devDependencies": {
-        "@decentral.ee/web3-test-helpers": "0.2.5",
-        "@openzeppelin/test-helpers": "0.5.5",
-        "@truffle/hdwallet-provider": "1.0.35",
-        "dotenv": "8.2.0",
-        "eslint": "7.0.0",
-        "eth-gas-reporter": "^0.2.17",
-        "ganache-time-traveler": "^1.0.14",
-        "husky": "^4.2.5",
-        "npm-run-all": "4.1.5",
-        "sol-proxy": "0.1.2",
-        "solhint": "3.0.0",
-        "solidity-coverage": "0.7.5",
-        "truffle": "5.1.26",
-        "truffle-flattener": "1.4.4",
-        "truffle-plugin-verify": "0.3.10"
-    },
-    "scripts": {
-        "build": "run-s build:*",
-        "build:truffle-compile": "rm -f build/contracts/*;truffle compile",
-        "test": "run-s lint:* build:* test:*",
-        "test:contracts": "truffle test test/contracts.test.js;cat build/eth-gas-report.txt;",
-        "test:package": "mocha test/package.test.js",
-        "test-coverage": "truffle run coverage --file test/contracts.test.js",
-        "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
-        "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
-        "lint": "run-s lint:*",
-        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-        "lint:sol": "solhint -w 0 contracts/*.sol && echo '✔  Your .sol files look good.'"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "npm run lint"
-        }
+  "name": "@superfluid-finance/contracts",
+  "version": "0.0.1-latest",
+  "description": "Superfluid smart contracts.",
+  "repository": "github:superfluid-finance/superfluid-protocol",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "3.0.1"
+  },
+  "peerDependencies": {
+    "@truffle/contract": "4.2.5"
+  },
+  "devDependencies": {
+    "@decentral.ee/web3-test-helpers": "0.2.5",
+    "@openzeppelin/test-helpers": "0.5.5",
+    "@truffle/hdwallet-provider": "1.0.35",
+    "dotenv": "8.2.0",
+    "eslint": "7.0.0",
+    "eth-gas-reporter": "^0.2.17",
+    "ganache-time-traveler": "^1.0.14",
+    "husky": "^4.2.5",
+    "npm-run-all": "4.1.5",
+    "sol-proxy": "0.1.2",
+    "solhint": "3.0.0",
+    "solidity-coverage": "0.7.5",
+    "truffle": "5.1.26",
+    "truffle-flattener": "1.4.4",
+    "truffle-plugin-verify": "0.3.10"
+  },
+  "scripts": {
+    "build": "run-s build:*",
+    "build:truffle-compile": "rm -f build/contracts/*;truffle compile",
+    "build:abi": "scripts/build-abi-js.sh > build/abi.js",
+    "test": "run-s lint:* build:* test:*",
+    "test:contracts": "truffle test test/contracts.test.js;cat build/eth-gas-report.txt;",
+    "test:package": "mocha test/package.test.js",
+    "test-coverage": "truffle run coverage --file test/contracts.test.js",
+    "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
+    "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
+    "lint": "run-s lint:*",
+    "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+    "lint:sol": "solhint -w 0 contracts/*.sol && echo '✔  Your .sol files look good.'"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
     }
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "git.rev": "ebe4197",
+  "publish.date": "20200525T164558Z"
 }

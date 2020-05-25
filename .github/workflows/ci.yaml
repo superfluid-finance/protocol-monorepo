@@ -84,3 +84,5 @@ jobs:
         npm ci
         npm run build
         ./scripts/npm-publish.sh
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

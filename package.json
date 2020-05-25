@@ -7,6 +7,12 @@
   "dependencies": {
     "@openzeppelin/contracts": "3.0.1"
   },
+  "files": [
+      "/contracts/**/*.sol",
+      "/build/abi.js",
+      "/build/contracts/*.json",
+      "index.js"
+  ],
   "peerDependencies": {
     "@truffle/contract": "4.2.5"
   },

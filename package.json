@@ -54,7 +54,5 @@
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
-  },
-  "git.rev": "ebe4197",
-  "publish.date": "20200525T164558Z"
+  }
 }

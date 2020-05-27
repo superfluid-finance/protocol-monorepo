@@ -6,7 +6,11 @@ import "./interface/ISuperAgreement.sol";
 
 contract FlowAgreement is ISuperAgreement {
 
-    function balanceOf(
+    /*
+     * ISuperAgreement interface
+     */
+    /// @dev IsuperAgreement.realtimeBalanceOf implementation
+    function realtimeBalanceOf(
         bytes calldata data,
         uint256 time
     )
@@ -22,8 +26,25 @@ contract FlowAgreement is ISuperAgreement {
         return int256(time - _startDate) * _flowRate;
     }
 
+    /// @dev IsuperAgreement.touch implementation
+    function touch(
+        bytes memory currentData,
+        uint256 timestamp
+    )
+        public
+        pure
+        override
+        returns(bytes memory newData)
+    {
+        //(, int256 _cRate) = decodeFlow(currentData);
+        //return encodeFlow(timestamp, _cRate);
+
+        (, int256 _cRate, uint256 _ins, uint256 _outs) = decodeState(currentData);
+        return _encodeState(timestamp, _cRate, _ins, _outs);
+    }
+
     /*
-     *   Flow Functions
+     *   FlowAgreement interface
      */
 
     function getFlow(
@@ -74,31 +95,7 @@ contract FlowAgreement is ISuperAgreement {
         _terminateAgreementData(token, msg.sender, account);
     }
 
-
-
-    /*
-     *  Helpers
-     */
-
-    /// @notice touch the timestamp of the current aggreement, update only the `timestamp`
-    /// @param currentData Account data to be updated
-    /// @return newData updated
-    function touch(
-        bytes memory currentData,
-        uint256 timestamp
-    )
-        public
-        pure
-        override
-        returns(bytes memory newData)
-    {
-        //(, int256 _cRate) = decodeFlow(currentData);
-        //return encodeFlow(timestamp, _cRate);
-
-        (, int256 _cRate, uint256 _ins, uint256 _outs) = decodeState(currentData);
-        return _encodeState(timestamp, _cRate, _ins, _outs);
-    }
-
+    // FIXME wrong implementation
     function getTotalInFlowRate
     (
         ISuperToken token,
@@ -111,11 +108,12 @@ contract FlowAgreement is ISuperAgreement {
         int256 flowRate
     )
     {
-        bytes memory state = token.getAgreementAccountState(account);
+        bytes memory state = token.getAgreementAccountState(address(this), account);
         (, int256 _cRate, ,) = decodeState(state);
         return _cRate;
     }
 
+    // FIXME wrong implementation
     function getTotalOutFlowRate
     (
         ISuperToken token,
@@ -128,7 +126,7 @@ contract FlowAgreement is ISuperAgreement {
         int256 flowRate
     )
     {
-        bytes memory state = token.getAgreementAccountState(account);
+        bytes memory state = token.getAgreementAccountState(address(this), account);
         (, int256 _cRate, ,) = decodeState(state);
         return _cRate;
     }
@@ -153,8 +151,8 @@ contract FlowAgreement is ISuperAgreement {
         bytes memory _senderData = _composeData(_currentSenderAgreementData, _mirrorAgreementData(additionalData));
         bytes memory _receiverData = _composeData(_currentReceiverAgreementData, additionalData);
 
-        token.createAgreement(address(this), _ab, _senderData);
-        token.createAgreement(address(this), _ba, _receiverData);
+        token.createAgreement(_ab, _senderData);
+        token.createAgreement(_ba, _receiverData);
     }
 
     function _updateAccountState(
@@ -168,8 +166,8 @@ contract FlowAgreement is ISuperAgreement {
 
         int256 _invFlowRate = _mirrorFlowRate(flowRate);
 
-        bytes memory _senderAccountState = token.getAgreementAccountState(accountA);
-        bytes memory _receiverAccountState = token.getAgreementAccountState(accountB);
+        bytes memory _senderAccountState = token.getAgreementAccountState(address(this), accountA);
+        bytes memory _receiverAccountState = token.getAgreementAccountState(address(this), accountB);
 
         bytes memory _senderNewAccountState;
         bytes memory _receiverNewAccountState;
@@ -210,8 +208,8 @@ contract FlowAgreement is ISuperAgreement {
         bytes32 _ab = _hashAccounts(accountA, accountB);
         bytes32 _ba = _hashAccounts(accountB, accountA);
 
-        bytes memory _currentSenderState = token.getAgreementAccountState(accountA);
-        bytes memory _currentReceiverState = token.getAgreementAccountState(accountB);
+        bytes memory _currentSenderState = token.getAgreementAccountState(address(this), accountA);
+        bytes memory _currentReceiverState = token.getAgreementAccountState(address(this), accountB);
 
         if (_currentSenderState.length != 0) {
 
@@ -251,8 +249,8 @@ contract FlowAgreement is ISuperAgreement {
         }
 
         //Close this Agreement Data
-        token.terminateAgreement(address(this), _ab);
-        token.terminateAgreement(address(this), _ba);
+        token.terminateAgreement(_ab);
+        token.terminateAgreement(_ba);
     }
 
     function _mirrorFlowRate(int256 flowRate) internal pure returns(int256) {
@@ -287,7 +285,6 @@ contract FlowAgreement is ISuperAgreement {
     )
         public
         pure
-        override
         returns (bytes memory)
     {
         return abi.encodePacked(timestamp, flowRate);
@@ -300,7 +297,6 @@ contract FlowAgreement is ISuperAgreement {
     )
         public
         pure
-        override
         returns
     (
         uint256 timestamp,

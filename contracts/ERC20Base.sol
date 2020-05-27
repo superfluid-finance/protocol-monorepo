@@ -96,7 +96,7 @@ abstract contract ERC20Base is IERC20 {
      * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
      * called.
      *
-     * NOTE: This information is only used for _display_ purposes: it in
+     * Note: This information is only used for _display_ purposes: it in
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */

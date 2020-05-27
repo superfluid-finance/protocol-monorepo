@@ -38,7 +38,7 @@
     "build:truffle-compile": "rm -f build/contracts/*;truffle compile",
     "build:abi": "scripts/build-abi-js.sh > build/abi.js",
     "test": "run-s lint:* build:* test:*",
-    "test:contracts": "truffle test test/contracts.test.js;cat build/eth-gas-report.txt;",
+    "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt;",
     "test:package": "mocha test/package.test.js",
     "test-coverage": "truffle run coverage --file test/contracts.test.js",
     "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",

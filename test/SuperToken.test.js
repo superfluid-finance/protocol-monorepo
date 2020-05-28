@@ -398,8 +398,8 @@ contract("Super Token", accounts => {
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        let stateUser1 = await superToken.getAgreementAccountState.call(user1);
-        let stateUser2 = await superToken.getAgreementAccountState.call(user2);
+        let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
+        let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
 
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser2);
@@ -426,8 +426,8 @@ contract("Super Token", accounts => {
             "Call: FlowAgreement.updateFlow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        let stateUser1 = await superToken.getAgreementAccountState.call(user1);
-        let stateUser2 = await superToken.getAgreementAccountState.call(user2);
+        let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
+        let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
 
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser2);
@@ -454,8 +454,8 @@ contract("Super Token", accounts => {
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        let stateUser1 = await superToken.getAgreementAccountState.call(user1);
-        let stateUser2 = await superToken.getAgreementAccountState.call(user2);
+        let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
+        let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
 
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser2);

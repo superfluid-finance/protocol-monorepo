@@ -46,6 +46,18 @@ contract FlowAgreement is IFlowAgreement {
      *   FlowAgreement interface
      */
 
+    function createFlow(
+        ISuperToken token,
+        address receiver,
+        int256 flowRate
+    )
+        external
+        override
+    {
+        _updateFlow(token, msg.sender, receiver, flowRate);
+        emit FlowCreated(token, msg.sender, receiver, flowRate);
+    }
+
     function getFlow(
         ISuperToken token,
         address sender,
@@ -60,36 +72,26 @@ contract FlowAgreement is IFlowAgreement {
         (, flowRate) = _decodeFlow(data);
     }
 
-    function createFlow(
-        ISuperToken token,
-        address account,
-        int256 flowRate
-    )
-        external
-        override
-    {
-        _updateFlow(token, account, flowRate);
-    }
-
     function updateFlow(
         ISuperToken token,
-        address account,
+        address receiver,
         int256 flowRate
     )
         external
         override
     {
-        _updateFlow(token, account, flowRate);
+        _updateFlow(token, msg.sender, receiver, flowRate);
+        emit FlowUpdated(token, msg.sender, receiver, flowRate);
     }
 
     function deleteFlow(
         ISuperToken token,
-        address account
+        address receiver
     )
         external
         override
     {
-        _terminateAgreementData(token, msg.sender, account);
+        _terminateAgreementData(token, msg.sender, receiver);
     }
 
     /*
@@ -98,7 +100,8 @@ contract FlowAgreement is IFlowAgreement {
 
      function _updateFlow(
          ISuperToken token,
-         address account,
+         address sender,
+         address receiver,
          int256 flowRate
      )
          private
@@ -108,8 +111,8 @@ contract FlowAgreement is IFlowAgreement {
          //TODO FIX THIS
          require(_data.length == 64, "Encoded data wrong");
 
-         _updateAgreementData(token, msg.sender, account, _data);
-         _updateAccountState(token, msg.sender, account, flowRate);
+         _updateAgreementData(token, sender, receiver, _data);
+         _updateAccountState(token, sender, receiver, flowRate);
      }
 
     function _updateAgreementData(

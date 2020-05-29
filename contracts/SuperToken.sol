@@ -15,19 +15,20 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev The underlaying ERC20 token
     IERC20 private _token;
 
-    /// Mapping from sha3(agreementClass, agreementID) to agreement data
-    /// the generation of agreementDataID is the logic of agreement contract
-    mapping(bytes32 => bytes) private _agreementData;
+    /// @dev Mapping to agreement data.
+    ///      Mapping order: .agreementClass.agreementID.
+    ///      The generation of agreementDataID is the logic of agreement contract
+    mapping(address => mapping (bytes32 => bytes)) private _agreementData;
 
-    /// Mapping from account to agreement state of the account
-    /// Mapping order: .agreementClass.account
-    /// It is like RUNTIME state of the agreement for each account
+    /// @dev Mapping from account to agreement state of the account.
+    ///      Mapping order: .agreementClass.account.
+    ///      It is like RUNTIME state of the agreement for each account.
     mapping(address => mapping (address => bytes)) private _accountStates;
 
-    /// List of enabled agreement classes for the account
+    /// @dev List of enabled agreement classes for the account
     mapping(address => address[]) private _activeAgreementClasses;
 
-    /// Settled balance for the account
+    /// @dev Settled balance for the account
     mapping(address => int256) private _settledBalances;
 
     constructor (IERC20 token, string memory name, string memory symbol)
@@ -107,7 +108,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         _takeBalanceSnapshot(account);
         _accountStates[msg.sender][account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
-        emit AgreementAccountStateUpdated(msg.sender, account);
+        emit AgreementAccountStateUpdated(msg.sender, account, state);
     }
 
     /// @dev ISuperToken.createAgreement implementation
@@ -118,8 +119,8 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         override
     {
-        _agreementData[_agreementDataId(msg.sender, id)] = data;
-        emit AgreementCreated(msg.sender, id);
+        _agreementData[msg.sender][id] = data;
+        emit AgreementCreated(msg.sender, id, data);
     }
 
     /// @dev ISuperToken.getAgreementData implementation
@@ -132,7 +133,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         override
         returns(bytes memory state)
     {
-        return _agreementData[_agreementDataId(agreementClass, id)];
+        return _agreementData[agreementClass][id];
     }
 
     //review - let dig a little more
@@ -143,7 +144,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         override
     {
-        delete _agreementData[_agreementDataId(msg.sender, id)];
+        delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
     }
 
@@ -270,8 +271,4 @@ contract SuperToken is ISuperToken, ERC20Base {
         _settledBalances[account] = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
     }
 
-    /// @dev Hash agreement with accounts
-    function _agreementDataId(address agreementClass, bytes32 agreementId) private pure returns(bytes32) {
-        return keccak256(abi.encodePacked(agreementClass, agreementId));
-    }
 }

@@ -25,9 +25,11 @@ abstract contract ISuperToken is IERC20 {
     /// @notice Agreement creation event
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
+    /// @param data Agreement data
     event AgreementCreated(
         address indexed agreementClass,
-        bytes32 id
+        bytes32 id,
+        bytes data
     );
 
     /// @notice Get data of the agreement
@@ -68,9 +70,14 @@ abstract contract ISuperToken is IERC20 {
         external
         virtual;
 
+    /// @notice Agreement account state updated event
+    /// @param agreementClass Contract address of the agreement
+    /// @param account Account of the agrement
+    /// @param state Agreement state of the account
     event AgreementAccountStateUpdated(
         address indexed agreementClass,
-        address indexed account
+        address indexed account,
+        bytes state
     );
 
     /// @notice Get state of Agreement Account

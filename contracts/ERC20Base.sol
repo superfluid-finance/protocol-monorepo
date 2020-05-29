@@ -1,6 +1,7 @@
 pragma solidity 0.6.6;
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /*Basic implementation of ERC20 by OpenZeppelin, but without the Context addon*/
 
@@ -28,8 +29,7 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
-abstract // stupid solhint
-contract ERC20Base {
+abstract contract ERC20Base is IERC20 {
 
     /**
      * @dev Emitted when `value` tokens are moved from one account (`from`) to
@@ -96,7 +96,7 @@ contract ERC20Base {
      * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
      * called.
      *
-     * NOTE: This information is only used for _display_ purposes: it in
+     * Note: This information is only used for _display_ purposes: it in
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
@@ -107,7 +107,9 @@ contract ERC20Base {
     /**
      * @dev See {IERC20-totalSupply}.
      */
-    function totalSupply() public view returns (uint256) {
+    function totalSupply()
+        public view override returns (uint256)
+    {
         return _totalSupply;
     }
 
@@ -119,7 +121,9 @@ contract ERC20Base {
      * - `recipient` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(address recipient, uint256 amount) public virtual returns (bool) {
+    function transfer(address recipient, uint256 amount)
+        public override returns (bool)
+    {
         _transfer(msg.sender, recipient, amount);
         return true;
     }
@@ -127,7 +131,9 @@ contract ERC20Base {
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(address owner, address spender) public view virtual returns (uint256) {
+    function allowance(address owner, address spender)
+        public view override returns (uint256)
+    {
         return _allowances[owner][spender];
     }
 
@@ -138,7 +144,9 @@ contract ERC20Base {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(address spender, uint256 amount) public virtual returns (bool) {
+    function approve(address spender, uint256 amount)
+        public override returns (bool)
+    {
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -155,7 +163,9 @@ contract ERC20Base {
      * - the caller must have allowance for ``sender``'s tokens of at least
      * `amount`.
      */
-    function transferFrom(address sender, address recipient, uint256 amount) public virtual returns (bool) {
+    function transferFrom(address sender, address recipient, uint256 amount)
+        public override returns (bool)
+    {
         _transfer(sender, recipient, amount);
         _approve(
             sender,
@@ -177,7 +187,8 @@ contract ERC20Base {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function _increaseAllowance(address spender, uint256 addedValue)
+        private returns (bool) {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
         return true;
     }
@@ -196,7 +207,8 @@ contract ERC20Base {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function _decreaseAllowance(address spender, uint256 subtractedValue)
+        private returns (bool) {
         _approve(
             msg.sender,
             spender,
@@ -219,11 +231,13 @@ contract ERC20Base {
      * - `recipient` cannot be the zero address.
      * - `sender` must have a balance of at least `amount`.
      */
-    function _transfer(address sender, address recipient, uint256 amount) internal virtual {
-        require(sender != address(0), "ERC20: transfer from the zero address");
-        require(recipient != address(0), "ERC20: transfer to the zero address");
+    function _transfer(address sender, address recipient, uint256 amount)
+        private
+    {
+        require(sender != address(0), "transfer from zero address");
+        require(recipient != address(0), "transfer to zero address");
 
-        _balances[sender] = _balances[sender].sub(amount, "ERC20: transfer amount exceeds balance");
+        _balances[sender] = _balances[sender].sub(amount, "transfer amount exceeds balance");
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -237,8 +251,10 @@ contract ERC20Base {
      *
      * - `to` cannot be the zero address.
      */
-    function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: mint to the zero address");
+    function _mint(address account, uint256 amount)
+        internal
+    {
+        require(account != address(0), "mint to zero address");
 
         _totalSupply = _totalSupply.add(amount);
         _balances[account] = _balances[account].add(amount);
@@ -256,10 +272,12 @@ contract ERC20Base {
      * - `account` cannot be the zero address.
      * - `account` must have at least `amount` tokens.
      */
-    function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "ERC20: burn from the zero address");
+    function _burn(address account, uint256 amount)
+        internal
+    {
+        require(account != address(0), "burn from zero address");
 
-        _balances[account] = _balances[account].sub(amount, "ERC20: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(amount, "burn amount exceeds balance");
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }
@@ -277,11 +295,14 @@ contract ERC20Base {
      * - `owner` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _approve(address owner, address spender, uint256 amount) internal virtual {
-        require(owner != address(0), "ERC20: approve from the zero address");
-        require(spender != address(0), "ERC20: approve to the zero address");
+    function _approve(address owner, address spender, uint256 amount)
+        private
+    {
+        require(owner != address(0), "approve from zero address");
+        require(spender != address(0), "approve to zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
+
 }

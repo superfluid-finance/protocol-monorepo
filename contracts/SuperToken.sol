@@ -1,52 +1,34 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.6.6;
 
-import { IERC20 } from "./interface/IERC20.sol";
-import { ISuperToken } from "./interface/ISuperToken.sol";
+import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 
 import "./ERC20Base.sol";
 import "./interface/ISuperAgreement.sol";
 
+/**
+ * @title Superfluid's token implementation
+ * @author Superfluid
+ */
 contract SuperToken is ISuperToken, ERC20Base {
-    /// Underlaying ERC20 token
+
+    /// @dev The underlaying ERC20 token
     IERC20 private _token;
 
-    /*
-     * Example:
-     *
-     * - a1/agreement data 1: Fran -> Nuno: 10 DAI / mo
-     * - a2/agreement data 2: Miao -> Nuno: 10 DAI / mo
-     * - a3/agreement data 3: Mike -> Nuno: 10 DAI / mo
-     *
-     * 3 agreements data:
-     * a1: sha3(flowAgreement, sha3(Fran, Nuno)) -> (10 DAI / mo)
-     * a2: sha3(flowAgreement, sha3(Miao, Nuno)) -> (10 DAI / mo)
-     * a3: sha3(flowAgreement, sha3(Mike, Nuno)) -> (10 DAI / mo)
-     *
-     *
-     *
-     *
-     * 4 agreement account STATES:
-     * sha3(flowAgreement, account) -> state
-     *
-     * Fran: outflow 10 dai / mo, inflow 0 dai / mo
-     * Miao: outflow 10 dai / mo, inflow 0 dai / mo
-     * Mike: outflow 10 dai / mo, inflow 0 dai / mo
-     * Nuno: outflow 0 dai / mo, inflow 30 dai / mo
-     */
+    /// @dev Mapping to agreement data.
+    ///      Mapping order: .agreementClass.agreementID.
+    ///      The generation of agreementDataID is the logic of agreement contract
+    mapping(address => mapping (bytes32 => bytes)) private _agreementData;
 
-    /// Mapping from sha3(agreementClass, agreementID) to agreement data
-    /// the generation of agreementDataID is the logic of agreement contract
-    mapping(bytes32 => bytes) private _agreementData;
+    /// @dev Mapping from account to agreement state of the account.
+    ///      Mapping order: .agreementClass.account.
+    ///      It is like RUNTIME state of the agreement for each account.
+    mapping(address => mapping (address => bytes)) private _accountStates;
 
-    /// Mapping from account to agreement state of the account
-    /// It is like RUNTIME state of the agreement for each account
-    mapping(address => bytes) private _accountStates;
+    /// @dev List of enabled agreement classes for the account
+    mapping(address => address[]) private _activeAgreementClasses;
 
-    /// List of enabled agreement classes for the account
-    mapping(address => address[]) public _activeAgreementClasses;
-
-    /// Settled balance for the account
+    /// @dev Settled balance for the account
     mapping(address => int256) private _settledBalances;
 
     constructor (IERC20 token, string memory name, string memory symbol)
@@ -55,33 +37,40 @@ contract SuperToken is ISuperToken, ERC20Base {
         _token = token;
     }
 
-    function getAccountActiveAgreements(address account) public view returns(address[] memory) {
+    /*
+     * Account functions
+     */
+
+    /// @dev ISuperToken.getAccountActiveAgreements implementation
+    function getAccountActiveAgreements(address account)
+        public
+        override
+        view
+        returns(address[] memory)
+    {
         return _activeAgreementClasses[account];
     }
 
-    /// @dev ISuperToken.balanceOf implementation
+    /// @dev ERC20.balanceOf implementation
     function balanceOf(
         address account
     )
         public
         view
+        override
         returns(uint256 balance)
     {
         (int256 _balance) = _calculateBalance(account, block.timestamp);
         return _balance < 0 ? 0 : uint256(_balance);
     }
 
-    /// review ok
-    /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
-    ///         Used by solvency agent
-    /// @param account User to calculate balance
-    /// @param timestamp Time of balance
-    /// @return balance Account balance
+    /// @dev ISuperToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
         address account,
         uint256 timestamp
     )
         public
+        override
         view
         returns (int256)
     {
@@ -90,12 +79,12 @@ contract SuperToken is ISuperToken, ERC20Base {
 
 
     /*
-    *   Agreement Account States
+    *   Agreement functions
     */
 
-   //review ok
     /// @dev ISuperToken.getAgreementAccountState implementation
     function getAgreementAccountState(
+        address agreementClass,
         address account
     )
         external
@@ -103,7 +92,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         override
         returns (bytes memory data)
     {
-        return _accountStates[account];
+        return _accountStates[agreementClass][account];
     }
 
     /// @dev ISuperToken.updateAgreementAccountState implementation
@@ -114,28 +103,24 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         override
     {
+        // msg.sender is agreementClass
         require(msg.sender != account, "Use the agreement contract");
         _takeBalanceSnapshot(account);
-        _accountStates[account] = state;
+        _accountStates[msg.sender][account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
+        emit AgreementAccountStateUpdated(msg.sender, account, state);
     }
-
-
-    /*
-    * Agreement Data
-    */
-
 
     /// @dev ISuperToken.createAgreement implementation
     function createAgreement(
-        address agreementClass,
         bytes32 id,
         bytes calldata data
     )
         external
         override
     {
-        _agreementData[_agreementDataId(agreementClass, id)] = data;
+        _agreementData[msg.sender][id] = data;
+        emit AgreementCreated(msg.sender, id, data);
     }
 
     /// @dev ISuperToken.getAgreementData implementation
@@ -148,29 +133,30 @@ contract SuperToken is ISuperToken, ERC20Base {
         override
         returns(bytes memory state)
     {
-        return _agreementData[_agreementDataId(agreementClass, id)];
+        return _agreementData[agreementClass][id];
     }
 
     //review - let dig a little more
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
-        address agreementClass,
         bytes32 id
     )
         external
         override
     {
-        delete _agreementData[_agreementDataId(agreementClass, id)];
+        delete _agreementData[msg.sender][id];
+        emit AgreementTerminated(msg.sender, id);
     }
 
     /*
-    * SuperToken
-    */
+     * ERC20 compatability functions
+     */
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
         _token.transferFrom(msg.sender, address(this), amount);
         _mint(msg.sender, amount);
+        emit TokenUpgraded(msg.sender, amount);
     }
 
     /// @dev ISuperToken.downgrade implementation
@@ -180,6 +166,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         _touch(msg.sender);
         _burn(msg.sender, amount);
         _token.transfer(msg.sender, amount);
+        emit TokenDowngraded(msg.sender, amount);
     }
 
     function getSettledBalance(address account) external view returns(int256 settledBalance) {
@@ -191,7 +178,6 @@ contract SuperToken is ISuperToken, ERC20Base {
     *  Internal functions
     */
 
-
     /* solhint-disable mark-callable-contracts */
     /// @dev Calculate balance as split result if negative return as zero.
     function _calculateBalance(address account, uint256 timestamp) internal view returns(int256) {
@@ -202,7 +188,9 @@ contract SuperToken is ISuperToken, ERC20Base {
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
             _agreementClass = _activeAgreementClasses[account][i];
             _eachAgreementClassBalance +=
-                ISuperAgreement(_agreementClass).balanceOf(_accountStates[account], timestamp);
+                ISuperAgreement(_agreementClass).realtimeBalanceOf(
+                    _accountStates[_agreementClass][account],
+                    timestamp);
         }
 
         return _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
@@ -220,9 +208,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
 
             _agreementClass = _activeAgreementClasses[account][i];
-            _touchState = ISuperAgreement(_agreementClass).touch(_accountStates[account], block.timestamp);
+            _touchState = ISuperAgreement(_agreementClass).touch(
+                _accountStates[_agreementClass][account],
+                block.timestamp);
 
-            _accountStates[account] = _touchState;
+            _accountStates[_agreementClass][account] = _touchState;
         }
 
         _settledBalances[account] = 0;
@@ -281,8 +271,4 @@ contract SuperToken is ISuperToken, ERC20Base {
         _settledBalances[account] = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
     }
 
-    /// @dev Hash agreement with accounts
-    function _agreementDataId(address agreementClass, bytes32 agreementId) public pure returns(bytes32) {
-        return keccak256(abi.encodePacked(agreementClass, agreementId));
-    }
 }

@@ -1,4 +1,4 @@
-pragma solidity 0.6.6;
+pragma solidity >= 0.6.0;
 
 /**
  * @title Superfluid's agreement interface
@@ -6,25 +6,28 @@ pragma solidity 0.6.6;
  */
 interface ISuperAgreement {
 
-    /// @notice Calculate the real balance of a user, taking in consideration all flows of tokens
+    /// @notice Calculate the real balance from the state
     /// @param state State to be query
     /// @param time Time of balance
-    /// @return amount Account balance
-    function balanceOf(bytes calldata state, uint256 time)
+    /// @return amount Account real-time balance
+    function realtimeBalanceOf(
+        bytes calldata state,
+        uint256 time
+    )
         external
         pure
         returns (int256 amount);
 
-    function encodeFlow(uint256 timestamp, int256 flowRate) external pure returns(bytes memory state);
-
-    function decodeFlow(bytes calldata state) external pure returns(uint256, int256);
-
+    /// @notice Calculate the new state if settled balance is reset
+    /// @param state State to be query
+    /// @param time Time of balance
+    /// @return newState New agreement account state
     function touch(
-        bytes calldata currentState,
-        uint256 timestamp
+        bytes calldata state,
+        uint256 time
     )
         external
         pure
         returns(bytes memory newState);
-        
+
 }

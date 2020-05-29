@@ -55,7 +55,6 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         _updateFlow(token, msg.sender, receiver, flowRate);
-        emit FlowCreated(token, msg.sender, receiver, flowRate);
     }
 
     function getFlow(
@@ -81,7 +80,6 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         _updateFlow(token, msg.sender, receiver, flowRate);
-        emit FlowUpdated(token, msg.sender, receiver, flowRate);
     }
 
     function deleteFlow(
@@ -174,6 +172,16 @@ contract FlowAgreement is IFlowAgreement {
 
         token.updateAgreementAccountState(accountA, _senderNewAccountState);
         token.updateAgreementAccountState(accountB, _receiverNewAccountState);
+
+        (,int totalSenderFlowRate,,) = _decodeState(_senderNewAccountState);
+        (,int totalReceiverFlowRate,,) = _decodeState(_receiverNewAccountState);
+        emit FlowUpdated(
+            token,
+            accountA,
+            accountB,
+            flowRate,
+            totalSenderFlowRate,
+            totalReceiverFlowRate);
     }
 
     function _terminateAgreementData(
@@ -191,6 +199,9 @@ contract FlowAgreement is IFlowAgreement {
         bytes memory _currentSenderState = token.getAgreementAccountState(address(this), accountA);
         bytes memory _currentReceiverState = token.getAgreementAccountState(address(this), accountB);
 
+        bytes memory _senderNewAccountState;
+        bytes memory _receiverNewAccountState;
+
         if (_currentSenderState.length != 0) {
 
             (, int256 _stateFlowRate, uint256 _ins, uint256 _outs) = _decodeState(_currentSenderState);
@@ -204,8 +215,8 @@ contract FlowAgreement is IFlowAgreement {
                 (, int256 _flowRate) = _decodeFlow(_userAgreement);
 
                 int256 finalFlow = _flowRate - _stateFlowRate;
-                bytes memory _newState = _encodeState(block.timestamp, finalFlow, _ins, _outs - 1);
-                token.updateAgreementAccountState(accountA, _newState);
+                _senderNewAccountState = _encodeState(block.timestamp, finalFlow, _ins, _outs - 1);
+                token.updateAgreementAccountState(accountA, _senderNewAccountState);
             }
         }
 
@@ -223,14 +234,24 @@ contract FlowAgreement is IFlowAgreement {
                 bytes memory _userAgreement = token.getAgreementData(address(this), _ba);
                 (, int256 _flowRate) = _decodeFlow(_userAgreement);
                 int256 finalFlow = _flowRate - _stateFlowRate;
-                bytes memory _newState = _encodeState(block.timestamp, finalFlow, _ins - 1, _outs);
-                token.updateAgreementAccountState(accountA, _newState);
+                _receiverNewAccountState = _encodeState(block.timestamp, finalFlow, _ins - 1, _outs);
+                token.updateAgreementAccountState(accountA, _receiverNewAccountState);
             }
         }
 
         //Close this Agreement Data
         token.terminateAgreement(_ab);
         token.terminateAgreement(_ba);
+
+        (,int totalSenderFlowRate,,) = _decodeState(_senderNewAccountState);
+        (,int totalReceiverFlowRate,,) = _decodeState(_receiverNewAccountState);
+        emit FlowUpdated(
+            token,
+            accountA,
+            accountB,
+            0,
+            totalSenderFlowRate,
+            totalReceiverFlowRate);
     }
 
     function _mirrorFlowRate(int256 flowRate) private pure returns(int256) {

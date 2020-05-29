@@ -21,17 +21,6 @@ abstract contract IFlowAgreement is ISuperAgreement {
         external
         virtual;
 
-    /// @notice Flow created event
-    /// @param token Super token address.
-    /// @param receiver Flow recipient address.
-    /// @param flowRate Flow rate in amount per second.
-    event FlowCreated(
-        ISuperToken indexed token,
-        address indexed sender,
-        address indexed receiver,
-        int256 flowRate
-    );
-
     /// @notice Get the new flow rate between sender and receiver
     /// @param token Super token address.
     /// @param receiver Flow sender address.
@@ -60,13 +49,18 @@ abstract contract IFlowAgreement is ISuperAgreement {
 
     /// @notice Flow created event
     /// @param token Super token address.
+    /// @param sender Flow sender address.
     /// @param receiver Flow recipient address.
-    /// @param newFlowRate Flow rate in amount per second.
+    /// @param flowRate Flow rate in amount per second for this flow.
+    /// @param flowRate Total flow rate in amount per second for the sender.
+    /// @param flowRate Total flow rate in amount per second for the receiver.
     event FlowUpdated(
         ISuperToken indexed token,
         address indexed sender,
         address indexed receiver,
-        int256 newFlowRate
+        int256 flowRate,
+        int256 totalSenderFlowRate,
+        int256 totalReceiverFlowRate
     );
 
     /// @notice Delete the flow between msg.sender and receiver

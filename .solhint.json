@@ -3,6 +3,7 @@
     "rules": {
         "max-states-count": "off",
         "no-inline-assembly": "off",
+        "mark-callable-contracts": "off",
         "max-line-length": ["error", 120],
         "private-vars-leading-underscore": "error",
         "reason-string": ["error", { "maxLength": 64 } ],

@@ -370,11 +370,30 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user2, {from: user1});
 
+        /*
+        let ab = web3.utils.soliditySha3(user1, user2);
+        let ba = web3.utils.soliditySha3(user2, user1);
+
+        let userData = await superToken.getAgreementAccountState(agreement.address, user1);
+        console.log(userData);
+
+        let userState = await superToken
+
+        return;
+        */
+
         await traveler.advanceTime(ADV_TIME * 1000);
         await traveler.advanceBlock();
 
         let user1Balance = await superTokenDebug.balanceOf.call(user1);
         let user2Balance = await superTokenDebug.balanceOf.call(user2);
+
+        /*
+        console.log(user1Balance.balance.toString());
+        console.log(user2Balance.balance.toString());
+
+        return;
+        */
 
         let span = tx2.timestamp - tx1.timestamp;
         let finalUser1 = INI_BALANCE - (span * FLOW_RATE);
@@ -431,5 +450,4 @@ contract("Flow Agreement", accounts => {
         assert.equal(user3Balance.balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
         assert.equal(user4Balance.balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");
     });
-
 });

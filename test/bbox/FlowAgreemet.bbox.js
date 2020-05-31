@@ -94,8 +94,6 @@ contract("Flow Agreement Stories", accounts => {
             }
         );
 
-
-
         await traveler.advanceTime(3600 * 24 * 30);
         await traveler.advanceBlock();
 

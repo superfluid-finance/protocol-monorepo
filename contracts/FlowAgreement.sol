@@ -95,20 +95,20 @@ contract FlowAgreement is IFlowAgreement {
      * Internal Functions
      */
 
-     function _updateFlow(
-         ISuperToken token,
-         address sender,
-         address receiver,
-         int256 flowRate
-     )
-         private
-     {
-         require(flowRate != 0, "Invalid FlowRate, use deleteFlow function");
-         bytes memory _data = _encodeFlow(block.timestamp, flowRate);
+    function _updateFlow(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int256 flowRate
+    )
+        private
+    {
+        require(flowRate != 0, "Invalid FlowRate, use deleteFlow function");
+        bytes memory _data = _encodeFlow(block.timestamp, flowRate);
 
-         _updateAgreementData(token, sender, receiver, _data);
-         _updateAccountState(token, sender, receiver, flowRate);
-     }
+        _updateAgreementData(token, sender, receiver, _data);
+        _updateAccountState(token, sender, receiver, flowRate);
+    }
 
     function _updateAgreementData(
         ISuperToken token,
@@ -148,8 +148,8 @@ contract FlowAgreement is IFlowAgreement {
         token.updateAgreementAccountState(accountA, _senderState);
         token.updateAgreementAccountState(accountB, _receiverState);
 
-        (,int totalSenderFlowRate) = _decodeFlow(_senderState);
-        (,int totalReceiverFlowRate) = _decodeFlow(_receiverState);
+        (, int totalSenderFlowRate) = _decodeFlow(_senderState);
+        (, int totalReceiverFlowRate) = _decodeFlow(_receiverState);
         emit FlowUpdated(
             token,
             accountA,
@@ -187,8 +187,8 @@ contract FlowAgreement is IFlowAgreement {
         token.terminateAgreement(_outFlowId);
         token.terminateAgreement(_inFlowId);
 
-        (,int256 totalSenderFlowRate) = _decodeFlow(_senderState);
-        (,int256 totalReceiverFlowRate) = _decodeFlow(_senderState);
+        (, int256 totalSenderFlowRate) = _decodeFlow(_senderState);
+        (, int256 totalReceiverFlowRate) = _decodeFlow(_senderState);
         emit FlowUpdated(
             token,
             accountA,
@@ -275,7 +275,7 @@ contract FlowAgreement is IFlowAgreement {
 
         (uint256 _aTimestamp, int256 _aRate) = _decodeFlow(additionalState);
         int256 _newRate = _aRate == 0 ? 0 : (_cRate + _aRate);
-        if(_newRate == 0) {
+        if (_newRate == 0) {
             return "";
         }
 
@@ -306,7 +306,7 @@ contract FlowAgreement is IFlowAgreement {
         (, int _cRate) = _decodeFlow(currentState);
         _cRate += flowRate;
 
-        if(_cRate == 0) {
+        if (_cRate == 0) {
             return "";
         }
         return _encodeFlow(timestamp, _cRate);

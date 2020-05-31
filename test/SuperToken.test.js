@@ -335,7 +335,7 @@ contract("Super Token", accounts => {
         assert.equal(splitBA[0], tx.timestamp, "User 2 to User 1 wrong timestamp");
         assert.equal(splitBA[1], FLOW_RATE, "User 2 Flow Rate wrong");
 
-        let tx1 = await web3tx(
+        await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user1, FLOW_RATE, {from: user2});

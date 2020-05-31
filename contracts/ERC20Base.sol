@@ -29,6 +29,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
+// solhint-disable-next-line indent
 abstract contract ERC20Base is IERC20 {
 
     /**
@@ -188,7 +189,9 @@ abstract contract ERC20Base is IERC20 {
      * - `spender` cannot be the zero address.
      */
     function _increaseAllowance(address spender, uint256 addedValue)
-        private returns (bool) {
+        private
+        returns (bool) 
+    {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
         return true;
     }
@@ -208,7 +211,9 @@ abstract contract ERC20Base is IERC20 {
      * `subtractedValue`.
      */
     function _decreaseAllowance(address spender, uint256 subtractedValue)
-        private returns (bool) {
+        private 
+        returns (bool)
+    {
         _approve(
             msg.sender,
             spender,

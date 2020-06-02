@@ -190,7 +190,7 @@ abstract contract ERC20Base is IERC20 {
      */
     function _increaseAllowance(address spender, uint256 addedValue)
         private
-        returns (bool) 
+        returns (bool)
     {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
         return true;
@@ -211,7 +211,7 @@ abstract contract ERC20Base is IERC20 {
      * `subtractedValue`.
      */
     function _decreaseAllowance(address spender, uint256 subtractedValue)
-        private 
+        private
         returns (bool)
     {
         _approve(

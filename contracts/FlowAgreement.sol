@@ -312,26 +312,4 @@ contract FlowAgreement is IFlowAgreement {
         return _encodeFlow(timestamp, _cRate);
     }
 
-    /*
-    function _composeState
-    (
-        bytes memory currentState,
-        int256 flowRate,
-        uint256 timestamp
-    )
-        private
-        pure
-        returns (bytes memory newAgreement, bool zero)
-    {
-
-        require(flowRate != 0, "Invalid FlowRate");
-        int256 _cRate;
-
-        if (currentState.length != 0) {
-            (, _cRate) = _decodeFlow(currentState);
-        }
-
-        return (_encodeFlow(timestamp, (_cRate + flowRate)), (_cRate + flowRate == 0));
-    }
-    */
 }

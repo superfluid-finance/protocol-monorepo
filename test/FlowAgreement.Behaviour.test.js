@@ -69,9 +69,8 @@ contract("FlowAgreement Behaviour", accounts => {
 
     it("#1 - Should not close other users flow assert revert message", async () => {
 
-        await superToken.upgrade(toWad(10), {from : user1});
+        await superToken.upgrade(INI_BALANCE, {from : user1});
         await agreement.createFlow(superToken.address, user2, FLOW_RATE);
-
 
         await traveler.advanceTime(ADV_TIME);
         await traveler.advanceBlock();

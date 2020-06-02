@@ -9,6 +9,7 @@ const {
 } = require("@decentral.ee/web3-test-helpers");
 
 const traveler = require("ganache-time-traveler");
+const INI_BALANCE = toWad(1000);
 
 contract("Flow Agreement Stories", accounts => {
 
@@ -61,6 +62,10 @@ contract("Flow Agreement Stories", accounts => {
     * Zoomer - 5 DAI / week
     */
     it("#1 - One user paying Many services", async () => {
+
+        console.log("SuperToken Address: ", superToken.address);
+
+        await superToken.upgrade(INI_BALANCE, {from : user1});
 
         const NetflicPricePerSecond = toWad(9 / 30 / 24 /3600);
         const SpotifaiPricePerSecond = toWad(11.85 / 30 / 24 / 3600);
@@ -209,5 +214,14 @@ contract("Flow Agreement Stories", accounts => {
         console.log("spotifai: ", wad4human(sptBalance));
         console.log("zoomer: ", wad4human(zomBalance));
 
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - from user1") (
+            userBalance, {
+                from: user1
+            });
+
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - from Netflic") (
+            netBalance, {
+                from: Netflic
+            });
     });
 });

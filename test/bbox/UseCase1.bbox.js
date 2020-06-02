@@ -48,6 +48,8 @@ contract("Usecase 1 Stories", accounts => {
                 from: admin
             });
 
+        console.log("SuperToken Address: ", superToken.address);
+
         await web3tx(token.approve, "token.approve from Miao to SuperToken")(
             superToken.address,
             MAX_UINT256, {

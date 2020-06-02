@@ -12,6 +12,7 @@ const traveler = require("ganache-time-traveler");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
+const FLOW_RATE_ADDITIONAL = toWad(2);
 const INI_BALANCE = toWad(10);
 
 contract("Super Token", accounts => {
@@ -334,7 +335,7 @@ contract("Super Token", accounts => {
         assert.equal(splitBA[0], tx.timestamp, "User 2 to User 1 wrong timestamp");
         assert.equal(splitBA[1], FLOW_RATE, "User 2 Flow Rate wrong");
 
-        let tx1 = await web3tx(
+        await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user1, FLOW_RATE, {from: user2});
@@ -342,13 +343,8 @@ contract("Super Token", accounts => {
         resultAB = await superToken.getAgreementData.call(agreement.address, ab);
         resultBA = await superToken.getAgreementData.call(agreement.address, ba);
 
-        splitAB = web3.eth.abi.decodeParameters(["uint256", "int256"], resultAB);
-        splitBA = web3.eth.abi.decodeParameters(["uint256", "int256"], resultBA);
-
-        assert.equal(splitAB[0], tx1.timestamp, "User 1 to User 2 wrong timestamp");
-        assert.equal(splitAB[1], 0, "User 1 Flow Rate wrong");
-        assert.equal(splitBA[0], tx1.timestamp, "User 2 to User 1 wrong timestamp");
-        assert.equal(splitBA[1], 0, "User 2 Flow Rate wrong");
+        assert.ok(resultAB == null, "User 1 -> User 2 didn't canceled out flow");
+        assert.ok(resultBA == null, "User 2 -> User 1 didn't canceled out flow");
 
     });
 
@@ -369,7 +365,8 @@ contract("Super Token", accounts => {
         await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow"
-        )(superToken.address, user1, FLOW_RATE, {from: user2});
+        )(superToken.address, user1, FLOW_RATE_ADDITIONAL, {from: user2});
+
         user1AgreementClasses = await superToken.getAccountActiveAgreements.call(user1);
         user2AgreementClasses = await superToken.getAccountActiveAgreements.call(user2);
 
@@ -385,10 +382,8 @@ contract("Super Token", accounts => {
         user1AgreementClasses = await superToken.getAccountActiveAgreements.call(user1);
         user2AgreementClasses = await superToken.getAccountActiveAgreements.call(user2);
 
-        assert.ok(user1AgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
-        assert.ok(user2AgreementClasses.length == 1, "User 2 number of ActiveAgreementClasses is wrong");
-        assert.equal(user1AgreementClasses[0], agreement.address, "User 1 ActiveAgreementClass is wrong");
-        assert.equal(user2AgreementClasses[0], agreement.address, "User 2 ActiveAgreementClass is wrong");
+        assert.ok(user1AgreementClasses.length == 0, "User 1 number of ActiveAgreementClasses is wrong");
+        assert.ok(user2AgreementClasses.length == 0, "User 2 number of ActiveAgreementClasses is wrong");
     });
 
     it("#5 - Check AgreementState - assert that is saved with the correct data", async() => {
@@ -401,18 +396,14 @@ contract("Super Token", accounts => {
         let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
         let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
 
-        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser1);
-        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser2);
+        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
+        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
 
         assert.ok(splitUser1[0] == tx.timestamp, "User 1 timestamp in State is wrong");
         assert.equal(splitUser1[1], -1 * FLOW_RATE, "User 1 Flow Rate is wrong");
-        assert.ok(splitUser1[2] == 0, "User 1 ins counter is wrong");
-        assert.ok(splitUser1[3] == 1, "User 1 out counter is wrong");
 
         assert.ok(splitUser2[0] == tx.timestamp, "User 2 timestamp in State is wrong");
         assert.equal(splitUser2[1], FLOW_RATE, "User 2 Flow Rate is wrong");
-        assert.ok(splitUser2[2] == 1, "User 2 ins counter is wrong");
-        assert.ok(splitUser2[3] == 0, "User 2 out counter is wrong");
     });
 
     it("#5.1 - Check AgreementState - assert that State is updated, but the counters stay the same", async() => {
@@ -429,18 +420,14 @@ contract("Super Token", accounts => {
         let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
         let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
 
-        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser1);
-        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser2);
+        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
+        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
 
         assert.ok(splitUser1[0] == tx.timestamp, "User 1 timestamp in State is wrong");
         assert.equal(splitUser1[1], (-1 * FLOW_RATE) * 2, "User 1 Flow Rate is wrong");
-        assert.ok(splitUser1[2] == 0, "User 1 ins counter is wrong");
-        assert.ok(splitUser1[3] == 1, "User 1 out counter is wrong");
 
         assert.ok(splitUser2[0] == tx.timestamp, "User 2 timestamp in State is wrong");
         assert.equal(splitUser2[1], FLOW_RATE * 2, "User 2 Flow Rate is wrong");
-        assert.ok(splitUser2[2] == 1, "User 2 ins counter is wrong");
-        assert.ok(splitUser2[3] == 0, "User 2 out counter is wrong");
     });
 
     it("#5.2 - Check AgreementState - assert that State is updated by using the createFlow x2", async() => {
@@ -457,18 +444,15 @@ contract("Super Token", accounts => {
         let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
         let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
 
-        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser1);
-        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256", "uint256", "uint256"], stateUser2);
+        let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
+        let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
+
 
         assert.ok(splitUser1[0] == tx.timestamp, "User 1 timestamp in State is wrong");
         assert.equal(splitUser1[1], (-1 * FLOW_RATE) * 2, "User 1 Flow Rate is wrong");
-        assert.ok(splitUser1[2] == 0, "User 1 ins counter is wrong");
-        assert.ok(splitUser1[3] == 1, "User 1 out counter is wrong");
 
         assert.ok(splitUser2[0] == tx.timestamp, "User 2 timestamp in State is wrong");
         assert.equal(splitUser2[1], FLOW_RATE * 2, "User 2 Flow Rate is wrong");
-        assert.ok(splitUser2[2] == 1, "User 2 ins counter is wrong");
-        assert.ok(splitUser2[3] == 0, "User 2 out counter is wrong");
     });
 
     it("#6 - Snapshot of Balance - assert passed balance after an update", async() => {
@@ -512,7 +496,6 @@ contract("Super Token", accounts => {
         let snapshot4 = await superToken.getSettledBalance.call(user2);
 
         let span2 = (tx3.timestamp - tx2.timestamp) + (tx3.timestamp - tx1.timestamp);
-        console.log("SPAN 2 : ", span2);
         let result2 = (span2 * FLOW_RATE);
 
         assert.equal(

@@ -65,9 +65,11 @@ abstract contract IFlowAgreement is ISuperAgreement {
 
     /// @notice Delete the flow between msg.sender and receiver
     /// @param token Super token address.
+    /// @param sender Flow sender address.
     /// @param receiver Flow recipient address.
     function deleteFlow(
         ISuperToken token,
+        address sender,
         address receiver
     )
         external

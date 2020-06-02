@@ -115,6 +115,7 @@ contract("Flow Agreement Stories", accounts => {
         // User receives the bill and think he is paying to much for Zoomer
         await web3tx(agreement.deleteFlow, "User1  -> Zoomer Cancel Subscription")(
             superToken.address,
+            user1,
             Zoomer, {
                 from: user1
             }
@@ -159,6 +160,7 @@ contract("Flow Agreement Stories", accounts => {
         //User dicover that he can listen to music on youfube for free
         await web3tx(agreement.deleteFlow, "User1  -> Spotifai Cancel Subscription")(
             superToken.address,
+            user1,
             Spotifai, {
                 from: user1
             }

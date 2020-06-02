@@ -490,7 +490,7 @@ contract("Super Token", accounts => {
         let tx3 = await web3tx(
             agreement.deleteFlow,
             "Call FlowAgreement.deleteFlow"
-        )(superToken.address, user2, {from: user1});
+        )(superToken.address, user1, user2, {from: user1});
 
         let snapshot3 = await superToken.getSettledBalance.call(user1);
         let snapshot4 = await superToken.getSettledBalance.call(user2);

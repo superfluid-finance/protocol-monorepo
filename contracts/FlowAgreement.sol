@@ -83,12 +83,14 @@ contract FlowAgreement is IFlowAgreement {
 
     function deleteFlow(
         ISuperToken token,
+        address sender,
         address receiver
     )
         external
         override
     {
-        _terminateAgreementData(token, msg.sender, receiver);
+        require(msg.sender == sender || msg.sender == receiver, "Not the sender or receiver");
+        _terminateAgreementData(token, sender, receiver);
     }
 
     /*

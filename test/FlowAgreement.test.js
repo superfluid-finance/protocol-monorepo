@@ -405,7 +405,7 @@ contract("Flow Agreement", accounts => {
         let user1Balance = await superToken.balanceOf.call(user1);
         let user2Balance = await superToken.balanceOf.call(user2);
         let user3Balance = await superToken.balanceOf.call(user3);
-        let user4Balance = await superToken.balanceOf.call(user3);
+        let user4Balance = await superToken.balanceOf.call(user4);
 
         const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
         const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);

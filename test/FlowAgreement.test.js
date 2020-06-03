@@ -122,8 +122,7 @@ contract("Flow Agreement", accounts => {
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
         const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
         let user1Balance = await superToken.balanceOf.call(user1);
@@ -146,15 +145,13 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user3, FLOW_RATE, {from: user1});
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
@@ -188,8 +185,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(smallPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -212,8 +208,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken. owngrade: User 2 Downgrade")(halfPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -235,8 +230,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let userSuperBalance = await superToken.balanceOf.call(user2);
         await web3tx(
@@ -272,8 +266,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user3});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(smallPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -305,8 +298,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user3});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(halfPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -336,8 +328,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user3});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let userSuperBalance = await superToken.balanceOf.call(user2);
         await web3tx(
@@ -361,16 +352,14 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user1, user2, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME * 1000);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
         const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
@@ -403,16 +392,14 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 2 -> User 4 Create new Flow"
         )(superToken.address, user4, FLOW_RATE, {from: user2});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx4 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user1, user2, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME * 10);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME * 10);
         const endBlock = await web3.eth.getBlock("latest");
 
         let user1Balance = await superToken.balanceOf.call(user1);
@@ -448,16 +435,14 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user2, user1, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME * 1000);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
         let user1Balance = await superToken.balanceOf.call(user1);
         let user2Balance = await superToken.balanceOf.call(user2);

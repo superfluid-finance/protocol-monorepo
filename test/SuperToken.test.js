@@ -192,8 +192,7 @@ contract("Super Token", accounts => {
         )(superToken.address, user2, FLOW_RATE, {from: user1});
         await superToken.balanceOf.call(user1);
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let result2 = await superToken.balanceOf.call(user2);
 
@@ -216,8 +215,7 @@ contract("Super Token", accounts => {
             console.warn("Detected blockchain time inconsistancy");
         }
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
         let result3 = await superToken.balanceOf.call(user1);
@@ -249,8 +247,7 @@ contract("Super Token", accounts => {
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let result1 = await superToken.balanceOf.call(user2);
         let half_balance = web3.utils.toBN(result1 / 1000);
@@ -267,12 +264,12 @@ contract("Super Token", accounts => {
             userTokenBalance.eq(finalBalance),
             "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
         let result3 = await superToken.balanceOf.call(user1);
         let result4 = await superToken.balanceOf.call(user2);
+
         const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
         let span1 = endBlock.timestamp - block1.timestamp;
@@ -477,8 +474,7 @@ contract("Super Token", accounts => {
         assert.equal(snapshot1, 0, "Call: SuperToken.getSnapshot user 1 is incorrect");
         assert.equal(snapshot2, 0, "Call: SuperToken.getSnapshot user 2 is incorrect");
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.updateFlow,
@@ -496,8 +492,7 @@ contract("Super Token", accounts => {
         assert.equal(snapshot1, (-1 * snapshot2), "Call: SuperToken.getSnapshot first call user 1 is incorrect");
         assert.equal(snapshot2, result1, "Call: SuperToken.getSnapshot first call user 2 is incorrect");
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
         let tx3 = await web3tx(
             agreement.deleteFlow,
             "Call FlowAgreement.deleteFlow"
@@ -527,8 +522,7 @@ contract("Super Token", accounts => {
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(
             agreement.updateFlow,
@@ -536,8 +530,7 @@ contract("Super Token", accounts => {
         )(superToken.address, user2, FLOW_RATE, {from: user1});
         let snapshot1 = await superToken.getSettledBalance.call(user2);
 
-        await traveler.advanceTime(ADV_TIME * 1000);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
         let snapshot2 = await superToken.getSettledBalance.call(user2);
 

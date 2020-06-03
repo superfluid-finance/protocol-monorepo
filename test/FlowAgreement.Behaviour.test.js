@@ -72,8 +72,7 @@ contract("FlowAgreement Behaviour", accounts => {
         await superToken.upgrade(INI_BALANCE, {from : user1});
         await agreement.createFlow(superToken.address, user2, FLOW_RATE);
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let emitError = false;
         try {

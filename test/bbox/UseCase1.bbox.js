@@ -105,9 +105,7 @@ contract("Usecase 1 Stories", accounts => {
             }
         );
 
-
-        await traveler.advanceTime(7 * 24 * 3600);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(7 * 24 * 3600);
 
         let NunoBalance = await superToken.balanceOf.call(Nuno);
         let MiaoBalance = await superToken.balanceOf.call(Miao);

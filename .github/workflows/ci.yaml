@@ -41,6 +41,8 @@ jobs:
 
   coverage:
 
+    needs: [build, coverage]
+
     runs-on: ubuntu-latest
 
     steps:

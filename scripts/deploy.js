@@ -22,17 +22,17 @@ module.exports = async function (callback) {
 
         console.log("FlowAgreement address", agreement.address);
 
-        const superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
+        const superTestToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             testTokenAddress,
             "SuperTestToken",
             "STT");
-        console.log("SuperToken address", superToken.address);
+        console.log("SuperTestToken address", superTestToken.address);
 
         await web3tx(testResolver.set, "TestResolver set FlowAgreement")(
             "FlowAgreement", agreement.address
         );
-        await web3tx(testResolver.set, "TestResolver set testTokenAddress")(
-            "testTokenAddress", superToken.address
+        await web3tx(testResolver.set, "TestResolver set superTestToken")(
+            "SuperTestToken", superTestToken.address
         );
 
         //await superToken.addAgreement(agreement.address);

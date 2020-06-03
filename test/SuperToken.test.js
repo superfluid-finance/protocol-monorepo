@@ -240,50 +240,48 @@ contract("Super Token", accounts => {
     });
 
     it("#2.4 - partial amount downgraded with flows running", async() => {
-
         await superToken.upgrade(INI_BALANCE, {from : user1});
-        let tx1 = await web3tx(
+
+        let txFlow12 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        let result1 = await superToken.balanceOf.call(user2);
-        let half_balance = web3.utils.toBN(result1 / 1000);
-        let tx2 = await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
-            half_balance.toString(), {
+        let user2MidwayBalance1 = await superToken.balanceOf.call(user2);
+        let user2DowngradeAmount = web3.utils.toBN(user2MidwayBalance1 / 1000);
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
+            user2DowngradeAmount.toString(), {
                 from: user2
             }
         );
 
-        let finalBalance = INI_BALANCE.add(half_balance);
-        let userTokenBalance = await token.balanceOf.call(user2);
-
-        assert.ok(
-            userTokenBalance.eq(finalBalance),
+        let user2MidwayBalance2Est = INI_BALANCE.add(user2DowngradeAmount);
+        let user2MidwayBalance2 = await token.balanceOf.call(user2);
+        assert.equal(
+            user2MidwayBalance2.toString(),
+            user2MidwayBalance2Est.toString(),
             "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
-        let result3 = await superToken.balanceOf.call(user1);
-        let result4 = await superToken.balanceOf.call(user2);
+        let user1FinalBalance = await superToken.balanceOf.call(user1);
+        let user2FinalBalance = await superToken.balanceOf.call(user2);
 
-        const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
-        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-        let span1 = endBlock.timestamp - block1.timestamp;
-        let span2 = endBlock.timestamp - block2.timestamp;
-        let final1 = INI_BALANCE.sub(web3.utils.toBN(span1 * FLOW_RATE));
-        let final2 = (span2 * FLOW_RATE) + (result1 - half_balance);
+        const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
+        let spanFlow12 = endBlock.timestamp - blockFlow12.timestamp;
+        let user1FinalBalanceEst = INI_BALANCE.sub(web3.utils.toBN(spanFlow12 * FLOW_RATE));
+        let user2FinalBalanceEst = (spanFlow12 * FLOW_RATE) - user2DowngradeAmount;
 
         assert.equal(
-            result3.toString(),
-            final1.toString(),
+            user1FinalBalance.toString(),
+            user1FinalBalanceEst.toString(),
             "Call: SuperToken.balanceOf - not correct for user1");
         assert.equal(
-            result4.toString(),
-            final2.toString(),
+            user2FinalBalance.toString(),
+            user2FinalBalanceEst.toString(),
             "Call: SuperToken.balanceOf - not correct for user2");
     });
 

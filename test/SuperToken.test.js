@@ -12,7 +12,7 @@ const traveler = require("ganache-time-traveler");
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
 const FLOW_RATE_ADDITIONAL = toWad(2);
-const INI_BALANCE = toWad(10);
+const INI_BALANCE = toWad(100);
 
 contract("Super Token", accounts => {
 

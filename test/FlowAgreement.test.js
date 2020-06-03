@@ -11,7 +11,7 @@ const traveler = require("ganache-time-traveler");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
-const INI_BALANCE = toWad(10);
+const INI_BALANCE = toWad(1000);
 
 contract("Flow Agreement", accounts => {
 
@@ -378,28 +378,29 @@ contract("Flow Agreement", accounts => {
 
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
-        let tx1 = await web3tx(
+        let txFlow12 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, user2, (FLOW_RATE * 10).toString(), {from: user1});
 
-        await web3tx(
+        let txFlow23 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 2 -> User 3 Create new Flow"
         )(superToken.address, user3, FLOW_RATE, {from: user2});
-        let tx3 = await web3tx(
+
+        let txFlow24 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 2 -> User 4 Create new Flow"
         )(superToken.address, user4, FLOW_RATE, {from: user2});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        let tx4 = await web3tx(
+        let txflow12End = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user1, user2, {from: user1});
 
-        await traveler.advanceTimeAndBlock(ADV_TIME * 10);
+        await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
         let user1Balance = await superToken.balanceOf.call(user1);
@@ -407,17 +408,18 @@ contract("Flow Agreement", accounts => {
         let user3Balance = await superToken.balanceOf.call(user3);
         let user4Balance = await superToken.balanceOf.call(user4);
 
-        const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
-        const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
-        const block4 = await web3.eth.getBlock(tx4.receipt.blockNumber);
-        let span = block4.timestamp - block1.timestamp;
-        let span3 = endBlock.timestamp - block1.timestamp;
-        let span4 = endBlock.timestamp - block3.timestamp;
+        const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
+        const blockFlow23 = await web3.eth.getBlock(txFlow23.receipt.blockNumber);
+        const blockFlow24 = await web3.eth.getBlock(txFlow24.receipt.blockNumber);
+        const blockFlow12End = await web3.eth.getBlock(txflow12End.receipt.blockNumber);
+        let spanFlow12 = blockFlow12End.timestamp - blockFlow12.timestamp;
+        let spanFlow23 = endBlock.timestamp - blockFlow23.timestamp;
+        let spanFlow24 = endBlock.timestamp - blockFlow24.timestamp;
 
-        let finalUser1 = INI_BALANCE - (span * FLOW_RATE);
-        let finalUser2 = 0;
-        let finalUser3 = span3 * FLOW_RATE;
-        let finalUser4 = span4 * FLOW_RATE;
+        let finalUser1 = INI_BALANCE - (spanFlow12 * FLOW_RATE * 10);
+        let finalUser3 = spanFlow23 * FLOW_RATE;
+        let finalUser4 = spanFlow24 * FLOW_RATE;
+        let finalUser2 = spanFlow12 * FLOW_RATE * 10 - finalUser3 - finalUser4;
 
         assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
         assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");

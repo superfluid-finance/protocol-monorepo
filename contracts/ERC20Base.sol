@@ -29,6 +29,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * functions have been added to mitigate the well-known issues around setting
  * allowances. See {IERC20-approve}.
  */
+// solhint-disable-next-line indent
 abstract contract ERC20Base is IERC20 {
 
     /**

@@ -71,6 +71,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # only publish npm package for branch push
+    if: github.event_name  == 'push'
+
     steps:
 
     - uses: actions/checkout@v1
@@ -80,10 +83,17 @@ jobs:
         node-version: '12.x'
         registry-url: 'https://npm.pkg.github.com'
 
-    - name: Publish package
+    - name: Build and Publish package
       run: |
         npm ci
         npm run build
         ./scripts/npm-publish.sh
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to kovan
+      run: |
+        npx truffle exec --network kovan scripts/deploy.js
+      env:
+        KOVAN_MNEMONIC: ${{ secrets.KOVAN_MNEMONIC }}
+        KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}

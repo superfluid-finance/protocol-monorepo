@@ -5,6 +5,7 @@ module.exports = async function (callback) {
     try {
         global.web3 = web3;
 
+        const TestResolver = artifacts.require("TestResolver");
         const SuperToken = artifacts.require("SuperToken");
         const FlowAgreement = artifacts.require("FlowAgreement");
 
@@ -12,18 +13,27 @@ module.exports = async function (callback) {
         console.log("network: ", network);
 
         const config = configs[network];
+        const testResolver = await TestResolver.at(config.resolver.address);
 
-        console.log("Token address", config.token.address);
+        const testTokenAddress = await testResolver.get("TestToken");
+        console.log("TestToken address", testTokenAddress);
 
         const agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")();
 
         console.log("FlowAgreement address", agreement.address);
 
         const superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
-            config.token.address,
-            "SuperToken",
-            "STK");
+            testTokenAddress,
+            "SuperTestToken",
+            "STT");
         console.log("SuperToken address", superToken.address);
+
+        await web3tx(testResolver.set, "TestResolver set FlowAgreement")(
+            "FlowAgreement", agreement.address
+        );
+        await web3tx(testResolver.set, "TestResolver set testTokenAddress")(
+            "testTokenAddress", superToken.address
+        );
 
         //await superToken.addAgreement(agreement.address);
 

@@ -8,20 +8,20 @@
     "@openzeppelin/contracts": "3.0.1"
   },
   "files": [
-      "/contracts/**/*.sol",
-      "/build/abi.js",
-      "/build/contracts/*.json",
-      "index.js"
+    "/contracts/**/*.sol",
+    "/build/abi.js",
+    "/build/contracts/*.json",
+    "index.js"
   ],
   "peerDependencies": {
-    "@truffle/contract": "4.2.5"
+    "@truffle/contract": "4.2.7"
   },
   "devDependencies": {
-    "@decentral.ee/web3-test-helpers": "0.2.5",
-    "@openzeppelin/test-helpers": "0.5.5",
+    "@decentral.ee/web3-test-helpers": "0.2.6",
+    "@openzeppelin/test-helpers": "0.5.6",
     "@truffle/hdwallet-provider": "1.0.35",
     "dotenv": "8.2.0",
-    "eslint": "7.0.0",
+    "eslint": "7.1.0",
     "eth-gas-reporter": "^0.2.17",
     "ganache-time-traveler": "^1.0.14",
     "husky": "^4.2.5",
@@ -29,9 +29,9 @@
     "sol-proxy": "0.1.2",
     "solhint": "3.0.0",
     "solidity-coverage": "0.7.5",
-    "truffle": "5.1.26",
+    "truffle": "5.1.28",
     "truffle-flattener": "1.4.4",
-    "truffle-plugin-verify": "0.3.10"
+    "truffle-plugin-verify": "0.3.11"
   },
   "scripts": {
     "build": "run-s build:*",

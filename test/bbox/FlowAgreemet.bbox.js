@@ -99,8 +99,7 @@ contract("Flow Agreement Stories", accounts => {
             }
         );
 
-        await traveler.advanceTime(3600 * 24 * 30);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 
         let userBalance = await superToken.balanceOf.call(user1);
         let netBalance = await superToken.balanceOf.call(Netflic);
@@ -121,8 +120,7 @@ contract("Flow Agreement Stories", accounts => {
             }
         );
 
-        await traveler.advanceTime(3600 * 24 * 30);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 
         userBalance = await superToken.balanceOf.call(user1);
         netBalance = await superToken.balanceOf.call(Netflic);
@@ -144,8 +142,7 @@ contract("Flow Agreement Stories", accounts => {
             }
         );
 
-        await traveler.advanceTime(3600 * 24 * 30);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 
         userBalance = await superToken.balanceOf.call(user1);
         netBalance = await superToken.balanceOf.call(Netflic);
@@ -166,8 +163,7 @@ contract("Flow Agreement Stories", accounts => {
             }
         );
 
-        await traveler.advanceTime(3600 * 24 * 30);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 
         userBalance = await superToken.balanceOf.call(user1);
         netBalance = await superToken.balanceOf.call(Netflic);
@@ -189,8 +185,7 @@ contract("Flow Agreement Stories", accounts => {
         );
 
 
-        await traveler.advanceTime(3600 * 24 * 30);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 
         userBalance = await superToken.balanceOf.call(user1);
         netBalance = await superToken.balanceOf.call(Netflic);
@@ -203,8 +198,7 @@ contract("Flow Agreement Stories", accounts => {
         console.log("zoomer: ", wad4human(zomBalance));
 
 
-        await traveler.advanceTime(3600 * 24 * 30);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 
         userBalance = await superToken.balanceOf.call(user1);
         netBalance = await superToken.balanceOf.call(Netflic);

@@ -1,7 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const ERC20Mintable = artifacts.require("ERC20Mintable");
 const FlowAgreement = artifacts.require("FlowAgreement");
-const InstruSuperToken = artifacts.require("InstruSuperToken");
 
 const {
     web3tx,
@@ -12,7 +11,7 @@ const traveler = require("ganache-time-traveler");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
-const INI_BALANCE = toWad(10);
+const INI_BALANCE = toWad(1000);
 
 contract("Flow Agreement", accounts => {
 
@@ -29,7 +28,6 @@ contract("Flow Agreement", accounts => {
     let token;
     let superToken;
     let agreement;
-    let superTokenDebug;
 
     before(async () => {
         console.log("admin is %s \nuser1 is %s \nuser2 is %s", admin, user1, user2);
@@ -62,10 +60,6 @@ contract("Flow Agreement", accounts => {
             {
                 from: admin
             });
-
-        superTokenDebug = await web3tx(InstruSuperToken.new, "Call: InstruSuperToken.new")(
-            superToken.address
-        );
 
         await web3tx(token.approve, "Call: token.approve from admin to SuperToken")(
             superToken.address,
@@ -127,17 +121,18 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
+        await traveler.advanceTimeAndBlock(ADV_TIME);
+        const endBlock = await web3.eth.getBlock("latest");
 
-        let user1Balance = await superTokenDebug.balanceOf.call(user1);
-        let user2Balance = await superTokenDebug.balanceOf.call(user2);
-        let span = user1Balance.blocktime - tx.timestamp;
+        let user1Balance = await superToken.balanceOf.call(user1);
+        let user2Balance = await superToken.balanceOf.call(user2);
+        let span = endBlock.timestamp - beginBlock.timestamp;
         let finalUser1 = INI_BALANCE - (span * FLOW_RATE);
         let finalUser2 = (span * FLOW_RATE);
 
-        assert.equal(user1Balance.balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-        assert.equal(user2Balance.balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
+        assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
+        assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
     });
 
 
@@ -150,30 +145,31 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user3, FLOW_RATE, {from: user1});
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        let user1Balance = await superTokenDebug.balanceOf.call(user1);
-        let user2Balance = await superTokenDebug.balanceOf.call(user2);
-        let user3Balance = await superTokenDebug.balanceOf.call(user3);
+        const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
+        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+        let user1Balance = await superToken.balanceOf.call(user1);
+        let user2Balance = await superToken.balanceOf.call(user2);
+        let user3Balance = await superToken.balanceOf.call(user3);
+        const endBlock = await web3.eth.getBlock("latest");
 
-        let span2 = user2Balance.blocktime - tx.timestamp;
-        let span3 = user3Balance.blocktime - tx2.timestamp;
+        let span2 = endBlock.timestamp - block1.timestamp;
+        let span3 = endBlock.timestamp - block2.timestamp;
 
         let finalUser2 = (span2 * FLOW_RATE);
         let finalUser3 = (span3 * FLOW_RATE);
         let finalUser1 = INI_BALANCE - finalUser2 - finalUser3;
 
-        assert.equal(user1Balance.balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-        assert.equal(user2Balance.balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
-        assert.equal(user3Balance.balance.toString(), finalUser3.toString(), "User 3 Final balance is wring");
+        assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
+        assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
+        assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wring");
 
     });
 
@@ -189,8 +185,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(smallPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -213,8 +208,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken. owngrade: User 2 Downgrade")(halfPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -236,8 +230,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let userSuperBalance = await superToken.balanceOf.call(user2);
         await web3tx(
@@ -273,8 +266,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user3});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(smallPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -306,8 +298,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user3});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(halfPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
@@ -337,8 +328,7 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user3});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let userSuperBalance = await superToken.balanceOf.call(user2);
         await web3tx(
@@ -362,74 +352,79 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user1, user2, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME * 1000);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
-        let user1Balance = await superTokenDebug.balanceOf.call(user1);
-        let user2Balance = await superTokenDebug.balanceOf.call(user2);
+        const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
+        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+        let user1Balance = await superToken.balanceOf.call(user1);
+        let user2Balance = await superToken.balanceOf.call(user2);
 
-        let span = tx2.timestamp - tx1.timestamp;
+        let span = block2.timestamp - block1.timestamp;
         let finalUser1 = INI_BALANCE - (span * FLOW_RATE);
         let finalUser2 = (span * FLOW_RATE);
 
-        assert.equal(user1Balance.balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-        assert.equal(user2Balance.balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
+        assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
+        assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
     });
 
     it("#4.1 Running multi Flows Stop One Flow - assert final balance", async() => {
 
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
-        let tx1 = await web3tx(
+        let txFlow12 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
-        let tx2 = await web3tx(
+        )(superToken.address, user2, (FLOW_RATE * 10).toString(), {from: user1});
+
+        let txFlow23 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 2 -> User 3 Create new Flow"
         )(superToken.address, user3, FLOW_RATE, {from: user2});
-        let tx3 = await web3tx(
+
+        let txFlow24 = await web3tx(
             agreement.createFlow,
             "Call: FlowAgreement.createFlow: User 2 -> User 4 Create new Flow"
         )(superToken.address, user4, FLOW_RATE, {from: user2});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        let tx4 = await web3tx(
+        let txflow12End = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user1, user2, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME * 10);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
+        const endBlock = await web3.eth.getBlock("latest");
 
-        let user1Balance = await superTokenDebug.balanceOf.call(user1);
-        let user2Balance = await superTokenDebug.balanceOf.call(user2);
-        let user3Balance = await superTokenDebug.balanceOf.call(user3);
-        let user4Balance = await superTokenDebug.balanceOf.call(user3);
+        let user1Balance = await superToken.balanceOf.call(user1);
+        let user2Balance = await superToken.balanceOf.call(user2);
+        let user3Balance = await superToken.balanceOf.call(user3);
+        let user4Balance = await superToken.balanceOf.call(user4);
 
-        let span = tx4.timestamp - tx1.timestamp;
-        let span3 = user3Balance.blocktime - tx2.timestamp;
-        let span4 = user4Balance.blocktime - tx3.timestamp;
+        const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
+        const blockFlow23 = await web3.eth.getBlock(txFlow23.receipt.blockNumber);
+        const blockFlow24 = await web3.eth.getBlock(txFlow24.receipt.blockNumber);
+        const blockFlow12End = await web3.eth.getBlock(txflow12End.receipt.blockNumber);
+        let spanFlow12 = blockFlow12End.timestamp - blockFlow12.timestamp;
+        let spanFlow23 = endBlock.timestamp - blockFlow23.timestamp;
+        let spanFlow24 = endBlock.timestamp - blockFlow24.timestamp;
 
-        let finalUser1 = INI_BALANCE - (span * FLOW_RATE);
-        let finalUser2 = 0;
-        let finalUser3 = span3 * FLOW_RATE;
-        let finalUser4 = span4 * FLOW_RATE;
+        let finalUser1 = INI_BALANCE - (spanFlow12 * FLOW_RATE * 10);
+        let finalUser3 = spanFlow23 * FLOW_RATE;
+        let finalUser4 = spanFlow24 * FLOW_RATE;
+        let finalUser2 = spanFlow12 * FLOW_RATE * 10 - finalUser3 - finalUser4;
 
-        assert.equal(user1Balance.balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-        assert.equal(user2Balance.balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
-        assert.equal(user3Balance.balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
-        assert.equal(user4Balance.balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");
+        assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
+        assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
+        assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
+        assert.equal(user4Balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");
     });
 
 
@@ -442,25 +437,25 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
         )(superToken.address, user2, user1, {from: user1});
 
-        await traveler.advanceTime(ADV_TIME * 1000);
-        await traveler.advanceBlock();
+        await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
-        let user1Balance = await superTokenDebug.balanceOf.call(user1);
-        let user2Balance = await superTokenDebug.balanceOf.call(user2);
+        let user1Balance = await superToken.balanceOf.call(user1);
+        let user2Balance = await superToken.balanceOf.call(user2);
 
-        let span = tx2.timestamp - tx1.timestamp;
+        const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
+        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+        let span = block2.timestamp - block1.timestamp;
         let finalUser1 = INI_BALANCE - (span * FLOW_RATE);
         let finalUser2 = (span * FLOW_RATE);
 
-        assert.equal(user1Balance.balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-        assert.equal(user2Balance.balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
+        assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
+        assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
     });
 });

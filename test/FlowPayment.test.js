@@ -1,5 +1,5 @@
 const SuperToken = artifacts.require("SuperToken");
-const ERC20Mintable = artifacts.require("ERC20Mintable");
+const TestToken = artifacts.require("TestToken");
 const FlowPayment = artifacts.require("FlowPayment");
 const FlowAgreement = artifacts.require("FlowAgreement");
 // const {
@@ -42,7 +42,7 @@ contract("FlowPayment", accounts => {
             }
         );
 
-        token = await web3tx(ERC20Mintable.new, "ERC20Mintable.new")(
+        token = await web3tx(TestToken.new, "TestToken.new")(
             {
                 from: admin
             });

@@ -1,5 +1,5 @@
 const SuperToken = artifacts.require("SuperToken");
-const ERC20Mintable = artifacts.require("ERC20Mintable");
+const TestToken = artifacts.require("TestToken");
 const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
@@ -32,7 +32,7 @@ contract("Super Token", accounts => {
 
     beforeEach(async () => {
 
-        token = await web3tx(ERC20Mintable.new, "Call: ERC20Mintable.new")(
+        token = await web3tx(TestToken.new, "Call: TestToken.new")(
             {
                 from: admin
             });
@@ -54,21 +54,21 @@ contract("Super Token", accounts => {
                 from:admin
             });
 
-        await web3tx(token.approve, "Call: ERC20Mintable.approve - from admin to SuperToken")(
+        await web3tx(token.approve, "Call: TestToken.approve - from admin to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: admin
             }
         );
 
-        await web3tx(token.approve, "Call: ERC20Mintable.approve - from user1 to SuperToken")(
+        await web3tx(token.approve, "Call: TestToken.approve - from user1 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user1
             }
         );
 
-        await web3tx(token.approve, "Call: ERC20Mintable.approve - from user2 to SuperToken")(
+        await web3tx(token.approve, "Call: TestToken.approve - from user2 to SuperToken")(
             superToken.address,
             MAX_UINT256, {
                 from: user2
@@ -120,7 +120,7 @@ contract("Super Token", accounts => {
         let finalBalance = await token.balanceOf.call(user1);
         let finalSuperTokenBalance = await superToken.balanceOf.call(user1);
 
-        assert.isOk(initialBalance.gt(finalBalance), "Call: ERC20Mintable.balanceOf - is wrong");
+        assert.isOk(initialBalance.gt(finalBalance), "Call: TestToken.balanceOf - is wrong");
         assert.equal(finalSuperTokenBalance.toString(), "2000000000000000000", "Call: SuperToken.balanceOf - is wrong");
     });
 
@@ -143,7 +143,7 @@ contract("Super Token", accounts => {
         let finalBalance = await token.balanceOf.call(user1);
         let finalSuperTokenBalance = await superToken.balanceOf.call(user1);
 
-        assert.isOk(initialBalance.toString(), finalBalance.toString(), "Call: ERC20Mintable.balanceOf - is wrong");
+        assert.isOk(initialBalance.toString(), finalBalance.toString(), "Call: TestToken.balanceOf - is wrong");
         assert.equal(finalSuperTokenBalance.toString(), "0", "Call: SuperToken.balanceOf - is wrong");
     });
 
@@ -170,7 +170,7 @@ contract("Super Token", accounts => {
         assert.equal(
             initialBalanceUser1.toString(),
             finalBalanceUser1.toString(),
-            "Call: ERC20Mintable.balanceOf - not correct for user 1");
+            "Call: TestToken.balanceOf - not correct for user 1");
         assert.equal(
             initialSuperBalanceUser1.toString(),
             finalSuperBalanceUser1.toString(),
@@ -207,7 +207,7 @@ contract("Super Token", accounts => {
 
         assert.ok(
             userTokenBalance.eq(finalBalance),
-            "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
+            "Call: TestToken.balanceOf - User 2 token balance is not correct");
 
 
         let slippage = await superToken.balanceOf.call(user2);
@@ -262,7 +262,7 @@ contract("Super Token", accounts => {
         assert.equal(
             user2MidwayBalance2.toString(),
             user2MidwayBalance2Est.toString(),
-            "Call: ERC20Mintable.balanceOf - User 2 token balance is not correct");
+            "Call: TestToken.balanceOf - User 2 token balance is not correct");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");

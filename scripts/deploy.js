@@ -21,12 +21,15 @@ module.exports = async function (callback) {
         } else {
             testResolver = await web3tx(TestResolver.new, "Call: TestResolver.new")();
         }
+        console.log("Resolver address", testResolver.address);
 
         let testTokenAddress = await testResolver.get("TestToken");
         if (testTokenAddress === "0x0000000000000000000000000000000000000000") {
             const testToken = await web3tx(TestToken.new, "Call: TestToken.new")();
             testTokenAddress = testToken.address;
-            console.log("TestToken address", testTokenAddress);
+            await web3tx(testResolver.set, "TestResolver set TestToken")(
+                "TestToken", testTokenAddress
+            );
         }
         console.log("TestToken address", testTokenAddress);
 

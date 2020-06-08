@@ -71,12 +71,14 @@ contract FlowAgreement is IFlowAgreement {
     }
 
     function getNetFlow(
-       ISuperToken token,
-       address account)
-       external
-       view
-       override
-       returns (int256 flowRate)
+        ISuperToken token,
+        address account
+    )
+
+        external
+        view
+        override
+        returns (int256 flowRate)
     {
         bytes memory state = token.getAgreementAccountState(address(this), account);
         (, flowRate) = _decodeFlow(state);
@@ -153,6 +155,7 @@ contract FlowAgreement is IFlowAgreement {
     {
 
         int256 _invFlowRate = _mirrorFlowRate(flowRate);
+        require(_invFlowRate <= 0, "Flipping Flow");
         bytes memory _senderState = token.getAgreementAccountState(address(this), accountA);
         bytes memory _receiverState = token.getAgreementAccountState(address(this), accountB);
 

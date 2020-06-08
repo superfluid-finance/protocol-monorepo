@@ -70,6 +70,18 @@ contract FlowAgreement is IFlowAgreement {
         (, flowRate) = _decodeFlow(data);
     }
 
+    function getNetFlow(
+       ISuperToken token,
+       address account)
+       external
+       view
+       override
+       returns (int256 flowRate)
+    {
+        bytes memory state = token.getAgreementAccountState(address(this), account);
+        (, flowRate) = _decodeFlow(state);
+    }
+
     function updateFlow(
         ISuperToken token,
         address receiver,

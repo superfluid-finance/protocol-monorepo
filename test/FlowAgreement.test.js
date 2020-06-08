@@ -6,6 +6,7 @@ const {
     web3tx,
     toWad
 } = require("@decentral.ee/web3-test-helpers");
+const toBN = web3.utils.toBN;
 
 const traveler = require("ganache-time-traveler");
 
@@ -121,6 +122,20 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
+        // test flow views
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user1
+        )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user2
+        )).toString(), FLOW_RATE.toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user1, user2
+        )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user2, user1
+        )).toString(), FLOW_RATE.toString());
+
         const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
         await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
@@ -145,6 +160,20 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user2, FLOW_RATE, {from: user1});
 
+        // test flow views
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user1
+        )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user2
+        )).toString(), FLOW_RATE.toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user1, user2
+        )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user2, user1
+        )).toString(), FLOW_RATE.toString());
+
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
@@ -152,6 +181,35 @@ contract("Flow Agreement", accounts => {
             "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
         )(superToken.address, user3, FLOW_RATE, {from: user1});
         await traveler.advanceTimeAndBlock(ADV_TIME);
+
+        // test flow views
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user1
+        )).toString(), FLOW_RATE.mul(toBN(-2)).toString());
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user2
+        )).toString(), FLOW_RATE.toString());
+        assert.equal((await agreement.getNetFlow.call(
+            superToken.address, user3
+        )).toString(), FLOW_RATE.toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user1, user2
+        )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user2, user1
+        )).toString(), FLOW_RATE.toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user1, user3
+        )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user3, user1
+        )).toString(), FLOW_RATE.toString());
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user2, user3
+        )).toString(), "0");
+        assert.equal((await agreement.getFlow.call(
+            superToken.address, user3, user2
+        )).toString(), "0");
 
         const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
@@ -177,7 +235,7 @@ contract("Flow Agreement", accounts => {
 
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
-        let smallPortion = new web3.utils.toBN(1000);
+        let smallPortion = new toBN(1000);
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
@@ -200,7 +258,7 @@ contract("Flow Agreement", accounts => {
 
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
-        let halfPortion= new web3.utils.toBN(500000000000000000);
+        let halfPortion= new toBN(500000000000000000);
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
@@ -250,7 +308,7 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
         await superToken.upgrade(INI_BALANCE, {from: user2});
 
-        let smallPortion = new web3.utils.toBN(1000);
+        let smallPortion = new toBN(1000);
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
@@ -282,7 +340,7 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
         await superToken.upgrade(INI_BALANCE, {from: user2});
 
-        let halfPortion= new web3.utils.toBN(1000000000000000000);
+        let halfPortion= new toBN(1000000000000000000);
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(

@@ -71,14 +71,13 @@ contract FlowAgreement is IFlowAgreement {
     }
 
     function getNetFlow(
-        ISuperToken token,
+       ISuperToken token,
         address account
     )
-
-        external
-        view
-        override
-        returns (int256 flowRate)
+       external
+       view
+       override
+       returns (int256 flowRate)
     {
         bytes memory state = token.getAgreementAccountState(address(this), account);
         (, flowRate) = _decodeFlow(state);
@@ -103,8 +102,13 @@ contract FlowAgreement is IFlowAgreement {
         external
         override
     {
-        require(msg.sender == sender || msg.sender == receiver, "Not the sender or receiver");
-        _terminateAgreementData(token, sender, receiver);
+
+        bool _liquidation = (msg.sender != sender && msg.sender != receiver);
+        if (_liquidation) {
+            require(token.isAccountInsolvent(sender), "Account is solvent");
+    }
+
+        _terminateAgreementData(token, sender, receiver, _liquidation);
     }
 
     /*
@@ -179,7 +183,8 @@ contract FlowAgreement is IFlowAgreement {
     function _terminateAgreementData(
         ISuperToken token,
         address accountA,
-        address accountB
+        address accountB,
+        bool liquidation
     )
         private
     {
@@ -201,8 +206,8 @@ contract FlowAgreement is IFlowAgreement {
 
 
         //Close this Agreement Data
-        token.terminateAgreement(_outFlowId);
-        token.terminateAgreement(_inFlowId);
+        token.terminateAgreement(_outFlowId, liquidation);
+        token.terminateAgreement(_inFlowId, false);
 
         (, int256 totalSenderFlowRate) = _decodeFlow(_senderState);
         (, int256 totalReceiverFlowRate) = _decodeFlow(_senderState);
@@ -328,5 +333,4 @@ contract FlowAgreement is IFlowAgreement {
         }
         return _encodeFlow(timestamp, _cRate);
     }
-
 }

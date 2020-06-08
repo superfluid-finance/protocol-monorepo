@@ -51,6 +51,18 @@ contract SuperToken is ISuperToken, ERC20Base {
         return _activeAgreementClasses[account];
     }
 
+    /// @dev ISuperToken.isAccountInsolvent implementation
+    function isAccountInsolvent(
+        address account
+    )
+        public
+        view
+        override
+        returns(bool)
+    {
+        return realtimeBalanceOf(account, block.timestamp) < 0;
+    }
+
     /// @dev ERC20.balanceOf implementation
     function balanceOf(
         address account
@@ -63,6 +75,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         (int256 _balance) = _calculateBalance(account, block.timestamp);
         return _balance < 0 ? 0 : uint256(_balance);
     }
+
 
     /// @dev ISuperToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
@@ -139,13 +152,19 @@ contract SuperToken is ISuperToken, ERC20Base {
     //review - let dig a little more
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
-        bytes32 id
+        bytes32 id,
+        bool liquidation
     )
         external
         override
     {
         delete _agreementData[msg.sender][id];
-        emit AgreementTerminated(msg.sender, id);
+
+        if (liquidation) {
+            emit AgreementLiquidated(msg.sender, id);
+        } else {
+            emit AgreementTerminated(msg.sender, id);
+        }
     }
 
     /*

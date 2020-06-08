@@ -516,4 +516,25 @@ contract("Flow Agreement", accounts => {
         assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
         assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
     });
+
+    it("#5 - Make a liquidation - assert that Agreements are closed", async() => {
+
+        await superToken.upgrade(toWad(1), {from : user1});
+
+        await web3tx(
+            agreement.createFlow,
+            "Call: FlowAgreement.createFlow"
+        )(superToken.address, user2, FLOW_RATE, {from: user1});
+
+        await traveler.advanceTimeAndBlock(ADV_TIME);
+
+        await web3tx(
+            agreement.deleteFlow,
+            "Call: FlowAgreement.deleteFlow: User 1 will be liquidated"
+        )(superToken.address, user1, user2, {from: admin});
+
+        let flowRate = await agreement.getFlow.call(superToken.address, user1, user2);
+
+        assert.equal(flowRate.toString(), "0", "Liquidation don't change state");
+    });
 });

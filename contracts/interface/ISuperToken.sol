@@ -47,7 +47,8 @@ abstract contract ISuperToken is IERC20 {
     /// @notice Close Agreement
     /// @param id Agreement ID
     function terminateAgreement(
-        bytes32 id
+        bytes32 id,
+        bool liquidation
     )
         external
         virtual;
@@ -56,6 +57,14 @@ abstract contract ISuperToken is IERC20 {
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
     event AgreementTerminated(
+        address indexed agreementClass,
+        bytes32 id
+    );
+
+    /// @notice Agreement liquidation event
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    event AgreementLiquidated(
         address indexed agreementClass,
         bytes32 id
     );
@@ -92,10 +101,10 @@ abstract contract ISuperToken is IERC20 {
         view
         returns (bytes memory data);
 
-
     /*
      * Account functions
      */
+
      /// @notice Get a list of agreements that is active for the account
      /// @dev An active agreement is one that has state for the account
      /// @param account Account to query
@@ -104,6 +113,17 @@ abstract contract ISuperToken is IERC20 {
         virtual
         view
         returns(address[] memory);
+
+     /// @notice Check if one account is insolvent
+     /// @dev It is used in the liquidation process
+     /// @param account Account check if is insolvent
+    function isAccountInsolvent(
+        address account
+    )
+        public
+        view
+        virtual
+        returns(bool);
 
     /// @notice Calculate the real balance of a user, taking in consideration
     ///         all agreements of the account

@@ -21,7 +21,7 @@ abstract contract IFlowAgreement is ISuperAgreement {
         external
         virtual;
 
-    /// @notice Get the new flow rate between sender and receiver
+    /// @notice Get the current flow rate between sender and receiver
     /// @param token Super token address.
     /// @param receiver Flow sender address.
     /// @param receiver Flow recipient address.
@@ -34,6 +34,17 @@ abstract contract IFlowAgreement is ISuperAgreement {
         view
         virtual
         returns (int256 flowRate);
+
+    /// @notice Get the net flow rate of the account
+    /// @param token Super token address.
+    /// @param account Account for the query
+    function getNetFlow(
+       ISuperToken token,
+       address account)
+       external
+       view
+       virtual
+       returns (int256 flowRate);
 
     /// @notice Update the flow between msg.sender and receiver
     /// @param token Super token address.

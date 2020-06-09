@@ -96,4 +96,46 @@ contract("FlowAgreement Behaviour", accounts => {
         }
     });
 
+    it("#2 - Attack Flow Creation - Create a negative Flow - Steal User 2", async() => {
+
+        await superToken.upgrade(INI_BALANCE, {from : user1});
+        let emitError = false;
+
+        try {
+            await agreement.createFlow(superToken.address, user2, "-10000000000000000000000", {from: user1});
+
+        } catch(err) {
+            emitError = true;
+            console.log(err.reason);
+            assert.strictEqual(err.reason, "Flipping Flow");
+        }
+
+        if(!emitError) {
+            throw ("Call: FlowAgreement.createFlow - error not emitted");
+        }
+
+    });
+
+    it("#2.1 - Attack Flow Update - Update a to get a negative Flow - Steal User 2", async() => {
+
+        await superToken.upgrade(toWad(1), {from : user1});
+        let emitError = false;
+
+        try {
+            await agreement.createFlow(superToken.address, user2, toWad(1), {from: user1});
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            await agreement.createFlow(superToken.address, user2, "-10000000000000000000000", {from: user1});
+
+        } catch(err) {
+            emitError = true;
+            console.log(err.reason);
+            assert.strictEqual(err.reason, "Flipping Flow");
+
+        }
+
+        if(!emitError) {
+            throw ("Call: FlowAgreement.createFlow - error not emitted");
+        }
+
+    });
 });

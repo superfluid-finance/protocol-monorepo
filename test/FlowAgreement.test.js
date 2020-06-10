@@ -511,7 +511,7 @@ contract("Flow Agreement", accounts => {
         let tx2 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
-        )(superToken.address, user2, user1, {from: user1});
+        )(superToken.address, user1, user2, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 

@@ -65,12 +65,13 @@ abstract contract ISuperToken is IERC20 {
     /// @param liquidator Address of the executer of liquidation
     /// @param id Agreement ID
     /// @param account Account of the agrement
+    /// @param deposit Deposit from the account that is going to taken as penalty
     function liquidateAgreement
     (
         address liquidator,
         bytes32 id,
         address account,
-        int256 deposit
+        uint256 deposit
     )
     external
     virtual;

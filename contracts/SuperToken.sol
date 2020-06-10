@@ -171,7 +171,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         address liquidator,
         bytes32 id,
         address account,
-        int256 deposit
+        uint256 deposit
     )
     external
     override
@@ -180,16 +180,16 @@ contract SuperToken is ISuperToken, ERC20Base {
         address rewardAccount = _gov.getRewardAddress(address(_token));
 
         int256 _balance = realtimeBalanceOf(account, block.timestamp);
-        int256 _remain = _balance - deposit;
+        int256 _remain = _balance - int256(deposit);
 
         //if there is fees to be collected discount user account, if not then discount rewardAccount
         if (_remain > 0) {
-            _settledBalances[account] -= deposit;
-            _settledBalances[rewardAccount] += deposit;
+            _settledBalances[account] -= int256(deposit);
+            _settledBalances[rewardAccount] += int256(deposit);
         } else {
             _settledBalances[account] -= _balance;
             _settledBalances[rewardAccount] += _remain;
-            _settledBalances[liquidator] += deposit;
+            _settledBalances[liquidator] += int256(deposit);
         }
 
         delete _agreementData[msg.sender][id];

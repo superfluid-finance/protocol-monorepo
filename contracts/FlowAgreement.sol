@@ -3,6 +3,7 @@ pragma solidity 0.6.6;
 
 import { ISuperToken, IFlowAgreement } from "./interface/IFlowAgreement.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
+import { Math } from "@openzeppelin/contracts/math/Math.sol";
 
 contract FlowAgreement is IFlowAgreement {
 
@@ -187,25 +188,31 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
     {
-        (bytes32 _outFlowId, bytes32 _inFlowId) = _hashAccounts(accountA, accountB);
-        (int256 _senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(token, accountA, _outFlowId);
-        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, accountB, _inFlowId);
+        (bytes32 outFlowId, bytes32 inFlowId) = _hashAccounts(accountA, accountB);
+        (int256 senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(token, accountA, outFlowId);
+        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, accountB, inFlowId);
 
-        //note : calculate the deposit here and pass it to superToken, and emit the events.
-        //Close this Agreement Data
+        assert(senderFlowRate < 0);
+
+        // note : calculate the deposit here and pass it to superToken, and emit the events.
+        // Close this Agreement Data
         if (liquidation) {
-
-            uint16 _minBalance = ISuperfluidGovernance(
+            // if it is
+            ISuperfluidGovernance gov = ISuperfluidGovernance(
                 token.getGovernanceAddress()
-            ).getMinimalBalance(token.getUnderlayingToken());
+            );
+            uint16 minDeposit = gov.getMinimalDeposit(token.getUnderlayingToken());
+            uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
+            uint256 deposit = Math.max(
+                uint256(minDeposit),
+                uint256(-senderFlowRate) * uint256(liquidationPeriod));
 
-            token.liquidateAgreement(msg.sender, _outFlowId, accountA, (_senderFlowRate * _minBalance));
-
+            token.liquidateAgreement(msg.sender, outFlowId, accountA, deposit);
         } else {
-            token.terminateAgreement(_outFlowId);
+            token.terminateAgreement(outFlowId);
         }
 
-        token.terminateAgreement(_inFlowId);
+        token.terminateAgreement(inFlowId);
         emit FlowUpdated(
             token,
             accountA,

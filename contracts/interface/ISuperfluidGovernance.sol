@@ -19,7 +19,7 @@ interface ISuperfluidGovernance {
 
     /// @notice Get the Minimal Balance value that one account should always maintain
     /// @param underlying Token address.
-    function getMinimalBalance(
+    function getMinimalDeposit(
         address underlying
     )
         external
@@ -34,12 +34,4 @@ interface ISuperfluidGovernance {
         external
         view
         returns(uint16 period);
-
-    /// @notice return all configuration data in one call
-    function getGovParams(
-        address underlying
-    )
-        external
-        view
-        returns(address, uint16, uint16);
 }

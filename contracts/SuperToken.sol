@@ -3,15 +3,18 @@ pragma solidity 0.6.6;
 
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
+import { ERC20Base } from "./ERC20Base.sol";
+import { ISuperAgreement } from "./interface/ISuperAgreement.sol";
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
-import "./ERC20Base.sol";
-import "./interface/ISuperAgreement.sol";
 
 /**
  * @title Superfluid's token implementation
  * @author Superfluid
  */
 contract SuperToken is ISuperToken, ERC20Base {
+
+    using SignedSafeMath for int256;
 
     /// @dev The underlaying ERC20 token
     IERC20 private _token;
@@ -180,16 +183,16 @@ contract SuperToken is ISuperToken, ERC20Base {
         address rewardAccount = _gov.getRewardAddress(address(_token));
 
         int256 balance = realtimeBalanceOf(account, block.timestamp);
-        int256 remain = balance - int256(deposit);
+        int256 remain = balance.sub(int256(deposit));
 
         //if there is fees to be collected discount user account, if not then discount rewardAccount
         if (remain > 0) {
-            _settledBalances[account] -= int256(deposit);
-            _settledBalances[rewardAccount] += int256(deposit);
+            _settledBalances[account] = _settledBalances[account].sub(int256(deposit));
+            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(int256(deposit));
         } else {
-            _settledBalances[account] -= balance;
-            _settledBalances[rewardAccount] += remain;
-            _settledBalances[liquidator] += int256(deposit);
+            _settledBalances[account] = _settledBalances[account].sub(balance);
+            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(remain);
+            _settledBalances[liquidator] = _settledBalances[liquidator].add(int256(deposit));
         }
 
         delete _agreementData[msg.sender][id];
@@ -243,13 +246,14 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
             agreementClass = _activeAgreementClasses[account][i];
-            eachAgreementClassBalance +=
+            eachAgreementClassBalance = eachAgreementClassBalance.add(
                 ISuperAgreement(agreementClass).realtimeBalanceOf(
                     _accountStates[agreementClass][account],
-                    timestamp);
+                    timestamp)
+            );
         }
 
-        return _settledBalances[account] + eachAgreementClassBalance + int256(_balances[account]);
+        return _settledBalances[account].add(eachAgreementClassBalance.add(int256(_balances[account])));
     }
     /* solhint-enable mark-callable-contracts */
 
@@ -259,7 +263,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         address agreementClass;
         bytes memory touchState;
-        int256 balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
+        int256 balance = realtimeBalanceOf(account, block.timestamp).sub(int256(_balances[account]));
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
 
@@ -329,6 +333,6 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
+        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp).sub(int256(_balances[account]));
     }
 }

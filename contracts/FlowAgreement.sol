@@ -4,8 +4,11 @@ pragma solidity 0.6.6;
 import { ISuperToken, IFlowAgreement } from "./interface/IFlowAgreement.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
 contract FlowAgreement is IFlowAgreement {
+
+    using SignedSafeMath for int256;
 
     /*
      * ISuperAgreement interface
@@ -20,11 +23,11 @@ contract FlowAgreement is IFlowAgreement {
         override
         returns (int256 balance)
     {
-        uint256 _startDate;
-        int256 _flowRate;
+        uint256 startDate;
+        int256 flowRate;
 
-        (_startDate, _flowRate) = _decodeFlow(data);
-        return int256(time - _startDate) * _flowRate;
+        (startDate, flowRate) = _decodeFlow(data);
+        return (int256(time).sub(int256(startDate))).mul(flowRate);
     }
 
     /// @dev IsuperAgreement.touch implementation
@@ -37,8 +40,8 @@ contract FlowAgreement is IFlowAgreement {
         override
         returns(bytes memory newData)
     {
-        (, int256 _cRate) = _decodeFlow(currentData);
-        return _encodeFlow(timestamp, _cRate);
+        (, int256 cRate) = _decodeFlow(currentData);
+        return _encodeFlow(timestamp, cRate);
     }
 
     /*
@@ -323,7 +326,7 @@ contract FlowAgreement is IFlowAgreement {
         }
 
         (uint256 aTimestamp, int256 aRate) = _decodeFlow(additionalState);
-        int256 newRate = aRate == 0 ? 0 : (cRate + aRate);
+        int256 newRate = aRate == 0 ? 0 : cRate.add(aRate);
         if (newRate == 0) {
             return "";
         }
@@ -353,7 +356,7 @@ contract FlowAgreement is IFlowAgreement {
 
         require(flowRate != 0, "Invalid FlowRate");
         (, int cRate) = _decodeFlow(currentState);
-        cRate += flowRate;
+        cRate = cRate.add(flowRate);
 
         if (cRate == 0) {
             return "";

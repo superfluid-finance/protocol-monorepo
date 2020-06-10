@@ -1,5 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
@@ -22,6 +23,7 @@ contract("Flow Agreement Stories", accounts => {
     const Zoomer = accounts[4];
 
     let token;
+    let governance;
     let superToken;
     let agreement;
 
@@ -37,10 +39,19 @@ contract("Flow Agreement Stories", accounts => {
                 from: admin
             });
 
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            3600, {
+                from: admin
+            });
+
         await token.mint(user1, toWad(1000));
 
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {
@@ -175,6 +186,7 @@ contract("Flow Agreement Stories", accounts => {
         console.log("spotifai: ", wad4human(sptBalance));
         console.log("zoomer: ", wad4human(zomBalance));
 
+
         //User downgrade the Netflic family pack
         await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
@@ -183,7 +195,6 @@ contract("Flow Agreement Stories", accounts => {
                 from: user1
             }
         );
-
 
         await traveler.advanceTimeAndBlock(3600 * 24 * 30);
 

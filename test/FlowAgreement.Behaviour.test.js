@@ -1,6 +1,7 @@
 const FlowAgreement = artifacts.require("FlowAgreement");
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 
 const {
     web3tx,
@@ -23,6 +24,7 @@ contract("FlowAgreement Behaviour", accounts => {
     const user2 = accounts[2];
 
     let token;
+    let governance;
     let agreement;
     let superToken;
 
@@ -33,11 +35,20 @@ contract("FlowAgreement Behaviour", accounts => {
                 from: admin
             });
 
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            1, {
+                from: admin
+            });
+
         await token.mint(user1, toWad(1000));
         await token.mint(user2, toWad(1000));
 
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {
@@ -58,7 +69,7 @@ contract("FlowAgreement Behaviour", accounts => {
         );
     });
 
-    it("#1 - Should liquidate if not sender/receiver of agreement", async () => {
+    it("#1 - Should liquidate if not sender/receiver of agreement - Revert solvent account", async () => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
         await agreement.createFlow(superToken.address, user2, FLOW_RATE, {from: user1});

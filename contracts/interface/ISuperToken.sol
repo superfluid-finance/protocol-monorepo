@@ -47,8 +47,7 @@ abstract contract ISuperToken is IERC20 {
     /// @notice Close Agreement
     /// @param id Agreement ID
     function terminateAgreement(
-        bytes32 id,
-        bool liquidation
+        bytes32 id
     )
         external
         virtual;
@@ -61,12 +60,31 @@ abstract contract ISuperToken is IERC20 {
         bytes32 id
     );
 
+    /// @notice Liquidate Agreement
+    /// @param liquidator Address of the executer of liquidation
+    /// @param id Agreement ID
+    /// @param account Account of the agrement
+    function liquidateAgreement
+    (
+        address liquidator,
+        bytes32 id,
+        address account
+    )
+    external
+    virtual;
+
     /// @notice Agreement liquidation event
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
+    /// @param penaltyAccount Account of the agreement
+    /// @param rewardAccount Account that collect the reward
+    /// @param deposit Amount of liquidation fee collected
     event AgreementLiquidated(
         address indexed agreementClass,
-        bytes32 id
+        bytes32 id,
+        address indexed penaltyAccount,
+        address indexed rewardAccount,
+        uint256 deposit
     );
 
     /// @notice Update Account state

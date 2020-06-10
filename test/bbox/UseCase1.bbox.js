@@ -1,5 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
@@ -36,12 +37,21 @@ contract("Usecase 1 Stories", accounts => {
                 from: admin
             });
 
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            3600, {
+                from: admin
+            });
+
         await token.mint(Miao, toWad(10));
         await token.mint(Fran, toWad(10));
         await token.mint(Mike, toWad(10));
 
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {

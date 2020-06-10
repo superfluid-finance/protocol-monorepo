@@ -2,6 +2,7 @@
 pragma solidity 0.6.6;
 
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
+import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
 
 import "./ERC20Base.sol";
 import "./interface/ISuperAgreement.sol";
@@ -14,6 +15,9 @@ contract SuperToken is ISuperToken, ERC20Base {
 
     /// @dev The underlaying ERC20 token
     IERC20 private _token;
+
+    /// @dev Governance contract
+    ISuperfluidGovernance private _gov;
 
     /// @dev Mapping to agreement data.
     ///      Mapping order: .agreementClass.agreementID.
@@ -31,10 +35,11 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Settled balance for the account
     mapping(address => int256) private _settledBalances;
 
-    constructor (IERC20 token, string memory name, string memory symbol)
+    constructor (IERC20 token, ISuperfluidGovernance gov, string memory name, string memory symbol)
     public
     ERC20Base(name, symbol) {
         _token = token;
+        _gov = gov;
     }
 
     /*
@@ -149,22 +154,50 @@ contract SuperToken is ISuperToken, ERC20Base {
         return _agreementData[agreementClass][id];
     }
 
-    //review - let dig a little more
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
-        bytes32 id,
-        bool liquidation
+        bytes32 id
     )
         external
         override
     {
         delete _agreementData[msg.sender][id];
+        emit AgreementTerminated(msg.sender, id);
+    }
 
-        if (liquidation) {
-            emit AgreementLiquidated(msg.sender, id);
-        } else {
-            emit AgreementTerminated(msg.sender, id);
+    /// @dev ISuperToken.liquidateAgreement implementation
+    function liquidateAgreement
+    (
+        address liquidator,
+        bytes32 id,
+        address account
+    )
+    external
+    override
+    {
+
+        (address rewardAccount, uint256 minimalBalance, uint256 period) = _gov.getGovParams(address(_token));
+
+        int256 pastBalance = realtimeBalanceOf(account, block.timestamp - period);
+        int256 currentBalance = realtimeBalanceOf(account, block.timestamp);
+        int256 fees = int256(minimalBalance) + (currentBalance - pastBalance);
+        //If there is fees to be collected discount user account
+        if(fees > 0) {
+            _settledBalances[account] += (-1 * fees);
+        } else { //if not then discount rewardAccount
+            _settledBalances[account] -= int256(minimalBalance);
+            _settledBalances[rewardAccount] += currentBalance - pastBalance;
         }
+
+        //Reward payment
+        if(currentBalance > 0) {
+            _settledBalances[rewardAccount] += fees;
+        } else {
+            _settledBalances[liquidator] += fees;
+        }
+
+        delete _agreementData[msg.sender][id];
+        emit AgreementLiquidated(msg.sender, id, account, liquidator, 0);
     }
 
     /*
@@ -260,6 +293,9 @@ contract SuperToken is ISuperToken, ERC20Base {
         return -1;
     }
 
+    /// @dev Delete Agreement Class to account
+    /// @param agreementClass Agreement address to delete
+    /// @param account Address to delete the agreeement
     function _delAgreementClass(address agreementClass, address account) internal {
 
         int256 _idx = _indexOfAgreementClass(agreementClass, account);
@@ -277,7 +313,9 @@ contract SuperToken is ISuperToken, ERC20Base {
         }
     }
 
-    /// review: ok
+    /// @dev Add Agreement Class to account
+    /// @param agreementClass Agreement address to add
+    /// @param account Address to add the agreeement
     function _addAgreementClass(address agreementClass, address account) internal {
         if (_indexOfAgreementClass(agreementClass, account) == -1) {
             _activeAgreementClasses[account].push(agreementClass);

@@ -19,8 +19,8 @@ contract("FlowPayment", accounts => {
     const user2 = accounts[2];
 
     let token;
+    let governance;
     let superToken;
-    let agreement;
     let fp;
 
     before(async () => {

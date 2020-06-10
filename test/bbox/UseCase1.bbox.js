@@ -22,6 +22,7 @@ contract("Usecase 1 Stories", accounts => {
     const Nuno = accounts[4];
 
     let token;
+    let governance;
     let superToken;
     let agreement;
 

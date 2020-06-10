@@ -170,34 +170,31 @@ contract SuperToken is ISuperToken, ERC20Base {
     (
         address liquidator,
         bytes32 id,
-        address account
+        address account,
+        int256 deposit
     )
     external
     override
     {
 
-        (address rewardAccount, uint256 minimalBalance, uint256 period) = _gov.getGovParams(address(_token));
+        address rewardAccount = _gov.getRewardAddress(address(_token));
 
-        int256 pastBalance = realtimeBalanceOf(account, block.timestamp - period);
-        int256 currentBalance = realtimeBalanceOf(account, block.timestamp);
-        int256 fees = int256(minimalBalance) + (currentBalance - pastBalance);
-        //If there is fees to be collected discount user account
-        if(fees > 0) {
-            _settledBalances[account] += (-1 * fees);
-        } else { //if not then discount rewardAccount
-            _settledBalances[account] -= int256(minimalBalance);
-            _settledBalances[rewardAccount] += currentBalance - pastBalance;
-        }
+        int256 _balance = realtimeBalanceOf(account, block.timestamp);
+        int256 _remain = _balance - deposit;
 
-        //Reward payment
-        if(currentBalance > 0) {
-            _settledBalances[rewardAccount] += fees;
+        //if there is fees to be collected discount user account, if not then discount rewardAccount
+        if (_remain > 0) {
+            _settledBalances[account] -= deposit;
+            _settledBalances[rewardAccount] += deposit;
         } else {
-            _settledBalances[liquidator] += fees;
+            _settledBalances[account] -= _balance;
+            _settledBalances[rewardAccount] += _remain;
+            _settledBalances[liquidator] += deposit;
         }
 
         delete _agreementData[msg.sender][id];
-        emit AgreementLiquidated(msg.sender, id, account, liquidator, 0);
+        emit AgreementTerminated(msg.sender, id);
+        emit AgreementLiquidated(msg.sender, id, account, _remain > 0 ? rewardAccount : liquidator, uint256(deposit));
     }
 
     /*
@@ -224,7 +221,14 @@ contract SuperToken is ISuperToken, ERC20Base {
     function getSettledBalance(address account) external view returns(int256 settledBalance) {
         return _settledBalances[account];
     }
+    /// @dev ISuperfluidGovernance.getGovernanceAddress implementation
+    function getGovernanceAddress() external override view returns(address) {
+        return address(_gov);
+    }
 
+    function getUnderlayingToken() external override view returns(address) {
+        return address(_token);
+    }
 
     /*
     *  Internal functions

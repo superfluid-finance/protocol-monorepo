@@ -68,7 +68,8 @@ abstract contract ISuperToken is IERC20 {
     (
         address liquidator,
         bytes32 id,
-        address account
+        address account,
+        int256 deposit
     )
     external
     virtual;
@@ -157,6 +158,13 @@ abstract contract ISuperToken is IERC20 {
          virtual
          view
          returns (int256);
+
+    /// @notice Return the Governance Contract that rule this SuperToken
+    function getGovernanceAddress() external virtual view returns(address);
+
+
+    /// @notice Return the underlaying token contract
+    function getUnderlayingToken() external virtual view returns(address);
 
     /*
      * ERC20 compatability functions

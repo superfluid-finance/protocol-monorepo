@@ -2,6 +2,7 @@
 pragma solidity 0.6.6;
 
 import { ISuperToken, IFlowAgreement } from "./interface/IFlowAgreement.sol";
+import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
 
 contract FlowAgreement is IFlowAgreement {
 
@@ -51,7 +52,6 @@ contract FlowAgreement is IFlowAgreement {
         external
         override
     {
-        //TODO FIX: direction of flow
         _updateFlow(token, msg.sender, receiver, flowRate);
     }
 
@@ -159,19 +159,8 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
     {
-
-        int256 _invFlowRate = _mirrorFlowRate(flowRate);
-        bytes memory _senderState = token.getAgreementAccountState(address(this), accountA);
-        bytes memory _receiverState = token.getAgreementAccountState(address(this), accountB);
-
-        _senderState = _composeState(_senderState, _invFlowRate, block.timestamp);
-        _receiverState = _composeState(_receiverState, flowRate, block.timestamp);
-
-        token.updateAgreementAccountState(accountA, _senderState);
-        token.updateAgreementAccountState(accountB, _receiverState);
-
-        (, int totalSenderFlowRate) = _decodeFlow(_senderState);
-        (, int totalReceiverFlowRate) = _decodeFlow(_receiverState);
+        int256 totalSenderFlowRate = _updateAccountState(token, accountA, _mirrorFlowRate(flowRate));
+        int256 totalReceiverFlowRate = _updateAccountState(token, accountB, flowRate);
         emit FlowUpdated(
             token,
             accountA,
@@ -179,6 +168,15 @@ contract FlowAgreement is IFlowAgreement {
             flowRate,
             totalSenderFlowRate,
             totalReceiverFlowRate);
+    }
+
+    function _updateAccountState(ISuperToken token, address account, int256 flowRate) private returns(int256) {
+        bytes memory _state = token.getAgreementAccountState(address(this), account);
+        _state = _composeState(_state, flowRate, block.timestamp);
+        token.updateAgreementAccountState(account, _state);
+        (, int256 _flowRate) = _decodeFlow(_state);
+
+        return _flowRate;
     }
 
     function _terminateAgreementData(
@@ -190,32 +188,24 @@ contract FlowAgreement is IFlowAgreement {
         private
     {
         (bytes32 _outFlowId, bytes32 _inFlowId) = _hashAccounts(accountA, accountB);
+        (int256 _senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(token, accountA, _outFlowId);
+        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, accountB, _inFlowId);
 
-        bytes memory _senderState = token.getAgreementAccountState(address(this), accountA);
-        bytes memory _receiverState = token.getAgreementAccountState(address(this), accountB);
-        bytes memory _senderData = token.getAgreementData(address(this), _outFlowId);
-        bytes memory _receiverData = token.getAgreementData(address(this), _inFlowId);
-
-
-        (, int256 _senderFlowRate) = _decodeFlow(_senderData);
-        _senderState = _composeState(_senderState, _mirrorFlowRate(_senderFlowRate), block.timestamp);
-        token.updateAgreementAccountState(accountA, _senderState);
-
-        (, int256 _receiverFlowRate) = _decodeFlow(_receiverData);
-        _receiverState = _composeState(_receiverState, _mirrorFlowRate(_receiverFlowRate), block.timestamp);
-        token.updateAgreementAccountState(accountB, _receiverState);
-
+        //note : calculate the deposit here and pass it to superToken, and emit the events.
         //Close this Agreement Data
         if (liquidation) {
-            token.liquidateAgreement(msg.sender, _outFlowId, accountA);
+
+            uint16 _minBalance = ISuperfluidGovernance(
+                token.getGovernanceAddress()
+            ).getMinimalBalance(token.getUnderlayingToken());
+
+            token.liquidateAgreement(msg.sender, _outFlowId, accountA, (_senderFlowRate * _minBalance));
+
         } else {
             token.terminateAgreement(_outFlowId);
         }
 
         token.terminateAgreement(_inFlowId);
-
-        (, int256 totalSenderFlowRate) = _decodeFlow(_senderState);
-        (, int256 totalReceiverFlowRate) = _decodeFlow(_senderState);
         emit FlowUpdated(
             token,
             accountA,
@@ -223,6 +213,26 @@ contract FlowAgreement is IFlowAgreement {
             0,
             totalSenderFlowRate,
             totalReceiverFlowRate);
+    }
+
+    function _updateAccountStateWithData(
+        ISuperToken token,
+        address account,
+        bytes32 id
+    )
+        private
+        returns(int256, int256)
+    {
+
+        bytes memory _state = token.getAgreementAccountState(address(this), account);
+        bytes memory _data = token.getAgreementData(address(this), id);
+        (, int256 _flowRate) = _decodeFlow(_data);
+        _state = _composeState(_state, _mirrorFlowRate(_flowRate), block.timestamp);
+
+        token.updateAgreementAccountState(account, _state);
+
+        (, int256 totalFlowRate) = _decodeFlow(_state);
+        return (_flowRate, totalFlowRate);
     }
 
     function _mirrorFlowRate(int256 flowRate) private pure returns(int256) {

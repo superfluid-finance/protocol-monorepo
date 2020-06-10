@@ -8,7 +8,7 @@ contract TestGovernance is ISuperfluidGovernance {
 
     struct GovernanceConfig {
         address rewardAddress;
-        uint256 minimalBalance;
+        uint16 minimalBalance;
         uint16 period;
     }
 
@@ -17,7 +17,7 @@ contract TestGovernance is ISuperfluidGovernance {
     constructor(
         address underlying,
         address rewardAddress,
-        uint256 minimalBalance,
+        uint16 minimalBalance,
         uint16 period
     )
         public
@@ -43,7 +43,7 @@ contract TestGovernance is ISuperfluidGovernance {
         external
         view
         override
-        returns(uint256 minimalBalance)
+        returns(uint16 minimalBalance)
     {
         return _configs[underlying].minimalBalance;
     }
@@ -65,7 +65,7 @@ contract TestGovernance is ISuperfluidGovernance {
         external
         view
         override
-        returns(address, uint256, uint16)
+        returns(address, uint16, uint16)
     {
         return (_configs[underlying].rewardAddress,
                 _configs[underlying].minimalBalance,

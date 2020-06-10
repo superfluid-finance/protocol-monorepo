@@ -24,7 +24,7 @@ interface ISuperfluidGovernance {
     )
         external
         view
-        returns(uint256 minimalBalance);
+        returns(uint16 minimalBalance);
 
     /// @notice Get the Period that is allowed to perform a liquidation
     /// @param underlying Token address.
@@ -41,5 +41,5 @@ interface ISuperfluidGovernance {
     )
         external
         view
-        returns(address, uint256, uint16);
+        returns(address, uint16, uint16);
 }

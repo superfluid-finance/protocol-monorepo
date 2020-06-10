@@ -108,7 +108,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         view
         override
-        returns (bytes memory data)
+        returns (bytes memory state)
     {
         return _accountStates[agreementClass][account];
     }
@@ -149,7 +149,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         view
         override
-        returns(bytes memory state)
+        returns(bytes memory data)
     {
         return _agreementData[agreementClass][id];
     }

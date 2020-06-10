@@ -197,10 +197,7 @@ contract FlowAgreement is IFlowAgreement {
         // note : calculate the deposit here and pass it to superToken, and emit the events.
         // Close this Agreement Data
         if (liquidation) {
-            // if it is
-            ISuperfluidGovernance gov = ISuperfluidGovernance(
-                token.getGovernanceAddress()
-            );
+            ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
             uint16 minDeposit = gov.getMinimalDeposit(token.getUnderlayingToken());
             uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
             uint256 deposit = Math.max(

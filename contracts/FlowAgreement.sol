@@ -149,7 +149,7 @@ contract FlowAgreement is IFlowAgreement {
         receiverData = _composeData(receiverData, additionalData);
         (, int256 flowRate) = _decodeFlow(senderData);
 
-        require(flowRate <= 0, "Flipping Flow");
+        require(flowRate <= 0, "Revert flow not allowed");
         token.createAgreement(outFlowId, senderData);
         token.createAgreement(inFlowId, receiverData);
     }
@@ -198,8 +198,8 @@ contract FlowAgreement is IFlowAgreement {
     {
         (bytes32 outFlowId, ) = _hashAccounts(accountA, accountB);
         (int256 senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(
-                    token, accountA, outFlowId, true
-                );
+            token, accountA, outFlowId, true
+        );
         (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, accountB, outFlowId, false);
 
         assert(senderFlowRate < 0);
@@ -240,6 +240,7 @@ contract FlowAgreement is IFlowAgreement {
 
         bytes memory state = token.getAgreementAccountState(address(this), account);
         bytes memory data = token.getAgreementData(address(this), id);
+        require(data.length > 0, "Account data not found");
         (, flowRate) = _decodeFlow(data);
 
         if (invertFlow) {

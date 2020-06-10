@@ -108,7 +108,7 @@ contract("FlowAgreement Behaviour", accounts => {
         } catch(err) {
             emitError = true;
             console.log(err.reason);
-            assert.strictEqual(err.reason, "Flipping Flow");
+            assert.strictEqual(err.reason, "Revert flow not allowed");
         }
 
         if(!emitError) {
@@ -130,8 +130,7 @@ contract("FlowAgreement Behaviour", accounts => {
         } catch(err) {
             emitError = true;
             console.log(err.reason);
-            assert.strictEqual(err.reason, "Flipping Flow");
-
+            assert.strictEqual(err.reason, "Revert flow not allowed");
         }
 
         if(!emitError) {

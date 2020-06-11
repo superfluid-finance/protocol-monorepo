@@ -1,5 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 
 const {
     web3tx,
@@ -15,6 +16,7 @@ contract("Super Token Behaviour", accounts => {
     const user2 = accounts[2];
 
     let token;
+    let governance;
     let superToken;
 
     before(async () => {
@@ -28,11 +30,20 @@ contract("Super Token Behaviour", accounts => {
                 from: admin
             });
 
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            3600, {
+                from: admin
+            });
+
         await token.mint(user1, toWad(10));
         await token.mint(user2, toWad(10));
 
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {

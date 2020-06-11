@@ -5,8 +5,11 @@ module.exports = async function (callback) {
     try {
         global.web3 = web3;
 
+        const accounts = await web3.eth.getAccounts();
+
         const TestResolver = artifacts.require("TestResolver");
         const TestToken = artifacts.require("TestToken");
+        const TestGovernance = artifacts.require("TestGovernance");
         const SuperToken = artifacts.require("SuperToken");
         const FlowAgreement = artifacts.require("FlowAgreement");
 
@@ -43,14 +46,22 @@ module.exports = async function (callback) {
             "STT");
         console.log("SuperTestToken address", superTestToken.address);
 
+        const governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            superTestToken.address,
+            accounts[0],
+            2,
+            3600
+        );
+
         await web3tx(testResolver.set, "TestResolver set FlowAgreement")(
             "FlowAgreement", agreement.address
         );
         await web3tx(testResolver.set, "TestResolver set superTestToken")(
             "SuperTestToken", superTestToken.address
         );
-
-        //await superToken.addAgreement(agreement.address);
+        await web3tx(testResolver.set, "TestResolver set TestGovernance")(
+            "TestGovernance", governance.address
+        );
 
         callback();
     } catch (err) {

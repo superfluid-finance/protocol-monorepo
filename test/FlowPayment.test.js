@@ -1,5 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 const FlowPayment = artifacts.require("FlowPayment");
 const FlowAgreement = artifacts.require("FlowAgreement");
 // const {
@@ -18,6 +19,7 @@ contract("FlowPayment", accounts => {
     const user2 = accounts[2];
 
     let token;
+    let governance;
     let superToken;
     let fp;
 
@@ -47,8 +49,17 @@ contract("FlowPayment", accounts => {
                 from: admin
             });
 
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            3600, {
+                from: admin
+            });
+
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {

@@ -1,5 +1,6 @@
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 const FlowAgreement = artifacts.require("FlowAgreement");
 
 const {
@@ -27,6 +28,7 @@ contract("Flow Agreement", accounts => {
     const user6 = accounts[6];
 
     let token;
+    let governance;
     let superToken;
     let agreement;
 
@@ -46,6 +48,14 @@ contract("Flow Agreement", accounts => {
                 from: admin
             });
 
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            3600, {
+                from: admin
+            });
+
         await token.mint(admin, INI_BALANCE);
         await token.mint(user1, INI_BALANCE);
         await token.mint(user2, INI_BALANCE);
@@ -56,6 +66,7 @@ contract("Flow Agreement", accounts => {
 
         superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {
@@ -500,7 +511,7 @@ contract("Flow Agreement", accounts => {
         let tx2 = await web3tx(
             agreement.deleteFlow,
             "Call: FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
-        )(superToken.address, user2, user1, {from: user1});
+        )(superToken.address, user1, user2, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
@@ -515,5 +526,26 @@ contract("Flow Agreement", accounts => {
 
         assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
         assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
+    });
+
+    it("#5 - Make a liquidation - assert that Agreements are closed", async() => {
+
+        await superToken.upgrade(toWad(1), {from : user1});
+
+        await web3tx(
+            agreement.createFlow,
+            "Call: FlowAgreement.createFlow"
+        )(superToken.address, user2, FLOW_RATE, {from: user1});
+
+        await traveler.advanceTimeAndBlock(ADV_TIME);
+
+        await web3tx(
+            agreement.deleteFlow,
+            "Call: FlowAgreement.deleteFlow: User 1 will be liquidated"
+        )(superToken.address, user1, user2, {from: admin});
+
+        let flowRate = await agreement.getFlow.call(superToken.address, user1, user2);
+
+        assert.equal(flowRate.toString(), "0", "Liquidation don't change state");
     });
 });

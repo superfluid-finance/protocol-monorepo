@@ -1,6 +1,7 @@
 const FlowAgreement = artifacts.require("FlowAgreement");
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
+const TestGovernance = artifacts.require("TestGovernance");
 
 const {
     web3tx,
@@ -12,7 +13,7 @@ const traveler = require("ganache-time-traveler");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
-const INI_BALANCE = toWad(10);
+const INI_BALANCE = toWad(100);
 
 contract("FlowAgreement Behaviour", accounts => {
 
@@ -23,6 +24,7 @@ contract("FlowAgreement Behaviour", accounts => {
     const user2 = accounts[2];
 
     let token;
+    let governance;
     let agreement;
     let superToken;
 
@@ -33,11 +35,20 @@ contract("FlowAgreement Behaviour", accounts => {
                 from: admin
             });
 
-        await token.mint(user1, toWad(10));
-        await token.mint(user2, toWad(10));
+        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
+            token.address,
+            admin,
+            1,
+            1, {
+                from: admin
+            });
+
+        await token.mint(user1, toWad(1000));
+        await token.mint(user2, toWad(1000));
 
         superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             token.address,
+            governance.address,
             "SuperToken",
             "STK",
             {
@@ -56,29 +67,19 @@ contract("FlowAgreement Behaviour", accounts => {
                 from: user1
             }
         );
-
-
-        await web3tx(token.approve, "Call: ERC20Mintabl.approve - from user2 to SuperToken")(
-            superToken.address,
-            MAX_UINT256, {
-                from: user2
-            }
-        );
-
     });
 
-    it("#1 - Should not close other users flow assert revert message", async () => {
+    it("#1 - Should liquidate if not sender/receiver of agreement - Revert solvent account", async () => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
-        await agreement.createFlow(superToken.address, user2, FLOW_RATE);
-
+        await agreement.createFlow(superToken.address, user2, FLOW_RATE, {from: user1});
         await traveler.advanceTimeAndBlock(ADV_TIME);
-
         let emitError = false;
+
         try {
             await web3tx(
                 agreement.deleteFlow,
-                "Call: FlowAgreement.deleteFlow - Invoking method from another account")(
+                "Call: FlowAgreement.deleteFlow - Invoking method as liquidator")(
                 superToken.address,
                 user1,
                 user2, {
@@ -88,7 +89,7 @@ contract("FlowAgreement Behaviour", accounts => {
         } catch(err) {
             emitError = true;
             console.log(err.reason);
-            assert.strictEqual(err.reason, "Not the sender or receiver");
+            assert.strictEqual(err.reason, "Account is solvent");
         }
 
         if(!emitError) {
@@ -107,7 +108,7 @@ contract("FlowAgreement Behaviour", accounts => {
         } catch(err) {
             emitError = true;
             console.log(err.reason);
-            assert.strictEqual(err.reason, "Flipping Flow");
+            assert.strictEqual(err.reason, "Revert flow not allowed");
         }
 
         if(!emitError) {
@@ -129,8 +130,7 @@ contract("FlowAgreement Behaviour", accounts => {
         } catch(err) {
             emitError = true;
             console.log(err.reason);
-            assert.strictEqual(err.reason, "Flipping Flow");
-
+            assert.strictEqual(err.reason, "Revert flow not allowed");
         }
 
         if(!emitError) {

@@ -2,9 +2,11 @@
 pragma solidity 0.6.6;
 
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
+import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
+import { ERC20Base } from "./ERC20Base.sol";
+import { ISuperAgreement } from "./interface/ISuperAgreement.sol";
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
-import "./ERC20Base.sol";
-import "./interface/ISuperAgreement.sol";
 
 /**
  * @title Superfluid's token implementation
@@ -12,8 +14,13 @@ import "./interface/ISuperAgreement.sol";
  */
 contract SuperToken is ISuperToken, ERC20Base {
 
+    using SignedSafeMath for int256;
+
     /// @dev The underlaying ERC20 token
     IERC20 private _token;
+
+    /// @dev Governance contract
+    ISuperfluidGovernance private _gov;
 
     /// @dev Mapping to agreement data.
     ///      Mapping order: .agreementClass.agreementID.
@@ -31,10 +38,11 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Settled balance for the account
     mapping(address => int256) private _settledBalances;
 
-    constructor (IERC20 token, string memory name, string memory symbol)
+    constructor (IERC20 token, ISuperfluidGovernance gov, string memory name, string memory symbol)
     public
     ERC20Base(name, symbol) {
         _token = token;
+        _gov = gov;
     }
 
     /*
@@ -51,6 +59,18 @@ contract SuperToken is ISuperToken, ERC20Base {
         return _activeAgreementClasses[account];
     }
 
+    /// @dev ISuperToken.isAccountInsolvent implementation
+    function isAccountInsolvent(
+        address account
+    )
+        public
+        view
+        override
+        returns(bool)
+    {
+        return realtimeBalanceOf(account, block.timestamp) < 0;
+    }
+
     /// @dev ERC20.balanceOf implementation
     function balanceOf(
         address account
@@ -60,9 +80,10 @@ contract SuperToken is ISuperToken, ERC20Base {
         override
         returns(uint256 balance)
     {
-        (int256 _balance) = _calculateBalance(account, block.timestamp);
-        return _balance < 0 ? 0 : uint256(_balance);
+        (int256 calBalance) = _calculateBalance(account, block.timestamp);
+        return calBalance < 0 ? 0 : uint256(calBalance);
     }
+
 
     /// @dev ISuperToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
@@ -90,7 +111,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         view
         override
-        returns (bytes memory data)
+        returns (bytes memory state)
     {
         return _accountStates[agreementClass][account];
     }
@@ -131,12 +152,11 @@ contract SuperToken is ISuperToken, ERC20Base {
         external
         view
         override
-        returns(bytes memory state)
+        returns(bytes memory data)
     {
         return _agreementData[agreementClass][id];
     }
 
-    //review - let dig a little more
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
         bytes32 id
@@ -146,6 +166,38 @@ contract SuperToken is ISuperToken, ERC20Base {
     {
         delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
+    }
+
+    /// @dev ISuperToken.liquidateAgreement implementation
+    function liquidateAgreement
+    (
+        address liquidator,
+        bytes32 id,
+        address account,
+        uint256 deposit
+    )
+    external
+    override
+    {
+
+        address rewardAccount = _gov.getRewardAddress(address(_token));
+
+        int256 balance = realtimeBalanceOf(account, block.timestamp);
+        int256 remain = balance.sub(int256(deposit));
+
+        //if there is fees to be collected discount user account, if not then discount rewardAccount
+        if (remain > 0) {
+            _settledBalances[account] = _settledBalances[account].sub(int256(deposit));
+            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(int256(deposit));
+        } else {
+            _settledBalances[account] = _settledBalances[account].sub(balance);
+            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(remain);
+            _settledBalances[liquidator] = _settledBalances[liquidator].add(int256(deposit));
+        }
+
+        delete _agreementData[msg.sender][id];
+        emit AgreementTerminated(msg.sender, id);
+        emit AgreementLiquidated(msg.sender, id, account, remain > 0 ? rewardAccount : liquidator, uint256(deposit));
     }
 
     /*
@@ -172,7 +224,14 @@ contract SuperToken is ISuperToken, ERC20Base {
     function getSettledBalance(address account) external view returns(int256 settledBalance) {
         return _settledBalances[account];
     }
+    /// @dev ISuperfluidGovernance.getGovernanceAddress implementation
+    function getGovernanceAddress() external override view returns(address) {
+        return address(_gov);
+    }
 
+    function getUnderlayingToken() external override view returns(address) {
+        return address(_token);
+    }
 
     /*
     *  Internal functions
@@ -182,18 +241,19 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Calculate balance as split result if negative return as zero.
     function _calculateBalance(address account, uint256 timestamp) internal view returns(int256) {
 
-        int256 _eachAgreementClassBalance;
-        address _agreementClass;
+        int256 eachAgreementClassBalance;
+        address agreementClass;
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
-            _agreementClass = _activeAgreementClasses[account][i];
-            _eachAgreementClassBalance +=
-                ISuperAgreement(_agreementClass).realtimeBalanceOf(
-                    _accountStates[_agreementClass][account],
-                    timestamp);
+            agreementClass = _activeAgreementClasses[account][i];
+            eachAgreementClassBalance = eachAgreementClassBalance.add(
+                ISuperAgreement(agreementClass).realtimeBalanceOf(
+                    _accountStates[agreementClass][account],
+                    timestamp)
+            );
         }
 
-        return _settledBalances[account] + _eachAgreementClassBalance + int256(_balances[account]);
+        return _settledBalances[account].add(eachAgreementClassBalance.add(int256(_balances[account])));
     }
     /* solhint-enable mark-callable-contracts */
 
@@ -201,23 +261,23 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
     function _touch(address account) internal {
 
-        address _agreementClass;
-        bytes memory _touchState;
-        int256 _balance = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
+        address agreementClass;
+        bytes memory touchState;
+        int256 balance = realtimeBalanceOf(account, block.timestamp).sub(int256(_balances[account]));
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
 
-            _agreementClass = _activeAgreementClasses[account][i];
-            _touchState = ISuperAgreement(_agreementClass).touch(
-                _accountStates[_agreementClass][account],
+            agreementClass = _activeAgreementClasses[account][i];
+            touchState = ISuperAgreement(agreementClass).touch(
+                _accountStates[agreementClass][account],
                 block.timestamp);
 
-            _accountStates[_agreementClass][account] = _touchState;
+            _accountStates[agreementClass][account] = touchState;
         }
 
         _settledBalances[account] = 0;
-        if (_balance > 0) {
-            _mint(account, uint256(_balance));
+        if (balance > 0) {
+            _mint(account, uint256(balance));
         }
     }
     /* solhint-enable mark-callable-contracts */
@@ -227,9 +287,9 @@ contract SuperToken is ISuperToken, ERC20Base {
     function _indexOfAgreementClass(address agreementClass, address account) internal view returns(int256) {
 
         int256 i;
-        int256 _size = int256(_activeAgreementClasses[account].length);
+        int256 size = int256(_activeAgreementClasses[account].length);
 
-        while (i < _size) {
+        while (i < size) {
 
             if (_activeAgreementClasses[account][uint256(i)] == agreementClass) {
                 return i;
@@ -241,24 +301,29 @@ contract SuperToken is ISuperToken, ERC20Base {
         return -1;
     }
 
+    /// @dev Delete Agreement Class to account
+    /// @param agreementClass Agreement address to delete
+    /// @param account Address to delete the agreeement
     function _delAgreementClass(address agreementClass, address account) internal {
 
-        int256 _idx = _indexOfAgreementClass(agreementClass, account);
-        uint256 _size = _activeAgreementClasses[account].length;
+        int256 idx = _indexOfAgreementClass(agreementClass, account);
+        uint256 size = _activeAgreementClasses[account].length;
 
-        if (_idx >= 0) {
+        if (idx >= 0) {
 
-            if (_size - 1 == uint256(_idx)) {
+            if (size - 1 == uint256(idx)) {
                 _activeAgreementClasses[account].pop();
             } else {
                 //swap element and pop
-                _activeAgreementClasses[account][uint256(_idx)] = _activeAgreementClasses[account][_size - 1];
+                _activeAgreementClasses[account][uint256(idx)] = _activeAgreementClasses[account][size - 1];
                 _activeAgreementClasses[account].pop();
             }
         }
     }
 
-    /// review: ok
+    /// @dev Add Agreement Class to account
+    /// @param agreementClass Agreement address to add
+    /// @param account Address to add the agreeement
     function _addAgreementClass(address agreementClass, address account) internal {
         if (_indexOfAgreementClass(agreementClass, account) == -1) {
             _activeAgreementClasses[account].push(agreementClass);
@@ -268,7 +333,6 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp) - int256(_balances[account]);
+        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp).sub(int256(_balances[account]));
     }
-
 }

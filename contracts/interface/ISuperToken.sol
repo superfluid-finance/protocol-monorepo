@@ -35,6 +35,7 @@ abstract contract ISuperToken is IERC20 {
     /// @notice Get data of the agreement
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
+    /// @return data Data of the agreement
     function getAgreementData(
         address agreementClass,
         bytes32 id
@@ -42,9 +43,9 @@ abstract contract ISuperToken is IERC20 {
         external
         virtual
         view
-        returns(bytes memory state);
+        returns(bytes memory data);
 
-    /// @notice Close Agreement
+    /// @notice Close the agreement
     /// @param id Agreement ID
     function terminateAgreement(
         bytes32 id
@@ -58,6 +59,35 @@ abstract contract ISuperToken is IERC20 {
     event AgreementTerminated(
         address indexed agreementClass,
         bytes32 id
+    );
+
+    /// @notice Liquidate the Aagreement
+    /// @param liquidator Address of the executer of liquidation
+    /// @param id Agreement ID
+    /// @param account Account of the agrement
+    /// @param deposit Deposit from the account that is going to taken as penalty
+    function liquidateAgreement
+    (
+        address liquidator,
+        bytes32 id,
+        address account,
+        uint256 deposit
+    )
+    external
+    virtual;
+
+    /// @notice Agreement liquidation event
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    /// @param penaltyAccount Account of the agreement
+    /// @param rewardAccount Account that collect the reward
+    /// @param deposit Amount of liquidation fee collected
+    event AgreementLiquidated(
+        address indexed agreementClass,
+        bytes32 id,
+        address indexed penaltyAccount,
+        address indexed rewardAccount,
+        uint256 deposit
     );
 
     /// @notice Update Account state
@@ -83,6 +113,7 @@ abstract contract ISuperToken is IERC20 {
     /// @notice Get state of Agreement Account
     /// @param agreementClass Contract address of the agreement
     /// @param account Account to query
+    /// @return state State of the account for the agreement
     function getAgreementAccountState(
         address agreementClass,
         address account
@@ -90,20 +121,33 @@ abstract contract ISuperToken is IERC20 {
         external
         virtual
         view
-        returns (bytes memory data);
-
+        returns (bytes memory state);
 
     /*
      * Account functions
      */
+
      /// @notice Get a list of agreements that is active for the account
      /// @dev An active agreement is one that has state for the account
      /// @param account Account to query
+     /// @return List of accounts that have non-zero states for the account
     function getAccountActiveAgreements(address account)
         public
         virtual
         view
         returns(address[] memory);
+
+     /// @notice Check if one account is insolvent
+     /// @dev It is used in the liquidation process
+     /// @param account Account check if is insolvent
+     /// @return Is the account insolvent?
+    function isAccountInsolvent(
+        address account
+    )
+        public
+        view
+        virtual
+        returns(bool);
 
     /// @notice Calculate the real balance of a user, taking in consideration
     ///         all agreements of the account
@@ -111,6 +155,7 @@ abstract contract ISuperToken is IERC20 {
     /// @param account for the query
     /// @param timestamp Time of balance
     /// @param account Account to query
+    /// @return Real-time balance
      function realtimeBalanceOf(
          address account,
          uint256 timestamp
@@ -119,6 +164,15 @@ abstract contract ISuperToken is IERC20 {
          virtual
          view
          returns (int256);
+
+    /// @notice Return the Governance Contract that rule this SuperToken
+    /// @return Governance address
+    function getGovernanceAddress() external virtual view returns(address);
+
+
+    /// @notice Return the underlaying token contract
+    /// @return Underlying token address
+    function getUnderlayingToken() external virtual view returns(address);
 
     /*
      * ERC20 compatability functions

@@ -5,7 +5,7 @@
   "repository": "github:superfluid-finance/superfluid-protocol",
   "license": "MIT",
   "dependencies": {
-    "@openzeppelin/contracts": "3.0.1"
+    "@openzeppelin/contracts": "3.0.2"
   },
   "files": [
     "/contracts/**/*.sol",
@@ -14,22 +14,22 @@
     "index.js"
   ],
   "peerDependencies": {
-    "@truffle/contract": "4.2.7"
+    "@truffle/contract": "4.2.8"
   },
   "devDependencies": {
     "@decentral.ee/web3-test-helpers": "0.2.7",
     "@openzeppelin/test-helpers": "0.5.6",
     "@truffle/hdwallet-provider": "1.0.35",
     "dotenv": "8.2.0",
-    "eslint": "7.1.0",
+    "eslint": "7.2.0",
     "eth-gas-reporter": "^0.2.17",
     "ganache-time-traveler": "^1.0.14",
     "husky": "^4.2.5",
     "npm-run-all": "4.1.5",
     "sol-proxy": "0.1.2",
-    "solhint": "3.0.0",
-    "solidity-coverage": "0.7.5",
-    "truffle": "5.1.28",
+    "solhint": "git+https://github.com/decentral-ee/solhint.git",
+    "solidity-coverage": "0.7.7",
+    "truffle": "5.1.29",
     "truffle-flattener": "1.4.4",
     "truffle-plugin-verify": "0.3.11"
   },

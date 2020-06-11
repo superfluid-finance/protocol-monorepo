@@ -74,6 +74,7 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 42, // Kovan's id
+            gasPrice: 1000*1000*1000, // 1 GWEI
             //gas: 7017622, //
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)

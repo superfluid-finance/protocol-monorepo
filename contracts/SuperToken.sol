@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.6.6;
+pragma solidity ^0.6.6;
 
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";

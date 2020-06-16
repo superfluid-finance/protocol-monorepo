@@ -29,7 +29,7 @@ describe("package test", () => {
 
         assert.isDefined(IFlowAgreement.abi);
         assert.equal(IFlowAgreement.contractName, "IFlowAgreement");
-        assert.isTrue(IFlowAgreement.abi.filter(i => i.name === "createFlow").length > 0);
+        assert.isTrue(IFlowAgreement.abi.filter(i => i.name === "updateFlow").length > 0);
 
         assert.isDefined(ISuperToken.abi);
         assert.equal(ISuperToken.contractName, "ISuperToken");

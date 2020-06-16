@@ -60,7 +60,7 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         // TODO meta-tx support
-        require(sender === msg.sender, "Only msg.sender can be sender");
+        //require(sender == msg.sender, "Only msg.sender can be sender");
         _updateFlow(token, sender, receiver, flowRate);
     }
 
@@ -75,8 +75,8 @@ contract FlowAgreement is IFlowAgreement {
         override
         returns (int256 flowRate)
     {
-        (bytes32 outFlowId, ) = _hashAccounts(sender, receiver);
-        bytes memory data = token.getAgreementData(address(this), outFlowId);
+        bytes32 flowId = _generateId(sender, receiver);
+        bytes memory data = token.getAgreementData(address(this), flowId);
         (, flowRate) = _decodeFlow(data);
     }
 
@@ -139,18 +139,11 @@ contract FlowAgreement is IFlowAgreement {
         private
     {
         bytes32 flowId = _generateId(sender, receiver);
-        /// aliace -> bob 10 / mo
-        ///
-        bytes memory senderData = token.getAgreementData(address(this), outFlowId);
-        //bytes memory receiverData = token.getAgreementData(address(this), inFlowId);
-
+        bytes memory senderData = token.getAgreementData(address(this), flowId);
         senderData = _composeData(senderData, _mirrorAgreementData(additionalData));
-        //receiverData = _composeData(receiverData, additionalData);
         (, int256 flowRate) = _decodeFlow(senderData);
-
         require(flowRate <= 0, "Revert flow not allowed");
-        token.createAgreement(outFlowId, senderData);
-        //token.createAgreement(inFlowId, receiverData);
+        token.createAgreement(flowId, senderData);
     }
 
     function _updateAccountState(
@@ -195,11 +188,11 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
     {
-        (bytes32 outFlowId, ) = _hashAccounts(sender, receiver);
+        bytes32 flowId = _generateId(sender, receiver);
         (int256 senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(
-            token, sender, outFlowId, true
+            token, sender, flowId, true
         );
-        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, receiver, outFlowId, false);
+        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, receiver, flowId, false);
 
         assert(senderFlowRate < 0);
 
@@ -213,9 +206,9 @@ contract FlowAgreement is IFlowAgreement {
                 uint256(minDeposit),
                 uint256(-senderFlowRate) * uint256(liquidationPeriod));
 
-            token.liquidateAgreement(msg.sender, outFlowId, sender, deposit);
+            token.liquidateAgreement(msg.sender, flowId, sender, deposit);
         } else {
-            token.terminateAgreement(outFlowId);
+            token.terminateAgreement(flowId);
         }
 
         emit FlowUpdated(
@@ -269,8 +262,8 @@ contract FlowAgreement is IFlowAgreement {
         return _encodeFlow(startDate, _mirrorFlowRate(flowRate));
     }
 
-    function _hashAccounts(address sender, address receiver) private pure returns(bytes32, bytes32) {
-        return (keccak256(abi.encodePacked(sender, receiver)), keccak256(abi.encodePacked(receiver, sender)));
+    function _generateId(address sender, address receiver) private pure returns(bytes32) {
+        return keccak256(abi.encodePacked(sender, receiver));
     }
 
     /// Encoders & Decoders
@@ -310,7 +303,7 @@ contract FlowAgreement is IFlowAgreement {
     ///      Will add the two state and update the `timestamp` to block.timestamp
     /// @param currentData the user actual data of agreement
     /// @param additionalData new state to be addeed to previous state
-    /// @return newState composed
+    /// @return state composed
     function _composeData
     (
         bytes memory currentData,
@@ -318,15 +311,15 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
         pure
-        returns (bytes memory newState)
+        returns (bytes memory state)
     {
         int256 cRate;
-        if (currentState.length != 0) {
-            (, cRate) = _decodeFlow(currentState);
+        if (currentData.length != 0) {
+            (, cRate) = _decodeFlow(currentData);
 
         }
 
-        (uint256 aTimestamp, int256 aRate) = _decodeFlow(additionalState);
+        (uint256 aTimestamp, int256 aRate) = _decodeFlow(additionalData);
         int256 newRate = aRate == 0 ? 0 : cRate.add(aRate);
         if (newRate == 0) {
             return "";

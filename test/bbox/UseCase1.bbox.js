@@ -92,24 +92,27 @@ contract("Usecase 1 Stories", accounts => {
         const flowRate1 = "16534391534391"; // toWad(10) / 7 / 24 / 3600;
         const flowRate2 = "8267195767195";   // toWad(5)  / 7 / 24 / 3600;
 
-        await web3tx(agreement.createFlow, "Miao -> Nuno new Agreement")(
+        await web3tx(agreement.updateFlow, "Miao -> Nuno new Agreement")(
             superToken.address,
+            Miao,
             Nuno,
             flowRate1, {
                 from: Miao
             }
         );
 
-        await web3tx(agreement.createFlow, "Fran -> Nuno new Agreement")(
+        await web3tx(agreement.updateFlow, "Fran -> Nuno new Agreement")(
             superToken.address,
+            Fran,
             Nuno,
             flowRate2, {
                 from: Fran
             }
         );
 
-        await web3tx(agreement.createFlow, "Mike -> Nuno new Agreement")(
+        await web3tx(agreement.updateFlow, "Mike -> Nuno new Agreement")(
             superToken.address,
+            Mike,
             Nuno,
             flowRate2, {
                 from: Mike

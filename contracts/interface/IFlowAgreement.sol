@@ -14,7 +14,7 @@ abstract contract IFlowAgreement is ISuperAgreement {
     /// @param token Super token address.
     /// @param receiver Flow sender address.
     /// @param receiver Flow receiver address.
-    /// @param newFlowRate New flow rate in amount per second.
+    /// @param flowRate New flow rate in amount per second.
     /// @dev Sender must be msg.sender or meta transaction relayer.
     function updateFlow(
         ISuperToken token,

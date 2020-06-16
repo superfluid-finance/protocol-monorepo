@@ -1,4 +1,5 @@
-pragma solidity 0.6.6;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.6.6;
 
 import "../FlowAgreement.sol";
 import "../interface/ISuperToken.sol";
@@ -18,12 +19,13 @@ contract FlowPayment {
 
     function connect(
         ISuperToken token,
+        address sender,
         address receiver,
         int256 flowRate
     )
         external
     {
-        flow.createFlow(token, receiver, flowRate);
+        flow.updateFlow(token, sender, receiver, flowRate);
     }
 
 }

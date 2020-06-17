@@ -139,11 +139,11 @@ contract FlowAgreement is IFlowAgreement {
         private
     {
         bytes32 flowId = _generateId(sender, receiver);
-        bytes memory senderData = token.getAgreementData(address(this), flowId);
-        senderData = _composeData(senderData, _mirrorAgreementData(additionalData));
-        (, int256 flowRate) = _decodeFlow(senderData);
+        bytes memory flowData = token.getAgreementData(address(this), flowId);
+        flowData = _composeData(flowData, _mirrorAgreementData(additionalData));
+        (, int256 flowRate) = _decodeFlow(flowData);
         require(flowRate <= 0, "Revert flow not allowed");
-        token.createAgreement(flowId, senderData);
+        token.createAgreement(flowId, flowData);
     }
 
     function _updateAccountState(

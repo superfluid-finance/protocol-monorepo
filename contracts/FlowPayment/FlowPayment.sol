@@ -6,15 +6,15 @@ import "../interface/ISuperToken.sol";
 
 /**
  * @title Superfluid's agreement interface
- * @notice 
+ * @notice
  * @author Superfluid
  */
 contract FlowPayment {
 
-    FlowAgreement private flow;
+    FlowAgreement private _flow;
 
-    constructor(FlowAgreement flow_) public {
-        flow = flow_;
+    constructor(FlowAgreement flow) public {
+        _flow = flow;
     }
 
     function connect(
@@ -25,7 +25,7 @@ contract FlowPayment {
     )
         external
     {
-        flow.updateFlow(token, sender, receiver, flowRate);
+        _flow.updateFlow(token, sender, receiver, flowRate);
     }
 
 }

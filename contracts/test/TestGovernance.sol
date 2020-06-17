@@ -5,7 +5,7 @@ import { ISuperfluidGovernance } from "../interface/ISuperfluidGovernance.sol";
 
 contract TestGovernance is ISuperfluidGovernance {
 
-    address public Governor;
+    address public governor;
 
     struct GovernanceConfig {
         address rewardAddress;
@@ -23,7 +23,7 @@ contract TestGovernance is ISuperfluidGovernance {
     )
         public
     {
-        Governor = msg.sender;
+        governor = msg.sender;
         _configs[underlying] = GovernanceConfig(rewardAddress, minimalDeposit, period);
     }
 

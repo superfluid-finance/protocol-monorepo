@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.6.6;
+pragma solidity ^0.6.6;
 
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
@@ -263,7 +264,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         address agreementClass;
         bytes memory touchState;
-        int256 balance = realtimeBalanceOf(account, block.timestamp).sub(int256(_balances[account]));
+        _takeBalanceSnapshot(account);
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
 
@@ -274,10 +275,15 @@ contract SuperToken is ISuperToken, ERC20Base {
 
             _accountStates[agreementClass][account] = touchState;
         }
-
-        _settledBalances[account] = 0;
-        if (balance > 0) {
-            _mint(account, uint256(balance));
+        // FIXME: Review the settled balance vs. static balance, it should be able to merge them.
+        // Examples:
+        // case 1: realtime balance -2 (settled balance is 0, static balance is 0, state balance -2)
+        // after touching:
+        // WRONG: real-time balance 0 (settled balance is 0, static balance is 0, state balance 0)
+        // CORRECT: real-time balance 0 (settled balance is -2, static balance is 0, state balance 0)
+        if (_settledBalances[account] > 0) {
+            _mint(account, uint256(_settledBalances[account]));
+            _settledBalances[account] = 0;
         }
     }
     /* solhint-enable mark-callable-contracts */

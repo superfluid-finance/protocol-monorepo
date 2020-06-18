@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.6.6;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -8,6 +9,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract TestToken is ERC20 {
 
     constructor() public
+        /* solhint-disable-next-line no-empty-blocks */ // BUG from solhint?
         ERC20("Test Token", "TEST") {
     }
 

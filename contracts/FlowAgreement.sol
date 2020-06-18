@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.6.6;
 
@@ -13,7 +14,7 @@ contract FlowAgreement is IFlowAgreement {
     /*
      * ISuperAgreement interface
      */
-    /// @dev IsuperAgreement.realtimeBalanceOf implementation
+    /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
         bytes calldata data,
         uint256 time
@@ -30,7 +31,7 @@ contract FlowAgreement is IFlowAgreement {
         return (int256(time).sub(int256(startDate))).mul(flowRate);
     }
 
-    /// @dev IsuperAgreement.touch implementation
+    /// @dev ISuperAgreement.touch implementation
     function touch(
         bytes memory currentData,
         uint256 timestamp
@@ -45,20 +46,25 @@ contract FlowAgreement is IFlowAgreement {
     }
 
     /*
-     *   FlowAgreement interface
+     *   IFlowAgreement interface
      */
 
-    function createFlow(
+    /// @dev IFlowAgreement.updateFlow implementation
+    function updateFlow(
         ISuperToken token,
+        address sender,
         address receiver,
         int256 flowRate
     )
         external
         override
     {
-        _updateFlow(token, msg.sender, receiver, flowRate);
+        // TODO meta-tx support
+        //require(sender == msg.sender, "Only msg.sender can be sender");
+        _updateFlow(token, sender, receiver, flowRate);
     }
 
+    /// @dev IFlowAgreement.getFlow implementation
     function getFlow(
         ISuperToken token,
         address sender,
@@ -69,11 +75,12 @@ contract FlowAgreement is IFlowAgreement {
         override
         returns (int256 flowRate)
     {
-        (bytes32 outFlowId, ) = _hashAccounts(sender, receiver);
-        bytes memory data = token.getAgreementData(address(this), outFlowId);
+        bytes32 flowId = _generateId(sender, receiver);
+        bytes memory data = token.getAgreementData(address(this), flowId);
         (, flowRate) = _decodeFlow(data);
     }
 
+    /// @dev IFlowAgreement.getNetFlow implementation
     function getNetFlow(
         ISuperToken token,
         address account
@@ -87,17 +94,7 @@ contract FlowAgreement is IFlowAgreement {
         (, flowRate) = _decodeFlow(state);
     }
 
-    function updateFlow(
-        ISuperToken token,
-        address receiver,
-        int256 flowRate
-    )
-        external
-        override
-    {
-        _updateFlow(token, msg.sender, receiver, flowRate);
-    }
-
+    /// @dev IFlowAgreement.deleteFlow implementation
     function deleteFlow(
         ISuperToken token,
         address sender,
@@ -135,39 +132,34 @@ contract FlowAgreement is IFlowAgreement {
 
     function _updateAgreementData(
         ISuperToken token,
-        address accountA,
-        address accountB,
+        address sender,
+        address receiver,
         bytes memory additionalData
     )
         private
     {
-        (bytes32 outFlowId, bytes32 inFlowId) = _hashAccounts(accountA, accountB);
-        bytes memory senderData = token.getAgreementData(address(this), outFlowId);
-        bytes memory receiverData = token.getAgreementData(address(this), inFlowId);
-
-        senderData = _composeData(senderData, _mirrorAgreementData(additionalData));
-        receiverData = _composeData(receiverData, additionalData);
-        (, int256 flowRate) = _decodeFlow(senderData);
-
+        bytes32 flowId = _generateId(sender, receiver);
+        bytes memory flowData = token.getAgreementData(address(this), flowId);
+        flowData = _composeData(flowData, _mirrorAgreementData(additionalData));
+        (, int256 flowRate) = _decodeFlow(flowData);
         require(flowRate <= 0, "Revert flow not allowed");
-        token.createAgreement(outFlowId, senderData);
-        token.createAgreement(inFlowId, receiverData);
+        token.createAgreement(flowId, flowData);
     }
 
     function _updateAccountState(
         ISuperToken token,
-        address accountA,
-        address accountB,
+        address sender,
+        address receiver,
         int256 flowRate
     )
         private
     {
-        int256 totalSenderFlowRate = _updateAccountState(token, accountA, _mirrorFlowRate(flowRate));
-        int256 totalReceiverFlowRate = _updateAccountState(token, accountB, flowRate);
+        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRate));
+        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRate);
         emit FlowUpdated(
             token,
-            accountA,
-            accountB,
+            sender,
+            receiver,
             flowRate,
             totalSenderFlowRate,
             totalReceiverFlowRate);
@@ -190,17 +182,17 @@ contract FlowAgreement is IFlowAgreement {
 
     function _terminateAgreementData(
         ISuperToken token,
-        address accountA,
-        address accountB,
+        address sender,
+        address receiver,
         bool liquidation
     )
         private
     {
-        (bytes32 outFlowId, ) = _hashAccounts(accountA, accountB);
+        bytes32 flowId = _generateId(sender, receiver);
         (int256 senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(
-            token, accountA, outFlowId, true
+            token, sender, flowId, true
         );
-        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, accountB, outFlowId, false);
+        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, receiver, flowId, false);
 
         assert(senderFlowRate < 0);
 
@@ -214,15 +206,15 @@ contract FlowAgreement is IFlowAgreement {
                 uint256(minDeposit),
                 uint256(-senderFlowRate) * uint256(liquidationPeriod));
 
-            token.liquidateAgreement(msg.sender, outFlowId, accountA, deposit);
+            token.liquidateAgreement(msg.sender, flowId, sender, deposit);
         } else {
-            token.terminateAgreement(outFlowId);
+            token.terminateAgreement(flowId);
         }
 
         emit FlowUpdated(
             token,
-            accountA,
-            accountB,
+            sender,
+            receiver,
             0,
             totalSenderFlowRate,
             totalReceiverFlowRate);
@@ -270,12 +262,13 @@ contract FlowAgreement is IFlowAgreement {
         return _encodeFlow(startDate, _mirrorFlowRate(flowRate));
     }
 
-    function _hashAccounts(address accountA, address accountB) private pure returns(bytes32, bytes32) {
-        return (keccak256(abi.encodePacked(accountA, accountB)), keccak256(abi.encodePacked(accountB, accountA)));
+    function _generateId(address sender, address receiver) private pure returns(bytes32) {
+        return keccak256(abi.encodePacked(sender, receiver));
     }
 
-    //Encoders & Decoders
-    /// @dev Encode the parameters into a bytes type
+    /// Encoders & Decoders
+    /// @dev Encode the parameters into a bytes type.
+    ///      Both data and state share the same data structure.
     function _encodeFlow
     (
         uint256 timestamp,
@@ -306,27 +299,27 @@ contract FlowAgreement is IFlowAgreement {
         return abi.decode(state, (uint256, int256));
     }
 
-    /// @notice Compose in one state the states passed as arguments.
-    /// @dev Will add the two state and update the `timestamp` to block.timestamp
-    /// @param currentState the user actual state of agreement
-    /// @param additionalState new state to be addeed to previous state
-    /// @return newState composed
+    /// @dev Compose in one state the states passed as arguments.
+    ///      Will add the two state and update the `timestamp` to block.timestamp
+    /// @param currentData the user actual data of agreement
+    /// @param additionalData new state to be addeed to previous state
+    /// @return state composed
     function _composeData
     (
-        bytes memory currentState,
-        bytes memory additionalState
+        bytes memory currentData,
+        bytes memory additionalData
     )
         private
         pure
-        returns (bytes memory newState)
+        returns (bytes memory state)
     {
         int256 cRate;
-        if (currentState.length != 0) {
-            (, cRate) = _decodeFlow(currentState);
+        if (currentData.length != 0) {
+            (, cRate) = _decodeFlow(currentData);
 
         }
 
-        (uint256 aTimestamp, int256 aRate) = _decodeFlow(additionalState);
+        (uint256 aTimestamp, int256 aRate) = _decodeFlow(additionalData);
         int256 newRate = aRate == 0 ? 0 : cRate.add(aRate);
         if (newRate == 0) {
             return "";

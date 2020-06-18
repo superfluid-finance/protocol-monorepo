@@ -129,9 +129,9 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
         let tx = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         // test flow views
         assert.equal((await agreement.getNetFlow.call(
@@ -145,7 +145,7 @@ contract("Flow Agreement", accounts => {
         )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
         assert.equal((await agreement.getFlow.call(
             superToken.address, user2, user1
-        )).toString(), FLOW_RATE.toString());
+        )).toString(), "0");
 
         const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
         await traveler.advanceTimeAndBlock(ADV_TIME);
@@ -167,9 +167,9 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
         let tx = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         // test flow views
         assert.equal((await agreement.getNetFlow.call(
@@ -183,14 +183,14 @@ contract("Flow Agreement", accounts => {
         )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
         assert.equal((await agreement.getFlow.call(
             superToken.address, user2, user1
-        )).toString(), FLOW_RATE.toString());
+        )).toString(), "0");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user3, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 3 Create new Flow"
+        )(superToken.address, user1, user3, FLOW_RATE, {from: user1});
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
         // test flow views
@@ -208,13 +208,13 @@ contract("Flow Agreement", accounts => {
         )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
         assert.equal((await agreement.getFlow.call(
             superToken.address, user2, user1
-        )).toString(), FLOW_RATE.toString());
+        )).toString(), "0");
         assert.equal((await agreement.getFlow.call(
             superToken.address, user1, user3
         )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
         assert.equal((await agreement.getFlow.call(
             superToken.address, user3, user1
-        )).toString(), FLOW_RATE.toString());
+        )).toString(), "0");
         assert.equal((await agreement.getFlow.call(
             superToken.address, user2, user3
         )).toString(), "0");
@@ -250,9 +250,9 @@ contract("Flow Agreement", accounts => {
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -273,13 +273,13 @@ contract("Flow Agreement", accounts => {
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        await web3tx(superToken.downgrade, "Call: SuperToken. owngrade: User 2 Downgrade")(halfPortion, {from: user2});
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade: User 2 Downgrade")(halfPortion, {from: user2});
         let userTokenBalanceFinal = await token.balanceOf.call(user2);
 
         assert.equal(
@@ -295,9 +295,9 @@ contract("Flow Agreement", accounts => {
 
         let userTokenBalance = await token.balanceOf.call(user2);
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -323,17 +323,17 @@ contract("Flow Agreement", accounts => {
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 2 -> User 3 Create new Flow"
-        )(superToken.address, user3, FLOW_RATE, {from: user2});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
+        )(superToken.address, user2, user3, FLOW_RATE, {from: user2});
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user3});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateflow: User 3 -> User 2 Create new Flow"
+        )(superToken.address, user3, user2, FLOW_RATE, {from: user3});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -355,17 +355,17 @@ contract("Flow Agreement", accounts => {
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 2 -> User 3 Create new Flow"
-        )(superToken.address, user3, FLOW_RATE, {from: user2});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
+        )(superToken.address, user2, user3, FLOW_RATE, {from: user2});
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user3});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateflow: User 3 -> User 2 Create new Flow"
+        )(superToken.address, user3, user2, FLOW_RATE, {from: user3});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -385,17 +385,17 @@ contract("Flow Agreement", accounts => {
         let userTokenBalance = await token.balanceOf.call(user2);
 
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 2 -> User 3 Create new Flow"
-        )(superToken.address, user3, FLOW_RATE, {from: user2});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
+        )(superToken.address, user2, user3, FLOW_RATE, {from: user2});
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 3 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user3});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 3 -> User 2 Create new Flow"
+        )(superToken.address, user3, user2, FLOW_RATE, {from: user3});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -417,9 +417,9 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
         let tx1 = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -448,19 +448,19 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
         let txFlow12 = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, (FLOW_RATE * 10).toString(), {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 1 -> User 2 Update new Flow"
+        )(superToken.address, user1, user2, (FLOW_RATE * 10).toString(), {from: user1});
 
         let txFlow23 = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 2 -> User 3 Create new Flow"
-        )(superToken.address, user3, FLOW_RATE, {from: user2});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
+        )(superToken.address, user2, user3, FLOW_RATE, {from: user2});
 
         let txFlow24 = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 2 -> User 4 Create new Flow"
-        )(superToken.address, user4, FLOW_RATE, {from: user2});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow: User 2 -> User 4 Create new Flow"
+        )(superToken.address, user2, user4, FLOW_RATE, {from: user2});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -502,9 +502,9 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(INI_BALANCE, {from: user1});
 
         let tx1 = await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow: User 1 -> User 2 Create new Flow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.UpdateFlow: User 1 -> User 2 Create new Flow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -533,9 +533,9 @@ contract("Flow Agreement", accounts => {
         await superToken.upgrade(toWad(1), {from : user1});
 
         await web3tx(
-            agreement.createFlow,
-            "Call: FlowAgreement.createFlow"
-        )(superToken.address, user2, FLOW_RATE, {from: user1});
+            agreement.updateFlow,
+            "Call: FlowAgreement.updateFlow"
+        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 

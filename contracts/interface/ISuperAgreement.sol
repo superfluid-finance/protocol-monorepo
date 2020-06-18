@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity >= 0.6.0;
 
 /**
@@ -6,22 +7,22 @@ pragma solidity >= 0.6.0;
  */
 interface ISuperAgreement {
 
-    /// @notice Calculate the real balance from the state
-    /// @param state State to be query
-    /// @param time Time of balance
-    /// @return amount Account real-time balance
+    /// @notice Calculate the real-time balance using the state.
+    /// @param state State to be used.
+    /// @param time Future time used for the calculation.
+    /// @return amount Account real-time balance.
     function realtimeBalanceOf(
         bytes calldata state,
         uint256 time
     )
         external
         pure
-        returns (int256 amount);
+        returns (int256 amount); // TODO add `deposit` to the return list
 
-    /// @notice Calculate the new state if settled balance is reset
-    /// @param state State to be query
-    /// @param time Time of balance
-    /// @return newState New agreement account state
+    /// @notice Change the timestamp of the state.
+    /// @param state State to be used.
+    /// @param time Time for the new state.
+    /// @return newState New state.
     function touch(
         bytes calldata state,
         uint256 time

@@ -71,6 +71,7 @@ contract("FlowPayment", accounts => {
 
         await web3tx(fp.connect, "Call: FlowPayment.connect - user1 -> user2 9.99/mo")(
             superToken.address,
+            user1,
             user2,
             toWad(9.99),
             {

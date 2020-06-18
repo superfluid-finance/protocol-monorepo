@@ -86,24 +86,27 @@ contract("Flow Agreement Stories", accounts => {
         console.log("Spotifai Price: ", SpotifaiPricePerSecond.toString());
         console.log("Zoomer Price: ", ZoomerPricePerSecond.toString());
 
-        await web3tx(agreement.createFlow, "User1 -> Netflic new Agreement")(
+        await web3tx(agreement.updateFlow, "User1 -> Netflic new Agreement")(
             superToken.address,
+            user1,
             Netflic,
             NetflicPricePerSecond, {
                 from: user1
             }
         );
 
-        await web3tx(agreement.createFlow, "User1 -> Spotifai new Agreement")(
+        await web3tx(agreement.updateFlow, "User1 -> Spotifai new Agreement")(
             superToken.address,
+            user1,
             Spotifai,
             SpotifaiPricePerSecond, {
                 from: user1
             }
         );
 
-        await web3tx(agreement.createFlow, "User1 -> Zoomer new Agreement")(
+        await web3tx(agreement.updateFlow, "User1 -> Zoomer new Agreement")(
             superToken.address,
+            user1,
             Zoomer,
             ZoomerPricePerSecond, {
                 from: user1
@@ -147,6 +150,7 @@ contract("Flow Agreement Stories", accounts => {
         let NetflicFamilyAddOn = toWad(5 / 30 / 24 /3600);
         await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
+            user1,
             Netflic,
             NetflicFamilyAddOn, {
                 from: user1
@@ -190,6 +194,7 @@ contract("Flow Agreement Stories", accounts => {
         //User downgrade the Netflic family pack
         await web3tx(agreement.updateFlow, "User1 -> Netfic Upgrade Subscription")(
             superToken.address,
+            user1,
             Netflic,
             (-1 * NetflicFamilyAddOn), {
                 from: user1
@@ -230,5 +235,6 @@ contract("Flow Agreement Stories", accounts => {
             netBalance, {
                 from: Netflic
             });
+
     });
 });

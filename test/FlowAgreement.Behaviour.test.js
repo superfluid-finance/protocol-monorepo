@@ -72,7 +72,7 @@ contract("FlowAgreement Behaviour", accounts => {
     it("#1 - Should liquidate if not sender/receiver of agreement - Revert solvent account", async () => {
 
         await superToken.upgrade(INI_BALANCE, {from : user1});
-        await agreement.createFlow(superToken.address, user2, FLOW_RATE, {from: user1});
+        await agreement.updateFlow(superToken.address, user1, user2, FLOW_RATE, {from: user1});
         await traveler.advanceTimeAndBlock(ADV_TIME);
         let emitError = false;
 
@@ -103,7 +103,7 @@ contract("FlowAgreement Behaviour", accounts => {
         let emitError = false;
 
         try {
-            await agreement.createFlow(superToken.address, user2, "-10000000000000000000000", {from: user1});
+            await agreement.updateFlow(superToken.address, user1, user2, "-10000000000000000000000", {from: user1});
 
         } catch(err) {
             emitError = true;
@@ -112,7 +112,7 @@ contract("FlowAgreement Behaviour", accounts => {
         }
 
         if(!emitError) {
-            throw ("Call: FlowAgreement.createFlow - error not emitted");
+            throw ("Call: FlowAgreement.updateFlow - error not emitted");
         }
 
     });
@@ -123,9 +123,9 @@ contract("FlowAgreement Behaviour", accounts => {
         let emitError = false;
 
         try {
-            await agreement.createFlow(superToken.address, user2, toWad(1), {from: user1});
+            await agreement.updateFlow(superToken.address, user1, user2, toWad(1), {from: user1});
             await traveler.advanceTimeAndBlock(ADV_TIME);
-            await agreement.createFlow(superToken.address, user2, "-10000000000000000000000", {from: user1});
+            await agreement.updateFlow(superToken.address, user1, user2, "-10000000000000000000000", {from: user1});
 
         } catch(err) {
             emitError = true;
@@ -134,7 +134,7 @@ contract("FlowAgreement Behaviour", accounts => {
         }
 
         if(!emitError) {
-            throw ("Call: FlowAgreement.createFlow - error not emitted");
+            throw ("Call: FlowAgreement.updateFlow - error not emitted");
         }
 
     });

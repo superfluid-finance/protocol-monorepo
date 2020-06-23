@@ -6,7 +6,7 @@ const FlowAgreement = artifacts.require("FlowAgreement");
 const {
     web3tx,
     toWad
-} = require("@decentral.ee/web3-test-helpers");
+} = require("@decentral.ee/web3-helpers");
 const toBN = web3.utils.toBN;
 
 const traveler = require("ganache-time-traveler");

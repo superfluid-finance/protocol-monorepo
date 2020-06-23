@@ -1,4 +1,4 @@
-const { web3tx } = require("@decentral.ee/web3-test-helpers");
+const { web3tx } = require("@decentral.ee/web3-helpers");
 const configs = require("./configs");
 
 module.exports = async function (callback) {

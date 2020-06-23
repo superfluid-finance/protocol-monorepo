@@ -7,7 +7,7 @@ const {
     web3tx,
     wad4human,
     toWad
-} = require("@decentral.ee/web3-test-helpers");
+} = require("@decentral.ee/web3-helpers");
 
 const traveler = require("ganache-time-traveler");
 const INI_BALANCE = toWad(1000);

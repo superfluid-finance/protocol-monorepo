@@ -372,7 +372,7 @@ contract("Super Token", accounts => {
         let snapshot1 = await superToken.getSettledBalance.call(alice);
         let snapshot2 = await superToken.getSettledBalance.call(bob);
 
-        assert.equal(snapshot1.toString(), INI_BALANCE.toString(), "Call: SuperToken.getSnapshot user 1 is incorrect");
+        assert.equal(snapshot1.toString(), INIT_BALANCE.toString(), "Call: SuperToken.getSnapshot user 1 is incorrect");
         assert.equal(snapshot2, 0, "Call: SuperToken.getSnapshot user 2 is incorrect");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
@@ -392,9 +392,9 @@ contract("Super Token", accounts => {
         const checkUser1 = INI_BALANCE.sub(toBN(result1));
 
         assert.equal(snapshot1.toString(), checkUser1.toString(),
-            "Call: SuperToken.getSnapshot first call user 1 is incorrect"
+            "Call: SuperToken.getSnapshot first call Alice is incorrect"
         );
-        assert.equal(snapshot2.toString(), result1, "Call: SuperToken.getSnapshot first call user 2 is incorrect");
+        assert.equal(snapshot2.toString(), result1, "Call: SuperToken.getSnapshot first call Bob is incorrect");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
         let tx3 = await web3tx(
@@ -408,16 +408,16 @@ contract("Super Token", accounts => {
         const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
         let span2 = (block3.timestamp - block2.timestamp) + (block3.timestamp - block1.timestamp);
         let result2 = (span2 * FLOW_RATE);
-        const check2User1 = INI_BALANCE.sub(toBN(result2));
+        const check2User1 = INIT_BALANCE.sub(toBN(result2));
 
         assert.equal(
             snapshot3.toString(),
             check2User1.toString(),
-            "Call: SuperToken.getSnapshot second call user 1 is incorrect");
+            "Call: SuperToken.getSnapshot second call Alice is incorrect");
         assert.equal(
             snapshot4.toString(),
             result2.toString(),
-            "Call: SuperToken.getSnapshot second call user 2 is incorrect");
+            "Call: SuperToken.getSnapshot second call Bob is incorrect");
     });
 
     it("#6.1 - Snapshot of Balance - assert that is not time dependancy", async() => {

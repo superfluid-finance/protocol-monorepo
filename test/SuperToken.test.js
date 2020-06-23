@@ -6,6 +6,7 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 const traveler = require("ganache-time-traveler");
+const toBN = web3.utils.toBN;
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
@@ -389,7 +390,7 @@ contract("Super Token", accounts => {
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
         let span1 = block2.timestamp - block1.timestamp;
         let result1 = FLOW_RATE * span1;
-        const checkUser1 = INI_BALANCE.sub(toBN(result1));
+        const checkUser1 = INIT_BALANCE.sub(toBN(result1));
 
         assert.equal(snapshot1.toString(), checkUser1.toString(),
             "Call: SuperToken.getSnapshot first call Alice is incorrect"

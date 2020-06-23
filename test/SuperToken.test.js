@@ -391,7 +391,9 @@ contract("Super Token", accounts => {
         let result1 = FLOW_RATE * span1;
         const checkUser1 = INI_BALANCE.sub(toBN(result1));
 
-        assert.equal(snapshot1.toString(), checkUser1.toString(), "Call: SuperToken.getSnapshot first call user 1 is incorrect");
+        assert.equal(snapshot1.toString(), checkUser1.toString(),
+            "Call: SuperToken.getSnapshot first call user 1 is incorrect"
+        );
         assert.equal(snapshot2.toString(), result1, "Call: SuperToken.getSnapshot first call user 2 is incorrect");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);

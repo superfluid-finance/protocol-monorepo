@@ -1,7 +1,4 @@
-const SuperToken = artifacts.require("SuperToken");
-const TestToken = artifacts.require("TestToken");
-const TestGovernance = artifacts.require("TestGovernance");
-const FlowAgreement = artifacts.require("FlowAgreement");
+const Tester = require("./Tester");
 
 const {
     web3tx,
@@ -13,123 +10,56 @@ const traveler = require("ganache-time-traveler");
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
 const FLOW_RATE_ADDITIONAL = toWad(2);
-const INI_BALANCE = toWad(100);
 
 contract("Super Token", accounts => {
 
-    const MAX_UINT256 = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-
-    const admin = accounts[0];
-    const user1 = accounts[1];
-    const user2 = accounts[2];
+    const tester = new Tester(accounts.slice(0, 3));
+    const { alice, bob } = tester.aliases;
+    const { INIT_BALANCE } = tester.constants;
 
     let token;
-    let governance;
     let superToken;
-    let agreement;
+    let flowAgreement;
 
     before(async () => {
-        console.log("admin is %s \nuser1 is %s \nuser2 is %s", admin, user1, user2);
+        tester.printAliases();
     });
 
     beforeEach(async () => {
-
-        token = await web3tx(TestToken.new, "Call: TestToken.new")(
-            {
-                from: admin
-            });
-
-        governance = await web3tx(TestGovernance.new, "Call: TestGovernance.new")(
-            token.address,
-            admin,
-            1,
-            3600, {
-                from: admin
-            });
-
-        await token.mint(user1, INI_BALANCE);
-        await token.mint(user2, INI_BALANCE);
-        await token.mint(admin, INI_BALANCE);
-
-        superToken = await web3tx(SuperToken.new, "Call: SuperToken.new")(
-            token.address,
-            governance.address,
-            "SuperToken",
-            "STK",
-            {
-                from: admin
-            });
-
-        agreement = await web3tx(FlowAgreement.new, "Call: FlowAgreement.new")(
-            {
-                from:admin
-            });
-
-        await web3tx(token.approve, "Call: TestToken.approve - from admin to SuperToken")(
-            superToken.address,
-            MAX_UINT256, {
-                from: admin
-            }
-        );
-
-        await web3tx(token.approve, "Call: TestToken.approve - from user1 to SuperToken")(
-            superToken.address,
-            MAX_UINT256, {
-                from: user1
-            }
-        );
-
-        await web3tx(token.approve, "Call: TestToken.approve - from user2 to SuperToken")(
-            superToken.address,
-            MAX_UINT256, {
-                from: user2
-            }
-        );
+        await tester.resetContracts();
+        ({
+            token,
+            superToken,
+            flowAgreement
+        } = tester.contracts);
     });
 
-    /*global afterEach*/
-    /*eslint no-undef: "error"*/
     afterEach(async () => {
-
-        let adminTokenBalance = await token.balanceOf.call(admin);
-        let adminSuperTokenBalance = await superToken.balanceOf.call(admin);
-
-        let user1TokenBalance = await token.balanceOf.call(user1);
-        let user1SuperTokenBalance = await superToken.balanceOf.call(user1);
-        let user2TokenBalance = await token.balanceOf.call(user2);
-        let user2SuperTokenBalance = await superToken.balanceOf.call(user2);
-
-        console.log("Report: admin (%s) Token Balance: %s",admin, adminTokenBalance);
-        console.log("Report: admin (%s) SuperToken Balance: %s",admin, adminSuperTokenBalance);
-        console.log("Report: user 1 (%s) Token Balance: %s",user1, user1TokenBalance);
-        console.log("Report: user 1 (%s) SuperToken Balance: %s",user1, user1SuperTokenBalance);
-        console.log("Report: user 2 (%s) Token Balance: %s",user2, user2TokenBalance);
-        console.log("Report: user 2 (%s) SuperToken Balance: %s",user2, user2SuperTokenBalance);
-
+        await tester.validateSystem();
     });
 
     it("#1 - realtimeBalanceOf current block time equals balaceOf", async() => {
 
         // TODO some actual balance please
 
-        let balanceOf = await superToken.balanceOf.call(user1);
+        let balanceOf = await superToken.balanceOf.call(alice);
         const {timestamp} = await web3.eth.getBlock("latest");
-        let realBalanceOf = await superToken.realtimeBalanceOf.call(user1, timestamp);
+        let realBalanceOf = await superToken.realtimeBalanceOf.call(alice, timestamp);
 
         assert.ok(balanceOf.eq(realBalanceOf), "BalanceOf should be the same as realtimeBalanceOf");
     });
 
     it("#2 - upgrading to SuperToken", async () => {
 
-        let initialBalance = await token.balanceOf.call(user1);
+        let initialBalance = await token.balanceOf.call(alice);
 
-        await web3tx(superToken.upgrade, "Call: SuperToken.upgrade - from user1") (
+        await web3tx(superToken.upgrade, "Call: SuperToken.upgrade - from alice") (
             toWad(2), {
-                from: user1
+                from: alice
             });
 
-        let finalBalance = await token.balanceOf.call(user1);
-        let finalSuperTokenBalance = await superToken.balanceOf.call(user1);
+        let finalBalance = await token.balanceOf.call(alice);
+        let finalSuperTokenBalance = await superToken.balanceOf.call(alice);
 
         assert.isOk(initialBalance.gt(finalBalance), "Call: TestToken.balanceOf - is wrong");
         assert.equal(finalSuperTokenBalance.toString(), "2000000000000000000", "Call: SuperToken.balanceOf - is wrong");
@@ -137,22 +67,22 @@ contract("Super Token", accounts => {
 
     it("#2.1 - downgrading from SuperToken by single account", async() => {
 
-        let initialBalance = await token.balanceOf.call(user1);
+        let initialBalance = await token.balanceOf.call(alice);
 
-        await web3tx(superToken.upgrade, "Call: SuperToken.upgrade - from user1") (
+        await web3tx(superToken.upgrade, "Call: SuperToken.upgrade - from alice") (
             toWad(2), {
-                from: user1
+                from: alice
             });
 
 
-        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - from user1") (
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - from alice") (
             toWad(2), {
-                from: user1
+                from: alice
             });
 
 
-        let finalBalance = await token.balanceOf.call(user1);
-        let finalSuperTokenBalance = await superToken.balanceOf.call(user1);
+        let finalBalance = await token.balanceOf.call(alice);
+        let finalSuperTokenBalance = await superToken.balanceOf.call(alice);
 
         assert.isOk(initialBalance.toString(), finalBalance.toString(), "Call: TestToken.balanceOf - is wrong");
         assert.equal(finalSuperTokenBalance.toString(), "0", "Call: SuperToken.balanceOf - is wrong");
@@ -161,22 +91,22 @@ contract("Super Token", accounts => {
 
     it("#2.2 - downgrading from SuperToken by multiple accounts", async () => {
 
-        let initialBalanceUser1 = await token.balanceOf.call(user1);
-        let initialSuperBalanceUser1 = await superToken.balanceOf.call(user1);
+        let initialBalanceUser1 = await token.balanceOf.call(alice);
+        let initialSuperBalanceUser1 = await superToken.balanceOf.call(alice);
 
-        await superToken.upgrade(toWad(2), {from: user1});
-        await superToken.upgrade(toWad(1), {from: user2});
+        await superToken.upgrade(toWad(2), {from: alice});
+        await superToken.upgrade(toWad(1), {from: bob});
 
-        let initialSuperBalanceUser2 = await superToken.balanceOf.call(user2);
+        let initialSuperBalanceUser2 = await superToken.balanceOf.call(bob);
 
-        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - from user1") (
+        await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - from alice") (
             toWad(2), {
-                from: user1
+                from: alice
             });
 
-        let finalBalanceUser1 = await token.balanceOf.call(user1);
-        let finalSuperBalanceUser1 = await superToken.balanceOf.call(user1);
-        let finalSuperBalanceUser2 = await superToken.balanceOf.call(user2);
+        let finalBalanceUser1 = await token.balanceOf.call(alice);
+        let finalSuperBalanceUser1 = await superToken.balanceOf.call(alice);
+        let finalSuperBalanceUser2 = await superToken.balanceOf.call(bob);
 
         assert.equal(
             initialBalanceUser1.toString(),
@@ -194,34 +124,34 @@ contract("Super Token", accounts => {
 
     it("#2.3 - downgrade of full balance with flows running", async() => {
 
-        await superToken.upgrade(INI_BALANCE, {from : user1});  //10 tokens
+        await superToken.upgrade(INIT_BALANCE, {from : alice});  //10 tokens
 
-        await superToken.balanceOf.call(user1);
+        await superToken.balanceOf.call(alice);
         let tx1 = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
-        await superToken.balanceOf.call(user1);
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+        await superToken.balanceOf.call(alice);
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        let result2 = await superToken.balanceOf.call(user2);
+        let result2 = await superToken.balanceOf.call(bob);
 
         let tx2 = await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
             result2, {
-                from: user2
+                from: bob
             }
         );
 
-        let finalBalance = INI_BALANCE.add(result2);
-        let userTokenBalance = await token.balanceOf.call(user2);
+        let finalBalance = INIT_BALANCE.add(result2);
+        let userTokenBalance = await token.balanceOf.call(bob);
 
         assert.ok(
             userTokenBalance.eq(finalBalance),
             "Call: TestToken.balanceOf - User 2 token balance is not correct");
 
 
-        let slippage = await superToken.balanceOf.call(user2);
+        let slippage = await superToken.balanceOf.call(bob);
         if (slippage > 0) {
             console.warn("Detected blockchain time inconsistancy");
         }
@@ -229,47 +159,47 @@ contract("Super Token", accounts => {
         await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
-        let result3 = await superToken.balanceOf.call(user1);
-        let result4 = await superToken.balanceOf.call(user2);
+        let result3 = await superToken.balanceOf.call(alice);
+        let result4 = await superToken.balanceOf.call(bob);
 
         const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
         let span1 = endBlock.timestamp - block1.timestamp;
         let span2 = web3.utils.toBN(endBlock.timestamp - block2.timestamp);
 
-        let final1 = INI_BALANCE.sub(web3.utils.toBN(span1 * FLOW_RATE));
+        let final1 = INIT_BALANCE.sub(web3.utils.toBN(span1 * FLOW_RATE));
         let final2 = slippage.add(span2.mul(FLOW_RATE));
 
         assert.equal(
             result3.toString(),
             final1.toString(),
-            "Call: SuperToken.balanceOf - not correct for user1");
+            "Call: SuperToken.balanceOf - not correct for alice");
         assert.equal(
             result4.toString(),
             final2.toString(),
-            "Call: SuperToken.balanceOf - not correct for user2");
+            "Call: SuperToken.balanceOf - not correct for bob");
     });
 
     it("#2.4 - partial amount downgraded with flows running", async() => {
-        await superToken.upgrade(INI_BALANCE, {from : user1});
+        await superToken.upgrade(INIT_BALANCE, {from : alice});
 
         let txFlow12 = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
-        let user2MidwayBalance1 = await superToken.balanceOf.call(user2);
+        let user2MidwayBalance1 = await superToken.balanceOf.call(bob);
         let user2DowngradeAmount = web3.utils.toBN(user2MidwayBalance1 / 1000);
         await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
             user2DowngradeAmount.toString(), {
-                from: user2
+                from: bob
             }
         );
 
-        let user2MidwayBalance2Est = INI_BALANCE.add(user2DowngradeAmount);
-        let user2MidwayBalance2 = await token.balanceOf.call(user2);
+        let user2MidwayBalance2Est = INIT_BALANCE.add(user2DowngradeAmount);
+        let user2MidwayBalance2 = await token.balanceOf.call(bob);
         assert.equal(
             user2MidwayBalance2.toString(),
             user2MidwayBalance2Est.toString(),
@@ -278,36 +208,36 @@ contract("Super Token", accounts => {
         await traveler.advanceTimeAndBlock(ADV_TIME);
         const endBlock = await web3.eth.getBlock("latest");
 
-        let user1FinalBalance = await superToken.balanceOf.call(user1);
-        let user2FinalBalance = await superToken.balanceOf.call(user2);
+        let aliceFinalBalance = await superToken.balanceOf.call(alice);
+        let user2FinalBalance = await superToken.balanceOf.call(bob);
 
         const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
         let spanFlow12 = endBlock.timestamp - blockFlow12.timestamp;
-        let user1FinalBalanceEst = INI_BALANCE.sub(web3.utils.toBN(spanFlow12 * FLOW_RATE));
+        let aliceFinalBalanceEst = INIT_BALANCE.sub(web3.utils.toBN(spanFlow12 * FLOW_RATE));
         let user2FinalBalanceEst = (spanFlow12 * FLOW_RATE) - user2DowngradeAmount;
 
         assert.equal(
-            user1FinalBalance.toString(),
-            user1FinalBalanceEst.toString(),
-            "Call: SuperToken.balanceOf - not correct for user1");
+            aliceFinalBalance.toString(),
+            aliceFinalBalanceEst.toString(),
+            "Call: SuperToken.balanceOf - not correct for alice");
         assert.equal(
             user2FinalBalance.toString(),
             user2FinalBalanceEst.toString(),
-            "Call: SuperToken.balanceOf - not correct for user2");
+            "Call: SuperToken.balanceOf - not correct for bob");
     });
 
     it("#3 - Check Agreement Data layout", async() => {
 
-        await superToken.upgrade(INI_BALANCE, {from : user1});  //10 tokens
+        await superToken.upgrade(INIT_BALANCE, {from : alice});  //10 tokens
         let tx = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
-        let flowId = web3.utils.soliditySha3(user1, user2);
-        let opposedFlowId = web3.utils.soliditySha3(user2, user1);
-        let resultFlowId = await superToken.getAgreementData.call(agreement.address, flowId);
-        let resultOpposedFlowId = await superToken.getAgreementData.call(agreement.address, opposedFlowId);
+        let flowId = web3.utils.soliditySha3(alice, bob);
+        let opposedFlowId = web3.utils.soliditySha3(bob, alice);
+        let resultFlowId = await superToken.getAgreementData.call(flowAgreement.address, flowId);
+        let resultOpposedFlowId = await superToken.getAgreementData.call(flowAgreement.address, opposedFlowId);
 
         assert.ok(resultOpposedFlowId == null, "User Account Data is not empty");
 
@@ -323,50 +253,50 @@ contract("Super Token", accounts => {
     it("#4 - Check ActiveAgreementClass Register - multiple additions", async() => {
 
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
-        let user1AgreementClasses = await superToken.getAccountActiveAgreements.call(user1);
-        let user2AgreementClasses = await superToken.getAccountActiveAgreements.call(user2);
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+        let aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+        let user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
 
-        assert.ok(user1AgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
+        assert.ok(aliceAgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
         assert.ok(user2AgreementClasses.length == 1, "User 2 number of ActiveAgreementClasses is wrong");
-        assert.equal(user1AgreementClasses[0], agreement.address, "User 1 ActiveAgreementClass is wrong");
-        assert.equal(user2AgreementClasses[0], agreement.address, "User 2 ActiveAgreementClass is wrong");
+        assert.equal(aliceAgreementClasses[0], flowAgreement.address, "User 1 ActiveAgreementClass is wrong");
+        assert.equal(user2AgreementClasses[0], flowAgreement.address, "User 2 ActiveAgreementClass is wrong");
 
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user2, user1, FLOW_RATE_ADDITIONAL, {from: user2});
+        )(superToken.address, bob, alice, FLOW_RATE_ADDITIONAL, {from: bob});
 
-        user1AgreementClasses = await superToken.getAccountActiveAgreements.call(user1);
-        user2AgreementClasses = await superToken.getAccountActiveAgreements.call(user2);
+        aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+        user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
 
-        assert.ok(user1AgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
+        assert.ok(aliceAgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
         assert.ok(user2AgreementClasses.length == 1, "User 2 number of ActiveAgreementClasses is wrong");
-        assert.equal(user1AgreementClasses[0], agreement.address, "User 1 ActiveAgreementClass is wrong");
-        assert.equal(user2AgreementClasses[0], agreement.address, "User 2 ActiveAgreementClass is wrong");
+        assert.equal(aliceAgreementClasses[0], flowAgreement.address, "User 1 ActiveAgreementClass is wrong");
+        assert.equal(user2AgreementClasses[0], flowAgreement.address, "User 2 ActiveAgreementClass is wrong");
 
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
-        user1AgreementClasses = await superToken.getAccountActiveAgreements.call(user1);
-        user2AgreementClasses = await superToken.getAccountActiveAgreements.call(user2);
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+        aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+        user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
 
-        assert.ok(user1AgreementClasses.length == 0, "User 1 number of ActiveAgreementClasses is wrong");
+        assert.ok(aliceAgreementClasses.length == 0, "User 1 number of ActiveAgreementClasses is wrong");
         assert.ok(user2AgreementClasses.length == 0, "User 2 number of ActiveAgreementClasses is wrong");
     });
 
     it("#5 - Check AgreementState - assert that is saved with the correct data", async() => {
 
         let tx = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
-        let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
-        let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
+        let stateUser1 = await superToken.getAgreementAccountState.call(flowAgreement.address, alice);
+        let stateUser2 = await superToken.getAgreementAccountState.call(flowAgreement.address, bob);
 
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
@@ -383,18 +313,18 @@ contract("Super Token", accounts => {
     it("#5.1 - Check AgreementState - assert that State is updated, but the counters stay the same", async() => {
 
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.createFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
         let tx = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
         const block = await web3.eth.getBlock(tx.receipt.blockNumber);
 
-        let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
-        let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
+        let stateUser1 = await superToken.getAgreementAccountState.call(flowAgreement.address, alice);
+        let stateUser2 = await superToken.getAgreementAccountState.call(flowAgreement.address, bob);
 
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
@@ -409,18 +339,18 @@ contract("Super Token", accounts => {
     it("#5.2 - Check AgreementState - assert that State is updated by using the updateFlow x2", async() => {
 
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
         let tx = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement."
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
         const block = await web3.eth.getBlock(tx.receipt.blockNumber);
 
-        let stateUser1 = await superToken.getAgreementAccountState.call(agreement.address, user1);
-        let stateUser2 = await superToken.getAgreementAccountState.call(agreement.address, user2);
+        let stateUser1 = await superToken.getAgreementAccountState.call(flowAgreement.address, alice);
+        let stateUser2 = await superToken.getAgreementAccountState.call(flowAgreement.address, bob);
 
         let splitUser1 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser1);
         let splitUser2 = web3.eth.abi.decodeParameters(["uint256", "int256"], stateUser2);
@@ -434,13 +364,13 @@ contract("Super Token", accounts => {
 
     it("#6 - Snapshot of Balance - assert passed balance after an update", async() => {
 
-        await superToken.upgrade(INI_BALANCE, {from : user1});
+        await superToken.upgrade(INIT_BALANCE, {from : alice});
         let tx1 = await web3tx(
-            agreement.updateFlow,
-            "Call: FlowAgreement.updateFlow")(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+            flowAgreement.updateFlow,
+            "Call: FlowAgreement.updateFlow")(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
-        let snapshot1 = await superToken.getSettledBalance.call(user1);
-        let snapshot2 = await superToken.getSettledBalance.call(user2);
+        let snapshot1 = await superToken.getSettledBalance.call(alice);
+        let snapshot2 = await superToken.getSettledBalance.call(bob);
 
         assert.equal(snapshot1, 0, "Call: SuperToken.getSnapshot user 1 is incorrect");
         assert.equal(snapshot2, 0, "Call: SuperToken.getSnapshot user 2 is incorrect");
@@ -448,12 +378,12 @@ contract("Super Token", accounts => {
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
         let tx2 = await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
-        snapshot1 = await superToken.getSettledBalance.call(user1);
-        snapshot2 = await superToken.getSettledBalance.call(user2);
+        snapshot1 = await superToken.getSettledBalance.call(alice);
+        snapshot2 = await superToken.getSettledBalance.call(bob);
 
         const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
@@ -465,12 +395,12 @@ contract("Super Token", accounts => {
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
         let tx3 = await web3tx(
-            agreement.deleteFlow,
+            flowAgreement.deleteFlow,
             "Call FlowAgreement.deleteFlow"
-        )(superToken.address, user1, user2, {from: user1});
+        )(superToken.address, alice, bob, {from: alice});
 
-        let snapshot3 = await superToken.getSettledBalance.call(user1);
-        let snapshot4 = await superToken.getSettledBalance.call(user2);
+        let snapshot3 = await superToken.getSettledBalance.call(alice);
+        let snapshot4 = await superToken.getSettledBalance.call(bob);
 
         const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
         let span2 = (block3.timestamp - block2.timestamp) + (block3.timestamp - block1.timestamp);
@@ -487,23 +417,23 @@ contract("Super Token", accounts => {
     });
 
     it("#6.1 - Snapshot of Balance - assert that is not time dependancy", async() => {
-        await superToken.upgrade(INI_BALANCE, {from : user1});
+        await superToken.upgrade(INIT_BALANCE, {from : alice});
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
 
         await web3tx(
-            agreement.updateFlow,
+            flowAgreement.updateFlow,
             "Call: FlowAgreement.updateFlow"
-        )(superToken.address, user1, user2, FLOW_RATE, {from: user1});
-        let snapshot1 = await superToken.getSettledBalance.call(user2);
+        )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+        let snapshot1 = await superToken.getSettledBalance.call(bob);
 
         await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
-        let snapshot2 = await superToken.getSettledBalance.call(user2);
+        let snapshot2 = await superToken.getSettledBalance.call(bob);
 
         assert.equal(snapshot1.toString(), snapshot2.toString(), "Snapshot change with time");
     });

@@ -6,6 +6,7 @@ module.exports = {
         "contract": true,
         "before": true,
         "beforeEach": true,
+        "afterEach": true,
         "it": true,
         "assert": true,
     },

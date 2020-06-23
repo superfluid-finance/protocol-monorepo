@@ -10,7 +10,7 @@ const {
     web3tx,
     //wad4human,
     toWad
-} = require("@decentral.ee/web3-test-helpers");
+} = require("@decentral.ee/web3-helpers");
 
 contract("FlowPayment", accounts => {
 

@@ -5,7 +5,7 @@ const TestGovernance = artifacts.require("TestGovernance");
 const {
     web3tx,
     toWad
-} = require("@decentral.ee/web3-test-helpers");
+} = require("@decentral.ee/web3-helpers");
 
 contract("Super Token Behaviour", accounts => {
 

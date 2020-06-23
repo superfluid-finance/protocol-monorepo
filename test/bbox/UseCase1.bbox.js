@@ -55,6 +55,7 @@ contract("Usecase 1 Stories", accounts => {
             governance.address,
             "SuperToken",
             "STK",
+            18,
             {
                 from: admin
             });

@@ -14,6 +14,7 @@ const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
 const FLOW_RATE_ADDITIONAL = toWad(2);
 const INI_BALANCE = toWad(100);
+const toBN = web3.utils.toBN;
 
 contract("Super Token", accounts => {
 
@@ -56,6 +57,7 @@ contract("Super Token", accounts => {
             governance.address,
             "SuperToken",
             "STK",
+            18,
             {
                 from: admin
             });
@@ -442,7 +444,7 @@ contract("Super Token", accounts => {
         let snapshot1 = await superToken.getSettledBalance.call(user1);
         let snapshot2 = await superToken.getSettledBalance.call(user2);
 
-        assert.equal(snapshot1, 0, "Call: SuperToken.getSnapshot user 1 is incorrect");
+        assert.equal(snapshot1.toString(), INI_BALANCE.toString(), "Call: SuperToken.getSnapshot user 1 is incorrect");
         assert.equal(snapshot2, 0, "Call: SuperToken.getSnapshot user 2 is incorrect");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
@@ -459,9 +461,10 @@ contract("Super Token", accounts => {
         const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
         let span1 = block2.timestamp - block1.timestamp;
         let result1 = FLOW_RATE * span1;
+        const checkUser1 = INI_BALANCE.sub(toBN(result1));
 
-        assert.equal(snapshot1, (-1 * snapshot2), "Call: SuperToken.getSnapshot first call user 1 is incorrect");
-        assert.equal(snapshot2, result1, "Call: SuperToken.getSnapshot first call user 2 is incorrect");
+        assert.equal(snapshot1.toString(), checkUser1.toString(), "Call: SuperToken.getSnapshot first call user 1 is incorrect");
+        assert.equal(snapshot2.toString(), result1, "Call: SuperToken.getSnapshot first call user 2 is incorrect");
 
         await traveler.advanceTimeAndBlock(ADV_TIME);
         let tx3 = await web3tx(
@@ -475,10 +478,11 @@ contract("Super Token", accounts => {
         const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
         let span2 = (block3.timestamp - block2.timestamp) + (block3.timestamp - block1.timestamp);
         let result2 = (span2 * FLOW_RATE);
+        const check2User1 = INI_BALANCE.sub(toBN(result2));
 
         assert.equal(
             snapshot3.toString(),
-            (-1 * snapshot4),
+            check2User1.toString(),
             "Call: SuperToken.getSnapshot second call user 1 is incorrect");
         assert.equal(
             snapshot4.toString(),

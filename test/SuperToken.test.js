@@ -339,6 +339,56 @@ contract("Super Token", accounts => {
 
     describe("#5 SuperToken.approve", () => {
         // TODO
+        it("#5.1 - should approve amount", async() => {
+            await web3tx(superToken.upgrade, "upgrade all from alice")(
+                INIT_BALANCE, {from: alice});
+            const aliceSuperBalance = await superToken.balanceOf.call(alice);
+            await web3tx(superToken.approve, "approve bob all alice balance")(
+                bob, aliceSuperBalance, {from: alice});
+
+            const fullAllowedBalanceBob = await superToken.allowance.call(alice, bob);
+            assert.equal(aliceSuperBalance.toString(),
+                fullAllowedBalanceBob.toString(),
+                "Bob allowance is not alice full balance"
+            );
+
+            await web3tx(superToken.approve, "approve bob half of alice balance")(
+                bob, aliceSuperBalance.div(toBN(2)), {from: alice});
+            const halfAllowedBalanceBob = await superToken.allowance.call(alice, bob);
+            assert.equal(aliceSuperBalance.div(toBN(2)).toString(),
+                halfAllowedBalanceBob.toString(),
+                "Bob allowance is not alice half balance"
+            );
+
+            await web3tx(superToken.approve, "unapprove bob")(
+                bob, 0, {from: alice});
+            const finalAllowedBalanceBob = await superToken.allowance.call(alice, bob);
+            assert.equal(finalAllowedBalanceBob.toString(), 0, "bob final allowance should be zero");
+        });
+
+        it("#5.2 - should transfer approved amount reducing allowance amount", async() => {
+            await web3tx(superToken.upgrade, "upgrade all from alice")(
+                INIT_BALANCE, {from: alice});
+            const aliceSuperBalance = await superToken.balanceOf.call(alice);
+            await web3tx(superToken.approve, "approve bob all alice balance")(
+                bob, aliceSuperBalance, {from: alice});
+
+            await superToken.transferFrom(alice, bob, aliceSuperBalance, {from: bob});
+            const superBalanceBob = await superToken.balanceOf.call(bob);
+            assert.equal(superBalanceBob.toString(),
+                aliceSuperBalance.toString(),
+                "bob didn't received all amount of alice"
+            );
+
+            await expectRevert(
+                web3tx(superToken.transferFrom,
+                    "SuperToken.transferFrom without allowance")(
+                    alice,
+                    bob,
+                    1, {from: bob}
+                ), "transfer amount exceeds balance");
+        });
+
     });
 
 });

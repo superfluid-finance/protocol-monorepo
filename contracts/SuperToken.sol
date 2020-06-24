@@ -37,7 +37,7 @@ contract SuperToken is ISuperToken {
     mapping(address => address[]) private _activeAgreementClasses;
 
     /// @dev Settled balance for the account
-    mapping(address => int256) private _settledBalances;
+    mapping(address => int256) private _balances;
 
     /// @dev ERC20 Allowances Storage
     mapping (address => mapping (address => uint256)) private _allowances;
@@ -234,8 +234,8 @@ contract SuperToken is ISuperToken {
         require(recipient != address(0), "transfer to zero address");
         require(balanceOf(sender) >= amount, "transfer amount exceeds balance");
 
-        _settledBalances[sender] = _settledBalances[sender].sub(int256(amount));
-        _settledBalances[recipient] = _settledBalances[recipient].add(int256(amount));
+        _balances[sender] = _balances[sender].sub(int256(amount));
+        _balances[recipient] = _balances[recipient].add(int256(amount));
         emit Transfer(sender, recipient, amount);
     }
 
@@ -253,7 +253,7 @@ contract SuperToken is ISuperToken {
     {
         require(account != address(0), "mint to zero address");
 
-        _settledBalances[account] = _settledBalances[account].add(int256(amount));
+        _balances[account] = _balances[account].add(int256(amount));
         emit Transfer(address(0), account, amount);
     }
 
@@ -274,7 +274,7 @@ contract SuperToken is ISuperToken {
         require(account != address(0), "burn from zero address");
         require(balanceOf(account) >= amount, "burn amount exceeds balance");
 
-        _settledBalances[account] = _settledBalances[account].sub(int256(amount));
+        _balances[account] = _balances[account].sub(int256(amount));
         emit Transfer(account, address(0), amount);
     }
 
@@ -442,12 +442,12 @@ contract SuperToken is ISuperToken {
 
         //if there is fees to be collected discount user account, if not then discount rewardAccount
         if (remain > 0) {
-            _settledBalances[account] = _settledBalances[account].sub(int256(deposit));
-            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(int256(deposit));
+            _balances[account] = _balances[account].sub(int256(deposit));
+            _balances[rewardAccount] = _balances[rewardAccount].add(int256(deposit));
         } else {
-            _settledBalances[account] = _settledBalances[account].sub(balance);
-            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(remain);
-            _settledBalances[liquidator] = _settledBalances[liquidator].add(int256(deposit));
+            _balances[account] = _balances[account].sub(balance);
+            _balances[rewardAccount] = _balances[rewardAccount].add(remain);
+            _balances[liquidator] = _balances[liquidator].add(int256(deposit));
         }
 
         delete _agreementData[msg.sender][id];
@@ -477,7 +477,7 @@ contract SuperToken is ISuperToken {
     }
 
     function getSettledBalance(address account) external view returns(int256 settledBalance) {
-        return _settledBalances[account];
+        return _balances[account];
     }
     /// @dev ISuperfluidGovernance.getGovernanceAddress implementation
     function getGovernanceAddress() external override view returns(address) {
@@ -508,7 +508,7 @@ contract SuperToken is ISuperToken {
             );
         }
 
-        return _settledBalances[account].add(eachAgreementClassBalance);
+        return _balances[account].add(eachAgreementClassBalance);
     }
     /* solhint-enable mark-callable-contracts */
 
@@ -536,9 +536,9 @@ contract SuperToken is ISuperToken {
         // WRONG: real-time balance 0 (settled balance is 0, static balance is 0, state balance 0)
         // CORRECT: real-time balance 0 (settled balance is -2, static balance is 0, state balance 0)
         /*
-        if (_settledBalances[account] > 0) {
-            _mint(account, uint256(_settledBalances[account]));
-            _settledBalances[account] = 0;
+        if (_balances[account] > 0) {
+            _mint(account, uint256(_balances[account]));
+            _balances[account] = 0;
         }
         */
     }
@@ -595,6 +595,6 @@ contract SuperToken is ISuperToken {
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp);
+        _balances[account] = realtimeBalanceOf(account, block.timestamp);
     }
 }

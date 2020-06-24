@@ -47,7 +47,7 @@ module.exports = class Tester {
     async resetContracts() {
         this.contracts = {};
 
-        this.contracts.token = await web3tx(TestToken.new, " TestToken.new")(
+        this.contracts.token = await web3tx(TestToken.new, "TestToken.new")(
             {
                 from: this.aliases.admin
             });

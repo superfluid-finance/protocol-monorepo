@@ -65,6 +65,7 @@ module.exports = class Tester {
             this.contracts.governance.address,
             "SuperToken",
             "STK",
+            18,
             {
                 from: this.aliases.admin
             });

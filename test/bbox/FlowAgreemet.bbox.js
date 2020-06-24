@@ -54,7 +54,6 @@ contract("Flow Agreement Stories", accounts => {
             governance.address,
             "SuperToken",
             "STK",
-            18,
             {
                 from: admin
             });

@@ -11,13 +11,13 @@
     "index.js"
   ],
   "dependencies": {
-    "@openzeppelin/contracts": "3.0.2"
+    "@openzeppelin/contracts": "3.1.0"
   },
   "peerDependencies": {
     "@truffle/contract": "4.2.9"
   },
   "devDependencies": {
-    "@decentral.ee/web3-helpers": "0.3.1",
+    "@decentral.ee/web3-helpers": "0.3.2",
     "@openzeppelin/test-helpers": "0.5.6",
     "@truffle/hdwallet-provider": "1.0.35",
     "dotenv": "8.2.0",
@@ -28,7 +28,7 @@
     "npm-run-all": "4.1.5",
     "sol-proxy": "0.1.2",
     "solhint": "git+https://github.com/decentral-ee/solhint.git",
-    "solidity-coverage": "0.7.7",
+    "solidity-coverage": "0.7.8",
     "truffle": "5.1.31",
     "truffle-flattener": "1.4.4",
     "truffle-plugin-verify": "0.3.11"

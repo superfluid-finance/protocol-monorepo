@@ -4,18 +4,18 @@ pragma solidity ^0.6.6;
 
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
-import { ERC20Base } from "./ERC20Base.sol";
 import { ISuperAgreement } from "./interface/ISuperAgreement.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-
+import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 /**
  * @title Superfluid's token implementation
  * @author Superfluid
  */
-contract SuperToken is ISuperToken, ERC20Base {
+contract SuperToken is ISuperToken {
 
     using SignedSafeMath for int256;
+    using SafeMath for uint256;
 
     /// @dev The underlaying ERC20 token
     IERC20 private _token;
@@ -37,15 +37,269 @@ contract SuperToken is ISuperToken, ERC20Base {
     mapping(address => address[]) private _activeAgreementClasses;
 
     /// @dev Settled balance for the account
-    mapping(address => int256) private _settledBalances;
+    mapping(address => int256) private _balances;
 
-    constructor (IERC20 token, ISuperfluidGovernance gov, string memory name, string memory symbol)
+    /// @dev ERC20 Allowances Storage
+    mapping (address => mapping (address => uint256)) private _allowances;
+    /// @dev ERC20 Name property
+    string private _name;
+    /// @dev ERC20 Symbol property
+    string private _symbol;
+    /// @dev ERC20 Decimals property
+    uint8 private _decimals;
+
+    constructor (IERC20 token, ISuperfluidGovernance gov, string memory name, string memory symbol, uint8 decimals)
     public
-    ERC20Base(name, symbol) {
+    {
+
+        _name = name;
+        _symbol = symbol;
+        _decimals = decimals;
         _token = token;
         _gov = gov;
     }
 
+    /*
+     *  ERC20 Implementation
+     */
+
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() public view returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev Returns the symbol of the token, usually a shorter version of the
+     * name.
+     */
+    function symbol() public view returns (string memory) {
+        return _symbol;
+    }
+
+    /**
+     * @dev Returns the number of decimals used to get its user representation.
+     * For example, if `decimals` equals `2`, a balance of `505` tokens should
+     * be displayed to a user as `5,05` (`505 / 10 ** 2`).
+     *
+     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
+     * called.
+     *
+     * Note: This information is only used for _display_ purposes: it in
+     * no way affects any of the arithmetic of the contract, including
+     * {IERC20-balanceOf} and {IERC20-transfer}.
+     */
+    function decimals() public view returns (uint8) {
+        return _decimals;
+    }
+
+    /**
+     * @dev See {IERC20-totalSupply}.
+     */
+    function totalSupply()
+        public view override returns (uint256)
+    {
+        return _token.balanceOf(address(this));
+    }
+
+
+    /**
+     * @dev See {IERC20-transfer}.
+     *
+     * Requirements:
+     *
+     * - `recipient` cannot be the zero address.
+     * - the caller must have a balance of at least `amount`.
+     */
+    function transfer(address recipient, uint256 amount)
+        public override returns (bool)
+    {
+        _transfer(msg.sender, recipient, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-allowance}.
+     */
+    function allowance(address owner, address spender)
+        public view override returns (uint256)
+    {
+        return _allowances[owner][spender];
+    }
+
+    /**
+     * @dev See {IERC20-approve}.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     */
+    function approve(address spender, uint256 amount)
+        public override returns (bool)
+    {
+        _approve(msg.sender, spender, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {IERC20-transferFrom}.
+     *
+     * Emits an {Approval} event indicating the updated allowance. This is not
+     * required by the EIP. See the note at the beginning of {ERC20};
+     *
+     * Requirements:
+     * - `sender` and `recipient` cannot be the zero address.
+     * - `sender` must have a balance of at least `amount`.
+     * - the caller must have allowance for ``sender``'s tokens of at least
+     * `amount`.
+     */
+    function transferFrom(address sender, address recipient, uint256 amount)
+        public override returns (bool)
+    {
+        _transfer(sender, recipient, amount);
+        _approve(
+            sender,
+            msg.sender,
+            _allowances[sender][msg.sender].sub(amount, "ERC20: transfer amount exceeds allowance")
+        );
+        return true;
+    }
+
+    /**
+     * @dev Atomically increases the allowance granted to `spender` by the caller.
+     *
+     * This is an alternative to {approve} that can be used as a mitigation for
+     * problems described in {IERC20-approve}.
+     *
+     * Emits an {Approval} event indicating the updated allowance.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     */
+    function _increaseAllowance(address spender, uint256 addedValue)
+        private
+        returns (bool)
+    {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
+        return true;
+    }
+
+    /**
+     * @dev Atomically decreases the allowance granted to `spender` by the caller.
+     *
+     * This is an alternative to {approve} that can be used as a mitigation for
+     * problems described in {IERC20-approve}.
+     *
+     * Emits an {Approval} event indicating the updated allowance.
+     *
+     * Requirements:
+     *
+     * - `spender` cannot be the zero address.
+     * - `spender` must have allowance for the caller of at least
+     * `subtractedValue`.
+     */
+    function _decreaseAllowance(address spender, uint256 subtractedValue)
+        private
+        returns (bool)
+    {
+        _approve(
+            msg.sender,
+            spender,
+            _allowances[msg.sender][spender].sub(subtractedValue, "ERC20: decreased allowance below zero")
+        );
+        return true;
+    }
+
+    /**
+     * @dev Moves tokens `amount` from `sender` to `recipient`.
+     *
+     * This is internal function is equivalent to {transfer}, and can be used to
+     * e.g. implement automatic token fees, slashing mechanisms, etc.
+     *
+     * Emits a {Transfer} event.
+     *
+     * Requirements:
+     *
+     * - `sender` cannot be the zero address.
+     * - `recipient` cannot be the zero address.
+     * - `sender` must have a balance of at least `amount`.
+     */
+    function _transfer(address sender, address recipient, uint256 amount)
+        private
+    {
+        require(sender != address(0), "transfer from zero address");
+        require(recipient != address(0), "transfer to zero address");
+        require(balanceOf(sender) >= amount, "transfer amount exceeds balance");
+
+        _balances[sender] = _balances[sender].sub(int256(amount));
+        _balances[recipient] = _balances[recipient].add(int256(amount));
+        emit Transfer(sender, recipient, amount);
+    }
+
+    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
+     * the total supply.
+     *
+     * Emits a {Transfer} event with `from` set to the zero address.
+     *
+     * Requirements
+     *
+     * - `to` cannot be the zero address.
+     */
+    function _mint(address account, uint256 amount)
+        internal
+    {
+        require(account != address(0), "mint to zero address");
+
+        _balances[account] = _balances[account].add(int256(amount));
+        emit Transfer(address(0), account, amount);
+    }
+
+    /**
+     * @dev Destroys `amount` tokens from `account`, reducing the
+     * total supply.
+     *
+     * Emits a {Transfer} event with `to` set to the zero address.
+     *
+     * Requirements
+     *
+     * - `account` cannot be the zero address.
+     * - `account` must have at least `amount` tokens.
+     */
+    function _burn(address account, uint256 amount)
+        internal
+    {
+        require(account != address(0), "burn from zero address");
+        require(balanceOf(account) >= amount, "burn amount exceeds balance");
+
+        _balances[account] = _balances[account].sub(int256(amount));
+        emit Transfer(account, address(0), amount);
+    }
+
+    /**
+     * @dev Sets `amount` as the allowance of `spender` over the `owner`s tokens.
+     *
+     * This is internal function is equivalent to `approve`, and can be used to
+     * e.g. set automatic allowances for certain subsystems, etc.
+     *
+     * Emits an {Approval} event.
+     *
+     * Requirements:
+     *
+     * - `owner` cannot be the zero address.
+     * - `spender` cannot be the zero address.
+     */
+    function _approve(address owner, address spender, uint256 amount)
+        private
+    {
+        require(owner != address(0), "approve from zero address");
+        require(spender != address(0), "approve to zero address");
+
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
     /*
      * Account functions
      */
@@ -126,7 +380,7 @@ contract SuperToken is ISuperToken, ERC20Base {
         override
     {
         // msg.sender is agreementClass
-        require(msg.sender != account, "Use the agreement contract");
+        require(msg.sender != account, "SuperToken: unauthorized agreement storage access");
         _takeBalanceSnapshot(account);
         _accountStates[msg.sender][account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
@@ -188,12 +442,12 @@ contract SuperToken is ISuperToken, ERC20Base {
 
         //if there is fees to be collected discount user account, if not then discount rewardAccount
         if (remain > 0) {
-            _settledBalances[account] = _settledBalances[account].sub(int256(deposit));
-            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(int256(deposit));
+            _balances[account] = _balances[account].sub(int256(deposit));
+            _balances[rewardAccount] = _balances[rewardAccount].add(int256(deposit));
         } else {
-            _settledBalances[account] = _settledBalances[account].sub(balance);
-            _settledBalances[rewardAccount] = _settledBalances[rewardAccount].add(remain);
-            _settledBalances[liquidator] = _settledBalances[liquidator].add(int256(deposit));
+            _balances[account] = _balances[account].sub(balance);
+            _balances[rewardAccount] = _balances[rewardAccount].add(remain);
+            _balances[liquidator] = _balances[liquidator].add(int256(deposit));
         }
 
         delete _agreementData[msg.sender][id];
@@ -214,7 +468,7 @@ contract SuperToken is ISuperToken, ERC20Base {
 
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
-        require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
+        require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
         //review TODO touch only need, by the requirement amount
         _touch(msg.sender);
         _burn(msg.sender, amount);
@@ -223,7 +477,7 @@ contract SuperToken is ISuperToken, ERC20Base {
     }
 
     function getSettledBalance(address account) external view returns(int256 settledBalance) {
-        return _settledBalances[account];
+        return _balances[account];
     }
     /// @dev ISuperfluidGovernance.getGovernanceAddress implementation
     function getGovernanceAddress() external override view returns(address) {
@@ -254,7 +508,7 @@ contract SuperToken is ISuperToken, ERC20Base {
             );
         }
 
-        return _settledBalances[account].add(eachAgreementClassBalance.add(int256(_balances[account])));
+        return _balances[account].add(eachAgreementClassBalance);
     }
     /* solhint-enable mark-callable-contracts */
 
@@ -281,10 +535,12 @@ contract SuperToken is ISuperToken, ERC20Base {
         // after touching:
         // WRONG: real-time balance 0 (settled balance is 0, static balance is 0, state balance 0)
         // CORRECT: real-time balance 0 (settled balance is -2, static balance is 0, state balance 0)
-        if (_settledBalances[account] > 0) {
-            _mint(account, uint256(_settledBalances[account]));
-            _settledBalances[account] = 0;
+        /*
+        if (_balances[account] > 0) {
+            _mint(account, uint256(_balances[account]));
+            _balances[account] = 0;
         }
+        */
     }
     /* solhint-enable mark-callable-contracts */
 
@@ -339,6 +595,6 @@ contract SuperToken is ISuperToken, ERC20Base {
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        _settledBalances[account] = realtimeBalanceOf(account, block.timestamp).sub(int256(_balances[account]));
+        _balances[account] = realtimeBalanceOf(account, block.timestamp);
     }
 }

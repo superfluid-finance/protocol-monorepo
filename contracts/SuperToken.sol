@@ -380,7 +380,7 @@ contract SuperToken is ISuperToken {
         override
     {
         // msg.sender is agreementClass
-        require(msg.sender != account, "Use the agreement contract");
+        require(msg.sender != account, "SuperToken: unauthorized agreement storage access");
         _takeBalanceSnapshot(account);
         _accountStates[msg.sender][account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
@@ -468,7 +468,7 @@ contract SuperToken is ISuperToken {
 
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
-        require(uint256(balanceOf(msg.sender)) >= amount, "amount not allowed");
+        require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
         //review TODO touch only need, by the requirement amount
         _touch(msg.sender);
         _burn(msg.sender, amount);

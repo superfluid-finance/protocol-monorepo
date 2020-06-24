@@ -142,7 +142,7 @@ contract FlowAgreement is IFlowAgreement {
         bytes memory flowData = token.getAgreementData(address(this), flowId);
         flowData = _composeData(flowData, _mirrorAgreementData(additionalData));
         (, int256 flowRate) = _decodeFlow(flowData);
-        require(flowRate <= 0, "Revert flow not allowed");
+        require(flowRate <= 0, "FlowAgreement: negative flow rate not allowed");
         token.createAgreement(flowId, flowData);
     }
 

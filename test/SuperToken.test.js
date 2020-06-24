@@ -12,7 +12,6 @@ const Tester = require("./Tester");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
-const FLOW_RATE_ADDITIONAL = toWad(2);
 
 contract("Super Token", accounts => {
 
@@ -128,100 +127,7 @@ contract("Super Token", accounts => {
             await tester.validateSystem();
         });
 
-        it("#2.3 - should downgrade full balance with flows running", async() => {
-            await web3tx(superToken.upgrade, "upgrade all from alice")(
-                INIT_BALANCE, {from: alice});
-
-            const updateFlowTx = await web3tx(flowAgreement.updateFlow, "updateFlow alice to bob")(
-                superToken.address, alice, bob, FLOW_RATE, {from: alice});
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            const interimSuperBalanceBob = await superToken.balanceOf.call(bob);
-            await expectRevert(
-                web3tx(superToken.downgrade, "downgrade all(+1) from bob should fail")(
-                    interimSuperBalanceBob.add(toBN(1)), {from: bob}
-                ), "SuperToken: downgrade amount exceeds balance");
-            const bobDowngradeTx = await web3tx(superToken.downgrade, "downgrade all interim balance from bob")(
-                interimSuperBalanceBob, {from: bob});
-
-            const tokenBalanceBob = await token.balanceOf.call(bob);
-
-            assert.ok(tokenBalanceBob.eq(INIT_BALANCE.add(interimSuperBalanceBob)),
-                "TestToken.balanceOf bob token balance is not correct");
-
-            const superTokenBalanceBob1 = await superToken.balanceOf.call(bob);
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const finalSuperBalanceAlice = await superToken.balanceOf.call(alice);
-            const finalSuperBalanceBob = await superToken.balanceOf.call(bob);
-
-            const updateFlowTxBlock = await web3.eth.getBlock(updateFlowTx.receipt.blockNumber);
-            const bobDowngradeTxBlock = await web3.eth.getBlock(bobDowngradeTx.receipt.blockNumber);
-            const spanSinceFlowUpdated = endBlock.timestamp - updateFlowTxBlock.timestamp;
-            const spanSinceBobDowngraded = web3.utils.toBN(endBlock.timestamp - bobDowngradeTxBlock.timestamp);
-
-            const finalSuperBalanceAliceExpected = INIT_BALANCE.sub(web3.utils.toBN(spanSinceFlowUpdated * FLOW_RATE));
-            const finalSuperBalanceBobExpected = superTokenBalanceBob1.add(spanSinceBobDowngraded.mul(FLOW_RATE));
-
-            assert.equal(
-                finalSuperBalanceAlice.toString(),
-                finalSuperBalanceAliceExpected.toString(),
-                "SuperToken.balanceOf - not correct for alice");
-            assert.equal(
-                finalSuperBalanceBob.toString(),
-                finalSuperBalanceBobExpected.toString(),
-                "SuperToken.balanceOf - not correct for bob");
-
-            await tester.validateSystem();
-        });
-
-        it("#2.4 - should downgrade partial amount with flows running", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-
-            const txFlow12 = await web3tx(flowAgreement.updateFlow, "FlowAgreement.updateFlow alice to bob")(
-                superToken.address, alice, bob, FLOW_RATE, {from: alice});
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            const user2MidwayBalance1 = await superToken.balanceOf.call(bob);
-            const user2DowngradeAmount = web3.utils.toBN(user2MidwayBalance1 / 1000);
-            await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
-                user2DowngradeAmount.toString(), {from: bob}
-            );
-
-            const user2MidwayBalance2Est = INIT_BALANCE.add(user2DowngradeAmount);
-            const user2MidwayBalance2 = await token.balanceOf.call(bob);
-            assert.equal(
-                user2MidwayBalance2.toString(),
-                user2MidwayBalance2Est.toString(),
-                "Call: TestToken.balanceOf - User 2 token balance is not correct");
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const aliceFinalBalance = await superToken.balanceOf.call(alice);
-            const user2FinalBalance = await superToken.balanceOf.call(bob);
-
-            const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
-            const spanFlow12 = endBlock.timestamp - blockFlow12.timestamp;
-            const aliceFinalBalanceEst = INIT_BALANCE.sub(web3.utils.toBN(spanFlow12 * FLOW_RATE));
-            const user2FinalBalanceEst = (spanFlow12 * FLOW_RATE) - user2DowngradeAmount;
-
-            assert.equal(
-                aliceFinalBalance.toString(),
-                aliceFinalBalanceEst.toString(),
-                "Call: SuperToken.balanceOf - not correct for alice");
-            assert.equal(
-                user2FinalBalance.toString(),
-                user2FinalBalanceEst.toString(),
-                "Call: SuperToken.balanceOf - not correct for bob");
-
-            await tester.validateSystem();
-        });
-
-        it("#2.5 - should not downgrade if there is no balance", async () => {
+        it("#2.3 - should not downgrade if there is no balance", async () => {
             await expectRevert(web3tx(superToken.downgrade, "Call: SuperToken.downgrade - bad balance")(
                 toBN(1), {
                     from: alice
@@ -249,7 +155,7 @@ contract("Super Token", accounts => {
             await web3tx(
                 flowAgreement.updateFlow,
                 "Call: FlowAgreement.updateFlow"
-            )(superToken.address, bob, alice, FLOW_RATE_ADDITIONAL, {from: bob});
+            )(superToken.address, bob, alice, FLOW_RATE.mul(toBN(2)), {from: bob});
 
             aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
             user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
@@ -338,7 +244,55 @@ contract("Super Token", accounts => {
     });
 
     describe("#5 SuperToken.approve", () => {
-        // TODO
+        it("#5.1 - should approve amount", async() => {
+            await web3tx(superToken.upgrade, "upgrade all from alice")(
+                INIT_BALANCE, {from: alice});
+            const aliceSuperBalance = await superToken.balanceOf.call(alice);
+            await web3tx(superToken.approve, "approve bob all alice balance")(
+                bob, aliceSuperBalance, {from: alice});
+
+            const fullAllowedBalanceBob = await superToken.allowance.call(alice, bob);
+            assert.equal(aliceSuperBalance.toString(),
+                fullAllowedBalanceBob.toString(),
+                "Bob allowance is not alice full balance"
+            );
+
+            await web3tx(superToken.approve, "approve bob half of alice balance")(
+                bob, aliceSuperBalance.div(toBN(2)), {from: alice});
+            const halfAllowedBalanceBob = await superToken.allowance.call(alice, bob);
+            assert.equal(aliceSuperBalance.div(toBN(2)).toString(),
+                halfAllowedBalanceBob.toString(),
+                "Bob allowance is not alice half balance"
+            );
+
+            await web3tx(superToken.approve, "unapprove bob")(
+                bob, 0, {from: alice});
+            const finalAllowedBalanceBob = await superToken.allowance.call(alice, bob);
+            assert.equal(finalAllowedBalanceBob.toString(), 0, "bob final allowance should be zero");
+        });
+
+        it("#5.2 - should transfer approved amount reducing allowance amount", async() => {
+            await web3tx(superToken.upgrade, "upgrade all from alice")(
+                INIT_BALANCE, {from: alice});
+            const aliceSuperBalance = await superToken.balanceOf.call(alice);
+            await web3tx(superToken.approve, "approve bob all alice balance")(
+                bob, aliceSuperBalance, {from: alice});
+
+            await superToken.transferFrom(alice, bob, aliceSuperBalance, {from: bob});
+            const superBalanceBob = await superToken.balanceOf.call(bob);
+            assert.equal(superBalanceBob.toString(),
+                aliceSuperBalance.toString(),
+                "bob didn't received all amount of alice"
+            );
+
+            await expectRevert(
+                web3tx(superToken.transferFrom,
+                    "SuperToken.transferFrom without allowance")(
+                    alice,
+                    bob,
+                    1, {from: bob}
+                ), "transfer amount exceeds balance");
+        });
     });
 
 });

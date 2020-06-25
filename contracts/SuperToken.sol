@@ -476,9 +476,6 @@ contract SuperToken is ISuperToken {
         emit TokenDowngraded(msg.sender, amount);
     }
 
-    function getSettledBalance(address account) external view returns(int256 settledBalance) {
-        return _balances[account];
-    }
     /// @dev ISuperfluidGovernance.getGovernanceAddress implementation
     function getGovernanceAddress() external override view returns(address) {
         return address(_gov);

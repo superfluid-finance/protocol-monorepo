@@ -229,10 +229,6 @@ contract("Super Token", accounts => {
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
             const superBalanceBob = await superToken.balanceOf.call(bob);
-            await expectRevert(
-                web3tx(superToken.transfer, "downgrade all(+1) from bob should fail")(
-                    carol, superBalanceBob.add(toBN(1)), {from: bob}
-                ), "transfer amount exceeds balance.");
             await web3tx(superToken.transfer, "downgrade all interim balance from bob to carol")(
                 carol, superBalanceBob, {from: bob});
 

@@ -36,6 +36,14 @@ contract("Super Token", accounts => {
         } = tester.contracts);
     });
 
+    describe("#0 SuperToken ERC20 info", () => {
+        it("#0.1 - test basic token info", async () => {
+            assert.equal(await superToken.name.call(), "SuperTestToken");
+            assert.equal(await superToken.symbol.call(), "STT");
+            assert.equal(await superToken.decimals.call(), 18);
+        });
+    });
+
     describe("#1 SuperToken.upgrade", () => {
         it("#1.1 - should upgrade if enough balance", async () => {
             const initialBalance = await token.balanceOf.call(alice);
@@ -229,10 +237,6 @@ contract("Super Token", accounts => {
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
             const superBalanceBob = await superToken.balanceOf.call(bob);
-            await expectRevert(
-                web3tx(superToken.transfer, "downgrade all(+1) from bob should fail")(
-                    carol, superBalanceBob.add(toBN(1)), {from: bob}
-                ), "transfer amount exceeds balance.");
             await web3tx(superToken.transfer, "downgrade all interim balance from bob to carol")(
                 carol, superBalanceBob, {from: bob});
 

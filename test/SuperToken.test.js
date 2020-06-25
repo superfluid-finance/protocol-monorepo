@@ -36,6 +36,14 @@ contract("Super Token", accounts => {
         } = tester.contracts);
     });
 
+    describe("#0 SuperToken ERC20 info", () => {
+        it("#0.1 - test basic token info", async () => {
+            assert.equal(await superToken.name.call(), "SuperTestToken");
+            assert.equal(await superToken.symbol.call(), "STT");
+            assert.equal(await superToken.decimals.call(), 18);
+        });
+    });
+
     describe("#1 SuperToken.upgrade", () => {
         it("#1.1 - should upgrade if enough balance", async () => {
             const initialBalance = await token.balanceOf.call(alice);

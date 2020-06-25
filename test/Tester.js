@@ -63,8 +63,8 @@ module.exports = class Tester {
         this.contracts.superToken = await web3tx(SuperToken.new, "SuperToken.new")(
             this.contracts.token.address,
             this.contracts.governance.address,
-            "SuperToken",
-            "STK",
+            "SuperTestToken",
+            "STT",
             18,
             {
                 from: this.aliases.admin

@@ -167,14 +167,40 @@ contract("Flow Agreement", accounts => {
         });
 
         it("#1.4 update active flow to negative flow rate should also fail", async() => {
-            await superToken.upgrade(toWad(1), {from : alice});
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
 
             await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
             await traveler.advanceTimeAndBlock(ADV_TIME);
             await expectRevert(
                 web3tx(flowAgreement.updateFlow, "creating with negative flow")(
-                    superToken.address, alice, bob, "-10000000000000000000000", {from: alice}
+                    superToken.address, alice, bob, FLOW_RATE.mul(toBN(-1)), {from: alice}
                 ), "FlowAgreement: negative flow rate not allowed");
+
+            await tester.validateSystem();
+        });
+
+        it("#1.5 update other's flow should fail", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+
+            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            await expectRevert(
+                web3tx(flowAgreement.updateFlow, "carol creating flow for alice should fail")(
+                    superToken.address, alice, bob, toWad(1), {from: carol}
+                ), "FlowAgreement: only sender can update its own flow");
+
+            await tester.validateSystem();
+        });
+
+        it("#1.6 update with zero rate should fail", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+
+            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            await expectRevert(
+                web3tx(flowAgreement.updateFlow, "creating with negative flow")(
+                    superToken.address, alice, bob, 0, {from: alice}
+                ), "FlowAgreement: use delete flow");
 
             await tester.validateSystem();
         });
@@ -190,10 +216,6 @@ contract("Flow Agreement", accounts => {
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
             const interimSuperBalanceBob = await superToken.balanceOf.call(bob);
-            await expectRevert(
-                web3tx(superToken.downgrade, "downgrade all(+1) from bob should fail")(
-                    interimSuperBalanceBob.add(toBN(1)), {from: bob}
-                ), "SuperToken: downgrade amount exceeds balance");
             const bobDowngradeTx = await web3tx(superToken.downgrade, "downgrade all interim balance from bob")(
                 interimSuperBalanceBob, {from: bob});
 
@@ -529,13 +551,27 @@ contract("Flow Agreement", accounts => {
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
             await expectRevert(
-                web3tx(flowAgreement.deleteFlow, "FlowAgreement.deleteFlow - Invoking method as liquidator")(
+                web3tx(flowAgreement.deleteFlow, "FlowAgreement.deleteFlow by liquidator")(
                     superToken.address,
                     alice,
                     bob, {
                         from: admin
                     }
-                ), "Account is solvent");
+                ), "FlowAgreement: account is solvent");
+        });
+
+        it("#5.3 liquidation of non existing flow should fail", async () => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+
+            await expectRevert(
+                web3tx(flowAgreement.deleteFlow, "FlowAgreement.deleteFlow non existing flow by alice")(
+                    superToken.address,
+                    alice,
+                    bob, {
+                        from: alice
+                    }
+                ), "FlowAgreement: flow does not exist");
         });
     });
 });

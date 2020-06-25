@@ -60,7 +60,7 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         // TODO meta-tx support
-        //require(sender == msg.sender, "Only msg.sender can be sender");
+        require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
         _updateFlow(token, sender, receiver, flowRate);
     }
 
@@ -103,17 +103,31 @@ contract FlowAgreement is IFlowAgreement {
         external
         override
     {
-        bool isLiquidation = (msg.sender != sender && msg.sender != receiver);
-        if (isLiquidation) {
-            require(token.isAccountInsolvent(sender), "Account is solvent");
+        bool isLiquidator = (msg.sender != sender && msg.sender != receiver);
+        if (isLiquidator) {
+            require(token.isAccountInsolvent(sender), "FlowAgreement: account is solvent");
         }
 
-        _terminateAgreementData(token, sender, receiver, isLiquidation);
+        _terminateAgreementData(token, sender, receiver, isLiquidator);
     }
 
     /*
      * Internal Functions
      */
+
+     function _updateAccountState(
+         ISuperToken token,
+         address account,
+         int256 flowRate
+     )
+         private
+         returns(int256 newFlowRate)
+     {
+         bytes memory state = token.getAgreementAccountState(address(this), account);
+         state = _composeState(state, flowRate, block.timestamp);
+         token.updateAgreementAccountState(account, state);
+         (, newFlowRate) = _decodeFlow(state);
+     }
 
     function _updateFlow(
         ISuperToken token,
@@ -123,37 +137,16 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
     {
-        require(flowRate != 0, "Invalid FlowRate, use deleteFlow function");
-        bytes memory data = _encodeFlow(block.timestamp, flowRate);
+        require(flowRate != 0, "FlowAgreement: use delete flow");
+        require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
 
-        _updateAgreementData(token, sender, receiver, data);
-        _updateAccountState(token, sender, receiver, flowRate);
-    }
+        bytes memory newFlowData = _encodeFlow(block.timestamp, flowRate);
 
-    function _updateAgreementData(
-        ISuperToken token,
-        address sender,
-        address receiver,
-        bytes memory additionalData
-    )
-        private
-    {
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory flowData = token.getAgreementData(address(this), flowId);
-        flowData = _composeData(flowData, _mirrorAgreementData(additionalData));
-        (, int256 flowRate) = _decodeFlow(flowData);
-        require(flowRate <= 0, "FlowAgreement: negative flow rate not allowed");
+        flowData = _composeData(flowData, _mirrorAgreementData(newFlowData));
         token.createAgreement(flowId, flowData);
-    }
 
-    function _updateAccountState(
-        ISuperToken token,
-        address sender,
-        address receiver,
-        int256 flowRate
-    )
-        private
-    {
         int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRate));
         int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRate);
         emit FlowUpdated(
@@ -165,21 +158,6 @@ contract FlowAgreement is IFlowAgreement {
             totalReceiverFlowRate);
     }
 
-    function _updateAccountState(
-        ISuperToken token,
-        address account,
-        int256 flowRate
-    )
-        private
-        returns(int256)
-    {
-        bytes memory state = token.getAgreementAccountState(address(this), account);
-        state = _composeState(state, flowRate, block.timestamp);
-        token.updateAgreementAccountState(account, state);
-        (, int256 newFlowRate) = _decodeFlow(state);
-        return newFlowRate;
-    }
-
     function _terminateAgreementData(
         ISuperToken token,
         address sender,
@@ -189,12 +167,13 @@ contract FlowAgreement is IFlowAgreement {
         private
     {
         bytes32 flowId = _generateId(sender, receiver);
-        (int256 senderFlowRate, int256 totalSenderFlowRate) = _updateAccountStateWithData(
-            token, sender, flowId, true
-        );
-        (, int256 totalReceiverFlowRate) = _updateAccountStateWithData(token, receiver, flowId, false);
-
+        bytes memory flowData = token.getAgreementData(address(this), flowId);
+        require(flowData.length > 0, "FlowAgreement: flow does not exist");
+        (, int256 senderFlowRate) = _decodeFlow(flowData);
         assert(senderFlowRate < 0);
+
+        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(senderFlowRate));
+        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, senderFlowRate);
 
         // note : calculate the deposit here and pass it to superToken, and emit the events.
         // Close this Agreement Data
@@ -218,32 +197,6 @@ contract FlowAgreement is IFlowAgreement {
             0,
             totalSenderFlowRate,
             totalReceiverFlowRate);
-    }
-
-    function _updateAccountStateWithData(
-        ISuperToken token,
-        address account,
-        bytes32 id,
-        bool invertFlow
-    )
-        private
-        returns(int256 flowRate, int256 totalFlowRate)
-    {
-
-        bytes memory state = token.getAgreementAccountState(address(this), account);
-        bytes memory data = token.getAgreementData(address(this), id);
-        require(data.length > 0, "Account data not found");
-        (, flowRate) = _decodeFlow(data);
-
-        if (invertFlow) {
-            state = _composeState(state, _mirrorFlowRate(flowRate), block.timestamp);
-        } else {
-            state = _composeState(state, flowRate, block.timestamp);
-        }
-
-        token.updateAgreementAccountState(account, state);
-
-        (, totalFlowRate) = _decodeFlow(state);
     }
 
     function _mirrorFlowRate(int256 flowRate) private pure returns(int256 mirrorFlowRate) {
@@ -295,7 +248,7 @@ contract FlowAgreement is IFlowAgreement {
     )
     {
         if (state.length == 0) return (0, 0);
-        require(state.length == 64, "invalid state size must be 64");
+        assert(state.length == 64);
         return abi.decode(state, (uint256, int256));
     }
 
@@ -347,8 +300,7 @@ contract FlowAgreement is IFlowAgreement {
         pure
         returns (bytes memory newAgreement)
     {
-
-        require(flowRate != 0, "Invalid FlowRate");
+        assert(flowRate != 0);
         (, int cRate) = _decodeFlow(currentState);
         cRate = cRate.add(flowRate);
 

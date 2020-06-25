@@ -70,7 +70,7 @@ contract("Super Token", accounts => {
 
         it("#1.2 - should not upgrade without enough underlying balance", async() => {
             const initialBalance = await token.balanceOf.call(alice);
-            await expectRevert(web3tx(superToken.upgrade, "Call: SuperToken.upgrade - bad balance")(
+            await expectRevert(web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
                 initialBalance.add(toBN(1)), {from: alice}), "ERC20: transfer amount exceeds balance");
             await tester.validateSystem();
         });
@@ -126,17 +126,17 @@ contract("Super Token", accounts => {
             assert.equal(
                 initialSuperBalanceAlice.toString(),
                 finalSuperBalanceAlice.toString(),
-                "Call: SuperToken.balanceOf - not correct for user 1");
+                "SuperToken.balanceOf - not correct for user 1");
             assert.equal(
                 initialSuperBalanceBob.toString(),
                 finalSuperBalanceBob.toString(),
-                "Call: SuperToken.balanceOf - not correct for user 2");
+                "SuperToken.balanceOf - not correct for user 2");
 
             await tester.validateSystem();
         });
 
         it("#2.3 - should not downgrade if there is no balance", async () => {
-            await expectRevert(web3tx(superToken.downgrade, "Call: SuperToken.downgrade - bad balance")(
+            await expectRevert(web3tx(superToken.downgrade, "SuperToken.downgrade - bad balance")(
                 toBN(1), {
                     from: alice
                 }), "SuperToken: downgrade amount exceeds balance");
@@ -147,41 +147,50 @@ contract("Super Token", accounts => {
         // TODO To be improved with a mock agreement class
 
         it("#3.1 - should track active agreement classes", async() => {
-
             await web3tx(
                 flowAgreement.updateFlow,
-                "Call: FlowAgreement.updateFlow"
+                "FlowAgreement.updateFlow alice bob 1x"
             )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
             let aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            let user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+            let bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+            let carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
 
-            assert.ok(aliceAgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
-            assert.ok(user2AgreementClasses.length == 1, "User 2 number of ActiveAgreementClasses is wrong");
-            assert.equal(aliceAgreementClasses[0], flowAgreement.address, "User 1 ActiveAgreementClass is wrong");
-            assert.equal(user2AgreementClasses[0], flowAgreement.address, "User 2 ActiveAgreementClass is wrong");
-
-            await web3tx(
-                flowAgreement.updateFlow,
-                "Call: FlowAgreement.updateFlow"
-            )(superToken.address, bob, alice, FLOW_RATE.mul(toBN(2)), {from: bob});
-
-            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
-
-            assert.ok(aliceAgreementClasses.length == 1, "User 1 number of ActiveAgreementClasses is wrong");
-            assert.ok(user2AgreementClasses.length == 1, "User 2 number of ActiveAgreementClasses is wrong");
-            assert.equal(aliceAgreementClasses[0], flowAgreement.address, "User 1 ActiveAgreementClass is wrong");
-            assert.equal(user2AgreementClasses[0], flowAgreement.address, "User 2 ActiveAgreementClass is wrong");
+            assert.ok(aliceAgreementClasses.length == 1);
+            assert.ok(bobAgreementClasses.length == 1);
+            assert.ok(carolAgreementClasses.length == 0);
+            assert.equal(aliceAgreementClasses[0], flowAgreement.address);
+            assert.equal(bobAgreementClasses[0], flowAgreement.address);
 
             await web3tx(
                 flowAgreement.updateFlow,
-                "Call: FlowAgreement.updateFlow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
-            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            user2AgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+                "FlowAgreement.updateFlow bob carol 2x"
+            )(superToken.address, bob, carol, FLOW_RATE.mul(toBN(2)), {from: bob});
 
-            assert.ok(aliceAgreementClasses.length == 0, "User 1 number of ActiveAgreementClasses is wrong");
-            assert.ok(user2AgreementClasses.length == 0, "User 2 number of ActiveAgreementClasses is wrong");
+            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+            bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+            carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
+            assert.ok(aliceAgreementClasses.length == 1);
+            assert.ok(bobAgreementClasses.length == 1);
+            assert.ok(carolAgreementClasses.length == 1);
+            assert.equal(aliceAgreementClasses[0], flowAgreement.address);
+            assert.equal(bobAgreementClasses[0], flowAgreement.address);
+            assert.equal(carolAgreementClasses[0], flowAgreement.address);
+
+            await web3tx(
+                flowAgreement.deleteFlow,
+                "FlowAgreement.deleteFlow alice bob"
+            )(superToken.address, alice, bob, {from: alice});
+            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+            bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+
+            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+            bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+            carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
+            assert.ok(aliceAgreementClasses.length == 0);
+            assert.ok(bobAgreementClasses.length == 1);
+            assert.ok(carolAgreementClasses.length == 1);
+            assert.equal(bobAgreementClasses[0], flowAgreement.address);
+            assert.equal(carolAgreementClasses[0], flowAgreement.address);
 
             await tester.validateSystem();
         });

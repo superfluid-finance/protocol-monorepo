@@ -204,6 +204,58 @@ contract("Flow Agreement", accounts => {
 
             await tester.validateSystem();
         });
+
+        it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+            await superToken.upgrade(INIT_BALANCE, {from: carol});
+
+            const tx1 = await web3tx(
+                flowAgreement.updateFlow,
+                "updateFlow: alice -> bob"
+            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+
+            const tx2 = await web3tx(
+                flowAgreement.updateFlow,
+                "updateFlow: carol -> alice"
+            )(superToken.address, carol, alice, FLOW_RATE, {from: carol});
+            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+
+            const tx3 = await web3tx(
+                flowAgreement.updateFlow,
+                "updateFlow: alice -> dan"
+            )(superToken.address, alice, dan, FLOW_RATE, {from: alice});
+            const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+
+            const endBlock = await web3.eth.getBlock("latest");
+
+            const span1 = toBN(block2.timestamp - block1.timestamp);
+            const span2 = toBN(block3.timestamp - block2.timestamp);
+            const span3 = toBN(endBlock.timestamp - block3.timestamp);
+
+            const alice1Balance = await superToken.balanceOf.call(alice);
+            const bobBalance = await superToken.balanceOf.call(bob);
+            const carolBalance = await superToken.balanceOf.call(carol);
+            const danBalance = await superToken.balanceOf.call(dan);
+
+            const aliceBalanceExpected = INIT_BALANCE
+                .sub(span1.mul(FLOW_RATE))
+                .sub(span3.mul(FLOW_RATE));
+            const bobBalanceExpected = span1.add(span2).add(span3).mul(FLOW_RATE);
+            const carolBalanceExpected = INIT_BALANCE
+                .sub(span2.add(span3).mul(FLOW_RATE));
+            const danBalanceExpected = span3.mul(FLOW_RATE);
+
+            assert.equal(alice1Balance.toString(), aliceBalanceExpected.toString());
+            assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
+            assert.equal(carolBalance.toString(), carolBalanceExpected.toString());
+            assert.equal(danBalance.toString(), danBalanceExpected.toString());
+
+            await tester.validateSystem();
+        });
     });
 
     describe("#2 FlowAgreement.updateFlow and downgrade", () => {

@@ -137,6 +137,7 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
     {
+        require(sender != receiver, "FlowAgreement: self flow not allowed");
         require(flowRate != 0, "FlowAgreement: use delete flow");
         require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
 

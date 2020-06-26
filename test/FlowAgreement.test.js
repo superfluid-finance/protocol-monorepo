@@ -307,6 +307,19 @@ contract("Flow Agreement", accounts => {
 
             await tester.validateSystem();
         });
+
+        it("#1.9 create self flow should fail", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+
+            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            await expectRevert(
+                web3tx(flowAgreement.updateFlow, "carol creating flow for alice herself should fail")(
+                    superToken.address, alice, alice, toWad(1), {from: alice}
+                ), "FlowAgreement: self flow not allowed");
+
+            await tester.validateSystem();
+        });
     });
 
     describe("#2 FlowAgreement.updateFlow and downgrade", () => {

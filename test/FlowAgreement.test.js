@@ -54,7 +54,7 @@ contract("Flow Agreement", accounts => {
             )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, alice, bob
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+            )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, bob, alice
             )).toString(), "0");
@@ -77,7 +77,7 @@ contract("Flow Agreement", accounts => {
             await tester.validateSystem();
         });
 
-        it("#1.2 should stream in correct flow rate after second update with single flow", async() => {
+        it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
             const tx = await web3tx(
@@ -94,7 +94,7 @@ contract("Flow Agreement", accounts => {
             )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, alice, bob
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+            )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, bob, alice
             )).toString(), "0");
@@ -119,13 +119,13 @@ contract("Flow Agreement", accounts => {
             )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, alice, bob
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+            )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, bob, alice
             )).toString(), "0");
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, alice, carol
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+            )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
                 superToken.address, carol, alice
             )).toString(), "0");
@@ -215,6 +215,9 @@ contract("Flow Agreement", accounts => {
             )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
             const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal((await flowAgreement.getNetFlow.call(
+                superToken.address, alice
+            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
 
             const tx2 = await web3tx(
                 flowAgreement.updateFlow,
@@ -222,6 +225,9 @@ contract("Flow Agreement", accounts => {
             )(superToken.address, carol, alice, FLOW_RATE, {from: carol});
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal((await flowAgreement.getNetFlow.call(
+                superToken.address, alice
+            )).toString(), "0");
 
             const tx3 = await web3tx(
                 flowAgreement.updateFlow,
@@ -229,6 +235,9 @@ contract("Flow Agreement", accounts => {
             )(superToken.address, alice, dan, FLOW_RATE, {from: alice});
             const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal((await flowAgreement.getNetFlow.call(
+                superToken.address, alice
+            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
 
             const endBlock = await web3.eth.getBlock("latest");
 
@@ -253,6 +262,61 @@ contract("Flow Agreement", accounts => {
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
             assert.equal(carolBalance.toString(), carolBalanceExpected.toString());
             assert.equal(danBalance.toString(), danBalanceExpected.toString());
+
+            await tester.validateSystem();
+        });
+
+        it("#1.8 should update flow the second time to new flow rate", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+
+            const tx1 = await web3tx(
+                flowAgreement.updateFlow,
+                "updateFlow: alice -> bob"
+            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal((await flowAgreement.getNetFlow.call(
+                superToken.address, alice
+            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+
+            const tx2 = await web3tx(
+                flowAgreement.updateFlow,
+                "updateFlow: alice -> bob new flow rate"
+            )(superToken.address, alice, bob, FLOW_RATE.mul(toBN(2)), {from: alice});
+            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal((await flowAgreement.getNetFlow.call(
+                superToken.address, alice
+            )).toString(), FLOW_RATE.mul(toBN(-2)).toString());
+
+            const endBlock = await web3.eth.getBlock("latest");
+
+            const span1 = toBN(block2.timestamp - block1.timestamp);
+            const span2 = toBN(endBlock.timestamp - block2.timestamp);
+
+            const alice1Balance = await superToken.balanceOf.call(alice);
+            const bobBalance = await superToken.balanceOf.call(bob);
+
+            const bobBalanceExpected = span1.mul(FLOW_RATE)
+                .add(span2.mul(FLOW_RATE).mul(toBN(2)));
+            const aliceBalanceExpected = INIT_BALANCE
+                .sub(bobBalanceExpected);
+
+            assert.equal(alice1Balance.toString(), aliceBalanceExpected.toString());
+            assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
+
+            await tester.validateSystem();
+        });
+
+        it("#1.9 create self flow should fail", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+
+            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            await expectRevert(
+                web3tx(flowAgreement.updateFlow, "carol creating flow for alice herself should fail")(
+                    superToken.address, alice, alice, toWad(1), {from: alice}
+                ), "FlowAgreement: self flow not allowed");
 
             await tester.validateSystem();
         });

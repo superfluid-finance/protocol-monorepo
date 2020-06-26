@@ -115,19 +115,19 @@ contract FlowAgreement is IFlowAgreement {
      * Internal Functions
      */
 
-     function _updateAccountState(
-         ISuperToken token,
-         address account,
-         int256 flowRate
-     )
-         private
-         returns(int256 newFlowRate)
-     {
-         bytes memory state = token.getAgreementAccountState(address(this), account);
-         state = _composeState(state, flowRate, block.timestamp);
-         token.updateAgreementAccountState(account, state);
-         (, newFlowRate) = _decodeFlow(state);
-     }
+    function _updateAccountState(
+        ISuperToken token,
+        address account,
+        int256 flowRate
+    )
+        private
+        returns(int256 newFlowRate)
+    {
+        bytes memory state = token.getAgreementAccountState(address(this), account);
+        state = _composeState(state, flowRate, block.timestamp);
+        token.updateAgreementAccountState(account, state);
+        (, newFlowRate) = _decodeFlow(state);
+    }
 
     function _updateFlow(
         ISuperToken token,
@@ -137,18 +137,20 @@ contract FlowAgreement is IFlowAgreement {
     )
         private
     {
+        require(sender != receiver, "FlowAgreement: self flow not allowed");
         require(flowRate != 0, "FlowAgreement: use delete flow");
         require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
 
-        bytes memory newFlowData = _encodeFlow(block.timestamp, flowRate);
-
         bytes32 flowId = _generateId(sender, receiver);
-        bytes memory flowData = token.getAgreementData(address(this), flowId);
-        flowData = _composeData(flowData, _mirrorAgreementData(newFlowData));
-        token.createAgreement(flowId, flowData);
+        bytes memory oldFlowData = token.getAgreementData(address(this), flowId);
+        (, int256 oldFlowRate) = _decodeFlow(oldFlowData);
+        bytes memory newFlowData = _encodeFlow(block.timestamp, flowRate);
+        token.createAgreement(flowId, newFlowData);
+        (, int256 newFlowRate) = _decodeFlow(newFlowData);
+        int flowRateDelta = newFlowRate - oldFlowRate;
 
-        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRate));
-        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRate);
+        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRateDelta));
+        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRateDelta);
         emit FlowUpdated(
             token,
             sender,
@@ -170,10 +172,10 @@ contract FlowAgreement is IFlowAgreement {
         bytes memory flowData = token.getAgreementData(address(this), flowId);
         require(flowData.length > 0, "FlowAgreement: flow does not exist");
         (, int256 senderFlowRate) = _decodeFlow(flowData);
-        assert(senderFlowRate < 0);
+        require(senderFlowRate > 0, "FlowAgreement: sender flow rate must be positive");
 
-        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(senderFlowRate));
-        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, senderFlowRate);
+        int256 totalSenderFlowRate = _updateAccountState(token, sender, senderFlowRate);
+        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, _mirrorFlowRate(senderFlowRate));
 
         // note : calculate the deposit here and pass it to superToken, and emit the events.
         // Close this Agreement Data
@@ -183,7 +185,7 @@ contract FlowAgreement is IFlowAgreement {
             uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
             uint256 deposit = Math.max(
                 uint256(minDeposit),
-                uint256(-senderFlowRate) * uint256(liquidationPeriod));
+                uint256(senderFlowRate) * uint256(liquidationPeriod));
 
             token.liquidateAgreement(msg.sender, flowId, sender, deposit);
         } else {
@@ -201,18 +203,6 @@ contract FlowAgreement is IFlowAgreement {
 
     function _mirrorFlowRate(int256 flowRate) private pure returns(int256 mirrorFlowRate) {
         return -1 * flowRate;
-    }
-
-    /// @dev mirrorState reverts the flow rate maintains the same timestamp
-    function _mirrorAgreementData(
-        bytes memory state
-    )
-        private
-        pure
-        returns(bytes memory mirror)
-    {
-        (uint256 startDate, int256 flowRate) = _decodeFlow(state);
-        return _encodeFlow(startDate, _mirrorFlowRate(flowRate));
     }
 
     function _generateId(address sender, address receiver) private pure returns(bytes32) {
@@ -248,40 +238,9 @@ contract FlowAgreement is IFlowAgreement {
     )
     {
         if (state.length == 0) return (0, 0);
-        assert(state.length == 64);
+        require(state.length == 64, "FlowAgreement: invalid state");
         return abi.decode(state, (uint256, int256));
     }
-
-    /// @dev Compose in one state the states passed as arguments.
-    ///      Will add the two state and update the `timestamp` to block.timestamp
-    /// @param currentData the user actual data of agreement
-    /// @param additionalData new state to be addeed to previous state
-    /// @return state composed
-    function _composeData
-    (
-        bytes memory currentData,
-        bytes memory additionalData
-    )
-        private
-        pure
-        returns (bytes memory state)
-    {
-        int256 cRate;
-        if (currentData.length != 0) {
-            (, cRate) = _decodeFlow(currentData);
-
-        }
-
-        (uint256 aTimestamp, int256 aRate) = _decodeFlow(additionalData);
-        int256 newRate = aRate == 0 ? 0 : cRate.add(aRate);
-        if (newRate == 0) {
-            return "";
-        }
-
-        return _encodeFlow(aTimestamp, newRate);
-    }
-
-
 
     /// @notice Compose in one state the states passed as arguments.
     /// @dev Will add the two state and update the `timestamp` to block.timestamp
@@ -300,7 +259,6 @@ contract FlowAgreement is IFlowAgreement {
         pure
         returns (bytes memory newAgreement)
     {
-        assert(flowRate != 0);
         (, int cRate) = _decodeFlow(currentState);
         cRate = cRate.add(flowRate);
 

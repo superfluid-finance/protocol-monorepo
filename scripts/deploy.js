@@ -50,7 +50,9 @@ module.exports = async function (callback) {
             testTokenAddress,
             governance.address,
             "SuperTestToken",
-            "STT");
+            "STT",
+            18
+        );
         console.log("SuperTestToken address", superTestToken.address);
 
         await web3tx(testResolver.set, "TestResolver set FlowAgreement")(

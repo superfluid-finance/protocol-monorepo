@@ -10,8 +10,6 @@ const traveler = require("ganache-time-traveler");
 
 const Tester = require("./Tester");
 
-const ZERO_ADDREES = "0x0000000000000000000000000000000000000000";
-
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
 
@@ -20,6 +18,7 @@ contract("Super Token", accounts => {
     const tester = new Tester(accounts.slice(0, 4));
     const { alice, bob, carol } = tester.aliases;
     const { INIT_BALANCE } = tester.constants;
+    const { ZERO_ADDRESS } = tester.constants;
 
     let token;
     let superToken;
@@ -256,6 +255,13 @@ contract("Super Token", accounts => {
 
             await tester.validateSystem();
         });
+
+        it("#4.4 - should not transfer to zero address", async () => {
+            await expectRevert(
+                web3tx(superToken.transfer, "transfer to zero address")(
+                    ZERO_ADDRESS, 1, {from: alice}),
+                "transfer to zero address");
+        });
     });
 
     describe("#5 SuperToken.approve", () => {
@@ -315,8 +321,26 @@ contract("Super Token", accounts => {
         it("#5.3 - should not approve zero address", async () => {
             await expectRevert(
                 web3tx(superToken.approve, "approve to zero address")(
-                    ZERO_ADDREES, 1, {from: alice}),
+                    ZERO_ADDRESS, 1, {from: alice}),
                 "approve to zero address");
+        });
+    });
+
+    describe("#6 - SuperToken.liquidateAgreement", () => {
+        it("#6.1 - should make a liquidation", async() => {
+            await web3tx(superToken.upgrade, "upgrade all from alice")(
+                INIT_BALANCE, {from: alice});
+            await web3tx(superToken.liquidateAgreement, "liquidate alice")(
+                carol, "0x00000", alice, INIT_BALANCE);
+            const balanceAlice = await superToken.balanceOf.call(alice);
+            assert.equal(balanceAlice.toString(), "0", "alice balanceOf should be zero");
+            await web3tx(superToken.liquidateAgreement, "liquidate alice")(
+                carol, "0x00000", alice, toWad(1));
+            const balanceCarol = await superToken.balanceOf.call(carol);
+            assert.equal(balanceCarol.toString(),
+                INIT_BALANCE.add(toWad(1)).toString(),
+                "carol final balance not correct"
+            );
         });
     });
 

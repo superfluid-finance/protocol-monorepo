@@ -249,7 +249,6 @@ contract SuperToken is
         internal
     {
         require(account != address(0), "burn from zero address");
-        require(balanceOf(account) >= amount, "burn amount exceeds balance");
 
         _balances[account] = _balances[account].sub(int256(amount));
         emit Transfer(account, address(0), amount);

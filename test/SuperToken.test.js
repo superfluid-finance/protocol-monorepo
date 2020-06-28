@@ -10,6 +10,8 @@ const traveler = require("ganache-time-traveler");
 
 const Tester = require("./Tester");
 
+const ZERO_ADDREES = "0x0000000000000000000000000000000000000000";
+
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
 
@@ -282,6 +284,8 @@ contract("Super Token", accounts => {
                 bob, 0, {from: alice});
             const finalAllowedBalanceBob = await superToken.allowance.call(alice, bob);
             assert.equal(finalAllowedBalanceBob.toString(), 0, "bob final allowance should be zero");
+
+
         });
 
         it("#5.2 - should transfer approved amount reducing allowance amount", async() => {
@@ -289,7 +293,8 @@ contract("Super Token", accounts => {
                 INIT_BALANCE, {from: alice});
             const aliceSuperBalance = await superToken.balanceOf.call(alice);
             await web3tx(superToken.approve, "approve bob all alice balance")(
-                bob, aliceSuperBalance, {from: alice});
+                bob, aliceSuperBalance, {from: alice}
+            );
 
             await superToken.transferFrom(alice, bob, aliceSuperBalance, {from: bob});
             const superBalanceBob = await superToken.balanceOf.call(bob);
@@ -305,6 +310,13 @@ contract("Super Token", accounts => {
                     bob,
                     1, {from: bob}
                 ), "transfer amount exceeds balance");
+        });
+
+        it("#5.3 - should not approve zero address", async () => {
+            await expectRevert(
+                web3tx(superToken.approve, "approve to zero address")(
+                    ZERO_ADDREES, 1, {from: alice}),
+                "approve to zero address");
         });
     });
 

@@ -58,7 +58,6 @@ module.exports = async function (callback) {
         );
 
         const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
-
         let superTestTokenAddress = await testResolver.get(`SuperTestToken.${version}`);
         if (reset || superTestTokenAddress === "0x0000000000000000000000000000000000000000") {
             const superTokenConstructCode = await superTokenLogic.contract.methods.initialize(

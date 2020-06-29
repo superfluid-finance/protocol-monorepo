@@ -1,4 +1,4 @@
-module.exports = {
+module.exports = () => ({
     main: {
     },
     kovan: {
@@ -7,4 +7,4 @@ module.exports = {
     private: {
         resolverAddress: process.env.PRIVATE_RESOLVER_ADDRESS,
     }
-};
+});

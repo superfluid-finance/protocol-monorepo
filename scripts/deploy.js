@@ -1,11 +1,12 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
-const configs = require("./configs");
+const loadConfigs = require("./loadConfigs");
 
 module.exports = async function (callback) {
     try {
         global.web3 = web3;
 
         const accounts = await web3.eth.getAccounts();
+        const configs = loadConfigs();
 
         const TestResolver = artifacts.require("TestResolver");
         const TestToken = artifacts.require("TestToken");

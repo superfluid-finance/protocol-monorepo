@@ -40,6 +40,7 @@
     "test": "run-s lint:* build:* test:*",
     "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt;",
     "test:package": "mocha test/package.test.js",
+    "test:deployment": "truffle test test/deployment.test.js",
     "test-coverage": "truffle run coverage --file test/contracts.test.js",
     "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
     "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",

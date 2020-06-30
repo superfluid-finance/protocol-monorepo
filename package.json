@@ -1,6 +1,6 @@
 {
   "name": "@superfluid-finance/contracts",
-  "version": "0.0.1",
+  "version": "0.1.0-latest",
   "description": "Superfluid smart contracts.",
   "repository": "github:superfluid-finance/superfluid-protocol",
   "license": "MIT",

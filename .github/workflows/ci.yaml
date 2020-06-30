@@ -3,10 +3,10 @@ name: Dev CI/CD
 on:
   push:
     branches:
-    - v0
+    - v0.0
   pull_request:
     branches:
-    - v0
+    - v0.0
 
 jobs:
 

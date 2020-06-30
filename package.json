@@ -14,12 +14,12 @@
     "@openzeppelin/contracts": "3.1.0"
   },
   "peerDependencies": {
-    "@truffle/contract": "4.2.9"
+    "@truffle/contract": "4.2.10"
   },
   "devDependencies": {
     "@decentral.ee/web3-helpers": "0.3.2",
     "@openzeppelin/test-helpers": "0.5.6",
-    "@truffle/hdwallet-provider": "1.0.35",
+    "@truffle/hdwallet-provider": "1.0.36",
     "dotenv": "8.2.0",
     "eslint": "7.3.1",
     "eth-gas-reporter": "^0.2.17",
@@ -27,9 +27,9 @@
     "husky": "^4.2.5",
     "npm-run-all": "4.1.5",
     "sol-proxy": "0.1.2",
-    "solhint": "git+https://github.com/decentral-ee/solhint.git",
-    "solidity-coverage": "0.7.8",
-    "truffle": "5.1.31",
+    "solhint": "git+https://github.com/hellwolf/solhint.git",
+    "solidity-coverage": "0.7.9",
+    "truffle": "5.1.32",
     "truffle-flattener": "1.4.4",
     "truffle-plugin-verify": "0.3.11"
   },
@@ -40,6 +40,7 @@
     "test": "run-s lint:* build:* test:*",
     "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt;",
     "test:package": "mocha test/package.test.js",
+    "test:deployment": "truffle test test/deployment.test.js",
     "test-coverage": "truffle run coverage --file test/contracts.test.js",
     "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
     "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",

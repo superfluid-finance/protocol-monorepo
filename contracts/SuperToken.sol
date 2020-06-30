@@ -2,6 +2,8 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity ^0.6.6;
 
+import { SuperTokenStorage } from "./SuperTokenStorage.sol";
+import { Proxiable } from "./Proxiable.sol";
 import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
 import { ISuperAgreement } from "./interface/ISuperAgreement.sol";
@@ -12,51 +14,72 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
  * @title Superfluid's token implementation
  * @author Superfluid
  */
-contract SuperToken is ISuperToken {
-
+contract SuperToken is
+    ISuperToken,
+    SuperTokenStorage, // storage should come after logic contract
+    Proxiable {
     using SignedSafeMath for int256;
     using SafeMath for uint256;
 
-    /// @dev The underlaying ERC20 token
-    IERC20 private _token;
-
-    /// @dev Governance contract
-    ISuperfluidGovernance private _gov;
-
-    /// @dev Mapping to agreement data.
-    ///      Mapping order: .agreementClass.agreementID.
-    ///      The generation of agreementDataID is the logic of agreement contract
-    mapping(address => mapping (bytes32 => bytes)) private _agreementData;
-
-    /// @dev Mapping from account to agreement state of the account.
-    ///      Mapping order: .agreementClass.account.
-    ///      It is like RUNTIME state of the agreement for each account.
-    mapping(address => mapping (address => bytes)) private _accountStates;
-
-    /// @dev List of enabled agreement classes for the account
-    mapping(address => address[]) private _activeAgreementClasses;
-
-    /// @dev Settled balance for the account
-    mapping(address => int256) private _balances;
-
-    /// @dev ERC20 Allowances Storage
-    mapping (address => mapping (address => uint256)) private _allowances;
-    /// @dev ERC20 Name property
-    string private _name;
-    /// @dev ERC20 Symbol property
-    string private _symbol;
-    /// @dev ERC20 Decimals property
-    uint8 private _decimals;
-
-    constructor (IERC20 token, ISuperfluidGovernance gov, string memory name, string memory symbol, uint8 decimals)
-    public
+    function initialize(
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token,
+        ISuperfluidGovernance gov
+    )
+        external
     {
-
+        require(!_initialized, "The library has already been initialized.");
+        _initialized = true;
+        _owner = msg.sender;
         _name = name;
         _symbol = symbol;
         _decimals = decimals;
         _token = token;
         _gov = gov;
+    }
+
+    /*
+     *  Ownable Implementation
+     */
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Returns true if the caller is the current owner.
+     */
+    function isOwner() public view returns (bool) {
+        return msg.sender == _owner;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * > Note: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public onlyOwner {
+        emit OwnershipTransferred(_owner, address(0));
+        _owner = address(0);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public onlyOwner {
+        _transferOwnership(newOwner);
     }
 
     /*
@@ -123,10 +146,10 @@ contract SuperToken is ISuperToken {
     /**
      * @dev See {IERC20-allowance}.
      */
-    function allowance(address owner, address spender)
+    function allowance(address account, address spender)
         public view override returns (uint256)
     {
-        return _allowances[owner][spender];
+        return _allowances[account][spender];
     }
 
     /**
@@ -233,7 +256,7 @@ contract SuperToken is ISuperToken {
     }
 
     /**
-     * @dev Sets `amount` as the allowance of `spender` over the `owner`s tokens.
+     * @notice Sets `amount` as the allowance of `spender` over the `account`s tokens.
      *
      * This is internal function is equivalent to `approve`, and can be used to
      * e.g. set automatic allowances for certain subsystems, etc.
@@ -242,17 +265,17 @@ contract SuperToken is ISuperToken {
      *
      * Requirements:
      *
-     * - `owner` cannot be the zero address.
+     * - `account` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _approve(address owner, address spender, uint256 amount)
+    function _approve(address account, address spender, uint256 amount)
         private
     {
-        require(owner != address(0), "approve from zero address");
+        require(account != address(0), "approve from zero address");
         require(spender != address(0), "approve to zero address");
 
-        _allowances[owner][spender] = amount;
-        emit Approval(owner, spender, amount);
+        _allowances[account][spender] = amount;
+        emit Approval(account, spender, amount);
     }
     /*
      * Account functions
@@ -547,5 +570,29 @@ contract SuperToken is ISuperToken {
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
         _balances[account] = realtimeBalanceOf(account, block.timestamp);
+    }
+
+    function updateCode(address newAddress) external onlyOwner {
+        return _updateCodeAddress(newAddress);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     */
+    function _transferOwnership(address newOwner) internal {
+        require(
+            newOwner != address(0),
+            "Ownable: new owner is the zero address"
+        );
+        emit OwnershipTransferred(_owner, newOwner);
+        _owner = newOwner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(isOwner(), "Ownable: caller is not the owner");
+        _;
     }
 }

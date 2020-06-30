@@ -1,3 +1,4 @@
+const Proxy = artifacts.require("Proxy");
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
 const TestGovernance = artifacts.require("TestGovernance");
@@ -60,21 +61,22 @@ module.exports = class Tester {
                 from: this.aliases.admin
             });
 
-        this.contracts.superToken = await web3tx(SuperToken.new, "SuperToken.new")(
-            this.contracts.token.address,
-            this.contracts.governance.address,
+        const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
+        const superTokenConstructCode = await superTokenLogic.contract.methods.initialize(
             "SuperTestToken",
             "STT",
             18,
-            {
-                from: this.aliases.admin
-            });
+            this.contracts.token.address,
+            this.contracts.governance.address).encodeABI();
+        const proxy = await web3tx(Proxy.new, "Create super token proxy contract")(
+            superTokenConstructCode, superTokenLogic.address
+        );
+        this.contracts.superToken = await SuperToken.at(proxy.address);
 
         this.contracts.flowAgreement = await web3tx(FlowAgreement.new, "FlowAgreement.new")(
             {
                 from: this.aliases.admin
             });
-
 
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];

@@ -207,7 +207,6 @@ contract SuperToken is
     function _transfer(address sender, address recipient, uint256 amount)
         private
     {
-        require(sender != address(0), "transfer from zero address");
         require(recipient != address(0), "transfer to zero address");
         require(balanceOf(sender) >= amount, "transfer amount exceeds balance");
 

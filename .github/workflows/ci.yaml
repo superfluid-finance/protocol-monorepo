@@ -97,3 +97,4 @@ jobs:
       env:
         KOVAN_MNEMONIC: ${{ secrets.KOVAN_MNEMONIC }}
         KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+        RELEASE_VERSION: latest

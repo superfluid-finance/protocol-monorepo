@@ -207,7 +207,6 @@ contract SuperToken is
     function _transfer(address sender, address recipient, uint256 amount)
         private
     {
-        require(sender != address(0), "transfer from zero address");
         require(recipient != address(0), "transfer to zero address");
         require(balanceOf(sender) >= amount, "transfer amount exceeds balance");
 
@@ -249,7 +248,6 @@ contract SuperToken is
         internal
     {
         require(account != address(0), "burn from zero address");
-        require(balanceOf(account) >= amount, "burn amount exceeds balance");
 
         _balances[account] = _balances[account].sub(int256(amount));
         emit Transfer(account, address(0), amount);

@@ -1,0 +1,35 @@
+name: Publish NPM Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-npm:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+
+    - name: Build and Publish package
+      run: |
+        npm ci
+        npm run build
+        ./scripts/npm-publish.sh
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to kovan
+      run: |
+        npx truffle exec --network kovan scripts/deploy.js
+      env:
+        KOVAN_MNEMONIC: ${{ secrets.KOVAN_MNEMONIC }}
+        KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+        RELEASE_VERSION: v0.0

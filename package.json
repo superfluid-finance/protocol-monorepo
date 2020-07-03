@@ -38,7 +38,7 @@
     "build:contracts": "rm -f build/contracts/*;truffle compile",
     "build:abi": "scripts/build-abi-js.sh > build/abi.js",
     "test": "run-s lint:* build:* test:*",
-    "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt;",
+    "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-preort.txt",
     "test:package": "mocha test/package.test.js",
     "test:deployment": "truffle test test/deployment.test.js",
     "test-coverage": "truffle run coverage --file test/contracts.test.js",

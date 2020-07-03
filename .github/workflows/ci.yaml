@@ -34,10 +34,9 @@ jobs:
         npm run test
 
     - name: Upload eth gas report
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
-        name: eth-gas-report
-        path: build/eth-gas-report.txt
+        path: build/contracts-eth-gas-preort.txt
 
   coverage:
 
@@ -60,7 +59,7 @@ jobs:
     - name: Create coverage artifact
       # only report coverage for master branch push
       if: github.event_name  == 'push'
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       with:
         name: coverage
         path: coverage

@@ -1,5 +1,5 @@
 {
-  "name": "@superfluid-finance/contracts",
+  "name": "@superfluid-finance/ethereum-contracts",
   "version": "0.1.0-latest",
   "description": "Superfluid smart contracts.",
   "repository": "github:superfluid-finance/superfluid-protocol",

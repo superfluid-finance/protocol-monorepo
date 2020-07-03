@@ -1,7 +1,7 @@
 {
   "name": "@superfluid-finance/ethereum-contracts",
   "version": "0.1.0-latest",
-  "description": "Superfluid smart contracts.",
+  "description": " Ethereum contracts implementation for the Superfluid Protocol",
   "repository": "github:superfluid-finance/superfluid-protocol",
   "license": "MIT",
   "files": [

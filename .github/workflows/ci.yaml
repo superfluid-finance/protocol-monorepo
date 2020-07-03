@@ -36,7 +36,8 @@ jobs:
     - name: Upload eth gas report
       uses: actions/upload-artifact@v2
       with:
-        path: build/contracts-eth-gas-preort.txt
+        name: contracts-eth-gas-report
+        path: build/contracts-eth-gas-report.txt
 
   coverage:
 

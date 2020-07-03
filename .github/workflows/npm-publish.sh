@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-cd "$(dirname "$0")"/..
+cd "$(dirname "$0")"/../..
 
 git diff --quiet || { echo "There are unstaged local changes"; exit 1; }
 git diff --cached --quiet || { echo "There are staged local changes"; exit 1; }

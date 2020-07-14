@@ -7,6 +7,9 @@ module.exports = () => ({
     5: { // goerli
         resolverAddress: "0xDC200aA39Aa1D9B28CE458979602eb79046A1C9f",
     },
+    4447: {
+        resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+    },
     5777: { // ganache 
         resolverAddress: process.env.GANACHE_RESOLVER_ADDRESS,
     }

@@ -15,7 +15,7 @@ contract("deployment test", () => {
         const errorHandler = err => { if (err) throw err; };
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
         delete process.env.RESET;
-        process.env.PRIVATE_RESOLVER_ADDRESS = testResolver.address;
+        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         console.log("First deployment");
         await deploy(errorHandler);
         const testToken1 = await testResolver.get("TestToken.test");

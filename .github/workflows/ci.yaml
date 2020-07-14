@@ -91,13 +91,18 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Determine release version
+      run: |
+        RELEASE_VERSION=`basename "$GITHUB_REF"`
+        echo "::set-env name=RELEASE_VERSION::$RELEASE_VERSION"
+        echo "Release version is $RELEASE_VERSION"
+
     - name: Deploy to kovan
       run: |
         npx truffle exec --network kovan scripts/deploy.js
       env:
         KOVAN_MNEMONIC: ${{ secrets.KOVAN_MNEMONIC }}
         KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
-        RELEASE_VERSION: latest
 
     - name: Deploy to goerli
       run: |
@@ -105,4 +110,3 @@ jobs:
       env:
         KOVAN_MNEMONIC: ${{ secrets.GOERLI_MNEMONIC }}
         KOVAN_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-        RELEASE_VERSION: latest

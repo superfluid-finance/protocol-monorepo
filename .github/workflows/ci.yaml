@@ -98,3 +98,11 @@ jobs:
         KOVAN_MNEMONIC: ${{ secrets.KOVAN_MNEMONIC }}
         KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
         RELEASE_VERSION: latest
+
+    - name: Deploy to goerli
+      run: |
+        npx truffle exec --network goerli scripts/deploy.js
+      env:
+        KOVAN_MNEMONIC: ${{ secrets.GOERLI_MNEMONIC }}
+        KOVAN_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+        RELEASE_VERSION: latest

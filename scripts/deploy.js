@@ -17,11 +17,11 @@ module.exports = async function (callback) {
 
         const reset = !!process.env.RESET;
         const version = process.env.RELEASE_VERSION || "test";
-        const network = await web3.eth.net.getNetworkType();
-        console.log("network: ", network);
+        const netId = await web3.eth.net.getId();
+        console.log("network ID: ", netId);
         console.log("release version:", version);
 
-        const config = configs[network];
+        const config = configs[netId];
 
         let testResolver;
         if (config.resolverAddress) {

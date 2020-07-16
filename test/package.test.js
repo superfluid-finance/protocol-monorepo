@@ -3,9 +3,10 @@ const { assert } = require("chai");
 
 describe("package test", () => {
 
+    const Superfluid = require("..");
+
     it("load contracts", async () => {
         const provider = new Web3.providers.HttpProvider("http://vitalik.mob");
-        const Superfluid = require("..");
 
         const {
             IERC20,
@@ -34,6 +35,21 @@ describe("package test", () => {
         assert.isDefined(ISuperToken.abi);
         assert.equal(ISuperToken.contractName, "ISuperToken");
         assert.isTrue(ISuperToken.abi.filter(i => i.name === "upgrade").length > 0);
+    });
+
+    it("get config", async () => {
+        // goerli
+        const goerliConfig = Superfluid.getConfig(5);
+        assert.isNotEmpty(goerliConfig.resolverAddress);
+        // kovan
+        const kovanConfig = Superfluid.getConfig(42);
+        assert.isNotEmpty(kovanConfig.resolverAddress);
+        // test environment
+        let testConfig = Superfluid.getConfig(5555);
+        assert.isUndefined(testConfig.resolverAddress);
+        process.env.TEST_RESOLVER_ADDRESS="0x42";
+        testConfig = Superfluid.getConfig(5555);
+        assert.equal(testConfig.resolverAddress, "0x42");
     });
 
 });

@@ -1,12 +1,11 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
-const loadConfigs = require("./loadConfigs");
+const Superfluid = require("..");
 
 module.exports = async function (callback) {
     try {
         global.web3 = web3;
 
         const accounts = await web3.eth.getAccounts();
-        const configs = loadConfigs();
 
         const TestResolver = artifacts.require("TestResolver");
         const TestToken = artifacts.require("TestToken");
@@ -21,7 +20,7 @@ module.exports = async function (callback) {
         console.log("network ID: ", netId);
         console.log("release version:", version);
 
-        const config = configs[netId];
+        const config = Superfluid.getConfig(netId);
 
         let testResolver;
         if (config.resolverAddress) {

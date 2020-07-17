@@ -59,8 +59,8 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 4, // Rinkeby's id
-            gasPrice: 10**9, // 1 GWEI
-            //gas: 7017622, //
+            gasPrice: 1e9, // 1 GWEI
+            gas: 8e6,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
@@ -75,7 +75,8 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 42, // Kovan's id
-            gasPrice: 10**9, // 1 GWEI
+            gasPrice: 1e9, // 1 GWEI
+            gas: 8e6,
             //gas: 7017622, //
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -91,8 +92,8 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 5, // Goerli's id
-            gasPrice: 10**9, // 1 GWEI
-            //gas: 7017622, //
+            gasPrice: 1e9, // 1 GWEI
+            gas: 8e6,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )

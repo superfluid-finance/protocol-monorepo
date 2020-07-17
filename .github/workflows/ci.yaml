@@ -65,7 +65,7 @@ jobs:
         name: coverage
         path: coverage
 
-  deploy:
+  npm-publish:
 
     needs: [build, coverage]
 
@@ -91,6 +91,32 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  deploy-kovan:
+
+    needs: [build, coverage]
+
+    runs-on: ubuntu-latest
+
+    # only publish npm package for branch push
+    if: github.event_name  == 'push'
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+
+    - name: Build package
+      run: |
+        npm ci
+        npm run build
+        .github/workflows/npm-publish.sh
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Determine release version
       run: |
         RELEASE_VERSION=`basename "$GITHUB_REF"`
@@ -103,6 +129,38 @@ jobs:
       env:
         KOVAN_MNEMONIC: ${{ secrets.KOVAN_MNEMONIC }}
         KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+
+  deploy-goerli:
+
+    needs: [build, coverage]
+
+    runs-on: ubuntu-latest
+
+    # only publish npm package for branch push
+    if: github.event_name  == 'push'
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+
+    - name: Build package
+      run: |
+        npm ci
+        npm run build
+        .github/workflows/npm-publish.sh
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Determine release version
+      run: |
+        RELEASE_VERSION=`basename "$GITHUB_REF"`
+        echo "::set-env name=RELEASE_VERSION::$RELEASE_VERSION"
+        echo "Release version is $RELEASE_VERSION"
 
     - name: Deploy to goerli
       run: |

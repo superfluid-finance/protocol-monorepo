@@ -13,10 +13,9 @@ contract TestGovernance is ISuperfluidGovernance {
         uint16 period;
     }
 
-    mapping(address => GovernanceConfig) private _configs;
+    GovernanceConfig private _defaultConfig;
 
     constructor(
-        address underlying,
         address rewardAddress,
         uint16 minimalDeposit,
         uint16 period
@@ -24,39 +23,39 @@ contract TestGovernance is ISuperfluidGovernance {
         public
     {
         governor = msg.sender;
-        _configs[underlying] = GovernanceConfig(rewardAddress, minimalDeposit, period);
+        _defaultConfig = GovernanceConfig(rewardAddress, minimalDeposit, period);
     }
 
     function getRewardAddress(
-        address underlying
+        address
     )
         external
         view
         override
         returns(address rewardAddress)
     {
-        return _configs[underlying].rewardAddress;
+        return _defaultConfig.rewardAddress;
     }
 
     function getMinimalDeposit(
-        address underlying
+        address
     )
         external
         view
         override
         returns(uint16 minimalBalance)
     {
-        return _configs[underlying].minimalDeposit;
+        return _defaultConfig.minimalDeposit;
     }
 
     function getLiquidationPeriod(
-        address underlying
+        address
     )
         external
         view
         override
         returns(uint16 period)
     {
-        return _configs[underlying].period;
+        return _defaultConfig.period;
     }
 }

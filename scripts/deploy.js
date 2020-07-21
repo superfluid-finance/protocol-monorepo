@@ -68,7 +68,8 @@ module.exports = async function (callback) {
                 testTokenAddress,
                 governance.address).encodeABI();
             const proxy = await web3tx(Proxy.new, "Create super token proxy contract")(
-                superTokenConstructCode, superTokenLogic.address
+                superTokenLogic.address,
+                superTokenConstructCode,
             );
             superTestTokenAddress = proxy.address;
             await web3tx(testResolver.set, `TestResolver set superTestToken.${version}`)(

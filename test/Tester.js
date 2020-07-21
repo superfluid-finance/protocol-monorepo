@@ -55,7 +55,6 @@ module.exports = class Tester {
             });
 
         this.contracts.governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
-            this.contracts.token.address,
             this.aliases.admin,
             1,
             3600, {
@@ -63,16 +62,26 @@ module.exports = class Tester {
             });
 
         const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
-        const superTokenConstructCode = await superTokenLogic.contract.methods.initialize(
+        const proxy = await web3tx(Proxy.new, "Create super token proxy contract")(
+            {
+                from: this.aliases.admin
+            }
+        );
+        await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
+            superTokenLogic.address, {
+                from: this.aliases.admin
+            }
+        );
+        this.contracts.superToken = await SuperToken.at(proxy.address);
+        await web3tx(this.contracts.superToken.initialize, "superToken.initialize")(
             "SuperTestToken",
             "STT",
             18,
             this.contracts.token.address,
-            this.contracts.governance.address).encodeABI();
-        const proxy = await web3tx(Proxy.new, "Create super token proxy contract")(
-            superTokenConstructCode, superTokenLogic.address
+            this.contracts.governance.address, {
+                from: this.aliases.admin
+            }
         );
-        this.contracts.superToken = await SuperToken.at(proxy.address);
 
         this.contracts.flowAgreement = await web3tx(FlowAgreement.new, "FlowAgreement.new")(
             {

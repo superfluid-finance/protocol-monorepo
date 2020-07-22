@@ -17,6 +17,7 @@ module.exports = async function (callback) {
         const reset = !!process.env.RESET;
         const version = process.env.RELEASE_VERSION || "test";
         const netId = await web3.eth.net.getId();
+        console.log("reset: ", reset);
         console.log("network ID: ", netId);
         console.log("release version:", version);
 
@@ -47,7 +48,6 @@ module.exports = async function (callback) {
         );
 
         const governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
-            testTokenAddress,
             accounts[0],
             2,
             3600
@@ -61,15 +61,17 @@ module.exports = async function (callback) {
 
         let superTestTokenAddress = await testResolver.get(`SuperTestToken.${version}`);
         if (reset || superTestTokenAddress === "0x0000000000000000000000000000000000000000") {
-            const superTokenConstructCode = await superTokenLogic.contract.methods.initialize(
+            const proxy = await web3tx(Proxy.new, "Create super token proxy contract")();
+            await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
+                superTokenLogic.address
+            );
+            const superToken = await SuperToken.at(proxy.address);
+            await web3tx(superToken.initialize, "superToken.initialize")(
                 "SuperTestToken",
                 "STT",
                 18,
                 testTokenAddress,
-                governance.address).encodeABI();
-            const proxy = await web3tx(Proxy.new, "Create super token proxy contract")(
-                superTokenLogic.address,
-                superTokenConstructCode,
+                governance.address
             );
             superTestTokenAddress = proxy.address;
             await web3tx(testResolver.set, `TestResolver set superTestToken.${version}`)(

@@ -1,40 +1,36 @@
 pragma solidity >=0.5.0;
 
-import "./Proxy.sol";
+import { ProxyShared, Proxy } from "./Proxy.sol";
 
-contract Proxiable {
-    // Code position in storage is
-    // keccak256("PROXIABLE") = "0xc5f16f0fcc639fa48a6947836d9850f504798523bf8c9a3a87d5876cf622bcf7"
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0xc5f16f0fcc639fa48a6947836d9850f504798523bf8c9a3a87d5876cf622bcf7;
+/**
+ * @dev Proxiable contract.
+ *      Inspired by https://eips.ethereum.org/EIPS/eip-1822
+ */
+abstract contract Proxiable {
 
+    /**
+     * @dev Get current implementation code address.
+     */
+    function getCodeAddress() external view returns (address codeAddress){
+        return ProxyShared.implementation();
+    }
+
+    /**
+     * @dev Proxiable UUID marker function.
+     *      This would help to avoid wrong logic contract to be used for upgrading.
+     */
+    function proxiableUUID() public pure virtual returns (bytes32);
+
+    /**
+     * @dev Update code address function.
+     *      It is internal, so the derived contract could setup its own permission logic.
+     */
     function _updateCodeAddress(address newAddress) internal {
         require(
-            bytes32(
-                    _IMPLEMENTATION_SLOT
-                ) ==
-                Proxiable(newAddress).proxiableUUID(),
-            "Not compatible"
+            proxiableUUID() == Proxiable(newAddress).proxiableUUID(),
+            "Proxiable: NOT_COMPATIBLE"
         );
-        assembly {
-            // solium-disable-line
-            sstore(
-                _IMPLEMENTATION_SLOT,
-                newAddress
-            )
-        }
+        ProxyShared.setImplementation(newAddress);
     }
 
-    function getCodeAddress() external view returns (address codeAddress){
-        assembly {
-            // solium-disable-line
-            codeAddress := sload(
-                _IMPLEMENTATION_SLOT
-            )
-        }
-    }
-
-    function proxiableUUID() external pure returns (bytes32) {
-        return
-            _IMPLEMENTATION_SLOT;
-    }
 }

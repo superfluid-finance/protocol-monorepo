@@ -456,8 +456,13 @@ contract SuperToken is
         return address(_gov);
     }
 
+    /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
     function getUnderlayingToken() external override view returns(address) {
         return address(_token);
+    }
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return keccak256("com.superfluid-finance.contracts.SuperToken.implementation");
     }
 
     /*

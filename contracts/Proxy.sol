@@ -7,10 +7,11 @@ pragma solidity ^0.6.6;
 library ProxyShared {
     /**
      * @dev Implementation slot constant.
-     * Code position in storage is:
-     * keccak256("PROXIABLE") = "0xc5f16f0fcc639fa48a6947836d9850f504798523bf8c9a3a87d5876cf622bcf7"
+     * Using https://eips.ethereum.org/EIPS/eip-1967 standard
+     * Storage slot 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+     * (obtained as bytes32(uint256(keccak256('eip1967.proxy.implementation')) - 1)).
      */
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0xc5f16f0fcc639fa48a6947836d9850f504798523bf8c9a3a87d5876cf622bcf7;
+    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
     /// @dev Get implementation slot value.
     function implementationSlot() internal pure returns (bytes32 slot) {

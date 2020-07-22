@@ -462,7 +462,7 @@ contract SuperToken is
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("com.superfluid-finance.contracts.SuperToken.implementation");
+        return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
     /*

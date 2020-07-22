@@ -36,8 +36,8 @@ contract("deployment test", () => {
         const superToken2 = await testResolver.get("SuperTestToken.test");
         const code2 = await (await SuperToken.at(superToken2)).getCodeAddress.call();
         assert.equal(testToken1, testToken2);
-        assert.notEqual(flowAgreement1, flowAgreement2);
-        assert.notEqual(gov1, gov2);
+        assert.equal(flowAgreement1, flowAgreement2, "FlowAgreement deployment not required");
+        assert.equal(gov1, gov2, "Governance deployment not required");
         assert.equal(superToken1, superToken2);
         assert.notEqual(code1, code2);
 

@@ -1,6 +1,14 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const Superfluid = require("..");
 
+async function codeChanged(contract, address) {
+    const code = await web3.eth.getCode(address);
+    // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
+    const startingPoint = contract.bytecode.lastIndexOf("6080604052");
+    const bytecodeFromCompiler = contract.bytecode.slice(startingPoint);
+    return code.slice(2) !== bytecodeFromCompiler;
+}
+
 module.exports = async function (callback) {
     try {
         global.web3 = web3;
@@ -31,6 +39,40 @@ module.exports = async function (callback) {
         }
         console.log("Resolver address", testResolver.address);
 
+        {
+            const name = `FlowAgreement.${version}`;
+            const flowAgreementAddress = await testResolver.get(name);
+            if (reset || await codeChanged(FlowAgreement, flowAgreementAddress)) {
+                const agreement = await web3tx(FlowAgreement.new, "FlowAgreement.new")();
+                console.log("FlowAgreement address", agreement.address);
+                await web3tx(testResolver.set, `TestResolver set FlowAgreement.${version}`)(
+                    name, agreement.address
+                );
+            } else {
+                console.log(`Current FlowAgreement address ${flowAgreementAddress}. Same code, no deployment neede`);
+            }
+        }
+
+        let governanceAddress;
+        {
+            const name = `TestGovernance.${version}`;
+            governanceAddress = await testResolver.get(name);
+            if (reset || await codeChanged(TestGovernance, governanceAddress)) {
+                const governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
+                    accounts[0],
+                    2,
+                    3600
+                );
+                governanceAddress = governance.address;
+                console.log("TestGovernance address", governance.address);
+                await web3tx(testResolver.set, `TestResolver set TestGovernance.${version}`)(
+                    name, governance.address
+                );
+            } else {
+                console.log(`Current TestGovernance address ${governanceAddress}. Same code, no deployment neede`);
+            }
+        }
+
         let testTokenAddress = await testResolver.get(`TestToken.${version}`);
         if (reset || testTokenAddress === "0x0000000000000000000000000000000000000000") {
             const testToken = await web3tx(TestToken.new, "TestToken.new")();
@@ -40,22 +82,6 @@ module.exports = async function (callback) {
             );
         }
         console.log("TestToken address", testTokenAddress);
-
-        const agreement = await web3tx(FlowAgreement.new, "FlowAgreement.new")();
-        console.log("FlowAgreement address", agreement.address);
-        await web3tx(testResolver.set, `TestResolver set FlowAgreement.${version}`)(
-            `FlowAgreement.${version}`, agreement.address
-        );
-
-        const governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
-            accounts[0],
-            2,
-            3600
-        );
-        console.log("TestGovernance address", governance.address);
-        await web3tx(testResolver.set, `TestResolver set TestGovernance.${version}`)(
-            `TestGovernance.${version}`, governance.address
-        );
 
         const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
 
@@ -71,7 +97,7 @@ module.exports = async function (callback) {
                 "STT",
                 18,
                 testTokenAddress,
-                governance.address
+                governanceAddress
             );
             superTestTokenAddress = proxy.address;
             await web3tx(testResolver.set, `TestResolver set superTestToken.${version}`)(

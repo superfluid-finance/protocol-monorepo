@@ -3,17 +3,38 @@ pragma solidity ^0.6.6;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./upgradability/Proxy.sol";
+import "./upgradability/Proxiable.sol";
+import "./interface/Ownable.sol";
 import "./interface/ISuperfluidRegistry.sol";
 import "./interface/ISuperfluidGovernance.sol";
 import "./SuperToken.sol";
-import "./Proxy.sol";
 
-contract SuperfluidRegistry is ISuperfluidRegistry {
+contract SuperfluidRegistryStorage {
+    /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
+       variables are added APPEND-ONLY. Re-ordering variables can
+       permanently BREAK the deployed proxy contract. */
 
-    ISuperfluidGovernance private _gov;
-    SuperToken private _superTokenLogic;
+    /// @dev Flag to avoid double initialization
+    bool internal _initialized;
 
-    constructor(ISuperfluidGovernance gov) public {
+    /// @dev Governance contract
+    ISuperfluidGovernance internal _gov;
+
+    /// @dev Super token logic contract
+    SuperToken internal _superTokenLogic;
+}
+
+contract SuperfluidRegistry is
+    Ownable,
+    SuperfluidRegistryStorage,
+    ISuperfluidRegistry,
+    Proxiable {
+
+    function initialize(ISuperfluidGovernance gov) external {
+        require(!_initialized, "The library has already been initialized.");
+        _owner = msg.sender;
+        _initialized = true;
         _gov = gov;
         _superTokenLogic = new SuperToken();
     }
@@ -66,6 +87,22 @@ contract SuperfluidRegistry is ISuperfluidRegistry {
     returns (ISuperfluidGovernance)
     {
         return _gov;
+    }
+
+    function setGovernance(ISuperfluidGovernance gov)
+    external
+    onlyOwner
+    returns (ISuperfluidGovernance)
+    {
+        _gov = gov;
+    }
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return keccak256("org.superfluid-finance.contracts.SuperfluidRegistry.implementation");
+    }
+
+    function updateCode(address newAddress) external onlyOwner {
+        return _updateCodeAddress(newAddress);
     }
 
     function _genereateERC20WrapperSalt(

@@ -2,12 +2,12 @@
 pragma solidity ^0.6.6;
 pragma experimental ABIEncoderV2;
 
-import {SuperTokenStorage} from "../SuperTokenStorage.sol";
+import {SuperToken} from "../SuperToken.sol";
 
 /**
  * @dev Test SuperTokenStorag Layout changes
  */
-contract SuperTokenStorageTester is SuperTokenStorage {
+contract SuperTokenStorageTester is SuperToken {
     function validate() public pure {
         uint256 slot;
         uint256 offset;

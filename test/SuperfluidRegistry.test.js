@@ -13,9 +13,8 @@ contract("Superfluid Registry", accounts => {
             accounts[0],
             1,
             3600);
-        const registry = await web3tx(SuperfluidRegistry.new, "SuperfluidRegistry.new")(
-            governance.address
-        );
+        const registry = await web3tx(SuperfluidRegistry.new, "SuperfluidRegistry.new")();
+        await web3tx(registry.initialize, "SuperfluidRegistry.initialize")(governance.address);
         const token1 = await web3tx(TestToken.new, "TestToken.new 1")();
         const token2 = await web3tx(TestToken.new, "TestToken.new 2")();
         const result1 = await registry.getERC20Wrapper.call(

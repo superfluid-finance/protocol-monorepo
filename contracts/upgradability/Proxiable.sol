@@ -1,6 +1,7 @@
 pragma solidity >=0.5.0;
 
-import { ProxyShared, Proxy } from "./Proxy.sol";
+import "./ProxyUtils.sol";
+import "./Proxy.sol";
 
 /**
  * @dev Proxiable contract.
@@ -12,7 +13,7 @@ abstract contract Proxiable {
      * @dev Get current implementation code address.
      */
     function getCodeAddress() external view returns (address codeAddress){
-        return ProxyShared.implementation();
+        return ProxyUtils.implementation();
     }
 
     /**
@@ -30,7 +31,7 @@ abstract contract Proxiable {
             proxiableUUID() == Proxiable(newAddress).proxiableUUID(),
             "Proxiable: NOT_COMPATIBLE"
         );
-        ProxyShared.setImplementation(newAddress);
+        ProxyUtils.setImplementation(newAddress);
     }
 
 }

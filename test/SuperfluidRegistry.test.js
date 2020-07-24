@@ -1,5 +1,6 @@
 const TestGovernance = artifacts.require("TestGovernance");
 const SuperfluidRegistry = artifacts.require("SuperfluidRegistry");
+const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
 
 const {
@@ -13,10 +14,17 @@ contract("Superfluid Registry", accounts => {
             accounts[0],
             1,
             3600);
+        const superTokenLogic = await web3tx(SuperToken.new, "SuperToken.new due to code change")();
         const registry = await web3tx(SuperfluidRegistry.new, "SuperfluidRegistry.new")();
-        await web3tx(registry.initialize, "SuperfluidRegistry.initialize")(governance.address);
-        const token1 = await web3tx(TestToken.new, "TestToken.new 1")();
-        const token2 = await web3tx(TestToken.new, "TestToken.new 2")();
+        await web3tx(registry.initialize, "registry.initialize")();
+        await web3tx(registry.setGovernance, "registry.setGovernance")(
+            governance.address
+        );
+        await web3tx(registry.setSuperTokenLogic, "registry.setSuperTokenLogic")(
+            superTokenLogic.address
+        );
+        const token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1");
+        const token2 = await web3tx(TestToken.new, "TestToken.new 2")("Test Token 2", "TT2");
         const result1 = await registry.getERC20Wrapper.call(
             "TEST1x",
             "Super Test Token 1",

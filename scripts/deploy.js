@@ -59,9 +59,7 @@ module.exports = async function (callback) {
                     registryLogic.address
                 );
                 const registry = await SuperfluidRegistry.at(proxy.address);
-                await web3tx(registry.initialize, "SuperfluidRegistry.initialize")(
-
-                );
+                await web3tx(registry.initialize, "SuperfluidRegistry.initialize")();
                 await web3tx(testResolver.set, `TestResolver set ${name}`)(
                     name, proxy.address
                 );

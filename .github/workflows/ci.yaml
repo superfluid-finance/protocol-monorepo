@@ -75,32 +75,6 @@ jobs:
         name: coverage
         path: coverage
 
-  npm-publish:
-
-    needs: [build, coverage]
-
-    runs-on: ubuntu-latest
-
-    # only publish npm package for master branch push
-    if: github.event_name  == 'push' && github.ref == 'refs/heads/master'
-
-    steps:
-
-    - uses: actions/checkout@v2
-
-    - uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
-        registry-url: 'https://npm.pkg.github.com'
-
-    - name: Build and Publish package
-      run: |
-        npm ci
-        npm run build
-        .github/workflows/npm-publish.sh
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   # deploy-kovan:
   #
   #   needs: [build, coverage]
@@ -178,3 +152,29 @@ jobs:
       env:
         GOERLI_MNEMONIC: ${{ secrets.GOERLI_MNEMONIC }}
         GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+
+  npm-publish:
+
+    needs: [build, coverage, deploy-goerli]
+
+    runs-on: ubuntu-latest
+
+    # only publish npm package for master branch push
+    if: github.event_name  == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-node@v1
+      with:
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+
+    - name: Build and Publish package
+      run: |
+        npm ci
+        npm run build
+        .github/workflows/npm-publish.sh
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

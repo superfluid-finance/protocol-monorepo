@@ -13,6 +13,17 @@ module.exports = {
         Object.values(contracts).forEach(i => i.setProvider(provider));
         return contracts;
     },
+    getERC20Wrapper: async (registry, tokenInfo) => {
+        const tokenInfoName = await tokenInfo.name.call();
+        const tokenInfoSymbol = await tokenInfo.symbol.call();
+        const tokenInfoDecimals = await tokenInfo.decimals.call();
+        return await registry.getERC20Wrapper.call(
+            `Super ${tokenInfoName}`,
+            `${tokenInfoSymbol}x`,
+            tokenInfoDecimals,
+            tokenInfo.address
+        );
+    },
     getConfig: (chainId) => {
         return ({
             5: { // goerli

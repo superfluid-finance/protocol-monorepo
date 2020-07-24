@@ -22,7 +22,7 @@ contract SuperfluidRegistryStorage {
     ISuperfluidGovernance internal _gov;
 
     /// @dev Super token logic contract
-    SuperToken internal _superTokenLogic;
+    ISuperToken internal _superTokenLogic;
 }
 
 contract SuperfluidRegistry is
@@ -31,12 +31,10 @@ contract SuperfluidRegistry is
     ISuperfluidRegistry,
     Proxiable {
 
-    function initialize(ISuperfluidGovernance gov) external {
+    function initialize() external {
         require(!_initialized, "The library has already been initialized.");
         _owner = msg.sender;
         _initialized = true;
-        _gov = gov;
-        _superTokenLogic = new SuperToken();
     }
 
     function getERC20Wrapper(
@@ -81,21 +79,10 @@ contract SuperfluidRegistry is
         );
     }
 
-    function getGovernance()
-    external
-    override
-    returns (ISuperfluidGovernance)
-    {
-        return _gov;
-    }
-
-    function setGovernance(ISuperfluidGovernance gov)
-    external
-    onlyOwner
-    returns (ISuperfluidGovernance)
-    {
-        _gov = gov;
-    }
+    function getGovernance() external override returns (ISuperfluidGovernance) { return _gov; }
+    function setGovernance(ISuperfluidGovernance gov) external onlyOwner { _gov = gov; }
+    function getSuperTokenLogic() external override returns (ISuperToken) { return _superTokenLogic; }
+    function setSuperTokenLogic(ISuperToken logic) external onlyOwner { _superTokenLogic = logic; }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperfluidRegistry.implementation");

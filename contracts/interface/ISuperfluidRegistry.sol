@@ -28,7 +28,7 @@ interface ISuperfluidRegistry {
     external
     returns (ISuperToken);
 
-    function getGovernance()
-    external
-    returns (ISuperfluidGovernance);
+    function getGovernance() external returns (ISuperfluidGovernance);
+    function getSuperTokenLogic() external returns (ISuperToken);
+
 }

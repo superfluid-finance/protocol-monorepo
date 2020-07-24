@@ -26,13 +26,6 @@ contract Proxy {
     }
 
     /**
-     * @dev Get current implementation code address.
-     */
-    function getCodeAddress() external view returns (address codeAddress) {
-        return ProxyUtils.implementation();
-    }
-
-    /**
      * @dev Fallback function.
      * Implemented entirely in `_delegate`.
      */

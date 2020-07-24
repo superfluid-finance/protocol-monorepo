@@ -50,6 +50,7 @@ module.exports = class Tester {
         this.contracts = {};
 
         this.contracts.token = await web3tx(TestToken.new, "TestToken.new")(
+            "Test Token", "TEST",
             {
                 from: this.aliases.admin
             });

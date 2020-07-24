@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.6;
+pragma solidity >= 0.6.0;
 
 contract OwnableStorage {
     /// @dev For ownable contract

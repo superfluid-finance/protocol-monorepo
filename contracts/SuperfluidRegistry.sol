@@ -38,7 +38,6 @@ contract SuperfluidRegistry is
     }
 
     function getERC20Wrapper(
-        string calldata name,
         string calldata symbol,
         uint8 decimals,
         IERC20 token
@@ -46,7 +45,7 @@ contract SuperfluidRegistry is
     external
     override
     returns (address wrapperAddress, bool created) {
-        bytes32 salt = _genereateERC20WrapperSalt(name, symbol, decimals, token);
+        bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
         wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
         created = Address.isContract(wrapperAddress);
     }
@@ -62,7 +61,7 @@ contract SuperfluidRegistry is
     returns (ISuperToken)
     {
         require(address(token) != address(0), "SuperfluidRegistry: ZERO_ADDRESS");
-        bytes32 salt = _genereateERC20WrapperSalt(name, symbol, decimals, token);
+        bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
         address wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
         require(!Address.isContract(wrapperAddress), "SuperfluidRegistry: WRAPPER_EXIST");
         Proxy proxy = new Proxy{salt: salt}();
@@ -93,13 +92,11 @@ contract SuperfluidRegistry is
     }
 
     function _genereateERC20WrapperSalt(
-        string memory name,
         string memory symbol,
         uint8 decimals,
         IERC20 token
     ) private pure returns (bytes32 salt) {
         return keccak256(abi.encodePacked(
-            name,
             symbol,
             decimals,
             token

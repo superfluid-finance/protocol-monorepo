@@ -2,6 +2,7 @@ const TruffleContract = require("@truffle/contract");
 const SuperfluidABI = require("./build/abi");
 
 module.exports = {
+    /// @dev Load contracts (TruffleContract) from ABIs and bind to the provider
     load: (provider) => {
         let contracts = {};
         Object.keys(SuperfluidABI).forEach(i => {
@@ -13,17 +14,17 @@ module.exports = {
         Object.values(contracts).forEach(i => i.setProvider(provider));
         return contracts;
     },
+    /// @dev Get the ERC20 wrapper for the token
     getERC20Wrapper: async (registry, tokenInfo) => {
-        const tokenInfoName = await tokenInfo.name.call();
         const tokenInfoSymbol = await tokenInfo.symbol.call();
         const tokenInfoDecimals = await tokenInfo.decimals.call();
         return await registry.getERC20Wrapper.call(
-            `Super ${tokenInfoName}`,
             `${tokenInfoSymbol}x`,
             tokenInfoDecimals,
             tokenInfo.address
         );
     },
+    /// @dev Get the network configuration
     getConfig: (chainId) => {
         return ({
             5: { // goerli

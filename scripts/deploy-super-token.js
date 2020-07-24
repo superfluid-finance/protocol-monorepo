@@ -44,19 +44,14 @@ module.exports = async function (callback, argv) {
 
         const registryAddress = await testResolver.get(`SuperfluidRegistry.${version}`);
         const registry = await SuperfluidRegistry.at(registryAddress);
-        const tokenWrapperArgs = [
-            `Super ${tokenInfoName}`,
-            `${tokenInfoSymbol}x`,
-            tokenInfoDecimals,
-            tokenAddress
-        ];
-        const superTokenWrapper = await registry.getERC20Wrapper.call(
-            ...tokenWrapperArgs
-        );
+        const superTokenWrapper = await Superfluid.getERC20Wrapper(registry, tokenInfo);
         console.log("SuperToken wrapper address: ", superTokenWrapper.wrapperAddress);
         if (!superTokenWrapper.created) {
             await web3tx(registry.createERC20Wrapper, "registry.createERC20Wrapper")(
-                ...tokenWrapperArgs
+                `Super ${tokenInfoName}`,
+                `${tokenInfoSymbol}x`,
+                tokenInfoDecimals,
+                tokenAddress
             );
         } else {
             console.log("SuperToken wrapper already created.");

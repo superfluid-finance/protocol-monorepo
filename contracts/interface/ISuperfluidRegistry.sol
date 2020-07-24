@@ -11,7 +11,6 @@ import "./ISuperfluidGovernance.sol";
 interface ISuperfluidRegistry {
 
     function getERC20Wrapper(
-        string calldata name,
         string calldata symbol,
         uint8 decimals,
         IERC20 token

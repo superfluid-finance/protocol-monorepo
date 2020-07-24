@@ -10,15 +10,25 @@ import "./ISuperfluidGovernance.sol";
  */
 interface ISuperfluidRegistry {
 
-    function createSuperToken(
-        ISuperToken underlying
+    function getERC20Wrapper(
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token
     )
     external
-    returns(address);
+    returns (address wrapperAddress, bool created);
 
-    function getGovernance(
-        ISuperToken underlying
+    function createERC20Wrapper(
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token
     )
     external
-    returns (ISuperfluidGovernance);
+    returns (ISuperToken);
+
+    function getGovernance() external returns (ISuperfluidGovernance);
+    function getSuperTokenLogic() external returns (ISuperToken);
+
 }

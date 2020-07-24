@@ -2,12 +2,13 @@
 pragma solidity >= 0.6.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { TokenInfo } from "./TokenInfo.sol";
 
 /**
  * @title Superfluid's token interface
  * @author Superfluid
  */
-abstract contract ISuperToken is IERC20 {
+abstract contract ISuperToken is IERC20, TokenInfo {
 
     /*
      * Agreement functions

@@ -11,7 +11,8 @@ describe("package test", () => {
         const {
             IERC20,
             TestResolver,
-            TestToken,
+            TokenInfo,
+            SuperfluidRegistry,
             IFlowAgreement,
             ISuperToken
         }  = Superfluid.load(provider);
@@ -24,9 +25,13 @@ describe("package test", () => {
         assert.equal(TestResolver.contractName, "TestResolver");
         assert.isTrue(TestResolver.abi.filter(i => i.name === "set").length > 0);
 
-        assert.isDefined(TestToken.abi);
-        assert.equal(TestToken.contractName, "TestToken");
-        assert.isTrue(TestToken.abi.filter(i => i.name === "mint").length > 0);
+        assert.isDefined(TokenInfo.abi);
+        assert.equal(TokenInfo.contractName, "TokenInfo");
+        assert.isTrue(TokenInfo.abi.filter(i => i.name === "symbol").length > 0);
+
+        assert.isDefined(SuperfluidRegistry.abi);
+        assert.equal(SuperfluidRegistry.contractName, "SuperfluidRegistry");
+        assert.isTrue(SuperfluidRegistry.abi.filter(i => i.name === "getERC20Wrapper").length > 0);
 
         assert.isDefined(IFlowAgreement.abi);
         assert.equal(IFlowAgreement.contractName, "IFlowAgreement");

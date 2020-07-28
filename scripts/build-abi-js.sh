@@ -2,7 +2,7 @@
 
 cd "$(dirname "$0")/.."
 
-CONTRACTS="IERC20 TokenInfo TestResolver SuperfluidRegistry IFlowAgreement ISuperToken"
+CONTRACTS="IERC20 TestToken TokenInfo TestResolver SuperfluidRegistry IFlowAgreement ISuperToken"
 
 echo "if (typeof module === \"undefined\") module = {};"
 echo "Superfluid_ABI = module.exports = {"

@@ -203,13 +203,7 @@ module.exports = async function (callback, argv) {
                 }
 
             }
-
         }
-
-        //deploy supertoken wrappers
-        {
-        }
-
         callback();
     } catch (err) {
         callback(err);

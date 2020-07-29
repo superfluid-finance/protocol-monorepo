@@ -20,7 +20,7 @@ module.exports = {
         const tokenInfoDecimals = await tokenInfo.decimals.call();
         return await registry.getERC20Wrapper.call(
             `${tokenInfoSymbol}x`,
-            tokenInfoDecimals,
+            tokenInfoDecimals.toString(),
             tokenInfo.address
         );
     },

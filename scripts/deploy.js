@@ -8,6 +8,7 @@ const TestGovernance = artifacts.require("TestGovernance");
 const Proxy = artifacts.require("Proxy");
 const Proxiable = artifacts.require("Proxiable");
 const FlowAgreement = artifacts.require("FlowAgreement");
+const SuperfluidContract = artifacts.require("Superfluid");
 
 const {
     hasCode,
@@ -96,6 +97,26 @@ module.exports = async function (callback) {
             }
         }
 
+        // deploy Superfluid
+        let superfluidInstance;
+        {
+            const name = `Superfluid.${version}`;
+            let superfluidAddress = await testResolver.get(name);
+            console.log("Superfluid address", superfluidAddress);
+            if (reset || await codeChanged(SuperfluidContract, superfluidAddress)) {
+                const superfluid = await web3tx(SuperfluidContract.new, "Superfluid.new due to code change")();
+                superfluidAddress = superfluid.address;
+                console.log("Superfluid address", superfluid.address);
+                await web3tx(testResolver.set, `Superfluid set ${name}`)(
+                    name, superfluid.address
+                );
+            } else {
+                console.log("TestGovernance has the same code, no deployment needed.");
+            }
+
+            superfluidInstance = await SuperfluidRegistry.at(superfluidAddress);
+        }
+
         // deploy TestGovernance
         let governanceAddress;
         {
@@ -106,7 +127,9 @@ module.exports = async function (callback) {
                 const governance = await web3tx(TestGovernance.new, "TestGovernance.new due to code change")(
                     accounts[0],
                     2,
-                    3600
+                    3600,
+                    10000,
+                    superfluidInstance.address
                 );
                 governanceAddress = governance.address;
                 console.log("TestGovernance address", governance.address);

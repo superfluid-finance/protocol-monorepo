@@ -52,12 +52,14 @@ contract("Flow Agreement", accounts => {
             assert.equal((await flowAgreement.getNetFlow.call(
                 superToken.address, bob
             )).toString(), FLOW_RATE.toString());
+
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, alice, bob
-            )).toString(), FLOW_RATE.toString());
+                superToken.address, web3.utils.soliditySha3(alice, bob)
+            ))[3].toString(), FLOW_RATE.toString());
+
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, bob, alice
-            )).toString(), "0");
+                superToken.address, web3.utils.soliditySha3(bob, alice)
+            ))[3].toString(), "0");
 
             const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
@@ -93,11 +95,11 @@ contract("Flow Agreement", accounts => {
                 superToken.address, bob
             )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, alice, bob
-            )).toString(), FLOW_RATE.toString());
+                superToken.address, web3.utils.soliditySha3(alice, bob)
+            ))[3].toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, bob, alice
-            )).toString(), "0");
+                superToken.address, web3.utils.soliditySha3(bob, alice)
+            ))[3].toString(), "0");
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -118,23 +120,23 @@ contract("Flow Agreement", accounts => {
                 superToken.address, carol
             )).toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, alice, bob
-            )).toString(), FLOW_RATE.toString());
+                superToken.address, web3.utils.soliditySha3(alice, bob)
+            ))[3].toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, bob, alice
-            )).toString(), "0");
+                superToken.address, web3.utils.soliditySha3(bob, alice)
+            ))[3].toString(), "0");
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, alice, carol
-            )).toString(), FLOW_RATE.toString());
+                superToken.address, web3.utils.soliditySha3(alice, carol)
+            ))[3].toString(), FLOW_RATE.toString());
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, carol, alice
-            )).toString(), "0");
+                superToken.address, web3.utils.soliditySha3(carol, alice)
+            ))[3].toString(), "0");
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, bob, carol
-            )).toString(), "0");
+                superToken.address, web3.utils.soliditySha3(bob, carol)
+            ))[3].toString(), "0");
             assert.equal((await flowAgreement.getFlow.call(
-                superToken.address, carol, bob
-            )).toString(), "0");
+                superToken.address, web3.utils.soliditySha3(carol, bob)
+            ))[3].toString(), "0");
 
             const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
@@ -656,7 +658,9 @@ contract("Flow Agreement", accounts => {
                 "FlowAgreement.deleteFlow: User 1 will be liquidated"
             )(superToken.address, alice, bob, {from: admin});
 
-            const flowRate = await flowAgreement.getFlow.call(superToken.address, alice, bob);
+            const flowRate = (await flowAgreement.getFlow.call(
+                superToken.address,
+                web3.utils.soliditySha3(alice, bob)))[3].toString();
 
             assert.equal(flowRate.toString(), "0", "Liquidation didn't happen");
         });

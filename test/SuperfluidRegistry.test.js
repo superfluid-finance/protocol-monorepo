@@ -1,4 +1,5 @@
 const TestGovernance = artifacts.require("TestGovernance");
+const Superfluid = artifacts.require("Superfluid");
 const SuperfluidRegistry = artifacts.require("SuperfluidRegistry");
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
@@ -10,10 +11,19 @@ const {
 contract("Superfluid Registry", accounts => {
 
     it("#1 SuperfluidRegistry.createERC20Wrapper", async () => {
+
+        const superfluid = await web3tx(Superfluid.new, "SuperToken.new")(
+            {
+                from: accounts[0]
+            });
+
         const governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
             accounts[0],
             1,
-            3600);
+            3600,
+            10000,
+            superfluid.address);
+
         const superTokenLogic = await web3tx(SuperToken.new, "SuperToken.new due to code change")();
         const registry = await web3tx(SuperfluidRegistry.new, "SuperfluidRegistry.new")();
         await web3tx(registry.initialize, "registry.initialize")();

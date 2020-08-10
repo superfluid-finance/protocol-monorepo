@@ -374,6 +374,7 @@ contract SuperToken is
         external
         override
     {
+        //bytes32 _newId = keccak256(abi.encodePacked(id));
         _agreementData[msg.sender][id] = data;
         emit AgreementCreated(msg.sender, id, data);
     }

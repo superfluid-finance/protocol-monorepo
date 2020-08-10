@@ -3,6 +3,7 @@ const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
 const TestGovernance = artifacts.require("TestGovernance");
 const FlowAgreement = artifacts.require("FlowAgreement");
+const Superfluid = artifacts.require("Superfluid");
 
 const {
     web3tx,
@@ -55,10 +56,18 @@ module.exports = class Tester {
                 from: this.aliases.admin
             });
 
+        this.contracts.superfluid = await web3tx(Superfluid.new, "SuperToken.new")(
+            {
+                from: this.aliases.admin
+            });
+
         this.contracts.governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
             this.aliases.admin,
             1,
-            3600, {
+            3600,
+            10000,
+            this.contracts.superfluid.address,
+            {
                 from: this.aliases.admin
             });
 

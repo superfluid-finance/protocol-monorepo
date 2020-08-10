@@ -35,4 +35,14 @@ interface ISuperfluidGovernance {
         external
         view
         returns(uint16 period);
+
+    function getGasReservation()
+        external
+        view
+        returns(uint64);
+
+    function getSuperfluid()
+        external
+        view
+        returns(address);
 }

@@ -49,12 +49,14 @@ describe("package test", () => {
         // kovan
         const kovanConfig = Superfluid.getConfig(42);
         assert.isNotEmpty(kovanConfig.resolverAddress);
+        /*
         // test environment
         let testConfig = Superfluid.getConfig(5555);
         assert.isUndefined(testConfig.resolverAddress);
         process.env.TEST_RESOLVER_ADDRESS="0x42";
         testConfig = Superfluid.getConfig(5555);
         assert.equal(testConfig.resolverAddress, "0x42");
+        */
     });
 
 });

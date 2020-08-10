@@ -21,15 +21,22 @@ contract("deployment test", () => {
     });
 
     it("Deploy/upgrade/reset Superfluid Framework", async () => {
+
+        const version = process.env.RELEASE_VERSION || "test";
+
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         console.log("First deployment");
         await deploy(errorHandler);
-        const registry1 = await testResolver.get("SuperfluidRegistry.test");
-        const flowAgreement1 = await testResolver.get("FlowAgreement.test");
-        const gov1 = await testResolver.get("TestGovernance.test");
-        const superToken1 = await testResolver.get("SuperTokenLogic.test");
+        const registry1Name = `SuperfluidRegistry.${version}`;
+        const registry1 = await testResolver.get(registry1Name);
+        const flowAgreementName = `FlowAgreement.${version}`;
+        const flowAgreement1 = await testResolver.get(flowAgreementName);
+        const gov1Name = `TestGovernance.${version}`;
+        const gov1 = await testResolver.get(gov1Name);
+        const superTokenName = `SuperTokenLogic.${version}`;
+        const superToken1 = await testResolver.get(superTokenName);
         assert.notEqual(registry1, "0x0000000000000000000000000000000000000000");
         assert.notEqual(flowAgreement1, "0x0000000000000000000000000000000000000000");
         assert.notEqual(gov1, "0x0000000000000000000000000000000000000000");
@@ -37,10 +44,14 @@ contract("deployment test", () => {
 
         console.log("Upgrade logic contract");
         await deploy(errorHandler);
-        const registry2 = await testResolver.get("SuperfluidRegistry.test");
-        const flowAgreement2 = await testResolver.get("FlowAgreement.test");
-        const gov2 = await testResolver.get("TestGovernance.test");
-        const superToken2 = await testResolver.get("SuperTokenLogic.test");
+        const registry2Name = `SuperfluidRegistry.${version}`;
+        const registry2 = await testResolver.get(registry2Name);
+        const flowAgreement2Name = `FlowAgreement.${version}`;
+        const flowAgreement2 = await testResolver.get(flowAgreement2Name);
+        const gov2Name = `TestGovernance.${version}`;
+        const gov2 = await testResolver.get(gov2Name);
+        const superToken2Name= `SuperTokenLogic.${version}`;
+        const superToken2 = await testResolver.get(superToken2Name);
         assert.equal(registry1, registry2);
         assert.equal(
             await (await SuperfluidRegistry.at(registry1)).getCodeAddress(),
@@ -52,10 +63,14 @@ contract("deployment test", () => {
         console.log("Reset all");
         process.env.RESET = 1;
         await deploy(errorHandler);
-        const registry3 = await testResolver.get("SuperfluidRegistry.test");
-        const flowAgreement3 = await testResolver.get("FlowAgreement.test");
-        const gov3 = await testResolver.get("TestGovernance.test");
-        const superToken3 = await testResolver.get("SuperTokenLogic.test");
+        const registry3Name = `SuperfluidRegistry.${version}`;
+        const registry3 = await testResolver.get(registry3Name);
+        const flowAgreement3Name = `FlowAgreement.${version}`;
+        const flowAgreement3 = await testResolver.get(flowAgreement3Name);
+        const gov3Name = `TestGovernance.${version}`;
+        const gov3 = await testResolver.get(gov3Name);
+        const superToken3Name = `SuperTokenLogic.${version}`;
+        const superToken3 = await testResolver.get(superToken3Name);
         assert.notEqual(registry3, "0x0000000000000000000000000000000000000000");
         assert.notEqual(flowAgreement3, "0x0000000000000000000000000000000000000000");
         assert.notEqual(gov3, "0x0000000000000000000000000000000000000000");

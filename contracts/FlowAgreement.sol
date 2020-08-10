@@ -4,6 +4,9 @@ pragma solidity 0.6.6;
 
 import { ISuperToken, IFlowAgreement } from "./interface/IFlowAgreement.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
+import { ISuperfluid } from "./interface/ISuperfluid.sol";
+import { ISuperApp } from "./interface/ISuperApp.sol";
+import { AppHelper } from "./interface/AppHelper.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
@@ -49,10 +52,44 @@ contract FlowAgreement is IFlowAgreement {
         return _encodeFlow(timestamp, cRate);
     }
 
+    /// @dev IFlowAgreement.createFlow implementation
+    function createFlow(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int256 flowRate
+    )
+        external
+        override
+    {
+        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
+        uint64 gasReservation = gov.getGasReservation();
+        // TODO: THIS CAN REVERT AND STOP EVERYTHING
+        (bool ok, uint bitmask) = _checkCaller(gov, sender);
+        if(ok && (bitmask & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) {
+
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                msg.sender,
+                gasReservation,
+                ISuperApp(msg.sender).beforeAgreementCreated.selector,
+                _generateId(sender, receiver)
+            );
+        }
+        _updateFlow(token, sender, receiver, flowRate);
+
+        if(ok && (AppHelper.AFTER_AGREEMENT_CREATED_NOOP & bitmask) != AppHelper.AFTER_AGREEMENT_CREATED_NOOP) {
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                msg.sender,
+                gasReservation,
+                ISuperApp(msg.sender).afterAgreementCreated.selector,
+                _generateId(sender, receiver)
+            );
+        }
+    }
+
     /*
      *   IFlowAgreement interface
      */
-
     /// @dev IFlowAgreement.updateFlow implementation
     function updateFlow(
         ISuperToken token,
@@ -65,23 +102,41 @@ contract FlowAgreement is IFlowAgreement {
     {
         // TODO meta-tx support
         require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
+        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
+        uint64 gasReservation = gov.getGasReservation();
+        // TODO: THIS CAN REVERT AND STOP EVERYTHING
+        (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
+        if(ok && (AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) {
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                msg.sender,
+                gasReservation,
+                ISuperApp(msg.sender).beforeAgreementCreated.selector,
+                _generateId(sender, receiver)
+            );
+        }
         _updateFlow(token, sender, receiver, flowRate);
+        if(ok && AppHelper.AFTER_AGREEMENT_UPDATED_NOOP & bitmask != AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) {
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                msg.sender,
+                gasReservation,
+                ISuperApp(msg.sender).afterAgreementCreated.selector,
+                _generateId(sender, receiver)
+            );
+        }
     }
 
     /// @dev IFlowAgreement.getFlow implementation
     function getFlow(
         ISuperToken token,
-        address sender,
-        address receiver
+        bytes32 flowId
     )
         external
         view
         override
-        returns (int256 flowRate)
+        returns (uint256 timestamp, address sender, address receiver, int256 flowRate)
     {
-        bytes32 flowId = _generateId(sender, receiver);
         bytes memory data = token.getAgreementData(address(this), flowId);
-        (, flowRate) = _decodeFlow(data);
+        return _decodeData(data);
     }
 
     /// @dev IFlowAgreement.getNetFlow implementation
@@ -107,6 +162,19 @@ contract FlowAgreement is IFlowAgreement {
         external
         override
     {
+        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
+        uint64 gasReservation = gov.getGasReservation();
+        // TODO: THIS CAN REVERT AND STOP EVERYTHING
+        (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
+        if(ok && (AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP) {
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                msg.sender,
+                gasReservation,
+                ISuperApp(msg.sender).beforeAgreementCreated.selector,
+                _generateId(sender, receiver)
+            );
+        }
+
         bool isLiquidator = (msg.sender != sender && msg.sender != receiver);
         if (isLiquidator) {
             require(token.isAccountInsolvent(sender), "FlowAgreement: account is solvent");
@@ -144,14 +212,14 @@ contract FlowAgreement is IFlowAgreement {
         require(sender != receiver, "FlowAgreement: self flow not allowed");
         require(flowRate != 0, "FlowAgreement: use delete flow");
         require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
-
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory oldFlowData = token.getAgreementData(address(this), flowId);
-        (, int256 oldFlowRate) = _decodeFlow(oldFlowData);
-        bytes memory newFlowData = _encodeFlow(block.timestamp, flowRate);
+        (, , , int256 oldFlowRate) = _decodeData(oldFlowData);
+        bytes memory newFlowData = _encodeData(block.timestamp, sender, receiver, flowRate);
         token.createAgreement(flowId, newFlowData);
-        (, int256 newFlowRate) = _decodeFlow(newFlowData);
-        int flowRateDelta = newFlowRate - oldFlowRate;
+
+        //(, int256 newFlowRate) = _decodeFlow(newFlowData);
+        int flowRateDelta = flowRate - oldFlowRate;
 
         int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRateDelta));
         int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRateDelta);
@@ -175,7 +243,7 @@ contract FlowAgreement is IFlowAgreement {
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory flowData = token.getAgreementData(address(this), flowId);
         require(flowData.length > 0, "FlowAgreement: flow does not exist");
-        (, int256 senderFlowRate) = _decodeFlow(flowData);
+        (, , , int256 senderFlowRate) = _decodeData(flowData);
         require(senderFlowRate > 0, "FlowAgreement: sender flow rate must be positive");
 
         int256 totalSenderFlowRate = _updateAccountState(token, sender, senderFlowRate);
@@ -210,8 +278,55 @@ contract FlowAgreement is IFlowAgreement {
     }
 
     function _generateId(address sender, address receiver) private pure returns(bytes32) {
+        require(sender != address(0), "Sender is zero");
+        require(receiver != address(0), "Receiver is zero");
+
         return keccak256(abi.encodePacked(sender, receiver));
     }
+
+    function _checkCaller(ISuperfluidGovernance gov, address caller) private view returns(bool, uint) {
+        if(ISuperfluid(gov.getSuperfluid()).isWhiteListed(caller, msg.sender)) {
+            //TODO:implements ISuperApp interface
+            uint bitmask = ISuperApp(msg.sender).implementationBitmask();
+            return (true, bitmask);
+        }
+
+        return (false, 0);
+    }
+
+    function _encodeData
+    (
+        uint256 timestamp,
+        address sender,
+        address receiver,
+        int256 flowRate
+    )
+        private
+        pure
+        returns(bytes memory)
+    {
+        return abi.encode(timestamp, sender, receiver, flowRate);
+    }
+
+    function _decodeData
+    (
+        bytes memory data
+    )
+        private
+        pure
+        returns
+    (
+        uint256 timestamp,
+        address sender,
+        address receiver,
+        int256 flowRate
+    )
+    {
+        if (data.length == 0) return (0, address(0), address(0), 0);
+        //require(data.length == 104, "FlowAgreement: invalid data");
+        return abi.decode(data, (uint256, address, address, int256));
+    }
+
 
     /// Encoders & Decoders
     /// @dev Encode the parameters into a bytes type.
@@ -225,7 +340,7 @@ contract FlowAgreement is IFlowAgreement {
         pure
         returns (bytes memory)
     {
-        return abi.encodePacked(timestamp, flowRate);
+        return abi.encode(timestamp, flowRate);
     }
 
     /// @dev Decode the parameter into the original types

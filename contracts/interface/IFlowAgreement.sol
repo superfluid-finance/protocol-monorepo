@@ -10,6 +10,21 @@ import "./ISuperAgreement.sol";
  */
 abstract contract IFlowAgreement is ISuperAgreement {
 
+    /// @notice Create the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
+    /// @param token Super token address.
+    /// @param receiver Flow sender address.
+    /// @param receiver Flow receiver address.
+    /// @param flowRate New flow rate in amount per second.
+    /// @dev Sender must be msg.sender or meta transaction relayer.
+    function createFlow(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int256 flowRate
+    )
+        external
+        virtual;
+
     /// @notice Update the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
     /// @param token Super token address.
     /// @param receiver Flow sender address.
@@ -27,18 +42,19 @@ abstract contract IFlowAgreement is ISuperAgreement {
 
     /// @notice Get the current flow rate between `sender` and `receiver`.
     /// @param token Super token address.
-    /// @param receiver Flow sender address.
-    /// @param receiver Flow receiver address.
+    /// @param flowId Flow Identifier.
+    /// @return timestamp Timestamp of flow
+    /// @return sender Address of sender
+    /// @return receiver Address of receiver
     /// @return flowRate Flow rate.
     function getFlow(
        ISuperToken token,
-       address sender,
-       address receiver
+       bytes32 flowId
     )
         external
         view
         virtual
-        returns (int256 flowRate);
+        returns (uint256 timestamp, address sender, address receiver, int256 flowRate);
 
     /// @notice Get the net flow rate of the `account` in token@`token`.
     /// @param token Super token address.

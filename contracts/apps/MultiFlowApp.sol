@@ -28,7 +28,7 @@ contract MultiFlowsApp is ISuperApp {
     }
 
     function createMultiFlows(
-        address superTokenAddr,
+        ISuperToken superTokenAddr,
         address[] calldata receivers,
         int256[] calldata flowRates
     )

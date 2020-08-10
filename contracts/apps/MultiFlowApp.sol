@@ -14,31 +14,49 @@ contract MultiFlowsApp is ISuperApp {
     }
 
     IFlowAgreement internal _constantFlow;
-    mapping(address => ReceiverData[]) internal _receiversMap;
+    mapping(address => ReceiverData[]) internal _userFlows;
+    mapping(address => mapping(address => int256)) internal _appFlows;
 
     constructor(IFlowAgreement constantFlow) public {
         require(address(constantFlow) != address(0), "SA: can't set zero address as constant Flow");
-        _constantFlow = constantFlow;
-    }
-
-    function implementationBitmask() external override view returns(uint) {
+        _constantFlow = constantFlow; } function implementationBitmask() external override view returns(uint) {
         return AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
             AppHelper.AFTER_AGREEMENT_CREATED_NOOP |
             AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP;
     }
 
     function createMultiFlows(
-        ISuperToken superTokenAddr,
+        ISuperToken superToken,
         address[] calldata receivers,
         int256[] calldata flowRates
     )
         external
     {
+        /*
+            The receiving flow (msg.sender -> address(this)) if greater then the total flows?
+            Foreach receiver should check if there is another flow running. If so then we should update the flowRate
+        */
         require(receivers.length == flowRates.length, "SA: number receivers not equal flowRates");
+        (, , ,int256 receivingFlowRate) = _constantFlow.getFlow(
+            superToken,
+            keccak256(abi.encodePacked(
+                msg.sender, address(this)
+            )));
+        int256 totalOutFlowRate;
+        //TODO: msg.sender
+        int256 existingFlowRate = _appFlows[address(this)][msg.sender];
         for(uint256 i = 0; i < receivers.length; i++) {
-            _constantFlow.createFlow(ISuperToken(superTokenAddr), msg.sender, receivers[i], flowRates[i]);
-            _receiversMap[msg.sender].push(ReceiverData(receivers[i], flowRates[i]));
+            totalOutFlowRate += flowRates[i];
+            if(existingFlowRate == 0) {
+                _constantFlow.createFlow(superToken, address(this), receivers[i], flowRates[i]);
+            } else {
+                _constantFlow.updateFlow(superToken, address(this), receivers[i], flowRates[i]);
+            }
+            _userFlows[msg.sender].push(ReceiverData(receivers[i], flowRates[i]));
         }
+        _appFlows[address(this)][msg.sender] = totalOutFlowRate;
+
+        //require(totalOutFlowRate == receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
     }
 
     function beforeAgreementCreated(
@@ -84,7 +102,7 @@ contract MultiFlowsApp is ISuperApp {
     }
 
     function afterAgreementUpdated(
-        ISuperToken superTokenAddr,
+        ISuperToken superToken,
         bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
@@ -94,18 +112,22 @@ contract MultiFlowsApp is ISuperApp {
     override
     {
         (address sender, int256 oldFlowRate) = _unpack(data);
-        (, , , int256 newFlowRate) = _constantFlow.getFlow(superTokenAddr, agreementId);
+        (, , , int256 newFlowRate) = _constantFlow.getFlow(superToken, agreementId);
         int256 scaleFactor = newFlowRate / oldFlowRate;
-        uint256 size = _receiversMap[msg.sender].length;
-        for(uint256 i = 0; i < size; i++) {
-            _receiversMap[msg.sender][i].flowRate *= scaleFactor;
+        int256 totalOutFlowRate;
+        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+            _userFlows[sender][i].flowRate *= scaleFactor;
+            totalOutFlowRate += _userFlows[sender][i].flowRate;
             _constantFlow.updateFlow(
-                superTokenAddr,
-                msg.sender,
-                _receiversMap[msg.sender][i].to,
-                _receiversMap[msg.sender][i].flowRate
+                superToken,
+                address(this),
+                _userFlows[sender][i].to,
+                _userFlows[sender][i].flowRate
             );
         }
+
+        _appFlows[address(this)][sender] += totalOutFlowRate;
+        //require(totalOutFlowRate == oldFlowRate, "MultiApp: Receiving flow don't cover the costs");
     }
 
     function beforeAgreementTerminated(
@@ -133,13 +155,9 @@ contract MultiFlowsApp is ISuperApp {
     returns (bytes memory newData)
     {
         (address sender, int256 oldFlowRate) = _unpack(ctx);
-        (, , , int256 flowRate) = _constantFlow.getFlow(superTokenAddr, agreementId);
-        uint256 size = _receiversMap[msg.sender].length;
-        int256 scaleFactor = flowRate / oldFlowRate;
-        for(uint256 i = 0; i < size; i++) {
-            _receiversMap[msg.sender][i].flowRate *= scaleFactor;
-            _constantFlow.deleteFlow(superTokenAddr, msg.sender, _receiversMap[msg.sender][i].to);
-        }
+        delete _userFlows[sender];
+        delete _appFlows[address(this)][sender];
+        _constantFlow.deleteFlow(superTokenAddr, address(this), sender);
     }
 
     function _pack(address account, int256 flowRate) internal pure returns(bytes memory) {

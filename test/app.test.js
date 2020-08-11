@@ -2,22 +2,46 @@ const Tester = require("./Tester");
 const MultiApp = artifacts.require("MultiFlowsApp");
 
 const {
-    web3tx
+    web3tx,
+    toWad,
 } = require("@decentral.ee/web3-helpers");
+
+const FLOW_RATE = toWad(1);
 
 contract("Superfluid App", accounts => {
 
-    it("#1 MultiFlowsApp", async () => {
-        const tester = new Tester(accounts);
+    const tester = new Tester(accounts);
+
+    let superToken;
+    let flowAgreement;
+    let superfluid;
+
+    const { INIT_BALANCE } = tester.constants;
+
+    beforeEach(async function () {
         await tester.resetContracts();
-        const app = await web3tx(MultiApp.new, "MultiApp.new")(tester.contracts.flowAgreement.address);
-        await web3tx(tester.contracts.superfluid.setWhiteList, "Superfluid.setWhitedListed")(
+        ({
+            superToken,
+            flowAgreement,
+            superfluid
+        } = tester.contracts);
+    });
+
+    it("#1 MultiFlowsApp", async () => {
+        await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
+        const app = await web3tx(MultiApp.new, "MultiApp.new")(flowAgreement.address);
+        await web3tx(superfluid.setWhiteList, "Superfluid.setWhitedListed")(
             app.address,{
                 from: accounts[1]
             }
         );
 
-        const superTokenAddr = tester.contracts.superToken.address.toString();
+        await web3tx(
+            flowAgreement.updateFlow,
+            "updateFlow"
+        )(superToken.address, accounts[1], app.address, FLOW_RATE, {from: accounts[1]});
+
+        const superTokenAddr = superToken.address.toString();
         const receivers = accounts.slice(2, 4);
         const flowRates = new Array(10000000, 50000000000);
 
@@ -30,8 +54,7 @@ contract("Superfluid App", accounts => {
             }
         );
 
-        console.log(receivers);
-        let tx = await web3tx(tester.contracts.flowAgreement.updateFlow, "FlowAgreement.updateFlow")(
+        await web3tx(flowAgreement.updateFlow, "FlowAgreement.updateFlow")(
             superTokenAddr,
             accounts[1],
             receivers[1],
@@ -42,7 +65,7 @@ contract("Superfluid App", accounts => {
             }
         );
 
-        tx = await web3tx(tester.contracts.flowAgreement.deleteFlow, "FlowAgreement.updateFlow")(
+        let tx = await web3tx(flowAgreement.deleteFlow, "FlowAgreement.updateFlow")(
             superTokenAddr,
             accounts[1],
             receivers[1],

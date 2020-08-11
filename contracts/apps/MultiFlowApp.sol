@@ -56,7 +56,7 @@ contract MultiFlowsApp is ISuperApp {
         }
         _appFlows[address(this)][msg.sender] = totalOutFlowRate;
 
-        //require(totalOutFlowRate == receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
+        require(totalOutFlowRate <= receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
     }
 
     function beforeAgreementCreated(
@@ -127,7 +127,7 @@ contract MultiFlowsApp is ISuperApp {
         }
 
         _appFlows[address(this)][sender] += totalOutFlowRate;
-        //require(totalOutFlowRate == oldFlowRate, "MultiApp: Receiving flow don't cover the costs");
+        require(totalOutFlowRate <= newFlowRate, "MultiApp: Receiving flow don't cover the costs");
     }
 
     function beforeAgreementTerminated(

@@ -68,7 +68,7 @@ contract FlowAgreement is IFlowAgreement {
         (bool ok, uint bitmask) = _checkCaller(gov, sender);
         if(ok && (bitmask & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) {
 
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
+            ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
                 gasReservation,
                 ISuperApp(msg.sender).beforeAgreementCreated.selector,
@@ -78,7 +78,7 @@ contract FlowAgreement is IFlowAgreement {
         _updateFlow(token, sender, receiver, flowRate);
 
         if(ok && (AppHelper.AFTER_AGREEMENT_CREATED_NOOP & bitmask) != AppHelper.AFTER_AGREEMENT_CREATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
+            ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
                 gasReservation,
                 ISuperApp(msg.sender).afterAgreementCreated.selector,
@@ -107,7 +107,7 @@ contract FlowAgreement is IFlowAgreement {
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
         (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
         if(ok && (AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
+            ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
                 gasReservation,
                 ISuperApp(msg.sender).beforeAgreementCreated.selector,
@@ -116,7 +116,7 @@ contract FlowAgreement is IFlowAgreement {
         }
         _updateFlow(token, sender, receiver, flowRate);
         if(ok && AppHelper.AFTER_AGREEMENT_UPDATED_NOOP & bitmask != AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
+            ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
                 gasReservation,
                 ISuperApp(msg.sender).afterAgreementCreated.selector,
@@ -167,7 +167,7 @@ contract FlowAgreement is IFlowAgreement {
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
         (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
         if(ok && (AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
+            ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
                 gasReservation,
                 ISuperApp(msg.sender).beforeAgreementCreated.selector,

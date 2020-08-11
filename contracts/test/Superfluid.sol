@@ -12,6 +12,7 @@ contract Superfluid is Ownable, ISuperfluid {
     mapping(address => address[]) private _app;
     //mapping(address => mapping(address => bool) _allowedAppConnections;
     mapping(address => address[]) private _appModules;
+    mapping(bytes32 => address) private _stamps;
 
     function isJailed(address appAddr) external view override returns(bool) {
         return _jail[appAddr];
@@ -35,22 +36,38 @@ contract Superfluid is Ownable, ISuperfluid {
         return false;
     }
 
-    function callWithContext(
+    function callWithContext(bytes calldata ctx) external override returns(bool) {
+        bytes32 stamp = keccak256(abi.encodePacked(ctx));
+        require(_stamps[stamp] != address(0), "SF: Context don't exist");
+        (
+            address appAddr,
+            address agreementClass,
+            uint64 gasReservation,
+            bytes4 selector,
+            bytes32 id
+        ) = _decode(ctx);
+        _callCallback(appAddr, agreementClass, gasReservation, selector, id, ctx);
+    }
+
+    function callBuildContext(
         address appAddr,
         uint64 gasReservation,
         bytes4 selector,
         bytes32 id
-
     )
         external
         override
         returns(bool)
     {
         //Build context data
-        bytes memory ctx = "";
+        bytes memory ctx = _encode(appAddr, msg.sender, gasReservation, selector, id);
+        bytes32 stamp = keccak256(abi.encodePacked(ctx));
+        require(_stamps[stamp] == address(0), "SF: Context exist");
+        _stamps[keccak256(abi.encodePacked(ctx))] = msg.sender;
 
         //Call app
         _callCallback(appAddr, msg.sender, gasReservation, selector, id, ctx);
+        delete _stamps[stamp];
     }
 
     function _callCallback(
@@ -84,4 +101,27 @@ contract Superfluid is Ownable, ISuperfluid {
 
         return true;
     }
+
+    function _encode(
+        address appAddr,
+        address agreementClass,
+        uint64 gasReservation,
+        bytes4 selector,
+        bytes32 id
+    )
+        internal
+        returns(bytes memory)
+    {
+        return abi.encode(appAddr, agreementClass, gasReservation, selector, id);
+    }
+
+    function _decode(
+        bytes memory ctx
+    )
+        internal
+        returns(address, address, uint64, bytes4, bytes32)
+    {
+        return abi.decode(ctx, (address, address, uint64, bytes4, bytes32));
+    }
+
 }

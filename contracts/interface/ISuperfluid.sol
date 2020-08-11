@@ -6,11 +6,16 @@ interface ISuperfluid {
     function setAppConnection(address appModule) external;
     function setWhiteList(address module) external;
     function isWhiteListed(address sender, address app) external view returns(bool);
-    function callWithContext(
+    function callBuildContext(
         address appAddr,
         uint64 gasReservation,
         bytes4 selector,
         bytes32 id
+    )
+        external
+        returns(bool);
+    function callWithContext(
+        bytes calldata ctx
     )
         external
         returns(bool);

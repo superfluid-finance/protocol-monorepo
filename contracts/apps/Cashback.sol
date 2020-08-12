@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable*/
 pragma solidity >=0.6.0;
+/*
 
 import "../interface/AppHelper.sol";
 import "../interface/ISuperApp.sol";
@@ -133,3 +134,4 @@ contract CashBack is ISuperApp {
         return abi.decode(data, (address, int256));
     }
 }
+*/

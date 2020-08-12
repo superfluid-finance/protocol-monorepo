@@ -62,10 +62,12 @@ contract FlowAgreement is IFlowAgreement {
         external
         override
     {
+        bytes32 flowId = _generateId(sender, receiver);
+        require(_isNewFlow(token, flowId), "Flow already exist");
         ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
         uint64 gasReserved = gov.getGasReservation();
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
-        bytes memory data = abi.encode(address(this), _generateId(sender, receiver), flowRate);
+        bytes memory data = abi.encode(address(this), flowId, flowRate);
         bytes memory ctx;
         (bool ok, uint bitmask) = _checkCaller(gov, sender);
         if(ok && (bitmask & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) {
@@ -101,11 +103,13 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         // TODO meta-tx support
+        bytes32 flowId = _generateId(sender, receiver);
+        require(!_isNewFlow(token, flowId), "Flow doesn't exist");
         require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
         ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
         uint64 gasReserved = gov.getGasReservation();
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
-        bytes memory data = abi.encode(address(this), _generateId(sender, receiver), flowRate);
+        bytes memory data = abi.encode(address(this), flowId, flowRate);
         bytes memory ctx;
         (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
         if(ok && (AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) {
@@ -390,5 +394,17 @@ contract FlowAgreement is IFlowAgreement {
             return "";
         }
         return _encodeFlow(timestamp, cRate);
+    }
+
+    function _isNewFlow(
+        ISuperToken token,
+        bytes32 flowId
+    )
+        internal
+        view
+        returns(bool)
+    {
+        bytes memory data = token.getAgreementData(address(this), flowId);
+        return (data.length == 0);
     }
 }

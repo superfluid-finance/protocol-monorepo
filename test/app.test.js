@@ -38,8 +38,8 @@ contract("Superfluid App", accounts => {
         );
 
         await web3tx(
-            flowAgreement.updateFlow,
-            "updateFlow"
+            flowAgreement.createFlow,
+            "createFlow"
         )(superToken.address, accounts[1], app.address, FLOW_RATE, {from: accounts[1]});
 
         const superTokenAddr = superToken.address.toString();
@@ -58,8 +58,7 @@ contract("Superfluid App", accounts => {
         await web3tx(flowAgreement.updateFlow, "FlowAgreement.updateFlow")(
             superTokenAddr,
             accounts[1],
-            receivers[1],
-            //app.address,
+            app.address,
             "100000000000", {
                 from: accounts[1],
                 gas: 1e6,
@@ -69,8 +68,7 @@ contract("Superfluid App", accounts => {
         let tx = await web3tx(flowAgreement.deleteFlow, "FlowAgreement.updateFlow")(
             superTokenAddr,
             accounts[1],
-            receivers[1],
-            //app.address,
+            app.address,
             {
                 from: accounts[1],
                 gas: 1e6,

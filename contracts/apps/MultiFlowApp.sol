@@ -30,14 +30,6 @@ contract MultiFlowsApp is ISuperApp {
         );
     }
 
-    /*
-    function implementationBitmask() external override view returns(uint) {
-        return AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
-            AppHelper.AFTER_AGREEMENT_CREATED_NOOP |
-            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP;
-    }
-    */
-
     function createMultiFlows(
         ISuperToken superToken,
         address[] calldata receivers,

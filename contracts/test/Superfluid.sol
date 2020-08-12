@@ -6,10 +6,9 @@ import { Ownable } from "../interface/Ownable.sol";
 import { ISuperfluid } from "../interface/ISuperfluid.sol";
 import { ISuperfluidGovernance } from "../interface/ISuperfluidGovernance.sol";
 import { ISuperApp } from "../interface/ISuperApp.sol";
+import { AppHelper } from "../interface/AppHelper.sol";
 
 contract Superfluid is Ownable, ISuperfluid {
-
-    mapping(address => bool) private _jail;
     mapping(address => address[]) private _app;
     //mapping(address => mapping(address => bool) _allowedAppConnections;
     mapping(address => address[]) private _appModules;
@@ -17,7 +16,7 @@ contract Superfluid is Ownable, ISuperfluid {
     mapping(address => uint256) private _appConfigs;
 
     function isJailed(address appAddr) external view override returns(bool) {
-        return _jail[appAddr];
+        return (_appConfigs[appAddr] & AppHelper.JAIL) != AppHelper.JAIL;
     }
 
     function setAppConnection(address appModule) external override {
@@ -42,51 +41,70 @@ contract Superfluid is Ownable, ISuperfluid {
         _appConfigs[msg.sender] = configWord;
     }
 
-    function getManifest(address superApp) external view override returns(uint256) {
+    function getConfig(address superApp) external view override returns(uint256) {
         return _appConfigs[superApp];
     }
 
-    function callWithContext(bytes calldata ctx) external override returns(bool) {
-        bytes32 stamp = keccak256(abi.encodePacked(ctx));
-        require(_ctxStamps[stamp] != address(0), "SF: Context don't exist");
-        (
-            address appAddr,
-            address agreementClass,
-            uint64 gasReservation,
-            bytes4 selector,
-            bytes32 id
-        ) = _decode(ctx);
-        _callCallback(appAddr, agreementClass, gasReservation, selector, id, ctx);
-    }
-
-    function callBuildContext(
-        address appAddr,
-        uint64 gasReservation,
+    function callWithContext(
+        bytes calldata ctx,
+        address callAddr,
         bytes4 selector,
-        bytes32 id
+        bytes calldata data
     )
         external
         override
-        returns(bool)
+        returns(bytes memory)
     {
+        require(_ctxStamps[keccak256(abi.encodePacked(ctx))] != address(0), "SF: Invalid Context");
+        delete _ctxStamps[keccak256(abi.encodePacked(ctx))];
+        (
+            uint8 level,
+            address appAddr,
+            uint64 gasReservation
+        ) = _decode(ctx);
 
+        bytes memory newCtx = _encode(level++, appAddr, gasReservation);
+        _ctxStamps[keccak256(abi.encodePacked(newCtx))] = appAddr;
+        _callCallback(callAddr, gasReservation, selector, data, newCtx);
+        return newCtx;
+    }
+
+    function callBuildContext(
+        address callAddr,
+        uint64 gasReservation,
+        bytes4 selector,
+        bytes calldata data
+    )
+        external
+        override
+        returns(bytes memory)
+    {
         //Build context data
-        bytes memory ctx = _encode(appAddr, msg.sender, gasReservation, selector, id);
+        bytes memory ctx = _encode(0, msg.sender, gasReservation);
         bytes32 stamp = keccak256(abi.encodePacked(ctx));
         require(_ctxStamps[stamp] == address(0), "SF: Context exist");
         _ctxStamps[keccak256(abi.encodePacked(ctx))] = msg.sender;
 
         //Call app
-        _callCallback(appAddr, msg.sender, gasReservation, selector, id, ctx);
+        _callCallback(callAddr, gasReservation, selector, data, ctx);
         delete _ctxStamps[stamp];
+        return ctx;
     }
 
+    function _getAppLevel(address appAddr) internal returns(uint8) {
+        if(_appConfigs[appAddr] | AppHelper.TYPE_APP_FINAL == AppHelper.TYPE_APP_FINAL) {
+            return 1;
+        }
+
+        return 2;
+    }
+
+
     function _callCallback(
-        address appAddr,
-        address agreementClass,
+        address callAddr,
         uint64 gasReservation,
         bytes4 selector,
-        bytes32 id,
+        bytes memory data,
         bytes memory ctx
     )
         private
@@ -94,9 +112,8 @@ contract Superfluid is Ownable, ISuperfluid {
     {
         uint256 gasLeft = gasleft();
         uint256 gasBudget = gasLeft - gasReservation;
-        bytes memory data = abi.encodeWithSelector(selector, agreementClass, id, ctx);
         (bool success, bytes memory returnedData) =
-            appAddr.call{gas: gasBudget}(data);
+            callAddr.call{gas: gasBudget}(data);
         if (!success) {
             gasLeft = gasleft();
             if (gasLeft < gasReservation) {
@@ -105,8 +122,7 @@ contract Superfluid is Ownable, ISuperfluid {
                 // more gas
                 revert("SF: Send more gas");
             } else {
-                // go to jail
-                _jail[appAddr] = true;
+                _appConfigs[callAddr] |= AppHelper.JAIL;
                 return false;
             }
         }
@@ -115,25 +131,23 @@ contract Superfluid is Ownable, ISuperfluid {
     }
 
     function _encode(
+        uint8 level,
         address appAddr,
-        address agreementClass,
-        uint64 gasReservation,
-        bytes4 selector,
-        bytes32 id
+        uint64 gasReservation
     )
         internal
         returns(bytes memory)
     {
-        return abi.encode(appAddr, agreementClass, gasReservation, selector, id);
+        return abi.encode(level, appAddr, gasReservation);
     }
 
     function _decode(
         bytes memory ctx
     )
         internal
-        returns(address, address, uint64, bytes4, bytes32)
+        returns(uint8, address, uint64)
     {
-        return abi.decode(ctx, (address, address, uint64, bytes4, bytes32));
+        return abi.decode(ctx, (uint8, address, uint64));
     }
 
 }

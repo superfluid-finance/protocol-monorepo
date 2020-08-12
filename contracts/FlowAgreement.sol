@@ -63,26 +63,26 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
-        uint64 gasReservation = gov.getGasReservation();
+        uint64 gasReserved = gov.getGasReservation();
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
+        bytes memory data = abi.encode(address(this), _generateId(sender, receiver), flowRate);
+        bytes memory ctx;
         (bool ok, uint bitmask) = _checkCaller(gov, sender);
         if(ok && (bitmask & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) {
-
-            ISuperfluid(gov.getSuperfluid()).callBuildContext(
+            ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
-                gasReservation,
+                gasReserved,
                 ISuperApp(msg.sender).beforeAgreementCreated.selector,
-                _generateId(sender, receiver)
+                data
             );
         }
         _updateFlow(token, sender, receiver, flowRate);
-
         if(ok && (AppHelper.AFTER_AGREEMENT_CREATED_NOOP & bitmask) != AppHelper.AFTER_AGREEMENT_CREATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callBuildContext(
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                ctx,
                 msg.sender,
-                gasReservation,
                 ISuperApp(msg.sender).afterAgreementCreated.selector,
-                _generateId(sender, receiver)
+                data
             );
         }
     }
@@ -103,24 +103,26 @@ contract FlowAgreement is IFlowAgreement {
         // TODO meta-tx support
         require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
         ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
-        uint64 gasReservation = gov.getGasReservation();
+        uint64 gasReserved = gov.getGasReservation();
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
+        bytes memory data = abi.encode(address(this), _generateId(sender, receiver), flowRate);
+        bytes memory ctx;
         (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
         if(ok && (AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callBuildContext(
+            ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
-                gasReservation,
+                gasReserved,
                 ISuperApp(msg.sender).beforeAgreementCreated.selector,
-                _generateId(sender, receiver)
+                data
             );
         }
         _updateFlow(token, sender, receiver, flowRate);
         if(ok && AppHelper.AFTER_AGREEMENT_UPDATED_NOOP & bitmask != AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callBuildContext(
+            ISuperfluid(gov.getSuperfluid()).callWithContext(
+                ctx,
                 msg.sender,
-                gasReservation,
                 ISuperApp(msg.sender).afterAgreementCreated.selector,
-                _generateId(sender, receiver)
+                data
             );
         }
     }
@@ -163,15 +165,17 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
-        uint64 gasReservation = gov.getGasReservation();
+        uint64 gasReserved = gov.getGasReservation();
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
+        bytes memory data = abi.encode(address(this), _generateId(sender, receiver));
+        bytes memory ctx;
         (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
         if(ok && (AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callBuildContext(
+            ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
-                gasReservation,
+                gasReserved,
                 ISuperApp(msg.sender).beforeAgreementCreated.selector,
-                _generateId(sender, receiver)
+                data
             );
         }
 
@@ -288,8 +292,8 @@ contract FlowAgreement is IFlowAgreement {
         ISuperfluid superfluid = ISuperfluid(gov.getSuperfluid());
 
         if(superfluid.isWhiteListed(caller, msg.sender)) {
-            uint256 bitmask = superfluid.getManifest(msg.sender);
-            return (true, bitmask);
+            uint256 bitmask = superfluid.getConfig(msg.sender);
+            return (bitmask > 0, bitmask);
         }
 
         return (false, 0);

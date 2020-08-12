@@ -4,21 +4,24 @@ interface ISuperfluid {
 
     function isJailed(address app) external view returns(bool);
     function registerSuperApp(uint256 manifest) external;
-    function getManifest(address superApp) external view returns(uint256);
+    function getConfig(address superApp) external view returns(uint256);
     function setAppConnection(address appModule) external;
     function setWhiteList(address module) external;
     function isWhiteListed(address sender, address app) external view returns(bool);
     function callBuildContext(
-        address appAddr,
+        address callAddr,
         uint64 gasReservation,
         bytes4 selector,
-        bytes32 id
+        bytes calldata data
     )
         external
-        returns(bool);
+        returns(bytes memory);
     function callWithContext(
-        bytes calldata ctx
+        bytes calldata ctx,
+        address callAddr,
+        bytes4 selector,
+        bytes calldata data
     )
         external
-        returns(bool);
+        returns(bytes memory);
 }

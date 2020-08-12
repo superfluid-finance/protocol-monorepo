@@ -29,6 +29,7 @@ contract("Superfluid App", accounts => {
 
     it("#1 MultiFlowsApp", async () => {
         await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
+
         const app = await web3tx(MultiApp.new, "MultiApp.new")(flowAgreement.address, superfluid.address);
         await web3tx(superfluid.setWhiteList, "Superfluid.setWhitedListed")(
             app.address,{

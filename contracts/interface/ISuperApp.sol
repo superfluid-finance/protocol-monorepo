@@ -5,8 +5,6 @@ import { ISuperToken } from "./ISuperToken.sol";
 
 interface ISuperApp {
 
-    function implementationBitmask() external view returns(uint);
-
     function beforeAgreementCreated(
         ISuperToken superToken,
         bytes calldata ctx,

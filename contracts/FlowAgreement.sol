@@ -285,9 +285,10 @@ contract FlowAgreement is IFlowAgreement {
     }
 
     function _checkCaller(ISuperfluidGovernance gov, address caller) private view returns(bool, uint) {
-        if(ISuperfluid(gov.getSuperfluid()).isWhiteListed(caller, msg.sender)) {
-            //TODO:implements ISuperApp interface
-            uint bitmask = ISuperApp(msg.sender).implementationBitmask();
+        ISuperfluid superfluid = ISuperfluid(gov.getSuperfluid());
+
+        if(superfluid.isWhiteListed(caller, msg.sender)) {
+            uint256 bitmask = superfluid.getManifest(msg.sender);
             return (true, bitmask);
         }
 

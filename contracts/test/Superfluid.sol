@@ -5,6 +5,7 @@ pragma solidity >=0.6.0;
 import { Ownable } from "../interface/Ownable.sol";
 import { ISuperfluid } from "../interface/ISuperfluid.sol";
 import { ISuperfluidGovernance } from "../interface/ISuperfluidGovernance.sol";
+import { ISuperApp } from "../interface/ISuperApp.sol";
 
 contract Superfluid is Ownable, ISuperfluid {
 
@@ -12,7 +13,8 @@ contract Superfluid is Ownable, ISuperfluid {
     mapping(address => address[]) private _app;
     //mapping(address => mapping(address => bool) _allowedAppConnections;
     mapping(address => address[]) private _appModules;
-    mapping(bytes32 => address) private _stamps;
+    mapping(bytes32 => address) private _ctxStamps;
+    mapping(address => uint256) private _appConfigs;
 
     function isJailed(address appAddr) external view override returns(bool) {
         return _jail[appAddr];
@@ -36,9 +38,17 @@ contract Superfluid is Ownable, ISuperfluid {
         return false;
     }
 
+    function registerSuperApp(uint256 configWord) external override {
+        _appConfigs[msg.sender] = configWord;
+    }
+
+    function getManifest(address superApp) external view override returns(uint256) {
+        return _appConfigs[superApp];
+    }
+
     function callWithContext(bytes calldata ctx) external override returns(bool) {
         bytes32 stamp = keccak256(abi.encodePacked(ctx));
-        require(_stamps[stamp] != address(0), "SF: Context don't exist");
+        require(_ctxStamps[stamp] != address(0), "SF: Context don't exist");
         (
             address appAddr,
             address agreementClass,
@@ -59,15 +69,16 @@ contract Superfluid is Ownable, ISuperfluid {
         override
         returns(bool)
     {
+
         //Build context data
         bytes memory ctx = _encode(appAddr, msg.sender, gasReservation, selector, id);
         bytes32 stamp = keccak256(abi.encodePacked(ctx));
-        require(_stamps[stamp] == address(0), "SF: Context exist");
-        _stamps[keccak256(abi.encodePacked(ctx))] = msg.sender;
+        require(_ctxStamps[stamp] == address(0), "SF: Context exist");
+        _ctxStamps[keccak256(abi.encodePacked(ctx))] = msg.sender;
 
         //Call app
         _callCallback(appAddr, msg.sender, gasReservation, selector, id, ctx);
-        delete _stamps[stamp];
+        delete _ctxStamps[stamp];
     }
 
     function _callCallback(
@@ -92,6 +103,7 @@ contract Superfluid is Ownable, ISuperfluid {
                 // this is out of gas, but the call may still fail if more gas is provied
                 // and this is okay, because there can be incentive to jail the app by providing
                 // more gas
+                revert("SF: Send more gas");
             } else {
                 // go to jail
                 _jail[appAddr] = true;

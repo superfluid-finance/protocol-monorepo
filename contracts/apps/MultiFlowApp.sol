@@ -5,6 +5,7 @@ pragma solidity ^0.6.0;
 import "../interface/AppHelper.sol";
 import "../interface/ISuperApp.sol";
 import "../interface/IFlowAgreement.sol";
+import "../interface/ISuperfluid.sol";
 
 contract MultiFlowsApp is ISuperApp {
 
@@ -17,13 +18,25 @@ contract MultiFlowsApp is ISuperApp {
     mapping(address => ReceiverData[]) internal _userFlows;
     mapping(address => mapping(address => int256)) internal _appFlows;
 
-    constructor(IFlowAgreement constantFlow) public {
+    constructor(IFlowAgreement constantFlow, ISuperfluid superfluid) public {
         require(address(constantFlow) != address(0), "SA: can't set zero address as constant Flow");
-        _constantFlow = constantFlow; } function implementationBitmask() external override view returns(uint) {
+        _constantFlow = constantFlow;
+
+        superfluid.registerSuperApp(
+            AppHelper.TYPE_APP_FINAL |
+            AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
+            AppHelper.AFTER_AGREEMENT_CREATED_NOOP |
+            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP
+        );
+    }
+
+    /*
+    function implementationBitmask() external override view returns(uint) {
         return AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
             AppHelper.AFTER_AGREEMENT_CREATED_NOOP |
             AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP;
     }
+    */
 
     function createMultiFlows(
         ISuperToken superToken,

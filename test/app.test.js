@@ -37,6 +37,7 @@ contract("Superfluid App", accounts => {
             }
         );
 
+
         await web3tx(
             flowAgreement.createFlow,
             "createFlow"

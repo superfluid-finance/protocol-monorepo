@@ -69,7 +69,7 @@ contract FlowAgreement is IFlowAgreement {
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
         bytes memory data = abi.encode(address(this), flowId, flowRate);
         bytes memory ctx;
-        (bool ok, uint bitmask) = _checkCaller(gov, sender);
+        (bool ok, uint bitmask) = _checkCaller(gov, msg.sender, sender);
         if(ok && (bitmask & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) {
             ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
@@ -111,7 +111,7 @@ contract FlowAgreement is IFlowAgreement {
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
         bytes memory data = abi.encode(address(this), flowId, flowRate);
         bytes memory ctx;
-        (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
+        (bool ok, uint bitmask) = _checkCaller(gov, receiver, msg.sender);
         if(ok && (AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) {
             ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
@@ -121,7 +121,8 @@ contract FlowAgreement is IFlowAgreement {
             );
         }
         _updateFlow(token, sender, receiver, flowRate);
-        if(ok && AppHelper.AFTER_AGREEMENT_UPDATED_NOOP & bitmask != AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) {
+        if(ok && AppHelper.AFTER_AGREEMENT_UPDATED_NOOP & bitmask == AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) {
+            revert("call back 2");
             ISuperfluid(gov.getSuperfluid()).callWithContext(
                 ctx,
                 msg.sender,
@@ -173,7 +174,8 @@ contract FlowAgreement is IFlowAgreement {
         // TODO: THIS CAN REVERT AND STOP EVERYTHING
         bytes memory data = abi.encode(address(this), _generateId(sender, receiver));
         bytes memory ctx;
-        (bool ok, uint bitmask) = _checkCaller(gov, msg.sender);
+        (bool ok, uint bitmask) = _checkCaller(gov, receiver, msg.sender);
+        require(bitmask > 0 , "bitmask is zero");
         if(ok && (AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP) {
             ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
                 msg.sender,
@@ -292,11 +294,11 @@ contract FlowAgreement is IFlowAgreement {
         return keccak256(abi.encodePacked(sender, receiver));
     }
 
-    function _checkCaller(ISuperfluidGovernance gov, address caller) private view returns(bool, uint) {
+    function _checkCaller(ISuperfluidGovernance gov, address appAddr, address sender) private view returns(bool, uint) {
         ISuperfluid superfluid = ISuperfluid(gov.getSuperfluid());
 
-        if(superfluid.isWhiteListed(caller, msg.sender)) {
-            uint256 bitmask = superfluid.getConfig(msg.sender);
+        if(superfluid.isWhiteListed(sender, appAddr)) {
+            uint256 bitmask = superfluid.getConfig(appAddr);
             return (bitmask > 0, bitmask);
         }
 

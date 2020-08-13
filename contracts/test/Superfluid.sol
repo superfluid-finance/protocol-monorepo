@@ -23,8 +23,8 @@ contract Superfluid is Ownable, ISuperfluid {
         _appModules[msg.sender].push(appModule);
     }
 
-    function setWhiteList(address module) external override {
-        _app[msg.sender].push(module);
+    function setWhiteList(address appAddr) external override {
+        _app[msg.sender].push(appAddr);
     }
 
     function isWhiteListed(address sender, address appAddr) external view override returns(bool) {
@@ -38,6 +38,7 @@ contract Superfluid is Ownable, ISuperfluid {
     }
 
     function registerSuperApp(uint256 configWord) external override {
+        require(configWord > 0, "Invalid configurarion");
         _appConfigs[msg.sender] = configWord;
     }
 
@@ -62,6 +63,8 @@ contract Superfluid is Ownable, ISuperfluid {
             address appAddr,
             uint64 gasReservation
         ) = _decode(ctx);
+
+        require(_checkAppCallStact(msg.sender, level++), "SF: App Call Stack too deep");
 
         bytes memory newCtx = _encode(level++, appAddr, gasReservation);
         _ctxStamps[keccak256(abi.encodePacked(newCtx))] = appAddr;
@@ -97,6 +100,19 @@ contract Superfluid is Ownable, ISuperfluid {
         }
 
         return 2;
+    }
+
+    function _checkAppCallStact(address appAddr, uint8 currentAppLevel) internal returns(bool) {
+        uint8 appLevel = _getAppLevel(appAddr);
+        if(appLevel == 1 && currentAppLevel > 1) {
+            return false;
+        }
+
+        if(appLevel == 2 && currentAppLevel > 2) {
+            return false;
+        }
+
+        return true;
     }
 
 

@@ -13,7 +13,7 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 async function hasCode(address) {
     const code = await web3.eth.getCode(address);
-    return code !== "0x" && code !== "";
+    return code.length <= 3;
 }
 
 async function codeChanged(contract, address) {

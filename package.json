@@ -11,24 +11,25 @@
     "index.js"
   ],
   "dependencies": {
-    "@openzeppelin/contracts": "3.1.0"
+    "@openzeppelin/contracts": "3.1.0",
+    "@truffle/contract": "4.2.18"
   },
   "peerDependencies": {
-    "@truffle/contract": "4.2.13"
+    "@truffle/contract": "4.2.18"
   },
   "devDependencies": {
     "@decentral.ee/web3-helpers": "0.3.2",
     "@openzeppelin/test-helpers": "0.5.6",
-    "@truffle/hdwallet-provider": "1.0.39",
+    "@truffle/hdwallet-provider": "1.0.42",
     "dotenv": "8.2.0",
-    "eslint": "7.5.0",
+    "eslint": "7.7.0",
     "eth-gas-reporter": "^0.2.17",
     "ganache-time-traveler": "^1.0.14",
     "husky": "^4.2.5",
     "npm-run-all": "4.1.5",
     "solhint": "git+https://github.com/protofire/solhint.git",
     "solidity-coverage": "0.7.9",
-    "truffle": "5.1.35",
+    "truffle": "5.1.40",
     "truffle-flattener": "1.4.4",
     "truffle-plugin-verify": "0.3.11"
   },

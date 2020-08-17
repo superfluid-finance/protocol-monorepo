@@ -7,6 +7,9 @@ pragma solidity >= 0.6.0;
  */
 interface ISuperAgreement {
 
+    /// @dev Returns the type of the agreement class
+    function agreementType() external pure returns (bytes32);
+
     /// @notice Calculate the real-time balance using the state.
     /// @param state State to be used.
     /// @param time Future time used for the calculation.

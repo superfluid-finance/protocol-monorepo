@@ -43,7 +43,7 @@ module.exports = async function (callback) {
         assert.equal("0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24", res.contractAddr);
 
         console.log("Checking ERC1820 deployment at", res.contractAddr);
-        if (await hasCode(res.contractAddr)) {
+        if (!(await hasCode(res.contractAddr))) {
             console.log("Deploying...");
             const account = (await web3.eth.getAccounts())[0];
             console.log("Step 1: send ETH");

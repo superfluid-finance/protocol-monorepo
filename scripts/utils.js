@@ -13,16 +13,20 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 async function hasCode(address) {
     const code = await web3.eth.getCode(address);
-    return code.length <= 3;
+    return code.length > 3;
 }
 
 async function codeChanged(contract, address) {
     const code = await web3.eth.getCode(address);
+    // no code
+    if (code.length <= 3) return true;
     // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
     // find the second occurance of the init code
-    const startingPoint = contract.bytecode.slice(11).indexOf("6080604052") + 11;
-    const bytecodeFromCompiler = contract.bytecode.slice(startingPoint);
-    return code.slice(2) !== bytecodeFromCompiler;
+    const bytecodeFromCompiler = contract.bytecode;
+    // console.log(code);
+    // console.log(bytecodeFromCompiler);
+    // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));
+    return bytecodeFromCompiler.indexOf(code.slice(2)) === -1;
 }
 
 async function proxiableCodeChanged(Proxiable, contract, address) {

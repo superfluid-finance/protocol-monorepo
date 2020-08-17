@@ -12,10 +12,7 @@
   ],
   "dependencies": {
     "@openzeppelin/contracts": "3.1.0",
-    "@truffle/contract": "4.2.18"
-  },
-  "peerDependencies": {
-    "@truffle/contract": "4.2.18"
+    "@truffle/contract": "4.2.17"
   },
   "devDependencies": {
     "@decentral.ee/web3-helpers": "0.3.2",

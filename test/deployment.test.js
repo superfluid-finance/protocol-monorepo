@@ -11,6 +11,15 @@ contract("deployment test", () => {
 
     const errorHandler = err => { if (err) throw err; };
 
+    it("codeChanged function", async () => {
+        const FlowAgreement = artifacts.require("FlowAgreement");
+        const {
+            codeChanged
+        } = require("../scripts/utils");
+        const a1 = await web3tx(FlowAgreement.new, "FlowAgreement.new 1")();
+        assert.isFalse(await codeChanged(FlowAgreement, a1.address));
+    });
+
     it("Deploy/upgrade/reset Superfluid Framework", async () => {
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
         delete process.env.RESET;

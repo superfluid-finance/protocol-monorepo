@@ -1,98 +1,80 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable*/
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
 import "../interface/AppHelper.sol";
-import "../interface/ISuperApp.sol";
+import "../interface/ISuperAppBase.sol";
 import "../interface/IFlowAgreement.sol";
 import "../interface/ISuperfluid.sol";
+import { ContextLibrary } from "../interface/ContextLibrary.sol";
 
-contract MultiFlowsApp is ISuperApp {
+// FIXME Create and use a SuperAppBase abstract contract,
+//       which implements all the callbacks as reverts.
+//       - Revert(callback not implemented constant string)
+contract MultiFlowsApp is ISuperAppBase {
 
     struct ReceiverData {
         address to;
-        int256 flowRate;
+        uint256 proportion;
     }
 
     IFlowAgreement internal _constantFlow;
+    ISuperfluid internal _host;
+    //Sender => To / Proportion
     mapping(address => ReceiverData[]) internal _userFlows;
-    mapping(address => mapping(address => int256)) internal _appFlows;
 
     constructor(IFlowAgreement constantFlow, ISuperfluid superfluid) public {
         require(address(constantFlow) != address(0), "SA: can't set zero address as constant Flow");
+        require(address(superfluid) != address(0), "SA: can't set zero address as Superfluid");
         _constantFlow = constantFlow;
+        _host = superfluid;
 
-        superfluid.registerSuperApp(
+        uint256 configWord =
             AppHelper.TYPE_APP_FINAL |
             AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
             AppHelper.AFTER_AGREEMENT_CREATED_NOOP |
-            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP
-        );
+            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP;
+
+        _host.registerApp(configWord);
     }
 
     function createMultiFlows(
+        bytes calldata ctx,
         ISuperToken superToken,
         address[] calldata receivers,
-        int256[] calldata flowRates
+        uint256[] calldata proportions
     )
         external
     {
-        /*
-            The receiving flow (msg.sender -> address(this)) if greater then the total flows?
-            Foreach receiver should check if there is another flow running. If so then we should update the flowRate
-        */
-        require(receivers.length == flowRates.length, "SA: number receivers not equal flowRates");
-        (, , ,int256 receivingFlowRate) = _constantFlow.getFlow(
+        require(msg.sender == address(_host), "Only official superfluid host is supported by the app");
+        require(receivers.length == proportions.length, "SA: number receivers not equal flowRates");
+
+        address sender = ContextLibrary.getCaller(ctx);
+        _host.chargeGasFee(30000);
+
+        (int256 receivingFlowRate) = _constantFlow.getFlow(
             superToken,
-            keccak256(abi.encodePacked(
-                msg.sender, address(this)
-            )));
-        int256 totalOutFlowRate;
-        //TODO: msg.sender
-        int256 existingFlowRate = _appFlows[address(this)][msg.sender];
+            sender,
+            address(this)
+        );
+        require(receivingFlowRate == 0, "MAPP: Updates are not supported, go to YAM");
+
+        //uint256 sum = _sumProportions(proportions);
         for(uint256 i = 0; i < receivers.length; i++) {
-            totalOutFlowRate += flowRates[i];
-            if(existingFlowRate == 0) {
-                _constantFlow.createFlow(superToken, address(this), receivers[i], flowRates[i]);
-            } else {
-                _constantFlow.updateFlow(superToken, address(this), receivers[i], flowRates[i]);
-            }
-            _userFlows[msg.sender].push(ReceiverData(receivers[i], flowRates[i]));
+            //int256 fr = int256((proportions[i] / sum)) * receivingFlowRate;
+            //_call(superToken, ctx, _constantFlow.createFlow.selector, receivers[i], fr);
+            _userFlows[sender].push(ReceiverData(receivers[i], proportions[i]));
         }
-        _appFlows[address(this)][msg.sender] = totalOutFlowRate;
-
-        require(totalOutFlowRate <= receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
+        //_appFlows[address(this)][sender] = totalOutFlowRate;
+        //require(totalOutFlowRate <= receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
     }
 
-    function beforeAgreementCreated(
-        ISuperToken superTokenAddr,
-        bytes calldata ctx,
-        address agreementClass,
-        bytes32 agreementId
-    )
-        external
-        view
-        override
-    {
-        revert("Unsupported callback");
-    }
-
-    function afterAgreementCreated(
-        ISuperToken superTokenAddr,
-        bytes calldata ctx,
-        address agreementClass,
-        bytes32 agreementId,
-        bytes calldata data
-    )
-        external
-        override
-    {
-        revert("Unsupported callback");
+    function _call(ISuperToken superToken, bytes calldata ctx, bytes4 selector, address to, int256 flowRate) internal {
+        _host.callAgreement(ctx, address(_constantFlow), selector, abi.encode(superToken, address(this), to, flowRate));
     }
 
     function beforeAgreementUpdated(
-        ISuperToken superTokenAddr,
-        bytes calldata ctx,
+        ISuperToken superToken,
+        bytes calldata /*ctx*/,
         address agreementClass,
         bytes32 agreementId
     )
@@ -102,74 +84,66 @@ contract MultiFlowsApp is ISuperApp {
         returns (bytes memory data)
     {
         require(agreementClass == address(_constantFlow), "Unsupported agreement");
-        (, address sender, , int256 oldFlowRate) = _constantFlow.getFlow(superTokenAddr, agreementId);
-        return _pack(sender, oldFlowRate);
+        (, address sender, , int256 oldFlowRate) = _constantFlow.getFlow(superToken, agreementId);
+        return _packData(sender, oldFlowRate);
     }
 
-    function afterAgreementUpdated(
+    function afterAgreementCreated(
         ISuperToken superToken,
         bytes calldata ctx,
-        address agreementClass,
-        bytes32 agreementId,
-        bytes calldata data
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*cbdata*/
     )
     external
     override
+    returns(bytes memory newCtx)
     {
-        (address sender, int256 oldFlowRate) = _unpack(data);
-        (, , , int256 newFlowRate) = _constantFlow.getFlow(superToken, agreementId);
-        int256 scaleFactor = newFlowRate / oldFlowRate;
-        int256 totalOutFlowRate;
+        address sender = ContextLibrary.getCaller(ctx);
+        require(_userFlows[sender].length > 0 , "MAPP: Create Multi Flow first or go away");
+        (int256 receivingFlowRate) = _constantFlow.getFlow(
+            superToken,
+            sender,
+            address(this)
+        );
+        uint256 sum = _sumProportions(_userFlows[sender]);
+
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-            _userFlows[sender][i].flowRate *= scaleFactor;
-            totalOutFlowRate += _userFlows[sender][i].flowRate;
-            _constantFlow.updateFlow(
-                superToken,
-                address(this),
-                _userFlows[sender][i].to,
-                _userFlows[sender][i].flowRate
-            );
+            int256 fr = int256((_userFlows[sender][i].proportion / sum)) * receivingFlowRate;
+            _call(superToken, ctx, _constantFlow.createFlow.selector, _userFlows[sender][i].to, fr);
         }
 
-        _appFlows[address(this)][sender] += totalOutFlowRate;
-        require(totalOutFlowRate <= newFlowRate, "MultiApp: Receiving flow don't cover the costs");
-    }
-
-    function beforeAgreementTerminated(
-        ISuperToken superTokenAddr,
-        bytes calldata ctx,
-        address agreementClass,
-        bytes32 agreementId
-    )
-        external
-        view
-        override
-    {
-        //noop
+        return ctx;
     }
 
     function afterAgreementTerminated(
-        ISuperToken superTokenAddr,
+        ISuperToken superToken,
         bytes calldata ctx,
-        address agreementClass,
-        bytes32 agreementId,
-        bytes calldata data
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/
     )
-    external
-    override
-    returns (bytes memory newData)
+        external
+        override
+        returns (bytes memory newCtx)
     {
-        (address sender, int256 oldFlowRate) = _unpack(ctx);
+        (address sender, ) = _unpackData(ctx);
         delete _userFlows[sender];
-        delete _appFlows[address(this)][sender];
-        _constantFlow.deleteFlow(superTokenAddr, address(this), sender);
+        _constantFlow.deleteFlow(ctx, superToken, sender);
     }
 
-    function _pack(address account, int256 flowRate) internal pure returns(bytes memory) {
+    function _packData(address account, int256 flowRate) internal pure returns(bytes memory) {
         return abi.encodePacked(account, flowRate);
     }
 
-    function _unpack(bytes memory data) internal pure returns(address, int256) {
+    function _unpackData(bytes memory data) internal pure returns(address, int256) {
         return abi.decode(data, (address, int256));
+    }
+
+    function _sumProportions(ReceiverData[] memory receivers) internal returns(uint256) {
+        uint256 sum;
+        for(uint256 i = 0; i < receivers.length; i++) {
+            sum += receivers[i].proportion;
+        }
+        return sum;
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.0;
+pragma solidity >=0.7.0;
 
 import { ISuperfluidGovernance } from "../interface/ISuperfluidGovernance.sol";
 
@@ -11,7 +11,8 @@ contract TestGovernance is ISuperfluidGovernance {
         address rewardAddress;
         uint16 minimalDeposit;
         uint16 period;
-        uint64 gasReservation;
+        uint64 maxGasCallback;
+        uint64 maxGasApp;
         address superfluid;
     }
 
@@ -21,17 +22,19 @@ contract TestGovernance is ISuperfluidGovernance {
         address rewardAddress,
         uint16 minimalDeposit,
         uint16 period,
-        uint64 gasReservation,
+        uint64 maxGasCallback,
+        uint64 maxGasApp,
         address superfluid
     )
-        public
+    public
     {
         governor = msg.sender;
         _defaultConfig = GovernanceConfig(
             rewardAddress,
             minimalDeposit,
             period,
-            gasReservation,
+            maxGasCallback,
+            maxGasApp,
             superfluid
         );
     }
@@ -69,8 +72,12 @@ contract TestGovernance is ISuperfluidGovernance {
         return _defaultConfig.period;
     }
 
-    function getGasReservation() external view override returns(uint64) {
-        return _defaultConfig.gasReservation;
+    function getMaxGasCallback() external view override returns(uint64) {
+        return _defaultConfig.maxGasCallback;
+    }
+
+    function getMaxGasApp() external view override returns(uint64) {
+        return _defaultConfig.maxGasApp;
     }
 
     function getSuperfluid() external view override returns(address) {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity ^0.6.6;
+pragma solidity >=0.7.0;
 
 import { Proxiable } from "./upgradability/Proxiable.sol";
 import { Ownable } from "./interface/Ownable.sol";
@@ -468,6 +468,10 @@ contract SuperToken is
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
+    }
+
+    function getFramework() external view override returns(address gov, address superfluid) {
+        return (address(_gov), _gov.getSuperfluid());
     }
 
     /*

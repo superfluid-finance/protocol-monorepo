@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.6.6;
+pragma solidity >=0.7.0;
 
 import { ISuperToken, IFlowAgreement } from "./interface/IFlowAgreement.sol";
 import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
 import { ISuperfluid } from "./interface/ISuperfluid.sol";
-import { ISuperApp } from "./interface/ISuperApp.sol";
-import { AppHelper } from "./interface/AppHelper.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { AgreementLibrary } from "./interface/AgreementLibrary.sol";
+import { ContextLibrary } from "./interface/ContextLibrary.sol";
 
 contract FlowAgreement is IFlowAgreement {
 
@@ -54,48 +54,29 @@ contract FlowAgreement is IFlowAgreement {
 
     /// @dev IFlowAgreement.createFlow implementation
     function createFlow(
+        bytes calldata ctx,
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
         external
         override
     {
+        // TODO: Decode return cbdata before calling the next step
+        (, address host) = token.getFramework();
+        address sender = ContextLibrary.getCaller(ctx);
         bytes32 flowId = _generateId(sender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
-        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
-        uint64 gasReserved = gov.getGasReservation();
-        // TODO: THIS CAN REVERT AND STOP EVERYTHING
         bytes memory data = abi.encode(address(this), flowId, flowRate);
-        bytes memory ctx;
-        (bool ok, uint bitmask) = _checkCaller(gov, msg.sender, sender);
-        if(ok && (bitmask & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) {
-            ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
-                msg.sender,
-                gasReserved,
-                ISuperApp(msg.sender).beforeAgreementCreated.selector,
-                data
-            );
-        }
+        (, bytes memory newCtx) =
+            AgreementLibrary.beforeAgreementCreated(ISuperfluid(host), ctx, receiver, data);
         _updateFlow(token, sender, receiver, flowRate);
-        if(ok && (AppHelper.AFTER_AGREEMENT_CREATED_NOOP & bitmask) != AppHelper.AFTER_AGREEMENT_CREATED_NOOP) {
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
-                ctx,
-                msg.sender,
-                ISuperApp(msg.sender).afterAgreementCreated.selector,
-                data
-            );
-        }
+        AgreementLibrary.afterAgreementCreated(ISuperfluid(host), newCtx, receiver, data);
     }
 
-    /*
-     *   IFlowAgreement interface
-     */
-    /// @dev IFlowAgreement.updateFlow implementation
     function updateFlow(
+        bytes calldata ctx,
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
@@ -103,36 +84,60 @@ contract FlowAgreement is IFlowAgreement {
         override
     {
         // TODO meta-tx support
+        // TODO: Decode return cbdata before calling the next step
+        (, address host) = token.getFramework();
+        address sender = ContextLibrary.getCaller(ctx);
         bytes32 flowId = _generateId(sender, receiver);
         require(!_isNewFlow(token, flowId), "Flow doesn't exist");
         require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
-        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
-        uint64 gasReserved = gov.getGasReservation();
-        // TODO: THIS CAN REVERT AND STOP EVERYTHING
-        bytes memory data = abi.encode(address(this), flowId, flowRate);
-        bytes memory ctx;
-        (bool ok, uint bitmask) = _checkCaller(gov, receiver, msg.sender);
-        if(ok && (AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) {
-            ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
-                msg.sender,
-                gasReserved,
-                ISuperApp(msg.sender).beforeAgreementCreated.selector,
-                data
-            );
-        }
+        bytes memory data =
+            abi.encode(address(this), flowId, flowRate);
+        (, bytes memory newCtx) =
+            AgreementLibrary.beforeAgreementUpdated(ISuperfluid(host), ctx, receiver, data);
         _updateFlow(token, sender, receiver, flowRate);
-        if(ok && AppHelper.AFTER_AGREEMENT_UPDATED_NOOP & bitmask == AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) {
-            revert("call back 2");
-            ISuperfluid(gov.getSuperfluid()).callWithContext(
-                ctx,
-                msg.sender,
-                ISuperApp(msg.sender).afterAgreementCreated.selector,
-                data
-            );
+        AgreementLibrary.afterAgreementUpdated(ISuperfluid(host), newCtx, receiver, data);
+    }
+
+    /// @dev IFlowAgreement.deleteFlow implementation
+    function deleteFlow(
+        bytes calldata ctx,
+        ISuperToken token,
+        address receiver
+    )
+        external
+        override
+    {
+        // TODO: Decode return cbdata before calling the next step
+        (, address host) = token.getFramework();
+        address sender = ContextLibrary.getCaller(ctx);
+        bytes32 flowId = _generateId(sender, receiver);
+        bytes memory data = abi.encode(address(this), flowId);
+        bool isLiquidator = (msg.sender != sender && msg.sender != receiver);
+        if (isLiquidator) {
+            require(token.isAccountInsolvent(sender),
+                    "FlowAgreement: account is solvent");
         }
+        (, bytes memory newCtx) =
+            AgreementLibrary.beforeAgreementTerminated(ISuperfluid(host), ctx, receiver, data);
+        _terminateAgreementData(token, sender, receiver, isLiquidator);
+        AgreementLibrary.afterAgreementTerminated(ISuperfluid(host), newCtx, receiver, data);
     }
 
     /// @dev IFlowAgreement.getFlow implementation
+    function getFlow(
+        ISuperToken token,
+        address sender,
+        address receiver
+    )
+        external
+        view
+        override
+        returns (int256 flowRate)
+    {
+        bytes memory data = token.getAgreementData(address(this), keccak256(abi.encodePacked(sender, receiver)));
+        (, , , flowRate) = _decodeData(data);
+    }
+    /// @dev IFlowAgreement.getNetFlow implementation
     function getFlow(
         ISuperToken token,
         bytes32 flowId
@@ -140,13 +145,16 @@ contract FlowAgreement is IFlowAgreement {
         external
         view
         override
-        returns (uint256 timestamp, address sender, address receiver, int256 flowRate)
+        returns(
+            uint256 timestamp,
+            address sender,
+            address receiver,
+            int256 flowRate
+        )
     {
         bytes memory data = token.getAgreementData(address(this), flowId);
         return _decodeData(data);
     }
-
-    /// @dev IFlowAgreement.getNetFlow implementation
     function getNetFlow(
         ISuperToken token,
         address account
@@ -158,39 +166,6 @@ contract FlowAgreement is IFlowAgreement {
     {
         bytes memory state = token.getAgreementAccountState(address(this), account);
         (, flowRate) = _decodeFlow(state);
-    }
-
-    /// @dev IFlowAgreement.deleteFlow implementation
-    function deleteFlow(
-        ISuperToken token,
-        address sender,
-        address receiver
-    )
-        external
-        override
-    {
-        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
-        uint64 gasReserved = gov.getGasReservation();
-        // TODO: THIS CAN REVERT AND STOP EVERYTHING
-        bytes memory data = abi.encode(address(this), _generateId(sender, receiver));
-        bytes memory ctx;
-        (bool ok, uint bitmask) = _checkCaller(gov, receiver, msg.sender);
-        require(bitmask > 0 , "bitmask is zero");
-        if(ok && (AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP & bitmask) != AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP) {
-            ctx = ISuperfluid(gov.getSuperfluid()).callBuildContext(
-                msg.sender,
-                gasReserved,
-                ISuperApp(msg.sender).beforeAgreementCreated.selector,
-                data
-            );
-        }
-
-        bool isLiquidator = (msg.sender != sender && msg.sender != receiver);
-        if (isLiquidator) {
-            require(token.isAccountInsolvent(sender), "FlowAgreement: account is solvent");
-        }
-
-        _terminateAgreementData(token, sender, receiver, isLiquidator);
     }
 
     /*
@@ -294,16 +269,6 @@ contract FlowAgreement is IFlowAgreement {
         return keccak256(abi.encodePacked(sender, receiver));
     }
 
-    function _checkCaller(ISuperfluidGovernance gov, address appAddr, address sender) private view returns(bool, uint) {
-        ISuperfluid superfluid = ISuperfluid(gov.getSuperfluid());
-
-        if(superfluid.isWhiteListed(sender, appAddr)) {
-            uint256 bitmask = superfluid.getConfig(appAddr);
-            return (bitmask > 0, bitmask);
-        }
-
-        return (false, 0);
-    }
 
     function _encodeData
     (

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.6.0;
+pragma solidity >=0.7.0;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { TokenInfo } from "./TokenInfo.sol";
@@ -206,5 +206,12 @@ abstract contract ISuperToken is IERC20, TokenInfo {
         address indexed account,
         uint256 amount
     );
+
+
+    function getFramework()
+        external
+        virtual
+        view
+        returns(address gov, address superfluid);
 
 }

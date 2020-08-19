@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.0;
+pragma solidity >=0.7.0;
 
 import { ISuperToken } from "./ISuperToken.sol";
 
@@ -12,7 +12,8 @@ interface ISuperApp {
         bytes32 agreementId
     )
         external
-        view;
+        view
+        returns (bytes memory data);
 
     function afterAgreementCreated(
         ISuperToken superToken,
@@ -20,7 +21,9 @@ interface ISuperApp {
         address agreementClass,
         bytes32 agreementId,
         bytes calldata data
-    ) external;
+    )
+        external
+        returns (bytes memory newCtx);
 
     function beforeAgreementUpdated(
         ISuperToken superToken,
@@ -38,7 +41,9 @@ interface ISuperApp {
         address agreementClass,
         bytes32 agreementId,
         bytes calldata data
-    ) external;
+    )
+        external
+        returns (bytes memory newCtx);
 
     function beforeAgreementTerminated(
         ISuperToken superToken,
@@ -47,15 +52,15 @@ interface ISuperApp {
         bytes32 agreementId
     )
         external
-        view;
+        view
+        returns (bytes memory data);
 
     function afterAgreementTerminated(
         ISuperToken superToken,
         bytes calldata ctx,
         address agreementClass,
-        bytes32 agreementId,
-        bytes calldata data
+        bytes32 agreementId
     )
         external
-        returns (bytes memory newData);
+        returns (bytes memory newCtx);
 }

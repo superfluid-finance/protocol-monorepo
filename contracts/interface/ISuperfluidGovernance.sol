@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.6.0;
+pragma solidity >=0.7.0;
 
 import "./ISuperToken.sol";
 
@@ -36,10 +36,9 @@ interface ISuperfluidGovernance {
         view
         returns(uint16 period);
 
-    function getGasReservation()
-        external
-        view
-        returns(uint64);
+    function getMaxGasCallback() external view returns(uint64);
+
+    function getMaxGasApp() external view returns(uint64);
 
     function getSuperfluid()
         external

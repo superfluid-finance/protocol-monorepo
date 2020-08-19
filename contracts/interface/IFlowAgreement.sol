@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.6.0;
+pragma solidity >=0.7.0;
 
 import "./ISuperToken.sol";
 import "./ISuperAgreement.sol";
@@ -17,8 +17,8 @@ abstract contract IFlowAgreement is ISuperAgreement {
     /// @param flowRate New flow rate in amount per second.
     /// @dev Sender must be msg.sender or meta transaction relayer.
     function createFlow(
+        bytes calldata ctx,
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
@@ -32,8 +32,8 @@ abstract contract IFlowAgreement is ISuperAgreement {
     /// @param flowRate New flow rate in amount per second.
     /// @dev Sender must be msg.sender or meta transaction relayer.
     function updateFlow(
+        bytes calldata ctx,
         ISuperToken token,
-        address sender,
         address receiver,
         int256 flowRate
     )
@@ -42,11 +42,19 @@ abstract contract IFlowAgreement is ISuperAgreement {
 
     /// @notice Get the current flow rate between `sender` and `receiver`.
     /// @param token Super token address.
-    /// @param flowId Flow Identifier.
-    /// @return timestamp Timestamp of flow
-    /// @return sender Address of sender
-    /// @return receiver Address of receiver
+    /// @param sender address of sender
+    /// @param receiver address of receiver
     /// @return flowRate Flow rate.
+    function getFlow(
+       ISuperToken token,
+       address sender,
+       address receiver
+    )
+        external
+        view
+        virtual
+        returns (int256 flowRate);
+
     function getFlow(
        ISuperToken token,
        bytes32 flowId
@@ -54,7 +62,12 @@ abstract contract IFlowAgreement is ISuperAgreement {
         external
         view
         virtual
-        returns (uint256 timestamp, address sender, address receiver, int256 flowRate);
+        returns (
+            uint256 timestamp,
+            address sender,
+            address receiver,
+            int256 flowRate
+        );
 
     /// @notice Get the net flow rate of the `account` in token@`token`.
     /// @param token Super token address.
@@ -86,11 +99,11 @@ abstract contract IFlowAgreement is ISuperAgreement {
 
     /// @notice Delete the flow between `sender` and `receiver`.
     /// @param token Super token address.
-    /// @param sender Flow sender address.
+    /// @param ctx Context bytes.
     /// @param receiver Flow receiver address.
     function deleteFlow(
+        bytes calldata ctx,
         ISuperToken token,
-        address sender,
         address receiver
     )
         external

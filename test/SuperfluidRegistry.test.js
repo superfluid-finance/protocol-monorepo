@@ -22,6 +22,7 @@ contract("Superfluid Registry", accounts => {
             1,
             3600,
             10000,
+            10000,
             superfluid.address);
 
         const superTokenLogic = await web3tx(SuperToken.new, "SuperToken.new due to code change")();

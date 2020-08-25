@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
-contract OwnableStorage {
+// FIXME remove and use the openzeppelin
+contract Ownable {
     /// @dev For ownable contract
     address internal _owner;
-}
 
-contract Ownable is OwnableStorage {
     event OwnershipTransferred(
         address indexed previousOwner,
         address indexed newOwner

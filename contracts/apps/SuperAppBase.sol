@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
-import "./ISuperToken.sol";
-import "./ISuperApp.sol";
+import "../interfaces/ISuperToken.sol";
+import "../interfaces/ISuperApp.sol";
 
-abstract contract ISuperAppBase is ISuperApp {
+abstract contract SuperAppBase is ISuperApp {
 
     function beforeAgreementCreated(
         ISuperToken /*superToken*/,

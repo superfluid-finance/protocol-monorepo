@@ -3,11 +3,11 @@ pragma solidity >=0.7.0;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./upgradability/Proxy.sol";
-import "./upgradability/Proxiable.sol";
-import "./interface/Ownable.sol";
-import "./interface/ISuperfluidRegistry.sol";
-import "./interface/ISuperfluidGovernance.sol";
+import "../upgradability/Proxy.sol";
+import "../upgradability/Proxiable.sol";
+import "../interfaces/Ownable.sol";
+import "../interfaces/ISuperfluidRegistry.sol";
+import "../interfaces/ISuperfluidGovernance.sol";
 import "./SuperToken.sol";
 
 contract SuperfluidRegistryStorage {

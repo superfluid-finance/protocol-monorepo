@@ -2,12 +2,12 @@
 pragma solidity >=0.7.0;
 pragma experimental ABIEncoderV2;
 
-import { Ownable } from "./interface/Ownable.sol";
-import { ISuperfluid } from "./interface/ISuperfluid.sol";
-import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
-import { ISuperApp } from "./interface/ISuperApp.sol";
-import { AppHelper } from "./interface/AppHelper.sol";
-import { ContextLibrary } from "./interface/ContextLibrary.sol";
+import { Ownable } from "../interfaces/Ownable.sol";
+import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
+import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
+import { ISuperApp } from "../interfaces/ISuperApp.sol";
+import { AppHelper } from "../apps/AppHelper.sol";
+import { ContextLibrary } from "./ContextLibrary.sol";
 
 contract Superfluid is Ownable, ISuperfluid {
     event Jail(address app);

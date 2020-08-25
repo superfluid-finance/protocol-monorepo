@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
-import { ISuperfluidGovernance } from "../interface/ISuperfluidGovernance.sol";
+import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
 
 contract TestGovernance is ISuperfluidGovernance {
 

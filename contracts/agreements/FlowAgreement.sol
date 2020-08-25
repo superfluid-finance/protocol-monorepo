@@ -2,13 +2,13 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity >=0.7.0;
 
-import { ISuperToken, IFlowAgreement } from "./interface/IFlowAgreement.sol";
-import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
-import { ISuperfluid } from "./interface/ISuperfluid.sol";
+import { ISuperToken, IFlowAgreement } from "../interfaces/IFlowAgreement.sol";
+import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
+import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { AgreementLibrary } from "./interface/AgreementLibrary.sol";
-import { ContextLibrary } from "./interface/ContextLibrary.sol";
+import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 contract FlowAgreement is IFlowAgreement {
 

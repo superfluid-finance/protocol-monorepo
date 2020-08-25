@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
-import "../interface/AppHelper.sol";
-import "../interface/ISuperAppBase.sol";
-import "../interface/IFlowAgreement.sol";
-import "../interface/ISuperfluid.sol";
-import { ContextLibrary } from "../interface/ContextLibrary.sol";
+import "../interfaces/IFlowAgreement.sol";
+import "../interfaces/ISuperfluid.sol";
+import "./SuperAppBase.sol";
+import "./AppHelper.sol";
+import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 // FIXME Create and use a SuperAppBase abstract contract,
 //       which implements all the callbacks as reverts.
 //       - Revert(callback not implemented constant string)
-contract MultiFlowsApp is ISuperAppBase {
+contract MultiFlowsApp is SuperAppBase {
 
     struct ReceiverData {
         address to;

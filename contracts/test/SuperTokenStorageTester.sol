@@ -3,7 +3,7 @@
 pragma solidity >=0.7.0;
 pragma experimental ABIEncoderV2;
 
-import {SuperToken} from "../SuperToken.sol";
+import {SuperToken} from "../superfluid/SuperToken.sol";
 
 /**
  * @dev Test SuperTokenStorag Layout changes

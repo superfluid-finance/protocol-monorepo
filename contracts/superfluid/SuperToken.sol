@@ -2,11 +2,11 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity >=0.7.0;
 
-import { Proxiable } from "./upgradability/Proxiable.sol";
-import { Ownable } from "./interface/Ownable.sol";
-import { IERC20, ISuperToken } from "./interface/ISuperToken.sol";
-import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
-import { ISuperAgreement } from "./interface/ISuperAgreement.sol";
+import { Proxiable } from "../upgradability/Proxiable.sol";
+import { Ownable } from "../interfaces/Ownable.sol";
+import { IERC20, ISuperToken } from "../interfaces/ISuperToken.sol";
+import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
+import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 

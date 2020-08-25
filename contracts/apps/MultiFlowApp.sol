@@ -46,7 +46,7 @@ contract MultiFlowsApp is ISuperAppBase {
     {
         require(msg.sender == address(_host), "Only official superfluid host is supported by the app");
         require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
-        address sender = ContextLibrary.getCaller(ctx);
+        address sender = ContextLibrary.decode(ctx).msgSender;
         require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
 
         _host.chargeGasFee(30000);
@@ -93,7 +93,7 @@ contract MultiFlowsApp is ISuperAppBase {
     override
     returns(bytes memory newCtx)
     {
-        address sender = ContextLibrary.getCaller(ctx);
+        address sender = ContextLibrary.decode(ctx).msgSender;
         require(_userFlows[sender].length > 0 , "MAPP: Create Multi Flow first or go away");
         (int256 receivingFlowRate) = _constantFlow.getFlow(
             superToken,
@@ -130,7 +130,7 @@ contract MultiFlowsApp is ISuperAppBase {
         override
         returns (bytes memory newCtx)
     {
-        (, address sender, ) = ContextLibrary.decodeContext(ctx);
+        address sender = ContextLibrary.decode(ctx).msgSender;
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(

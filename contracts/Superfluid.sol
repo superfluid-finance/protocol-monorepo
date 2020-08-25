@@ -131,7 +131,7 @@ contract Superfluid is Ownable, ISuperfluid {
         (bool success, bytes memory returnedData) = _callCallback(app, data);
         newCtx = abi.decode(returnedData, (bytes));
         if(success) {
-            if(!ContextLibrary.validateContext(newCtx, _ctxStamp)) { //JAIL
+            if(!ContextLibrary.validate(newCtx, _ctxStamp)) { //JAIL
                 //Change return context
                 emit Jail(app);
             }
@@ -160,7 +160,7 @@ contract Superfluid is Ownable, ISuperfluid {
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encodeContext(0, msg.sender, _GAS_RESERVATION);
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -176,17 +176,19 @@ contract Superfluid is Ownable, ISuperfluid {
         override
         returns(bytes memory newCtx, bytes memory returnedData)
     {
-        require(_isValidContext(ctx), "SF: Agreement Context Invalid");
-        address oldSender;
-        (newCtx, _ctxStamp, oldSender) = ContextLibrary.replaceMsgSender(ctx, msg.sender);
+        require(ContextLibrary.validate(ctx, _ctxStamp), "SF: Agreement Context Invalid");
+        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
+        address oldSender = stcCtx.msgSender;
+        stcCtx.msgSender = msg.sender;
+        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
 
         //Call app
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, newCtx);
         if(success) {
             // TODO update context
-            (newCtx, _ctxStamp, ) = ContextLibrary.replaceMsgSender(newCtx, oldSender);
-            //newCtx = ctx;
+            stcCtx.msgSender = oldSender;
+            (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
         } else {
             revert("SF: call agreement failed");
         }
@@ -209,7 +211,7 @@ contract Superfluid is Ownable, ISuperfluid {
         //Build context data
         require(_ctxStamp == 0, "Stamp is not clean");
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encodeContext(0, msg.sender, _GAS_RESERVATION);
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -228,19 +230,15 @@ contract Superfluid is Ownable, ISuperfluid {
         override
         returns(bytes memory newCtx)
     {
-        require(_isValidContext(ctx), "SF: Action Context Invalid");
-        (
-            uint8 level,
-            ,
-            uint64 gasReservation
-        ) = ContextLibrary.decodeContext(ctx);
+        require(ContextLibrary.validate(ctx, _ctxStamp), "SF: Action Context Invalid");
+        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
 
-        level++;
-        require(_checkAppCallStact(msg.sender, level), "SF: App Call Stack too deep");
-        (newCtx, _ctxStamp) = ContextLibrary.encodeContext(level, msg.sender, gasReservation);
+        stcCtx.level++;
+        require(_checkAppCallStact(msg.sender, stcCtx.level), "SF: App Call Stack too deep");
+        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
         _callExternal(app, data, newCtx);
-        level--;
-        (newCtx, _ctxStamp) = ContextLibrary.encodeContext(level, msg.sender, _GAS_RESERVATION);
+        stcCtx.level--;
+        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 
 
@@ -259,9 +257,11 @@ contract Superfluid is Ownable, ISuperfluid {
         return _ctxStamp.length == 0;
     }
 
+    /*
     function _isValidContext(bytes memory ctx) internal view returns(bool) {
         return keccak256(abi.encodePacked(ctx)) == _ctxStamp;
     }
+    */
 
     function _isSuperApp(address app) internal view returns(bool) {
         return _appConfigs[app].configWord > 0;

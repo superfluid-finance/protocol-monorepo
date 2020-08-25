@@ -1,11 +1,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 /*
-    Implementation of Context Encoding and Decoding DATA
+    Implementation of Context Helper
 */
 
 library ContextLibrary {
 
+    struct Context {
+        uint8 level;
+        address msgSender;
+        uint256 gasRequirement;
+    }
+
+    function encode(Context memory context) internal pure returns (bytes memory ctx, bytes32 ctxStamp) {
+        ctx = abi.encode(context.level, context.msgSender, context.gasRequirement);
+        ctxStamp = keccak256(abi.encodePacked(ctx));
+    }
+
+    function decode(bytes memory ctx) internal pure returns (Context memory context) {
+        (
+            context.level,
+            context.msgSender,
+            context.gasRequirement
+        ) = abi.decode(ctx, (uint8, address, uint256));
+    }
+
+    function validate(bytes memory ctx, bytes32 ctxStamp) internal pure returns (bool) {
+        return keccak256(abi.encodePacked(ctx)) == ctxStamp;
+    }
+
+    /*
     function createStamp(bytes memory ctx) internal pure returns(bytes32 stamp) {
         return keccak256(abi.encodePacked(ctx));
     }
@@ -56,16 +80,7 @@ library ContextLibrary {
         (, address caller, ) = decodeContext(ctx);
         return caller;
     }
-
-    function splitReturnedData(
-        bytes memory returnedData
-    )
-        internal
-        pure
-        returns(bytes memory newCtx, bytes memory cbdata)
-    {
-        return abi.decode(returnedData, (bytes, bytes));
-    }
+    */
 
     function replaceContext(bytes memory data, bytes memory ctx) internal pure returns (bytes memory) {
         uint256 paddedLength = (ctx.length / 32 + 1) * 32;
@@ -73,7 +88,8 @@ library ContextLibrary {
         data[data.length - 1] = byte(uint8(ctx.length));
         return abi.encodePacked(
             data,
-            ctx, new bytes(paddedLength - ctx.length) /* ctx padding */
+            ctx, new bytes(paddedLength - ctx.length) // ctx padding
         );
     }
+
 }

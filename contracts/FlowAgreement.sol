@@ -13,6 +13,7 @@ import { ContextLibrary } from "./interface/ContextLibrary.sol";
 contract FlowAgreement is IFlowAgreement {
 
     using SignedSafeMath for int256;
+    using ContextLibrary for ContextLibrary.Context;
 
     function agreementType() external override pure returns (bytes32) {
         return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
@@ -68,8 +69,8 @@ contract FlowAgreement is IFlowAgreement {
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
-        //address sender = ISuperfluid(msg.sender).getSender();
-        address sender = ContextLibrary.getCaller(ctx);
+        //address sender = ContextLibrary.getCaller(ctx);
+        address sender = ContextLibrary.decode(ctx).msgSender;
 
 
         bytes32 flowId = _generateId(sender, receiver);
@@ -97,7 +98,7 @@ contract FlowAgreement is IFlowAgreement {
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
-        address sender = ContextLibrary.getCaller(ctx);
+        address sender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
         require(!_isNewFlow(token, flowId), "Flow doesn't exist");
         require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
@@ -125,7 +126,7 @@ contract FlowAgreement is IFlowAgreement {
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
-        address msgSender = ContextLibrary.getCaller(ctx);
+        address msgSender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
 
         bool isLiquidator = (msgSender != sender && msgSender != receiver);

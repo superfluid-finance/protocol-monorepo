@@ -14,6 +14,15 @@ library ContextLibrary {
         return keccak256(abi.encodePacked(ctx)) == stamp;
     }
 
+    function replaceMsgSender(
+        bytes memory ctx,
+        address newMsgSender
+    ) internal pure returns(bytes memory newCtx, bytes32 stamp, address oldSender) {
+        (uint8 level, address sender,uint64 gasReservation) = decodeContext(ctx);
+        (newCtx, stamp)= encodeContext(level, newMsgSender, gasReservation);
+        oldSender = sender;
+    }
+
     function updateContextNewCaller(
         bytes memory ctx,
         address caller
@@ -35,8 +44,8 @@ library ContextLibrary {
         pure
         returns(bytes memory ctx, bytes32 stamp)
     {
-        bytes memory newCtx = abi.encode(level, sender, gasReservation);
-        return (newCtx, keccak256(abi.encodePacked(ctx)));
+        ctx = abi.encode(level, sender, gasReservation);
+        stamp = keccak256(abi.encodePacked(ctx));
     }
 
     function decodeContext(bytes memory ctx) internal pure returns(uint8, address, uint64) {
@@ -56,5 +65,15 @@ library ContextLibrary {
         returns(bytes memory newCtx, bytes memory cbdata)
     {
         return abi.decode(returnedData, (bytes, bytes));
+    }
+
+    function replaceContext(bytes memory data, bytes memory ctx) internal pure returns (bytes memory) {
+        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
+        data[data.length - 2] = byte(uint8(ctx.length >> 8));
+        data[data.length - 1] = byte(uint8(ctx.length));
+        return abi.encodePacked(
+            data,
+            ctx, new bytes(paddedLength - ctx.length) /* ctx padding */
+        );
     }
 }

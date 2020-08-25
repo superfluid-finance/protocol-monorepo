@@ -2,27 +2,28 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const {
     web3tx,
-    toWad,
-    toBN
+    toWad
+    //toBN
 } = require("@decentral.ee/web3-helpers");
 
-const traveler = require("ganache-time-traveler");
+//const traveler = require("ganache-time-traveler");
 
 const Tester = require("./Tester");
 
-const ADV_TIME = 2;
+//const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
 
 contract("Super Token", accounts => {
 
     const tester = new Tester(accounts.slice(0, 4));
-    const { alice, bob, carol } = tester.aliases;
-    const { INIT_BALANCE } = tester.constants;
-    const { ZERO_ADDRESS } = tester.constants;
+    const { alice, bob} = tester.aliases;
+    //const { INIT_BALANCE } = tester.constants;
+    //const { ZERO_ADDRESS } = tester.constants;
 
-    let token;
+    //let token;
     let superToken;
     let flowAgreement;
+    let superfluid;
 
     before(async () => {
         tester.printAliases();
@@ -31,12 +32,14 @@ contract("Super Token", accounts => {
     beforeEach(async function () {
         await tester.resetContracts();
         ({
-            token,
+            //token,
             superToken,
-            flowAgreement
+            flowAgreement,
+            superfluid
         } = tester.contracts);
     });
 
+    /*
     describe("#0 SuperToken ERC20 info", () => {
         it("#0.1 - test basic token info", async () => {
             assert.equal(await superToken.name.call(), "SuperTestToken");
@@ -143,15 +146,39 @@ contract("Super Token", accounts => {
                 }), "SuperToken: downgrade amount exceeds balance");
         });
     });
-
+    */
     describe("#3 SuperToken ISuperAgreementStorage(TBD) operations", () => {
         // TODO To be improved with a mock agreement class
 
         it("#3.1 - should track active agreement classes", async() => {
+            const data = web3.eth.abi.encodeParameters(
+                ["address", "address", "int256"],
+                [superToken.address, bob, "1000000000000000000"]);
+
+            const selector = flowAgreement.abi.filter(i => i.name === "createFlow")[0].signature;
+
+            const agreementClass = flowAgreement.address;
+            console.log(agreementClass);
+            console.log(selector);
+            console.log("SuperToken Address", superToken.address);
+
+            await web3tx(superfluid.callAgreement2, "Superfluid.callAgreement2 alice bob 1x")(
+                agreementClass,
+                selector,
+                data,
+                {
+                    from: alice,
+                }
+            );
+
+            const flowRate = await flowAgreement.getNetFlow.call(superToken.address, bob);
+            assert.equal(flowRate.toString(), FLOW_RATE.toString(), "Not the same flow Rate");
+            /*
             await web3tx(
                 flowAgreement.updateFlow,
                 "FlowAgreement.updateFlow alice bob 1x"
             )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+
             let aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
             let bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
             let carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
@@ -161,7 +188,8 @@ contract("Super Token", accounts => {
             assert.ok(carolAgreementClasses.length == 0);
             assert.equal(aliceAgreementClasses[0], flowAgreement.address);
             assert.equal(bobAgreementClasses[0], flowAgreement.address);
-
+            */
+            /*
             await web3tx(
                 flowAgreement.updateFlow,
                 "FlowAgreement.updateFlow bob carol 2x"
@@ -194,6 +222,7 @@ contract("Super Token", accounts => {
             assert.equal(carolAgreementClasses[0], flowAgreement.address);
 
             await tester.validateSystem();
+            */
         });
 
         it("#3.2 - should only be updated by authorized agreement", async () => {
@@ -205,7 +234,7 @@ contract("Super Token", accounts => {
                 ), "SuperToken: unauthorized agreement storage access");
         });
     });
-
+/*
     describe("#4 SuperToken.transfer", () => {
         it("#4.1 - should transfer available amount", async() => {
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice") (
@@ -343,5 +372,5 @@ contract("Super Token", accounts => {
             );
         });
     });
-
+    */
 });

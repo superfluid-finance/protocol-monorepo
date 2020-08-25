@@ -2,8 +2,9 @@
 pragma solidity >=0.7.0;
 
 import "./ISuperToken.sol";
+import "./ISuperApp.sol";
 
-abstract contract ISuperAppBase {
+abstract contract ISuperAppBase is ISuperApp {
 
     function beforeAgreementCreated(
         ISuperToken /*superToken*/,
@@ -14,9 +15,10 @@ abstract contract ISuperAppBase {
         external
         view
         virtual
-        returns (bytes memory /*data*/)
+        override
+        returns (bytes memory /*cbdata*/)
     {
-        revert("Unsupported callback");
+        revert("Unsupported callback - Before Agreement Created");
     }
 
     function afterAgreementCreated(
@@ -24,13 +26,14 @@ abstract contract ISuperAppBase {
         bytes calldata /*ctx*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*data*/
+        bytes calldata /*cbdata*/
     )
         external
         virtual
+        override
         returns (bytes memory /*newCtx*/)
     {
-        revert("Unsupported callback");
+        revert("Unsupported callback - After Agreement Created");
     }
 
     function beforeAgreementUpdated(
@@ -42,9 +45,10 @@ abstract contract ISuperAppBase {
         external
         view
         virtual
-        returns (bytes memory /*data*/)
+        override
+        returns (bytes memory /*cbdata*/)
     {
-        revert("Unsupported callback");
+        revert("Unsupported callback - Before Agreement updated");
     }
 
     function afterAgreementUpdated(
@@ -52,13 +56,14 @@ abstract contract ISuperAppBase {
         bytes calldata /*ctx*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*data*/
+        bytes calldata /*cbdata*/
     )
         external
         virtual
+        override
         returns (bytes memory /*newCtx*/)
     {
-        revert("Unsupported callback");
+        revert("Unsupported callback - After Agreement Updated");
     }
 
     function beforeAgreementTerminated(
@@ -70,21 +75,24 @@ abstract contract ISuperAppBase {
         external
         view
         virtual
+        override
         returns (bytes memory /*data*/)
     {
-        revert("Unsupported callback");
+        revert("Unsupported callback -  Before Agreement Terminated");
     }
 
     function afterAgreementTerminated(
         ISuperToken /*superToken*/,
         bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes memory /*cbdata*/
     )
         external
         virtual
+        override
         returns (bytes memory /*newCtx*/)
     {
-        revert("Unsupported callback");
+        revert("Unsupported callback - After Agreement Terminated");
     }
 }

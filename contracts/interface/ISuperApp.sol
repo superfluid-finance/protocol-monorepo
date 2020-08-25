@@ -13,14 +13,14 @@ interface ISuperApp {
     )
         external
         view
-        returns (bytes memory data);
+        returns (bytes memory cbdata);
 
     function afterAgreementCreated(
         ISuperToken superToken,
         bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata data
+        bytes calldata cbdata
     )
         external
         returns (bytes memory newCtx);
@@ -33,14 +33,14 @@ interface ISuperApp {
     )
         external
         view
-        returns (bytes memory data);
+        returns (bytes memory cbdata);
 
     function afterAgreementUpdated(
         ISuperToken superToken,
         bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata data
+        bytes calldata cbdata
     )
         external
         returns (bytes memory newCtx);
@@ -59,7 +59,8 @@ interface ISuperApp {
         ISuperToken superToken,
         bytes calldata ctx,
         address agreementClass,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bytes calldata cbdata
     )
         external
         returns (bytes memory newCtx);

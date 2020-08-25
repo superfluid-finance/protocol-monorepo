@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
 import "./ISuperToken.sol";
@@ -17,10 +16,10 @@ abstract contract IFlowAgreement is ISuperAgreement {
     /// @param flowRate New flow rate in amount per second.
     /// @dev Sender must be msg.sender or meta transaction relayer.
     function createFlow(
-        bytes calldata ctx,
         ISuperToken token,
         address receiver,
-        int256 flowRate
+        int256 flowRate,
+        bytes calldata ctx
     )
         external
         virtual;
@@ -32,10 +31,10 @@ abstract contract IFlowAgreement is ISuperAgreement {
     /// @param flowRate New flow rate in amount per second.
     /// @dev Sender must be msg.sender or meta transaction relayer.
     function updateFlow(
-        bytes calldata ctx,
         ISuperToken token,
         address receiver,
-        int256 flowRate
+        int256 flowRate,
+        bytes calldata ctx
     )
         external
         virtual;
@@ -102,11 +101,13 @@ abstract contract IFlowAgreement is ISuperAgreement {
     /// @param ctx Context bytes.
     /// @param receiver Flow receiver address.
     function deleteFlow(
-        bytes calldata ctx,
         ISuperToken token,
-        address receiver
+        address sender,
+        address receiver,
+        bytes calldata ctx
     )
         external
         virtual;
 
+    function test() external virtual returns(bool);
 }

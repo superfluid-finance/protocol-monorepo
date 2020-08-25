@@ -12,4 +12,6 @@ library AppHelper {
     uint constant public BEFORE_AGREEMENT_UPDATED_NOOP = 1 << (32 + 2);
     uint constant public AFTER_AGREEMENT_UPDATED_NOOP = 1 << (32 + 3);
     uint constant public BEFORE_AGREEMENT_TERMINATED_NOOP = 1 << (32 + 4);
+    uint constant public AFTER_AGREEMENT_TERMINATED_NOOP = 1 << (32 + 5);
+
 }

@@ -31,24 +31,24 @@ contract MultiFlowsApp is ISuperAppBase {
         uint256 configWord =
             AppHelper.TYPE_APP_FINAL |
             AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
-            AppHelper.AFTER_AGREEMENT_CREATED_NOOP |
             AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerApp(configWord);
     }
 
     function createMultiFlows(
-        bytes calldata ctx,
         ISuperToken superToken,
         address[] calldata receivers,
-        uint256[] calldata proportions
+        uint256[] calldata proportions,
+        bytes calldata ctx
     )
         external
     {
         require(msg.sender == address(_host), "Only official superfluid host is supported by the app");
-        require(receivers.length == proportions.length, "SA: number receivers not equal flowRates");
-
+        require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
         address sender = ContextLibrary.getCaller(ctx);
+        require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
+
         _host.chargeGasFee(30000);
 
         (int256 receivingFlowRate) = _constantFlow.getFlow(
@@ -60,16 +60,10 @@ contract MultiFlowsApp is ISuperAppBase {
 
         //uint256 sum = _sumProportions(proportions);
         for(uint256 i = 0; i < receivers.length; i++) {
-            //int256 fr = int256((proportions[i] / sum)) * receivingFlowRate;
-            //_call(superToken, ctx, _constantFlow.createFlow.selector, receivers[i], fr);
             _userFlows[sender].push(ReceiverData(receivers[i], proportions[i]));
         }
         //_appFlows[address(this)][sender] = totalOutFlowRate;
         //require(totalOutFlowRate <= receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
-    }
-
-    function _call(ISuperToken superToken, bytes calldata ctx, bytes4 selector, address to, int256 flowRate) internal {
-        _host.callAgreement(ctx, address(_constantFlow), selector, abi.encode(superToken, address(this), to, flowRate));
     }
 
     function beforeAgreementUpdated(
@@ -107,28 +101,51 @@ contract MultiFlowsApp is ISuperAppBase {
             address(this)
         );
         uint256 sum = _sumProportions(_userFlows[sender]);
+        newCtx = ctx;
 
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-            int256 fr = int256((_userFlows[sender][i].proportion / sum)) * receivingFlowRate;
-            _call(superToken, ctx, _constantFlow.createFlow.selector, _userFlows[sender][i].to, fr);
+            (newCtx, ) = _host.callAgreementWithContext(
+                address(_constantFlow),
+                abi.encodeWithSelector(
+                    _constantFlow.createFlow.selector,
+                    superToken,
+                    _userFlows[sender][i].to,
+                    (int256(_userFlows[sender][i].proportion) * receivingFlowRate) / int256(sum),
+                    new bytes(0)
+                ),
+                newCtx
+            );
         }
-
-        return ctx;
     }
 
     function afterAgreementTerminated(
         ISuperToken superToken,
         bytes calldata ctx,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes memory /*cbdata*/
     )
+
         external
         override
         returns (bytes memory newCtx)
     {
-        (address sender, ) = _unpackData(ctx);
+        (, address sender, ) = ContextLibrary.decodeContext(ctx);
+        newCtx = ctx;
+        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+            (newCtx, ) = _host.callAgreementWithContext(
+                address(_constantFlow),
+                abi.encodeWithSelector(
+                    _constantFlow.deleteFlow.selector,
+                    superToken,
+                    address(this),
+                    _userFlows[sender][i].to,
+                    new bytes(0)
+                ),
+                newCtx
+            );
+        }
         delete _userFlows[sender];
-        _constantFlow.deleteFlow(ctx, superToken, sender);
     }
 
     function _packData(address account, int256 flowRate) internal pure returns(bytes memory) {

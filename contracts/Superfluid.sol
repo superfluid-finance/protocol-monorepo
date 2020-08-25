@@ -2,12 +2,12 @@
 pragma solidity >=0.7.0;
 pragma experimental ABIEncoderV2;
 
-import { Ownable } from "../interface/Ownable.sol";
-import { ISuperfluid } from "../interface/ISuperfluid.sol";
-import { ISuperfluidGovernance } from "../interface/ISuperfluidGovernance.sol";
-import { ISuperApp } from "../interface/ISuperApp.sol";
-import { AppHelper } from "../interface/AppHelper.sol";
-import { ContextLibrary } from "../interface/ContextLibrary.sol";
+import { Ownable } from "./interface/Ownable.sol";
+import { ISuperfluid } from "./interface/ISuperfluid.sol";
+import { ISuperfluidGovernance } from "./interface/ISuperfluidGovernance.sol";
+import { ISuperApp } from "./interface/ISuperApp.sol";
+import { AppHelper } from "./interface/AppHelper.sol";
+import { ContextLibrary } from "./interface/ContextLibrary.sol";
 
 contract Superfluid is Ownable, ISuperfluid {
     event Jail(address app);
@@ -85,155 +85,162 @@ contract Superfluid is Ownable, ISuperfluid {
     }
 
     //Split the callback in the two functions so they can have different rules and returns data formats
+    //TODO : msg.sender should be only SuperAgreement
     function callAppBefore(
-        bytes calldata ctx,
         address app,
-        bytes4 selector,
-        bytes calldata data
+        bytes calldata data,
+        bytes calldata ctx
     )
         external
         override
-        returns(bytes memory newCtx, bytes memory cbdata)
+        returns(bytes memory cbdata, bytes memory newCtx)
     {
-        require(!_isSuperApp(app), "SF: target is not superApp");
-        bytes32 stamp = ContextLibrary.createStamp(ctx);
-        if(!ContextLibrary.validateContext(ctx, stamp)) {
-            //JAIL
-            emit Jail(app);
-        }
-        _ctxStamp = stamp;
+        require(_isSuperApp(app), "SF: target is not superApp");
 
         //TODO: _callCallback
-        (bool success, bytes memory returnedData) = _callCallback(ctx, app, selector, data);
-        _ctxStamp = 0;
+        (bool success, bytes memory returnedData) = _callCallback(app, data);
+        cbdata = abi.decode(returnedData, (bytes));
         if(success) {
-            (newCtx, cbdata) = ContextLibrary.splitReturnedData(returnedData);
+            //(newCtx, cbdata) = ContextLibrary.splitReturnedData(returnedData);
+            //TODO Change counter gas measurement
+            newCtx = ctx;
+            /*
             if(!ContextLibrary.validateContext(newCtx, _ctxStamp)) {
                 //JAIL
                 //Change return context
                 emit Jail(app);
             }
+            */
         }
-
-        return ("", returnedData);
     }
 
     function callAppAfter(
-        bytes calldata ctx,
         address app,
-        bytes4 selector,
-        bytes calldata data
+        bytes calldata data,
+        bytes calldata /*ctx*/
     )
         external
         override
         returns(bytes memory newCtx)
     {
-        require(!_isSuperApp(app), "SF: target is not superApp");
+        require(_isSuperApp(app), "SF: target is not superApp");
         if(isAppJailed(app) || !_uniqueContext()) {
             _appConfigs[msg.sender].configWord |= AppHelper.JAIL;
         }
 
-        _ctxStamp = ContextLibrary.createStamp(ctx);
-        (bool success, bytes memory returnedData) = _callCallback(ctx, app, selector, data);
-        _ctxStamp = 0;
+        (bool success, bytes memory returnedData) = _callCallback(app, data);
+        newCtx = abi.decode(returnedData, (bytes));
         if(success) {
-            (newCtx, ) = ContextLibrary.splitReturnedData(returnedData);
-            if(!ContextLibrary.validateContext(newCtx, _ctxStamp)) {
-                //JAIL
+            if(!ContextLibrary.validateContext(newCtx, _ctxStamp)) { //JAIL
                 //Change return context
                 emit Jail(app);
             }
+        } else {
+            revert("SF: Insuccessful external call");
         }
-        return returnedData;
+       return "";
+        //return returnedData;
     }
 
     function callAppAction(
         address app,
-        bytes4 selector,
         bytes calldata data
     )
         external
         override
         returns(bytes memory returnedData)
     {
-        require(!_isSuperApp(app), "SF: target is not superApp");
+        require(_isSuperApp(app), "SF: target is not superApp");
         if(isAppJailed(app) || !_uniqueContext()) {
             _appConfigs[msg.sender].configWord |= AppHelper.JAIL;
         }
 
         //Build context data
         //TODO: Where we get the gas reservation?
+        bool success;
 
-        (bytes memory ctx, bytes32 stamp) = ContextLibrary.encodeContext(0, msg.sender, _GAS_RESERVATION);
-        _ctxStamp = stamp;
-        (, returnedData) = _callCallback(ctx, app, selector, data);
+        bytes memory ctx;
+        (ctx, _ctxStamp) = ContextLibrary.encodeContext(0, msg.sender, _GAS_RESERVATION);
+        (success, returnedData) = _callExternal(app, data, ctx);
+        if(!success) {
+            revert(string(returnedData));
+        }
         _ctxStamp = 0;
     }
 
-    function callAgreement(
-        bytes calldata ctx,
+    function callAgreementWithContext(
         address agreementClass,
-        bytes4 selector,
-        bytes calldata data
-    )
-        external
+        bytes calldata data,
+        bytes calldata ctx
+    ) external
         override
-        returns(bytes memory newCtx, bytes memory cbdata)
+        returns(bytes memory newCtx, bytes memory returnedData)
     {
-        require(_isValidContext(ctx), "SF: Context Invalid");
+        require(_isValidContext(ctx), "SF: Agreement Context Invalid");
+        address oldSender;
+        (newCtx, _ctxStamp, oldSender) = ContextLibrary.replaceMsgSender(ctx, msg.sender);
 
         //Call app
-        (bool sucess, bytes memory returnedData) = _callExternal(ctx, agreementClass, selector, data);
-        if(sucess) {
-            return ContextLibrary.splitReturnedData(returnedData);
+        bool success;
+        (success, returnedData) = _callExternal(agreementClass, data, newCtx);
+        if(success) {
+            // TODO update context
+            (newCtx, _ctxStamp, ) = ContextLibrary.replaceMsgSender(newCtx, oldSender);
+            //newCtx = ctx;
+        } else {
+            revert("SF: call agreement failed");
         }
-        revert("Returned data not encoded correctly");
     }
 
     function callAgreement(
         address agreementClass,
-        bytes4 selector,
         bytes calldata data
     )
         external
         override
-        returns(bytes memory newCtx)
+        returns(bytes memory newCtx, bytes memory returnedData)
     {
         //TODO: sender has to be App? If not we can jail it
+        /*
         if(!_uniqueContext()) {
             _appConfigs[msg.sender].configWord |= AppHelper.JAIL;
         }
+        */
         //Build context data
-        (bytes memory ctx, bytes32 stamp) = ContextLibrary.encodeContext(0, msg.sender, _GAS_RESERVATION);
-        _ctxStamp = stamp;
-        _callExternal(ctx, agreementClass, selector, data);
-        return ctx;
+        require(_ctxStamp == 0, "Stamp is not clean");
+        bytes memory ctx;
+        (ctx, _ctxStamp) = ContextLibrary.encodeContext(0, msg.sender, _GAS_RESERVATION);
+        bool success;
+        (success, returnedData) = _callExternal(agreementClass, data, ctx);
+        if (success) {
+            _ctxStamp = 0;
+        } else {
+            revert("SF: call agreement failed");
+        }
     }
 
-    function callAppAction(
-        bytes calldata ctx,
+    function callAppActionWithContext(
         address app,
-        bytes4 selector,
-        bytes calldata data
+        bytes calldata data,
+        bytes calldata ctx
     )
         external
         override
         returns(bytes memory newCtx)
     {
-        require(_isValidContext(ctx), "SF: Context Invalid");
+        require(_isValidContext(ctx), "SF: Action Context Invalid");
         (
             uint8 level,
-            address appAddr,
+            ,
             uint64 gasReservation
         ) = ContextLibrary.decodeContext(ctx);
 
         level++;
         require(_checkAppCallStact(msg.sender, level), "SF: App Call Stack too deep");
-        (newCtx, _ctxStamp) = ContextLibrary.encodeContext(level, appAddr, gasReservation);
-        //_ctxStamp = stamp;
-        _callCallback(newCtx, app, selector, data);
+        (newCtx, _ctxStamp) = ContextLibrary.encodeContext(level, msg.sender, gasReservation);
+        _callExternal(app, data, newCtx);
         level--;
-        (newCtx, ) = ContextLibrary.encodeContext(level, appAddr, _GAS_RESERVATION);
+        (newCtx, _ctxStamp) = ContextLibrary.encodeContext(level, msg.sender, _GAS_RESERVATION);
     }
 
 
@@ -279,40 +286,43 @@ contract Superfluid is Ownable, ISuperfluid {
     }
 
     function _callExternal(
-        bytes memory ctx,
         address app,
-        bytes4 selector,
-        bytes memory data
+        bytes memory data,
+        bytes memory ctx
     )
         private
         returns(bool success, bytes memory returnedData)
     {
-        /* solhint-disable-next-line avoid-low-level-calls*/
-        return app.call(abi.encodeWithSelector(selector, ctx, data));
+        /* solhint-disable-next-line avoid-low-level-calls */
+        (success, returnedData) = app.call(
+            ContextLibrary.replaceContext(data, ctx)
+        );
+
+        if(!success) {
+            revert(string(returnedData));
+        }
     }
 
     function _callCallback(
-        bytes memory ctx,
         address app,
-        bytes4 selector,
         bytes memory data
     )
         private
         returns(bool success, bytes memory returnedData)
     {
-        uint256 gasBudget = gasleft() - _GAS_RESERVATION;
-        (success, returnedData) =
+        //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
         /* solhint-disable-next-line avoid-low-level-calls*/
-            app.call{gas: gasBudget}(abi.encodeWithSelector(selector, ctx, data));
-             if (!success) {
-                 if (gasleft() < _GAS_RESERVATION) {
-                     // this is out of gas, but the call may still fail if more gas is provied
-                     // and this is okay, because there can be incentive to jail the app by providing
-                     // more gas
-                     revert("SF: Send more gas");
-                 } else {
-                     _appConfigs[app].configWord |= AppHelper.JAIL;
-                 }
+        (success, returnedData) = app.call(data);
+         if (!success) {
+             if (gasleft() < _GAS_RESERVATION) {
+                 // this is out of gas, but the call may still fail if more gas is provied
+                 // and this is okay, because there can be incentive to jail the app by providing
+                 // more gas
+                 revert("SF: Send more gas");
+             } else {
+                revert(string(returnedData));
+                 //_appConfigs[app].configWord |= AppHelper.JAIL;
              }
+         }
     }
 }

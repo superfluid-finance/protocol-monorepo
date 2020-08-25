@@ -52,33 +52,44 @@ contract FlowAgreement is IFlowAgreement {
         return _encodeFlow(timestamp, cRate);
     }
 
+    function test() external override returns(bool) {
+        return true;
+    }
+
     /// @dev IFlowAgreement.createFlow implementation
     function createFlow(
-        bytes calldata ctx,
         ISuperToken token,
         address receiver,
-        int256 flowRate
+        int256 flowRate,
+        bytes calldata ctx
     )
         external
         override
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
+        //address sender = ISuperfluid(msg.sender).getSender();
         address sender = ContextLibrary.getCaller(ctx);
+
+
         bytes32 flowId = _generateId(sender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
-        bytes memory data = abi.encode(address(this), flowId, flowRate);
-        (, bytes memory newCtx) =
-            AgreementLibrary.beforeAgreementCreated(ISuperfluid(host), ctx, receiver, data);
+
+        (bytes memory cbdata, bytes memory newCtx) =
+            AgreementLibrary.beforeAgreementCreated(
+                ISuperfluid(host), token, ctx, address(this), receiver, flowId
+        );
         _updateFlow(token, sender, receiver, flowRate);
-        AgreementLibrary.afterAgreementCreated(ISuperfluid(host), newCtx, receiver, data);
+        AgreementLibrary.afterAgreementCreated(
+            ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
+        );
     }
 
     function updateFlow(
-        bytes calldata ctx,
         ISuperToken token,
         address receiver,
-        int256 flowRate
+        int256 flowRate,
+        bytes calldata ctx
     )
         external
         override
@@ -90,37 +101,47 @@ contract FlowAgreement is IFlowAgreement {
         bytes32 flowId = _generateId(sender, receiver);
         require(!_isNewFlow(token, flowId), "Flow doesn't exist");
         require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
-        bytes memory data =
-            abi.encode(address(this), flowId, flowRate);
-        (, bytes memory newCtx) =
-            AgreementLibrary.beforeAgreementUpdated(ISuperfluid(host), ctx, receiver, data);
+        (bytes memory cbdata, bytes memory newCtx) =
+            AgreementLibrary.beforeAgreementUpdated(
+            ISuperfluid(host), token, ctx, address(this), receiver, flowId
+        );
+
         _updateFlow(token, sender, receiver, flowRate);
-        AgreementLibrary.afterAgreementUpdated(ISuperfluid(host), newCtx, receiver, data);
+
+        AgreementLibrary.afterAgreementUpdated(
+            ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
+        );
     }
 
     /// @dev IFlowAgreement.deleteFlow implementation
     function deleteFlow(
-        bytes calldata ctx,
         ISuperToken token,
-        address receiver
+        address sender,
+        address receiver,
+        bytes calldata ctx
     )
         external
         override
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
-        address sender = ContextLibrary.getCaller(ctx);
+        address msgSender = ContextLibrary.getCaller(ctx);
         bytes32 flowId = _generateId(sender, receiver);
-        bytes memory data = abi.encode(address(this), flowId);
-        bool isLiquidator = (msg.sender != sender && msg.sender != receiver);
+
+        bool isLiquidator = (msgSender != sender && msgSender != receiver);
+
         if (isLiquidator) {
             require(token.isAccountInsolvent(sender),
                     "FlowAgreement: account is solvent");
         }
-        (, bytes memory newCtx) =
-            AgreementLibrary.beforeAgreementTerminated(ISuperfluid(host), ctx, receiver, data);
+        (bytes memory cbdata, bytes memory newCtx) =
+            AgreementLibrary.beforeAgreementTerminated(
+                ISuperfluid(host), token, ctx, address(this), receiver, flowId
+        );
         _terminateAgreementData(token, sender, receiver, isLiquidator);
-        AgreementLibrary.afterAgreementTerminated(ISuperfluid(host), newCtx, receiver, data);
+        AgreementLibrary.afterAgreementTerminated(
+                ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
+        );
     }
 
     /// @dev IFlowAgreement.getFlow implementation
@@ -155,6 +176,7 @@ contract FlowAgreement is IFlowAgreement {
         bytes memory data = token.getAgreementData(address(this), flowId);
         return _decodeData(data);
     }
+
     function getNetFlow(
         ISuperToken token,
         address account

@@ -7,116 +7,214 @@ import "./AppHelper.sol";
 
 library AgreementLibrary {
 
+    function _beforeAgreement(
+        bytes4 selector,
+        uint256 noopBit,
+        ISuperfluid host,
+        ISuperToken token,
+        bytes memory ctx,
+        address agreementClass,
+        address account,
+        bytes32 agreementId
+    )
+        private
+        returns(bytes memory cbdata, bytes memory newCtx)
+    {
+        (bool isSuperApp, uint256 configWord) =
+            host.getAppManifest(account);
+
+        bytes memory data = abi.encodeWithSelector(
+            selector,
+            token,
+            ctx,
+            agreementClass,
+            agreementId
+        );
+
+        if (isSuperApp &&
+            ((configWord & noopBit) == 0)) {
+            return host.callAppBefore(account, data, ctx);
+        }
+
+        return ("", ctx);
+    }
+
+    function _afterAgreement(
+        bytes4 selector,
+        uint256 noopBit,
+        ISuperfluid host,
+        ISuperToken token,
+        bytes memory ctx,
+        address agreementClass,
+        address account,
+        bytes32 agreementId,
+        bytes memory cbdata
+    )
+        private
+        returns(bytes memory newCtx)
+    {
+        (bool isSuperApp, uint256 configWord) =
+            host.getAppManifest(account);
+
+        bytes memory data = abi.encodeWithSelector(
+            selector,
+            token,
+            ctx,
+            agreementClass,
+            agreementId,
+            cbdata
+        );
+
+        if (isSuperApp &&
+            ((configWord & noopBit) == 0)) {
+            return host.callAppAfter(account, data, ctx);
+        }
+
+        return ctx;
+    }
+
     function beforeAgreementCreated(
         ISuperfluid host,
+        ISuperToken token,
         bytes memory ctx,
-        address receiver,
-        bytes memory data
+        address agreementClass,
+        address account,
+        bytes32 agreementId
     )
         internal
         returns(bytes memory cbdata, bytes memory newCtx)
     {
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(receiver);
-        if (isSuperApp &&
-            (configWord & AppHelper.BEFORE_AGREEMENT_CREATED_NOOP) != 0) {
-            return host.callAppBefore(ctx, receiver, ISuperApp(receiver).beforeAgreementUpdated.selector, data);
-        }
-
-        return ("", "");
+        return _beforeAgreement(
+            ISuperApp.beforeAgreementCreated.selector,
+            AppHelper.BEFORE_AGREEMENT_CREATED_NOOP,
+            host,
+            token,
+            ctx,
+            agreementClass,
+            account,
+            agreementId
+        );
     }
 
     function afterAgreementCreated(
         ISuperfluid host,
+        ISuperToken token,
         bytes memory ctx,
-        address receiver,
-        bytes memory data
+        address agreementClass,
+        address account,
+        bytes32 agreementId,
+        bytes memory cbdata
     )
         internal
         returns(bytes memory newCtx)
     {
 
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(receiver);
-        if (isSuperApp &&
-            (configWord & AppHelper.AFTER_AGREEMENT_CREATED_NOOP) != 0) {
-            return host.callAppAfter(ctx, receiver, ISuperApp(receiver).afterAgreementUpdated.selector, data);
-        }
-
-        return ctx;
+        return _afterAgreement(
+            ISuperApp.afterAgreementCreated.selector,
+            AppHelper.AFTER_AGREEMENT_UPDATED_NOOP,
+            host,
+            token,
+            ctx,
+            agreementClass,
+            account,
+            agreementId,
+            cbdata
+        );
     }
 
     function beforeAgreementUpdated(
         ISuperfluid host,
+        ISuperToken token,
         bytes memory ctx,
-        address receiver,
-        bytes memory data
+        address agreementClass,
+        address account,
+        bytes32 agreementId
     )
         internal
         returns(bytes memory cbdata, bytes memory newCtx)
     {
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(receiver);
-        if (isSuperApp &&
-            (configWord & AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP) != 0) {
-            return host.callAppBefore(ctx, receiver, ISuperApp(receiver).beforeAgreementUpdated.selector, data);
-        }
-
-        return ("", "");
+        return _beforeAgreement(
+            ISuperApp.beforeAgreementUpdated.selector,
+            AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP,
+            host,
+            token,
+            ctx,
+            agreementClass,
+            account,
+            agreementId
+        );
     }
 
     function afterAgreementUpdated(
         ISuperfluid host,
+        ISuperToken token,
         bytes memory ctx,
-        address receiver,
-        bytes memory data
+        address agreementClass,
+        address account,
+        bytes32 agreementId,
+        bytes memory cbdata
     )
         internal
         returns(bytes memory newCtx)
     {
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(receiver);
-        if (isSuperApp &&
-            (configWord & AppHelper.AFTER_AGREEMENT_UPDATED_NOOP) != 0) {
-            return host.callAppAfter(ctx, receiver, ISuperApp(receiver).afterAgreementUpdated.selector, data);
-        }
-
-        return ctx;
+        return _afterAgreement(
+            ISuperApp.afterAgreementUpdated.selector,
+            AppHelper.AFTER_AGREEMENT_UPDATED_NOOP,
+            host,
+            token,
+            ctx,
+            agreementClass,
+            account,
+            agreementId,
+            cbdata
+        );
     }
 
     function beforeAgreementTerminated(
         ISuperfluid host,
+        ISuperToken token,
         bytes memory ctx,
-        address receiver,
-        bytes memory data
+        address agreementClass,
+        address account,
+        bytes32 agreementId
     )
         internal
         returns(bytes memory cbdata, bytes memory newCtx)
     {
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(receiver);
-        if (isSuperApp &&
-            (configWord & AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP != 0)) {
-            return host.callAppBefore(ctx, receiver, ISuperApp(receiver).beforeAgreementTerminated.selector, data);
-        }
-
-        return ("", "");
+        return _beforeAgreement(
+            ISuperApp.beforeAgreementTerminated.selector,
+            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP,
+            host,
+            token,
+            ctx,
+            agreementClass,
+            account,
+            agreementId
+        );
     }
 
     function afterAgreementTerminated(
         ISuperfluid host,
+        ISuperToken token,
         bytes memory ctx,
-        address receiver,
-        bytes memory data
+        address agreementClass,
+        address account,
+        bytes32 agreementId,
+        bytes memory cbdata
     )
         internal
         returns(bytes memory newCtx)
     {
-        (bool isSuperApp, ) = host.getAppManifest(receiver);
-        if (isSuperApp) {
-            return host.callAppAfter(ctx, receiver, ISuperApp(receiver).afterAgreementTerminated.selector, data);
-        }
-
-        return ctx;
+        return _afterAgreement(
+            ISuperApp.afterAgreementTerminated.selector,
+            AppHelper.AFTER_AGREEMENT_TERMINATED_NOOP,
+            host,
+            token,
+            ctx,
+            agreementClass,
+            account,
+            agreementId,
+            cbdata
+        );
     }
 }

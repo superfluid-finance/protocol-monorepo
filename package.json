@@ -11,7 +11,7 @@
     "index.js"
   ],
   "dependencies": {
-    "@openzeppelin/contracts": "3.1.0"
+    "@openzeppelin/contracts": "3.1.0-solc-0.7"
   },
   "peerDependencies": {
     "@truffle/contract": "^4.2.19"

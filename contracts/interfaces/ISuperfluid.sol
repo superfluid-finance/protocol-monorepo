@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity >= 0.5.0;
 
 interface ISuperfluid {
-
-    struct AppManifest {
-        uint256 configWord;
-    }
 
     /**
      * @notice Message sender declares it as a super app.

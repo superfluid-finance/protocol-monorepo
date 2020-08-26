@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -43,6 +43,7 @@ contract SuperfluidRegistry is
         IERC20 token
     )
     external
+    view
     override
     returns (address wrapperAddress, bool created) {
         bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
@@ -78,9 +79,9 @@ contract SuperfluidRegistry is
         );
     }
 
-    function getGovernance() external override returns (ISuperfluidGovernance) { return _gov; }
+    function getGovernance() external view override returns (ISuperfluidGovernance) { return _gov; }
     function setGovernance(ISuperfluidGovernance gov) external onlyOwner { _gov = gov; }
-    function getSuperTokenLogic() external override returns (ISuperToken) { return _superTokenLogic; }
+    function getSuperTokenLogic() external view override returns (ISuperToken) { return _superTokenLogic; }
     function setSuperTokenLogic(ISuperToken logic) external onlyOwner { _superTokenLogic = logic; }
 
     function proxiableUUID() public pure override returns (bytes32) {

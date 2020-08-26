@@ -10,6 +10,7 @@
         "modifier-name-mixedcase": "error",
         "private-vars-leading-underscore": ["error", { "strict": true }],
         "reason-string": ["error", { "maxLength": 64 } ],
-        "compiler-version": ["error", ">=0.5.0"]
+        "compiler-version": ["error", ">=0.5.0"],
+        "func-visibility" : ["error", { "ignoreConstructors": true }]
     }
 }

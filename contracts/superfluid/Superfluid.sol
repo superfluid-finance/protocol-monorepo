@@ -1,15 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.7.0;
 
 import { Ownable } from "../interfaces/Ownable.sol";
 import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
 import { ISuperApp } from "../interfaces/ISuperApp.sol";
-import { AppHelper } from "../apps/AppHelper.sol";
+
+import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
 import { ContextLibrary } from "./ContextLibrary.sol";
 
+
 contract Superfluid is Ownable, ISuperfluid {
+
+    struct AppManifest {
+        uint256 configWord;
+    }
+
     event Jail(address app);
 
     mapping(address => address) private _composedApp;
@@ -55,7 +61,7 @@ contract Superfluid is Ownable, ISuperfluid {
         override
         returns(bool)
     {
-        return (_appConfigs[app].configWord & AppHelper.JAIL) != AppHelper.JAIL;
+        return (_appConfigs[app].configWord & SuperAppDefinitions.JAIL) != SuperAppDefinitions.JAIL;
     }
 
     /**
@@ -125,7 +131,7 @@ contract Superfluid is Ownable, ISuperfluid {
     {
         require(_isSuperApp(app), "SF: target is not superApp");
         if(isAppJailed(app) || !_uniqueContext()) {
-            _appConfigs[msg.sender].configWord |= AppHelper.JAIL;
+            _appConfigs[msg.sender].configWord |= SuperAppDefinitions.JAIL;
         }
 
         (bool success, bytes memory returnedData) = _callCallback(app, data);
@@ -152,7 +158,7 @@ contract Superfluid is Ownable, ISuperfluid {
     {
         require(_isSuperApp(app), "SF: target is not superApp");
         if(isAppJailed(app) || !_uniqueContext()) {
-            _appConfigs[msg.sender].configWord |= AppHelper.JAIL;
+            _appConfigs[msg.sender].configWord |= SuperAppDefinitions.JAIL;
         }
 
         //Build context data
@@ -205,7 +211,7 @@ contract Superfluid is Ownable, ISuperfluid {
         //TODO: sender has to be App? If not we can jail it
         /*
         if(!_uniqueContext()) {
-            _appConfigs[msg.sender].configWord |= AppHelper.JAIL;
+            _appConfigs[msg.sender].configWord |= SuperAppDefinitions.JAIL;
         }
         */
         //Build context data
@@ -234,7 +240,7 @@ contract Superfluid is Ownable, ISuperfluid {
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
 
         stcCtx.level++;
-        require(_checkAppCallStact(msg.sender, stcCtx.level), "SF: App Call Stack too deep");
+        require(_checkAppCallDepth(msg.sender, stcCtx.level), "SF: App Call Stack too deep");
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
         _callExternal(app, data, newCtx);
         stcCtx.level--;
@@ -267,7 +273,7 @@ contract Superfluid is Ownable, ISuperfluid {
         return _appConfigs[app].configWord > 0;
     }
 
-    function _checkAppCallStact(address appAddr, uint8 currentAppLevel) internal returns(bool) {
+    function _checkAppCallDepth(address appAddr, uint8 currentAppLevel) internal view returns(bool) {
         uint8 appLevel = _getAppLevel(appAddr);
         if(appLevel == 1 && currentAppLevel > 1) {
             return false;
@@ -278,8 +284,8 @@ contract Superfluid is Ownable, ISuperfluid {
         return true;
     }
 
-    function _getAppLevel(address appAddr) internal returns(uint8) {
-        if(_appConfigs[appAddr].configWord | AppHelper.TYPE_APP_FINAL == AppHelper.TYPE_APP_FINAL) {
+    function _getAppLevel(address appAddr) internal view returns(uint8) {
+        if(_appConfigs[appAddr].configWord | SuperAppDefinitions.TYPE_APP_FINAL == SuperAppDefinitions.TYPE_APP_FINAL) {
             return 1;
         }
         return 2;
@@ -321,7 +327,7 @@ contract Superfluid is Ownable, ISuperfluid {
                  revert("SF: Send more gas");
              } else {
                 revert(string(returnedData));
-                 //_appConfigs[app].configWord |= AppHelper.JAIL;
+                 //_appConfigs[app].configWord |= SuperAppDefinitions.JAIL;
              }
          }
     }

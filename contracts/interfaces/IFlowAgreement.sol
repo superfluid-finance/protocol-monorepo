@@ -1,4 +1,5 @@
-pragma solidity >=0.7.0;
+// SPDX-License-Identifier: MIT
+pragma solidity >= 0.5.0;
 
 import "./ISuperToken.sol";
 import "./ISuperAgreement.sol";
@@ -109,5 +110,4 @@ abstract contract IFlowAgreement is ISuperAgreement {
         external
         virtual;
 
-    function test() external virtual returns(bool);
 }

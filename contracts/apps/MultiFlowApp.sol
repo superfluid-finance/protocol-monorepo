@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 
 import "../interfaces/IFlowAgreement.sol";
 import "../interfaces/ISuperfluid.sol";
 import "./SuperAppBase.sol";
-import "./AppHelper.sol";
+import { SuperAppDefinitions } from "../superfluid/SuperAppDefinitions.sol";
 import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 // FIXME Create and use a SuperAppBase abstract contract,
@@ -22,16 +22,16 @@ contract MultiFlowsApp is SuperAppBase {
     //Sender => To / Proportion
     mapping(address => ReceiverData[]) internal _userFlows;
 
-    constructor(IFlowAgreement constantFlow, ISuperfluid superfluid) public {
+    constructor(IFlowAgreement constantFlow, ISuperfluid superfluid) {
         require(address(constantFlow) != address(0), "SA: can't set zero address as constant Flow");
         require(address(superfluid) != address(0), "SA: can't set zero address as Superfluid");
         _constantFlow = constantFlow;
         _host = superfluid;
 
         uint256 configWord =
-            AppHelper.TYPE_APP_FINAL |
-            AppHelper.BEFORE_AGREEMENT_CREATED_NOOP |
-            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP;
+            SuperAppDefinitions.TYPE_APP_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerApp(configWord);
     }
@@ -156,7 +156,7 @@ contract MultiFlowsApp is SuperAppBase {
         return abi.decode(data, (address, int256));
     }
 
-    function _sumProportions(ReceiverData[] memory receivers) internal returns(uint256) {
+    function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256) {
         uint256 sum;
         for(uint256 i = 0; i < receivers.length; i++) {
             sum += receivers[i].proportion;

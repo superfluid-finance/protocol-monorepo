@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 
 import "../interfaces/ISuperfluid.sol";
 import "../interfaces/ISuperApp.sol";
-import "../apps/AppHelper.sol";
+import "../superfluid/SuperAppDefinitions.sol";
 
 library AgreementLibrary {
 
@@ -86,7 +86,7 @@ library AgreementLibrary {
     {
         return _beforeAgreement(
             ISuperApp.beforeAgreementCreated.selector,
-            AppHelper.BEFORE_AGREEMENT_CREATED_NOOP,
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP,
             host,
             token,
             ctx,
@@ -111,7 +111,7 @@ library AgreementLibrary {
 
         return _afterAgreement(
             ISuperApp.afterAgreementCreated.selector,
-            AppHelper.AFTER_AGREEMENT_UPDATED_NOOP,
+            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP,
             host,
             token,
             ctx,
@@ -135,7 +135,7 @@ library AgreementLibrary {
     {
         return _beforeAgreement(
             ISuperApp.beforeAgreementUpdated.selector,
-            AppHelper.BEFORE_AGREEMENT_UPDATED_NOOP,
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP,
             host,
             token,
             ctx,
@@ -159,7 +159,7 @@ library AgreementLibrary {
     {
         return _afterAgreement(
             ISuperApp.afterAgreementUpdated.selector,
-            AppHelper.AFTER_AGREEMENT_UPDATED_NOOP,
+            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP,
             host,
             token,
             ctx,
@@ -183,7 +183,7 @@ library AgreementLibrary {
     {
         return _beforeAgreement(
             ISuperApp.beforeAgreementTerminated.selector,
-            AppHelper.BEFORE_AGREEMENT_TERMINATED_NOOP,
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
             host,
             token,
             ctx,
@@ -207,7 +207,7 @@ library AgreementLibrary {
     {
         return _afterAgreement(
             ISuperApp.afterAgreementTerminated.selector,
-            AppHelper.AFTER_AGREEMENT_TERMINATED_NOOP,
+            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
             host,
             token,
             ctx,

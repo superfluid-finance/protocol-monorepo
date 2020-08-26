@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable */
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 pragma experimental ABIEncoderV2;
 
 import {SuperToken} from "../superfluid/SuperToken.sol";

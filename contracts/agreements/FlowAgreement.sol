@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 
 import { ISuperToken, IFlowAgreement } from "../interfaces/IFlowAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
@@ -51,10 +51,6 @@ contract FlowAgreement is IFlowAgreement {
     {
         (, int256 cRate) = _decodeFlow(currentData);
         return _encodeFlow(timestamp, cRate);
-    }
-
-    function test() external override returns(bool) {
-        return true;
     }
 
     /// @dev IFlowAgreement.createFlow implementation

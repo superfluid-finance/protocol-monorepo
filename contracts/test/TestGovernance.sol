@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
 
@@ -26,7 +26,6 @@ contract TestGovernance is ISuperfluidGovernance {
         uint64 maxGasApp,
         address superfluid
     )
-    public
     {
         governor = msg.sender;
         _defaultConfig = GovernanceConfig(

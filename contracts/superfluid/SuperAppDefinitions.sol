@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable private-vars-leading-underscore*/
-pragma solidity >=0.7.0;
+pragma solidity 0.7.0;
 
-library AppHelper {
+library SuperAppDefinitions {
 
+    //
+    // App manifest config word
+    //
     uint constant public TYPE_APP_FINAL = 1 << 0;
     uint constant public TYPE_APP_SECOND = 1 << 1;
     uint constant public JAIL = 1 << 15;
+
+    //
+    // Callback implementation bit masks
+    //
     uint constant public BEFORE_AGREEMENT_CREATED_NOOP = 1 << (32 + 0);
     uint constant public AFTER_AGREEMENT_CREATED_NOOP = 1 << (32 + 1);
     uint constant public BEFORE_AGREEMENT_UPDATED_NOOP = 1 << (32 + 2);

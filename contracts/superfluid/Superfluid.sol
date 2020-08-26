@@ -133,7 +133,7 @@ contract Superfluid is Ownable, ISuperfluid {
         returns(bytes memory newCtx)
     {
         // TODO jail rule cleanup
-        if(isAppJailed(app) || !_uniqueContext()) {
+        if(isAppJailed(app)) {
             _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
         }
 
@@ -160,12 +160,6 @@ contract Superfluid is Ownable, ISuperfluid {
         cleanCtx
         returns(bytes memory newCtx, bytes memory returnedData)
     {
-        //TODO: sender has to be App? If not we can jail it
-        /*
-        if(!_uniqueContext()) {
-            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
-        }
-        */
         //Build context data
         bytes memory ctx;
         (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
@@ -215,7 +209,7 @@ contract Superfluid is Ownable, ISuperfluid {
         onlyApp(app)
         returns(bytes memory returnedData)
     {
-        if(isAppJailed(app) || !_uniqueContext()) {
+        if(isAppJailed(app)) {
             _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
         }
 
@@ -262,10 +256,6 @@ contract Superfluid is Ownable, ISuperfluid {
 
     function _isAgreement(address) internal view returns(bool) {
         return true;
-    }
-
-    function _uniqueContext() internal view returns(bool) {
-        return _ctxStamp.length == 0;
     }
 
     function _isApp(address app) internal view returns(bool) {

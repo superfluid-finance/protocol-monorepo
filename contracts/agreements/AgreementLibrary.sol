@@ -33,7 +33,7 @@ library AgreementLibrary {
 
         if (isSuperApp &&
             ((configWord & noopBit) == 0)) {
-            return host.callAppBefore(account, data, ctx);
+            return host.callAppBeforeCallback(account, data, ctx);
         }
 
         return ("", ctx);
@@ -67,7 +67,7 @@ library AgreementLibrary {
 
         if (isSuperApp &&
             ((configWord & noopBit) == 0)) {
-            return host.callAppAfter(account, data, ctx);
+            return host.callAppAfterCallback(account, data, ctx);
         }
 
         return ctx;

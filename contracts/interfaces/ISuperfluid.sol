@@ -32,7 +32,7 @@ interface ISuperfluid {
 
     function isCompositeAppAllowed(address app, address targetApp) external view returns (bool);
 
-    function callAppBefore(
+    function callAppBeforeCallback(
         address app,
         bytes calldata data,
         bytes calldata ctx
@@ -40,20 +40,13 @@ interface ISuperfluid {
         external
         returns(bytes memory newCtx, bytes memory cbdata);
 
-    function callAppAfter(
+    function callAppAfterCallback(
         address app,
         bytes calldata data,
         bytes calldata ctx
     )
         external
         returns(bytes memory newCtx);
-
-    function callAppAction(
-        address app,
-        bytes calldata data
-    )
-        external
-        returns(bytes memory returnedData);
 
     function callAgreementWithContext(
         address agreementClass,
@@ -69,6 +62,13 @@ interface ISuperfluid {
     )
         external
         returns(bytes memory newCtx, bytes memory returnedData);
+
+    function callAppAction(
+        address app,
+        bytes calldata data
+    )
+        external
+        returns(bytes memory returnedData);
 
     function callAppActionWithContext(
         address app,

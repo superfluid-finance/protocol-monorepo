@@ -22,6 +22,7 @@ contract("Flow Agreement", accounts => {
     let token;
     let superToken;
     let flowAgreement;
+    let superfluid;
 
     before(async () => {
         tester.printAliases();
@@ -32,18 +33,58 @@ contract("Flow Agreement", accounts => {
         ({
             token,
             superToken,
-            flowAgreement
+            flowAgreement,
+            superfluid
         } = tester.contracts);
     });
+
+    describe("#1 FlowAgreement.createFlow", () => {
+
+        it("#1.1 should start a new flow", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+            const dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            const aliceNetFlow = await flowAgreement.getNetFlow.call(superToken.address, alice);
+            const bobNetFlow = await flowAgreement.getNetFlow.call(superToken.address, bob);
+
+            assert.equal(aliceNetFlow.toString(), -FLOW_RATE, "Alice NetFlow is wrong");
+            assert.equal(bobNetFlow.toString(), FLOW_RATE, "Bob NetFlow is wrong");
+
+        });
+    });
+
 
     describe("#1 FlowAgreement.updateFlow", () => {
         it("#1.1 should stream in correct flow rate with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
-            const tx = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: alice -> bob"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            const tx = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             // test flow views
             assert.equal((await flowAgreement.getNetFlow.call(
@@ -82,10 +123,20 @@ contract("Flow Agreement", accounts => {
         it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
-            const tx = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: alice -> bob"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            const tx = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             // test flow views
             assert.equal((await flowAgreement.getNetFlow.call(
@@ -103,10 +154,20 @@ contract("Flow Agreement", accounts => {
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            const tx2 = await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: alice -> carol"
-            )(superToken.address, alice, carol, FLOW_RATE, {from: alice});
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                carol,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> carol")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
             // test flow views
@@ -162,20 +223,53 @@ contract("Flow Agreement", accounts => {
         it("#1.3 update with negative flow rate should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
 
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                "-100000000000",
+                "0x"
+            ).encodeABI();
+
             await expectRevert(
-                web3tx(flowAgreement.updateFlow, "creating with negative flow")(
-                    superToken.address, alice, bob, "-10000000000000000000000", {from: alice}
-                ), "FlowAgreement: negative flow rate not allowed");
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: alice,
+                    }
+                ),"FlowAgreement: negative flow rate not allowed" );
         });
 
         it("#1.4 update active flow to negative flow rate should also fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
-
-            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             await traveler.advanceTimeAndBlock(ADV_TIME);
+            dataAgreement = flowAgreement.contract.methods.updateFlow(
+                superToken.address,
+                bob,
+                "-2000000000000000000",
+                "0x"
+            ).encodeABI();
+
             await expectRevert(
-                web3tx(flowAgreement.updateFlow, "creating with negative flow")(
-                    superToken.address, alice, bob, FLOW_RATE.mul(toBN(-1)), {from: alice}
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: alice,
+                    }
                 ), "FlowAgreement: negative flow rate not allowed");
 
             await tester.validateSystem();
@@ -183,25 +277,72 @@ contract("Flow Agreement", accounts => {
 
         it("#1.5 update other's flow should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.updateFlow(
+                superToken.address,
+                bob,
+                "-2000000000000000000",
+                "0x"
+            ).encodeABI();
+
             await traveler.advanceTimeAndBlock(ADV_TIME);
             await expectRevert(
-                web3tx(flowAgreement.updateFlow, "carol creating flow for alice should fail")(
-                    superToken.address, alice, bob, toWad(1), {from: carol}
-                ), "FlowAgreement: only sender can update its own flow");
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob from carol account")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: admin,
+                    }
+                ), "Flow doesn't exist");
 
             await tester.validateSystem();
         });
 
         it("#1.6 update with zero rate should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             await traveler.advanceTimeAndBlock(ADV_TIME);
+            dataAgreement = flowAgreement.contract.methods.updateFlow(
+                superToken.address,
+                bob,
+                "0",
+                "0x"
+            ).encodeABI();
+
             await expectRevert(
-                web3tx(flowAgreement.updateFlow, "creating with negative flow")(
-                    superToken.address, alice, bob, 0, {from: alice}
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob from carol account")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: alice,
+                    }
                 ), "FlowAgreement: use delete flow");
 
             await tester.validateSystem();
@@ -210,31 +351,59 @@ contract("Flow Agreement", accounts => {
         it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            const tx1 = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: alice -> bob"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
             assert.equal((await flowAgreement.getNetFlow.call(
                 superToken.address, alice
             )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
 
-            const tx2 = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: carol -> alice"
-            )(superToken.address, carol, alice, FLOW_RATE, {from: carol});
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                alice,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: carol,
+                }
+            );
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
             assert.equal((await flowAgreement.getNetFlow.call(
                 superToken.address, alice
             )).toString(), "0");
 
-            const tx3 = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: alice -> dan"
-            )(superToken.address, alice, dan, FLOW_RATE, {from: alice});
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                dan,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+            const tx3 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
             assert.equal((await flowAgreement.getNetFlow.call(
@@ -270,21 +439,42 @@ contract("Flow Agreement", accounts => {
 
         it("#1.8 should update flow the second time to new flow rate", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            const tx1 = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: alice -> bob"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
             const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
             assert.equal((await flowAgreement.getNetFlow.call(
                 superToken.address, alice
             )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
 
-            const tx2 = await web3tx(
-                flowAgreement.updateFlow,
-                "updateFlow: alice -> bob new flow rate"
-            )(superToken.address, alice, bob, FLOW_RATE.mul(toBN(2)), {from: alice});
+            dataAgreement = flowAgreement.contract.methods.updateFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.mul(toBN(2)).toString(),
+                "0x"
+            ).encodeABI();
+
+            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
             assert.equal((await flowAgreement.getNetFlow.call(
@@ -312,52 +502,63 @@ contract("Flow Agreement", accounts => {
 
         it("#1.9 create self flow should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                alice,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            await flowAgreement.updateFlow(superToken.address, alice, bob, toWad(1), {from: alice});
-            await traveler.advanceTimeAndBlock(ADV_TIME);
             await expectRevert(
-                web3tx(flowAgreement.updateFlow, "carol creating flow for alice herself should fail")(
-                    superToken.address, alice, alice, toWad(1), {from: alice}
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> alice")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: alice,
+                    }
                 ), "FlowAgreement: self flow not allowed");
 
             await tester.validateSystem();
         });
     });
 
+
     describe("#2 FlowAgreement.updateFlow and downgrade", () => {
         it("#2.1 - should downgrade full balance with single flow running", async() => {
             await web3tx(superToken.upgrade, "upgrade all from alice")(
                 INIT_BALANCE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            const updateFlowTx = await web3tx(flowAgreement.updateFlow, "updateFlow alice to bob")(
-                superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const createFlowTx = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             await traveler.advanceTimeAndBlock(ADV_TIME);
-
             const interimSuperBalanceBob = await superToken.balanceOf.call(bob);
             const bobDowngradeTx = await web3tx(superToken.downgrade, "downgrade all interim balance from bob")(
                 interimSuperBalanceBob, {from: bob});
-
             const tokenBalanceBob = await token.balanceOf.call(bob);
-
             assert.ok(tokenBalanceBob.eq(INIT_BALANCE.add(interimSuperBalanceBob)),
                 "TestToken.balanceOf bob token balance is not correct");
-
             const superTokenBalanceBob1 = await superToken.balanceOf.call(bob);
-
             await traveler.advanceTimeAndBlock(ADV_TIME);
             const endBlock = await web3.eth.getBlock("latest");
-
             const finalSuperBalanceAlice = await superToken.balanceOf.call(alice);
             const finalSuperBalanceBob = await superToken.balanceOf.call(bob);
-
-            const updateFlowTxBlock = await web3.eth.getBlock(updateFlowTx.receipt.blockNumber);
+            const createFlowTxBlock = await web3.eth.getBlock(createFlowTx.receipt.blockNumber);
             const bobDowngradeTxBlock = await web3.eth.getBlock(bobDowngradeTx.receipt.blockNumber);
-            const spanSinceFlowUpdated = endBlock.timestamp - updateFlowTxBlock.timestamp;
+            const spanSinceFlowUpdated = endBlock.timestamp - createFlowTxBlock.timestamp;
             const spanSinceBobDowngraded = toBN(endBlock.timestamp - bobDowngradeTxBlock.timestamp);
-
             const finalSuperBalanceAliceExpected = INIT_BALANCE.sub(toBN(spanSinceFlowUpdated * FLOW_RATE));
             const finalSuperBalanceBobExpected = superTokenBalanceBob1.add(spanSinceBobDowngraded.mul(FLOW_RATE));
-
             assert.equal(
                 finalSuperBalanceAlice.toString(),
                 finalSuperBalanceAliceExpected.toString(),
@@ -373,8 +574,20 @@ contract("Flow Agreement", accounts => {
         it("#2.2 - should downgrade partial amount with single flow running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
 
-            const txFlow12 = await web3tx(flowAgreement.updateFlow, "FlowAgreement.updateFlow alice to bob")(
-                superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            const txFlow12 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -421,18 +634,50 @@ contract("Flow Agreement", accounts => {
             const smallPortion = new toBN(1000);
             const userTokenBalance = await token.balanceOf.call(bob);
 
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
-            )(superToken.address, bob, carol, FLOW_RATE, {from: bob});
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateflow: User 3 -> User 2 Create new Flow"
-            )(superToken.address, carol, bob, FLOW_RATE, {from: carol});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                carol,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: bob,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement carol -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: carol,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -455,18 +700,50 @@ contract("Flow Agreement", accounts => {
             const halfPortion= new toBN(1000000000000000000);
             const userTokenBalance = await token.balanceOf.call(bob);
 
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
-            )(superToken.address, bob, carol, FLOW_RATE, {from: bob});
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateflow: User 3 -> User 2 Create new Flow"
-            )(superToken.address, carol, bob, FLOW_RATE, {from: carol});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                carol,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: bob,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: carol,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -488,18 +765,50 @@ contract("Flow Agreement", accounts => {
 
             const userTokenBalance = await token.balanceOf.call(bob);
 
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
-            )(superToken.address, bob, carol, FLOW_RATE, {from: bob});
-            await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 3 -> User 2 Create new Flow"
-            )(superToken.address, carol, bob, FLOW_RATE, {from: carol});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                carol,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: bob,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement carol -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: carol,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -522,18 +831,37 @@ contract("Flow Agreement", accounts => {
     describe("#3 FlowAgreement.deleteFlow by sender", () => {
         it("#3.1 should stop streaming after deletion with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
 
-            const tx1 = await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 1 -> User 2 Create new Flow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            const tx2 = await web3tx(
-                flowAgreement.deleteFlow,
-                "FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
-            )(superToken.address, alice, bob, {from: alice});
+            dataAgreement = flowAgreement.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
+            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
@@ -556,27 +884,67 @@ contract("Flow Agreement", accounts => {
 
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
-            const txFlow12 = await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 1 -> User 2 Update new Flow"
-            )(superToken.address, alice, bob, (FLOW_RATE * 10).toString(), {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                (FLOW_RATE * 10).toString(),
+                "0x"
+            ).encodeABI();
 
-            const txFlow23 = await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 2 -> User 3 Create new Flow"
-            )(superToken.address, bob, carol, FLOW_RATE, {from: bob});
+            const txFlow12 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
-            const txFlow24 = await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.updateFlow: User 2 -> User 4 Create new Flow"
-            )(superToken.address, bob, dan, FLOW_RATE, {from: bob});
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                carol,
+                (FLOW_RATE).toString(),
+                "0x"
+            ).encodeABI();
+
+            const txFlow23 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: bob,
+                }
+            );
+
+            dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                dan,
+                (FLOW_RATE).toString(),
+                "0x"
+            ).encodeABI();
+
+            const txFlow24 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> dan")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: bob,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            const txflow12End = await web3tx(
-                flowAgreement.deleteFlow,
-                "FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
-            )(superToken.address, alice, bob, {from: alice});
+            dataAgreement = flowAgreement.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
+            const txflow12End = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
             const endBlock = await web3.eth.getBlock("latest");
@@ -613,17 +981,37 @@ contract("Flow Agreement", accounts => {
 
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
-            const tx1 = await web3tx(
-                flowAgreement.updateFlow,
-                "FlowAgreement.UpdateFlow: User 1 -> User 2 Create new Flow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                (FLOW_RATE).toString(),
+                "0x"
+            ).encodeABI();
+
+            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            const tx2 = await web3tx(
-                flowAgreement.deleteFlow,
-                "FlowAgreement.deleteFlow: User 1 -> User2 Delete Flow"
-            )(superToken.address, alice, bob, {from: alice});
+            dataAgreement = flowAgreement.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
+            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
 
@@ -648,15 +1036,37 @@ contract("Flow Agreement", accounts => {
 
             await superToken.upgrade(toWad(1), {from : alice});
 
-            await web3tx(flowAgreement.updateFlow, "FlowAgreement.updateFlow"
-            )(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            await web3tx(
-                flowAgreement.deleteFlow,
-                "FlowAgreement.deleteFlow: User 1 will be liquidated"
-            )(superToken.address, alice, bob, {from: admin});
+            dataAgreement = flowAgreement.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement admin -> alice")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: admin,
+                }
+            );
 
             const flowRate = (await flowAgreement.getFlow.call(
                 superToken.address,
@@ -667,15 +1077,35 @@ contract("Flow Agreement", accounts => {
 
         it("#5.2 liquidation of solvent account should fail", async () => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
-            await flowAgreement.updateFlow(superToken.address, alice, bob, FLOW_RATE, {from: alice});
+            let dataAgreement = flowAgreement.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                flowAgreement.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
+            dataAgreement = flowAgreement.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
             await expectRevert(
-                web3tx(flowAgreement.deleteFlow, "FlowAgreement.deleteFlow by liquidator")(
-                    superToken.address,
-                    alice,
-                    bob, {
-                        from: admin
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: admin,
                     }
                 ), "FlowAgreement: account is solvent");
         });
@@ -684,14 +1114,22 @@ contract("Flow Agreement", accounts => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
+            let dataAgreement = flowAgreement.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
             await expectRevert(
-                web3tx(flowAgreement.deleteFlow, "FlowAgreement.deleteFlow non existing flow by alice")(
-                    superToken.address,
-                    alice,
-                    bob, {
-                        from: alice
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                    flowAgreement.address,
+                    dataAgreement,
+                    {
+                        from: alice,
                     }
                 ), "FlowAgreement: flow does not exist");
         });
     });
+
 });

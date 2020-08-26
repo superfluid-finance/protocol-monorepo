@@ -98,17 +98,17 @@ contract FlowAgreement is IFlowAgreement {
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
+        require(host == msg.sender, "Only Superfluid can interact with FlowAgreement");
         address sender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
+        //require(flowRate > 0, "use delete flow");
         require(!_isNewFlow(token, flowId), "Flow doesn't exist");
-        require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
+        //require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
         (bytes memory cbdata, bytes memory newCtx) =
             AgreementLibrary.beforeAgreementUpdated(
             ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
-
         _updateFlow(token, sender, receiver, flowRate);
-
         AgreementLibrary.afterAgreementUpdated(
             ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
         );

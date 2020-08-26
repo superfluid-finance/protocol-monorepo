@@ -129,6 +129,7 @@ module.exports = async function (callback) {
                     2,
                     3600,
                     10000,
+                    10000,
                     superfluidInstance.address
                 );
                 governanceAddress = governance.address;

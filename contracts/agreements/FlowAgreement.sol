@@ -62,6 +62,7 @@ contract FlowAgreement is IFlowAgreement {
     )
         external
         override
+        returns(bytes memory newCtx)
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
@@ -71,13 +72,13 @@ contract FlowAgreement is IFlowAgreement {
 
         bytes32 flowId = _generateId(sender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
-
-        (bytes memory cbdata, bytes memory newCtx) =
+        bytes memory cbdata;
+        (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementCreated(
                 ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
         _updateFlow(token, sender, receiver, flowRate);
-        AgreementLibrary.afterAgreementCreated(
+        newCtx = AgreementLibrary.afterAgreementCreated(
             ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
         );
     }
@@ -90,6 +91,7 @@ contract FlowAgreement is IFlowAgreement {
     )
         external
         override
+        returns(bytes memory newCtx)
     {
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
@@ -100,12 +102,13 @@ contract FlowAgreement is IFlowAgreement {
         //require(flowRate > 0, "use delete flow");
         require(!_isNewFlow(token, flowId), "Flow doesn't exist");
         //require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
-        (bytes memory cbdata, bytes memory newCtx) =
+        bytes memory cbdata;
+        (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementUpdated(
             ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
         _updateFlow(token, sender, receiver, flowRate);
-        AgreementLibrary.afterAgreementUpdated(
+        newCtx = AgreementLibrary.afterAgreementUpdated(
             ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
         );
     }
@@ -119,6 +122,7 @@ contract FlowAgreement is IFlowAgreement {
     )
         external
         override
+        returns(bytes memory newCtx)
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
@@ -131,12 +135,13 @@ contract FlowAgreement is IFlowAgreement {
             require(token.isAccountInsolvent(sender),
                     "FlowAgreement: account is solvent");
         }
-        (bytes memory cbdata, bytes memory newCtx) =
+        bytes memory cbdata;
+        (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementTerminated(
                 ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
         _terminateAgreementData(token, sender, receiver, isLiquidator);
-        AgreementLibrary.afterAgreementTerminated(
+        newCtx = AgreementLibrary.afterAgreementTerminated(
                 ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
         );
     }

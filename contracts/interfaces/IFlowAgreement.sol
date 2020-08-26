@@ -23,7 +23,8 @@ abstract contract IFlowAgreement is ISuperAgreement {
         bytes calldata ctx
     )
         external
-        virtual;
+        virtual
+        returns(bytes memory newCtx);
 
     /// @notice Update the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
     /// @param token Super token address.
@@ -38,7 +39,8 @@ abstract contract IFlowAgreement is ISuperAgreement {
         bytes calldata ctx
     )
         external
-        virtual;
+        virtual
+        returns(bytes memory newCtx);
 
     /// @notice Get the current flow rate between `sender` and `receiver`.
     /// @param token Super token address.
@@ -108,6 +110,7 @@ abstract contract IFlowAgreement is ISuperAgreement {
         bytes calldata ctx
     )
         external
-        virtual;
+        virtual
+        returns(bytes memory newCtx);
 
 }

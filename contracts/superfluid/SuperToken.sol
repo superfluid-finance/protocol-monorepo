@@ -76,7 +76,7 @@ contract SuperToken is
     )
         external
     {
-        require(!_initialized, "The library has already been initialized.");
+        require(!_initialized, "already initialized");
         _initialized = true;
         _owner = msg.sender;
         _name = name;

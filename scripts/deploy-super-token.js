@@ -1,10 +1,10 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
-const Superfluid = require("..");
+const SuperfluidSDK = require("..");
 const { parseColonArgs } = require("./utils");
 
 const TestResolver = artifacts.require("TestResolver");
 const TokenInfo = artifacts.require("TokenInfo");
-const SuperfluidRegistry = artifacts.require("SuperfluidRegistry");
+const Superfluid = artifacts.require("Superfluid");
 
 
 /**
@@ -17,7 +17,7 @@ module.exports = async function (callback, argv) {
         global.web3 = web3;
 
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
-        const config = Superfluid.getConfig(chainId);
+        const config = SuperfluidSDK.getConfig(chainId);
         const version = process.env.RELEASE_VERSION || "test";
         console.log("network ID: ", chainId);
         console.log("release version:", version);
@@ -42,12 +42,12 @@ module.exports = async function (callback, argv) {
         console.log("Token info symbol()", tokenInfoSymbol);
         console.log("Token info decimals()", tokenInfoDecimals.toString());
 
-        const registryAddress = await testResolver.get(`SuperfluidRegistry.${version}`);
-        const registry = await SuperfluidRegistry.at(registryAddress);
-        const superTokenWrapper = await Superfluid.getERC20Wrapper(registry, tokenInfo);
+        const superfluidAddress = await testResolver.get(`Superfluid.${version}`);
+        const superfluid = await Superfluid.at(superfluidAddress);
+        const superTokenWrapper = await SuperfluidSDK.getERC20Wrapper(superfluid, tokenInfo);
         console.log("SuperToken wrapper address: ", superTokenWrapper.wrapperAddress);
         if (!superTokenWrapper.created) {
-            await web3tx(registry.createERC20Wrapper, "registry.createERC20Wrapper")(
+            await web3tx(superfluid.createERC20Wrapper, "registry.createERC20Wrapper")(
                 `Super ${tokenInfoName}`,
                 `${tokenInfoSymbol}x`,
                 tokenInfoDecimals,

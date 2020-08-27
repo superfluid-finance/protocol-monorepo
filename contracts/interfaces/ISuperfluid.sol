@@ -1,7 +1,32 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.5.0;
 
+import { IERC20, ISuperToken } from "./ISuperToken.sol";
+import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
+
+
 interface ISuperfluid {
+
+    function getERC20Wrapper(
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token
+    )
+    external
+    returns (address wrapperAddress, bool created);
+
+    function createERC20Wrapper(
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token
+    )
+    external
+    returns (ISuperToken);
+
+    function getGovernance() external returns (ISuperfluidGovernance);
+
+    function getSuperTokenLogic() external returns (ISuperToken);
 
     /**
      * @notice Message sender declares it as a super app.

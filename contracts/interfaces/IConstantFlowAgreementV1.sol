@@ -8,7 +8,7 @@ import "./ISuperAgreement.sol";
  * @title Superfluid's flow agreement interface
  * @author Superfluid
  */
-abstract contract IFlowAgreement is ISuperAgreement {
+abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
     /// @notice Create the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
     /// @param token Super token address.

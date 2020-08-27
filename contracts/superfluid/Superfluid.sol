@@ -1,31 +1,152 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import { Ownable } from "../interfaces/Ownable.sol";
-import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
-import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
-import { ISuperApp } from "../interfaces/ISuperApp.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
+import { Ownable } from "../interfaces/Ownable.sol";
+import { ISuperfluid, IERC20, ISuperToken, ISuperfluidGovernance } from "../interfaces/ISuperfluid.sol";
+import { Proxiable } from "../upgradability/Proxiable.sol";
+import { Proxy } from "../upgradability/Proxy.sol";
+
+import { SuperToken } from "./SuperToken.sol";
 import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
 import { ContextLibrary } from "./ContextLibrary.sol";
 
 
-contract Superfluid is Ownable, ISuperfluid {
-
+contract SuperfluidStorage {
     struct AppManifest {
         uint256 configWord;
     }
 
-    event Jail(address app);
+    /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
+       variables are added APPEND-ONLY. Re-ordering variables can
+       permanently BREAK the deployed proxy contract. */
+
+    /// @dev Flag to avoid double initialization
+    bool internal _initialized;
+
+    /// @dev Governance contract
+    ISuperfluidGovernance internal _gov;
+
+    /// @dev Super token logic contract
+    ISuperToken internal _superTokenLogic;
 
     // Composite app white-listing: source app => (target app => isAllowed)
-    mapping(address => mapping(address => bool)) private _compositeApps;
+    mapping(address => mapping(address => bool)) internal _compositeApps;
     // App manifests
-    mapping(address => AppManifest) private _appManifests;
+    mapping(address => AppManifest) internal _appManifests;
     // Ctx stamp of the current transaction, it should always be cleared to zero before transaction finishes
-    bytes32 private _ctxStamp;
+    bytes32 internal _ctxStamp;
+}
+
+contract Superfluid is
+    Ownable,
+    SuperfluidStorage,
+    ISuperfluid,
+    Proxiable {
+
+    event Jail(address app);
+
     // ????? TODO
     uint64 constant private _GAS_RESERVATION = 5000;
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Proxiable
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    function initialize() external {
+        require(!_initialized, "already initialized");
+        _owner = msg.sender;
+        _initialized = true;
+    }
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return keccak256("org.superfluid-finance.contracts.SuperfluidRegistry.implementation");
+    }
+
+    function updateCode(address newAddress) external onlyOwner {
+        return _updateCodeAddress(newAddress);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ERC20 Token Registry
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    function setSuperTokenLogic(ISuperToken logic) external onlyOwner {
+        _superTokenLogic = logic;
+    }
+
+    function getSuperTokenLogic() external view override returns (ISuperToken) {
+        return _superTokenLogic;
+    }
+
+    function _genereateERC20WrapperSalt(
+        string memory symbol,
+        uint8 decimals,
+        IERC20 token
+    ) private pure returns (bytes32 salt) {
+        return keccak256(abi.encodePacked(
+            symbol,
+            decimals,
+            token
+        ));
+    }
+
+    function getERC20Wrapper(
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token
+    )
+    external
+    view
+    override
+    returns (address wrapperAddress, bool created) {
+        bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
+        wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
+        created = Address.isContract(wrapperAddress);
+    }
+
+    function createERC20Wrapper(
+        string calldata name,
+        string calldata symbol,
+        uint8 decimals,
+        IERC20 token
+    )
+    external
+    override
+    returns (ISuperToken)
+    {
+        require(address(token) != address(0), "SuperfluidRegistry: ZERO_ADDRESS");
+        bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
+        address wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
+        require(!Address.isContract(wrapperAddress), "SuperfluidRegistry: WRAPPER_EXIST");
+        Proxy proxy = new Proxy{salt: salt}();
+        proxy.initializeProxy(address(_superTokenLogic));
+        require(wrapperAddress == address(proxy), "Superfluid: UNEXPECTED_WRAPPER_ADDRESS");
+        // initialize the token
+        SuperToken superToken = SuperToken(address(proxy));
+        superToken.initialize(
+            name,
+            symbol,
+            decimals,
+            token,
+            _gov
+        );
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Governance
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    function setGovernance(ISuperfluidGovernance gov) external onlyOwner {
+        _gov = gov;
+    }
+
+    function getGovernance() external view override returns (ISuperfluidGovernance) {
+        return _gov;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // App System
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * @notice Message sender declares it as a super app.

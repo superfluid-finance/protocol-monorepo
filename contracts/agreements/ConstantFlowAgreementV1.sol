@@ -2,7 +2,7 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
 
-import { ISuperToken, IFlowAgreement } from "../interfaces/IFlowAgreement.sol";
+import { IConstantFlowAgreementV1, ISuperToken } from "../interfaces/IConstantFlowAgreementV1.sol";
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
 import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
@@ -10,7 +10,7 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
-contract FlowAgreement is IFlowAgreement {
+contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     using SignedSafeMath for int256;
     using ContextLibrary for ContextLibrary.Context;

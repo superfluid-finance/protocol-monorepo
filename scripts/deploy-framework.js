@@ -1,14 +1,13 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
-const Superfluid = require("..");
+const SuperfluidSDK = require("..");
 
 const TestResolver = artifacts.require("TestResolver");
+const Superfluid = artifacts.require("Superfluid");
 const SuperToken = artifacts.require("SuperToken");
-const SuperfluidRegistry = artifacts.require("SuperfluidRegistry");
 const TestGovernance = artifacts.require("TestGovernance");
 const Proxy = artifacts.require("Proxy");
 const Proxiable = artifacts.require("Proxiable");
-const FlowAgreement = artifacts.require("FlowAgreement");
-const SuperfluidContract = artifacts.require("Superfluid");
+const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
 
 const {
     hasCode,
@@ -35,7 +34,7 @@ module.exports = async function (callback) {
         console.log("network ID: ", chainId);
         console.log("release version:", version);
 
-        const config = Superfluid.getConfig(chainId);
+        const config = SuperfluidSDK.getConfig(chainId);
 
         let testResolver;
         if (config.resolverAddress) {
@@ -45,76 +44,58 @@ module.exports = async function (callback) {
         }
         console.log("Resolver address", testResolver.address);
 
-        // deploy SuperfluidRegistry
-        let registry;
-        {
-            const name = `SuperfluidRegistry.${version}`;
-            let registryAddress = await testResolver.get(name);
-            console.log("SuperfluidRegistry address", registryAddress);
-            if (reset || !await hasCode(registryAddress)) {
-                const proxy = await web3tx(Proxy.new, "Create SuperfluidRegistry proxy")();
-                registryAddress = proxy.address;
-                const registryLogic = await web3tx(SuperfluidRegistry.new, "SuperfluidRegistry.new")();
-                console.log(`SuperfluidRegistry new code address ${registryLogic.address}`);
-                await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
-                    registryLogic.address
-                );
-                const registry = await SuperfluidRegistry.at(proxy.address);
-                await web3tx(registry.initialize, "SuperfluidRegistry.initialize")();
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, proxy.address
-                );
-                console.log("SuperfluidRegistry address", registryAddress);
-            } else {
-                if (await proxiableCodeChanged(Proxiable, SuperfluidRegistry, registryAddress)) {
-                    const registryLogic = await web3tx(SuperfluidRegistry.new,
-                        "SuperfluidRegistry.new due to code change")();
-                    console.log(`SuperfluidRegistry new code address ${registryLogic.address}`);
-                    const registry = await SuperfluidRegistry.at(registryAddress);
-                    await web3tx(registry.updateCode, "registry.updateCode")(
-                        registryLogic.address
-                    );
-                } else {
-                    console.log("SuperfluidRegistry has the same logic code, no deployment needed.");
-                }
-            }
-            registry = await SuperfluidRegistry.at(registryAddress);
-        }
-
-        // deploy FlowAgreement
-        {
-            const name = `FlowAgreement.${version}`;
-            const flowAgreementAddress = await testResolver.get(name);
-            console.log("FlowAgreement address", flowAgreementAddress);
-            if (reset || await codeChanged(FlowAgreement, flowAgreementAddress)) {
-                const agreement = await web3tx(FlowAgreement.new, "FlowAgreement.new due to code change")();
-                console.log("New FlowAgreement address", agreement.address);
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, agreement.address
-                );
-            } else {
-                console.log("FlowAgreement has the same code, no deployment needed");
-            }
-        }
-
         // deploy Superfluid
-        let superfluidInstance;
+        let superfluid;
         {
             const name = `Superfluid.${version}`;
             let superfluidAddress = await testResolver.get(name);
             console.log("Superfluid address", superfluidAddress);
-            if (reset || await codeChanged(SuperfluidContract, superfluidAddress)) {
-                const superfluid = await web3tx(SuperfluidContract.new, "Superfluid.new due to code change")();
-                superfluidAddress = superfluid.address;
-                console.log("Superfluid address", superfluid.address);
-                await web3tx(testResolver.set, `Superfluid set ${name}`)(
-                    name, superfluid.address
+            if (reset || !await hasCode(superfluidAddress)) {
+                const proxy = await web3tx(Proxy.new, "Create Superfluid proxy")();
+                superfluidAddress = proxy.address;
+                const registryLogic = await web3tx(Superfluid.new, "Superfluid.new")();
+                console.log(`Superfluid new code address ${registryLogic.address}`);
+                await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
+                    registryLogic.address
+                );
+                superfluid = await Superfluid.at(proxy.address);
+                await web3tx(superfluid.initialize, "Superfluid.initialize")();
+                await web3tx(testResolver.set, `TestResolver set ${name}`)(
+                    name, proxy.address
+                );
+                console.log("Superfluid address", superfluidAddress);
+            } else {
+                if (await proxiableCodeChanged(Proxiable, Superfluid, superfluidAddress)) {
+                    const superfluidLogic = await web3tx(Superfluid.new,
+                        "Superfluid.new due to code change")();
+                    console.log(`Superfluid new code address ${superfluidLogic.address}`);
+                    superfluid = await Superfluid.at(superfluidAddress);
+                    await web3tx(superfluid.updateCode, "registry.updateCode")(
+                        superfluidLogic.address
+                    );
+                } else {
+                    console.log("Superfluid has the same logic code, no deployment needed.");
+                }
+            }
+            superfluid = await Superfluid.at(superfluidAddress);
+        }
+
+        // deploy ConstantFlowAgreementV1
+        {
+            const name = `ConstantFlowAgreementV1.${version}`;
+            const cfaAddress = await testResolver.get(name);
+            console.log("ConstantFlowAgreementV1 address", cfaAddress);
+            if (reset || await codeChanged(ConstantFlowAgreementV1, cfaAddress)) {
+                const agreement = await web3tx(
+                    ConstantFlowAgreementV1.new,
+                    "ConstantFlowAgreementV1.new due to code change")();
+                console.log("New ConstantFlowAgreementV1 address", agreement.address);
+                await web3tx(testResolver.set, `TestResolver set ${name}`)(
+                    name, agreement.address
                 );
             } else {
-                console.log("TestGovernance has the same code, no deployment needed.");
+                console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
             }
-
-            superfluidInstance = await SuperfluidRegistry.at(superfluidAddress);
         }
 
         // deploy TestGovernance
@@ -130,7 +111,7 @@ module.exports = async function (callback) {
                     3600,
                     10000,
                     10000,
-                    superfluidInstance.address
+                    superfluid.address
                 );
                 governanceAddress = governance.address;
                 console.log("TestGovernance address", governance.address);
@@ -160,13 +141,13 @@ module.exports = async function (callback) {
         }
 
         // update registry settings
-        if ((await registry.getGovernance.call()) !== governanceAddress){
-            await web3tx(registry.setGovernance, "registry.setGovernance")(
+        if ((await superfluid.getGovernance.call()) !== governanceAddress){
+            await web3tx(superfluid.setGovernance, "registry.setGovernance")(
                 governanceAddress
             );
         }
-        if ((await registry.getSuperTokenLogic.call()) !== superTokenLogicAddress){
-            await web3tx(registry.setSuperTokenLogic, "registry.setSuperTokenLogic")(
+        if ((await superfluid.getSuperTokenLogic.call()) !== superTokenLogicAddress){
+            await web3tx(superfluid.setSuperTokenLogic, "registry.setSuperTokenLogic")(
                 superTokenLogicAddress
             );
         }

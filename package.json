@@ -4,11 +4,12 @@
   "description": " Ethereum contracts implementation for the Superfluid Protocol",
   "repository": "github:superfluid-finance/ethereum-contracts",
   "license": "MIT",
+  "main": "js-sdk/index.js",
   "files": [
     "/contracts/**/*.sol",
     "/build/abi.js",
     "/build/contracts/*.json",
-    "index.js"
+    "js-sdk/*.js"
   ],
   "dependencies": {
     "@openzeppelin/contracts": "^3.1.0-solc-0.7"
@@ -38,7 +39,7 @@
     "build:abi": "scripts/build-abi-js.sh > build/abi.js",
     "test": "run-s lint:* build:* test:*",
     "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
-    "test:package": "mocha test/package.test.js",
+    "test:sdk": "truffle test test/sdk.test.js",
     "test:deployment": "truffle test test/deployment.test.js",
     "test-coverage": "truffle run coverage --file test/contracts.test.js",
     "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",

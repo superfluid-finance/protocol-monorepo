@@ -1,22 +1,22 @@
 const Web3 = require("web3");
+const deployFramework = require("../scripts/deploy-framework");
 const { assert } = require("chai");
 
-describe("package test", () => {
+contract("sdk test", () => {
+
+    const errorHandler = err => { if (err) throw err; };
 
     const Superfluid = require("..");
 
-    it("load contracts", async () => {
-        const provider = new Web3.providers.HttpProvider("http://vitalik.mob");
-
+    function testLoadedContracts(sf) {
         const {
             IERC20,
             TestResolver,
             TokenInfo,
-            SuperfluidRegistry,
-            IFlowAgreement,
-            ISuperToken
-        }  = Superfluid.load(provider);
-
+            ISuperfluid,
+            ISuperToken,
+            IConstantFlowAgreementV1,
+        } = sf.contracts;
         assert.isDefined(IERC20.abi);
         assert.equal(IERC20.contractName, "IERC20");
         assert.isTrue(IERC20.abi.filter(i => i.name === "Transfer").length > 0);
@@ -29,17 +29,34 @@ describe("package test", () => {
         assert.equal(TokenInfo.contractName, "TokenInfo");
         assert.isTrue(TokenInfo.abi.filter(i => i.name === "symbol").length > 0);
 
-        assert.isDefined(SuperfluidRegistry.abi);
-        assert.equal(SuperfluidRegistry.contractName, "SuperfluidRegistry");
-        assert.isTrue(SuperfluidRegistry.abi.filter(i => i.name === "getERC20Wrapper").length > 0);
-
-        assert.isDefined(IFlowAgreement.abi);
-        assert.equal(IFlowAgreement.contractName, "IFlowAgreement");
-        assert.isTrue(IFlowAgreement.abi.filter(i => i.name === "updateFlow").length > 0);
+        assert.isDefined(ISuperfluid.abi);
+        assert.equal(ISuperfluid.contractName, "ISuperfluid");
+        assert.isTrue(ISuperfluid.abi.filter(i => i.name === "getERC20Wrapper").length > 0);
 
         assert.isDefined(ISuperToken.abi);
         assert.equal(ISuperToken.contractName, "ISuperToken");
         assert.isTrue(ISuperToken.abi.filter(i => i.name === "upgrade").length > 0);
+
+        assert.isDefined(IConstantFlowAgreementV1.abi);
+        assert.equal(IConstantFlowAgreementV1.contractName, "IConstantFlowAgreementV1");
+        assert.isTrue(IConstantFlowAgreementV1.abi.filter(i => i.name === "updateFlow").length > 0);
+    }
+
+    it("load framework without truffle artifacts", async () => {
+        process.env.RESET = 1;
+        await deployFramework(errorHandler);
+
+        const provider = new Web3.providers.HttpProvider("http://vitalik.mob");
+        const sf = new Superfluid.Framework({ web3Provider: provider });
+        testLoadedContracts(sf);
+    });
+
+    it("load framework without truffle artifacts", async () => {
+        process.env.RESET = 1;
+        await deployFramework(errorHandler);
+
+        const sf = new Superfluid.Framework({ truffleArtifacts: artifacts });
+        testLoadedContracts(sf);
     });
 
     it("get config", async () => {

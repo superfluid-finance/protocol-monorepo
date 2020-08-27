@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import "../interfaces/IFlowAgreement.sol";
+import "../interfaces/IConstantFlowAgreementV1.sol";
 import "../interfaces/ISuperfluid.sol";
 import "./SuperAppBase.sol";
 import { SuperAppDefinitions } from "../superfluid/SuperAppDefinitions.sol";
@@ -17,14 +17,14 @@ contract MultiFlowsApp is SuperAppBase {
         uint256 proportion;
     }
 
-    IFlowAgreement internal _constantFlow;
+    IConstantFlowAgreementV1 internal _constantFlow;
     ISuperfluid internal _host;
     //Sender => To / Proportion
     mapping(address => ReceiverData[]) internal _userFlows;
 
-    constructor(IFlowAgreement constantFlow, ISuperfluid superfluid) {
-        require(address(constantFlow) != address(0), "SA: can't set zero address as constant Flow");
-        require(address(superfluid) != address(0), "SA: can't set zero address as Superfluid");
+    constructor(IConstantFlowAgreementV1 constantFlow, ISuperfluid superfluid) {
+        require(address(constantFlow) != address(0), "MFA: can't set zero address as constant Flow");
+        require(address(superfluid) != address(0), "MFA: can't set zero address as Superfluid");
         _constantFlow = constantFlow;
         _host = superfluid;
 
@@ -44,7 +44,7 @@ contract MultiFlowsApp is SuperAppBase {
     )
         external
     {
-        require(msg.sender == address(_host), "Only official superfluid host is supported by the app");
+        require(msg.sender == address(_host), "MFA: Only official superfluid host is supported by the app");
         require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
         address sender = ContextLibrary.decode(ctx).msgSender;
         require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
@@ -56,7 +56,7 @@ contract MultiFlowsApp is SuperAppBase {
             sender,
             address(this)
         );
-        require(receivingFlowRate == 0, "MAPP: Updates are not supported, go to YAM");
+        require(receivingFlowRate == 0, "MFA: Updates are not supported, go to YAM");
 
         //uint256 sum = _sumProportions(proportions);
         for(uint256 i = 0; i < receivers.length; i++) {
@@ -77,7 +77,7 @@ contract MultiFlowsApp is SuperAppBase {
         override
         returns (bytes memory data)
     {
-        require(agreementClass == address(_constantFlow), "Unsupported agreement");
+        require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
         (, address sender, , int256 oldFlowRate) = _constantFlow.getFlow(superToken, agreementId);
         return _packData(sender, oldFlowRate);
     }
@@ -94,7 +94,7 @@ contract MultiFlowsApp is SuperAppBase {
     returns(bytes memory newCtx)
     {
         address sender = ContextLibrary.decode(ctx).msgSender;
-        require(_userFlows[sender].length > 0 , "MAPP: Create Multi Flow first or go away");
+        require(_userFlows[sender].length > 0 , "MFA: Create Multi Flow first or go away");
         (int256 receivingFlowRate) = _constantFlow.getFlow(
             superToken,
             sender,

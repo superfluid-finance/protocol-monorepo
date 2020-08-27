@@ -8,12 +8,12 @@ const {
 
 const FLOW_RATE = toWad(1);
 
-contract("Superfluid App", accounts => {
+contract("MultiFlowsApp", accounts => {
 
     const tester = new Tester(accounts);
 
     let superToken;
-    let flowAgreement;
+    let cfa;
     let superfluid;
 
     const { INIT_BALANCE } = tester.constants;
@@ -23,7 +23,7 @@ contract("Superfluid App", accounts => {
         await tester.resetContracts();
         ({
             superToken,
-            flowAgreement,
+            cfa,
             superfluid
         } = tester.contracts);
     });
@@ -31,7 +31,7 @@ contract("Superfluid App", accounts => {
     it("#1 MultiFlowsApp", async () => {
 
         await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
-        const app = await web3tx(MultiApp.new, "MultiApp.new")(flowAgreement.address, superfluid.address);
+        const app = await web3tx(MultiApp.new, "MultiApp.new")(cfa.address, superfluid.address);
         const data = app.contract.methods.createMultiFlows(superToken.address, [bob, carol], [6, 4], "0x").encodeABI();
         await web3tx(superfluid.callAppAction, "Superfluid.callAppAction")(
             app.address,
@@ -40,23 +40,23 @@ contract("Superfluid App", accounts => {
                 from: alice
             }
         );
-        const dataAgreement = flowAgreement.contract.methods.createFlow(
+        const dataAgreement = cfa.contract.methods.createFlow(
             superToken.address,
             app.address,
             "1000000000000000000",
             "0x"
         ).encodeABI();
         await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice app 1x")(
-            flowAgreement.address,
+            cfa.address,
             dataAgreement,
             {
                 from: alice,
             }
         );
 
-        const aliceNetFlow = await flowAgreement.getNetFlow.call(superToken.address, alice);
-        const bobNetFlow = await flowAgreement.getNetFlow.call(superToken.address, bob);
-        const carolNetFlow = await flowAgreement.getNetFlow.call(superToken.address, carol);
+        const aliceNetFlow = await cfa.getNetFlow.call(superToken.address, alice);
+        const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
+        const carolNetFlow = await cfa.getNetFlow.call(superToken.address, carol);
 
         /*
         console.log("Alice", aliceNetFlow.toString());
@@ -69,7 +69,7 @@ contract("Superfluid App", accounts => {
         assert.equal(bobNetFlow, FLOW_RATE * 6 / 10, "Bob net flow is wrong");
         assert.equal(carolNetFlow, FLOW_RATE * 4 / 10, "Carol net flow is wrong");
 
-        const deleteABI = flowAgreement.contract.methods.deleteFlow(
+        const deleteABI = cfa.contract.methods.deleteFlow(
             superToken.address,
             alice,
             app.address,
@@ -77,7 +77,7 @@ contract("Superfluid App", accounts => {
         ).encodeABI();
 
         await web3tx(superfluid.callAgreement, "Superfuild.callAgreement alice deleting flow")(
-            flowAgreement.address,
+            cfa.address,
             deleteABI,
             {
                 from: alice
@@ -85,10 +85,10 @@ contract("Superfluid App", accounts => {
         );
 
 
-        const aliceNetFlowAfter = await flowAgreement.getNetFlow.call(superToken.address, alice);
-        const bobNetFlowAfter = await flowAgreement.getNetFlow.call(superToken.address, bob);
-        const carolNetFlowAfter = await flowAgreement.getNetFlow.call(superToken.address, carol);
-        const appNetFlowAfter = await flowAgreement.getFlow.call(
+        const aliceNetFlowAfter = await cfa.getNetFlow.call(superToken.address, alice);
+        const bobNetFlowAfter = await cfa.getNetFlow.call(superToken.address, bob);
+        const carolNetFlowAfter = await cfa.getNetFlow.call(superToken.address, carol);
+        const appNetFlowAfter = await cfa.getFlow.call(
             superToken.address,
             web3.utils.soliditySha3(app.address, carol));
 
@@ -113,11 +113,11 @@ contract("Superfluid App", accounts => {
         const flowRates = new Array(10000000, 50000000000);
 
         await web3tx(
-            flowAgreement.createFlow,
+            cfa.createFlow,
             "createFlow"
         )(superToken.address, accounts[1], app.address, FLOW_RATE, {from: accounts[1]});
 
-        await web3tx(flowAgreement.updateFlow, "FlowAgreement.updateFlow")(
+        await web3tx(cfa.updateFlow, "cfa.updateFlow")(
             superTokenAddr,
             accounts[1],
             app.address,
@@ -127,7 +127,7 @@ contract("Superfluid App", accounts => {
             }
         );
 
-        let tx = await web3tx(flowAgreement.deleteFlow, "FlowAgreement.updateFlow")(
+        let tx = await web3tx(cfa.deleteFlow, "cfa.updateFlow")(
             superTokenAddr,
             accounts[1],
             app.address,

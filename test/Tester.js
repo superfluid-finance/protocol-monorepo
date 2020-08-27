@@ -2,7 +2,7 @@ const Proxy = artifacts.require("Proxy");
 const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
 const TestGovernance = artifacts.require("TestGovernance");
-const FlowAgreement = artifacts.require("FlowAgreement");
+const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
 const Superfluid = artifacts.require("Superfluid");
 
 const {
@@ -50,17 +50,31 @@ module.exports = class Tester {
     async resetContracts() {
         this.contracts = {};
 
+        // test token contract
         this.contracts.token = await web3tx(TestToken.new, "TestToken.new")(
             "Test Token", "TEST",
             {
                 from: this.aliases.admin
             });
 
-        this.contracts.superfluid = await web3tx(Superfluid.new, "SuperToken.new")(
+        // superfluid host contract
+        const superfluidLogic = await web3tx(Superfluid.new, "SuperToken.new")(
             {
                 from: this.aliases.admin
             });
+        const superfluidProxy = await web3tx(Proxy.new, "Create superfluid proxy contract")(
+            {
+                from: this.aliases.admin
+            }
+        );
+        await web3tx(superfluidProxy.initializeProxy, "superfluidProxy.initializeProxy")(
+            superfluidLogic.address, {
+                from: this.aliases.admin
+            }
+        );
+        this.contracts.superfluid = await Superfluid.at(superfluidProxy.address);
 
+        // governance contract
         this.contracts.governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
             this.aliases.admin,
             1,
@@ -72,33 +86,37 @@ module.exports = class Tester {
                 from: this.aliases.admin
             });
 
-        const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
-        const proxy = await web3tx(Proxy.new, "Create super token proxy contract")(
-            {
-                from: this.aliases.admin
-            }
-        );
-        await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
-            superTokenLogic.address, {
-                from: this.aliases.admin
-            }
-        );
-        this.contracts.superToken = await SuperToken.at(proxy.address);
-        await web3tx(this.contracts.superToken.initialize, "superToken.initialize")(
-            "SuperTestToken",
-            "STT",
-            18,
-            this.contracts.token.address,
-            this.contracts.governance.address, {
-                from: this.aliases.admin
-            }
+        await web3tx(this.contracts.superfluid.initialize, "superfluid.initialize")();
+        await web3tx(this.contracts.superfluid.setGovernance, "superfluid.setGovernance")(
+            this.contracts.governance.address
         );
 
-        this.contracts.flowAgreement = await web3tx(FlowAgreement.new, "FlowAgreement.new")(
+        // super test token contract (STT)
+        const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
+        await web3tx(this.contracts.superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
+            superTokenLogic.address
+        );
+        this.contracts.superfluid.createERC20Wrapper(
+            "Super Test Token",
+            "TESTx",
+            18,
+            this.contracts.token.address
+        );
+        this.contracts.superToken = await SuperToken.at(
+            (await this.contracts.superfluid.getERC20Wrapper.call(
+                "TESTx",
+                18,
+                this.contracts.token.address,
+            )).wrapperAddress
+        );
+
+        // flow agreement contract
+        this.contracts.cfa = await web3tx(ConstantFlowAgreementV1.new, "ConstantFlowAgreementV1.new")(
             {
                 from: this.aliases.admin
             });
 
+        // mint test tokens to test accounts
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];
             await web3tx(this.contracts.token.mint, `Mint token for ${alias}`)(

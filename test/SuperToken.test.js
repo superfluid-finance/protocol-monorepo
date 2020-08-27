@@ -22,7 +22,7 @@ contract("Super Token", accounts => {
 
     let token;
     let superToken;
-    let flowAgreement;
+    let cfa;
     let superfluid;
 
     before(async () => {
@@ -33,16 +33,16 @@ contract("Super Token", accounts => {
         await tester.resetContracts();
         ({
             token,
+            superfluid,
             superToken,
-            flowAgreement,
-            superfluid
+            cfa,
         } = tester.contracts);
     });
 
     describe("#0 SuperToken ERC20 info", () => {
         it("#0.1 - test basic token info", async () => {
-            assert.equal(await superToken.name.call(), "SuperTestToken");
-            assert.equal(await superToken.symbol.call(), "STT");
+            assert.equal(await superToken.name.call(), "Super Test Token");
+            assert.equal(await superToken.symbol.call(), "TESTx");
             assert.equal(await superToken.decimals.call(), 18);
         });
     });
@@ -153,7 +153,7 @@ contract("Super Token", accounts => {
 
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
-            let dataAgreement = flowAgreement.contract.methods.createFlow(
+            let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
                 FLOW_RATE.toString(),
@@ -161,17 +161,17 @@ contract("Super Token", accounts => {
             ).encodeABI();
 
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                flowAgreement.address,
+                cfa.address,
                 dataAgreement,
                 {
                     from: alice,
                 }
             );
 
-            const flowRate = await flowAgreement.getNetFlow.call(superToken.address, bob);
+            const flowRate = await cfa.getNetFlow.call(superToken.address, bob);
             assert.equal(flowRate.toString(), FLOW_RATE.toString(), "Not the same flow Rate");
 
-            dataAgreement = flowAgreement.contract.methods.updateFlow(
+            dataAgreement = cfa.contract.methods.updateFlow(
                 superToken.address,
                 bob,
                 FLOW_RATE.toString(),
@@ -179,7 +179,7 @@ contract("Super Token", accounts => {
             ).encodeABI();
 
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                flowAgreement.address,
+                cfa.address,
                 dataAgreement,
                 {
                     from: alice,
@@ -193,10 +193,10 @@ contract("Super Token", accounts => {
             assert.ok(aliceAgreementClasses.length == 1);
             assert.ok(bobAgreementClasses.length == 1);
             assert.ok(carolAgreementClasses.length == 0);
-            assert.equal(aliceAgreementClasses[0], flowAgreement.address);
-            assert.equal(bobAgreementClasses[0], flowAgreement.address);
+            assert.equal(aliceAgreementClasses[0], cfa.address);
+            assert.equal(bobAgreementClasses[0], cfa.address);
 
-            dataAgreement = flowAgreement.contract.methods.createFlow(
+            dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 carol,
                 FLOW_RATE.mul(toBN(2)).toString(),
@@ -204,7 +204,7 @@ contract("Super Token", accounts => {
             ).encodeABI();
 
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                flowAgreement.address,
+                cfa.address,
                 dataAgreement,
                 {
                     from: bob,
@@ -217,11 +217,11 @@ contract("Super Token", accounts => {
             assert.ok(aliceAgreementClasses.length == 1);
             assert.ok(bobAgreementClasses.length == 1);
             assert.ok(carolAgreementClasses.length == 1);
-            assert.equal(aliceAgreementClasses[0], flowAgreement.address);
-            assert.equal(bobAgreementClasses[0], flowAgreement.address);
-            assert.equal(carolAgreementClasses[0], flowAgreement.address);
+            assert.equal(aliceAgreementClasses[0], cfa.address);
+            assert.equal(bobAgreementClasses[0], cfa.address);
+            assert.equal(carolAgreementClasses[0], cfa.address);
 
-            dataAgreement = flowAgreement.contract.methods.deleteFlow(
+            dataAgreement = cfa.contract.methods.deleteFlow(
                 superToken.address,
                 alice,
                 bob,
@@ -229,7 +229,7 @@ contract("Super Token", accounts => {
             ).encodeABI();
 
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                flowAgreement.address,
+                cfa.address,
                 dataAgreement,
                 {
                     from: alice,
@@ -244,8 +244,8 @@ contract("Super Token", accounts => {
             assert.ok(aliceAgreementClasses.length == 0);
             assert.ok(bobAgreementClasses.length == 1);
             assert.ok(carolAgreementClasses.length == 1);
-            assert.equal(bobAgreementClasses[0], flowAgreement.address);
-            assert.equal(carolAgreementClasses[0], flowAgreement.address);
+            assert.equal(bobAgreementClasses[0], cfa.address);
+            assert.equal(carolAgreementClasses[0], cfa.address);
 
             await tester.validateSystem();
         });
@@ -296,7 +296,7 @@ contract("Super Token", accounts => {
             await web3tx(superToken.upgrade, "upgrade all from alice")(
                 INIT_BALANCE, {from: alice});
 
-            const dataAgreement = flowAgreement.contract.methods.createFlow(
+            const dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
                 FLOW_RATE.toString(),
@@ -304,7 +304,7 @@ contract("Super Token", accounts => {
             ).encodeABI();
 
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                flowAgreement.address,
+                cfa.address,
                 dataAgreement,
                 {
                     from: alice,

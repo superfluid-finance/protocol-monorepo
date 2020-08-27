@@ -158,7 +158,7 @@ contract Superfluid is Ownable, ISuperfluid {
         external
         override
         cleanCtx
-        returns(bytes memory newCtx, bytes memory returnedData)
+        returns(bytes memory returnedData)
     {
         //Build context data
         bytes memory ctx;
@@ -254,7 +254,7 @@ contract Superfluid is Ownable, ISuperfluid {
 
     /* Basic Law Rules */
 
-    function _isAgreement(address) internal view returns(bool) {
+    function _isAgreement(address) internal pure returns(bool) {
         return true;
     }
 

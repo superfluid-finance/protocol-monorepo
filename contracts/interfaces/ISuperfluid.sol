@@ -61,7 +61,7 @@ interface ISuperfluid {
         bytes calldata data
     )
         external
-        returns(bytes memory newCtx, bytes memory returnedData);
+        returns(bytes memory returnedData);
 
     function callAppAction(
         address app,

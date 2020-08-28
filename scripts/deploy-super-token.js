@@ -1,8 +1,6 @@
 const SuperfluidSDK = require("..");
 const { parseColonArgs } = require("./utils");
 
-const TokenInfo = artifacts.require("TokenInfo");
-
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
@@ -24,6 +22,7 @@ module.exports = async function (callback, argv) {
         }
         const tokenName = args.pop();
 
+        global.artifacts = artifacts;
         const sf = new SuperfluidSDK.Framework({
             isTruffle: true,
             version
@@ -31,7 +30,7 @@ module.exports = async function (callback, argv) {
         await sf.initialize();
 
         const tokenAddress = await sf.resolver.get(`tokens.${tokenName}`);
-        const tokenInfo = await TokenInfo.at(tokenAddress);
+        const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
         const tokenInfoName = await tokenInfo.name.call();
         const tokenInfoSymbol = await tokenInfo.symbol.call();
         const tokenInfoDecimals = await tokenInfo.decimals.call();

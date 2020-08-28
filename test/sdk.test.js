@@ -1,4 +1,3 @@
-const Web3 = require("web3");
 const deployFramework = require("../scripts/deploy-framework");
 const { assert } = require("chai");
 
@@ -42,23 +41,6 @@ contract("sdk test", () => {
         assert.isTrue(IConstantFlowAgreementV1.abi.filter(i => i.name === "updateFlow").length > 0);
     }
 
-    it("load framework without truffle artifacts", async () => {
-        process.env.RESET = 1;
-        await deployFramework(errorHandler);
-
-        const provider = new Web3.providers.HttpProvider("http://vitalik.mob");
-        const sf = new Superfluid.Framework({ web3Provider: provider });
-        testLoadedContracts(sf);
-    });
-
-    it("load framework without truffle artifacts", async () => {
-        process.env.RESET = 1;
-        await deployFramework(errorHandler);
-
-        const sf = new Superfluid.Framework({ truffleArtifacts: artifacts });
-        testLoadedContracts(sf);
-    });
-
     it("get config", async () => {
         // goerli
         const goerliConfig = Superfluid.getConfig(5);
@@ -74,6 +56,26 @@ contract("sdk test", () => {
         testConfig = Superfluid.getConfig(5555);
         assert.equal(testConfig.resolverAddress, "0x42");
         */
+    });
+
+    it("load framework without truffle framework", async () => {
+        process.env.RESET = 1;
+        await deployFramework(errorHandler);
+
+        const sf = new Superfluid.Framework({ web3Provider: web3.currentProvider });
+        testLoadedContracts(sf);
+
+        await sf.initialize();
+    });
+
+    it("load framework with truffle framework", async () => {
+        process.env.RESET = 1;
+        await deployFramework(errorHandler);
+
+        const sf = new Superfluid.Framework({ isTruffle: true });
+        testLoadedContracts(sf);
+
+        await sf.initialize();
     });
 
 });

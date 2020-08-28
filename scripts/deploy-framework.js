@@ -41,6 +41,8 @@ module.exports = async function (callback) {
             testResolver = await TestResolver.at(config.resolverAddress);
         } else {
             testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+            // make it available for the sdk for testing purpose
+            process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         }
         console.log("Resolver address", testResolver.address);
 

@@ -477,8 +477,13 @@ contract Superfluid is
     }
 
     modifier validCtx(bytes memory ctx) {
-        require(ContextLibrary.validate(ctx, _ctxStamp), "Superfluid: Invalid ctx");
-        _;
+        //require(ContextLibrary.validate(ctx, _ctxStamp), "Superfluid: Invalid ctx");
+        if(!ContextLibrary.validate(ctx, _ctxStamp)) {
+            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
+            emit Jail(msg.sender, uint256(Info.B_1_READONLY_CONTEXT));
+        } else {
+            _;
+        }
     }
 
 }

@@ -46,7 +46,21 @@ contract Superfluid is
     ISuperfluid,
     Proxiable {
 
-    event Jail(address app);
+    enum Info {
+        A_1_MANIFEST,
+        A_2_DOWNSTREAM_WHITELIST,
+        A_3_IMMUTABLE_CALLBACK,
+        B_1_READONLY_CONTEXT,
+        B_2_UPSTREAM_CONTEXT,
+        B_3_CALL_JAIL_APP,
+        C_2_TERMINATION_CALLBACK,
+        C_3_REVERT_NO_REASON,
+        C_4_GAS_LIMIT,
+        E_2_GAS_REFUND,
+        J_1_UPSTREAM_RESPONSABILITY
+    }
+
+    event Jail(address app, uint256 info);
 
     // ????? TODO
     uint64 constant private _GAS_RESERVATION = 5000;
@@ -264,7 +278,7 @@ contract Superfluid is
             if(!ContextLibrary.validate(newCtx, _ctxStamp)) {
                 // TODO: JAIL if callback changes ctx
                 //Change return context
-                emit Jail(app);
+                emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
             }
         } else {
             revert("SF: Insuccessful external call");

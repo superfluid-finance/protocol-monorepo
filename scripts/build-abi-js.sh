@@ -4,8 +4,9 @@ cd "$(dirname "$0")/.."
 
 CONTRACTS=(
     IERC20
-    TestToken
     TokenInfo
+    ERC20WithTokenInfo
+    TestToken
     TestResolver
     ISuperfluid
     ISuperToken

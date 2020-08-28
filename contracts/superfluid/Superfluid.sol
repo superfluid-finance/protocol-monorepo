@@ -200,7 +200,7 @@ contract Superfluid is
         override
         returns(bool)
     {
-        return (_appManifests[app].configWord & SuperAppDefinitions.JAIL) != SuperAppDefinitions.JAIL;
+        return (_appManifests[app].configWord & SuperAppDefinitions.JAIL) > 0;
     }
 
     /**

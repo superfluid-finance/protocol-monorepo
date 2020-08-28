@@ -1,4 +1,4 @@
 module.exports = {
-    Framework: require("./Framework"),
     getConfig: require("./getConfig"),
+    Framework: require("./Framework"),
 };

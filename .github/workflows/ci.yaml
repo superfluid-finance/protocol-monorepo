@@ -148,7 +148,7 @@ jobs:
 
     - name: Deploy to goerli
       run: |
-        npx truffle exec --network goerli scripts/deploy.js
+        npx truffle exec --network goerli scripts/deploy-framework.js
       env:
         GOERLI_MNEMONIC: ${{ secrets.GOERLI_MNEMONIC }}
         GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}

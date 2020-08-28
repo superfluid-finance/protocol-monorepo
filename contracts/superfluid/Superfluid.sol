@@ -270,6 +270,7 @@ contract Superfluid is
         // TODO jail rule cleanup
         if(isAppJailed(app)) {
             _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
+            emit Jail(msg.sender, uint256(Info.B_3_CALL_JAIL_APP);
         }
 
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
@@ -346,6 +347,7 @@ contract Superfluid is
     {
         if(isAppJailed(app)) {
             _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
+            emit Jail(msg.sender, uint256(Info.B_3_CALL_JAIL_APP);
         }
 
         //Build context data

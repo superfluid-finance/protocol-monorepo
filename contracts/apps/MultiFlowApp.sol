@@ -78,7 +78,7 @@ contract MultiFlowsApp is SuperAppBase {
         returns (bytes memory data)
     {
         require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
-        (, address sender, , int256 oldFlowRate) = _constantFlow.getFlow(superToken, agreementId);
+        (, address sender, , int256 oldFlowRate, ) = _constantFlow.getFlow(superToken, agreementId);
         return _packData(sender, oldFlowRate);
     }
 

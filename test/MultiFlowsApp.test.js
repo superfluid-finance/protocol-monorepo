@@ -116,10 +116,17 @@ contract("MultiFlowsApp", accounts => {
         ];
 
         await web3tx(superfluid.callBatch, "Superfluid.callAppAction")(
-           [dataApp, dataAgreement],
+            [dataApp, dataAgreement],
             {
                 from: alice
             }
         );
+
+        const aliceNetFlow = await cfa.getNetFlow.call(superToken.address, alice);
+        const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
+        const carolNetFlow = await cfa.getNetFlow.call(superToken.address, carol);
+        assert.equal(aliceNetFlow.toString(), -FLOW_RATE, "Alice net flow is wrong");
+        assert.equal(bobNetFlow, FLOW_RATE * 6 / 10, "Bob net flow is wrong");
+        assert.equal(carolNetFlow, FLOW_RATE * 4 / 10, "Carol net flow is wrong");
     });
 });

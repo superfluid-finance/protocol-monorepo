@@ -1,11 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.5.0;
+pragma experimental ABIEncoderV2;
 
 import { IERC20, ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 
 
 interface ISuperfluid {
+
+    enum TypeOperation {
+        Transfer, //0
+        Upgrade, //1
+        Downgrade, //2
+        CallAgreement, //3
+        CallApp //4
+    }
+
+    struct Operation {
+        TypeOperation opType;
+        address call;
+        bytes data;
+    }
 
     function getERC20Wrapper(
         string calldata symbol,
@@ -56,6 +71,8 @@ interface ISuperfluid {
     function allowCompositeApp(address targetApp) external;
 
     function isCompositeAppAllowed(address app, address targetApp) external view returns (bool);
+
+    function callBatch(Operation[] memory operations) external;
 
     function callAppBeforeCallback(
         address app,

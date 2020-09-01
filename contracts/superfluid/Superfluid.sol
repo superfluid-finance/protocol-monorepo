@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
+pragma experimental ABIEncoderV2;
 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
@@ -230,6 +231,26 @@ contract Superfluid is
         return _compositeApps[app][targetApp];
     }
 
+    function callBatch(
+        Operation[] memory operations
+    )
+        external
+        override
+    {
+        require(operations.length > 1, "SF: Use the single method");
+        for(uint256 i = 0; i < operations.length; i++) {
+            if(operations[i].opType == TypeOperation.CallApp) {
+                /* solhint-disable-next-line avoid-low-level-calls */
+                _callAppAction(operations[i].call, operations[i].data);
+            } else if(operations[i].opType == TypeOperation.CallAgreement) {
+                /* solhint-disable-next-line avoid-low-level-calls */
+                _callAgreement(operations[i].call, operations[i].data);
+            } else {
+                revert("not implemented");
+            }
+        }
+    }
+
     //Split the callback in the two functions so they can have different rules and returns data formats
     //TODO : msg.sender should be only SuperAgreement
     function callAppBeforeCallback(
@@ -308,6 +329,26 @@ contract Superfluid is
         }
     }
 
+    function _callAgreement(
+        address agreementClass,
+        bytes memory data
+    )
+        private
+        cleanCtx
+        returns(bytes memory returnedData)
+    {
+        //Build context data
+        bytes memory ctx;
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
+        bool success;
+        (success, returnedData) = _callExternal(agreementClass, data, ctx);
+        if (success) {
+            _ctxStamp = 0;
+        } else {
+            revert("SF: call agreement failed");
+        }
+    }
+
     function callAgreementWithContext(
         address agreementClass,
         bytes calldata data,
@@ -341,6 +382,33 @@ contract Superfluid is
     )
         external
         override
+        cleanCtx
+        onlyApp(app)
+        returns(bytes memory returnedData)
+    {
+        if(isAppJailed(app)) {
+            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
+            emit Jail(msg.sender, uint256(Info.B_3_CALL_JAIL_APP));
+        }
+
+        //Build context data
+        //TODO: Where we get the gas reservation?
+        bool success;
+
+        bytes memory ctx;
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
+        (success, returnedData) = _callExternal(app, data, ctx);
+        if(!success) {
+            revert(string(returnedData));
+        }
+        _ctxStamp = 0;
+    }
+
+    function _callAppAction(
+        address app,
+        bytes memory data
+    )
+        private
         cleanCtx
         onlyApp(app)
         returns(bytes memory returnedData)

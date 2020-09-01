@@ -96,48 +96,30 @@ contract("MultiFlowsApp", accounts => {
         console.log("Bob", bobNetFlowAfter.toString());
         console.log("Carol", carolNetFlowAfter.toString());
         console.log("App", appNetFlowAfter);
+    });
 
+    it("#1 MultiFlowsApp Batch Call", async () => {
 
-        /*
-        //start a multi party
-        await web3tx(app.createMultiFlows, "MultiApp.createMultiFlows")(
-            superTokenAddr,
-            receivers,
-            flowRates,{
-                from: accounts[1]
-            }
-        );
-
-        const superTokenAddr = superToken.address.toString();
-        const receivers = accounts.slice(2, 4);
-        const flowRates = new Array(10000000, 50000000000);
-
-        await web3tx(
-            cfa.createFlow,
-            "createFlow"
-        )(superToken.address, accounts[1], app.address, FLOW_RATE, {from: accounts[1]});
-
-        await web3tx(cfa.updateFlow, "cfa.updateFlow")(
-            superTokenAddr,
-            accounts[1],
+        await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
+        const app = await web3tx(MultiApp.new, "MultiApp.new")(cfa.address, superfluid.address);
+        const dataApp = [4,
             app.address,
-            "100000000000", {
-                from: accounts[1],
-                gas: 1e6,
-            }
-        );
+            app.contract.methods.createMultiFlows(superToken.address, [bob, carol], [6, 4], "0x").encodeABI()
+        ];
+        const dataAgreement = [3,
+            cfa.address, cfa.contract.methods.createFlow(
+                superToken.address,
+                app.address,
+                "1000000000000000000",
+                "0x"
+            ).encodeABI()
+        ];
 
-        let tx = await web3tx(cfa.deleteFlow, "cfa.updateFlow")(
-            superTokenAddr,
-            accounts[1],
-            app.address,
+        await web3tx(superfluid.callBatch, "Superfluid.callAppAction")(
+           [dataApp, dataAgreement],
             {
-                from: accounts[1],
-                gas: 1e6,
+                from: alice
             }
         );
-
-        console.log("!!!!!!", tx.logs);
-        */
     });
 });

@@ -34,6 +34,26 @@ abstract contract ISuperToken is IERC20, TokenInfo {
         bytes data
     );
 
+    /// @notice Create a new agreement
+    /// @param id Agreement ID
+    /// @param data Agreement data
+    function updateAgreementData(
+        bytes32 id,
+        bytes calldata data
+    )
+        external
+        virtual;
+
+    /// @notice Agreement creation event
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    /// @param data Agreement data
+    event AgreementUpdated(
+        address indexed agreementClass,
+        bytes32 id,
+        bytes data
+    );
+
     /// @notice Get data of the agreement
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID

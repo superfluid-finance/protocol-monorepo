@@ -377,7 +377,7 @@ contract SuperToken is
         external
         override
     {
-        //bytes32 _newId = keccak256(abi.encodePacked(id));
+        require(_agreementData[msg.sender][id].length == 0, "SuperToken: agreement already exist");
         _agreementData[msg.sender][id] = data;
         emit AgreementCreated(msg.sender, id, data);
     }
@@ -395,6 +395,19 @@ contract SuperToken is
         return _agreementData[agreementClass][id];
     }
 
+    /// @dev ISuperToken.updateAgreementData implementation
+    function updateAgreementData(
+        bytes32 id,
+        bytes calldata data
+    )
+        external
+        override
+    {
+        require(_agreementData[msg.sender][id].length != 0, "SuperToken: agreement does not exist");
+        _agreementData[msg.sender][id] = data;
+        emit AgreementUpdated(msg.sender, id, data);
+    }
+
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
         bytes32 id
@@ -402,6 +415,7 @@ contract SuperToken is
         external
         override
     {
+        require(_agreementData[msg.sender][id].length != 0, "SuperToken: agreement does not exist");
         delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
     }

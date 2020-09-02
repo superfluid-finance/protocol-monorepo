@@ -319,7 +319,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -339,7 +339,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -396,7 +396,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -423,7 +423,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -451,16 +451,24 @@ contract Superfluid is
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 
-
     /* solhint-disable-next-line */
     function chargeGasFee(uint fee) external override {
         ///TODO
     }
 
-    /* Basic Law Rules */
+    function updateCtxDeposit(bytes calldata ctx) external override returns(bytes memory newCtx) {
+        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
+        stcCtx.depositAllowance++;
+        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
+    }
 
+    /* Basic Law Rules */
     function _isAgreement(address) internal pure returns(bool) {
         return true;
+    }
+
+    function isApp(address app) external view override returns(bool) {
+        return _isApp(app);
     }
 
     function _isApp(address app) internal view returns(bool) {
@@ -553,5 +561,4 @@ contract Superfluid is
             _;
         }
     }
-
 }

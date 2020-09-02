@@ -121,4 +121,8 @@ interface ISuperfluid {
         returns(bytes memory newCtx);
 
     function chargeGasFee(uint fee) external;
+
+    function isApp(address app) external view returns(bool);
+
+    function updateCtxDeposit(bytes calldata ctx) external returns(bytes memory newCtx);
 }

@@ -53,6 +53,9 @@ contract SuperTokenStorage {
 
     /// @dev ERC20 Allowances Storage
     mapping (address => mapping (address => uint256)) internal _allowances;
+
+    /// @dev Deposit needed to possible liquidations
+    mapping(address => uint256) internal _deposits;
 }
 
 /**

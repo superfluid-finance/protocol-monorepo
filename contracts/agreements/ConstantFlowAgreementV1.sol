@@ -69,10 +69,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
-        //address sender = ContextLibrary.getCaller(ctx);
         address sender = ContextLibrary.decode(ctx).msgSender;
-
-
         bytes32 flowId = _generateId(sender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
         bytes memory cbdata;
@@ -82,7 +79,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
         _updateFlow(token, sender, receiver, flowRate);
         newCtx = AgreementLibrary.afterAgreementCreated(
-            ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
+            ISuperfluid(host),
+            token,
+            _updateCtxDeposit(host, receiver, newCtx),
+            address(this),
+            receiver,
+            flowId,
+            cbdata
         );
     }
 
@@ -112,7 +115,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
         _updateFlow(token, sender, receiver, flowRate);
         newCtx = AgreementLibrary.afterAgreementUpdated(
-            ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
+            ISuperfluid(host),
+            token,
+            _updateCtxDeposit(host, receiver, newCtx),
+            address(this),
+            receiver,
+            flowId,
+            cbdata
         );
     }
 
@@ -145,7 +154,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
         _terminateAgreementData(token, sender, receiver, isLiquidator);
         newCtx = AgreementLibrary.afterAgreementTerminated(
-                ISuperfluid(host), token, newCtx, address(this), receiver, flowId, cbdata
+            ISuperfluid(host),
+            token,
+            _updateCtxDeposit(host, receiver, newCtx),
+            address(this),
+            receiver,
+            flowId,
+            cbdata
         );
     }
 
@@ -232,7 +247,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory oldFlowData = token.getAgreementData(address(this), flowId);
-        (, , , int256 oldFlowRate, uint256 deposit) = _decodeData(oldFlowData);
+        (, , , int256 oldFlowRate, ) = _decodeData(oldFlowData);
         bytes memory newFlowData = _encodeData(
             block.timestamp,
             sender,
@@ -305,7 +320,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
         return keccak256(abi.encodePacked(sender, receiver));
     }
-
 
     function _encodeData
     (
@@ -425,5 +439,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         deposit = Math.max(
             uint256(minDeposit),
             uint256(flowRate) * uint256(liquidationPeriod));
+    }
+
+    function _updateCtxDeposit(address host, address app, bytes memory ctx) internal returns(bytes memory newCtx) {
+        if(ISuperfluid(host).isApp(app)) {
+            return ISuperfluid(host).updateCtxDeposit(newCtx);
+        }
+
+        return ctx;
     }
 }

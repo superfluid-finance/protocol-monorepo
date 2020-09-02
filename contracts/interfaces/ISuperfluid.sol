@@ -9,7 +9,7 @@ import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 interface ISuperfluid {
 
     enum TypeOperation {
-        Transfer, //0
+        TransferFrom, //0
         Upgrade, //1
         Downgrade, //2
         CallAgreement, //3

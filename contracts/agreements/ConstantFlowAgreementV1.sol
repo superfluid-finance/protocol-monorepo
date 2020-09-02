@@ -87,6 +87,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             flowId,
             cbdata
         );
+        //check initial credit
+        //c
     }
 
     function updateFlow(
@@ -440,7 +442,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             uint256(minDeposit),
             uint256(flowRate) * uint256(liquidationPeriod));
     }
-
+    //this go to the library
     function _updateCtxDeposit(address host, address app, bytes memory ctx) internal returns(bytes memory newCtx) {
         if(ISuperfluid(host).isApp(app)) {
             return ISuperfluid(host).updateCtxDeposit(newCtx);

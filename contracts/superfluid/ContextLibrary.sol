@@ -11,7 +11,8 @@ library ContextLibrary {
         uint8 level;
         address msgSender;
         uint256 gasRequirement;
-        uint256 depositAllowance;
+        uint256 allowance;
+        uint256 allowanceUsed;
     }
 
     /**
@@ -22,7 +23,8 @@ library ContextLibrary {
             context.level,
             context.msgSender,
             context.gasRequirement,
-            context.depositAllowance
+            context.allowance,
+            context.allowanceUsed
         );
         ctxStamp = keccak256(abi.encodePacked(ctx));
     }
@@ -32,8 +34,9 @@ library ContextLibrary {
             context.level,
             context.msgSender,
             context.gasRequirement,
-            context.depositAllowance
-        ) = abi.decode(ctx, (uint8, address, uint256, uint256));
+            context.allowance,
+            context.allowanceUsed
+        ) = abi.decode(ctx, (uint8, address, uint256, uint256, uint256));
     }
 
     function validate(bytes memory ctx, bytes32 ctxStamp) internal pure returns (bool) {

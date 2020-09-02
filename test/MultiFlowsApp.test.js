@@ -98,7 +98,7 @@ contract("MultiFlowsApp", accounts => {
         console.log("App", appNetFlowAfter);
     });
 
-    it("#1 MultiFlowsApp Batch Call", async () => {
+    it("#2 MultiFlowsApp Batch Call", async () => {
 
         await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
         const app = await web3tx(MultiApp.new, "MultiApp.new")(cfa.address, superfluid.address);

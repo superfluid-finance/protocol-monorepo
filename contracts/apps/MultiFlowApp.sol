@@ -10,6 +10,7 @@ import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 // FIXME Create and use a SuperAppBase abstract contract,
 //       which implements all the callbacks as reverts.
 //       - Revert(callback not implemented constant string)
+//FIXME - MsgSender can be different from flowSender
 contract MultiFlowsApp is SuperAppBase {
 
     struct ReceiverData {

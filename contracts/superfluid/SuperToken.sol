@@ -621,8 +621,8 @@ contract SuperToken is
 
     function takeDeposit(address account, int256 deposit) external override {
         //TODO: Lock to only agreement call
-        _balances[account].sub(deposit);
-        _deposits[account].add(uint256(deposit));
+        _balances[account] = _balances[account].sub(deposit);
+        _deposits[account] = _deposits[account].add(uint256(deposit));
     }
 
     function _partialSettle(address account, int256 delta) internal {

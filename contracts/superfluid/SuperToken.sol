@@ -10,7 +10,6 @@ import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
-
 /**
  * @dev Storage layout of SuperToken
  */
@@ -377,7 +376,7 @@ contract SuperToken is
         external
         override
     {
-        require(_agreementData[msg.sender][id].length == 0, "SuperToken: agreement already exist");
+        //require(_agreementData[msg.sender][id].length == 0, "SuperToken: agreement already exist");
         _agreementData[msg.sender][id] = data;
         emit AgreementCreated(msg.sender, id, data);
     }
@@ -607,4 +606,16 @@ contract SuperToken is
     function updateCode(address newAddress) external onlyOwner {
         return _updateCodeAddress(newAddress);
     }
+
+    function takeDeposit(address account, int256 deposit) external override {
+        //TODO: Lock to only agreement call
+        _balances[account].sub(deposit);
+        _deposits[account].add(uint256(deposit));
+    }
+
+    function _partialSettle(address account, int256 delta) internal {
+        //TODO: Lock caller to be agreement
+        _balances[account] = _balances[account].add(delta);
+    }
+
 }

@@ -456,9 +456,16 @@ contract Superfluid is
         ///TODO
     }
 
-    function updateCtxDeposit(bytes calldata ctx) external override returns(bytes memory newCtx) {
+    function updateCtxDeposit(
+        bytes calldata ctx,
+        uint8 depositAllowance
+    )
+        external
+        override
+        returns(bytes memory newCtx)
+    {
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
-        stcCtx.allowance++;
+        stcCtx.allowance = uint256(depositAllowance);
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 
@@ -492,7 +499,11 @@ contract Superfluid is
         } else if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_SECOND > 0) {
             return 2;
         }
-        revert("Superfluid: invalid app level");
+        return 0;
+    }
+
+    function getAppLevel(address appAddr) external override view returns(uint8) {
+        return _getAppLevel(appAddr);
     }
 
     function _callExternal(

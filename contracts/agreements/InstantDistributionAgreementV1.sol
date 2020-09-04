@@ -182,6 +182,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         token.updateAgreementData(pId, _encodePublisherData(pdata));
         // update subscriptiond data
         // FIXME touch subscriber balance first
+        //token.settle(subscriber, delta);
         sdata.indexValue = pdata.indexValue;
         sdata.units = units;
         token.updateAgreementData(sId, _encodeSubscriptionData(sdata));

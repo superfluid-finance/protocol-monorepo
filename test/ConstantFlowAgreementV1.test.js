@@ -39,7 +39,6 @@ contract("Constant Flow Agreement", accounts => {
     });
 
     describe("#1 FlowAgreement.createFlow", () => {
-
         it("#1.1 should start a new flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             const dataAgreement = cfa.contract.methods.createFlow(
@@ -499,6 +498,7 @@ contract("Constant Flow Agreement", accounts => {
 
             await tester.validateSystem();
         });
+
 
         it("#1.9 create self flow should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
@@ -1131,5 +1131,4 @@ contract("Constant Flow Agreement", accounts => {
                 ), "FlowAgreement: flow does not exist");
         });
     });
-
 });

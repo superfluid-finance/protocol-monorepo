@@ -72,26 +72,39 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     {
         // TODO: Decode return cbdata before calling the next step
         (, address host) = token.getFramework();
-        address sender = ContextLibrary.decode(ctx).msgSender;
-        bytes32 flowId = _generateId(sender, receiver);
+        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
+        bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
         bytes memory cbdata;
         (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementCreated(
                 ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
-        _updateFlow(token, sender, receiver, flowRate);
+        _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
+        //uint256 depositSpend = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
         newCtx = AgreementLibrary.afterAgreementCreated(
             ISuperfluid(host),
             token,
-            _updateCtxDeposit(host, receiver, newCtx),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
             address(this),
             receiver,
             flowId,
             cbdata
         );
-        //check initial credit
-        //c
+
+        /*
+        ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
+        //int256 residual = (stcCtx.allowance - depositSpend - stcNewCtx.allowanceUsed);
+        if(stcCtx.allowance < (depositSpend + stcNewCtx.allowanceUsed)) {
+            stcNewCtx.allowanceUsed += stcCtx.allowance;
+            _takeDeposit(token, stcNewCtx.msgSender, (depositSpend + stcNewCtx.allowanceUsed));
+        } else {
+            stcNewCtx.allowanceUsed += depositSpend + stcNewCtx.allowanceUsed;
+        }
+
+        (newCtx, ) = ContextLibrary.encode(stcNewCtx);
+
+        */
     }
 
     function updateFlow(
@@ -122,7 +135,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         newCtx = AgreementLibrary.afterAgreementUpdated(
             ISuperfluid(host),
             token,
-            _updateCtxDeposit(host, receiver, newCtx),
+            newCtx,
+            //ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
             address(this),
             receiver,
             flowId,
@@ -161,7 +175,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         newCtx = AgreementLibrary.afterAgreementTerminated(
             ISuperfluid(host),
             token,
-            _updateCtxDeposit(host, receiver, newCtx),
+            newCtx,
+            //ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
             address(this),
             receiver,
             flowId,
@@ -246,6 +261,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         int256 flowRate
     )
         private
+        returns(uint256 allowanceUsed)
     {
         require(sender != receiver, "FlowAgreement: self flow not allowed");
         require(flowRate != 0, "FlowAgreement: use delete flow");
@@ -253,12 +269,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory oldFlowData = token.getAgreementData(address(this), flowId);
         (, , , int256 oldFlowRate, ) = _decodeData(oldFlowData);
+        allowanceUsed = 0;
+        //allowanceUsed = _minimalDeposit(token, flowRate);
         bytes memory newFlowData = _encodeData(
             block.timestamp,
             sender,
             receiver,
             flowRate,
-            _minimalDeposit(token, flowRate)
+            allowanceUsed
         );
         token.createAgreement(flowId, newFlowData);
 
@@ -445,12 +463,9 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             uint256(minDeposit),
             uint256(flowRate) * uint256(liquidationPeriod));
     }
-    //this go to the library
-    function _updateCtxDeposit(address host, address app, bytes memory ctx) internal returns(bytes memory newCtx) {
-        if(ISuperfluid(host).isApp(app)) {
-            return ISuperfluid(host).updateCtxDeposit(newCtx);
-        }
 
-        return ctx;
+    function _takeDeposit(ISuperToken /*token*/, address /*account*/, uint256 /*deposit*/) internal {
+        uint a = 1;
+        a = 1;
     }
 }

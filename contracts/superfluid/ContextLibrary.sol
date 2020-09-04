@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
+
+import "../interfaces/ISuperfluid.sol";
 /*
     Implementation of Context Helper
 */
@@ -63,4 +65,21 @@ library ContextLibrary {
         );
     }
 
+    function updateCtxDeposit(
+        ISuperfluid host,
+        address app,
+        bytes memory ctx
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        if(host.isApp(app)) {
+            return host.updateCtxDeposit(
+                ctx,
+                host.getAppLevel(app)
+            );
+        }
+
+        return ctx;
+    }
 }

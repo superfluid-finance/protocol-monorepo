@@ -124,5 +124,8 @@ interface ISuperfluid {
 
     function isApp(address app) external view returns(bool);
 
-    function updateCtxDeposit(bytes calldata ctx) external returns(bytes memory newCtx);
+    function updateCtxDeposit(bytes calldata ctx, uint8 depositAllowance) external returns(bytes memory newCtx);
+
+    function getAppLevel(address appAddr) external view returns(uint8);
+
 }

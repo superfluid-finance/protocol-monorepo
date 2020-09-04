@@ -8,7 +8,7 @@ import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
-    uint32 public constant MAX_SLOT_ID = 255;
+    uint32 public constant N_SLOTS = 256;
 
     struct PublisherData {
         uint128 indexValue;
@@ -49,7 +49,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         }
         bytes32 pId;
         // read all slots
-        for (uint32 slotId = 0; slotId <= MAX_SLOT_ID; ++slotId) {
+        for (uint32 slotId = 0; slotId < N_SLOTS; ++slotId) {
             if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
             assembly {
                 pId := mload(add(state, mul(0x20, add(slotId , 2))))
@@ -231,7 +231,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             // read all slots
             publishers = new address[](256);
             indexIds = new uint32[](256);
-            for (uint32 slotId = 0; slotId <= MAX_SLOT_ID; ++slotId) {
+            for (uint32 slotId = 0; slotId < N_SLOTS; ++slotId) {
                 if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
                 assembly {
                     pId := mload(add(state, mul(0x20, add(slotId , 2))))
@@ -338,7 +338,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             // create new slot map
             // 1 word: slotBitmap
             // 256 words: slots storing pId array
-            state = new bytes(257 * 32);
+            state = new bytes((N_SLOTS + 1) * 32);
             assembly {
                 mstore(add(state, 0x20), 1)
                 mstore(add(state, 0x40), pId)
@@ -350,7 +350,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             assembly {
                 slotBitmap := mload(add(state, 0x20))
             }
-            for (slotId = 0; slotId <= MAX_SLOT_ID; ++slotId) {
+            for (slotId = 0; slotId < N_SLOTS; ++slotId) {
                 if ((uint256(slotBitmap >> slotId) & 1) == 0) {
                     // slot is empty
                     assembly {

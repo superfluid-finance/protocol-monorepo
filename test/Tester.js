@@ -13,6 +13,8 @@ const {
     toBN
 } = require("@decentral.ee/web3-helpers");
 
+const AUM_DUST_AMOUNT = toBN(10000);
+
 module.exports = class Tester {
 
     constructor(accounts) {
@@ -171,6 +173,8 @@ module.exports = class Tester {
 
         assert.isTrue(aum.gte(rtBalanceSum),
             "AUM should be equal or more than the real-time balance sum");
+        assert.isTrue(aum.sub(rtBalanceSum).lte(AUM_DUST_AMOUNT),
+            "AUM minus the real-time balance sum should only be a dust amount");
         assert.equal(wad4human(aum, 8), wad4human(rtBalanceSum, 8),
             "AUM should match the real-time balance sum to at least 8 decimals during testing");
         assert.equal(aum.toString(), totalSupply.toString(),

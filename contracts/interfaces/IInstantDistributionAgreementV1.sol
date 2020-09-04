@@ -5,35 +5,88 @@ import "./ISuperToken.sol";
 import "./ISuperAgreement.sol";
 
 /**
- * @title Superfluid's flow agreement interface
+ * @title Superfluid's instant distribution agreement interface
  * @author Superfluid
+ *
+ * Notes:
+ *   - indexId is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
+ *     Even if sha-3 collision is only theoratical.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
     function createIndex(
         ISuperToken token,
-        uint256 indexId,
+        uint32 indexId,
         bytes calldata ctx)
             external
             virtual
             returns(bytes memory newCtx);
+
+    function getIndex(
+        ISuperToken token,
+        address publisher,
+        uint32 indexId)
+            external
+            view
+            virtual
+            returns(uint128 indexValue, uint128 totalUnits);
 
     function updateIndex(
         ISuperToken token,
-        uint256 indexId,
-        uint256 indexValue,
+        uint32 indexId,
+        uint128 indexValue,
         bytes calldata ctx)
             external
             virtual
             returns(bytes memory newCtx);
 
-    function createSubscription(
+    function approveSubscription(
         ISuperToken token,
-        address receiver,
-        uint256 units,
+        address publisher,
+        uint32 indexId,
         bytes calldata ctx)
             external
             virtual
             returns(bytes memory newCtx);
+
+    function updateSubscription(
+        ISuperToken token,
+        uint32 indexId,
+        address subscriber,
+        uint128 units,
+        bytes calldata ctx)
+            external
+            virtual
+            returns(bytes memory newCtx);
+
+    function getSubscriptionUnits(
+        ISuperToken token,
+        address publisher,
+        uint32 indexId,
+        address subscriber)
+            external
+            view
+            virtual
+            returns(uint128 units);
+
+    function listSubscriptions(
+        ISuperToken token,
+        address subscriber)
+            external
+            view
+            virtual
+            returns(
+                address[] memory publishers,
+                uint32[] memory indexIds);
+
+    /*
+    function deleteSubscription(
+        ISuperToken token,
+        uint32 indexId,
+        address subscriber,
+        bytes calldata ctx)
+            external
+            virtual
+            returns(bytes memory newCtx); */
 
 }

@@ -26,6 +26,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
      */
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
+        ISuperToken /* token */,
+        address /* account */,
         bytes calldata data,
         uint256 time
     )
@@ -44,6 +46,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     /// @dev ISuperAgreement.touch implementation
     function touch(
+        address /* account */,
         bytes memory currentData,
         uint256 timestamp
     )

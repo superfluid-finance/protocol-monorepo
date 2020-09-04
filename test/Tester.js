@@ -3,6 +3,7 @@ const SuperToken = artifacts.require("SuperToken");
 const TestToken = artifacts.require("TestToken");
 const TestGovernance = artifacts.require("TestGovernance");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
+const InstantDistributionAgreementV1 = artifacts.require("InstantDistributionAgreementV1");
 const Superfluid = artifacts.require("Superfluid");
 
 const {
@@ -110,8 +111,14 @@ module.exports = class Tester {
             )).wrapperAddress
         );
 
-        // flow agreement contract
+        // CFA contract
         this.contracts.cfa = await web3tx(ConstantFlowAgreementV1.new, "ConstantFlowAgreementV1.new")(
+            {
+                from: this.aliases.admin
+            });
+
+        // IDA contract
+        this.contracts.ida = await web3tx(InstantDistributionAgreementV1.new, "InstantDistributionAgreementV1.new")(
             {
                 from: this.aliases.admin
             });

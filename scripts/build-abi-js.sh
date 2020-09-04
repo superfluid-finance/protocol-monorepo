@@ -11,6 +11,7 @@ CONTRACTS=(
     ISuperfluid
     ISuperToken
     IConstantFlowAgreementV1
+    IInstantDistributionAgreementV1
 )
 
 echo "if (typeof module === \"undefined\") module = {};"

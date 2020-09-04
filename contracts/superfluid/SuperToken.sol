@@ -506,6 +506,8 @@ contract SuperToken is
             agreementClass = _activeAgreementClasses[account][i];
             eachAgreementClassBalance = eachAgreementClassBalance.add(
                 ISuperAgreement(agreementClass).realtimeBalanceOf(
+                    this,
+                    account,
                     _accountStates[agreementClass][account],
                     timestamp)
             );
@@ -527,6 +529,7 @@ contract SuperToken is
 
             agreementClass = _activeAgreementClasses[account][i];
             touchState = ISuperAgreement(agreementClass).touch(
+                account,
                 _accountStates[agreementClass][account],
                 block.timestamp);
 

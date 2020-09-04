@@ -80,8 +80,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             AgreementLibrary.beforeAgreementCreated(
                 ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
-        _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
-        //uint256 depositSpend = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
+        uint256 depositSpend = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
         newCtx = AgreementLibrary.afterAgreementCreated(
             ISuperfluid(host),
             token,
@@ -92,7 +91,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             cbdata
         );
 
-        /*
         ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
         //int256 residual = (stcCtx.allowance - depositSpend - stcNewCtx.allowanceUsed);
         if(stcCtx.allowance < (depositSpend + stcNewCtx.allowanceUsed)) {
@@ -103,8 +101,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         }
 
         (newCtx, ) = ContextLibrary.encode(stcNewCtx);
-
-        */
     }
 
     function updateFlow(
@@ -135,8 +131,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         newCtx = AgreementLibrary.afterAgreementUpdated(
             ISuperfluid(host),
             token,
-            newCtx,
-            //ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
             address(this),
             receiver,
             flowId,
@@ -175,8 +170,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         newCtx = AgreementLibrary.afterAgreementTerminated(
             ISuperfluid(host),
             token,
-            newCtx,
-            //ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
             address(this),
             receiver,
             flowId,

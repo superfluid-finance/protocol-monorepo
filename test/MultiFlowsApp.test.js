@@ -58,6 +58,12 @@ contract("MultiFlowsApp", accounts => {
         const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
         const carolNetFlow = await cfa.getNetFlow.call(superToken.address, carol);
 
+        const aliceDeposit = await superToken.depositBalanceOf.call(alice);
+        const appDeposit = await superToken.depositBalanceOf.call(app.address);
+
+        console.log("Alice Deposit", aliceDeposit.toString());
+        console.log("App Deposit", appDeposit.toString());
+
         /*
         console.log("Alice", aliceNetFlow.toString());
         console.log("Bob", bobNetFlow.toString());

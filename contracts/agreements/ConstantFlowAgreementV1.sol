@@ -92,7 +92,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
 
         ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
-        //int256 residual = (stcCtx.allowance - depositSpend - stcNewCtx.allowanceUsed);
         if(stcCtx.allowance < (depositSpend + stcNewCtx.allowanceUsed)) {
             stcNewCtx.allowanceUsed += stcCtx.allowance;
             _takeDeposit(token, stcNewCtx.msgSender, (depositSpend + stcNewCtx.allowanceUsed));
@@ -263,8 +262,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory oldFlowData = token.getAgreementData(address(this), flowId);
         (, , , int256 oldFlowRate, ) = _decodeData(oldFlowData);
-        allowanceUsed = 0;
-        //allowanceUsed = _minimalDeposit(token, flowRate);
+        allowanceUsed = _minimalDeposit(token, flowRate);
         bytes memory newFlowData = _encodeData(
             block.timestamp,
             sender,
@@ -458,8 +456,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             uint256(flowRate) * uint256(liquidationPeriod));
     }
 
-    function _takeDeposit(ISuperToken /*token*/, address /*account*/, uint256 /*deposit*/) internal {
-        uint a = 1;
-        a = 1;
+    function _takeDeposit(ISuperToken token, address account, uint256 deposit) internal {
+        token.takeDeposit(account, int256(deposit));
     }
 }

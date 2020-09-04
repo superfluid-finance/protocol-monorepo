@@ -339,6 +339,18 @@ contract SuperToken is
     *   Agreement functions
     */
 
+
+    function depositBalanceOf(
+        address account
+    )
+        external
+        view
+        override
+        returns(uint256 deposit)
+    {
+        return _deposits[account];
+    }
+
     /// @dev ISuperToken.getAgreementAccountState implementation
     function getAgreementAccountState(
         address agreementClass,

@@ -16,6 +16,7 @@ import { ContextLibrary } from "./ContextLibrary.sol";
 
 
 contract SuperfluidStorage {
+
     struct AppManifest {
         uint256 configWord;
     }
@@ -458,14 +459,21 @@ contract Superfluid is
 
     function updateCtxDeposit(
         bytes calldata ctx,
-        uint8 depositAllowance
+        address receiver,
+        uint256 unitOfAllowance
     )
         external
         override
         returns(bytes memory newCtx)
     {
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
-        stcCtx.allowance = uint256(depositAllowance);
+        if(_isApp(stcCtx.msgSender) && _isApp(receiver)) {
+            stcCtx.allowance = uint256(_getAppLevel(receiver) * unitOfAllowance);
+        } else if(!_isApp(stcCtx.msgSender) && _isApp(receiver)) {
+            stcCtx.allowance = 3 * unitOfAllowance;
+            stcCtx.allowanceUsed = unitOfAllowance;
+        }
+
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 

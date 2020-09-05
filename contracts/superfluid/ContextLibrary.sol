@@ -67,19 +67,31 @@ library ContextLibrary {
 
     function updateCtxDeposit(
         ISuperfluid host,
-        address app,
-        bytes memory ctx
+        address receiver,
+        bytes memory ctx,
+        uint256 unitOfAllowance
     )
         internal
         returns(bytes memory newCtx)
     {
+
+        return host.updateCtxDeposit(
+            ctx,
+            receiver,
+            unitOfAllowance
+        );
+
+        /*
+
         if(host.isApp(app)) {
             return host.updateCtxDeposit(
                 ctx,
-                host.getAppLevel(app)
+                host.getAppLevel(app),
+                unitOfAllowance
             );
         }
 
         return ctx;
+        */
     }
 }

@@ -81,10 +81,11 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
                 ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
         uint256 depositSpend = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
+
         newCtx = AgreementLibrary.afterAgreementCreated(
             ISuperfluid(host),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx, depositSpend),
             address(this),
             receiver,
             flowId,
@@ -94,6 +95,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
         if(stcCtx.allowance < (depositSpend + stcNewCtx.allowanceUsed)) {
             stcNewCtx.allowanceUsed += stcCtx.allowance;
+            //_takeDeposit(token, stcNewCtx.msgSender, (depositSpend + stcNewCtx.allowanceUsed));
             _takeDeposit(token, stcNewCtx.msgSender, (depositSpend + stcNewCtx.allowanceUsed));
         } else {
             stcNewCtx.allowanceUsed += depositSpend + stcNewCtx.allowanceUsed;
@@ -126,11 +128,11 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             AgreementLibrary.beforeAgreementUpdated(
             ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
-        _updateFlow(token, sender, receiver, flowRate);
+        uint256 depositSpend = _updateFlow(token, sender, receiver, flowRate);
         newCtx = AgreementLibrary.afterAgreementUpdated(
             ISuperfluid(host),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx, depositSpend),
             address(this),
             receiver,
             flowId,
@@ -169,7 +171,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         newCtx = AgreementLibrary.afterAgreementTerminated(
             ISuperfluid(host),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx, 0),
             address(this),
             receiver,
             flowId,
@@ -454,6 +456,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         deposit = Math.max(
             uint256(minDeposit),
             uint256(flowRate) * uint256(liquidationPeriod));
+
+        return deposit;
     }
 
     function _takeDeposit(ISuperToken token, address account, uint256 deposit) internal {

@@ -58,9 +58,9 @@ contract("MultiFlowsApp", accounts => {
         const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
         const carolNetFlow = await cfa.getNetFlow.call(superToken.address, carol);
 
-        const aliceDeposit = await superToken.depositBalanceOf.call(alice);
-        const bobDeposit = await superToken.depositBalanceOf.call(bob);
-        const appDeposit = await superToken.depositBalanceOf.call(app.address);
+        let aliceDeposit = await superToken.depositBalanceOf.call(alice);
+        let bobDeposit = await superToken.depositBalanceOf.call(bob);
+        let appDeposit = await superToken.depositBalanceOf.call(app.address);
 
         console.log("Alice Deposit", aliceDeposit.toString());
         console.log("Bob Deposit", bobDeposit.toString());
@@ -104,6 +104,14 @@ contract("MultiFlowsApp", accounts => {
         console.log("Bob", bobNetFlowAfter.toString());
         console.log("Carol", carolNetFlowAfter.toString());
         console.log("App", appNetFlowAfter);
+
+        aliceDeposit = await superToken.depositBalanceOf.call(alice);
+        bobDeposit = await superToken.depositBalanceOf.call(bob);
+        appDeposit = await superToken.depositBalanceOf.call(app.address);
+
+        console.log("Alice Deposit", aliceDeposit.toString());
+        console.log("Bob Deposit", bobDeposit.toString());
+        console.log("App Deposit", appDeposit.toString());
     });
 
     it("#2 MultiFlowsApp Batch Call", async () => {

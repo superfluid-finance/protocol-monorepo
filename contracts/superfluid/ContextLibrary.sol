@@ -11,8 +11,8 @@ library ContextLibrary {
     /// The context structure
     struct Context {
         uint8 level;
+        address msgOrigin;
         address msgSender;
-        uint256 gasRequirement;
         uint256 allowance;
         uint256 allowanceUsed;
     }
@@ -23,8 +23,8 @@ library ContextLibrary {
     function encode(Context memory context) internal pure returns (bytes memory ctx, bytes32 ctxStamp) {
         ctx = abi.encode(
             context.level,
+            context.msgOrigin,
             context.msgSender,
-            context.gasRequirement,
             context.allowance,
             context.allowanceUsed
         );
@@ -34,11 +34,11 @@ library ContextLibrary {
     function decode(bytes memory ctx) internal pure returns (Context memory context) {
         (
             context.level,
+            context.msgOrigin,
             context.msgSender,
-            context.gasRequirement,
             context.allowance,
             context.allowanceUsed
-        ) = abi.decode(ctx, (uint8, address, uint256, uint256, uint256));
+        ) = abi.decode(ctx, (uint8, address, address, uint256, uint256));
     }
 
     function validate(bytes memory ctx, bytes32 ctxStamp) internal pure returns (bool) {
@@ -80,18 +80,5 @@ library ContextLibrary {
             receiver,
             unitOfAllowance
         );
-
-        /*
-
-        if(host.isApp(app)) {
-            return host.updateCtxDeposit(
-                ctx,
-                host.getAppLevel(app),
-                unitOfAllowance
-            );
-        }
-
-        return ctx;
-        */
     }
 }

@@ -320,7 +320,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender, 0, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -340,7 +340,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender,  0, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -397,7 +397,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender, 0, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -424,7 +424,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, _GAS_RESERVATION, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender, 0, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));

@@ -619,10 +619,12 @@ contract SuperToken is
         return _updateCodeAddress(newAddress);
     }
 
-    function takeDeposit(address account, int256 deposit) external override {
+    function takeDeposit(address from, address to, int256 deposit) external override {
         //TODO: Lock to only agreement call
-        _balances[account] = _balances[account].sub(deposit);
-        _deposits[account] = _deposits[account].add(uint256(deposit));
+        require(from != address(0), "Can't take deposit from zero account");
+        require(to != address(0), "Can't deposit to zero account");
+        _balances[from] = _balances[from].sub(deposit);
+        _deposits[to] = _deposits[to].add(uint256(deposit));
     }
 
     function _partialSettle(address account, int256 delta) internal {

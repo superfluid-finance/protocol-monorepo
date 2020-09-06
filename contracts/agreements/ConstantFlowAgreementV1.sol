@@ -93,12 +93,12 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
 
         ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
-        if(stcCtx.allowance < (depositSpend + stcNewCtx.allowanceUsed)) {
+        if(stcCtx.allowance <= depositSpend) {
             stcNewCtx.allowanceUsed += stcCtx.allowance;
-            //_takeDeposit(token, stcNewCtx.msgSender, (depositSpend + stcNewCtx.allowanceUsed));
-            _takeDeposit(token, stcNewCtx.msgSender, (depositSpend + stcNewCtx.allowanceUsed));
+            _takeDeposit(token, stcNewCtx.msgOrigin, stcNewCtx.msgSender, depositSpend);
         } else {
-            stcNewCtx.allowanceUsed += depositSpend + stcNewCtx.allowanceUsed;
+            //stcNewCtx.allowanceUsed += depositSpend + stcNewCtx.allowanceUsed;
+            _takeDeposit(token, stcNewCtx.msgOrigin, stcNewCtx.msgSender, stcNewCtx.allowanceUsed - depositSpend);
         }
 
         (newCtx, ) = ContextLibrary.encode(stcNewCtx);
@@ -460,7 +460,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         return deposit;
     }
 
-    function _takeDeposit(ISuperToken token, address account, uint256 deposit) internal {
-        token.takeDeposit(account, int256(deposit));
+    function _takeDeposit(ISuperToken token, address from, address to, uint256 deposit) internal {
+        token.takeDeposit(from, to, int256(deposit));
     }
 }

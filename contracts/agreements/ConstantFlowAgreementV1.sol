@@ -167,7 +167,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             AgreementLibrary.beforeAgreementTerminated(
                 ISuperfluid(host), token, ctx, address(this), receiver, flowId
         );
-        _terminateAgreementData(token, sender, receiver, isLiquidator);
+        uint256 releasedDeposit = _terminateAgreementData(token, sender, receiver, isLiquidator);
         newCtx = AgreementLibrary.afterAgreementTerminated(
             ISuperfluid(host),
             token,
@@ -177,6 +177,11 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             flowId,
             cbdata
         );
+
+        ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
+        _refundDeposit(token, stcNewCtx.msgSender, stcNewCtx.msgOrigin, releasedDeposit);
+
+        (newCtx, ) = ContextLibrary.encode(stcNewCtx);
     }
 
     /// @dev IFlowAgreement.getFlow implementation
@@ -295,6 +300,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bool liquidation
     )
         private
+        returns(uint256 deposit)
     {
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory flowData = token.getAgreementData(address(this), flowId);
@@ -306,13 +312,15 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         int256 totalReceiverFlowRate = _updateAccountState(token, receiver, _mirrorFlowRate(senderFlowRate));
 
         // note : calculate the deposit here and pass it to superToken, and emit the events.
+        deposit = _minimalDeposit(token, senderFlowRate);
+
         // Close this Agreement Data
         if (liquidation) {
             token.liquidateAgreement(
                 msg.sender,
                 flowId,
                 sender,
-                _minimalDeposit(token, senderFlowRate)
+                deposit
             );
         } else {
             token.terminateAgreement(flowId);
@@ -462,5 +470,9 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     function _takeDeposit(ISuperToken token, address from, address to, uint256 deposit) internal {
         token.takeDeposit(from, to, int256(deposit));
+    }
+
+    function _refundDeposit(ISuperToken token, address from, address to, uint256 deposit) internal {
+        token.refundDeposit(from, to, int256(deposit));
     }
 }

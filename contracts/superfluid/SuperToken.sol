@@ -627,6 +627,15 @@ contract SuperToken is
         _deposits[to] = _deposits[to].add(uint256(deposit));
     }
 
+    //FIXME: Merge with takeDeposit
+    function refundDeposit(address from, address to, int256 deposit) external override {
+        //TODO: Lock to only agreement call
+        require(from != address(0), "Can't take refund from zero account");
+        require(to != address(0), "Can't refund to zero account");
+        _deposits[from] = _deposits[from].sub(uint256(deposit));
+        _balances[to] = _balances[to].add(deposit);
+    }
+
     function _partialSettle(address account, int256 delta) internal {
         //TODO: Lock caller to be agreement
         _balances[account] = _balances[account].add(delta);

@@ -242,6 +242,14 @@ abstract contract ISuperToken is IERC20, TokenInfo {
         external
         virtual;
 
+    function refundDeposit(
+        address from,
+        address to,
+        int256 deposit
+    )
+        external
+        virtual;
+
     function depositBalanceOf(
         address account
     )

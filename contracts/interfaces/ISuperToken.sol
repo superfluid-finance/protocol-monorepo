@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.5.0;
+pragma experimental ABIEncoderV2;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { TokenInfo } from "./TokenInfo.sol";
+import { ERC20WithTokenInfo } from "./ERC20WithTokenInfo.sol";
 
 /**
  * @title Superfluid's token interface
  * @author Superfluid
  */
-abstract contract ISuperToken is IERC20, TokenInfo {
+abstract contract ISuperToken is ERC20WithTokenInfo {
 
-    /*
-     * Agreement functions
-     */
+    /**************************************************************************
+     * Agreement hosting functions
+     *************************************************************************/
 
     /// @notice Create a new agreement
     /// @param id Agreement ID
@@ -145,9 +145,48 @@ abstract contract ISuperToken is IERC20, TokenInfo {
         view
         returns (bytes memory state);
 
-    /*
+    /// @notice Update agreement state slot
+    /// @param account Account to be updated
+    //
+    // Notes:
+    // - To clear the storage out, provide zero-ed array of intended length
+    function updateAgreementStateSlot(
+        address account,
+        uint256 slotId,
+        bytes32[] calldata slotData
+    )
+        external
+        virtual;
+
+    /// @notice Agreement account state updated event
+    /// @param agreementClass Contract address of the agreement
+    /// @param account Account updated
+    /// @param slotId slot id of the agreement state
+    event AgreementStateUpdated(
+        address indexed agreementClass,
+        address indexed account,
+        uint256 slotId
+    );
+
+    /// @notice Get data of the slot of the state of a agreement
+    /// @param agreementClass Contract address of the agreement
+    /// @param account Account to query
+    /// @param slotId slot id of the state
+    /// @param length length of the state data
+    function getAgreementStateSlot(
+        address agreementClass,
+        address account,
+        uint256 slotId,
+        uint length
+    )
+        external
+        virtual
+        view
+        returns (bytes32[] memory slotData);
+
+    /**************************************************************************
      * Account functions
-     */
+     *************************************************************************/
 
      /// @notice Get a list of agreements that is active for the account
      /// @dev An active agreement is one that has state for the account
@@ -187,18 +226,13 @@ abstract contract ISuperToken is IERC20, TokenInfo {
          view
          returns (int256);
 
-    /// @notice Return the Governance Contract that rule this SuperToken
-    /// @return Governance address
-    function getGovernanceAddress() external virtual view returns(address);
+    /**************************************************************************
+     * ERC20 wrapping
+     *************************************************************************/
 
-
-    /// @notice Return the underlaying token contract
-    /// @return Underlying token address
-    function getUnderlayingToken() external virtual view returns(address);
-
-    /*
-     * ERC20 compatability functions
-     */
+     /// @notice Return the underlaying token contract
+     /// @return Underlying token address
+     function getUnderlayingToken() external virtual view returns(address);
 
     /// @notice Upgrade ERC20 to SuperToken.
     /// @dev It will use ´transferFrom´ to get tokens. Before calling this
@@ -227,8 +261,18 @@ abstract contract ISuperToken is IERC20, TokenInfo {
         uint256 amount
     );
 
+    /**************************************************************************
+    * System functions
+    *************************************************************************/
 
-    function getFramework()
+    /// @notice Return the Governance Contract that rule this SuperToken
+    /// @return Governance address
+    function getGovernanceAddress() external virtual view returns(address);
+
+    /**************************************************************************
+     * Agreement functions (TODO move up)
+     *************************************************************************/
+    function getFramework() // FIXME delete this one
         external
         virtual
         view

@@ -8,7 +8,10 @@ import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
-    uint32 public constant N_SLOTS = 256;
+    uint32 public constant MAX_NUM_SLOTS = 256;
+
+    uint256 public constant SUBSCRIPTION_STATE_SLOT_BITMAP_ID = 0;
+    uint256 public constant SUBSCRIPTION_STATE_SLOT_DATA_ID_START = 1 << 128;
 
     struct PublisherData {
         uint128 indexValue;
@@ -30,7 +33,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function realtimeBalanceOf(
         ISuperToken token,
         address subscriber,
-        bytes calldata state_,
+        bytes calldata /* state */,
         uint256 /*time*/
     )
         external
@@ -38,27 +41,25 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         override
         returns (int256 amount) {
         bool exist;
-        bytes memory state = state_; // copy to memory for assembly
         PublisherData memory pdata;
         SubscriptionData memory sdata;
-        if (state.length == 0) return 0;
-        // load slot map
-        uint256 slotBitmap;
-        assembly {
-            slotBitmap := mload(add(state, 0x20))
-        }
-        bytes32 pId;
+        uint256 slotBitmap = uint256(token.getAgreementStateSlot(
+            address(this),
+            subscriber,
+            SUBSCRIPTION_STATE_SLOT_BITMAP_ID, 1)[0]);
         // read all slots
-        for (uint32 slotId = 0; slotId < N_SLOTS; ++slotId) {
+        for (uint32 slotId = 0; slotId < MAX_NUM_SLOTS; ++slotId) {
             if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
-            assembly {
-                pId := mload(add(state, mul(0x20, add(slotId , 2))))
-            }
+            bytes32 pId = token.getAgreementStateSlot(
+                address(this),
+                subscriber,
+                SUBSCRIPTION_STATE_SLOT_DATA_ID_START + slotId, 1)[0];
             bytes32 sId = _getSubscriptionId(subscriber, pId);
             (exist, pdata) = _getPublisherData(token, pId);
             require(exist, "IDAv1: index does not exist");
             (exist, sdata) = _getSubscriptionData(token, sId);
             require(exist, "IDAv1: subscription does not exist");
+            require(sdata.slotId == slotId, "IDAv1: incorrect slot id");
             amount += int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units);
         }
     }
@@ -172,6 +173,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         (exist, pdata) = _getPublisherData(token, pId);
         require(exist, "IDAv1: index does not exist");
         (exist, sdata) = _getSubscriptionData(token, sId);
+        require(sdata.publisher == publisher, "IDAv1: incorrect publisher");
+        require(sdata.indexId == indexId, "IDAv1: incorrect indexId");
         require(exist, "IDAv1: subscription does not exist");
         // update total units
         if (units > sdata.units) {
@@ -218,33 +221,39 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             override
             returns(
                 address[] memory publishers,
-                uint32[] memory indexIds) {
-        bytes memory state = token.getAgreementAccountState(address(this), subscriber);
+                uint32[] memory indexIds,
+                uint128[] memory unitsList) {
+        uint256 slotBitmap = uint256(token.getAgreementStateSlot(
+            address(this),
+            subscriber,
+            SUBSCRIPTION_STATE_SLOT_BITMAP_ID, 1)[0]);
         bool exist;
         SubscriptionData memory sdata;
-        if (state.length > 0) {
-            // load slot map
-            uint256 slotBitmap;
-            assembly {
-                slotBitmap := mload(add(state, 0x20))
-            }
-            bytes32 pId;
-            // read all slots
-            publishers = new address[](256);
-            indexIds = new uint32[](256);
-            for (uint32 slotId = 0; slotId < N_SLOTS; ++slotId) {
-                if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
-                assembly {
-                    pId := mload(add(state, mul(0x20, add(slotId , 2))))
-                }
-                publishers[slotId] = address(uint240(uint256(pId)));
-                bytes32 sId = _getSubscriptionId(subscriber, pId);
-                (exist, sdata) = _getSubscriptionData(token, sId);
-                require(exist, "IDAv1: subscription does not exist");
-                // FIXME compress the list
-                publishers[slotId] = sdata.publisher;
-                indexIds[slotId] = sdata.indexId;
-            }
+        // read all slots
+        uint nSlots;
+        publishers = new address[](MAX_NUM_SLOTS);
+        indexIds = new uint32[](MAX_NUM_SLOTS);
+        unitsList = new uint128[](MAX_NUM_SLOTS);
+        for (uint32 slotId = 0; slotId < MAX_NUM_SLOTS; ++slotId) {
+            if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
+            bytes32 pId = token.getAgreementStateSlot(
+                address(this),
+                subscriber,
+                SUBSCRIPTION_STATE_SLOT_DATA_ID_START + slotId, 1)[0];
+            bytes32 sId = _getSubscriptionId(subscriber, pId);
+            (exist, sdata) = _getSubscriptionData(token, sId);
+            require(exist, "IDAv1: subscription does not exist");
+            require(sdata.slotId == slotId, "IDAv1: incorrect slot id");
+            publishers[nSlots] = sdata.publisher;
+            indexIds[nSlots] = sdata.indexId;
+            unitsList[nSlots] = sdata.units;
+            ++nSlots;
+        }
+        // resize memory
+        assembly {
+            mstore(publishers, nSlots)
+            mstore(indexIds, nSlots)
+            mstore(unitsList, nSlots)
         }
     }
 
@@ -302,7 +311,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         returns (bytes memory data) {
         return abi.encode(
             (uint256(sdata.publisher) << (12*8)) |
-            (uint256(sdata.indexId)) << 32 |
+            (uint256(sdata.indexId) << 32) |
             uint256(sdata.slotId),
             uint256(sdata.indexValue) |
             (uint256(sdata.units) << 128)
@@ -321,8 +330,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         if (exist) {
             (uint256 a, uint256 b) = abi.decode(adata, (uint256, uint256));
             sdata.publisher = address(uint160(a >> (12*8)));
-            sdata.indexId = uint32((a & 0xFFFFFFFF) >> 32);
-            sdata.slotId = uint32(a & 0xFFFF);
+            sdata.indexId = uint32((a >> 32) & uint32(int32(-1)));
+            sdata.slotId = uint32(a & uint32(int32(-1)));
             sdata.indexValue = uint128(b & uint256(int128(-1)));
             sdata.units = uint128(b >> 128);
         }
@@ -334,32 +343,27 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         bytes32 pId)
         private
         returns (uint32 slotId) {
-        bytes memory state = token.getAgreementAccountState(address(this), subscriber);
-        if (state.length == 0) {
-            // create new slot map
-            // 1 word: slotBitmap
-            // 256 words: slots storing pId array
-            state = new bytes((N_SLOTS + 1) * 32);
-            assembly {
-                mstore(add(state, 0x20), 1)
-                mstore(add(state, 0x40), pId)
-            }
-            token.updateAgreementAccountState(subscriber, state);
-        } else {
-            // load slot map
-            uint256 slotBitmap;
-            assembly {
-                slotBitmap := mload(add(state, 0x20))
-            }
-            for (slotId = 0; slotId < N_SLOTS; ++slotId) {
-                if ((uint256(slotBitmap >> slotId) & 1) == 0) {
-                    // slot is empty
-                    assembly {
-                        mstore(state, or(slotBitmap, shl(1, slotId)))
-                        mstore(add(state, mul(0x20, add(slotId , 2))), pId)
-                    }
-                    break;
-                }
+        uint256 slotBitmap = uint256(token.getAgreementStateSlot(
+            address(this),
+            subscriber,
+            SUBSCRIPTION_STATE_SLOT_BITMAP_ID, 1)[0]);
+        for (slotId = 0; slotId < MAX_NUM_SLOTS; ++slotId) {
+            if ((uint256(slotBitmap >> slotId) & 1) == 0) {
+                // update slot data
+                bytes32[] memory slotData = new bytes32[](1);
+                slotData[0] = pId;
+                token.updateAgreementStateSlot(
+                    subscriber,
+                    SUBSCRIPTION_STATE_SLOT_DATA_ID_START + slotId,
+                    slotData);
+                // update slot map
+                slotData[0] = bytes32(slotBitmap | (1 << uint256(slotId)));
+                token.updateAgreementStateSlot(
+                    subscriber,
+                    SUBSCRIPTION_STATE_SLOT_BITMAP_ID,
+                    slotData);
+                // update the slots
+                break;
             }
         }
     }

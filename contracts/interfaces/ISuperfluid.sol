@@ -2,8 +2,9 @@
 pragma solidity >= 0.5.0;
 pragma experimental ABIEncoderV2;
 
-import { IERC20, ISuperToken } from "./ISuperToken.sol";
+import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 interface ISuperfluid {

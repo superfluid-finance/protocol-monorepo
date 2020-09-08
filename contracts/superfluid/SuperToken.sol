@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
+pragma experimental ABIEncoderV2;
 
 import { Proxiable } from "../upgradability/Proxiable.sol";
 import { Ownable } from "../interfaces/Ownable.sol";
-import { IERC20, ISuperToken } from "../interfaces/ISuperToken.sol";
+import { ISuperToken } from "../interfaces/ISuperToken.sol";
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
 import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -461,6 +463,44 @@ contract SuperToken is
         delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
         emit AgreementLiquidated(msg.sender, id, account, remain > 0 ? rewardAccount : liquidator, uint256(deposit));
+    }
+
+    /// @dev ISuperToken.updateAgreementState implementation
+    function updateAgreementStateSlot(
+        address account,
+        uint256 slotId,
+        bytes32[] calldata slotData
+    )
+        external
+        override {
+        address agreementClass = msg.sender;
+        bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
+        for (uint j = 0; j < slotData.length; ++j) {
+            bytes32 d = slotData[j];
+            assembly { sstore(add(slot, j), d) }
+        }
+        _addAgreementClass(agreementClass, account);
+        emit AgreementStateUpdated(agreementClass, account, slotId);
+    }
+
+    /// @dev ISuperToken.getAgreementState implementation
+    function getAgreementStateSlot(
+        address agreementClass,
+        address account,
+        uint256 slotId,
+        uint length
+    )
+        external
+        override
+        view
+        returns (bytes32[] memory slotData) {
+        bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
+        slotData = new bytes32[](length);
+        for (uint j = 0; j < length; ++j) {
+            bytes32 d;
+            assembly { d := sload(add(slot, j)) }
+            slotData[j] = d;
+        }
     }
 
     /*

@@ -77,7 +77,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(
                 address[] memory publishers,
-                uint32[] memory indexIds);
+                uint32[] memory indexIds,
+                uint128[] memory unitsList);
 
     /*
     function deleteSubscription(

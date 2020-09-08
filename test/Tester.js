@@ -125,6 +125,9 @@ module.exports = class Tester {
                 from: this.aliases.admin
             });
 
+        //Register agreements to whiteList
+        await this.contracts.governance.addAgreement.call(this.contracts.cfa.address);
+        await this.contracts.governance.addAgreement.call(this.contracts.ida.address);
         // mint test tokens to test accounts
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];

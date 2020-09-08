@@ -44,4 +44,6 @@ interface ISuperfluidGovernance {
         external
         view
         returns(address);
+
+    function addAgreement(address agreement) external;
 }

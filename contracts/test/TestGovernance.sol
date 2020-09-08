@@ -2,6 +2,7 @@
 pragma solidity 0.7.0;
 
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
+import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
 
 contract TestGovernance is ISuperfluidGovernance {
 
@@ -81,5 +82,14 @@ contract TestGovernance is ISuperfluidGovernance {
 
     function getSuperfluid() external view override returns(address) {
         return _defaultConfig.superfluid;
+    }
+
+    function addAgreement(address agreement) external onlyGovernator override {
+        ISuperfluid(_defaultConfig.superfluid).addAgreement(agreement);
+    }
+
+    modifier onlyGovernator {
+        require(msg.sender == governor, "Gov: Not allowed");
+        _;
     }
 }

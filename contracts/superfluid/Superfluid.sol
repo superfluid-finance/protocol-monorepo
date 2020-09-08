@@ -13,6 +13,7 @@ import { Proxy } from "../upgradability/Proxy.sol";
 import { SuperToken } from "./SuperToken.sol";
 import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
 import { ContextLibrary } from "./ContextLibrary.sol";
+import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
 
 
 contract SuperfluidStorage {
@@ -40,6 +41,8 @@ contract SuperfluidStorage {
     mapping(address => AppManifest) internal _appManifests;
     // Ctx stamp of the current transaction, it should always be cleared to zero before transaction finishes
     bytes32 internal _ctxStamp;
+
+    mapping(address => bool) internal _agreementList;
 }
 
 contract Superfluid is
@@ -261,7 +264,7 @@ contract Superfluid is
     )
         external
         override
-        onlyAgreement
+        //onlyAgreement
         onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata, bytes memory newCtx)
     {
@@ -285,7 +288,7 @@ contract Superfluid is
     )
         external
         override
-        onlyAgreement
+        //onlyAgreement
         onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
@@ -477,11 +480,16 @@ contract Superfluid is
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 
-    /* Basic Law Rules */
-    function _isAgreement(address) internal pure returns(bool) {
-        return true;
+    function addAgreement(address agreement) external onlyGovernance override {
+        require(!_agreementList[agreement], "SF: Agreement is register");
+        _agreementList[agreement] = true;
     }
 
+    function isAgreementValid(address agreement) external view override returns(bool) {
+        return _agreementList[agreement];
+    }
+
+    /* Basic Law Rules */
     function isApp(address app) external view override returns(bool) {
         return _isApp(app);
     }
@@ -562,12 +570,17 @@ contract Superfluid is
     }
 
     modifier onlyAgreement() {
-        require(_isAgreement(msg.sender), "Superfluid: msg.sender is not agreement");
+        require(_agreementList[msg.sender], "SF: Not agreeement");
         _;
     }
 
     modifier onlyApp(address app) {
         require(_isApp(app), "Superfluid: target is not an app");
+        _;
+    }
+
+    modifier onlyGovernance() {
+        require(msg.sender == address(_gov), "SF: action not from governance");
         _;
     }
 

@@ -6,7 +6,6 @@ import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 interface ISuperfluid {
 
     enum TypeOperation {
@@ -135,4 +134,7 @@ interface ISuperfluid {
 
     function getAppLevel(address appAddr) external view returns(uint8);
 
+    function addAgreement(address agreement) external;
+
+    function isAgreementValid(address agreement) external view returns(bool);
 }

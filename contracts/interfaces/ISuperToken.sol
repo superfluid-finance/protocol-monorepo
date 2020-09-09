@@ -184,6 +184,16 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         view
         returns (bytes32[] memory slotData);
 
+    function chargeDeposit(
+        address account,
+        bytes32 flowId,
+        int256 charge,
+        bytes memory data,
+        bytes memory state
+    )
+        external
+        virtual;
+
     /**************************************************************************
      * Account functions
      *************************************************************************/
@@ -273,27 +283,9 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /**************************************************************************
     * System functions
     *************************************************************************/
-
     /// @notice Return the Governance Contract that rule this SuperToken
     /// @return Governance address
+    ///
+    /// FIXME move to the ctx
     function getGovernanceAddress() external virtual view returns(address);
-
-    /**************************************************************************
-     * Agreement functions (TODO move up)
-     *************************************************************************/
-    function getFramework() // FIXME delete this one
-        external
-        virtual
-        view
-        returns(address gov, address superfluid);
-
-    function chargeDeposit(
-        address account,
-        bytes32 flowId,
-        int256 charge,
-        bytes memory data,
-        bytes memory state
-    )
-        external
-        virtual;
 }

@@ -85,22 +85,21 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         returns(bytes memory newCtx)
     {
         // TODO: Decode return cbdata before calling the next step
-        (, address host) = token.getFramework();
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
         bytes memory cbdata;
         (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementCreated(
-                ISuperfluid(host), token, ctx, address(this), receiver, flowId
+                ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
         //depositSpend define the max allowance to next step
         int256 depositSpend = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
 
         newCtx = AgreementLibrary.afterAgreementCreated(
-            ISuperfluid(host),
+            ISuperfluid(msg.sender),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx, depositSpend),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend),
             address(this),
             receiver,
             flowId,
@@ -135,8 +134,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     {
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
-        (, address host) = token.getFramework();
-        require(host == msg.sender, "Only Superfluid can interact with FlowAgreement");
         address sender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
         //require(flowRate > 0, "use delete flow");
@@ -145,14 +142,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes memory cbdata;
         (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementUpdated(
-            ISuperfluid(host), token, ctx, address(this), receiver, flowId
+            ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
         int256 depositSpend = _updateFlow(token, sender, receiver, flowRate);
         _minimalDeposit(token, flowRate);
         newCtx = AgreementLibrary.afterAgreementUpdated(
-            ISuperfluid(host),
+            ISuperfluid(msg.sender),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx, depositSpend),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend),
             address(this),
             receiver,
             flowId,
@@ -172,7 +169,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         returns(bytes memory newCtx)
     {
         // TODO: Decode return cbdata before calling the next step
-        (, address host) = token.getFramework();
         address msgSender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
 
@@ -185,14 +181,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes memory cbdata;
         (cbdata, newCtx) =
             AgreementLibrary.beforeAgreementTerminated(
-                ISuperfluid(host), token, ctx, address(this), receiver, flowId
+                ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
         _terminateAgreementData(token, sender, receiver, isLiquidator);
         //int256 releasedDeposit = _terminateAgreementData(token, sender, receiver, isLiquidator);
         newCtx = AgreementLibrary.afterAgreementTerminated(
-            ISuperfluid(host),
+            ISuperfluid(msg.sender),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(host), receiver, newCtx, 0),
+            ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, 0),
             address(this),
             receiver,
             flowId,

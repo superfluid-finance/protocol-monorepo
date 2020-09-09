@@ -533,10 +533,6 @@ contract SuperToken is
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function getFramework() external view override returns(address gov, address superfluid) {
-        return (address(_gov), _gov.getSuperfluid());
-    }
-
     /*
     *  Internal functions
     */

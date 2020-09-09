@@ -97,9 +97,9 @@ contract("MultiFlowsApp", accounts => {
         console.log("Carol", carolNetFlowAfter.toString());
         console.log("App", appNetFlowAfter);
 
-        aliceDeposit = await superToken.depositBalanceOf.call(alice);
-        bobDeposit = await superToken.depositBalanceOf.call(bob);
-        appDeposit = await superToken.depositBalanceOf.call(app.address);
+        aliceDeposit = await superToken.getDeposit.call(cfa.address, alice);
+        bobDeposit = await superToken.getDeposit.call(cfa.address, bob);
+        appDeposit = await superToken.getDeposit.call(cfa.address, app.address);
 
         console.log("Alice Deposit", aliceDeposit.toString());
         console.log("Bob Deposit", bobDeposit.toString());

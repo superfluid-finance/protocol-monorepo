@@ -234,9 +234,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         virtual
         returns(int256 deposit, int256 ownedDeposit);
 
-    /// @notice Return the Governance Contract that rule this SuperToken
-    /// @return Governance address
-    function getGovernanceAddress() external virtual view returns(address);
     /**************************************************************************
      * ERC20 wrapping
      *************************************************************************/

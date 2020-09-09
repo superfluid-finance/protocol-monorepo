@@ -8,7 +8,7 @@ const {
 
 const traveler = require("ganache-time-traveler");
 
-const Tester = require("./Tester");
+const Tester = require("../superfluid/Tester");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);

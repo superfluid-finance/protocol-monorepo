@@ -337,6 +337,7 @@ contract SuperToken is
         address account
     )
         external
+        view
         override
         returns(int256 deposit, int256 ownedDeposit)
     {

@@ -1,4 +1,4 @@
-const Tester = require("./Tester");
+const Tester = require("../superfluid/Tester");
 const MultiApp = artifacts.require("MultiFlowsApp");
 
 const {

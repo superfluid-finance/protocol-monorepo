@@ -6,7 +6,7 @@ const {
     toWad
 } = require("@decentral.ee/web3-helpers");
 
-const Tester = require("./Tester");
+const Tester = require("../superfluid/Tester");
 
 const DEFAULT_INDEX_ID = 42;
 

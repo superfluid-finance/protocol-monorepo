@@ -231,6 +231,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address account
     )
         external
+        view
         virtual
         returns(int256 deposit, int256 ownedDeposit);
 

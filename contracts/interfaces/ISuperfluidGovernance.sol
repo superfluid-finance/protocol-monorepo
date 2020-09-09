@@ -18,15 +18,6 @@ interface ISuperfluidGovernance {
         view
         returns(address rewardAddress);
 
-    /// @notice Get the Minimal Balance value that one account should always maintain
-    /// @param underlying Token address.
-    function getMinimalDeposit(
-        address underlying
-    )
-        external
-        view
-        returns(uint16 minimalBalance);
-
     /// @notice Get the Period that is allowed to perform a liquidation
     /// @param underlying Token address.
     function getLiquidationPeriod(

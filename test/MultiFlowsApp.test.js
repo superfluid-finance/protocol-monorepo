@@ -58,25 +58,17 @@ contract("MultiFlowsApp", accounts => {
         const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
         const carolNetFlow = await cfa.getNetFlow.call(superToken.address, carol);
 
-        let aliceDeposit = await superToken.depositBalanceOf.call(alice);
-        let bobDeposit = await superToken.depositBalanceOf.call(bob);
-        let appDeposit = await superToken.depositBalanceOf.call(app.address);
+        let aliceDeposit = await superToken.getDeposit.call(cfa.address, alice);
+        let bobDeposit = await superToken.getDeposit.call(cfa.address, bob);
+        let appDeposit = await superToken.getDeposit.call(cfa.address, app.address);
 
-        console.log("Alice Deposit", aliceDeposit.toString());
-        console.log("Bob Deposit", bobDeposit.toString());
-        console.log("App Deposit", appDeposit.toString());
-
-        /*
-        console.log("Alice", aliceNetFlow.toString());
-        console.log("Bob", bobNetFlow.toString());
-        console.log("Carol", carolNetFlow.toString());
-        console.log("App", appNetFlow);
-        */
+        console.log("Alice Deposit", aliceDeposit[0].toString(), aliceDeposit[1].toString());
+        console.log("Bob Deposit", bobDeposit[0].toString(), bobDeposit[1].toString());
+        console.log("App Deposit", appDeposit[0].toString(), appDeposit[1].toString());
 
         assert.equal(aliceNetFlow.toString(), -FLOW_RATE, "Alice net flow is wrong");
         assert.equal(bobNetFlow, FLOW_RATE * 6 / 10, "Bob net flow is wrong");
         assert.equal(carolNetFlow, FLOW_RATE * 4 / 10, "Carol net flow is wrong");
-
         const deleteABI = cfa.contract.methods.deleteFlow(
             superToken.address,
             alice,

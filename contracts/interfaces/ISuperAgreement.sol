@@ -27,6 +27,13 @@ interface ISuperAgreement {
         view
         returns (int256 amount); // TODO add `deposit` to the return list
 
+    function getDeposit(
+        bytes calldata state
+    )
+        external
+        view
+        returns(int256 deposit, int256 ownedDeposit);
+
     /// @notice Change the timestamp of the state.
     /// @param account Account the state belongs to
     /// @param state State to be used.

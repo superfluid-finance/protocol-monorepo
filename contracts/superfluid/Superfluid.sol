@@ -167,7 +167,7 @@ contract Superfluid is
     // App System
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
+        /**
      * @notice Message sender declares it as a super app.
      * @param configWord The super app manifest configuration
      */
@@ -323,7 +323,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -343,7 +343,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender,  0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -400,7 +400,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -427,7 +427,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, msg.sender, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -463,19 +463,30 @@ contract Superfluid is
     function updateCtxDeposit(
         bytes calldata ctx,
         address receiver,
-        uint256 unitOfAllowance
+        int256 unitOfAllowance
     )
         external
         override
         returns(bytes memory newCtx)
     {
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
+        int256 level = int256(_getAppLevel(receiver));
+
+        stcCtx.allowance = level * unitOfAllowance;
+        stcCtx.allowanceUsed = unitOfAllowance;
+
+        /*
         if(_isApp(stcCtx.msgSender) && _isApp(receiver)) {
-            stcCtx.allowance = uint256(_getAppLevel(receiver) * unitOfAllowance);
+            stcCtx.allowance = level * unitOfAllowance;
+            stcCtx.allowanceUsed += unitOfAllowance;
         } else if(!_isApp(stcCtx.msgSender) && _isApp(receiver)) {
-            stcCtx.allowance = 3 * unitOfAllowance;
+            stcCtx.allowance = level * unitOfAllowance;
             stcCtx.allowanceUsed = unitOfAllowance;
+        } else {
+            stcCtx.allowance = level * unitOfAllowance;
+            stcCtx.allowanceUsed += unitOfAllowance;
         }
+        */
 
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }

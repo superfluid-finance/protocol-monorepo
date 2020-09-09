@@ -54,9 +54,6 @@ contract SuperTokenStorage {
 
     /// @dev ERC20 Allowances Storage
     mapping (address => mapping (address => uint256)) internal _allowances;
-
-    /// @dev Deposit needed to possible liquidations
-    mapping(address => uint256) internal _deposits;
 }
 
 /**
@@ -322,7 +319,6 @@ contract SuperToken is
         return calBalance < 0 ? 0 : uint256(calBalance);
     }
 
-
     /// @dev ISuperToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
         address account,
@@ -336,22 +332,20 @@ contract SuperToken is
         return _calculateBalance(account, timestamp);
     }
 
+    function getDeposit(
+        address agreementClass,
+        address account
+    )
+        external
+        override
+        returns(int256 deposit, int256 ownedDeposit)
+    {
+        return ISuperAgreement(agreementClass).getDeposit(_accountStates[agreementClass][account]);
+    }
 
     /*
     *   Agreement functions
     */
-
-
-    function depositBalanceOf(
-        address account
-    )
-        external
-        view
-        override
-        returns(uint256 deposit)
-    {
-        return _deposits[account];
-    }
 
     /// @dev ISuperToken.getAgreementAccountState implementation
     function getAgreementAccountState(
@@ -439,7 +433,7 @@ contract SuperToken is
         address liquidator,
         bytes32 id,
         address account,
-        uint256 deposit
+        int256 deposit
     )
     external
     override
@@ -560,7 +554,8 @@ contract SuperToken is
                     this,
                     account,
                     _accountStates[agreementClass][account],
-                    timestamp)
+                    timestamp
+            )
             );
         }
 
@@ -659,21 +654,21 @@ contract SuperToken is
         return _updateCodeAddress(newAddress);
     }
 
-    function takeDeposit(address from, address to, int256 deposit) external override {
-        //TODO: Lock to only agreement call
-        require(from != address(0), "Can't take deposit from zero account");
-        require(to != address(0), "Can't deposit to zero account");
-        _balances[from] = _balances[from].sub(deposit);
-        _deposits[to] = _deposits[to].add(uint256(deposit));
-    }
-
-    //FIXME: Merge with takeDeposit
-    function refundDeposit(address from, address to, int256 deposit) external override {
-        //TODO: Lock to only agreement call
-        require(from != address(0), "Can't take refund from zero account");
-        require(to != address(0), "Can't refund to zero account");
-        _deposits[from] = _deposits[from].sub(uint256(deposit));
-        _balances[to] = _balances[to].add(deposit);
+    //TODO: Lock to only agreement call
+    function chargeDeposit(
+        address account,
+        bytes32 flowId,
+        int256 charge,
+        bytes memory data,
+        bytes memory state
+    )
+        external
+        override
+    {
+        require(account != address(0), "Can't take deposit from zero account");
+        _balances[account] = _balances[account].sub(charge);
+        _agreementData[msg.sender][flowId] = data;
+        _accountStates[msg.sender][account] = state;
     }
 
     function _partialSettle(address account, int256 delta) internal {

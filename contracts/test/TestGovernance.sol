@@ -10,7 +10,6 @@ contract TestGovernance is ISuperfluidGovernance {
 
     struct GovernanceConfig {
         address rewardAddress;
-        uint16 minimalDeposit;
         uint16 period;
         uint64 maxGasCallback;
         uint64 maxGasApp;
@@ -21,7 +20,6 @@ contract TestGovernance is ISuperfluidGovernance {
 
     constructor(
         address rewardAddress,
-        uint16 minimalDeposit,
         uint16 period,
         uint64 maxGasCallback,
         uint64 maxGasApp,
@@ -31,7 +29,6 @@ contract TestGovernance is ISuperfluidGovernance {
         governor = msg.sender;
         _defaultConfig = GovernanceConfig(
             rewardAddress,
-            minimalDeposit,
             period,
             maxGasCallback,
             maxGasApp,
@@ -48,17 +45,6 @@ contract TestGovernance is ISuperfluidGovernance {
         returns(address rewardAddress)
     {
         return _defaultConfig.rewardAddress;
-    }
-
-    function getMinimalDeposit(
-        address
-    )
-        external
-        view
-        override
-        returns(uint16 minimalBalance)
-    {
-        return _defaultConfig.minimalDeposit;
     }
 
     function getLiquidationPeriod(

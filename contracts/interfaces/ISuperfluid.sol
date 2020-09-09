@@ -127,7 +127,7 @@ interface ISuperfluid {
     function updateCtxDeposit(
         bytes calldata ctx,
         address receiver,
-        uint256 unitOfAllowance
+        int256 unitOfAllowance
     )
         external
         returns(bytes memory newCtx);

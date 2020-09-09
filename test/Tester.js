@@ -83,7 +83,6 @@ module.exports = class Tester {
             1,
             3600,
             10000,
-            10000,
             this.contracts.superfluid.address,
             {
                 from: this.aliases.admin

@@ -93,7 +93,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address liquidator,
         bytes32 id,
         address account,
-        uint256 deposit
+        int256 deposit
     )
     external
     virtual;
@@ -226,6 +226,17 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
          view
          returns (int256);
 
+    function getDeposit(
+        address agreementClass,
+        address account
+    )
+        external
+        virtual
+        returns(int256 deposit, int256 ownedDeposit);
+
+    /// @notice Return the Governance Contract that rule this SuperToken
+    /// @return Governance address
+    function getGovernanceAddress() external virtual view returns(address);
     /**************************************************************************
      * ERC20 wrapping
      *************************************************************************/
@@ -278,28 +289,13 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         view
         returns(address gov, address superfluid);
 
-    function takeDeposit(
-        address from,
-        address to,
-        int256 deposit
+    function chargeDeposit(
+        address account,
+        bytes32 flowId,
+        int256 charge,
+        bytes memory data,
+        bytes memory state
     )
         external
         virtual;
-
-    function refundDeposit(
-        address from,
-        address to,
-        int256 deposit
-    )
-        external
-        virtual;
-
-    function depositBalanceOf(
-        address account
-    )
-        external
-        view
-        virtual
-        returns(uint256 deposit);
-
 }

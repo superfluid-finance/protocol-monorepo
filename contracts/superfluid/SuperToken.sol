@@ -668,6 +668,16 @@ contract SuperToken is
         _accountStates[msg.sender][account] = state;
     }
 
+    function updateDeposit(
+        address account,
+        bytes memory state
+    )
+        external
+        override
+    {
+        _accountStates[msg.sender][account] = state;
+    }
+
     function _partialSettle(address account, int256 delta) internal {
         //TODO: Lock caller to be agreement
         _balances[account] = _balances[account].add(delta);

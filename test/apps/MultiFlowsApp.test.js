@@ -101,9 +101,9 @@ contract("MultiFlowsApp", accounts => {
         bobDeposit = await superToken.getDeposit.call(cfa.address, bob);
         appDeposit = await superToken.getDeposit.call(cfa.address, app.address);
 
-        console.log("Alice Deposit", aliceDeposit.toString());
-        console.log("Bob Deposit", bobDeposit.toString());
-        console.log("App Deposit", appDeposit.toString());
+        console.log("Alice Deposit", aliceDeposit[0].toString(), aliceDeposit[1].toString());
+        console.log("Bob Deposit", bobDeposit[0].toString(), bobDeposit[1].toString());
+        console.log("App Deposit", appDeposit[0].toString(), appDeposit[1].toString());
     });
 
     it("#2 MultiFlowsApp Batch Call", async () => {

@@ -194,6 +194,13 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         external
         virtual;
 
+    function updateDeposit(
+        address account,
+        bytes memory state
+    )
+        external
+        virtual;
+
     /**************************************************************************
      * Account functions
      *************************************************************************/

@@ -113,8 +113,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
              stcNewCtx.allowanceUsed - stcNewCtx.allowance : stcNewCtx.allowanceUsed),
             depositSpend
         );
-        //stcNewCtx.allowanceUsed = 0;
-        //stcNewCtx.allowance = 0;
         (newCtx, ) = ContextLibrary.encode(stcNewCtx);
     }
 
@@ -167,9 +165,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         // TODO: Decode return cbdata before calling the next step
         address msgSender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
-
         bool isLiquidator = (msgSender != sender && msgSender != receiver);
-
         if (isLiquidator) {
             require(token.isAccountInsolvent(sender),
                     "FlowAgreement: account is solvent");
@@ -189,9 +185,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             flowId,
             cbdata
         );
-
-        ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
-        (newCtx, ) = ContextLibrary.encode(stcNewCtx);
     }
 
     /// @dev IFlowAgreement.getFlow implementation

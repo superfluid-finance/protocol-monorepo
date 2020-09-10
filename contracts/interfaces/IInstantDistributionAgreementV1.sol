@@ -9,11 +9,15 @@ import "./ISuperAgreement.sol";
  * @author Superfluid
  *
  * Notes:
- *   - indexId is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
- *     Even if sha-3 collision is only theoratical.
+ *   - `indexId` is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
+ *     Despite knowing sha-3 collision is only theoratical.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
+    /**
+     * @dev Create a new index for the publisher.
+     * @param token Super token address.
+     */
     function createIndex(
         ISuperToken token,
         uint32 indexId,
@@ -22,6 +26,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    /**
+     * @dev Query the data of a index.
+     * @param token Super token address.
+     */
     function getIndex(
         ISuperToken token,
         address publisher,
@@ -31,6 +39,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(uint128 indexValue, uint128 totalUnits);
 
+    /**
+     * @dev Update index value of an index.
+     * @param token Super token address.
+     */
     function updateIndex(
         ISuperToken token,
         uint32 indexId,
@@ -40,6 +52,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    /**
+     * @dev Approve the subscription of an index.
+     * @param token Super token address.
+     */
     function approveSubscription(
         ISuperToken token,
         address publisher,
@@ -49,6 +65,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    /**
+     * @dev Update the nuber of units of a subscription.
+     * @param token Super token address.
+     */
     function updateSubscription(
         ISuperToken token,
         uint32 indexId,
@@ -59,6 +79,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    /**
+     * @dev Get the number of units of a subscription.
+     * @param token Super token address.
+     */
     function getSubscriptionUnits(
         ISuperToken token,
         address publisher,
@@ -69,6 +93,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(uint128 units);
 
+    /**
+     * @dev List subscriptions of an user.
+     * @param token Super token address.
+     */
     function listSubscriptions(
         ISuperToken token,
         address subscriber)

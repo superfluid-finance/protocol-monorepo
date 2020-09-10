@@ -651,6 +651,15 @@ contract SuperToken is
         return _updateCodeAddress(newAddress);
     }
 
+    function deductBalance(
+        address account,
+        uint256 deduction
+    )
+        external
+        override {
+        _balances[account] = _balances[account].sub(int256(deduction));
+    }
+
     //TODO: Lock to only agreement call
     function chargeDeposit(
         address account,

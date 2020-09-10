@@ -117,8 +117,10 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         (bool exist, PublisherData memory pdata) = _getPublisherData(token, pId);
         require(exist, "IDAv1: index does not exist");
         require(indexValue >= pdata.indexValue, "IDAv1: index value should grow");
+        uint256 deduction = (indexValue - pdata.indexValue) * pdata.totalUnits;
         pdata.indexValue = indexValue;
         token.updateAgreementData(pId, _encodePublisherData(pdata));
+        token.deductBalance(publisher, deduction);
         // TODO
         newCtx = ctx;
     }

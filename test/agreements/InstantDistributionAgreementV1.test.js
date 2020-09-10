@@ -130,9 +130,9 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(
                 (await superToken.balanceOf.call(dan)).toString(),
                 toWad("0.03").toString());
-            // assert.equal(
-            //     (await superToken.balanceOf.call(alice)).toString(),
-            //     toWad("100").toString());
+            assert.equal(
+                (await superToken.balanceOf.call(alice)).toString(),
+                toWad("99.94").toString());
 
             await web3tx(superfluid.callAgreement, "Alice distribute tokens again")(
                 ida.address,
@@ -158,10 +158,11 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(
                 (await superToken.balanceOf.call(dan)).toString(),
                 toWad("0.09").toString());
-            // assert.equal(
-            //     (await superToken.balanceOf.call(alice)).toString(),
-            //     toWad("100").toString());
+            assert.equal(
+                (await superToken.balanceOf.call(alice)).toString(),
+                toWad("99.82").toString());
 
+            await tester.validateSystem();
         });
     });
 

@@ -105,7 +105,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 assert.equal(subs.unitsList[0].toString(), subscriptionUnits.toString());
             }
 
-            await web3tx(superfluid.callAgreement, "Alice distribute tokens")(
+            await web3tx(superfluid.callAgreement, "Alice distribute tokens with index -> 100")(
                 ida.address,
                 ida.contract.methods.updateIndex(
                     superToken.address,
@@ -121,20 +121,24 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(pdata.indexValue.toString(), "100");
             assert.equal(pdata.totalUnits.toString(), toWad("0.0006").toString());
 
-            assert.equal(
-                (await superToken.balanceOf.call(bob)).toString(),
-                toWad("0.01").toString());
-            assert.equal(
-                (await superToken.balanceOf.call(carol)).toString(),
-                toWad("0.02").toString());
-            assert.equal(
-                (await superToken.balanceOf.call(dan)).toString(),
-                toWad("0.03").toString());
-            assert.equal(
-                (await superToken.balanceOf.call(alice)).toString(),
-                toWad("99.94").toString());
+            const testExpectedBalances = async (expectedBalances) => {
+                for (let i = 0; i < expectedBalances.length; ++i) {
+                    const account = expectedBalances[i][0];
+                    const expectedBalance = expectedBalances[i][1];
+                    const balance = await superToken.balanceOf.call(account);
+                    console.log(`${tester.toAliases[account]}'s current balance: `, wad4human(balance));
+                    assert.equal(balance.toString(), expectedBalance.toString());
+                }
+            };
 
-            await web3tx(superfluid.callAgreement, "Alice distribute tokens again")(
+            await testExpectedBalances([
+                [bob,   toWad("0.01")],
+                [carol, toWad("0.02")],
+                [dan,   toWad("0.03")],
+                [alice, toWad("99.94")],
+            ]);
+
+            await web3tx(superfluid.callAgreement, "Alice distribute tokens again with index -> 300")(
                 ida.address,
                 ida.contract.methods.updateIndex(
                     superToken.address,
@@ -150,19 +154,12 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(pdata.indexValue.toString(), "300");
             assert.equal(pdata.totalUnits.toString(), toWad("0.0006").toString());
 
-            const expectedBalances = [
+            await testExpectedBalances([
                 [bob,   toWad("0.03")],
                 [carol, toWad("0.06")],
                 [dan,   toWad("0.09")],
                 [alice, toWad("99.82")],
-            ];
-            for (let i = 0; i < expectedBalances.length; ++i) {
-                const account = expectedBalances[i][0];
-                const expectedBalance = expectedBalances[i][1];
-                const balance = await superToken.balanceOf.call(account);
-                console.log(`${tester.toAliases[account]}'s current balance: `, wad4human(balance));
-                assert.equal(balance.toString(), expectedBalance.toString());
-            }
+            ]);
 
             await tester.validateSystem();
         });
@@ -244,7 +241,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(balance.toString(), "0");
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
-            await web3tx(superfluid.callAgreement, "Alice distribute tokens")(
+            await web3tx(superfluid.callAgreement, "Alice distribute tokens with index -> 100")(
                 ida.address,
                 ida.contract.methods.updateIndex(
                     superToken.address,
@@ -264,7 +261,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(balance.toString(), toWad("0.01").toString());
 
             // Bob distributes tokens (200 * 0.0002 = 0.04)
-            await web3tx(superfluid.callAgreement, "Bob distribute tokens")(
+            await web3tx(superfluid.callAgreement, "Bob distribute tokens with index -> 200")(
                 ida.address,
                 ida.contract.methods.updateIndex(
                     superToken.address,
@@ -311,7 +308,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(balance.toString(), toWad("0.05").toString());
 
             // Alice distributes tokens again (100 * 0.0003 = 0.03)
-            await web3tx(superfluid.callAgreement, "Alice distribute tokens again")(
+            await web3tx(superfluid.callAgreement, "Alice distribute tokens again with index -> 200")(
                 ida.address,
                 ida.contract.methods.updateIndex(
                     superToken.address,

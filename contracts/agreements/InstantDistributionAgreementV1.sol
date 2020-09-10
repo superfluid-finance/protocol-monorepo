@@ -117,10 +117,10 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         (bool exist, PublisherData memory pdata) = _getPublisherData(token, pId);
         require(exist, "IDAv1: index does not exist");
         require(indexValue >= pdata.indexValue, "IDAv1: index value should grow");
-        uint256 deduction = (indexValue - pdata.indexValue) * pdata.totalUnits;
+        int256 deduction = - int256(indexValue - pdata.indexValue) * int256(pdata.totalUnits);
         pdata.indexValue = indexValue;
         token.updateAgreementData(pId, _encodePublisherData(pdata));
-        token.deductBalance(publisher, deduction);
+        token.settleBalance(publisher, deduction);
         // TODO
         newCtx = ctx;
     }
@@ -197,8 +197,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         }
         token.updateAgreementData(pId, _encodePublisherData(pdata));
         // update subscriptiond data
-        // FIXME touch subscriber balance first
-        //token.settle(subscriber, delta);
+        // settle static balance delta before changing the state
+        token.settleBalance(
+            subscriber,
+            int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units)
+        );
         sdata.indexValue = pdata.indexValue;
         sdata.units = units;
         token.updateAgreementData(sId, _encodeSubscriptionData(sdata));

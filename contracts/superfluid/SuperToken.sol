@@ -371,7 +371,7 @@ contract SuperToken is
     {
         // msg.sender is agreementClass
         require(msg.sender != account, "SuperToken: unauthorized agreement storage access");
-        _takeBalanceSnapshot(account);
+        _touch(account);
         _accountStates[msg.sender][account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
         emit AgreementAccountStateUpdated(msg.sender, account, state);
@@ -512,7 +512,6 @@ contract SuperToken is
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
         require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
-        //review TODO touch only need, by the requirement amount
         _touch(msg.sender);
         _burn(msg.sender, amount);
         _token.transfer(msg.sender, amount);
@@ -651,13 +650,13 @@ contract SuperToken is
         return _updateCodeAddress(newAddress);
     }
 
-    function deductBalance(
+    function settleBalance(
         address account,
-        uint256 deduction
+        int256 delta
     )
         external
         override {
-        _balances[account] = _balances[account].sub(int256(deduction));
+        _balances[account] = _balances[account].add(delta);
     }
 
     //TODO: Lock to only agreement call

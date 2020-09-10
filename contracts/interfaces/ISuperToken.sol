@@ -184,13 +184,13 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         view
         returns (bytes32[] memory slotData);
 
-    /// @dev Deduct balance from an account by the agreement.
-    ///      The agreement needs to make sure that the deducted balance is distributed else where equally.
+    /// @dev Settle balance from an account by the agreement.
+    ///      The agreement needs to make sure that the balance delta is balanced afterwards
     /// @param account Account to query.
-    /// @param deduction Amount of balance to be deducted.
-    function deductBalance(
+    /// @param delta Amount of balance delta to be settled
+    function settleBalance(
         address account,
-        uint256 deduction
+        int256 delta
     )
         external
         virtual;

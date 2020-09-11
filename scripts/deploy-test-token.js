@@ -12,6 +12,7 @@ const TestToken = artifacts.require("TestToken");
  * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}
  */
 module.exports = async function (callback, argv) {
+
     try {
         global.web3 = web3;
 

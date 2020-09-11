@@ -27,10 +27,6 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         uint128 units;
     }
 
-    function agreementType() external override pure returns (bytes32) {
-        return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
-    }
-
     function realtimeBalanceOf(
         ISuperToken token,
         address subscriber,

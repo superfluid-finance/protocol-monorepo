@@ -14,6 +14,10 @@ import "./ISuperAgreement.sol";
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
+    function agreementType() external override pure returns (bytes32) {
+        return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
+    }
+
     /**
      * @dev Create a new index for the publisher.
      * @param token Super token address.

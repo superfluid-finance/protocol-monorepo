@@ -10,6 +10,10 @@ import "./ISuperAgreement.sol";
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
+    function agreementType() external override pure returns (bytes32) {
+        return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+    }
+
     /// @notice Create the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
     /// @param token Super token address.
     /// @param receiver Flow sender address.

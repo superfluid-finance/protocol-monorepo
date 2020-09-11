@@ -17,6 +17,120 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @notice Create a new agreement
     /// @param id Agreement ID
     /// @param data Agreement data
+    function createAgreement2(
+        bytes32 id,
+        bytes32[] calldata data
+    )
+        external
+        virtual;
+
+    /// @notice Agreement creation event
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    /// @param data Agreement data
+    event AgreementCreated2(
+        address indexed agreementClass,
+        bytes32 id,
+        bytes32[] data
+    );
+
+    /// @notice Get data of the agreement
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    /// @return data Data of the agreement
+    function getAgreementData2(
+        address agreementClass,
+        bytes32 id,
+        uint dataLength
+    )
+        external
+        virtual
+        view
+        returns(bytes32[] memory data);
+
+    /// @notice Create a new agreement
+    /// @param id Agreement ID
+    /// @param data Agreement data
+    function updateAgreementData2(
+        bytes32 id,
+        bytes32[] calldata data
+    )
+        external
+        virtual;
+
+    /// @notice Agreement creation event
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    /// @param data Agreement data
+    event AgreementUpdated2(
+        address indexed agreementClass,
+        bytes32 id,
+        bytes32[] data
+    );
+
+    /// @notice Close the agreement
+    /// @param id Agreement ID
+    function terminateAgreement2(
+        bytes32 id,
+        uint dataLength
+    )
+        external
+        virtual;
+
+    /// @notice Agreement termination event
+    /// @param agreementClass Contract address of the agreement
+    /// @param id Agreement ID
+    event AgreementTerminated2(
+        address indexed agreementClass,
+        bytes32 id
+    );
+
+    /// @notice Update agreement state slot
+    /// @param account Account to be updated
+    //
+    // Notes:
+    // - To clear the storage out, provide zero-ed array of intended length
+    function updateAgreementStateSlot(
+        address account,
+        uint256 slotId,
+        bytes32[] calldata slotData
+    )
+        external
+        virtual;
+
+    /// @notice Agreement account state updated event
+    /// @param agreementClass Contract address of the agreement
+    /// @param account Account updated
+    /// @param slotId slot id of the agreement state
+    event AgreementStateUpdated(
+        address indexed agreementClass,
+        address indexed account,
+        uint256 slotId
+    );
+
+    /// @notice Get data of the slot of the state of a agreement
+    /// @param agreementClass Contract address of the agreement
+    /// @param account Account to query
+    /// @param slotId slot id of the state
+    /// @param dataLength length of the state data
+    function getAgreementStateSlot(
+        address agreementClass,
+        address account,
+        uint256 slotId,
+        uint dataLength
+    )
+        external
+        virtual
+        view
+        returns (bytes32[] memory slotData);
+
+    //
+    // DEPRECATED ..............
+    //
+
+    /// @notice Create a new agreement
+    /// @param id Agreement ID
+    /// @param data Agreement data
     function createAgreement(
         bytes32 id,
         bytes calldata data
@@ -144,45 +258,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         virtual
         view
         returns (bytes memory state);
-
-    /// @notice Update agreement state slot
-    /// @param account Account to be updated
-    //
-    // Notes:
-    // - To clear the storage out, provide zero-ed array of intended length
-    function updateAgreementStateSlot(
-        address account,
-        uint256 slotId,
-        bytes32[] calldata slotData
-    )
-        external
-        virtual;
-
-    /// @notice Agreement account state updated event
-    /// @param agreementClass Contract address of the agreement
-    /// @param account Account updated
-    /// @param slotId slot id of the agreement state
-    event AgreementStateUpdated(
-        address indexed agreementClass,
-        address indexed account,
-        uint256 slotId
-    );
-
-    /// @notice Get data of the slot of the state of a agreement
-    /// @param agreementClass Contract address of the agreement
-    /// @param account Account to query
-    /// @param slotId slot id of the state
-    /// @param length length of the state data
-    function getAgreementStateSlot(
-        address agreementClass,
-        address account,
-        uint256 slotId,
-        uint length
-    )
-        external
-        virtual
-        view
-        returns (bytes32[] memory slotData);
 
     /// @dev Settle balance from an account by the agreement.
     ///      The agreement needs to make sure that the balance delta is balanced afterwards

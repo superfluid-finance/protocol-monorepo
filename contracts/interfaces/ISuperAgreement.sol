@@ -34,6 +34,13 @@ interface ISuperAgreement {
         view
         returns(int256 deposit, int256 ownedDeposit);
 
+
+    function getDepositFromData(
+        bytes calldata data
+    )
+        external
+        view
+        returns(int256 flowRate, int256 deposit, int256 ownedDeposit);
     /// @notice Change the timestamp of the state.
     /// @param account Account the state belongs to
     /// @param state State to be used.

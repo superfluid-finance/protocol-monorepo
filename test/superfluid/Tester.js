@@ -43,6 +43,7 @@ module.exports = class Tester {
             MAX_UINT256: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
             INIT_BALANCE: toWad(100),
             ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
+            DEPOSIT_REQUIREMENT: 2
         };
     }
 
@@ -80,8 +81,8 @@ module.exports = class Tester {
         // governance contract
         this.contracts.governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
             this.aliases.admin,
-            1,
-            3600,
+            this.constants.DEPOSIT_REQUIREMENT,
+            10000,
             10000,
             this.contracts.superfluid.address,
             {
@@ -158,9 +159,17 @@ module.exports = class Tester {
                 userAddress,
                 currentBlock.timestamp);
 
+            let superTokenDeposit = await this.contracts.superToken.getDeposit.call(
+                this.contracts.cfa.address,
+                userAddress);
+
+            if(superTokenDeposit == undefined) {
+                superTokenDeposit = [0];
+            }
+
             console.log(`${alias} token balance: ${wad4human(tokenBalance)}`);
             console.log(`${alias} super token Balance: ${wad4human(superTokenBalance)}`);
-            rtBalanceSum = rtBalanceSum.add(superTokenBalance);
+            rtBalanceSum = rtBalanceSum.add(superTokenBalance.add(superTokenDeposit[0]));
         }));
 
 

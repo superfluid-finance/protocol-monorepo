@@ -14,6 +14,7 @@ library ContextLibrary {
         address msgSender;
         int256 allowance;
         int256 allowanceUsed;
+        int256 counter;
     }
 
     /**
@@ -24,7 +25,9 @@ library ContextLibrary {
             context.level,
             context.msgSender,
             context.allowance,
-            context.allowanceUsed
+            context.allowanceUsed,
+            context.counter
+
         );
         ctxStamp = keccak256(abi.encodePacked(ctx));
     }
@@ -34,8 +37,9 @@ library ContextLibrary {
             context.level,
             context.msgSender,
             context.allowance,
-            context.allowanceUsed
-        ) = abi.decode(ctx, (uint8, address, int256, int256));
+            context.allowanceUsed,
+            context.counter
+        ) = abi.decode(ctx, (uint8, address, int256, int256, int256));
     }
 
     function validate(bytes memory ctx, bytes32 ctxStamp) internal pure returns (bool) {
@@ -71,7 +75,6 @@ library ContextLibrary {
         internal
         returns(bytes memory newCtx)
     {
-
         return host.updateCtxDeposit(
             ctx,
             receiver,

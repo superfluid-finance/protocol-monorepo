@@ -62,6 +62,12 @@ contract("MultiFlowsApp", accounts => {
         let bobDeposit = await superToken.getDeposit.call(cfa.address, bob);
         let appDeposit = await superToken.getDeposit.call(cfa.address, app.address);
 
+        let appToBob = await superToken.getDepositFromData(cfa.address, web3.utils.soliditySha3(app.address, bob));
+        let appToCarol = await superToken.getDepositFromData(cfa.address, web3.utils.soliditySha3(app.address, carol));
+        console.log(appToBob[0].toString(), appToBob[1].toString(),appToBob[2].toString());
+        console.log(appToCarol[0].toString(), appToCarol[1].toString(), appToCarol[2].toString());
+
+        console.log("alice address ", alice);
         console.log("Alice Deposit", aliceDeposit[0].toString(), aliceDeposit[1].toString());
         console.log("Bob Deposit", bobDeposit[0].toString(), bobDeposit[1].toString());
         console.log("App Deposit", appDeposit[0].toString(), appDeposit[1].toString());
@@ -69,6 +75,9 @@ contract("MultiFlowsApp", accounts => {
         assert.equal(aliceNetFlow.toString(), -FLOW_RATE, "Alice net flow is wrong");
         assert.equal(bobNetFlow, FLOW_RATE * 6 / 10, "Bob net flow is wrong");
         assert.equal(carolNetFlow, FLOW_RATE * 4 / 10, "Carol net flow is wrong");
+
+        console.log("Bob Receiving : ", FLOW_RATE * 6 / 10);
+        console.log("Calor Receiving : ", FLOW_RATE * 4 / 10);
         const deleteABI = cfa.contract.methods.deleteFlow(
             superToken.address,
             alice,
@@ -83,7 +92,6 @@ contract("MultiFlowsApp", accounts => {
                 from: alice
             }
         );
-
 
         const aliceNetFlowAfter = await cfa.getNetFlow.call(superToken.address, alice);
         const bobNetFlowAfter = await cfa.getNetFlow.call(superToken.address, bob);

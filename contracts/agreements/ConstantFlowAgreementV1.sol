@@ -58,6 +58,23 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         ( , , deposit, ownedDeposit) = _decodeFlow(data);
     }
 
+
+    function getDepositFromData(
+        bytes calldata data
+    )
+        external
+        view
+        override
+        returns(int256 flowRate, int256 deposit, int256 ownedDeposit)
+    {
+        (,
+        ,
+        ,
+        flowRate,
+        deposit,
+        ownedDeposit) = _decodeData(data);
+    }
+
     /// @dev ISuperAgreement.touch implementation
     function touch(
         address /* account */,
@@ -93,26 +110,36 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             AgreementLibrary.beforeAgreementCreated(
                 ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
-        //depositSpend define the max allowance to next step
         (int256 depositSpend, ) = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
+        newCtx = ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend);
         newCtx = AgreementLibrary.afterAgreementCreated(
             ISuperfluid(msg.sender),
             token,
-            ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend),
+            newCtx,
             address(this),
             receiver,
             flowId,
             cbdata
         );
+
         ContextLibrary.Context memory stcNewCtx = ContextLibrary.decode(newCtx);
-        _chargeDeposit(
-            token,
-            stcNewCtx.msgSender,
-            flowId,
-            (stcNewCtx.allowance < stcNewCtx.allowanceUsed ?
-             stcNewCtx.allowanceUsed - stcNewCtx.allowance : stcNewCtx.allowanceUsed),
-            depositSpend
-        );
+        if(stcCtx.allowance == 0 && stcCtx.allowanceUsed == 0) {
+            _chargeDeposit(
+                token,
+                stcCtx.msgSender,
+                flowId,
+                stcNewCtx.allowanceUsed,
+                0
+            );
+        } else {
+            _chargeDeposit(
+                token,
+                stcNewCtx.msgSender,
+                flowId,
+                depositSpend,
+                (stcCtx.allowance > depositSpend ? depositSpend : depositSpend - stcCtx.allowance)
+            );
+        }
         (newCtx, ) = ContextLibrary.encode(stcNewCtx);
     }
 
@@ -452,12 +479,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     {
         (, int256 cRate, int256 cDeposit, int256 cOwned) = _decodeFlow(currentState);
         cRate = cRate.add(flowRate);
-        cDeposit.add(deposit);
-        cOwned.add(ownedDeposit);
-
+        cDeposit = cDeposit.add(deposit);
+        cOwned = cOwned.add(ownedDeposit);
+        /*
         if (cRate == 0) {
             return "";
         }
+        */
         return _encodeFlow(timestamp, cRate, cDeposit, cOwned);
     }
 
@@ -528,8 +556,10 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             int256 cOwned
         ) = _decodeFlow(token.getAgreementAccountState(address(this), account));
 
-        cDeposit = cDeposit.add(charge);
-        cOwned = cOwned.add(maxAllowance);
+        //cDeposit = cDeposit.add(charge);
+        //cOwned = cOwned.add(maxAllowance);
+        cDeposit += charge;
+        cOwned += maxAllowance;
         return _encodeFlow(cTimestamp, cFlowRate, cDeposit ,cOwned);
     }
 

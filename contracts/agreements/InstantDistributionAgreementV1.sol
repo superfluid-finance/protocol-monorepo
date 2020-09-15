@@ -75,6 +75,18 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         return (0, 0);
     }
 
+
+    function getDepositFromData(
+        bytes calldata /*data*/
+    )
+        external
+        view
+        override
+        returns(int256 flowRate, int256 deposit, int256 ownedDeposit)
+    {
+        return(0,0,0);
+    }
+
     function touch(
         address /*account*/,
         bytes calldata state,

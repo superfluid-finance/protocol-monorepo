@@ -20,23 +20,22 @@ library AgreementLibrary {
         private
         returns(bytes memory cbdata, bytes memory newCtx)
     {
+        newCtx = ctx;
         (bool isSuperApp, uint256 configWord) =
             host.getAppManifest(account);
 
-        bytes memory data = abi.encodeWithSelector(
-            selector,
-            token,
-            ctx,
-            agreementClass,
-            agreementId
-        );
 
         if (isSuperApp &&
             ((configWord & noopBit) == 0)) {
-            return host.callAppBeforeCallback(account, data, ctx);
+            bytes memory data = abi.encodeWithSelector(
+                selector,
+                token,
+                ctx,
+                agreementClass,
+                agreementId
+            );
+            (cbdata, newCtx) = host.callAppBeforeCallback(account, data, ctx);
         }
-
-        return ("", ctx);
     }
 
     function _afterAgreement(
@@ -56,17 +55,17 @@ library AgreementLibrary {
         (bool isSuperApp, uint256 configWord) =
             host.getAppManifest(account);
 
-        bytes memory data = abi.encodeWithSelector(
-            selector,
-            token,
-            ctx,
-            agreementClass,
-            agreementId,
-            cbdata
-        );
 
         if (isSuperApp &&
             ((configWord & noopBit) == 0)) {
+            bytes memory data = abi.encodeWithSelector(
+                selector,
+                token,
+                ctx,
+                agreementClass,
+                agreementId,
+                cbdata
+            );
             return host.callAppAfterCallback(account, data, ctx);
         }
 

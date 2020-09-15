@@ -344,6 +344,18 @@ contract SuperToken is
         return ISuperAgreement(agreementClass).getDeposit(_accountStates[agreementClass][account]);
     }
 
+
+    function getDepositFromData(
+        address agreementClass,
+        bytes32 id
+    )
+        external
+        view
+        override
+        returns(int256 flowRate, int256 deposit, int256 ownedDeposit)
+    {
+        return ISuperAgreement(agreementClass).getDepositFromData(_agreementData[agreementClass][id]);
+    }
     /*
     *   Agreement functions
     */

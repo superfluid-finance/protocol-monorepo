@@ -263,6 +263,15 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         virtual
         returns(int256 deposit, int256 ownedDeposit);
 
+    function getDepositFromData(
+        address agreementClass,
+        bytes32 id
+    )
+        external
+        view
+        virtual
+        returns(int256 flowRate, int256 deposit, int256 ownedDeposit);
+
     /**************************************************************************
      * ERC20 wrapping
      *************************************************************************/

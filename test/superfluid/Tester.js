@@ -161,18 +161,17 @@ module.exports = class Tester {
                 userAddress,
                 currentBlock.timestamp);
             // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
-            const realtimeBalance = balances.availabelBalance
+            const realtimeBalance = balances.availableBalance
                 .add(balances.deposit)
                 .sub(web3.utils.BN.min(balances.owedDeposit, balances.deposit));
 
-            console.log(`${alias} token balance: ${wad4human(tokenBalance)}`);
-            console.log(`${alias} availabel balance: ${wad4human(balances.availabelBalance)}`);
+            console.log(`${alias} underlying token balance: ${wad4human(tokenBalance)}`);
+            console.log(`${alias} super token available balance: ${wad4human(balances.availableBalance)}`);
+            console.log(`${alias} super token deposit: ${wad4human(balances.deposit)}`);
+            console.log(`${alias} super token real-time balance: ${wad4human(realtimeBalance)}`);
 
             rtBalanceSum = rtBalanceSum.add(realtimeBalance);
-
-            console.log(`${alias} real-time balance: ${wad4human(rtBalanceSum)}`);
         }));
-
 
         const aum = await this.contracts.token.balanceOf.call(this.contracts.superToken.address);
         console.log(`AUM of super tokens: ${wad4human(aum)}`);

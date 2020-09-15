@@ -317,8 +317,8 @@ contract SuperToken is
         override
         returns(uint256 balance)
     {
-        (int256 calBalance, , ) = _calcAvailabelBalance(account, block.timestamp);
-        return calBalance < 0 ? 0 : uint256(calBalance);
+        (int256 availableBalance, , ) = _calcAvailabelBalance(account, block.timestamp);
+        return availableBalance < 0 ? 0 : uint256(availableBalance);
     }
 
     /// @dev ISuperToken.realtimeBalanceOf implementation
@@ -329,16 +329,12 @@ contract SuperToken is
         public
         override
         view
-        returns (int256 availabelBalance, int256 deposit, int256 owedDeposit)
+        returns (int256 availableBalance, int256 deposit, int256 owedDeposit)
     {
-        (availabelBalance,
+        (availableBalance,
          deposit,
          owedDeposit
         ) = _calcAvailabelBalance(account, timestamp);
-        return (
-            availabelBalance.sub(deposit.add(_min(deposit, owedDeposit))),
-            deposit,
-            owedDeposit);
     }
 
     /*
@@ -594,24 +590,27 @@ contract SuperToken is
     )
         internal
         view
-        returns(int256 realtimeBalance, int256 deposit, int256 owedDeposit)
+        returns(int256 availableBalance, int256 deposit, int256 owedDeposit)
     {
-        int256 eachAgreementClassBalance;
-        int256 eachAgreementDeposit;
-        int256 eachAgreementOwedDeposit;
+        int256 realtimeBalance = _balances[account];
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
-            (eachAgreementClassBalance, eachAgreementDeposit, eachAgreementOwedDeposit) = _realtimeBalanceOf(
+            (
+                int256 agreementDynamicBalance,
+                int256 agreementDeposit,
+                int256 agreementOwedDeposit) = _realtimeBalanceOf(
                 _activeAgreementClasses[account][i],
                 account,
                 timestamp
             );
-            realtimeBalance = realtimeBalance.add(eachAgreementClassBalance);
-            deposit = deposit.add(eachAgreementDeposit);
-            owedDeposit = owedDeposit.add(eachAgreementOwedDeposit);
+            realtimeBalance = realtimeBalance.add(agreementDynamicBalance);
+            deposit = deposit.add(agreementDeposit);
+            owedDeposit = owedDeposit.add(agreementOwedDeposit);
         }
 
-        realtimeBalance = _balances[account].add(realtimeBalance);
+        availableBalance = realtimeBalance
+            .sub(deposit)
+            .add(_min(deposit, owedDeposit));
     }
 
     function _realtimeBalanceOf(

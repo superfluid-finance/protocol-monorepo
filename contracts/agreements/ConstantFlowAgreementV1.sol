@@ -130,7 +130,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
         (int256 depositSpend, int256 oldDeposit) = _updateFlow(token, sender, receiver, flowRate);
-        _updateDeposit(token, sender, depositSpend - oldDeposit, depositSpend);
+        int256 diffDeposit = (depositSpend >= oldDeposit ? depositSpend - oldDeposit : oldDeposit - depositSpend);
+        _updateDeposit(token, sender, diffDeposit, depositSpend);
         newCtx = AgreementLibrary.afterAgreementUpdated(
             ISuperfluid(msg.sender),
             token,

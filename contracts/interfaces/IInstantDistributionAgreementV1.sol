@@ -11,6 +11,11 @@ import "./ISuperAgreement.sol";
  * Notes:
  *   - `indexId` is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
  *     Despite knowing sha-3 collision is only theoratical.
+ *   - A subscriber must approve the index in order to receive distributions from the publisher.
+ *   - Total units of the approved subscriptions is `totalUnitsApproved`.
+ *   - Total units of the non approved subscription is `totalUnitsPending`.
+ *   - Distributions to a non approved subscription stays in the publisher's deposit until
+ *     the subscriber approve the subscription.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
@@ -21,6 +26,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**
      * @dev Create a new index for the publisher.
      * @param token Super token address.
+     * @param indexId Id of the index.
      */
     function createIndex(
         ISuperToken token,
@@ -33,6 +39,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**
      * @dev Query the data of a index.
      * @param token Super token address.
+     * @param publisher The publisher of the index.
+     * @param indexId Id of the index.
      */
     function getIndex(
         ISuperToken token,
@@ -41,11 +49,17 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             view
             virtual
-            returns(uint128 indexValue, uint128 totalUnits);
+            returns(
+                bool exist,
+                uint128 indexValue,
+                uint128 totalUnitsApproved,
+                uint128 totalUnitsPending);
 
     /**
      * @dev Update index value of an index.
      * @param token Super token address.
+     * @param indexId Id of the index.
+     * @param indexValue Value of the index.
      */
     function updateIndex(
         ISuperToken token,
@@ -59,6 +73,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**
      * @dev Approve the subscription of an index.
      * @param token Super token address.
+     * @param publisher The publisher of the index.
+     * @param indexId Id of the index.
      */
     function approveSubscription(
         ISuperToken token,
@@ -72,6 +88,9 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**
      * @dev Update the nuber of units of a subscription.
      * @param token Super token address.
+     * @param indexId Id of the index.
+     * @param subscriber The subscriber of the index.
+     * @param units Number of units of the subscription.
      */
     function updateSubscription(
         ISuperToken token,
@@ -86,6 +105,9 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**
      * @dev Get the number of units of a subscription.
      * @param token Super token address.
+     * @param publisher The publisher of the index.
+     * @param indexId Id of the index.
+     * @param subscriber The subscriber of the index.
      */
     function getSubscriptionUnits(
         ISuperToken token,
@@ -100,6 +122,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**
      * @dev List subscriptions of an user.
      * @param token Super token address.
+     * @param subscriber The user, a subscriber.
      */
     function listSubscriptions(
         ISuperToken token,

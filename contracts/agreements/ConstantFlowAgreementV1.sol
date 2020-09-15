@@ -17,10 +17,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     using SafeMath for uint256;
     using ContextLibrary for ContextLibrary.Context;
 
-    function agreementType() external override pure returns (bytes32) {
-        return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
-    }
-
     /*
      * ISuperAgreement interface
      */

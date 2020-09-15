@@ -1,5 +1,8 @@
 const deployFramework = require("../scripts/deploy-framework");
+const { web3tx } = require("@decentral.ee/web3-helpers");
 const { assert } = require("chai");
+const TestResolver = artifacts.require("TestResolver");
+
 
 contract("sdk test", () => {
 
@@ -15,6 +18,7 @@ contract("sdk test", () => {
             ISuperfluid,
             ISuperToken,
             IConstantFlowAgreementV1,
+            IInstantDistributionAgreementV1,
         } = sf.contracts;
         assert.isDefined(IERC20.abi);
         assert.equal(IERC20.contractName, "IERC20");
@@ -39,6 +43,10 @@ contract("sdk test", () => {
         assert.isDefined(IConstantFlowAgreementV1.abi);
         assert.equal(IConstantFlowAgreementV1.contractName, "IConstantFlowAgreementV1");
         assert.isTrue(IConstantFlowAgreementV1.abi.filter(i => i.name === "updateFlow").length > 0);
+
+        assert.isDefined(IInstantDistributionAgreementV1.abi);
+        assert.equal(IInstantDistributionAgreementV1.contractName, "IInstantDistributionAgreementV1");
+        assert.isTrue(IInstantDistributionAgreementV1.abi.filter(i => i.name === "createIndex").length > 0);
     }
 
     it("get config", async () => {
@@ -59,6 +67,8 @@ contract("sdk test", () => {
     });
 
     it("load framework without truffle framework", async () => {
+        const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         process.env.RESET = 1;
         await deployFramework(errorHandler);
 
@@ -69,6 +79,8 @@ contract("sdk test", () => {
     });
 
     it("load framework with truffle framework", async () => {
+        const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         process.env.RESET = 1;
         await deployFramework(errorHandler);
 

@@ -10,12 +10,17 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     uint32 public constant MAX_NUM_SLOTS = 256;
 
+    //string public constant ERR_STR_INDEX_DOES_NOT_EXIST = "IDAv1: index does not exist";
+    //string public constant ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST = "IDAv1: subscription does not exist";
+
     uint256 public constant SUBSCRIPTION_STATE_SLOT_BITMAP_ID = 0;
     uint256 public constant SUBSCRIPTION_STATE_SLOT_DATA_ID_START = 1 << 128;
+    uint32 public constant UNALLOCATED_SLOT_ID = uint32(int32(-1));
 
     struct PublisherData {
         uint128 indexValue;
-        uint128 totalUnits;
+        uint128 totalUnitsApproved;
+        uint128 totalUnitsPending;
     }
 
     struct SubscriptionData {
@@ -26,10 +31,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         uint128 units;
     }
 
-    function agreementType() external override pure returns (bytes32) {
-        return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
-    }
-
+    /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
         ISuperToken token,
         address subscriber,
@@ -64,6 +66,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         }
     }
 
+    /// @dev ISuperAgreement.getDeposit implementation
     function getDeposit(
         bytes calldata /*data*/
     )
@@ -100,6 +103,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         newState = state;
     }
 
+    /// @dev IInstantDistributionAgreementV1.createIndex implementation
     function createIndex(
         ISuperToken token,
         uint32 indexId,
@@ -110,12 +114,37 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         //ISuperfluid host = ISuperfluid(msg.sender);
         address publisher = ContextLibrary.decode(ctx).msgSender;
         bytes32 pId = _getPublisherId(publisher, indexId);
-        require(token.getAgreementData(address(this), pId).length == 0, "IDAv1: index already exists");
-        token.createAgreement(pId, _encodePublisherData(PublisherData(0, 0)));
-        // TODO
+        require(!_hasPublisherData(token, pId), "IDAv1: index already exists");
+        token.createAgreement2(pId, _encodePublisherData(PublisherData(0, 0, 0)));
+
+        // TODO ctx
         newCtx = ctx;
     }
 
+    /// @dev IInstantDistributionAgreementV1.getIndex implementation
+    function getIndex(
+        ISuperToken token,
+        address publisher,
+        uint32 indexId)
+            external
+            view
+            override
+            returns(
+                bool exist,
+                uint128 indexValue,
+                uint128 totalUnitsApproved,
+                uint128 totalUnitsPending) {
+        PublisherData memory pdata;
+        bytes32 pId = _getPublisherId(publisher, indexId);
+        (exist, pdata) = _getPublisherData(token, pId);
+        if (exist) {
+            indexValue = pdata.indexValue;
+            totalUnitsApproved = pdata.totalUnitsApproved;
+            totalUnitsPending = pdata.totalUnitsPending;
+        }
+    }
+
+    /// @dev IInstantDistributionAgreementV1.updateIndex implementation
     function updateIndex(
         ISuperToken token,
         uint32 indexId,
@@ -129,27 +158,17 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         (bool exist, PublisherData memory pdata) = _getPublisherData(token, pId);
         require(exist, "IDAv1: index does not exist");
         require(indexValue >= pdata.indexValue, "IDAv1: index value should grow");
-        uint256 deduction = (indexValue - pdata.indexValue) * pdata.totalUnits;
-        pdata.indexValue = indexValue;
-        token.updateAgreementData(pId, _encodePublisherData(pdata));
-        token.deductBalance(publisher, deduction);
-        // TODO
-        newCtx = ctx;
-    }
 
-    function getIndex(
-        ISuperToken token,
-        address publisher,
-        uint32 indexId)
-            external
-            view
-            override
-            returns(uint128 indexValue, uint128 totalUnits) {
-        bytes32 pId = _getPublisherId(publisher, indexId);
-        (bool exist, PublisherData memory pdata) = _getPublisherData(token, pId);
-        require(exist, "IDAv1: index does not exist");
-        indexValue = pdata.indexValue;
-        totalUnits = pdata.totalUnits;
+        // settle the publisher balance INSTANT-ly (ding ding ding, IDA)
+        int256 deduction = - // FIXME int256 safe math
+            int256(indexValue - pdata.indexValue) *
+            int256(pdata.totalUnitsApproved + pdata.totalUnitsPending);
+        pdata.indexValue = indexValue;
+        token.updateAgreementData2(pId, _encodePublisherData(pdata));
+        token.settleBalance(publisher, deduction);
+
+        // TODO support ctx
+        newCtx = ctx;
     }
 
     function approveSubscription(
@@ -160,23 +179,50 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             external
             override
             returns(bytes memory newCtx) {
+        bool exist;
+        PublisherData memory pdata;
+        SubscriptionData memory sdata;
         address subscriber = ContextLibrary.decode(ctx).msgSender;
         bytes32 pId = _getPublisherId(publisher, indexId);
-        (bool exist, PublisherData memory pdata) = _getPublisherData(token, pId);
-        require(exist, "IDAv1: index does not exist");
-        uint32 slotId = _findAndFillSlot(token, subscriber, pId);
         bytes32 sId = _getSubscriptionId(subscriber, pId);
-        require(token.getAgreementData(address(this), sId).length == 0, "IDAv1: subscription already exists");
-        // add to subscription list of the subscriber
-        SubscriptionData memory sdata = SubscriptionData({
-            publisher: publisher,
-            indexId: indexId,
-            slotId: slotId,
-            units: 0,
-            indexValue: pdata.indexValue
-        });
-        token.createAgreement(sId, _encodeSubscriptionData(sdata));
-        // TODO
+        (exist, pdata) = _getPublisherData(token, pId);
+        require(exist, "IDAv1: index does not exist");
+
+        (exist, sdata) = _getSubscriptionData(token, sId);
+        if (!exist) {
+            sdata = SubscriptionData({
+                publisher: publisher,
+                indexId: indexId,
+                slotId: 0,
+                units: 0,
+                indexValue: pdata.indexValue
+            });
+            // add to subscription list of the subscriber
+            sdata.slotId = _findAndFillSlot(token, subscriber, pId);
+            token.createAgreement2(sId, _encodeSubscriptionData(sdata));
+        } else {
+            // sanity check
+            require(sdata.publisher == publisher, "IDAv1: incorrect publisher");
+            require(sdata.indexId == indexId, "IDAv1: incorrect indexId");
+            // required condition check
+            require(sdata.slotId == UNALLOCATED_SLOT_ID, "IDAv1: subscription already exists");
+
+            // update publisher data and adjust publisher balance (TODO)
+            pdata.totalUnitsApproved += sdata.units; // FIXME safe int256
+            pdata.totalUnitsPending -= sdata.units;
+            token.updateAgreementData2(pId, _encodePublisherData(pdata));
+
+            // update subscription data and adjust subscriber's balance
+            token.settleBalance(
+                subscriber,
+                int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units)
+            );
+            sdata.indexValue = pdata.indexValue;
+            sdata.slotId = _findAndFillSlot(token, subscriber, pId);
+            token.updateAgreementData2(sId, _encodeSubscriptionData(sdata));
+        }
+
+        // TODO support ctx
         newCtx = ctx;
     }
 
@@ -197,28 +243,65 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         bytes32 sId = _getSubscriptionId(subscriber, pId);
         (exist, pdata) = _getPublisherData(token, pId);
         require(exist, "IDAv1: index does not exist");
+
         (exist, sdata) = _getSubscriptionData(token, sId);
-        require(sdata.publisher == publisher, "IDAv1: incorrect publisher");
-        require(sdata.indexId == indexId, "IDAv1: incorrect indexId");
-        require(exist, "IDAv1: subscription does not exist");
-        // update total units
-        if (units > sdata.units) {
-            pdata.totalUnits += units - sdata.units; // FIXME safe128
+        // update publisher data
+        if (exist && sdata.slotId != UNALLOCATED_SLOT_ID) {
+            // if the subscription exist, update the approved units amount
+
+            // sanity check
+            require(sdata.publisher == publisher, "IDAv1: incorrect publisher");
+            require(sdata.indexId == indexId, "IDAv1: incorrect indexId");
+
+            // update total units
+            if (units > sdata.units) {
+                pdata.totalUnitsApproved += units - sdata.units; // FIXME safe128
+            } else {
+                pdata.totalUnitsApproved -= units - sdata.units; // FIXME safe128
+            }
+            token.updateAgreementData2(pId, _encodePublisherData(pdata));
         } else {
-            pdata.totalUnits -= units - sdata.units; // FIXME safe128
+            // if the subscription does not exist, update the pending units amount
+            if (!exist) {
+                // create unallocated subscription
+                sdata = SubscriptionData({
+                    publisher: publisher,
+                    indexId: indexId,
+                    slotId: UNALLOCATED_SLOT_ID,
+                    units: units,
+                    indexValue: pdata.indexValue
+                });
+                token.createAgreement2(sId, _encodeSubscriptionData(sdata));
+                pdata.totalUnitsPending += units;
+            } else {
+                // update pending subscription units of the publisher
+                if (units > sdata.units) {
+                    pdata.totalUnitsPending += units - sdata.units; // FIXME safe128
+                } else {
+                    pdata.totalUnitsPending -= units - sdata.units; // FIXME safe128
+                }
+            }
+            token.updateAgreementData2(pId, _encodePublisherData(pdata));
         }
-        token.updateAgreementData(pId, _encodePublisherData(pdata));
-        // update subscriptiond data
-        // FIXME touch subscriber balance first
-        //token.settle(subscriber, delta);
+        // update subscription data and settle subscriber's balance
+        // settle static balance delta before changing the state
+        token.settleBalance(
+            subscriber,
+            int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units)
+        );
         sdata.indexValue = pdata.indexValue;
         sdata.units = units;
-        token.updateAgreementData(sId, _encodeSubscriptionData(sdata));
-        // TODO
+        token.updateAgreementData2(sId, _encodeSubscriptionData(sdata));
+
+        // check account solvency
+        // TODO use isAccountSolvent optimization
+        require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance of publisher");
+
+        // TODO callback support
         newCtx = ctx;
     }
 
-    function getSubscriptionUnits(
+    function getSubscription(
         ISuperToken token,
         address publisher,
         uint32 indexId,
@@ -226,16 +309,24 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             external
             view
             override
-            returns(uint128 units) {
+            returns (
+                bool approved,
+                uint128 units,
+                uint256 pendingDistribution
+            ) {
         bool exist;
         PublisherData memory pdata;
         SubscriptionData memory sdata;
         bytes32 pId = _getPublisherId(publisher, indexId);
         (exist, pdata) = _getPublisherData(token, pId);
+        require(exist, "IDAv1: index does not exist");
         bytes32 sId = _getSubscriptionId(subscriber, pId);
         (exist, sdata) = _getSubscriptionData(token, sId);
-        require(exist, "IDAv1: index does not exist");
+        require(exist, "IDAv1: subscription does not exist");
+        approved = sdata.slotId != UNALLOCATED_SLOT_ID;
         units = sdata.units;
+        pendingDistribution = approved ? 0 :
+            uint256(pdata.indexValue - sdata.indexValue) * uint256(sdata.units);
     }
 
     function listSubscriptions(
@@ -306,11 +397,28 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         PublisherData memory pdata)
         private
         pure
-        returns (bytes memory data) {
-        return abi.encode(
-            uint256(pdata.indexValue) |
-            (uint256(pdata.totalUnits) << 128)
+        returns (bytes32[] memory data) {
+        data = new bytes32[](2);
+        data[0] = bytes32(
+            uint256(1 << 128) /* existance bit */ |
+            uint256(pdata.indexValue)
         );
+        data[1] = bytes32(
+            (uint256(pdata.totalUnitsApproved)) |
+            (uint256(pdata.totalUnitsPending) << 128)
+        );
+    }
+
+    function _hasPublisherData(
+        ISuperToken token,
+        bytes32 pId)
+        private
+        view
+        returns (bool exist)
+    {
+        bytes32[] memory adata = token.getAgreementData2(address(this), pId, 2);
+        uint256 a = uint256(adata[0]);
+        exist = a > 0;
     }
 
     function _getPublisherData(
@@ -320,12 +428,14 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         view
         returns (bool exist, PublisherData memory pdata)
     {
-        bytes memory adata = token.getAgreementData(address(this), pId);
-        exist = adata.length > 0;
+        bytes32[] memory adata = token.getAgreementData2(address(this), pId, 2);
+        uint256 a = uint256(adata[0]);
+        uint256 b = uint256(adata[1]);
+        exist = a > 0;
         if (exist) {
-            uint256 v = abi.decode(adata, (uint256));
-            pdata.indexValue = uint128(v & uint256(int128(-1)));
-            pdata.totalUnits = uint128(v >> 128);
+            pdata.indexValue = uint128(a & uint256(int128(-1)));
+            pdata.totalUnitsApproved = uint128(b & uint256(int128(-1)));
+            pdata.totalUnitsPending = uint128(b >> 128);
         }
     }
 
@@ -333,11 +443,14 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         SubscriptionData memory sdata)
         private
         pure
-        returns (bytes memory data) {
-        return abi.encode(
+        returns (bytes32[] memory data) {
+        data = new bytes32[](2);
+        data[0] = bytes32(
             (uint256(sdata.publisher) << (12*8)) |
             (uint256(sdata.indexId) << 32) |
-            uint256(sdata.slotId),
+            uint256(sdata.slotId)
+        );
+        data[1] = bytes32(
             uint256(sdata.indexValue) |
             (uint256(sdata.units) << 128)
         );
@@ -350,10 +463,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         view
         returns (bool exist, SubscriptionData memory sdata)
     {
-        bytes memory adata = token.getAgreementData(address(this), sId);
-        exist = adata.length > 0;
+        bytes32[] memory adata = token.getAgreementData2(address(this), sId, 2);
+        uint256 a = uint256(adata[0]);
+        uint256 b = uint256(adata[1]);
+        exist = a > 0;
         if (exist) {
-            (uint256 a, uint256 b) = abi.decode(adata, (uint256, uint256));
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & uint32(int32(-1)));
             sdata.slotId = uint32(a & uint32(int32(-1)));

@@ -8,6 +8,7 @@ const TestGovernance = artifacts.require("TestGovernance");
 const Proxy = artifacts.require("Proxy");
 const Proxiable = artifacts.require("Proxiable");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
+const InstantDistributionAgreementV1 = artifacts.require("InstantDistributionAgreementV1");
 
 const {
     hasCode,
@@ -19,7 +20,7 @@ const {
 /**
  * @dev Deploy the superfluid framework
  *
- * Usage: npx truffle exec scripts/deploy.js
+ * Usage: npx truffle exec scripts/deploy-framework.js
  */
 module.exports = async function (callback) {
     try {
@@ -55,10 +56,10 @@ module.exports = async function (callback) {
             if (reset || !await hasCode(superfluidAddress)) {
                 const proxy = await web3tx(Proxy.new, "Create Superfluid proxy")();
                 superfluidAddress = proxy.address;
-                const registryLogic = await web3tx(Superfluid.new, "Superfluid.new")();
-                console.log(`Superfluid new code address ${registryLogic.address}`);
+                const superfluidLogic = await web3tx(Superfluid.new, "Superfluid.new")();
+                console.log(`Superfluid new code address ${superfluidLogic.address}`);
                 await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
-                    registryLogic.address
+                    superfluidLogic.address
                 );
                 superfluid = await Superfluid.at(proxy.address);
                 await web3tx(superfluid.initialize, "Superfluid.initialize")();
@@ -72,7 +73,7 @@ module.exports = async function (callback) {
                         "Superfluid.new due to code change")();
                     console.log(`Superfluid new code address ${superfluidLogic.address}`);
                     superfluid = await Superfluid.at(superfluidAddress);
-                    await web3tx(superfluid.updateCode, "registry.updateCode")(
+                    await web3tx(superfluid.updateCode, "superfluid.updateCode")(
                         superfluidLogic.address
                     );
                 } else {
@@ -80,6 +81,35 @@ module.exports = async function (callback) {
                 }
             }
             superfluid = await Superfluid.at(superfluidAddress);
+        }
+
+        // deploy TestGovernance
+        let governance;
+        {
+            const name = `TestGovernance.${version}`;
+            const governanceAddress = await testResolver.get(name);
+            console.log("TestGovernance address", governanceAddress);
+            if (reset || await codeChanged(TestGovernance, governanceAddress)) {
+                governance = await web3tx(TestGovernance.new, "TestGovernance.new due to code change")(
+                    accounts[0], // rewardAddress
+                    3600, // period
+                    10000, // maxGasCallback
+                    10000, // maxGasApp
+                    superfluid.address
+                );
+                console.log("TestGovernance address", governance.address);
+                await web3tx(testResolver.set, `TestResolver set ${name}`)(
+                    name, governance.address
+                );
+            } else {
+                governance = await TestGovernance.at(governanceAddress);
+                console.log("TestGovernance has the same code, no deployment needed.");
+            }
+        }
+        if ((await superfluid.getGovernance.call()) !== governance.address){
+            await web3tx(superfluid.setGovernance, "superfluid.setGovernance")(
+                governance.address
+            );
         }
 
         // deploy ConstantFlowAgreementV1
@@ -98,30 +128,29 @@ module.exports = async function (callback) {
             } else {
                 console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
             }
+            if (!(await superfluid.isAgreementValid.call(cfaAddress))) {
+                await web3tx(governance.addAgreement, "governance add CFA agreement")(cfaAddress);
+            }
         }
 
-        // deploy TestGovernance
-        let governanceAddress;
+        // deploy InstantDistributionAgreementV1
         {
-            const name = `TestGovernance.${version}`;
-            governanceAddress = await testResolver.get(name);
-            console.log("TestGovernance address", governanceAddress);
-            if (reset || await codeChanged(TestGovernance, governanceAddress)) {
-                const governance = await web3tx(TestGovernance.new, "TestGovernance.new due to code change")(
-                    accounts[0],
-                    2,
-                    3600,
-                    10000,
-                    10000,
-                    superfluid.address
-                );
-                governanceAddress = governance.address;
-                console.log("TestGovernance address", governance.address);
+            const name = `InstantDistributionAgreementV1.${version}`;
+            const idaAddress = await testResolver.get(name);
+            console.log("InstantDistributionAgreementV1 address", idaAddress);
+            if (reset || await codeChanged(InstantDistributionAgreementV1, idaAddress)) {
+                const agreement = await web3tx(
+                    InstantDistributionAgreementV1.new,
+                    "InstantDistributionAgreementV1.new due to code change")();
+                console.log("New InstantDistributionAgreementV1 address", agreement.address);
                 await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, governance.address
+                    name, agreement.address
                 );
             } else {
-                console.log("TestGovernance has the same code, no deployment needed.");
+                console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
+            }
+            if (!(await superfluid.isAgreementValid.call(idaAddress))) {
+                await web3tx(governance.addAgreement, "governance add IDA agreement")(idaAddress);
             }
         }
 
@@ -134,22 +163,12 @@ module.exports = async function (callback) {
                 const superTokenLogic = await web3tx(SuperToken.new, "SuperToken.new due to code change")();
                 superTokenLogicAddress = superTokenLogic.address;
                 console.log("SuperTokenLogic address", superTokenLogicAddress);
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, superTokenLogicAddress
-                );
             } else {
                 console.log("SuperTokenLogic has the same code, no deployment needed.");
             }
         }
-
-        // update registry settings
-        if ((await superfluid.getGovernance.call()) !== governanceAddress){
-            await web3tx(superfluid.setGovernance, "registry.setGovernance")(
-                governanceAddress
-            );
-        }
         if ((await superfluid.getSuperTokenLogic.call()) !== superTokenLogicAddress){
-            await web3tx(superfluid.setSuperTokenLogic, "registry.setSuperTokenLogic")(
+            await web3tx(superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
                 superTokenLogicAddress
             );
         }

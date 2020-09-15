@@ -45,12 +45,15 @@ Framework.prototype.initialize = async function () {
     console.debug("Resolving contracts with version", this.version);
     const superfluidAddress = await this.resolver.get.call(`Superfluid.${this.version}`);
     const cfaAddress = await this.resolver.get.call(`ConstantFlowAgreementV1.${this.version}`);
+    const idaAddress = await this.resolver.get.call(`InstantDistributionAgreementV1.${this.version}`);
     console.debug("Superfluid", superfluidAddress);
     console.debug("ConstantFlowAgreementV1", cfaAddress);
+    console.debug("InstantDistributionAgreementV1", idaAddress);
 
     this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
     this.agreements = {
-        cfa : await this.contracts.IConstantFlowAgreementV1.at(cfaAddress)
+        cfa : await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
+        ida : await this.contracts.IInstantDistributionAgreementV1.at(idaAddress),
     };
 };
 

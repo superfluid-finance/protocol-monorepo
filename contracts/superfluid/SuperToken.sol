@@ -383,10 +383,68 @@ contract SuperToken is
     {
         // msg.sender is agreementClass
         require(msg.sender != account, "SuperToken: unauthorized agreement storage access");
-        _takeBalanceSnapshot(account);
+        _touch(account);
         _accountStates[msg.sender][account] = state;
         state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
         emit AgreementAccountStateUpdated(msg.sender, account, state);
+    }
+
+    /// @dev ISuperToken.createAgreement implementation
+    function createAgreement2(
+        bytes32 id,
+        bytes32[] calldata data
+    )
+        external
+        override
+    {
+        // TODO check data existence??
+        address agreementClass = msg.sender;
+        bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        _storeData(slot, data);
+        emit AgreementCreated2(agreementClass, id, data);
+    }
+
+    /// @dev ISuperToken.getAgreementData implementation
+    function getAgreementData2(
+        address agreementClass,
+        bytes32 id,
+        uint dataLength
+    )
+        external
+        view
+        override
+        returns(bytes32[] memory data)
+    {
+        bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        data = _loadData(slot, dataLength);
+    }
+
+    /// @dev ISuperToken.updateAgreementData implementation
+    function updateAgreementData2(
+        bytes32 id,
+        bytes32[] calldata data
+    )
+        external
+        override
+    {
+        address agreementClass = msg.sender;
+        bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        _storeData(slot, data);
+        emit AgreementUpdated2(msg.sender, id, data);
+    }
+
+    /// @dev ISuperToken.terminateAgreement implementation
+    function terminateAgreement2(
+        bytes32 id,
+        uint dataLength
+    )
+        external
+        override
+    {
+        address agreementClass = msg.sender;
+        bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        _eraseData(slot, dataLength);
+        emit AgreementTerminated2(msg.sender, id);
     }
 
     /// @dev ISuperToken.createAgreement implementation
@@ -482,10 +540,8 @@ contract SuperToken is
         override {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
-        for (uint j = 0; j < slotData.length; ++j) {
-            bytes32 d = slotData[j];
-            assembly { sstore(add(slot, j), d) }
-        }
+        _storeData(slot, slotData);
+        // FIXME change how this is done
         _addAgreementClass(agreementClass, account);
         emit AgreementStateUpdated(agreementClass, account, slotId);
     }
@@ -495,19 +551,14 @@ contract SuperToken is
         address agreementClass,
         address account,
         uint256 slotId,
-        uint length
+        uint dataLength
     )
         external
         override
         view
         returns (bytes32[] memory slotData) {
         bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
-        slotData = new bytes32[](length);
-        for (uint j = 0; j < length; ++j) {
-            bytes32 d;
-            assembly { d := sload(add(slot, j)) }
-            slotData[j] = d;
-        }
+        slotData = _loadData(slot, dataLength);
     }
 
     /*
@@ -524,7 +575,6 @@ contract SuperToken is
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
         require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
-        //review TODO touch only need, by the requirement amount
         _touch(msg.sender);
         _burn(msg.sender, amount);
         _token.transfer(msg.sender, amount);
@@ -663,13 +713,13 @@ contract SuperToken is
         return _updateCodeAddress(newAddress);
     }
 
-    function deductBalance(
+    function settleBalance(
         address account,
-        uint256 deduction
+        int256 delta
     )
         external
         override {
-        _balances[account] = _balances[account].sub(int256(deduction));
+        _balances[account] = _balances[account].add(delta);
     }
 
     //TODO: Lock to only agreement call
@@ -702,6 +752,28 @@ contract SuperToken is
     function _partialSettle(address account, int256 delta) internal {
         //TODO: Lock caller to be agreement
         _balances[account] = _balances[account].add(delta);
+    }
+
+    function _storeData(bytes32 slot, bytes32[] memory data) private {
+        for (uint j = 0; j < data.length; ++j) {
+            bytes32 d = data[j];
+            assembly { sstore(add(slot, j), d) }
+        }
+    }
+
+    function _loadData(bytes32 slot, uint dataLength) private view returns (bytes32[] memory data) {
+        data = new bytes32[](dataLength);
+        for (uint j = 0; j < dataLength; ++j) {
+            bytes32 d;
+            assembly { d := sload(add(slot, j)) }
+            data[j] = d;
+        }
+    }
+
+    function _eraseData(bytes32 slot, uint dataLength) private {
+        for (uint j = 0; j < dataLength; ++j) {
+            assembly { sstore(add(slot, j), 0) }
+        }
     }
 
 }

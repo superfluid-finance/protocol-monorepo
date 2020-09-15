@@ -311,8 +311,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             token,
             receiver,
             _mirrorFlowRate(senderFlowRate),
-            -deposit,
-            -owedDeposit
+            0,
+            0
         );
 
         // Close this Agreement Data

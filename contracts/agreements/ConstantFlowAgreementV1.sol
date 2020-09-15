@@ -17,6 +17,23 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     using SafeMath for uint256;
     using ContextLibrary for ContextLibrary.Context;
 
+    struct AgreementData {
+        uint256 timestamp;
+        address sender;
+        address receiver;
+        int256 flowRate;
+        int256 deposit;
+        int256 owedDeposit;
+    }
+
+    struct AgreementState {
+        uint256 timestamp;
+        address account;
+        int256 flowRate;
+        int256 deposit;
+        int256 owedDeposit;
+    }
+
     /*
      * ISuperAgreement interface
      */

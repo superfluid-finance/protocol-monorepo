@@ -331,7 +331,14 @@ contract SuperToken is
         view
         returns (int256 realtimeBalance, int256 deposit, int256 owedDeposit)
     {
-        return _calcAvailabelBalance(account, timestamp);
+        (realtimeBalance,
+         deposit,
+         owedDeposit
+        ) = _calcAvailabelBalance(account, timestamp);
+        return (realtimeBalance.sub(
+            deposit.add(
+                _min(deposit, owedDeposit))),
+                deposit, owedDeposit);
     }
 
     /*
@@ -782,5 +789,9 @@ contract SuperToken is
         for (uint j = 0; j < dataLength; ++j) {
             assembly { sstore(add(slot, j), 0) }
         }
+    }
+
+    function _min(int256 a, int256 b) internal pure returns (int256) {
+        return a < b ? a : b;
     }
 }

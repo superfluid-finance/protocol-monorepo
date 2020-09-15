@@ -10,6 +10,9 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     uint32 public constant MAX_NUM_SLOTS = 256;
 
+    //string public constant ERR_STR_INDEX_DOES_NOT_EXIST = "IDAv1: index does not exist";
+    //string public constant ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST = "IDAv1: subscription does not exist";
+
     uint256 public constant SUBSCRIPTION_STATE_SLOT_BITMAP_ID = 0;
     uint256 public constant SUBSCRIPTION_STATE_SLOT_DATA_ID_START = 1 << 128;
     uint32 public constant UNALLOCATED_SLOT_ID = uint32(int32(-1));
@@ -193,12 +196,12 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             // required condition check
             require(sdata.slotId == UNALLOCATED_SLOT_ID, "IDAv1: subscription already exists");
 
-            // update publisher data
+            // update publisher data and adjust publisher balance (TODO)
             pdata.totalUnitsApproved += sdata.units; // FIXME safe int256
             pdata.totalUnitsPending -= sdata.units;
             token.updateAgreementData2(pId, _encodePublisherData(pdata));
 
-            // update subscription data and settle subscriber's balance
+            // update subscription data and adjust subscriber's balance
             token.settleBalance(
                 subscriber,
                 int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units)
@@ -287,7 +290,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         newCtx = ctx;
     }
 
-    function getSubscriptionUnits(
+    function getSubscription(
         ISuperToken token,
         address publisher,
         uint32 indexId,
@@ -295,16 +298,24 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             external
             view
             override
-            returns(uint128 units) {
+            returns (
+                bool approved,
+                uint128 units,
+                uint256 pendingDistribution
+            ) {
         bool exist;
         PublisherData memory pdata;
         SubscriptionData memory sdata;
         bytes32 pId = _getPublisherId(publisher, indexId);
         (exist, pdata) = _getPublisherData(token, pId);
+        require(exist, "IDAv1: index does not exist");
         bytes32 sId = _getSubscriptionId(subscriber, pId);
         (exist, sdata) = _getSubscriptionData(token, sId);
-        require(exist, "IDAv1: index does not exist");
+        require(exist, "IDAv1: subscription does not exist");
+        approved = sdata.slotId != UNALLOCATED_SLOT_ID;
         units = sdata.units;
+        pendingDistribution = approved ? 0 :
+            uint256(pdata.indexValue - sdata.indexValue) * uint256(sdata.units);
     }
 
     function listSubscriptions(

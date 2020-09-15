@@ -47,7 +47,7 @@ contract("Instance Distribution Agreement v1", accounts => {
         it("#1.1 1to3 distribution scenario", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             let pdata;
-            let sunits;
+            let sdata;
 
             await web3tx(superfluid.callAgreement, "Alice create default index")(
                 ida.address,
@@ -87,9 +87,10 @@ contract("Instance Distribution Agreement v1", accounts => {
                         from: subscriberAddr,
                     }
                 );
-                sunits = await ida.getSubscriptionUnits.call(
-                    superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
-                assert.equal(sunits.toString(), "0");
+                sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
+                assert.isTrue(sdata.approved);
+                assert.equal(sdata.units.toString(), "0");
+                assert.equal(sdata.pendingDistribution.toString(), "0");
                 await web3tx(
                     superfluid.callAgreement,
                     `Alice updates ${subscriberName}'s subscription with ${wad4human(subscriptionUnits)} units`
@@ -106,9 +107,10 @@ contract("Instance Distribution Agreement v1", accounts => {
                         from: alice,
                     }
                 );
-                sunits = await ida.getSubscriptionUnits.call(
-                    superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
-                assert.equal(sunits.toString(), subscriptionUnits.toString());
+                sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
+                assert.isTrue(sdata.approved);
+                assert.equal(sdata.units.toString(), subscriptionUnits.toString());
+                assert.equal(sdata.pendingDistribution.toString(), "0");
 
                 const subs = await ida.listSubscriptions.call(superToken.address, subscriberAddr);
                 assert.equal(subs.publishers.length, 1);
@@ -170,7 +172,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
             let pdata;
-            let sunits;
+            let sdata;
 
             // alice and bob create indeces and dan subscribes to them
             const publishers = [
@@ -226,9 +228,10 @@ contract("Instance Distribution Agreement v1", accounts => {
                         from: publisherAddr,
                     }
                 );
-                sunits = await ida.getSubscriptionUnits.call(
-                    superToken.address, publisherAddr, DEFAULT_INDEX_ID, dan);
-                assert.equal(sunits.toString(), subscriptionUnits.toString());
+                sdata = await ida.getSubscription.call(superToken.address, publisherAddr, DEFAULT_INDEX_ID, dan);
+                assert.isTrue(sdata.approved);
+                assert.equal(sdata.units.toString(), subscriptionUnits.toString());
+                assert.equal(sdata.pendingDistribution.toString(), "0");
             }
             const subs = await ida.listSubscriptions.call(superToken.address, dan);
             assert.equal(subs.publishers.length, 2);
@@ -309,9 +312,10 @@ contract("Instance Distribution Agreement v1", accounts => {
             pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
             assert.equal(pdata.indexValue.toString(), "100");
             assert.equal(pdata.totalUnitsApproved.toString(), toWad("0.0003").toString());
-            sunits = await ida.getSubscriptionUnits.call(
-                superToken.address, alice, DEFAULT_INDEX_ID, dan);
-            assert.equal(wad4human(sunits), "0.00030");
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, dan);
+            assert.isTrue(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.0003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob,   toWad("99.96")],
@@ -345,7 +349,7 @@ contract("Instance Distribution Agreement v1", accounts => {
     });
 
     describe("#2 index operations", async () => {
-        it("#2.1 should create a new index", async() => {
+        it("#2.1 create a new index", async() => {
             await web3tx(superfluid.callAgreement, "Alice create default index")(
                 ida.address,
                 ida.contract.methods.createIndex(
@@ -397,7 +401,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.isFalse(pdata.exist);
         });
 
-        it("#2.4 should update index", async() => {
+        it("#2.4 update index", async() => {
             await web3tx(superfluid.callAgreement, "Alice create default index")(
                 ida.address,
                 ida.contract.methods.createIndex(
@@ -444,11 +448,74 @@ contract("Instance Distribution Agreement v1", accounts => {
                 }
             ), "IDAv1: index does not exist");
         });
+
+        it("#2.5 should fail to update index with smaller value", async() => {
+            let pdata;
+            await web3tx(superfluid.callAgreement, "Alice create default index")(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Alice update the index")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "1984",
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.isTrue(pdata.exist);
+            assert.equal(pdata.indexValue, "1984");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending, "0");
+            await web3tx(superfluid.callAgreement, "Alice update the index with the same value")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "1984",
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await expectRevert(web3tx(superfluid.callAgreement, "Alice update the index with smaller vaule")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "1983",
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            ), "IDAv1: index value should grow");
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.isTrue(pdata.exist);
+            assert.equal(pdata.indexValue, "1984");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending, "0");
+        });
     });
 
     describe("#3 subscription operations", async () => {
-        it("#3.1 should update an approved subcription", async() => {
+        it("#3.1 update an approved subcription then distribute", async() => {
             let pdata;
+            let sdata;
+            let subs;
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
             await web3tx(superfluid.callAgreement, "Alice create default index")(
@@ -500,6 +567,15 @@ contract("Instance Distribution Agreement v1", accounts => {
                     from:bob,
                 }
             ), "IDAv1: subscription already exists");
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.approved);
+            assert.equal(sdata.units.toString(), "0");
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+            assert.equal(subs.unitsList[0], "0");
 
             await web3tx(superfluid.callAgreement, "Alice update the subscription")(
                 ida.address,
@@ -522,6 +598,15 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [alice, toWad("100")],
                 [bob,   toWad("0")],
             ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.001").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+            assert.equal(subs.unitsList[0], toWad("0.001").toString());
 
             await web3tx(superfluid.callAgreement, "Alice update the index")(
                 ida.address,
@@ -547,8 +632,10 @@ contract("Instance Distribution Agreement v1", accounts => {
             await tester.validateSystem();
         });
 
-        it("#3.2 should update an non-approved subcription", async() => {
+        it("#3.2 distribute to a pending subcription then approve", async() => {
             let pdata;
+            let sdata;
+            let subs;
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
             await web3tx(superfluid.callAgreement, "Alice create default index")(
@@ -589,6 +676,12 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [alice, toWad("100")],
                 [bob,   toWad("0")],
             ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.001").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
 
             await web3tx(superfluid.callAgreement, "Alice update the subscription again")(
                 ida.address,
@@ -611,6 +704,12 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [alice, toWad("100")],
                 [bob,   toWad("0")],
             ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
 
             await web3tx(superfluid.callAgreement, "Alice update the index")(
                 ida.address,
@@ -632,12 +731,64 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [alice, toWad("99.7")],
                 [bob,   toWad("0")],
             ]);
-
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+            // FIXME check deposit
             //await tester.validateSystem();
+
+            await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from:bob,
+                }
+            );
+            await expectRevert(web3tx(superfluid.callAgreement, "Bob approve the subscription")(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from:bob,
+                }
+            ), "IDAv1: subscription already exists");
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "100");
+            assert.equal(pdata.totalUnitsApproved.toString(), toWad("0.003").toString());
+            assert.equal(pdata.totalUnitsPending, "0");
+            await testExpectedBalances([
+                [alice, toWad("99.7")],
+                [bob,   toWad("0.3")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+            assert.equal(subs.unitsList[0].toString(), toWad("0.003").toString());
+
+            await tester.validateSystem();
         });
 
-        it("#3.3 should approve a pending subcription before distribution", async() => {
+        it("#3.3 approve a pending subcription before distribution", async() => {
             let pdata;
+            let sdata;
+            let subs;
             await superToken.upgrade(INIT_BALANCE, {from: alice});
 
             await web3tx(superfluid.callAgreement, "Alice create default index")(
@@ -678,6 +829,12 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [alice, toWad("100")],
                 [bob,   toWad("0")],
             ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.001").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
 
             await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
                 ida.address,
@@ -691,14 +848,6 @@ contract("Instance Distribution Agreement v1", accounts => {
                     from: bob,
                 }
             );
-            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
-            assert.equal(pdata.indexValue, "0");
-            assert.equal(pdata.totalUnitsApproved.toString(), toWad("0.001").toString());
-            assert.equal(pdata.totalUnitsPending, "0");
-            await testExpectedBalances([
-                [alice, toWad("100")],
-                [bob,   toWad("0")],
-            ]);
             await expectRevert(web3tx(superfluid.callAgreement, "Bob approve the subscription")(
                 ida.address,
                 ida.contract.methods.approveSubscription(
@@ -711,6 +860,211 @@ contract("Instance Distribution Agreement v1", accounts => {
                     from: bob,
                 }
             ), "IDAv1: subscription already exists");
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "0");
+            assert.equal(pdata.totalUnitsApproved.toString(), toWad("0.001").toString());
+            assert.equal(pdata.totalUnitsPending, "0");
+            await testExpectedBalances([
+                [alice, toWad("100")],
+                [bob,   toWad("0")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.001").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+            assert.equal(subs.unitsList[0].toString(), toWad("0.001").toString());
+
+            await web3tx(superfluid.callAgreement, "Alice update the index")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "100",
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "100");
+            assert.equal(sdata.units.toString(), toWad("0.001").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            await testExpectedBalances([
+                [alice, toWad("99.9")],
+                [bob,   toWad("0.1")],
+            ]);
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+            assert.equal(subs.unitsList[0].toString(), toWad("0.001").toString());
+        });
+
+        it("#3.4 distribute to a pending subcription, update it, distribute again and approve", async() => {
+            let pdata;
+            let sdata;
+            let subs;
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+
+            await web3tx(superfluid.callAgreement, "Alice create default index")(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.isTrue(pdata.exist);
+            assert.equal(pdata.indexValue, "0");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending, "0");
+
+            await web3tx(superfluid.callAgreement, "Alice update the subscription")(
+                ida.address,
+                ida.contract.methods.updateSubscription(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    toWad("0.003").toString(),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "0");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending.toString(), toWad("0.003").toString());
+            await testExpectedBalances([
+                [alice, toWad("100")],
+                [bob,   toWad("0")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+
+            await web3tx(superfluid.callAgreement, "Alice update the index")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "100",
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "100");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending.toString(), toWad("0.003").toString());
+            await testExpectedBalances([
+                [alice, toWad("99.7")],
+                [bob,   toWad("0")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+            // FIXME check deposit
+            //await tester.validateSystem();
+
+            await web3tx(superfluid.callAgreement, "Alice update the subscription again")(
+                ida.address,
+                ida.contract.methods.updateSubscription(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    toWad("0.005").toString(),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue.toString(), "100");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending.toString(), toWad("0.005").toString());
+            await testExpectedBalances([
+                [alice, toWad("99.7")],
+                [bob,   toWad("0.3")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.005").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+            // FIXME check deposit
+            //await tester.validateSystem();
+
+            await web3tx(superfluid.callAgreement, "Alice update the index again")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "200",
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue.toString(), "200");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending.toString(), toWad("0.005").toString());
+            await testExpectedBalances([
+                [alice, toWad("99.2")],
+                [bob,   toWad("0.3")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.005").toString());
+            assert.equal(sdata.pendingDistribution.toString(), toWad("0.5").toString());
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+            // FIXME check deposit
+            //await tester.validateSystem();
+
+            await web3tx(superfluid.callAgreement, "Bob approve the subscription finally")(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: bob,
+                }
+            );
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.005").toString());
+            assert.equal(sdata.pendingDistribution.toString(), "0");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+            assert.equal(subs.unitsList[0].toString(), toWad("0.005").toString());
         });
     });
 

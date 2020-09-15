@@ -329,16 +329,16 @@ contract SuperToken is
         public
         override
         view
-        returns (int256 realtimeBalance, int256 deposit, int256 owedDeposit)
+        returns (int256 availabelBalance, int256 deposit, int256 owedDeposit)
     {
-        (realtimeBalance,
+        (availabelBalance,
          deposit,
          owedDeposit
         ) = _calcAvailabelBalance(account, timestamp);
-        return (realtimeBalance.sub(
-            deposit.add(
-                _min(deposit, owedDeposit))),
-                deposit, owedDeposit);
+        return (
+            availabelBalance.sub(deposit.add(_min(deposit, owedDeposit))),
+            deposit,
+            owedDeposit);
     }
 
     /*
@@ -594,28 +594,24 @@ contract SuperToken is
     )
         internal
         view
-        returns(int256 availabelBalance, int256 deposit, int256 owedDeposit)
+        returns(int256 realtimeBalance, int256 deposit, int256 owedDeposit)
     {
         int256 eachAgreementClassBalance;
         int256 eachAgreementDeposit;
         int256 eachAgreementOwedDeposit;
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
-            (availabelBalance, deposit, owedDeposit) = _realtimeBalanceOf(
+            (eachAgreementClassBalance, eachAgreementDeposit, eachAgreementOwedDeposit) = _realtimeBalanceOf(
                 _activeAgreementClasses[account][i],
                 account,
                 timestamp
             );
-            eachAgreementClassBalance = eachAgreementClassBalance.add(availabelBalance);
-            eachAgreementDeposit = eachAgreementDeposit.add(deposit);
-            eachAgreementOwedDeposit = eachAgreementOwedDeposit.add(owedDeposit);
+            realtimeBalance = realtimeBalance.add(eachAgreementClassBalance);
+            deposit = deposit.add(eachAgreementDeposit);
+            owedDeposit = owedDeposit.add(eachAgreementOwedDeposit);
         }
 
-        return (
-            _balances[account].add(eachAgreementClassBalance),
-            eachAgreementDeposit,
-            eachAgreementOwedDeposit
-        );
+        realtimeBalance = _balances[account].add(realtimeBalance);
     }
 
     function _realtimeBalanceOf(

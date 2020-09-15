@@ -1,5 +1,6 @@
 const Proxy = artifacts.require("Proxy");
 const SuperToken = artifacts.require("SuperToken");
+const ISuperToken = artifacts.require("ISuperToken");
 const TestToken = artifacts.require("TestToken");
 const TestGovernance = artifacts.require("TestGovernance");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
@@ -10,7 +11,7 @@ const {
     web3tx,
     toWad,
     wad4human,
-    toBN
+    toBN,
 } = require("@decentral.ee/web3-helpers");
 
 const AUM_DUST_AMOUNT = toBN(10000);
@@ -106,7 +107,7 @@ module.exports = class Tester {
             this.contracts.superfluid.address,
             this.contracts.token.address
         );
-        this.contracts.superToken = await SuperToken.at(
+        this.contracts.superToken = await ISuperToken.at(
             (await this.contracts.superfluid.getERC20Wrapper.call(
                 "TESTx",
                 18,
@@ -156,21 +157,20 @@ module.exports = class Tester {
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];
             const tokenBalance = await this.contracts.token.balanceOf.call(userAddress);
-            const superTokenBalance = await this.contracts.superToken.realtimeBalanceOf.call(
+            const balances = await this.contracts.superToken.realtimeBalanceOf.call(
                 userAddress,
                 currentBlock.timestamp);
-
-            let superTokenDeposit = await this.contracts.superToken.getDeposit.call(
-                this.contracts.cfa.address,
-                userAddress);
-
-            if(superTokenDeposit == undefined) {
-                superTokenDeposit = [0];
-            }
+            // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
+            const realtimeBalance = balances.availabelBalance
+                .add(balances.deposit)
+                .sub(web3.utils.BN.min(balances.owedDeposit, balances.deposit));
 
             console.log(`${alias} token balance: ${wad4human(tokenBalance)}`);
-            console.log(`${alias} super token Balance: ${wad4human(superTokenBalance)}`);
-            rtBalanceSum = rtBalanceSum.add(superTokenBalance.add(superTokenDeposit[0]));
+            console.log(`${alias} availabel balance: ${wad4human(balances.availabelBalance)}`);
+
+            rtBalanceSum = rtBalanceSum.add(realtimeBalance);
+
+            console.log(`${alias} real-time balance: ${wad4human(rtBalanceSum)}`);
         }));
 
 

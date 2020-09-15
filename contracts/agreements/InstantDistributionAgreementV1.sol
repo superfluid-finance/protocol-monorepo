@@ -41,7 +41,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         external
         view
         override
-        returns (int256 amount, int256 deposit, int256 owedDeposit) {
+        returns (int256 amount, int256 /*deposit*/, int256 /*owedDeposit*/) {
         bool exist;
         PublisherData memory pdata;
         SubscriptionData memory sdata;

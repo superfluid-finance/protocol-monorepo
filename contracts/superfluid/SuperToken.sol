@@ -316,7 +316,7 @@ contract SuperToken is
         override
         returns(uint256 balance)
     {
-        (int256 calBalance, , ) = _calculateBalance(account, block.timestamp);
+        (int256 calBalance, , ) = _calcAvailabelBalance(account, block.timestamp);
         return calBalance < 0 ? 0 : uint256(calBalance);
     }
 
@@ -330,7 +330,7 @@ contract SuperToken is
         view
         returns (int256 realtimeBalance, int256 deposit, int256 owedDeposit)
     {
-        return _calculateBalance(account, timestamp);
+        return _calcAvailabelBalance(account, timestamp);
     }
 
     /*
@@ -578,27 +578,27 @@ contract SuperToken is
 
     /* solhint-disable mark-callable-contracts */
     /// @dev Calculate balance as split result if negative return as zero.
-    function _calculateBalance(
+    function _calcAvailabelBalance(
         address account,
         uint256 timestamp
     )
         internal
         view
-        returns(int256 amount, int256 deposit, int256 owed)
+        returns(int256 availabelBalance, int256 deposit, int256 owedDeposit)
     {
         int256 eachAgreementClassBalance;
         int256 eachAgreementDeposit;
         int256 eachAgreementOwedDeposit;
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
-            (amount, deposit, owed) = _realtimeBalanceOf(
+            (availabelBalance, deposit, owedDeposit) = _realtimeBalanceOf(
                 _activeAgreementClasses[account][i],
                 account,
                 timestamp
             );
-            eachAgreementClassBalance = eachAgreementClassBalance.add(amount);
+            eachAgreementClassBalance = eachAgreementClassBalance.add(availabelBalance);
             eachAgreementDeposit = eachAgreementDeposit.add(deposit);
-            eachAgreementOwedDeposit = eachAgreementOwedDeposit.add(owed);
+            eachAgreementOwedDeposit = eachAgreementOwedDeposit.add(owedDeposit);
         }
 
         return (

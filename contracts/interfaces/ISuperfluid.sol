@@ -9,11 +9,12 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface ISuperfluid {
 
     enum TypeOperation {
-        TransferFrom, //0
-        Upgrade, //1
-        Downgrade, //2
-        CallAgreement, //3
-        CallApp //4
+        Approved,
+        TransferFrom,
+        Upgrade,
+        Downgrade,
+        CallAgreement,
+        CallApp
     }
 
     struct Operation {

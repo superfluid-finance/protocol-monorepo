@@ -32,7 +32,7 @@ interface ISuperAgreement {
     )
         external
         view
-        returns(int256 deposit, int256 ownedDeposit);
+        returns(int256 deposit, int256 owedDeposit);
 
 
     function getDepositFromData(
@@ -40,7 +40,7 @@ interface ISuperAgreement {
     )
         external
         view
-        returns(int256 flowRate, int256 deposit, int256 ownedDeposit);
+        returns(int256 flowRate, int256 deposit, int256 owedDeposit);
     /// @notice Change the timestamp of the state.
     /// @param account Account the state belongs to
     /// @param state State to be used.

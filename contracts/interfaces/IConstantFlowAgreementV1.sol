@@ -74,7 +74,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
             address receiver,
             int256 flowRate,
             int256 deposit,
-            int256 ownedDeposit
+            int256 owedDeposit
         );
 
     /// @notice Get the net flow rate of the `account` in token@`token`.

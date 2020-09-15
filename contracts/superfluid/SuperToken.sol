@@ -339,7 +339,7 @@ contract SuperToken is
         external
         view
         override
-        returns(int256 deposit, int256 ownedDeposit)
+        returns(int256 deposit, int256 owedDeposit)
     {
         return ISuperAgreement(agreementClass).getDeposit(_accountStates[agreementClass][account]);
     }
@@ -352,7 +352,7 @@ contract SuperToken is
         external
         view
         override
-        returns(int256 flowRate, int256 deposit, int256 ownedDeposit)
+        returns(int256 flowRate, int256 deposit, int256 owedDeposit)
     {
         return ISuperAgreement(agreementClass).getDepositFromData(_agreementData[agreementClass][id]);
     }

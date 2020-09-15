@@ -35,10 +35,10 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         uint256 startDate;
         int256 flowRate;
         int256 deposit;
-        int256 ownedDeposit;
+        int256 owedDeposit;
 
-        (startDate, flowRate, deposit, ownedDeposit) = _decodeFlow(data);
-        return ((int256(time).sub(int256(startDate))).mul(flowRate).add(ownedDeposit).sub(int256(deposit)));
+        (startDate, flowRate, deposit, owedDeposit) = _decodeFlow(data);
+        return ((int256(time).sub(int256(startDate))).mul(flowRate).add(owedDeposit).sub(int256(deposit)));
         //return ((int256(time).sub(int256(startDate))).mul(flowRate).sub(int256(deposit)));
     }
 
@@ -48,10 +48,10 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         external
         pure
         override
-        returns(int256 deposit, int256 ownedDeposit)
+        returns(int256 deposit, int256 owedDeposit)
     {
 
-        ( , , deposit, ownedDeposit) = _decodeFlow(data);
+        ( , , deposit, owedDeposit) = _decodeFlow(data);
     }
 
 
@@ -61,14 +61,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         external
         view
         override
-        returns(int256 flowRate, int256 deposit, int256 ownedDeposit)
+        returns(int256 flowRate, int256 deposit, int256 owedDeposit)
     {
         (,
         ,
         ,
         flowRate,
         deposit,
-        ownedDeposit) = _decodeData(data);
+        owedDeposit) = _decodeData(data);
     }
 
     /// @dev ISuperAgreement.touch implementation
@@ -238,7 +238,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             address receiver,
             int256 flowRate,
             int256 deposit,
-            int256 ownedDeposit
+            int256 owedDeposit
         )
     {
         bytes memory data = token.getAgreementData(address(this), flowId);
@@ -267,7 +267,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         address account,
         int256 flowRate,
         int256 deposit,
-        int256 ownedDeposit
+        int256 owedDeposit
     )
         private
         returns(int256 newFlowRate)
@@ -278,7 +278,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             flowRate,
             block.timestamp,
             deposit,
-            ownedDeposit
+            owedDeposit
         );
         token.updateAgreementAccountState(account, state);
         (, newFlowRate, , ) = _decodeFlow(state);
@@ -329,22 +329,22 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bool liquidation
     )
         private
-        returns(int256 deposit, int256 ownedDeposit)
+        returns(int256 deposit, int256 owedDeposit)
     {
         bytes32 flowId = _generateId(sender, receiver);
         bytes memory flowData = token.getAgreementData(address(this), flowId);
         require(flowData.length > 0, "FlowAgreement: flow does not exist");
         int256 senderFlowRate;
-        (, , , senderFlowRate, deposit, ownedDeposit) = _decodeData(flowData);
+        (, , , senderFlowRate, deposit, owedDeposit) = _decodeData(flowData);
         require(senderFlowRate > 0, "FlowAgreement: sender flow rate must be positive");
 
-        int256 totalSenderFlowRate = _updateAccountState(token, sender, senderFlowRate, -deposit, -ownedDeposit);
+        int256 totalSenderFlowRate = _updateAccountState(token, sender, senderFlowRate, -deposit, -owedDeposit);
         int256 totalReceiverFlowRate = _updateAccountState(
             token,
             receiver,
             _mirrorFlowRate(senderFlowRate),
             -deposit,
-            -ownedDeposit
+            -owedDeposit
         );
 
         // Close this Agreement Data
@@ -386,13 +386,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         address receiver,
         int256 flowRate,
         int256 deposit,
-        int256 ownedDeposit
+        int256 owedDeposit
     )
         private
         pure
         returns(bytes memory)
     {
-        return abi.encode(timestamp, sender, receiver, flowRate, deposit, ownedDeposit);
+        return abi.encode(timestamp, sender, receiver, flowRate, deposit, owedDeposit);
     }
 
     function _decodeData
@@ -408,7 +408,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         address receiver,
         int256 flowRate,
         int256 deposit,
-        int256 ownedDeposit
+        int256 owedDeposit
     )
     {
         if (data.length == 0) return (0, address(0), address(0), 0, 0, 0);
@@ -425,13 +425,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         uint256 timestamp,
         int256 flowRate,
         int256 deposit,
-        int256 ownedDeposit
+        int256 owedDeposit
     )
         private
         pure
         returns (bytes memory)
     {
-        return abi.encode(timestamp, flowRate, deposit, ownedDeposit);
+        return abi.encode(timestamp, flowRate, deposit, owedDeposit);
     }
 
     /// @dev Decode the parameter into the original types
@@ -467,7 +467,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         int256 flowRate,
         uint256 timestamp,
         int256 deposit,
-        int256 ownedDeposit
+        int256 owedDeposit
     )
         private
         pure
@@ -476,7 +476,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         (, int256 cRate, int256 cDeposit, int256 cOwned) = _decodeFlow(currentState);
         cRate = cRate.add(flowRate);
         cDeposit = cDeposit.add(deposit);
-        cOwned = cOwned.add(ownedDeposit);
+        cOwned = cOwned.add(owedDeposit);
         /*
         if (cRate == 0) {
             return "";

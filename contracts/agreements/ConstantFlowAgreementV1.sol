@@ -30,45 +30,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         external
         pure
         override
-        returns (int256 balance)
+        returns (int256 amount, int256 deposit, int256 owedDeposit)
     {
         uint256 startDate;
         int256 flowRate;
-        int256 deposit;
-        int256 owedDeposit;
 
         (startDate, flowRate, deposit, owedDeposit) = _decodeFlow(data);
-        return ((int256(time).sub(int256(startDate))).mul(flowRate).add(owedDeposit).sub(int256(deposit)));
-        //return ((int256(time).sub(int256(startDate))).mul(flowRate).sub(int256(deposit)));
-    }
-
-    function getDeposit(
-        bytes calldata data
-    )
-        external
-        pure
-        override
-        returns(int256 deposit, int256 owedDeposit)
-    {
-
-        ( , , deposit, owedDeposit) = _decodeFlow(data);
-    }
-
-
-    function getDepositFromData(
-        bytes calldata data
-    )
-        external
-        view
-        override
-        returns(int256 flowRate, int256 deposit, int256 owedDeposit)
-    {
-        (,
-        ,
-        ,
-        flowRate,
-        deposit,
-        owedDeposit) = _decodeData(data);
+        amount = ((int256(time).sub(int256(startDate))).mul(flowRate).add(owedDeposit).sub(int256(deposit)));
     }
 
     /// @dev ISuperAgreement.touch implementation

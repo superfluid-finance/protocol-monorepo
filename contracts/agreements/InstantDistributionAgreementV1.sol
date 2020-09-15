@@ -41,7 +41,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         external
         view
         override
-        returns (int256 amount) {
+        returns (int256 amount, int256 deposit, int256 owedDeposit) {
         bool exist;
         PublisherData memory pdata;
         SubscriptionData memory sdata;
@@ -64,30 +64,6 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             require(sdata.slotId == slotId, "IDAv1: incorrect slot id");
             amount += int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units);
         }
-    }
-
-    /// @dev ISuperAgreement.getDeposit implementation
-    function getDeposit(
-        bytes calldata /*data*/
-    )
-        external
-        pure
-        override
-        returns(int256 deposit, int256 ownedDeposit)
-    {
-        return (0, 0);
-    }
-
-
-    function getDepositFromData(
-        bytes calldata /*data*/
-    )
-        external
-        view
-        override
-        returns(int256 flowRate, int256 deposit, int256 ownedDeposit)
-    {
-        return(0,0,0);
     }
 
     function touch(

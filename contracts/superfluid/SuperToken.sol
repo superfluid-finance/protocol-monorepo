@@ -303,7 +303,8 @@ contract SuperToken is
         override
         returns(bool)
     {
-        return realtimeBalanceOf(account, block.timestamp) < 0;
+        (int256 amount, ,) = realtimeBalanceOf(account, block.timestamp);
+        return amount < 0;
     }
 
     /// @dev ERC20.balanceOf implementation
@@ -315,7 +316,7 @@ contract SuperToken is
         override
         returns(uint256 balance)
     {
-        (int256 calBalance) = _calculateBalance(account, block.timestamp);
+        (int256 calBalance, , ) = _calculateBalance(account, block.timestamp);
         return calBalance < 0 ? 0 : uint256(calBalance);
     }
 
@@ -327,35 +328,11 @@ contract SuperToken is
         public
         override
         view
-        returns (int256)
+        returns (int256 realtimeBalance, int256 deposit, int256 owedDeposit)
     {
         return _calculateBalance(account, timestamp);
     }
 
-    function getDeposit(
-        address agreementClass,
-        address account
-    )
-        external
-        view
-        override
-        returns(int256 deposit, int256 owedDeposit)
-    {
-        return ISuperAgreement(agreementClass).getDeposit(_accountStates[agreementClass][account]);
-    }
-
-
-    function getDepositFromData(
-        address agreementClass,
-        bytes32 id
-    )
-        external
-        view
-        override
-        returns(int256 flowRate, int256 deposit, int256 owedDeposit)
-    {
-        return ISuperAgreement(agreementClass).getDepositFromData(_agreementData[agreementClass][id]);
-    }
     /*
     *   Agreement functions
     */
@@ -512,7 +489,7 @@ contract SuperToken is
 
         address rewardAccount = _gov.getRewardAddress(address(_token));
 
-        int256 balance = realtimeBalanceOf(account, block.timestamp);
+        (int256 balance, , ) = realtimeBalanceOf(account, block.timestamp);
         int256 remain = balance.sub(int256(deposit));
 
         //if there is fees to be collected discount user account, if not then discount rewardAccount
@@ -601,24 +578,52 @@ contract SuperToken is
 
     /* solhint-disable mark-callable-contracts */
     /// @dev Calculate balance as split result if negative return as zero.
-    function _calculateBalance(address account, uint256 timestamp) internal view returns(int256) {
-
+    function _calculateBalance(
+        address account,
+        uint256 timestamp
+    )
+        internal
+        view
+        returns(int256 amount, int256 deposit, int256 owed)
+    {
         int256 eachAgreementClassBalance;
-        address agreementClass;
+        int256 eachAgreementDeposit;
+        int256 eachAgreementOwedDeposit;
 
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
-            agreementClass = _activeAgreementClasses[account][i];
-            eachAgreementClassBalance = eachAgreementClassBalance.add(
-                ISuperAgreement(agreementClass).realtimeBalanceOf(
-                    this,
-                    account,
-                    _accountStates[agreementClass][account],
-                    timestamp
-            )
+            (amount, deposit, owed) = _realtimeBalanceOf(
+                _activeAgreementClasses[account][i],
+                account,
+                timestamp
             );
+            eachAgreementClassBalance = eachAgreementClassBalance.add(amount);
+            eachAgreementDeposit = eachAgreementDeposit.add(deposit);
+            eachAgreementOwedDeposit = eachAgreementOwedDeposit.add(owed);
         }
 
-        return _balances[account].add(eachAgreementClassBalance);
+        return (
+            _balances[account].add(eachAgreementClassBalance),
+            eachAgreementDeposit,
+            eachAgreementOwedDeposit
+        );
+    }
+
+    function _realtimeBalanceOf(
+        address agreementClass,
+        address account,
+        uint256 timestamp
+    )
+        internal
+        view
+        returns(int256, int256, int256)
+    {
+       return ISuperAgreement(
+                agreementClass).realtimeBalanceOf(
+                this,
+                account,
+                _accountStates[agreementClass][account],
+                timestamp
+            );
     }
     /* solhint-enable mark-callable-contracts */
 
@@ -706,7 +711,8 @@ contract SuperToken is
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        _balances[account] = realtimeBalanceOf(account, block.timestamp);
+        (int256 amount, , ) = realtimeBalanceOf(account, block.timestamp);
+        _balances[account] = amount;
     }
 
     function updateCode(address newAddress) external onlyOwner {

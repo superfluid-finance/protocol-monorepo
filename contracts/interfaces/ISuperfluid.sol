@@ -38,11 +38,11 @@ interface ISuperfluid {
         IERC20 token
     )
     external
-    returns (ISuperToken);
+    returns (ISuperToken superToken);
 
-    function getGovernance() external returns (ISuperfluidGovernance);
+    function getGovernance() external returns (ISuperfluidGovernance governance);
 
-    function getSuperTokenLogic() external returns (ISuperToken);
+    function getSuperTokenLogic() external returns (ISuperToken superToken);
 
     /**
      * @notice Message sender declares it as a super app.
@@ -63,7 +63,7 @@ interface ISuperfluid {
             uint256 configWord
         );
 
-    function isAppJailed(address app) external view returns (bool);
+    function isAppJailed(address app) external view returns (bool isJail);
 
     /**
      * @notice White-list the target app for app composition for the source app `msg.sender`
@@ -71,7 +71,7 @@ interface ISuperfluid {
      */
     function allowCompositeApp(address targetApp) external;
 
-    function isCompositeAppAllowed(address app, address targetApp) external view returns (bool);
+    function isCompositeAppAllowed(address app, address targetApp) external view returns (bool isAppAllowed);
 
     function callBatch(Operation[] memory operations) external;
 
@@ -133,9 +133,9 @@ interface ISuperfluid {
         external
         returns(bytes memory newCtx);
 
-    function getAppLevel(address appAddr) external view returns(uint8);
+    function getAppLevel(address appAddr) external view returns(uint8 appLevel);
 
     function addAgreement(address agreement) external;
 
-    function isAgreementValid(address agreement) external view returns(bool);
+    function isAgreementValid(address agreement) external view returns(bool isValid);
 }

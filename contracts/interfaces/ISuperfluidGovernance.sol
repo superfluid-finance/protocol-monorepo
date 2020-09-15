@@ -27,14 +27,14 @@ interface ISuperfluidGovernance {
         view
         returns(uint16 period);
 
-    function getMaxGasCallback() external view returns(uint64);
+    function getMaxGasCallback() external view returns(uint64 maxGas);
 
-    function getMaxGasApp() external view returns(uint64);
+    function getMaxGasApp() external view returns(uint64 maxGas);
 
     function getSuperfluid()
         external
         view
-        returns(address);
+        returns(address superfluidAddr);
 
     function addAgreement(address agreement) external;
 }

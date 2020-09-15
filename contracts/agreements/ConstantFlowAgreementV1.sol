@@ -340,7 +340,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         return -1 * flowRate;
     }
 
-    function _generateId(address sender, address receiver) private pure returns(bytes32) {
+    function _generateId(address sender, address receiver) private pure returns(bytes32 id) {
         require(sender != address(0), "Sender is zero");
         require(receiver != address(0), "Receiver is zero");
 
@@ -358,7 +358,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     )
         private
         pure
-        returns(bytes memory)
+        returns(bytes memory data)
     {
         return abi.encode(timestamp, sender, receiver, flowRate, deposit, owedDeposit);
     }
@@ -397,7 +397,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     )
         private
         pure
-        returns (bytes memory)
+        returns (bytes memory flow)
     {
         return abi.encode(timestamp, flowRate, deposit, owedDeposit);
     }
@@ -459,7 +459,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     )
         internal
         view
-        returns(bool)
+        returns(bool isNewFlow)
     {
         bytes memory data = token.getAgreementData(address(this), flowId);
         return (data.length == 0);
@@ -511,7 +511,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     )
         internal
         view
-        returns(bytes memory)
+        returns(bytes memory state)
     {
         (
             uint256 cTimestamp,
@@ -535,7 +535,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     )
         internal
         view
-        returns(bytes memory)
+        returns(bytes memory data)
     {
         (
             uint256 cTimestamp,

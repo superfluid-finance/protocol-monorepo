@@ -294,24 +294,24 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      /// @notice Get a list of agreements that is active for the account
      /// @dev An active agreement is one that has state for the account
      /// @param account Account to query
-     /// @return List of accounts that have non-zero states for the account
+     /// @return activeAgreements List of accounts that have non-zero states for the account
     function getAccountActiveAgreements(address account)
         public
         virtual
         view
-        returns(address[] memory);
+        returns(address[] memory activeAgreements);
 
      /// @notice Check if one account is insolvent
      /// @dev It is used in the liquidation process
      /// @param account Account check if is insolvent
-     /// @return Is the account insolvent?
+     /// @return isInsolvent Is the account insolvent?
     function isAccountInsolvent(
         address account
     )
         public
         view
         virtual
-        returns(bool);
+        returns(bool isInsolvent);
 
     /// @notice Calculate the real balance of a user, taking in consideration
     ///         all agreements of the account
@@ -319,7 +319,9 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param account for the query
     /// @param timestamp Time of balance
     /// @param account Account to query
-    /// @return Real-time balance
+    /// @return availabelBalance Real-time balance
+    /// @return deposit Account deposit
+    /// @return owedDeposit Account owed Deposit
      function realtimeBalanceOf(
          address account,
          uint256 timestamp
@@ -327,15 +329,15 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
          external
          virtual
          view
-         returns (int256, int256, int256);
+         returns (int256 availabelBalance, int256 deposit, int256 owedDeposit);
 
     /**************************************************************************
      * ERC20 wrapping
      *************************************************************************/
 
      /// @notice Return the underlaying token contract
-     /// @return Underlying token address
-     function getUnderlayingToken() external virtual view returns(address);
+     /// @return tokenAddr Underlying token address
+     function getUnderlayingToken() external virtual view returns(address tokenAddr);
 
     /// @notice Upgrade ERC20 to SuperToken.
     /// @dev It will use ´transferFrom´ to get tokens. Before calling this
@@ -368,8 +370,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     * System functions
     *************************************************************************/
     /// @notice Return the Governance Contract that rule this SuperToken
-    /// @return Governance address
+    /// @return governanceAddr Governance address
     ///
     /// FIXME move to the ctx
-    function getGovernanceAddress() external virtual view returns(address);
+    function getGovernanceAddress() external virtual view returns(address governanceAddr);
 }

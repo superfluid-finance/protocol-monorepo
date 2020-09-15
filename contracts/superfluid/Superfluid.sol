@@ -128,6 +128,7 @@ contract Superfluid is
         string calldata name,
         string calldata symbol,
         uint8 decimals,
+        ISuperfluid host,
         IERC20 token
     )
     external
@@ -148,7 +149,7 @@ contract Superfluid is
             symbol,
             decimals,
             token,
-            _gov
+            host
         );
     }
 

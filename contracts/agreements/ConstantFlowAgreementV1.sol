@@ -466,7 +466,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     function _minimalDeposit(ISuperToken token, int256 flowRate) internal view returns(int256 deposit) {
-        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernanceAddress());
+        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernance());
         uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
         deposit = flowRate * liquidationPeriod;
     }

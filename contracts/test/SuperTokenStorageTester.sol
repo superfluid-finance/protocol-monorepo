@@ -37,9 +37,9 @@ contract SuperTokenStorageTester is SuperToken {
         assembly { slot:= _token.slot offset := _token.offset }
         require (slot == 3 && offset == 1, "_token changed location");
 
-        // ISuperfluidGovernance internal _gov
-        assembly { slot:= _gov.slot offset := _gov.offset }
-        require (slot == 4 && offset == 0, "_gov changed location");
+        // ISuperfluid internal _host
+        assembly { slot:= _host.slot offset := _host.offset }
+        require (slot == 4 && offset == 0, "_host changed location");
 
         // mapping(address => mapping (bytes32 => bytes)) internal _agreementData;
         assembly { slot:= _agreementData.slot offset := _agreementData.offset }

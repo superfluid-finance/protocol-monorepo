@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 import { Proxiable } from "../upgradability/Proxiable.sol";
 import { Ownable } from "../interfaces/Ownable.sol";
 import { ISuperToken } from "../interfaces/ISuperToken.sol";
+import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
 import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
 import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -33,8 +34,8 @@ contract SuperTokenStorage {
     /// @dev The underlaying ERC20 token
     IERC20 internal _token;
 
-    /// @dev Governance contract
-    ISuperfluidGovernance internal _gov;
+    /// @dev Superfluid contract
+    ISuperfluid internal _host;
 
     /// @dev Mapping to agreement data.
     ///      Mapping order: .agreementClass.agreementID.
@@ -73,7 +74,7 @@ contract SuperToken is
         string calldata symbol,
         uint8 decimals,
         IERC20 token,
-        ISuperfluidGovernance gov
+        ISuperfluid host
     )
         external
     {
@@ -84,7 +85,7 @@ contract SuperToken is
         _symbol = symbol;
         _decimals = decimals;
         _token = token;
-        _gov = gov;
+        _host = host;
     }
 
     /*
@@ -486,8 +487,8 @@ contract SuperToken is
     external
     override
     {
-
-        address rewardAccount = _gov.getRewardAddress(address(_token));
+        ISuperfluidGovernance gov = _host.getGovernance();
+        address rewardAccount = gov.getRewardAddress(address(_token));
 
         (int256 balance, , ) = realtimeBalanceOf(account, block.timestamp);
         int256 remain = balance.sub(int256(deposit));
@@ -558,13 +559,15 @@ contract SuperToken is
         emit TokenDowngraded(msg.sender, amount);
     }
 
-    /// @dev ISuperfluidGovernance.getGovernanceAddress implementation
-    function getGovernanceAddress() external override view returns(address) {
-        return address(_gov);
+    function getSuperfluidAddress() external view override returns(address host) {
+        return address(_host);
     }
 
+    function getGovernance() external view override returns(address governance) {
+        return address(_host.getGovernance());
+    }
     /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
-    function getUnderlayingToken() external override view returns(address) {
+    function getUnderlayingToken() external view override returns(address) {
         return address(_token);
     }
 
@@ -625,7 +628,6 @@ contract SuperToken is
                 timestamp
             );
     }
-    /* solhint-enable mark-callable-contracts */
 
     /* solhint-disable mark-callable-contracts */
     /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
@@ -781,5 +783,4 @@ contract SuperToken is
             assembly { sstore(add(slot, j), 0) }
         }
     }
-
 }

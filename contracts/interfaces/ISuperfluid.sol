@@ -4,6 +4,8 @@ pragma experimental ABIEncoderV2;
 
 import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
+import { ISuperfluid } from "./ISuperfluid.sol";
+import { ISuperfluid } from "./ISuperfluid.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface ISuperfluid {
@@ -35,14 +37,15 @@ interface ISuperfluid {
         string calldata name,
         string calldata symbol,
         uint8 decimals,
+        ISuperfluid host,
         IERC20 token
     )
     external
     returns (ISuperToken superToken);
 
-    function getGovernance() external returns (ISuperfluidGovernance governance);
+    function getGovernance() external view returns(ISuperfluidGovernance governance);
 
-    function getSuperTokenLogic() external returns (ISuperToken superToken);
+    function getSuperTokenLogic() external view returns (ISuperToken superToken);
 
     /**
      * @notice Message sender declares it as a super app.

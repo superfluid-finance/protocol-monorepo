@@ -369,9 +369,9 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /**************************************************************************
     * System functions
     *************************************************************************/
-    /// @notice Return the Governance Contract that rule this SuperToken
-    /// @return governanceAddr Governance address
-    ///
-    /// FIXME move to the ctx
-    function getGovernanceAddress() external virtual view returns(address governanceAddr);
+    /// @notice Return the Host Contract that rule this SuperToken
+    /// @return host Superfluid address
+    function getSuperfluidAddress() external view virtual returns(address host);
+
+    function getGovernance() external view virtual returns(address governance);
 }

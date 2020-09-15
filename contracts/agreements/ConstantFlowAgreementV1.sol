@@ -30,13 +30,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         external
         pure
         override
-        returns (int256 amount, int256 deposit, int256 owedDeposit)
+        returns (int256 availabelBalance, int256 deposit, int256 owedDeposit)
     {
         uint256 startDate;
         int256 flowRate;
 
         (startDate, flowRate, deposit, owedDeposit) = _decodeFlow(data);
-        amount = ((int256(time).sub(int256(startDate))).mul(flowRate).add(owedDeposit).sub(int256(deposit)));
+        availabelBalance = ((int256(time).sub(int256(startDate))).mul(flowRate));
     }
 
     /// @dev ISuperAgreement.touch implementation

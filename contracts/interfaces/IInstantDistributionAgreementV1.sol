@@ -9,18 +9,31 @@ import "./ISuperAgreement.sol";
  * @author Superfluid
  *
  * Notes:
- *   - `indexId` is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
- *     Despite knowing sha-3 collision is only theoratical.
- *   - A subscriber must approve the index in order to receive distributions from the publisher.
- *   - Total units of the approved subscriptions is `totalUnitsApproved`.
- *   - Total units of the non approved subscription is `totalUnitsPending`.
+ *   - A publisher can create as many as indeces as possibily identifiable with `indexId`.
+ *     - `indexId` is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
+ *       Despite knowing sha-3 collision is only theoratical.
+ *   - A publisher can create subscription to an index for any subscriber.
+ *   - A subscription consists of:
+ *     - The index it subscribes to.
+ *     - Number of units subscribed.
+ *   - An index consists of:
+ *     - Current value as `uint128 indexValue`.
+ *     - Total units of the approved subscriptions as `uint128 totalUnitsApproved`.
+ *     - Total units of the non approved subscription as `uint128 totalUnitsPending`.
+ *   - A publisher can update index with new value that doesn't decrease.
+ *   - A publisher can update subscription with any number of units.
+ *   - A publisher or a subscriber can delete subscription and reset units to zero.
+ *   - A subscriber must approve the index in order to receive distributions from the publisher
+ *     each time the index is updated.
+ *     - The amount distributed is $$\Delta{index} * units$$
  *   - Distributions to a non approved subscription stays in the publisher's deposit until:
  *     - the subscriber approve the subscription,
  *     - the publisher update the subscription,
- *     - the subscriber cancel the subscription even if it is never approved.
+ *     - the subscriber delete the subscription even if it is never approved.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
+    /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {
         return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
     }
@@ -158,7 +171,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param indexId Id of the index.
      * @param subscriber The user, a subscriber.
      */
-    /* function deleteSubscription(
+    function deleteSubscription(
         ISuperToken token,
         address publisher,
         uint32 indexId,
@@ -166,6 +179,6 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes calldata ctx)
             external
             virtual
-            returns(bytes memory newCtx); */
+            returns(bytes memory newCtx);
 
 }

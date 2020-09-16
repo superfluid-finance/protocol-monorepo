@@ -117,16 +117,16 @@ contract("MultiFlowsApp", accounts => {
         console.log("App Deposit", appDeposit[1].toString(), appDeposit[2].toString());
     });
 
-    /*
     it("#2 MultiFlowsApp Batch Call", async () => {
 
         await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
         const app = await web3tx(MultiApp.new, "MultiApp.new")(cfa.address, superfluid.address);
-        const dataApp = [4,
+        const dataApp = [5,
             app.address,
             app.contract.methods.createMultiFlows(superToken.address, [bob, carol], [6, 4], "0x").encodeABI()
         ];
-        const dataAgreement = [3,
+
+        const dataAgreement = [4,
             cfa.address, cfa.contract.methods.createFlow(
                 superToken.address,
                 app.address,
@@ -149,5 +149,4 @@ contract("MultiFlowsApp", accounts => {
         assert.equal(bobNetFlow, FLOW_RATE * 6 / 10, "Bob net flow is wrong");
         assert.equal(carolNetFlow, FLOW_RATE * 4 / 10, "Carol net flow is wrong");
     });
-    */
 });

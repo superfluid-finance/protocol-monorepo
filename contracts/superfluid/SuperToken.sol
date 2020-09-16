@@ -582,7 +582,7 @@ contract SuperToken is
     *  Internal functions
     */
 
-   function _fbalance(address account, uint256 timestamp) internal returns(int256 balance) {
+   function _grossBalance(address account, uint256 timestamp) internal returns(int256 balance) {
         balance = _balances[account];
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
             (
@@ -730,7 +730,7 @@ contract SuperToken is
     function _takeBalanceSnapshot(address account) internal {
         //(int256 amount, , ) = realtimeBalanceOf(account, block.timestamp);
         //_balances[account] = amount;
-        _balances[account] = _fbalance(account, block.timestamp);
+        _balances[account] = _grossBalance(account, block.timestamp);
     }
 
     function updateCode(address newAddress) external onlyOwner {

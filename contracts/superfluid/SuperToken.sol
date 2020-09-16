@@ -582,6 +582,21 @@ contract SuperToken is
     *  Internal functions
     */
 
+   function _fbalance(address account, uint256 timestamp) internal returns(int256 balance) {
+        balance = _balances[account];
+        for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
+            (
+                int256 agreementDynamicBalance,
+                ,
+                ) = _realtimeBalanceOf(
+                    _activeAgreementClasses[account][i],
+                    account,
+                    timestamp
+                );
+            balance = balance.add(agreementDynamicBalance);
+        }
+   }
+
     /* solhint-disable mark-callable-contracts */
     /// @dev Calculate balance as split result if negative return as zero.
     function _calcAvailabelBalance(
@@ -593,21 +608,19 @@ contract SuperToken is
         returns(int256 availableBalance, int256 deposit, int256 owedDeposit)
     {
         int256 realtimeBalance = _balances[account];
-
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
             (
                 int256 agreementDynamicBalance,
                 int256 agreementDeposit,
                 int256 agreementOwedDeposit) = _realtimeBalanceOf(
-                _activeAgreementClasses[account][i],
-                account,
-                timestamp
-            );
+                    _activeAgreementClasses[account][i],
+                    account,
+                    timestamp
+                );
             realtimeBalance = realtimeBalance.add(agreementDynamicBalance);
             deposit = deposit.add(agreementDeposit);
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
         }
-
         availableBalance = realtimeBalance
             .sub(deposit)
             .add(_min(deposit, owedDeposit));
@@ -715,8 +728,9 @@ contract SuperToken is
     /// @dev Save the balance until now
     /// @param account User to snapshot balance
     function _takeBalanceSnapshot(address account) internal {
-        (int256 amount, , ) = realtimeBalanceOf(account, block.timestamp);
-        _balances[account] = amount;
+        //(int256 amount, , ) = realtimeBalanceOf(account, block.timestamp);
+        //_balances[account] = amount;
+        _balances[account] = _fbalance(account, block.timestamp);
     }
 
     function updateCode(address newAddress) external onlyOwner {
@@ -736,15 +750,12 @@ contract SuperToken is
     function chargeDeposit(
         address account,
         bytes32 flowId,
-        int256 charge,
         bytes memory data,
         bytes memory state
     )
         external
         override
     {
-        require(account != address(0), "Can't take deposit from zero account");
-        _balances[account] = _balances[account].sub(charge);
         _agreementData[msg.sender][flowId] = data;
         _accountStates[msg.sender][account] = state;
     }

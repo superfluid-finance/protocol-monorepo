@@ -104,7 +104,6 @@ module.exports = class Tester {
             "Super Test Token",
             "TESTx",
             18,
-            this.contracts.superfluid.address,
             this.contracts.token.address
         );
         this.contracts.superToken = await ISuperToken.at(

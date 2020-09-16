@@ -20,6 +20,7 @@ contract("sdk test", () => {
             IConstantFlowAgreementV1,
             IInstantDistributionAgreementV1,
         } = sf.contracts;
+
         assert.isDefined(IERC20.abi);
         assert.equal(IERC20.contractName, "IERC20");
         assert.isTrue(IERC20.abi.filter(i => i.name === "Transfer").length > 0);

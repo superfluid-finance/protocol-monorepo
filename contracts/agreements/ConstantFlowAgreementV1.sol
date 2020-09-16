@@ -47,13 +47,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         external
         pure
         override
-        returns (int256 availabelBalance, int256 deposit, int256 owedDeposit)
+        returns (int256 dynamicBalance, int256 deposit, int256 owedDeposit)
     {
         uint256 startDate;
         int256 flowRate;
 
         (startDate, flowRate, deposit, owedDeposit) = _decodeFlow(data);
-        availabelBalance = ((int256(time).sub(int256(startDate))).mul(flowRate));
+        dynamicBalance = ((int256(time).sub(int256(startDate))).mul(flowRate));
     }
 
     /// @dev ISuperAgreement.touch implementation
@@ -91,8 +91,11 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             AgreementLibrary.beforeAgreementCreated(
                 ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
+
         (int256 depositSpend, ) = _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
+
         newCtx = ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend);
+
         newCtx = AgreementLibrary.afterAgreementCreated(
             ISuperfluid(msg.sender),
             token,
@@ -283,10 +286,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         require(flowRate != 0, "FlowAgreement: use delete flow");
         require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
         bytes32 flowId = _generateId(sender, receiver);
+
         bytes memory oldFlowData = token.getAgreementData(address(this), flowId);
         int256 oldFlowRate;
         (, , , oldFlowRate, oldDeposit, ) = _decodeData(oldFlowData);
+
         allowanceUsed = _minimalDeposit(token, flowRate);
+
         bytes memory newFlowData = _encodeData(
             block.timestamp,
             sender,
@@ -295,10 +301,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             0,
             0
         );
+
         token.createAgreement(flowId, newFlowData);
-        int flowRateDelta = flowRate - oldFlowRate;
-        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRateDelta), 0, 0);
-        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRateDelta, 0, 0);
+
+        //int256 flowRateDelta = flowRate - oldFlowRate;
+        int256 totalSenderFlowRate = _updateAccountState(token, sender, _mirrorFlowRate(flowRate), 0, 0);
+        int256 totalReceiverFlowRate = _updateAccountState(token, receiver, flowRate, 0, 0);
+
         emit FlowUpdated(
             token,
             sender,
@@ -463,8 +472,9 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         cRate = cRate.add(flowRate);
         cDeposit = cDeposit.add(deposit);
         cOwned = cOwned.add(owedDeposit);
+
         /*
-        if (cRate == 0) {
+        if(cRate == 0) {
             return "";
         }
         */
@@ -501,7 +511,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         token.chargeDeposit(
             account,
             flowId,
-            charge,
             _updateDepositData(token, flowId, charge, maxAllowance),
             _updateDepositState(token, account, charge, maxAllowance)
         );
@@ -538,10 +547,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             int256 cOwned
         ) = _decodeFlow(token.getAgreementAccountState(address(this), account));
 
-        //cDeposit = cDeposit.add(charge);
-        //cOwned = cOwned.add(maxAllowance);
-        cDeposit += charge;
-        cOwned += maxAllowance;
+        cDeposit = cDeposit.add(charge);
+        cOwned = cOwned.add(maxAllowance);
         return _encodeFlow(cTimestamp, cFlowRate, cDeposit ,cOwned);
     }
 
@@ -566,6 +573,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
         cDeposit = charge;
         cOwned = maxAllowance;
+
         return _encodeData(
             cTimestamp,
             cSender,

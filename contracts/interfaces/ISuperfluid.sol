@@ -37,7 +37,6 @@ interface ISuperfluid {
         string calldata name,
         string calldata symbol,
         uint8 decimals,
-        ISuperfluid host,
         IERC20 token
     )
     external

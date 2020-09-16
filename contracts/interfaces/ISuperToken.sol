@@ -273,7 +273,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     function chargeDeposit(
         address account,
         bytes32 flowId,
-        int256 charge,
         bytes memory data,
         bytes memory state
     )

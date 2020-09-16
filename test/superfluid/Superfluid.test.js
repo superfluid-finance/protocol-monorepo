@@ -17,7 +17,6 @@ contract("Superfluid", accounts => {
             });
         const governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
             accounts[0],
-            1,
             3600,
             10000,
             10000,

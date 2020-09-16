@@ -37,6 +37,7 @@ contract("Instance Distribution Agreement v1", accounts => {
         for (let i = 0; i < expectedBalances.length; ++i) {
             const account = expectedBalances[i][0];
             const expectedBalance = expectedBalances[i][1];
+            //const expectedDeposit = expectedBalances[i][2] || "0";
             const balance = await superToken.balanceOf.call(account);
             console.log(`${tester.toAliases[account]}'s current balance: `, wad4human(balance));
             assert.equal(balance.toString(), expectedBalance.toString());
@@ -728,7 +729,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(pdata.totalUnitsApproved, "0");
             assert.equal(pdata.totalUnitsPending.toString(), toWad("0.003").toString());
             await testExpectedBalances([
-                [alice, toWad("99.7")],
+                [alice, toWad("99.7")], // FIXME check deposit
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
@@ -737,8 +738,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            // FIXME check deposit
-            //await tester.validateSystem();
+            await tester.validateSystem();
 
             await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
                 ida.address,
@@ -973,7 +973,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(pdata.totalUnitsApproved, "0");
             assert.equal(pdata.totalUnitsPending.toString(), toWad("0.003").toString());
             await testExpectedBalances([
-                [alice, toWad("99.7")],
+                [alice, toWad("99.7")], // FIXME check deposit
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
@@ -982,8 +982,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            // FIXME check deposit
-            //await tester.validateSystem();
+            await tester.validateSystem();
 
             await web3tx(superfluid.callAgreement, "Alice update the subscription again")(
                 ida.address,
@@ -1003,7 +1002,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(pdata.totalUnitsApproved, "0");
             assert.equal(pdata.totalUnitsPending.toString(), toWad("0.005").toString());
             await testExpectedBalances([
-                [alice, toWad("99.7")],
+                [alice, toWad("99.7")], // FIXME check deposit
                 [bob,   toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
@@ -1012,8 +1011,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), "0");
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            // FIXME check deposit
-            //await tester.validateSystem();
+            await tester.validateSystem();
 
             await web3tx(superfluid.callAgreement, "Alice update the index again")(
                 ida.address,
@@ -1032,7 +1030,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(pdata.totalUnitsApproved, "0");
             assert.equal(pdata.totalUnitsPending.toString(), toWad("0.005").toString());
             await testExpectedBalances([
-                [alice, toWad("99.2")],
+                [alice, toWad("99.2")], // FIXME check deposit
                 [bob,   toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
@@ -1041,8 +1039,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.5").toString());
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            // FIXME check deposit
-            //await tester.validateSystem();
+            await tester.validateSystem();
 
             await web3tx(superfluid.callAgreement, "Bob approve the subscription finally")(
                 ida.address,

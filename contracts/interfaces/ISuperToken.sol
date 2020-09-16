@@ -319,7 +319,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param account for the query
     /// @param timestamp Time of balance
     /// @param account Account to query
-    /// @return availabelBalance Real-time balance
+    /// @return availableBalance Real-time balance
     /// @return deposit Account deposit
     /// @return owedDeposit Account owed Deposit
      function realtimeBalanceOf(
@@ -329,15 +329,15 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
          external
          virtual
          view
-         returns (int256 availabelBalance, int256 deposit, int256 owedDeposit);
+         returns (int256 availableBalance, int256 deposit, int256 owedDeposit);
 
     /**************************************************************************
      * ERC20 wrapping
      *************************************************************************/
 
-     /// @notice Return the underlaying token contract
-     /// @return tokenAddr Underlying token address
-     function getUnderlayingToken() external virtual view returns(address tokenAddr);
+    /// @notice Return the underlaying token contract
+    /// @return tokenAddr Underlying token address
+    function getUnderlayingToken() external virtual view returns(address tokenAddr);
 
     /// @notice Upgrade ERC20 to SuperToken.
     /// @dev It will use ´transferFrom´ to get tokens. Before calling this

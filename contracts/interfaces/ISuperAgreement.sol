@@ -16,9 +16,9 @@ interface ISuperAgreement {
     /// @param account Account the state belongs to
     /// @param state State to be used.
     /// @param time Future time used for the calculation.
-    /// @return amount Account real-time balance.
-    /// @return deposit Account deposit amount.
-    /// @return owedDeposit Account owed deposit amount.
+    /// @return dynamicBalance Dynamic balance portion of real-time balance of this agreement.
+    /// @return deposit Account deposit amount of this agreement.
+    /// @return owedDeposit Account owed deposit amount of this agreement.
     function realtimeBalanceOf(
         ISuperToken token,
         address account,
@@ -27,7 +27,11 @@ interface ISuperAgreement {
     )
         external
         view
-        returns (int256 amount, int256 deposit, int256 owedDeposit); // TODO add `deposit` to the return list
+        returns (
+            int256 dynamicBalance,
+            int256 deposit,
+            int256 owedDeposit
+        );
 
     /// @notice Change the timestamp of the state.
     /// @param account Account the state belongs to

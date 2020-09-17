@@ -458,12 +458,11 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
             assert.equal(carolBalance.add(carolDeposit.deposit).toString(), carolBalanceExpected.toString());
             assert.equal(danBalance.toString(), danBalanceExpected.toString());
-            assert.equal(aliceDeposit.deposit.toString(), (deposit * 2).toString());
+            assert.equal(aliceDeposit.deposit.toString(), deposit.toString());
 
             await tester.validateSystem();
         });
 
-        /*
         it("#1.8 should update flow the second time to new flow rate", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             let dataAgreement = cfa.contract.methods.createFlow(
@@ -483,6 +482,7 @@ contract("Constant Flow Agreement", accounts => {
 
             const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
+
             assert.equal((await cfa.getNetFlow.call(
                 superToken.address, alice
             )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
@@ -504,6 +504,15 @@ contract("Constant Flow Agreement", accounts => {
 
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
+
+            let result = await cfa.getFlow.call(superToken.address, alice, bob);
+
+            console.log("---------");
+            console.log(result.toString());
+            console.log("---------");
+
+
+
             assert.equal((await cfa.getNetFlow.call(
                 superToken.address, alice
             )).toString(), FLOW_RATE.mul(toBN(-2)).toString());
@@ -522,14 +531,15 @@ contract("Constant Flow Agreement", accounts => {
             const aliceBalanceExpected = INIT_BALANCE
                 .sub(bobBalanceExpected);
 
+            console.log("Alice deposit :", aliceDeposit.deposit.toString());
+            console.log("Alice own :", aliceDeposit.owedDeposit.toString());
+            console.log("Alice Balance ", aliceDeposit.availableBalance.toString());
+
             assert.equal(alice1Balance.add(aliceDeposit.deposit).toString(), aliceBalanceExpected.toString());
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
 
             await tester.validateSystem();
         });
-
-        */
-
 
         it("#1.9 create self flow should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});

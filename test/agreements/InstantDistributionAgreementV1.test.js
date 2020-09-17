@@ -1121,7 +1121,104 @@ contract("Instance Distribution Agreement v1", accounts => {
                     from: alice,
                 }
             );
+            await expectRevert(web3tx(superfluid.callAgreement, "Dan try to delete the subscription")(
+                ida.address,
+                ida.contract.methods.deleteSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: dan,
+                }
+            ), "IDAv1: operation not allowed");
+            await web3tx(superfluid.callAgreement, "Bob delete the subscription")(
+                ida.address,
+                ida.contract.methods.deleteSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: bob,
+                }
+            );
+            await expectRevert(web3tx(superfluid.callAgreement, "Bob try to delete the subscription again")(
+                ida.address,
+                ida.contract.methods.deleteSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: bob,
+                }
+            ), "IDAv1: subscription does not exist");
+            await testExpectedBalances([
+                [alice, toWad("99.8")], // FIXME check deposit
+                [bob,   toWad("0.2")],
+            ]);
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "200");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending.toString(), "0");
+            await expectRevert(
+                ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
+                "IDAv1: subscription does not exist");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+
+            await tester.validateSystem();
+        });
+
+        it("#3.6 subscriber delete its pending subscription", async() => {
+            let pdata;
+            let subs;
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+
+            await web3tx(superfluid.callAgreement, "Alice create default index")(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
             await web3tx(superfluid.callAgreement, "Alice update the subscription")(
+                ida.address,
+                ida.contract.methods.updateSubscription(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    toWad("0.001").toString(),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Alice distribute tokens again with index -> 200")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    200,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Bob delete the subscription")(
                 ida.address,
                 ida.contract.methods.deleteSubscription(
                     superToken.address,
@@ -1147,6 +1244,79 @@ contract("Instance Distribution Agreement v1", accounts => {
                 "IDAv1: subscription does not exist");
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
+
+            await tester.validateSystem();
+        });
+
+        it("#3.7 publisher delete a subscription", async() => {
+            let pdata;
+            let subs;
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+
+            await web3tx(superfluid.callAgreement, "Alice create default index")(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Alice update the subscription")(
+                ida.address,
+                ida.contract.methods.updateSubscription(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    toWad("0.001").toString(),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Alice distribute tokens again with index -> 200")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    200,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Alice delete the subscription")(
+                ida.address,
+                ida.contract.methods.deleteSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await testExpectedBalances([
+                [alice, toWad("99.8")], // FIXME check deposit
+                [bob,   toWad("0.2")],
+            ]);
+            pdata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(pdata.indexValue, "200");
+            assert.equal(pdata.totalUnitsApproved, "0");
+            assert.equal(pdata.totalUnitsPending.toString(), "0");
+            await expectRevert(
+                ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
+                "IDAv1: subscription does not exist");
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+
+            await tester.validateSystem();
         });
     });
 

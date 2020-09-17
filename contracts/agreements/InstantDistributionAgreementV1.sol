@@ -8,7 +8,7 @@ import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
-    uint32 public constant MAX_NUM_SLOTS = 256;
+    uint32 public constant MAX_NUM_SUBS = 256;
 
     string public constant ERR_STR_INDEX_DOES_NOT_EXIST = "IDAv1: index does not exist";
     string public constant ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST = "IDAv1: subscription does not exist";
@@ -16,9 +16,9 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     string public constant ERR_STR_INCORRECT_INDEX_ID = "IDAv1: incorrect indexId";
     string public constant ERR_STR_INCORRECT_SLOT_ID = "IDAv1: incorrect slot id";
 
-    uint256 public constant SUBSCRIBER_BITMAP_STATE_SLOT_ID = 0;
+    uint256 public constant SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
     uint256 public constant PUBLISHER_DEPOSIT_STATE_SLOT_ID = 1 << 32;
-    uint256 public constant SUBSCRIBER_DATA_STATE_SLOT_ID_START = 1 << 128;
+    uint256 public constant SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START = 1 << 128;
     uint32 public constant UNALLOCATED_SLOT_ID = uint32(int32(-1));
 
     struct PublisherData {
@@ -28,9 +28,9 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     struct SubscriptionData {
+        uint32 subId;
         address publisher;
         uint32 indexId;
-        uint32 slotId;
         uint128 indexValue;
         uint128 units;
     }
@@ -56,22 +56,22 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
         // as a subscriber
         // read all slots and calculate the real-time balance
-        uint256 slotBitmap = uint256(token.getAgreementStateSlot(
+        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             account,
-            SUBSCRIBER_BITMAP_STATE_SLOT_ID, 1)[0]);
-        for (uint32 slotId = 0; slotId < MAX_NUM_SLOTS; ++slotId) {
-            if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
+            SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
+        for (uint32 subId = 0; subId < MAX_NUM_SUBS; ++subId) {
+            if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
             bytes32 pId = token.getAgreementStateSlot(
                 address(this),
                 account,
-                SUBSCRIBER_DATA_STATE_SLOT_ID_START + slotId, 1)[0];
+                SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
             bytes32 sId = _getSubscriptionId(account, pId);
             (exist, pdata) = _getPublisherData(token, pId);
             require(exist, ERR_STR_INDEX_DOES_NOT_EXIST);
             (exist, sdata) = _getSubscriptionData(token, sId);
             require(exist, ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
-            require(sdata.slotId == slotId, ERR_STR_INCORRECT_SLOT_ID);
+            require(sdata.subId == subId, ERR_STR_INCORRECT_SLOT_ID);
             dynamicBalance += int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units);
         }
 
@@ -192,19 +192,19 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             sdata = SubscriptionData({
                 publisher: publisher,
                 indexId: indexId,
-                slotId: 0,
+                subId: 0,
                 units: 0,
                 indexValue: pdata.indexValue
             });
             // add to subscription list of the subscriber
-            sdata.slotId = _findAndFillSlot(token, subscriber, pId);
+            sdata.subId = _findAndFillSubsBitmap(token, subscriber, pId);
             token.createAgreement2(sId, _encodeSubscriptionData(sdata));
         } else {
             // sanity check
             require(sdata.publisher == publisher, ERR_STR_INCORRECT_PUBLISHER);
             require(sdata.indexId == indexId, ERR_STR_INCORRECT_INDEX_ID);
             // required condition check
-            require(sdata.slotId == UNALLOCATED_SLOT_ID, "IDAv1: subscription already approved");
+            require(sdata.subId == UNALLOCATED_SLOT_ID, "IDAv1: subscription already approved");
 
             int balanceDelta = int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units);
 
@@ -218,7 +218,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             // update subscription data and adjust subscriber's balance
             token.settleBalance(subscriber, balanceDelta);
             sdata.indexValue = pdata.indexValue;
-            sdata.slotId = _findAndFillSlot(token, subscriber, pId);
+            sdata.subId = _findAndFillSubsBitmap(token, subscriber, pId);
             token.updateAgreementData2(sId, _encodeSubscriptionData(sdata));
         }
 
@@ -246,7 +246,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         (exist, sdata) = _getSubscriptionData(token, sId);
 
         // update publisher data
-        if (exist && sdata.slotId != UNALLOCATED_SLOT_ID) {
+        if (exist && sdata.subId != UNALLOCATED_SLOT_ID) {
             // if the subscription exist, update the approved units amount
 
             // sanity check
@@ -267,7 +267,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
                 sdata = SubscriptionData({
                     publisher: publisher,
                     indexId: indexId,
-                    slotId: UNALLOCATED_SLOT_ID,
+                    subId: UNALLOCATED_SLOT_ID,
                     units: units,
                     indexValue: pdata.indexValue
                 });
@@ -287,7 +287,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         int256 balanceDelta = int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units);
 
         // adjust publisher's deposit and balances if subscription is pending
-        if (sdata.slotId == UNALLOCATED_SLOT_ID) {
+        if (sdata.subId == UNALLOCATED_SLOT_ID) {
             _adjustPublisherDeposit(token, publisher, -balanceDelta);
             token.settleBalance(publisher, -balanceDelta);
         }
@@ -328,7 +328,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         bytes32 sId = _getSubscriptionId(subscriber, pId);
         (exist, sdata) = _getSubscriptionData(token, sId);
         require(exist, ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
-        approved = sdata.slotId != UNALLOCATED_SLOT_ID;
+        approved = sdata.subId != UNALLOCATED_SLOT_ID;
         units = sdata.units;
         pendingDistribution = approved ? 0 :
             uint256(pdata.indexValue - sdata.indexValue) * uint256(sdata.units);
@@ -344,27 +344,27 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
                 address[] memory publishers,
                 uint32[] memory indexIds,
                 uint128[] memory unitsList) {
-        uint256 slotBitmap = uint256(token.getAgreementStateSlot(
+        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,
-            SUBSCRIBER_BITMAP_STATE_SLOT_ID, 1)[0]);
+            SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
         bool exist;
         SubscriptionData memory sdata;
         // read all slots
         uint nSlots;
-        publishers = new address[](MAX_NUM_SLOTS);
-        indexIds = new uint32[](MAX_NUM_SLOTS);
-        unitsList = new uint128[](MAX_NUM_SLOTS);
-        for (uint32 slotId = 0; slotId < MAX_NUM_SLOTS; ++slotId) {
-            if ((uint256(slotBitmap >> slotId) & 1) == 0) continue;
+        publishers = new address[](MAX_NUM_SUBS);
+        indexIds = new uint32[](MAX_NUM_SUBS);
+        unitsList = new uint128[](MAX_NUM_SUBS);
+        for (uint32 subId = 0; subId < MAX_NUM_SUBS; ++subId) {
+            if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
             bytes32 pId = token.getAgreementStateSlot(
                 address(this),
                 subscriber,
-                SUBSCRIBER_DATA_STATE_SLOT_ID_START + slotId, 1)[0];
+                SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
             bytes32 sId = _getSubscriptionId(subscriber, pId);
             (exist, sdata) = _getSubscriptionData(token, sId);
             require(exist, ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
-            require(sdata.slotId == slotId, ERR_STR_INCORRECT_SLOT_ID);
+            require(sdata.subId == subId, ERR_STR_INCORRECT_SLOT_ID);
             publishers[nSlots] = sdata.publisher;
             indexIds[nSlots] = sdata.indexId;
             unitsList[nSlots] = sdata.units;
@@ -402,7 +402,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         int256 balanceDelta = int256(pdata.indexValue - sdata.indexValue) * int256(sdata.units);
 
         // update publisher index agreement data
-        if (sdata.slotId != UNALLOCATED_SLOT_ID) {
+        if (sdata.subId != UNALLOCATED_SLOT_ID) {
             pdata.totalUnitsApproved -= sdata.units; // FIXME safe128
         } else {
             pdata.totalUnitsPending -= sdata.units; // FIXME safe128
@@ -412,12 +412,12 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         // terminate subscription agreement data
         token.terminateAgreement2(sId, 2);
         // remove subscription from subscriber's bitmap
-        if (sdata.slotId != UNALLOCATED_SLOT_ID) {
+        if (sdata.subId != UNALLOCATED_SLOT_ID) {
             _clearSubsBitmap(token, subscriber, sdata);
         }
 
         // move from publisher's deposit to static balance
-        if (sdata.slotId == UNALLOCATED_SLOT_ID) {
+        if (sdata.subId == UNALLOCATED_SLOT_ID) {
             _adjustPublisherDeposit(token, publisher, -balanceDelta);
             token.settleBalance(publisher, -balanceDelta);
         }
@@ -541,7 +541,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         data[0] = bytes32(
             (uint256(sdata.publisher) << (12*8)) |
             (uint256(sdata.indexId) << 32) |
-            uint256(sdata.slotId)
+            uint256(sdata.subId)
         );
         data[1] = bytes32(
             uint256(sdata.indexValue) |
@@ -563,36 +563,36 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         if (exist) {
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & uint32(int32(-1)));
-            sdata.slotId = uint32(a & uint32(int32(-1)));
+            sdata.subId = uint32(a & uint32(int32(-1)));
             sdata.indexValue = uint128(b & uint256(int128(-1)));
             sdata.units = uint128(b >> 128);
         }
     }
 
-    function _findAndFillSlot(
+    function _findAndFillSubsBitmap(
         ISuperToken token,
         address subscriber,
         bytes32 pId)
         private
-        returns (uint32 slotId) {
-        uint256 slotBitmap = uint256(token.getAgreementStateSlot(
+        returns (uint32 subId) {
+        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,
-            SUBSCRIBER_BITMAP_STATE_SLOT_ID, 1)[0]);
-        for (slotId = 0; slotId < MAX_NUM_SLOTS; ++slotId) {
-            if ((uint256(slotBitmap >> slotId) & 1) == 0) {
+            SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
+        for (subId = 0; subId < MAX_NUM_SUBS; ++subId) {
+            if ((uint256(subsBitmap >> subId) & 1) == 0) {
                 // update slot data
                 bytes32[] memory slotData = new bytes32[](1);
                 slotData[0] = pId;
                 token.updateAgreementStateSlot(
                     subscriber,
-                    SUBSCRIBER_DATA_STATE_SLOT_ID_START + slotId,
+                    SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId,
                     slotData);
                 // update slot map
-                slotData[0] = bytes32(slotBitmap | (1 << uint256(slotId)));
+                slotData[0] = bytes32(subsBitmap | (1 << uint256(subId)));
                 token.updateAgreementStateSlot(
                     subscriber,
-                    SUBSCRIBER_BITMAP_STATE_SLOT_ID,
+                    SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
                     slotData);
                 // update the slots
                 break;
@@ -609,12 +609,12 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,
-            SUBSCRIBER_BITMAP_STATE_SLOT_ID, 1)[0]);
+            SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
         bytes32[] memory slotData = new bytes32[](1);
-        slotData[0] = bytes32(subsBitmap ^ (1 << uint256(sdata.slotId)));
+        slotData[0] = bytes32(subsBitmap ^ (1 << uint256(sdata.subId)));
         token.updateAgreementStateSlot(
             subscriber,
-            SUBSCRIBER_BITMAP_STATE_SLOT_ID,
+            SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
             slotData);
     }
 }

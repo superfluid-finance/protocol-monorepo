@@ -505,14 +505,6 @@ contract("Constant Flow Agreement", accounts => {
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            let result = await cfa.getFlow.call(superToken.address, alice, bob);
-
-            console.log("---------");
-            console.log(result.toString());
-            console.log("---------");
-
-
-
             assert.equal((await cfa.getNetFlow.call(
                 superToken.address, alice
             )).toString(), FLOW_RATE.mul(toBN(-2)).toString());
@@ -739,7 +731,8 @@ contract("Constant Flow Agreement", accounts => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
 
-            //const halfPortion= new toBN(1000000000000000000);
+            const halfPortion= new toBN(1000000000000000000);
+            const userTokenBalance = await token.balanceOf.call(bob);
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -788,18 +781,21 @@ contract("Constant Flow Agreement", accounts => {
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            /*
+
             await web3tx(superToken.downgrade, "SuperToken.downgrade: User 2 Downgrade")(
                 halfPortion, {from: bob});
+
             const userTokenBalanceFinal = await token.balanceOf.call(bob);
             const endBlock = await web3.eth.getBlock("latest");
             const bobDeposit = await superToken.realtimeBalanceOf.call(bob, endBlock.timestamp);
 
+            console.log(userTokenBalance.toString());
+            console.log(bobDeposit.availableBalance.toString());
+
             assert.equal(
-                userTokenBalanceFinal.add(bobDeposit.deposit).toString(),
+                userTokenBalanceFinal.toString(),
                 userTokenBalance.add(halfPortion).toString(),
                 "User2 downgrade call dont change the token balance");
-                */
 
             await tester.validateSystem();
         });

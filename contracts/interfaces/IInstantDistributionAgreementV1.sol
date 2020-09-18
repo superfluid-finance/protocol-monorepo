@@ -42,6 +42,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @dev Create a new index for the publisher.
      * @param token Super token address.
      * @param indexId Id of the index.
+     *
+     * App callbacks: None
      */
     function createIndex(
         ISuperToken token,
@@ -60,6 +62,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @return indexValue Value of the current index.
      * @return totalUnitsApproved Total units approved for the index.
      * @return totalUnitsPending Total units pending approval for the index.
+     *
+     * # App callbacks
+     *
+     * None
      */
     function getIndex(
         ISuperToken token,
@@ -79,6 +85,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param token Super token address.
      * @param indexId Id of the index.
      * @param indexValue Value of the index.
+     *
+     * # App callbacks
+     *
+     * None
      */
     function updateIndex(
         ISuperToken token,
@@ -94,6 +104,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param token Super token address.
      * @param publisher The publisher of the index.
      * @param indexId Id of the index.
+     *
+     * # App callbacks
+     *
+     * - if subscription exist
+     *   - AgreementCreated callback to the publisher:
+     *      - agreementId is for the subscription
+     * - if subscription does not exist
+     *   - AgreementUpdated callback to the publisher:
+     *      - agreementId is for the subscription
      */
     function approveSubscription(
         ISuperToken token,
@@ -110,6 +129,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param indexId Id of the index.
      * @param subscriber The subscriber of the index.
      * @param units Number of units of the subscription.
+     *
+     * # App callbacks
+     *
+     * - if subscription exist
+     *   - AgreementCreated callback to the subscriber:
+     *      - agreementId is for the subscription
+     * - if subscription does not exist
+     *   - AgreementUpdated callback to the subscriber:
+     *      - agreementId is for the subscription
      */
     function updateSubscription(
         ISuperToken token,
@@ -170,6 +198,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param publisher The publisher of the index.
      * @param indexId Id of the index.
      * @param subscriber The user, a subscriber.
+     *
+     * # App callbacks
+     *
+     * - if the subscriber called it
+     *   - AgreementTerminated callback to the publsiher:
+     *      - agreementId is for the subscription
+     * - if the publisher called it
+     *   - AgreementTerminated callback to the subscriber:
+     *      - agreementId is for the subscription
      */
     function deleteSubscription(
         ISuperToken token,

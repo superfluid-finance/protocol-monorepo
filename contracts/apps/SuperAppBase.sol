@@ -76,7 +76,7 @@ abstract contract SuperAppBase is ISuperApp {
         view
         virtual
         override
-        returns (bytes memory /*data*/)
+        returns (bytes memory /*cbdata*/)
     {
         revert("Unsupported callback -  Before Agreement Terminated");
     }
@@ -95,4 +95,5 @@ abstract contract SuperAppBase is ISuperApp {
     {
         revert("Unsupported callback - After Agreement Terminated");
     }
+
 }

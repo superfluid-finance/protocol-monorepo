@@ -306,7 +306,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             if (units > sd.sdata.units) {
                 sd.idata.totalUnitsApproved += units - sd.sdata.units; // FIXME safe128
             } else {
-                sd.idata.totalUnitsApproved -= units - sd.sdata.units; // FIXME safe128
+                sd.idata.totalUnitsApproved -= sd.sdata.units - units; // FIXME safe128
             }
             token.updateAgreementData2(iId, _encodeIndexData(sd.idata));
         } else if (exist) {
@@ -316,7 +316,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             if (units > sd.sdata.units) {
                 sd.idata.totalUnitsPending += units - sd.sdata.units; // FIXME safe128
             } else {
-                sd.idata.totalUnitsPending -= units - sd.sdata.units; // FIXME safe128
+                sd.idata.totalUnitsPending -= sd.sdata.units - units; // FIXME safe128
             }
             token.updateAgreementData2(iId, _encodeIndexData(sd.idata));
         } else {

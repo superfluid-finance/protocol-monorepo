@@ -59,12 +59,9 @@ contract MultiFlowsApp is SuperAppBase {
         );
         require(receivingFlowRate == 0, "MFA: Updates are not supported, go to YAM");
 
-        //uint256 sum = _sumProportions(proportions);
         for(uint256 i = 0; i < receivers.length; i++) {
             _userFlows[sender].push(ReceiverData(receivers[i], proportions[i]));
         }
-        //_appFlows[address(this)][sender] = totalOutFlowRate;
-        //require(totalOutFlowRate <= receivingFlowRate, "MultiApp: Receiving flow don't cover the costs");
     }
 
     function beforeAgreementUpdated(

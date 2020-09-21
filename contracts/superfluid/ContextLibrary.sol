@@ -12,9 +12,8 @@ library ContextLibrary {
     struct Context {
         uint8 level;
         address msgSender;
-        int256 allowance;
-        int256 allowanceUsed;
-        int256 counter;
+        uint256 allowance;
+        uint256 allowanceUsed;
     }
 
     /**
@@ -25,9 +24,7 @@ library ContextLibrary {
             context.level,
             context.msgSender,
             context.allowance,
-            context.allowanceUsed,
-            context.counter
-
+            context.allowanceUsed
         );
         ctxStamp = keccak256(abi.encodePacked(ctx));
     }
@@ -37,9 +34,8 @@ library ContextLibrary {
             context.level,
             context.msgSender,
             context.allowance,
-            context.allowanceUsed,
-            context.counter
-        ) = abi.decode(ctx, (uint8, address, int256, int256, int256));
+            context.allowanceUsed
+        ) = abi.decode(ctx, (uint8, address, uint256, uint256));
     }
 
     function validate(bytes memory ctx, bytes32 ctxStamp) internal pure returns (bool) {
@@ -70,7 +66,7 @@ library ContextLibrary {
         ISuperfluid host,
         address receiver,
         bytes memory ctx,
-        int256 unitOfAllowance
+        uint256 unitOfAllowance
     )
         internal
         returns(bytes memory newCtx)

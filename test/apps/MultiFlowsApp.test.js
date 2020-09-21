@@ -80,6 +80,7 @@ contract("MultiFlowsApp", accounts => {
 
         console.log("Bob Receiving : ", FLOW_RATE * 6 / 10);
         console.log("Calor Receiving : ", FLOW_RATE * 4 / 10);
+
         const deleteABI = cfa.contract.methods.deleteFlow(
             superToken.address,
             alice,

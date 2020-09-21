@@ -29,8 +29,8 @@ interface ISuperAgreement {
         view
         returns (
             int256 dynamicBalance,
-            int256 deposit,
-            int256 owedDeposit
+            uint256 deposit,
+            uint256 owedDeposit
         );
 
     /// @notice Change the timestamp of the state.

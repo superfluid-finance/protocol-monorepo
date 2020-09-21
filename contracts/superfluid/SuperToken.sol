@@ -329,7 +329,7 @@ contract SuperToken is
         public
         override
         view
-        returns (int256 availableBalance, int256 deposit, int256 owedDeposit)
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
     {
         (availableBalance,
          deposit,
@@ -485,7 +485,7 @@ contract SuperToken is
         address liquidator,
         bytes32 id,
         address account,
-        int256 deposit
+        uint256 deposit
     )
     external
     override
@@ -508,7 +508,7 @@ contract SuperToken is
 
         delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
-        emit AgreementLiquidated(msg.sender, id, account, remain > 0 ? rewardAccount : liquidator, uint256(deposit));
+        emit AgreementLiquidated(msg.sender, id, account, remain > 0 ? rewardAccount : liquidator, deposit);
     }
 
     /// @dev ISuperToken.updateAgreementState implementation
@@ -605,14 +605,14 @@ contract SuperToken is
     )
         internal
         view
-        returns(int256 availableBalance, int256 deposit, int256 owedDeposit)
+        returns(int256 availableBalance, uint256 deposit, uint256 owedDeposit)
     {
         int256 realtimeBalance = _balances[account];
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
             (
                 int256 agreementDynamicBalance,
-                int256 agreementDeposit,
-                int256 agreementOwedDeposit) = _realtimeBalanceOf(
+                uint256 agreementDeposit,
+                uint256 agreementOwedDeposit) = _realtimeBalanceOf(
                     _activeAgreementClasses[account][i],
                     account,
                     timestamp
@@ -622,8 +622,8 @@ contract SuperToken is
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
         }
         availableBalance = realtimeBalance
-            .sub(deposit)
-            .add(_min(deposit, owedDeposit));
+            .sub(int256(deposit))
+            .add(int256(_min(deposit, owedDeposit)));
     }
 
     function _realtimeBalanceOf(
@@ -633,7 +633,7 @@ contract SuperToken is
     )
         internal
         view
-        returns(int256, int256, int256)
+        returns(int256, uint256, uint256)
     {
        return ISuperAgreement(
                 agreementClass).realtimeBalanceOf(
@@ -746,30 +746,6 @@ contract SuperToken is
         _balances[account] = _balances[account].add(delta);
     }
 
-    //TODO: Lock to only agreement call
-    function chargeDeposit(
-        address account,
-        bytes32 flowId,
-        bytes memory data,
-        bytes memory state
-    )
-        external
-        override
-    {
-        _agreementData[msg.sender][flowId] = data;
-        _accountStates[msg.sender][account] = state;
-    }
-
-    function updateDeposit(
-        address account,
-        bytes memory state
-    )
-        external
-        override
-    {
-        _accountStates[msg.sender][account] = state;
-    }
-
     function _partialSettle(address account, int256 delta) internal {
         //TODO: Lock caller to be agreement
         _balances[account] = _balances[account].add(delta);
@@ -797,7 +773,7 @@ contract SuperToken is
         }
     }
 
-    function _min(int256 a, int256 b) internal pure returns (int256) {
+    function _min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
     }
 }

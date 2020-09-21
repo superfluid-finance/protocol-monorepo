@@ -168,7 +168,9 @@ contract("Super Token", accounts => {
                 }
             );
 
-            const flowRate = await cfa.getNetFlow.call(superToken.address, bob);
+            const flowRate = await cfa.getNetFlow(superToken.address, bob);
+            console.log("Bob flowRate: ", flowRate.toString());
+            console.log("Check with ", FLOW_RATE.toString());
             assert.equal(flowRate.toString(), FLOW_RATE.toString(), "Not the same flow Rate");
 
             dataAgreement = cfa.contract.methods.updateFlow(

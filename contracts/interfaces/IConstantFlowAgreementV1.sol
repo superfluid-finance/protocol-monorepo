@@ -23,7 +23,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     function createFlow(
         ISuperToken token,
         address receiver,
-        int256 flowRate,
+        int96 flowRate,
         bytes calldata ctx
     )
         external
@@ -39,28 +39,33 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     function updateFlow(
         ISuperToken token,
         address receiver,
-        int256 flowRate,
+        int96 flowRate,
         bytes calldata ctx
     )
         external
         virtual
         returns(bytes memory newCtx);
 
-    /// @notice Get the current flow rate between `sender` and `receiver`.
-    /// @param token Super token address.
-    /// @param sender address of sender
-    /// @param receiver address of receiver
-    /// @return flowRate Flow rate.
     function getFlow(
-       ISuperToken token,
-       address sender,
-       address receiver
+        ISuperToken token,
+        address sender,
+        address receiver
     )
         external
         view
         virtual
-        returns (int256 flowRate);
+        returns(int96 flowRate);
 
+    /// @notice Get the current flow rate between `sender` and `receiver`.
+    /// @param token Super token address.
+    /// @param sender address of sender
+    /// @param receiver address of receiver
+    /// @return timestamp of Flow.
+    /// @return sender of Flow.
+    /// @return receiver of Flow.
+    /// @return flowRate of Flow.
+    /// @return deposit of Flow.
+    /// @return owedDeposit of Flow.
     function getFlow(
        ISuperToken token,
        bytes32 flowId
@@ -72,9 +77,9 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
             uint256 timestamp,
             address sender,
             address receiver,
-            int256 flowRate,
-            int256 deposit,
-            int256 owedDeposit
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
         );
 
     /// @notice Get the net flow rate of the `account` in token@`token`.
@@ -87,7 +92,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
        external
        view
        virtual
-       returns (int256 flowRate);
+       returns (int96 flowRate);
 
     /// @notice Flow updated event.
     /// @param token Super token address.
@@ -100,7 +105,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         ISuperToken indexed token,
         address indexed sender,
         address indexed receiver,
-        int256 flowRate,
+        int96 flowRate,
         int256 totalSenderFlowRate,
         int256 totalReceiverFlowRate
     );

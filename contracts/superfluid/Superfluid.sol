@@ -323,7 +323,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -343,7 +343,7 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         bool success;
         (success, returnedData) = _callExternal(agreementClass, data, ctx);
         if (success) {
@@ -401,7 +401,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -428,7 +428,7 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0, 0));
+        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         (success, returnedData) = _callExternal(app, data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -464,13 +464,13 @@ contract Superfluid is
     function updateCtxDeposit(
         bytes calldata ctx,
         address receiver,
-        int256 unitOfAllowance
+        uint256 unitOfAllowance
     )
         external
         override
         returns(bytes memory newCtx)
     {
-        int256 level = int256(_getAppLevel(receiver));
+        uint256 level = uint256(_getAppLevel(receiver));
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
         stcCtx.allowanceUsed +=
             (unitOfAllowance > stcCtx.allowance ?

@@ -54,8 +54,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         override
         returns (
             int256 dynamicBalance,
-            int256 deposit,
-            int256 /*owedDeposit*/
+            uint256 deposit,
+            uint256 /*owedDeposit*/
         ) {
         bool exist;
         IndexData memory idata;
@@ -527,14 +527,14 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     )
         private
         view
-        returns (int256)
+        returns (uint256)
     {
         bytes32[] memory data = token.getAgreementStateSlot(
             address(this),
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
             1);
-        return int256(data[0]);
+        return uint256(data[0]);
     }
 
     function _adjustPublisherDeposit(

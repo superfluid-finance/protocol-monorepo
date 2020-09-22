@@ -30,7 +30,7 @@ contract("MultiFlowsApp", accounts => {
 
     it("#1 MultiFlowsApp", async () => {
 
-        await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
+        await superToken.upgrade(INIT_BALANCE, {from: alice});
         const app = await web3tx(MultiApp.new, "MultiApp.new")(cfa.address, superfluid.address);
         const data = app.contract.methods.createMultiFlows(superToken.address, [bob, carol], [6, 4], "0x").encodeABI();
         await web3tx(superfluid.callAppAction, "Superfluid.callAppAction")(
@@ -43,7 +43,7 @@ contract("MultiFlowsApp", accounts => {
         const dataAgreement = cfa.contract.methods.createFlow(
             superToken.address,
             app.address,
-            "1000000000000000000",
+            FLOW_RATE.toString(),
             "0x"
         ).encodeABI();
         await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice app 1x")(
@@ -54,25 +54,9 @@ contract("MultiFlowsApp", accounts => {
             }
         );
 
-        let block = await web3.eth.getBlock("latest");
         const aliceNetFlow = await cfa.getNetFlow.call(superToken.address, alice);
         const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
         const carolNetFlow = await cfa.getNetFlow.call(superToken.address, carol);
-
-        let aliceDeposit = await superToken.realtimeBalanceOf.call(alice, block.timestamp);
-        let bobDeposit = await superToken.realtimeBalanceOf.call(bob, block.timestamp);
-        let appDeposit = await superToken.realtimeBalanceOf.call(app.address, block.timestamp);
-
-        console.log("Alice Deposit", aliceDeposit[1].toString(), aliceDeposit[2].toString());
-        console.log("Bob Deposit", bobDeposit[1].toString(), bobDeposit[2].toString());
-        console.log("App Deposit", appDeposit[1].toString(), appDeposit[2].toString());
-
-        /*
-        let appToBob = await superToken.getDepositFromData(cfa.address, web3.utils.soliditySha3(app.address, bob));
-        let appToCarol = await superToken.getDepositFromData(cfa.address, web3.utils.soliditySha3(app.address, carol));
-        console.log(appToBob[0].toString(), appToBob[1].toString(),appToBob[2].toString());
-        console.log(appToCarol[0].toString(), appToCarol[1].toString(), appToCarol[2].toString());
-        */
 
         assert.equal(aliceNetFlow.toString(), -FLOW_RATE, "Alice net flow is wrong");
         assert.equal(bobNetFlow, FLOW_RATE * 6 / 10, "Bob net flow is wrong");
@@ -103,19 +87,14 @@ contract("MultiFlowsApp", accounts => {
             superToken.address,
             web3.utils.soliditySha3(app.address, carol));
 
-        block = await web3.eth.getBlock("latest");
         console.log("Alice", aliceNetFlowAfter.toString());
         console.log("Bob", bobNetFlowAfter.toString());
         console.log("Carol", carolNetFlowAfter.toString());
         console.log("App", appNetFlowAfter);
 
-        aliceDeposit = await superToken.realtimeBalanceOf.call(alice, block.timestamp);
-        bobDeposit = await superToken.realtimeBalanceOf.call(bob, block.timestamp);
-        appDeposit = await superToken.realtimeBalanceOf.call(app.address, block.timestamp);
-
-        console.log("Alice Deposit", aliceDeposit[1].toString(), aliceDeposit[2].toString());
-        console.log("Bob Deposit", bobDeposit[1].toString(), bobDeposit[2].toString());
-        console.log("App Deposit", appDeposit[1].toString(), appDeposit[2].toString());
+        //aliceDeposit = await superToken.realtimeBalanceOf.call(alice, block.timestamp);
+        //bobDeposit = await superToken.realtimeBalanceOf.call(bob, block.timestamp);
+        //appDeposit = await superToken.realtimeBalanceOf.call(app.address, block.timestamp);
     });
 
     it("#2 MultiFlowsApp Batch Call", async () => {

@@ -58,11 +58,8 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
     /// @notice Get the current flow rate between `sender` and `receiver`.
     /// @param token Super token address.
-    /// @param sender address of sender
-    /// @param receiver address of receiver
+    /// @param flowId Identification of flow
     /// @return timestamp of Flow.
-    /// @return sender of Flow.
-    /// @return receiver of Flow.
     /// @return flowRate of Flow.
     /// @return deposit of Flow.
     /// @return owedDeposit of Flow.
@@ -75,8 +72,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         virtual
         returns (
             uint256 timestamp,
-            address sender,
-            address receiver,
             int96 flowRate,
             uint256 deposit,
             uint256 owedDeposit

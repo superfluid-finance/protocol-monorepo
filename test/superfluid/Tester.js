@@ -44,7 +44,8 @@ module.exports = class Tester {
             MAX_UINT256: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
             INIT_BALANCE: toWad(100),
             ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
-            DEPOSIT_REQUIREMENT: 2
+            DEPOSIT_REQUIREMENT: 2,
+            DUST_AMOUNT: toBN(10000),
         };
     }
 
@@ -181,7 +182,7 @@ module.exports = class Tester {
         console.log(`Total supply of super tokens: ${wad4human(totalSupply)}`);
         console.log("======== System Validation Report End ========");
 
-        assert.isTrue(aum.gte(rtBalanceSum),
+        assert.isTrue(aum.add(AUM_DUST_AMOUNT).gte(rtBalanceSum),
             "AUM should be equal or more than the real-time balance sum");
         assert.isTrue(aum.sub(rtBalanceSum).lte(AUM_DUST_AMOUNT),
             "AUM minus the real-time balance sum should only be a dust amount");

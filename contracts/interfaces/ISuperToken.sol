@@ -124,70 +124,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         view
         returns (bytes32[] memory slotData);
 
-    //
-    // DEPRECATED ..............
-    //
-
-    /// @notice Create a new agreement
-    /// @param id Agreement ID
-    /// @param data Agreement data
-    function createAgreement(
-        bytes32 id,
-        bytes calldata data
-    )
-        external
-        virtual;
-
-    /// @notice Agreement creation event
-    /// @param agreementClass Contract address of the agreement
-    /// @param id Agreement ID
-    /// @param data Agreement data
-    event AgreementCreated(
-        address indexed agreementClass,
-        bytes32 id,
-        bytes data
-    );
-
-    /// @notice Create a new agreement
-    /// @param id Agreement ID
-    /// @param data Agreement data
-    function updateAgreementData(
-        bytes32 id,
-        bytes calldata data
-    )
-        external
-        virtual;
-
-    /// @notice Agreement creation event
-    /// @param agreementClass Contract address of the agreement
-    /// @param id Agreement ID
-    /// @param data Agreement data
-    event AgreementUpdated(
-        address indexed agreementClass,
-        bytes32 id,
-        bytes data
-    );
-
-    /// @notice Get data of the agreement
-    /// @param agreementClass Contract address of the agreement
-    /// @param id Agreement ID
-    /// @return data Data of the agreement
-    function getAgreementData(
-        address agreementClass,
-        bytes32 id
-    )
-        external
-        virtual
-        view
-        returns(bytes memory data);
-
-    /// @notice Close the agreement
-    /// @param id Agreement ID
-    function terminateAgreement(
-        bytes32 id
-    )
-        external
-        virtual;
 
     /// @notice Agreement termination event
     /// @param agreementClass Contract address of the agreement
@@ -226,16 +162,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint256 deposit
     );
 
-    /// @notice Update Account state
-    /// @param account Account of the agrement
-    /// @param state Agreement state of the account
-    function updateAgreementAccountState(
-        address account,
-        bytes calldata state
-    )
-        external
-        virtual;
-
     /// @notice Agreement account state updated event
     /// @param agreementClass Contract address of the agreement
     /// @param account Account of the agrement
@@ -245,19 +171,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address indexed account,
         bytes state
     );
-
-    /// @notice Get state of Agreement Account
-    /// @param agreementClass Contract address of the agreement
-    /// @param account Account to query
-    /// @return state State of the account for the agreement
-    function getAgreementAccountState(
-        address agreementClass,
-        address account
-    )
-        external
-        virtual
-        view
-        returns (bytes memory state);
 
     /// @dev Settle balance from an account by the agreement.
     ///      The agreement needs to make sure that the balance delta is balanced afterwards

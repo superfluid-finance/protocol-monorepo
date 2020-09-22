@@ -40,12 +40,12 @@ contract SuperTokenStorage {
     /// @dev Mapping to agreement data.
     ///      Mapping order: .agreementClass.agreementID.
     ///      The generation of agreementDataID is the logic of agreement contract
-    mapping(address => mapping (bytes32 => bytes)) internal _agreementData;
+    //mapping(address => mapping (bytes32 => bytes)) internal _agreementData;
 
     /// @dev Mapping from account to agreement state of the account.
     ///      Mapping order: .agreementClass.account.
     ///      It is like RUNTIME state of the agreement for each account.
-    mapping(address => mapping (address => bytes)) internal _accountStates;
+    //mapping(address => mapping (address => bytes)) internal _accountStates;
 
     /// @dev List of enabled agreement classes for the account
     mapping(address => address[]) internal _activeAgreementClasses;
@@ -341,35 +341,6 @@ contract SuperToken is
     *   Agreement functions
     */
 
-    /// @dev ISuperToken.getAgreementAccountState implementation
-    function getAgreementAccountState(
-        address agreementClass,
-        address account
-    )
-        external
-        view
-        override
-        returns (bytes memory state)
-    {
-        return _accountStates[agreementClass][account];
-    }
-
-    /// @dev ISuperToken.updateAgreementAccountState implementation
-    function updateAgreementAccountState(
-        address account,
-        bytes calldata state
-    )
-        external
-        override
-    {
-        // msg.sender is agreementClass
-        require(msg.sender != account, "SuperToken: unauthorized agreement storage access");
-        _touch(account);
-        _accountStates[msg.sender][account] = state;
-        state.length != 0 ? _addAgreementClass(msg.sender, account) : _delAgreementClass(msg.sender, account);
-        emit AgreementAccountStateUpdated(msg.sender, account, state);
-    }
-
     /// @dev ISuperToken.createAgreement implementation
     function createAgreement2(
         bytes32 id,
@@ -428,6 +399,7 @@ contract SuperToken is
         emit AgreementTerminated2(msg.sender, id);
     }
 
+    /*
     /// @dev ISuperToken.createAgreement implementation
     function createAgreement(
         bytes32 id,
@@ -440,7 +412,9 @@ contract SuperToken is
         _agreementData[msg.sender][id] = data;
         emit AgreementCreated(msg.sender, id, data);
     }
+    */
 
+   /*
     /// @dev ISuperToken.getAgreementData implementation
     function getAgreementData(
         address agreementClass,
@@ -453,7 +427,9 @@ contract SuperToken is
     {
         return _agreementData[agreementClass][id];
     }
+    */
 
+   /*
     /// @dev ISuperToken.updateAgreementData implementation
     function updateAgreementData(
         bytes32 id,
@@ -466,7 +442,9 @@ contract SuperToken is
         _agreementData[msg.sender][id] = data;
         emit AgreementUpdated(msg.sender, id, data);
     }
+    */
 
+    /*
     /// @dev ISuperToken.terminateAgreement implementation
     function terminateAgreement(
         bytes32 id
@@ -478,6 +456,7 @@ contract SuperToken is
         delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
     }
+    */
 
     /// @dev ISuperToken.liquidateAgreement implementation
     function liquidateAgreement
@@ -506,7 +485,7 @@ contract SuperToken is
             _balances[liquidator] = _balances[liquidator].add(int256(deposit));
         }
 
-        delete _agreementData[msg.sender][id];
+        //delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
         emit AgreementLiquidated(msg.sender, id, account, remain > 0 ? rewardAccount : liquidator, deposit);
     }
@@ -519,12 +498,11 @@ contract SuperToken is
     )
         external
         override {
-        address agreementClass = msg.sender;
-        bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
+        bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
         _storeData(slot, slotData);
         // FIXME change how this is done
-        _addAgreementClass(agreementClass, account);
-        emit AgreementStateUpdated(agreementClass, account, slotId);
+        _addAgreementClass(msg.sender, account);
+        emit AgreementStateUpdated(msg.sender, account, slotId);
     }
 
     /// @dev ISuperToken.getAgreementState implementation
@@ -556,7 +534,6 @@ contract SuperToken is
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
         require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
-        _touch(msg.sender);
         _burn(msg.sender, amount);
         _token.transfer(msg.sender, amount);
         emit TokenDowngraded(msg.sender, amount);
@@ -621,6 +598,7 @@ contract SuperToken is
             deposit = deposit.add(agreementDeposit);
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
         }
+        //availableBalance = realtimeBalance;
         availableBalance = realtimeBalance
             .sub(int256(deposit))
             .add(int256(_min(deposit, owedDeposit)));
@@ -639,44 +617,9 @@ contract SuperToken is
                 agreementClass).realtimeBalanceOf(
                 this,
                 account,
-                _accountStates[agreementClass][account],
                 timestamp
             );
     }
-
-    /* solhint-disable mark-callable-contracts */
-    /// @notice for each receiving flow, lets set the timestamp to `now`, making a partial settlement
-    function _touch(address account) internal {
-
-        address agreementClass;
-        bytes memory touchState;
-        _takeBalanceSnapshot(account);
-
-        for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
-
-            agreementClass = _activeAgreementClasses[account][i];
-            touchState = ISuperAgreement(agreementClass).touch(
-                account,
-                _accountStates[agreementClass][account],
-                block.timestamp);
-
-            _accountStates[agreementClass][account] = touchState;
-        }
-        // FIXME: Review the settled balance vs. static balance, it should be able to merge them.
-        // Examples:
-        // case 1: realtime balance -2 (settled balance is 0, static balance is 0, state balance -2)
-        // after touching:
-        // WRONG: real-time balance 0 (settled balance is 0, static balance is 0, state balance 0)
-        // CORRECT: real-time balance 0 (settled balance is -2, static balance is 0, state balance 0)
-        /*
-        if (_balances[account] > 0) {
-            _mint(account, uint256(_balances[account]));
-            _balances[account] = 0;
-        }
-        */
-    }
-    /* solhint-enable mark-callable-contracts */
-
 
     /// @dev if returns -1 agreement is not active
     function _indexOfAgreementClass(address agreementClass, address account) internal view returns(int256) {
@@ -743,11 +686,6 @@ contract SuperToken is
     )
         external
         override {
-        _balances[account] = _balances[account].add(delta);
-    }
-
-    function _partialSettle(address account, int256 delta) internal {
-        //TODO: Lock caller to be agreement
         _balances[account] = _balances[account].add(delta);
     }
 

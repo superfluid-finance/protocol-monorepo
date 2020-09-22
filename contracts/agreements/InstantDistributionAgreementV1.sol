@@ -56,7 +56,6 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function realtimeBalanceOf(
         ISuperToken token,
         address account,
-        bytes calldata /* state */,
         uint256 /*time*/
     )
         external
@@ -95,19 +94,6 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         // as a publisher
         // calculate the deposits due to pending subscriptions
         deposit = _getPublisherDeposit(token, account);
-    }
-
-    function touch(
-        address /*account*/,
-        bytes calldata state,
-        uint256 /*time*/
-    )
-        external
-        pure
-        override
-        returns(bytes memory newState) {
-        // TODO, touch it baby
-        newState = state;
     }
 
     /// @dev IInstantDistributionAgreementV1.createIndex implementation
@@ -511,7 +497,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         pure
         returns (bytes32 iId)
     {
-        return keccak256(abi.encode("publisher", publisher, indexId));
+        return keccak256(abi.encodePacked("publisher", publisher, indexId));
     }
 
     function _getSubscriptionId(
@@ -521,7 +507,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         pure
         returns (bytes32 sId)
     {
-        return keccak256(abi.encode("subscription", subscriber, iId));
+        return keccak256(abi.encodePacked("subscription", subscriber, iId));
     }
 
     // # Index data operations

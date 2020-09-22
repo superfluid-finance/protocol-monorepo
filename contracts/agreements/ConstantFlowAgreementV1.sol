@@ -24,11 +24,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     struct AgreementData {
         uint256 timestamp;
-        address sender;
-        address receiver;
         int96 flowRate;
-        uint256 depositFactor;
-        uint256 owedDepositFactor;
         uint256 deposit;
         uint256 owedDeposit;
     }
@@ -55,7 +51,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     function realtimeBalanceOf(
         ISuperToken token,
         address account,
-        bytes calldata /*data*/,
         uint256 time
     )
         external
@@ -64,28 +59,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         returns (int256 dynamicBalance, uint256 deposit, uint256 owedDeposit)
     {
         (bool exist, AccountState memory state) = _getAccountState(token, account);
+
         if(exist) {
+            //dynamicBalance = int256(state.timestamp);
+            //dynamicBalance = int256(state.flowRate);
             dynamicBalance = ((int256(time).sub(int256(state.timestamp))).mul(state.flowRate));
             deposit = state.deposit;
             owedDeposit = state.owedDeposit;
         }
-    }
-
-    /// @dev ISuperAgreement.touch implementation
-    function touch(
-        address /* account */,
-        bytes memory /*currentData*/,
-        uint256 /* timestamp */
-    )
-        public
-        pure
-        override
-        returns(bytes memory /*newData*/)
-    {
-        //(, int256 cRate, int256 cDeposit, int256 cOwned) = _decodeFlow(currentData);
-        //return _encodeFlow(timestamp, cRate, cDeposit, cOwned);
-        int a = 1;
-        a++;
     }
 
     /// @dev IFlowAgreement.createFlow implementation
@@ -110,7 +91,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
 
         (uint256 depositSpend, , AgreementData memory newData) =
-            _updateFlow(token, stcCtx.msgSender, receiver, flowRate, 0, 0);
+            _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
+
         newCtx = ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend);
 
         newCtx = AgreementLibrary.afterAgreementCreated(
@@ -133,9 +115,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
                 ? depositSpend : depositSpend - stcCtx.allowance);
         }
 
-        _updateDeposits(token, newData, stcNewCtx.msgSender, flowId, 0, 0);
+        _updateDeposits(token, newData, stcNewCtx.msgSender, flowId);
         (newCtx, ) = ContextLibrary.encode(stcNewCtx);
-        _isNewFlow(token, flowId);
     }
 
     function updateFlow(
@@ -161,7 +142,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         );
 
         (uint256 depositSpend, , AgreementData memory newData) =
-            _updateFlow(token, stcCtx.msgSender, receiver, flowRate, 0, 0);
+            _updateFlow(token, stcCtx.msgSender, receiver, flowRate);
         newCtx = ContextLibrary.updateCtxDeposit(ISuperfluid(msg.sender), receiver, newCtx, depositSpend);
 
         newCtx = AgreementLibrary.afterAgreementUpdated(
@@ -184,7 +165,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
                 ? depositSpend : depositSpend - stcCtx.allowance);
         }
 
-        _updateDeposits(token, newData, stcNewCtx.msgSender, flowId, 0, 0);
+        _updateDeposits(token, newData, stcNewCtx.msgSender, flowId);
         (newCtx, ) = ContextLibrary.encode(stcNewCtx);
     }
 
@@ -237,7 +218,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     {
         (, AgreementData memory data) = _getAgreementData(
             token,
-            keccak256(abi.encode(sender, receiver))
+            keccak256(abi.encodePacked(sender, receiver))
         );
         return data.flowRate;
     }
@@ -252,8 +233,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(
             uint256 timestamp,
-            address sender,
-            address receiver,
             int96 flowRate,
             uint256 deposit,
             uint256 owedDeposit
@@ -263,10 +242,10 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             token,
             flowId
         );
+
+        //require(data.flowRate == 1000000000000000000, "Flow Rate is not 1e18");
         return(
             data.timestamp,
-            data.sender,
-            data.receiver,
             data.flowRate,
             data.deposit,
             data.owedDeposit
@@ -295,16 +274,26 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         ISuperToken token,
         address account,
         int96 flowRate,
-        uint256 normalizeDeposit,
-        uint256 normalizeOwedDeposit
+        uint256 deposit,
+        uint256 owedDeposit,
+        bool settlement
     )
         private
         returns(int96 newFlowRate)
     {
-        (, AccountState memory state) = _getAccountState(token, account);
-        state.flowRate += flowRate;
-        state.deposit += normalizeDeposit;
-        state.owedDeposit += normalizeOwedDeposit;
+        (bool exist, AccountState memory state) = _getAccountState(token, account);
+        if(exist && settlement) {
+            int256 dynamicBalance =
+                ((int256(block.timestamp).sub(int256(state.timestamp))).mul(state.flowRate));
+            token.settleBalance(account, dynamicBalance);
+        }
+        state.flowRate += flowRate;//_add(state.flowRate, flowRate);
+        state.timestamp = block.timestamp;
+        state.deposit += deposit;
+        state.owedDeposit += owedDeposit;
+        //state.deposit.add(_normToInt96(deposit));
+        //state.owedDeposit.add(_normToInt96(owedDeposit));
+
         token.updateAgreementStateSlot(account, 0, _encodeAccountState(state));
         return state.flowRate;
     }
@@ -313,9 +302,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         ISuperToken token,
         address sender,
         address receiver,
-        int96 flowRate,
-        uint256 deposit,
-        uint256 owedDeposit
+        int96 flowRate
     )
         private
         returns(uint256 allowanceUsed, uint256 /*oldDeposit*/, AgreementData memory newData)
@@ -327,30 +314,31 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes32 flowId = _generateId(sender, receiver);
         (, AgreementData memory data) = _getAgreementData(token, flowId);
         allowanceUsed = _minimalDeposit(token, flowRate);
+
         newData = AgreementData(
             block.timestamp,
-            sender,
-            receiver,
             flowRate,
             0,
-            0,
-            deposit,
-            owedDeposit
+            0
         );
+
         token.createAgreement2(flowId, _encodeAgreementData(newData));
+
         int96 totalSenderFlowRate = _updateAccountState(
             token,
             sender,
             -(flowRate - data.flowRate),
             0,
-            0
+            0,
+            true
         );
         int96 totalReceiverFlowRate = _updateAccountState(
             token,
             receiver,
             flowRate - data.flowRate,
             0,
-            0
+            0,
+            true
         );
         emit FlowUpdated(
             token,
@@ -380,14 +368,16 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             sender,
             data.flowRate,
             -data.deposit,
-            -data.owedDeposit
+            -data.owedDeposit,
+            true
         );
         int256 totalReceiverFlowRate = _updateAccountState(
             token,
             receiver,
             -data.flowRate,
             0,
-            0
+            0,
+            true
         );
 
         // Close this Agreement Data
@@ -399,7 +389,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
                 deposit
             );
         } else {
-            token.terminateAgreement2(flowId, 2);
+            token.terminateAgreement2(flowId, 1);
         }
 
         emit FlowUpdated(
@@ -433,7 +423,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     function _minimalDeposit(ISuperToken token, int96 flowRate) internal view returns(uint256 deposit) {
         ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernance());
         uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
-        deposit = _normalizeDeposit(flowRate, liquidationPeriod);
+        deposit = uint256(flowRate * liquidationPeriod);
     }
 
     function _getDepositFactor(ISuperToken token) internal view returns(uint16 factor) {
@@ -445,22 +435,21 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         ISuperToken token,
         AgreementData memory data,
         address account,
-        bytes32 flowId,
-        uint256 deposit,
-        uint256 owedDeposit
+        bytes32 flowId
     )
         internal
     {
         //update data deposit and save it
-        data.depositFactor = uint256(_getDepositFactor(token));
-        data.owedDepositFactor = owedDeposit / uint256(data.flowRate);
         token.updateAgreementData2(flowId, _encodeAgreementData(data));
+
+        //update state
         _updateAccountState(
             token,
             account,
-            data.flowRate,
-            (deposit / 1e9 * 1e9),
-            (owedDeposit / 1e9 * 1e9)
+            0,
+            data.deposit,
+            data.owedDeposit,
+            false
         );
     }
 
@@ -475,7 +464,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         state = new bytes32[](1);
         state[0] = bytes32(
             (uint256(astate.timestamp)) << 224 |
-            (uint256(astate.flowRate)) << 128 |
+            (uint256(uint96(astate.flowRate)) << 128) |
             (uint256(astate.deposit)) <<  64 |
             (uint256(astate.owedDeposit))
         );
@@ -489,19 +478,43 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         pure
         returns (bytes32[] memory data)
     {
-        data = new bytes32[](2);
-
+        data = new bytes32[](1);
         data[0] = bytes32(
-            (uint256(adata.sender) << 96) |
-            (uint256(adata.flowRate))
+            (uint256(adata.timestamp) << 224) |
+            (uint256(uint96(adata.flowRate)) << 128) |
+            (uint256(adata.deposit) <<  64) |
+            (uint256(adata.owedDeposit))
         );
+    }
 
-        data[1] = bytes32(
-            (uint256(adata.receiver) << (12*8)) |
-            (uint256(adata.depositFactor) << 64) |
-            (uint256(adata.owedDepositFactor) << 32) |
-            uint256(adata.timestamp)
-        );
+    function _decodeAgreementData
+    (
+        bytes32 word
+    )
+        private
+        pure
+        returns(AgreementData memory data)
+    {
+        uint256 wordA = uint256(word);
+        data.timestamp = uint32(wordA >> 224);
+        data.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
+        data.deposit = uint64(wordA >> 64 & uint64(int64(-1)));
+        data.owedDeposit = uint64(wordA & uint64(int64(-1)));
+    }
+
+    function _decodeAccountState
+    (
+        bytes32 word
+    )
+        private
+        pure
+        returns(AccountState memory state)
+    {
+        uint256 wordA = uint256(word);
+        state.timestamp = uint32(wordA >> 224);
+        state.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
+        state.deposit = uint64(wordA >> 64 & uint64(int64(-1)));
+        state.owedDeposit = uint64(wordA & uint64(int64(-1)));
     }
 
     function _getAccountState
@@ -514,13 +527,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         returns(bool exist, AccountState memory state)
     {
         bytes32[] memory data = token.getAgreementStateSlot(address(this), account, 0, 1);
-        uint256 a = uint256(data[0]);
-        exist = a > 0;
+        uint256 wordA = uint256(data[0]);
+        exist = wordA > 0;
         if (exist) {
-            state.timestamp = uint32(a >> 224);
-            state.flowRate = int96((a >> 128) & uint96(int96(-1)));
-            state.deposit = uint64(a >> 64 & uint64(-1));
-            state.owedDeposit = uint64(a & uint64(-1));
+            state.timestamp = uint32(wordA >> 224);
+            state.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
+            state.deposit = uint64((wordA >> 64) & uint64(int64(-1)));
+            state.owedDeposit = uint64(wordA & uint64(int64(-1)));
         }
     }
 
@@ -533,46 +546,34 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         view
         returns (bool exist, AgreementData memory adata)
     {
-        bytes32[] memory data = token.getAgreementData2(address(this), dId, 2);
-        uint256 a = uint256(data[0]);
-        uint256 b = uint256(data[1]);
-        exist = a > 0;
+        bytes32[] memory data = token.getAgreementData2(address(this), dId, 1);
+        uint256 wordA = uint256(data[0]);
+        exist = wordA > 0;
         if (exist) {
-            adata.sender = address(uint160(a >> (12*8)));
-            adata.flowRate = int96(a & uint96(int96(-1)));
+            adata.timestamp = uint32(wordA >> 224);
+            adata.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
+            adata.deposit = uint64(wordA >> 64 & uint64(-1));
+            adata.owedDeposit = uint64(wordA & uint64(-1));
 
-            adata.receiver = address(uint160(b >> (12*8)));
-            adata.depositFactor = uint32(b & uint32(int32(-1)));
-            adata.owedDepositFactor = uint32(b >> 32);
-            adata.timestamp = uint32(b >> 32);
-            adata.deposit = _normalizeDeposit(
-                int96((a >> 96) & uint96(int96(-1))),
-                uint32(b & uint32(int32(-1)))
-            );
-            adata.owedDepositFactor = _normalizeOweDeposit(uint32(b >> 32));
-
+            //require(adata.flowRate == 1000000000000000000, "Flow Rate is not 1e18");
         }
     }
 
-    //FIXME add 1 so the deposit is not zero
-    function _normalizeDeposit(
-        int96 flowRate,
-        uint32 factor
+    function _normToInt96(
+        uint256 deposit_
     )
         internal
         pure
         returns(uint256 deposit)
     {
-        deposit = uint256((flowRate * int96(factor)) / 1e9 * 1e9);
+        deposit = deposit_ / 1e9 * 1e9;
     }
 
-    function _normalizeOweDeposit(
-        uint32 owedDeposit_
-    )
-        internal
-        pure
-        returns(uint256 owedDeposit)
-    {
-        owedDeposit = owedDeposit_ / 1e9 * 1e9;
+    function _add(int96 a, int96 b) internal pure returns (int96) {
+        int96 c = a + b;
+        require((b >= 0 && c >= a) || (b < 0 && c < a), "SignedSafeMath: addition overflow");
+
+        return c;
     }
+
 }

@@ -69,6 +69,7 @@ contract("Constant Flow Agreement", accounts => {
         it("#1.2 should stream in correct flow rate with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             const deposit = toBN(tester.constants.DEPOSIT_REQUIREMENT * FLOW_RATE);
+
             const dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
@@ -88,17 +89,20 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal((await cfa.getNetFlow.call(
                 superToken.address, alice
             )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+
             assert.equal((await cfa.getNetFlow.call(
                 superToken.address, bob
             )).toString(), FLOW_RATE.toString());
 
+            /*
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(alice, bob)
-            ))[3].toString(), FLOW_RATE.toString());
+            ))[1].toString(), FLOW_RATE.toString());
+            */
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(bob, alice)
-            ))[3].toString(), "0");
+            ))[1].toString(), "0");
 
             const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
             await traveler.advanceTimeAndBlock(ADV_TIME);
@@ -148,10 +152,10 @@ contract("Constant Flow Agreement", accounts => {
             )).toString(), FLOW_RATE.toString());
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(alice, bob)
-            ))[3].toString(), FLOW_RATE.toString());
+            ))[1].toString(), FLOW_RATE.toString());
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(bob, alice)
-            ))[3].toString(), "0");
+            ))[1].toString(), "0");
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
@@ -186,27 +190,27 @@ contract("Constant Flow Agreement", accounts => {
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(alice, bob)
-            ))[3].toString(), FLOW_RATE.toString());
+            ))[1].toString(), FLOW_RATE.toString());
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(bob, alice)
-            ))[3].toString(), "0");
+            ))[1].toString(), "0");
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(alice, carol)
-            ))[3].toString(), FLOW_RATE.toString());
+            ))[1].toString(), FLOW_RATE.toString());
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(carol, alice)
-            ))[3].toString(), "0");
+            ))[1].toString(), "0");
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(bob, carol)
-            ))[3].toString(), "0");
+            ))[1].toString(), "0");
 
             assert.equal((await cfa.getFlow.call(
                 superToken.address, web3.utils.soliditySha3(carol, bob)
-            ))[3].toString(), "0");
+            ))[1].toString(), "0");
 
             const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
             const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
@@ -222,14 +226,6 @@ contract("Constant Flow Agreement", accounts => {
             const finalUser3 = (span3 * FLOW_RATE);
             const finalUser1 = INIT_BALANCE - finalUser2 - finalUser3;
             const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
-
-            console.log(finalUser2.toString());
-            console.log(finalUser3.toString());
-            console.log("Alice deposit :", aliceDeposit.deposit.toString());
-            console.log("Alice AB ", aliceDeposit.availableBalance.toString());
-            console.log("Alice DO ", aliceDeposit.owedDeposit.toString());
-            console.log("Alice balanceOF:", user1Balance.toString());
-            console.log("Alice final should be: ", finalUser1.toString());
 
             assert.equal(user1Balance.add(aliceDeposit.deposit).toString(),
                 finalUser1.toString(), "User 1 Final balance is wrong");
@@ -369,7 +365,7 @@ contract("Constant Flow Agreement", accounts => {
         });
 
         it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
-            const deposit = toBN(tester.constants.DEPOSIT_REQUIREMENT * FLOW_RATE);
+            const deposit = toBN(tester.constants.DEPOSIT_REQUIREMENT * FLOW_RATE * 2);
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
             let dataAgreement = cfa.contract.methods.createFlow(
@@ -523,10 +519,6 @@ contract("Constant Flow Agreement", accounts => {
             const aliceBalanceExpected = INIT_BALANCE
                 .sub(bobBalanceExpected);
 
-            console.log("Alice deposit :", aliceDeposit.deposit.toString());
-            console.log("Alice own :", aliceDeposit.owedDeposit.toString());
-            console.log("Alice Balance ", aliceDeposit.availableBalance.toString());
-
             assert.equal(alice1Balance.add(aliceDeposit.deposit).toString(), aliceBalanceExpected.toString());
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
 
@@ -554,6 +546,7 @@ contract("Constant Flow Agreement", accounts => {
             await tester.validateSystem();
         });
     });
+
 
     describe("#2 FlowAgreement.updateFlow and downgrade", () => {
         it("#2.1 - should downgrade full balance with single flow running", async() => {
@@ -786,11 +779,6 @@ contract("Constant Flow Agreement", accounts => {
                 halfPortion, {from: bob});
 
             const userTokenBalanceFinal = await token.balanceOf.call(bob);
-            const endBlock = await web3.eth.getBlock("latest");
-            const bobDeposit = await superToken.realtimeBalanceOf.call(bob, endBlock.timestamp);
-
-            console.log(userTokenBalance.toString());
-            console.log(bobDeposit.availableBalance.toString());
 
             assert.equal(
                 userTokenBalanceFinal.toString(),
@@ -940,6 +928,8 @@ contract("Constant Flow Agreement", accounts => {
                 }
             );
 
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+
             dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 carol,
@@ -989,7 +979,6 @@ contract("Constant Flow Agreement", accounts => {
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
             const endBlock = await web3.eth.getBlock("latest");
-
             const user1Balance = await superToken.balanceOf.call(alice);
             const user2Balance = await superToken.balanceOf.call(bob);
             const user3Balance = await superToken.balanceOf.call(carol);
@@ -1010,13 +999,25 @@ contract("Constant Flow Agreement", accounts => {
             const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
             const bobDeposit = await superToken.realtimeBalanceOf.call(bob, endBlock.timestamp);
 
+            let user1Round = ((user1Balance.add(aliceDeposit.deposit)).sub(toBN(finalUser1)));
+            const user1ToRound = user1Round.lte(tester.constants.DUST_AMOUNT);
+            if(!user1ToRound) {
+                user1Round = 0;
+            }
+
+            let user2Round = ((user2Balance.add(bobDeposit.deposit)).sub(toBN(finalUser2)));
+            const user2ToRound = user2Round.lte(tester.constants.DUST_AMOUNT);
+            if(!user2ToRound) {
+                user2Round = 0;
+            }
+
             assert.equal(
                 user1Balance.add(aliceDeposit.deposit).toString(),
-                finalUser1.toString(),
+                toBN(finalUser1).add(user1Round).toString(),
                 "User 1 Final balance is wrong");
             assert.equal(
                 user2Balance.add(bobDeposit.deposit).toString(),
-                finalUser2.toString(),
+                toBN(finalUser2).add(user2Round).toString(),
                 "User 2 Final balance is wrong");
             assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
             assert.equal(user4Balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");

@@ -705,6 +705,7 @@ contract("Constant Flow Agreement", accounts => {
         it("#2.3 downgrade small portion of tokens with multiple flows running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
+            await superToken.upgrade(INIT_BALANCE, {from: carol});
 
             const smallPortion = new toBN(1000);
             const userTokenBalance = await token.balanceOf.call(bob);
@@ -771,6 +772,7 @@ contract("Constant Flow Agreement", accounts => {
         it("#2.2 downgrade 1/2 portion of tokens with multiple flows running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
+            await superToken.upgrade(INIT_BALANCE, {from: carol});
 
             const halfPortion= new toBN(1000000000000000000);
             const userTokenBalance = await token.balanceOf.call(bob);
@@ -839,6 +841,7 @@ contract("Constant Flow Agreement", accounts => {
         it("#2.3 downgrade total balance of tokens with multiple flows running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
+            await superToken.upgrade(INIT_BALANCE, {from: carol});
 
             const userTokenBalance = await token.balanceOf.call(bob);
 
@@ -1132,7 +1135,7 @@ contract("Constant Flow Agreement", accounts => {
     describe("#5 FlowAgreement.deleteFlow by liquidator", () => {
         it("#5.1 liquidation of insolvent account should succeed", async() => {
 
-            await superToken.upgrade(toWad(1), {from : alice});
+            await superToken.upgrade(toWad(10), {from : alice});
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -1140,7 +1143,6 @@ contract("Constant Flow Agreement", accounts => {
                 FLOW_RATE.toString(),
                 "0x"
             ).encodeABI();
-
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
                 cfa.address,
                 dataAgreement,
@@ -1149,7 +1151,7 @@ contract("Constant Flow Agreement", accounts => {
                 }
             );
 
-            await traveler.advanceTimeAndBlock(ADV_TIME);
+            await traveler.advanceTimeAndBlock(ADV_TIME * 5);
 
             dataAgreement = cfa.contract.methods.deleteFlow(
                 superToken.address,
@@ -1157,7 +1159,6 @@ contract("Constant Flow Agreement", accounts => {
                 bob,
                 "0x"
             ).encodeABI();
-
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement admin -> alice")(
                 cfa.address,
                 dataAgreement,
@@ -1210,7 +1211,6 @@ contract("Constant Flow Agreement", accounts => {
 
         it("#5.3 liquidation of non existing flow should fail", async () => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
-            await traveler.advanceTimeAndBlock(ADV_TIME);
 
             let dataAgreement = cfa.contract.methods.deleteFlow(
                 superToken.address,
@@ -1229,5 +1229,44 @@ contract("Constant Flow Agreement", accounts => {
                 ), "FlowAgreement: flow does not exist");
         });
 
+    });
+
+
+    describe("#6 FlowAgreement Deposit and OwedDeposit", () => {
+        it("#6.1 Should fail if sender don't have balance to pay deposit", async() => {
+            let dataAgreement = cfa.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                "100000000000",
+                "0x"
+            ).encodeABI();
+
+            await expectRevert(
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                    cfa.address,
+                    dataAgreement,
+                    {
+                        from: alice,
+                    }
+                ), "CFA: not enough available balance");
+        });
+
+        it("#6.2 Should fail if sender have small balance to pay deposit", async() => {
+            await superToken.upgrade(toWad(1), {from : alice});
+            let dataAgreement = cfa.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+            await expectRevert(
+                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                    cfa.address,
+                    dataAgreement,
+                    {
+                        from: alice,
+                    }
+                ), "CFA: not enough available balance");
+        });
     });
 });

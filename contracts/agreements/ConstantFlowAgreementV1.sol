@@ -61,7 +61,9 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
 
-        if(ISuperfluid(msg.sender).isApp(receiver)) {
+        if(ISuperfluid(msg.sender).isApp(receiver) ||
+           ISuperfluid(msg.sender).isApp(stcCtx.msgSender))
+        {
             // TODO: Decode return cbdata before calling the next step
             bytes memory cbdata;
             (cbdata, newCtx) =
@@ -91,7 +93,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
                 newData.owedDeposit = (stcCtx.allowance > depositSpend
                     ? depositSpend : depositSpend - stcCtx.allowance);
             }
-
             _updateDeposits(token, newData, stcNewCtx.msgSender, flowId);
             (newCtx, ) = ContextLibrary.encode(stcNewCtx);
         } else {
@@ -295,9 +296,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         require(flowRate != 0, "FlowAgreement: use delete flow");
         require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
 
+
         //bytes32 flowId = _generateId(sender, receiver);
         (, FlowData memory data) = _getAgreementData(token, flowId);
         allowanceUsed = _minimalDeposit(token, flowRate);
+        if(chargeDeposit) {
+            (int256 availabelBalance, ,) = token.realtimeBalanceOf(sender, block.timestamp);
+            require(availabelBalance > int256(allowanceUsed), "BUHHHHHHCFA: not enough available balance");
+        }
 
         newData = FlowData(
             block.timestamp,
@@ -305,6 +311,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             chargeDeposit ? allowanceUsed : 0,
             0
         );
+
 
         token.createAgreement(flowId, _encodeAgreementData(newData));
 
@@ -425,7 +432,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     {
         //update data deposit and save it
         token.updateAgreementData(flowId, _encodeAgreementData(data));
-
+        (int256 availabelBalance, ,) = token.realtimeBalanceOf(account, block.timestamp);
+        require(availabelBalance >= int256(data.owedDeposit - data.deposit), "CFA: not enough available balance");
         //update state
         _updateAccountState(
             token,

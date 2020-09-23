@@ -57,6 +57,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
+        require(token.getSuperfluidAddress() == msg.sender, "Not Superfluid");
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
@@ -111,6 +112,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
+        require(token.getSuperfluidAddress() == msg.sender, "Not Superfluid");
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
@@ -165,6 +167,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
+        require(token.getSuperfluidAddress() == msg.sender, "Not Superfluid");
         // TODO: Decode return cbdata before calling the next step
         address msgSender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);

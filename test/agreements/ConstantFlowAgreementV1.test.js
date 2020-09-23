@@ -291,6 +291,54 @@ contract("Constant Flow Agreement", accounts => {
             await tester.validateSystem();
         });
 
+        /*
+        it.only("Gas report - Constant Flow Agreement", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+            let dataAgreement = cfa.contract.methods.createFlow(
+                superToken.address,
+                bob,
+                FLOW_RATE.toString(),
+                "0x"
+            ).encodeABI();
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice creating flow to bob")(
+                cfa.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            dataAgreement = cfa.contract.methods.updateFlow(
+                superToken.address,
+                bob,
+                "1000000000000000000",
+                "0x"
+            ).encodeABI();
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice updating flow to bob")(
+                cfa.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+
+            dataAgreement = cfa.contract.methods.deleteFlow(
+                superToken.address,
+                alice,
+                bob,
+                "0x"
+            ).encodeABI();
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice deleting flow to bob")(
+                cfa.address,
+                dataAgreement,
+                {
+                    from: alice,
+                }
+            );
+        });
+    */
+
         it("#1.5 update other's flow should fail", async() => {
             await superToken.upgrade(INIT_BALANCE, {from : alice});
             let dataAgreement = cfa.contract.methods.createFlow(

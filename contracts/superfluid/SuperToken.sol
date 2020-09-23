@@ -37,16 +37,6 @@ contract SuperTokenStorage {
     /// @dev Superfluid contract
     ISuperfluid internal _host;
 
-    /// @dev Mapping to agreement data.
-    ///      Mapping order: .agreementClass.agreementID.
-    ///      The generation of agreementDataID is the logic of agreement contract
-    //mapping(address => mapping (bytes32 => bytes)) internal _agreementData;
-
-    /// @dev Mapping from account to agreement state of the account.
-    ///      Mapping order: .agreementClass.account.
-    ///      It is like RUNTIME state of the agreement for each account.
-    //mapping(address => mapping (address => bytes)) internal _accountStates;
-
     /// @dev List of enabled agreement classes for the account
     mapping(address => address[]) internal _activeAgreementClasses;
 
@@ -500,7 +490,7 @@ contract SuperToken is
     *  Internal functions
     */
 
-   function _grossBalance(address account, uint256 timestamp) internal returns(int256 balance) {
+   function _grossBalance(address account, uint256 timestamp) internal view returns(int256 balance) {
         balance = _balances[account];
         for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
             (

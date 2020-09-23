@@ -17,7 +17,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @notice Create a new agreement
     /// @param id Agreement ID
     /// @param data Agreement data
-    function createAgreement2(
+    function createAgreement(
         bytes32 id,
         bytes32[] calldata data
     )
@@ -28,7 +28,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
     /// @param data Agreement data
-    event AgreementCreated2(
+    event AgreementCreated(
         address indexed agreementClass,
         bytes32 id,
         bytes32[] data
@@ -38,7 +38,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
     /// @return data Data of the agreement
-    function getAgreementData2(
+    function getAgreementData(
         address agreementClass,
         bytes32 id,
         uint dataLength
@@ -51,7 +51,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @notice Create a new agreement
     /// @param id Agreement ID
     /// @param data Agreement data
-    function updateAgreementData2(
+    function updateAgreementData(
         bytes32 id,
         bytes32[] calldata data
     )
@@ -62,7 +62,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
     /// @param data Agreement data
-    event AgreementUpdated2(
+    event AgreementUpdated(
         address indexed agreementClass,
         bytes32 id,
         bytes32[] data
@@ -70,7 +70,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
 
     /// @notice Close the agreement
     /// @param id Agreement ID
-    function terminateAgreement2(
+    function terminateAgreement(
         bytes32 id,
         uint dataLength
     )
@@ -80,7 +80,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @notice Agreement termination event
     /// @param agreementClass Contract address of the agreement
     /// @param id Agreement ID
-    event AgreementTerminated2(
+    event AgreementTerminated(
         address indexed agreementClass,
         bytes32 id
     );
@@ -123,15 +123,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         virtual
         view
         returns (bytes32[] memory slotData);
-
-
-    /// @notice Agreement termination event
-    /// @param agreementClass Contract address of the agreement
-    /// @param id Agreement ID
-    event AgreementTerminated(
-        address indexed agreementClass,
-        bytes32 id
-    );
 
     /// @notice Liquidate the Aagreement
     /// @param liquidator Address of the executer of liquidation

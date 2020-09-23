@@ -342,7 +342,7 @@ contract SuperToken is
     */
 
     /// @dev ISuperToken.createAgreement implementation
-    function createAgreement2(
+    function createAgreement(
         bytes32 id,
         bytes32[] calldata data
     )
@@ -353,11 +353,11 @@ contract SuperToken is
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
         _storeData(slot, data);
-        emit AgreementCreated2(agreementClass, id, data);
+        emit AgreementCreated(agreementClass, id, data);
     }
 
     /// @dev ISuperToken.getAgreementData implementation
-    function getAgreementData2(
+    function getAgreementData(
         address agreementClass,
         bytes32 id,
         uint dataLength
@@ -372,7 +372,7 @@ contract SuperToken is
     }
 
     /// @dev ISuperToken.updateAgreementData implementation
-    function updateAgreementData2(
+    function updateAgreementData(
         bytes32 id,
         bytes32[] calldata data
     )
@@ -382,11 +382,11 @@ contract SuperToken is
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
         _storeData(slot, data);
-        emit AgreementUpdated2(msg.sender, id, data);
+        emit AgreementUpdated(msg.sender, id, data);
     }
 
     /// @dev ISuperToken.terminateAgreement implementation
-    function terminateAgreement2(
+    function terminateAgreement(
         bytes32 id,
         uint dataLength
     )
@@ -396,67 +396,8 @@ contract SuperToken is
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
         _eraseData(slot, dataLength);
-        emit AgreementTerminated2(msg.sender, id);
-    }
-
-    /*
-    /// @dev ISuperToken.createAgreement implementation
-    function createAgreement(
-        bytes32 id,
-        bytes calldata data
-    )
-        external
-        override
-    {
-        //require(_agreementData[msg.sender][id].length == 0, "SuperToken: agreement already exist");
-        _agreementData[msg.sender][id] = data;
-        emit AgreementCreated(msg.sender, id, data);
-    }
-    */
-
-   /*
-    /// @dev ISuperToken.getAgreementData implementation
-    function getAgreementData(
-        address agreementClass,
-        bytes32 id
-    )
-        external
-        view
-        override
-        returns(bytes memory data)
-    {
-        return _agreementData[agreementClass][id];
-    }
-    */
-
-   /*
-    /// @dev ISuperToken.updateAgreementData implementation
-    function updateAgreementData(
-        bytes32 id,
-        bytes calldata data
-    )
-        external
-        override
-    {
-        require(_agreementData[msg.sender][id].length != 0, "SuperToken: agreement does not exist");
-        _agreementData[msg.sender][id] = data;
-        emit AgreementUpdated(msg.sender, id, data);
-    }
-    */
-
-    /*
-    /// @dev ISuperToken.terminateAgreement implementation
-    function terminateAgreement(
-        bytes32 id
-    )
-        external
-        override
-    {
-        require(_agreementData[msg.sender][id].length != 0, "SuperToken: agreement does not exist");
-        delete _agreementData[msg.sender][id];
         emit AgreementTerminated(msg.sender, id);
     }
-    */
 
     /// @dev ISuperToken.liquidateAgreement implementation
     function liquidateAgreement

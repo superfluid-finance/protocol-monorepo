@@ -108,7 +108,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         bytes32 iId = _getPublisherId(publisher, indexId);
         require(!_hasIndexData(token, iId), "IDAv1: index already exists");
 
-        token.createAgreement2(iId, _encodeIndexData(IndexData(0, 0, 0)));
+        token.createAgreement(iId, _encodeIndexData(IndexData(0, 0, 0)));
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -164,7 +164,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
                 * int256(idata.totalUnitsPending));
         // adjust the publisher's index data
         idata.indexValue = indexValue;
-        token.updateAgreementData2(iId, _encodeIndexData(idata));
+        token.updateAgreementData(iId, _encodeIndexData(idata));
 
         // check account solvency
         require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance of publisher");
@@ -213,7 +213,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             });
             // add to subscription list of the subscriber
             sd.sdata.subId = _findAndFillSubsBitmap(token, subscriber, sd.iId);
-            token.createAgreement2(sd.sId, _encodeSubscriptionData(sd.sdata));
+            token.createAgreement(sd.sId, _encodeSubscriptionData(sd.sdata));
 
             newCtx = AgreementLibrary.afterAgreementCreated(
                 ISuperfluid(msg.sender), token, newCtx,
@@ -230,7 +230,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             // update publisher data and adjust publisher's deposits
             sd.idata.totalUnitsApproved += sd.sdata.units; // FIXME safe int256
             sd.idata.totalUnitsPending -= sd.sdata.units;
-            token.updateAgreementData2(sd.iId, _encodeIndexData(sd.idata));
+            token.updateAgreementData(sd.iId, _encodeIndexData(sd.idata));
             _adjustPublisherDeposit(token, publisher, -balanceDelta);
             token.settleBalance(publisher, -balanceDelta);
 
@@ -238,7 +238,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             token.settleBalance(subscriber, balanceDelta);
             sd.sdata.indexValue = sd.idata.indexValue;
             sd.sdata.subId = _findAndFillSubsBitmap(token, subscriber, sd.iId);
-            token.updateAgreementData2(sd.sId, _encodeSubscriptionData(sd.sdata));
+            token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
 
             newCtx = AgreementLibrary.afterAgreementUpdated(
                 ISuperfluid(msg.sender), token, newCtx,
@@ -294,7 +294,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             } else {
                 sd.idata.totalUnitsApproved -= sd.sdata.units - units; // FIXME safe128
             }
-            token.updateAgreementData2(iId, _encodeIndexData(sd.idata));
+            token.updateAgreementData(iId, _encodeIndexData(sd.idata));
         } else if (exist) {
             // if the subscription exists and approved, update the pending units amount
 
@@ -304,7 +304,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             } else {
                 sd.idata.totalUnitsPending -= sd.sdata.units - units; // FIXME safe128
             }
-            token.updateAgreementData2(iId, _encodeIndexData(sd.idata));
+            token.updateAgreementData(iId, _encodeIndexData(sd.idata));
         } else {
             // if the subscription does not exist, create it and then update the pending units amount
 
@@ -316,10 +316,10 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
                 units: units,
                 indexValue: sd.idata.indexValue
             });
-            token.createAgreement2(sId, _encodeSubscriptionData(sd.sdata));
+            token.createAgreement(sId, _encodeSubscriptionData(sd.sdata));
 
             sd.idata.totalUnitsPending += units;
-            token.updateAgreementData2(iId, _encodeIndexData(sd.idata));
+            token.updateAgreementData(iId, _encodeIndexData(sd.idata));
         }
 
         int256 balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
@@ -337,7 +337,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         if (exist) {
             sd.sdata.indexValue = sd.idata.indexValue;
             sd.sdata.units = units;
-            token.updateAgreementData2(sId, _encodeSubscriptionData(sd.sdata));
+            token.updateAgreementData(sId, _encodeSubscriptionData(sd.sdata));
         }
 
         // check account solvency
@@ -466,10 +466,10 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         } else {
             sd.idata.totalUnitsPending -= sd.sdata.units; // FIXME safe128
         }
-        token.updateAgreementData2(sd.iId, _encodeIndexData(sd.idata));
+        token.updateAgreementData(sd.iId, _encodeIndexData(sd.idata));
 
         // terminate subscription agreement data
-        token.terminateAgreement2(sd.sId, 2);
+        token.terminateAgreement(sd.sId, 2);
         // remove subscription from subscriber's bitmap
         if (sd.sdata.subId != _UNALLOCATED_SUB_ID) {
             _clearSubsBitmap(token, subscriber, sd.sdata);
@@ -542,7 +542,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         view
         returns (bool exist)
     {
-        bytes32[] memory adata = token.getAgreementData2(address(this), iId, 2);
+        bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
         uint256 a = uint256(adata[0]);
         exist = a > 0;
     }
@@ -554,7 +554,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         view
         returns (bool exist, IndexData memory idata)
     {
-        bytes32[] memory adata = token.getAgreementData2(address(this), iId, 2);
+        bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
         uint256 a = uint256(adata[0]);
         uint256 b = uint256(adata[1]);
         exist = a > 0;
@@ -640,7 +640,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         view
         returns (bool exist, SubscriptionData memory sdata)
     {
-        bytes32[] memory adata = token.getAgreementData2(address(this), sId, 2);
+        bytes32[] memory adata = token.getAgreementData(address(this), sId, 2);
         uint256 a = uint256(adata[0]);
         uint256 b = uint256(adata[1]);
         exist = a > 0;

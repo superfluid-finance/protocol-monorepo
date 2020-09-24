@@ -2,9 +2,15 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
 
-import { IConstantFlowAgreementV1, ISuperToken } from "../interfaces/IConstantFlowAgreementV1.sol";
-import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
-import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/IConstantFlowAgreementV1.sol";
+import {
+    ISuperfluid,
+    ISuperfluidGovernance,
+    ISuperApp,
+    ISuperToken
+}
+from "../interfaces/ISuperfluid.sol";
+
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
@@ -62,8 +68,8 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
 
-        if(ISuperfluid(msg.sender).isApp(receiver) ||
-           ISuperfluid(msg.sender).isApp(stcCtx.msgSender))
+        if(ISuperfluid(msg.sender).isApp(ISuperApp(receiver)) ||
+           ISuperfluid(msg.sender).isApp(ISuperApp(stcCtx.msgSender)))
         {
             // TODO: Decode return cbdata before calling the next step
             bytes memory cbdata;
@@ -119,7 +125,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(!_isNewFlow(token, flowId), "Flow doesn't exist");
         //require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
-        if(ISuperfluid(msg.sender).isApp(receiver)) {
+        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
             bytes memory cbdata;
             (cbdata, newCtx) =
                 AgreementLibrary.beforeAgreementUpdated(

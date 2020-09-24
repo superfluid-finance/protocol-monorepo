@@ -4,7 +4,8 @@ pragma solidity >= 0.5.0;
 import "./ISuperToken.sol";
 
 /**
- * @title Superfluid's Governance interface
+ * @dev Superfluid's Governance interface
+ *
  * @author Superfluid
  */
 interface ISuperfluidGovernance {

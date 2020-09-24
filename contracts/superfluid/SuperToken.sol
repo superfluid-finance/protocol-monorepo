@@ -4,12 +4,16 @@ pragma solidity 0.7.0;
 pragma experimental ABIEncoderV2;
 
 import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Ownable } from "../interfaces/Ownable.sol";
-import { ISuperToken } from "../interfaces/ISuperToken.sol";
-import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
-import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
-import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { Ownable } from "../access/Ownable.sol";
+
+import {
+    ISuperfluid,
+    ISuperfluidGovernance,
+    ISuperToken,
+    ISuperAgreement,
+    IERC20
+} from "../interfaces/ISuperfluid.sol";
+
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
@@ -477,6 +481,7 @@ contract SuperToken is
     function getGovernance() external view override returns(address governance) {
         return address(_host.getGovernance());
     }
+
     /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
     function getUnderlayingToken() external view override returns(address) {
         return address(_token);

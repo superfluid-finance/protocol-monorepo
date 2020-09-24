@@ -5,7 +5,8 @@ pragma experimental ABIEncoderV2;
 import { ERC20WithTokenInfo } from "./ERC20WithTokenInfo.sol";
 
 /**
- * @title Superfluid's token interface
+ * @title Superfluid's token interface.
+ *
  * @author Superfluid
  */
 abstract contract ISuperToken is ERC20WithTokenInfo {
@@ -232,7 +233,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param amount Number of tokens to be upgraded
     function upgrade(uint256 amount) external virtual;
 
-    /// @notice Token upgrade event
+    /// @dev Token upgrade event
     /// @param account Account whose tokens are upgraded
     /// @param amount Amount of tokens upgraded
     event TokenUpgraded(
@@ -245,7 +246,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @param amount Number of tokens to be downgraded
     function downgrade(uint256 amount) external virtual;
 
-    /// @notice Token downgrade event
+    /// @dev Token downgrade event
     /// @param account Account whose tokens are upgraded
     /// @param amount Amount of tokens downgraded
     event TokenDowngraded(
@@ -256,7 +257,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /**************************************************************************
     * System functions
     *************************************************************************/
-    /// @notice Return the Host Contract that rule this SuperToken
+
+    /// @dev Return the Host Contract that rule this SuperToken
     /// @return host Superfluid address
     function getSuperfluidAddress() external view virtual returns(address host);
 

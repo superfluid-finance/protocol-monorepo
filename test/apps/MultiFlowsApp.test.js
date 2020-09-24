@@ -115,7 +115,7 @@ contract("MultiFlowsApp", accounts => {
             ).encodeABI()
         ];
 
-        await web3tx(superfluid.callBatch, "Superfluid.callAppAction")(
+        await web3tx(superfluid.batchCall, "Superfluid.callAppAction")(
             [dataApp, dataAgreement],
             {
                 from: alice

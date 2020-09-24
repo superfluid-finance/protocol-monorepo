@@ -2,18 +2,25 @@
 pragma solidity 0.7.0;
 pragma experimental ABIEncoderV2;
 
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-
-import { Ownable } from "../interfaces/Ownable.sol";
-import { ISuperfluid, IERC20, ISuperToken, ISuperfluidGovernance } from "../interfaces/ISuperfluid.sol";
+import { Ownable } from "../access/Ownable.sol";
 import { Proxiable } from "../upgradability/Proxiable.sol";
 import { Proxy } from "../upgradability/Proxy.sol";
+
+import {
+    ISuperfluid,
+    ISuperfluidGovernance,
+    ISuperAgreement,
+    ISuperApp,
+    ISuperToken,
+    IERC20
+} from "../interfaces/ISuperfluid.sol";
 
 import { SuperToken } from "./SuperToken.sol";
 import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
 import { ContextLibrary } from "./ContextLibrary.sol";
-import { ISuperAgreement } from "../interfaces/ISuperAgreement.sol";
+
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 
 contract SuperfluidStorage {
@@ -36,9 +43,9 @@ contract SuperfluidStorage {
     ISuperToken internal _superTokenLogic;
 
     // Composite app white-listing: source app => (target app => isAllowed)
-    mapping(address => mapping(address => bool)) internal _compositeApps;
+    mapping(ISuperApp => mapping(ISuperApp => bool)) internal _compositeApps;
     // App manifests
-    mapping(address => AppManifest) internal _appManifests;
+    mapping(ISuperApp => AppManifest) internal _appManifests;
     // Ctx stamp of the current transaction, it should always be cleared to zero before transaction finishes
     bytes32 internal _ctxStamp;
 
@@ -64,8 +71,6 @@ contract Superfluid is
         E_2_GAS_REFUND,
         J_1_UPSTREAM_RESPONSABILITY
     }
-
-    event Jail(address app, uint256 info);
 
     // ????? TODO
     uint64 constant private _GAS_RESERVATION = 5000;
@@ -178,12 +183,12 @@ contract Superfluid is
         override
     {
         require(configWord > 0, "Superfluid: invalid config word");
-        require(_appManifests[msg.sender].configWord == 0 , "Superfluid: app already registered");
-        _appManifests[msg.sender] = AppManifest(configWord);
+        require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "Superfluid: app already registered");
+        _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
     }
 
     function getAppManifest(
-        address app
+        ISuperApp app
     )
     external
     view
@@ -198,7 +203,7 @@ contract Superfluid is
     }
 
     function isAppJailed(
-        address app
+        ISuperApp app
     )
         public
         view
@@ -213,19 +218,19 @@ contract Superfluid is
      * @param targetApp The taget super app address
      */
     function allowCompositeApp(
-        address targetApp
+        ISuperApp targetApp
     )
         external
         override
     {
-        require(_isApp(msg.sender), "Superfluid: msg.sender is not an app");
+        require(_isApp(ISuperApp(msg.sender)), "Superfluid: msg.sender is not an app");
         require(_isApp(targetApp), "Superfluid: target is not an app");
-        _compositeApps[msg.sender][targetApp] = true;
+        _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }
 
     function isCompositeAppAllowed(
-        address app,
-        address targetApp
+        ISuperApp app,
+        ISuperApp targetApp
     )
         external
         view
@@ -235,7 +240,7 @@ contract Superfluid is
         return _compositeApps[app][targetApp];
     }
 
-    function callBatch(
+    function batchCall(
         Operation[] memory operations
     )
         external
@@ -243,12 +248,12 @@ contract Superfluid is
     {
         require(operations.length > 1, "SF: Use the single method");
         for(uint256 i = 0; i < operations.length; i++) {
-            if(operations[i].opType == TypeOperation.CallApp) {
+            if(operations[i].opType == OperationType.CallApp) {
                 /* solhint-disable-next-line avoid-low-level-calls */
-                _callAppAction(operations[i].call, operations[i].data);
-            } else if(operations[i].opType == TypeOperation.CallAgreement) {
+                _callAppAction(ISuperApp(operations[i].target), operations[i].data);
+            } else if(operations[i].opType == OperationType.CallAgreement) {
                 /* solhint-disable-next-line avoid-low-level-calls */
-                _callAgreement(operations[i].call, operations[i].data);
+                _callAgreement(ISuperAgreement(operations[i].target), operations[i].data);
             } else {
                 revert("not implemented");
             }
@@ -258,7 +263,7 @@ contract Superfluid is
     //Split the callback in the two functions so they can have different rules and returns data formats
     //TODO : msg.sender should be only SuperAgreement
     function callAppBeforeCallback(
-        address app,
+        ISuperApp app,
         bytes calldata data,
         bytes calldata ctx
     )
@@ -282,7 +287,7 @@ contract Superfluid is
     }
 
     function callAppAfterCallback(
-        address app,
+        ISuperApp app,
         bytes calldata data,
         bytes calldata /*ctx*/
     )
@@ -292,11 +297,7 @@ contract Superfluid is
         onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        // TODO jail rule cleanup
-        if(isAppJailed(app)) {
-            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
-            emit Jail(msg.sender, uint256(Info.B_3_CALL_JAIL_APP));
-        }
+        require(!isAppJailed(app), "SF: App already jailed");
 
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
         newCtx = abi.decode(returnedData, (bytes));
@@ -313,7 +314,7 @@ contract Superfluid is
     }
 
     function callAgreement(
-        address agreementClass,
+        ISuperAgreement agreementClass,
         bytes calldata data
     )
         external
@@ -325,7 +326,7 @@ contract Superfluid is
         bytes memory ctx;
         (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         bool success;
-        (success, returnedData) = _callExternal(agreementClass, data, ctx);
+        (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
         if (success) {
             _ctxStamp = 0;
         } else {
@@ -334,7 +335,7 @@ contract Superfluid is
     }
 
     function _callAgreement(
-        address agreementClass,
+        ISuperAgreement agreementClass,
         bytes memory data
     )
         private
@@ -345,7 +346,7 @@ contract Superfluid is
         bytes memory ctx;
         (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
         bool success;
-        (success, returnedData) = _callExternal(agreementClass, data, ctx);
+        (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
         if (success) {
             _ctxStamp = 0;
         } else {
@@ -354,7 +355,7 @@ contract Superfluid is
     }
 
     function callAgreementWithContext(
-        address agreementClass,
+        ISuperAgreement agreementClass,
         bytes calldata data,
         bytes calldata ctx
     )
@@ -370,7 +371,7 @@ contract Superfluid is
 
         //Call app
         bool success;
-        (success, returnedData) = _callExternal(agreementClass, data, newCtx);
+        (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
         if(success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             stcCtx = ContextLibrary.decode(newCtx);
@@ -382,7 +383,7 @@ contract Superfluid is
     }
 
     function callAppAction(
-        address app,
+        ISuperApp app,
         bytes calldata data
     )
         external
@@ -391,26 +392,11 @@ contract Superfluid is
         onlyApp(app)
         returns(bytes memory returnedData)
     {
-        if(isAppJailed(app)) {
-            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
-            emit Jail(msg.sender, uint256(Info.B_3_CALL_JAIL_APP));
-        }
-
-        //Build context data
-        //TODO: Where we get the gas reservation?
-        bool success;
-
-        bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
-        (success, returnedData) = _callExternal(app, data, ctx);
-        if(!success) {
-            revert(string(returnedData));
-        }
-        _ctxStamp = 0;
+        return _callAppAction(app, data);
     }
 
     function _callAppAction(
-        address app,
+        ISuperApp app,
         bytes memory data
     )
         private
@@ -418,10 +404,7 @@ contract Superfluid is
         onlyApp(app)
         returns(bytes memory returnedData)
     {
-        if(isAppJailed(app)) {
-            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
-            emit Jail(msg.sender, uint256(Info.B_3_CALL_JAIL_APP));
-        }
+        require(!isAppJailed(app), "SF: App already jailed");
 
         //Build context data
         //TODO: Where we get the gas reservation?
@@ -429,7 +412,7 @@ contract Superfluid is
 
         bytes memory ctx;
         (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
-        (success, returnedData) = _callExternal(app, data, ctx);
+        (success, returnedData) = _callExternal(address(app), data, ctx);
         if(!success) {
             revert(string(returnedData));
         }
@@ -437,7 +420,7 @@ contract Superfluid is
     }
 
     function callAppActionWithContext(
-        address app,
+        ISuperApp app,
         bytes calldata data,
         bytes calldata ctx
     )
@@ -449,16 +432,26 @@ contract Superfluid is
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
 
         stcCtx.level++;
-        require(_checkAppCallDepth(msg.sender, stcCtx.level), "SF: App Call Stack too deep");
+        require(_checkAppCallDepth(ISuperApp(msg.sender), stcCtx.level), "SF: App Call Stack too deep");
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
-        _callExternal(app, data, newCtx);
+        _callExternal(address(app), data, newCtx);
         stcCtx.level--;
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 
-    /* solhint-disable-next-line */
-    function chargeGasFee(uint fee) external override {
-        ///TODO
+    function chargeGasFee(
+        bytes calldata ctx,
+        uint fee
+    )
+        external
+        override
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        // FIXME do some non-sense with the fee for now
+       // solhint-disable-next-line no-empty-blocks
+        for (uint i = 0; i < fee; ++i) { }
+        newCtx = ctx;
     }
 
     function updateCtxDeposit(
@@ -470,7 +463,7 @@ contract Superfluid is
         override
         returns(bytes memory newCtx)
     {
-        uint256 level = uint256(_getAppLevel(receiver));
+        uint256 level = uint256(_getAppLevel(ISuperApp(receiver)));
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
         stcCtx.allowanceUsed +=
             (unitOfAllowance > stcCtx.allowance ?
@@ -491,15 +484,15 @@ contract Superfluid is
     }
 
     /* Basic Law Rules */
-    function isApp(address app) external view override returns(bool) {
+    function isApp(ISuperApp app) external view override returns(bool) {
         return _isApp(app);
     }
 
-    function _isApp(address app) internal view returns(bool) {
+    function _isApp(ISuperApp app) internal view returns(bool) {
         return _appManifests[app].configWord > 0;
     }
 
-    function _checkAppCallDepth(address appAddr, uint8 currentAppLevel) internal view returns(bool) {
+    function _checkAppCallDepth(ISuperApp appAddr, uint8 currentAppLevel) internal view returns(bool) {
         uint8 appLevel = _getAppLevel(appAddr);
         if(appLevel == 1 && currentAppLevel > 1) {
             return false;
@@ -510,7 +503,7 @@ contract Superfluid is
         return true;
     }
 
-    function _getAppLevel(address appAddr) internal view returns(uint8) {
+    function _getAppLevel(ISuperApp appAddr) internal view returns(uint8) {
         if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_FINAL > 0) {
             return 1;
         } else if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_SECOND > 0) {
@@ -519,12 +512,12 @@ contract Superfluid is
         return 0;
     }
 
-    function getAppLevel(address appAddr) external override view returns(uint8) {
+    function getAppLevel(ISuperApp appAddr) external override view returns(uint8) {
         return _getAppLevel(appAddr);
     }
 
     function _callExternal(
-        address app,
+        address target,
         bytes memory data,
         bytes memory ctx
     )
@@ -532,7 +525,7 @@ contract Superfluid is
         returns(bool success, bytes memory returnedData)
     {
         /* solhint-disable-next-line avoid-low-level-calls */
-        (success, returnedData) = app.call(
+        (success, returnedData) = target.call(
             ContextLibrary.replaceContext(data, ctx)
         );
 
@@ -542,7 +535,7 @@ contract Superfluid is
     }
 
     function _callCallback(
-        address app,
+        ISuperApp app,
         bytes memory data,
         bool isStaticall
     )
@@ -550,8 +543,9 @@ contract Superfluid is
         returns(bool success, bytes memory returnedData)
     {
         //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
-        /* solhint-disable-next-line avoid-low-level-calls*/
-        (success, returnedData) = isStaticall ? app.staticcall(data) : app.call(data);
+        (success, returnedData) = isStaticall ?
+            /* solhint-disable-next-line avoid-low-level-calls*/
+            address(app).staticcall(data) : address(app).call(data);
          if (!success) {
              if (gasleft() < _GAS_RESERVATION) {
                  // this is out of gas, but the call may still fail if more gas is provied
@@ -575,7 +569,7 @@ contract Superfluid is
         _;
     }
 
-    modifier onlyApp(address app) {
+    modifier onlyApp(ISuperApp app) {
         require(_isApp(app), "Superfluid: target is not an app");
         _;
     }
@@ -588,8 +582,8 @@ contract Superfluid is
     modifier validCtx(bytes memory ctx) {
         //require(ContextLibrary.validate(ctx, _ctxStamp), "Superfluid: Invalid ctx");
         if(!ContextLibrary.validate(ctx, _ctxStamp)) {
-            _appManifests[msg.sender].configWord |= SuperAppDefinitions.JAIL;
-            emit Jail(msg.sender, uint256(Info.B_1_READONLY_CONTEXT));
+            _appManifests[ISuperApp(msg.sender)].configWord |= SuperAppDefinitions.JAIL;
+            emit Jail(ISuperApp(msg.sender), uint256(Info.B_1_READONLY_CONTEXT));
         } else {
             _;
         }

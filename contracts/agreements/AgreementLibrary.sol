@@ -22,7 +22,7 @@ library AgreementLibrary {
     {
         newCtx = ctx;
         (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(account);
+            host.getAppManifest(ISuperApp(account));
 
 
         if (isSuperApp &&
@@ -34,7 +34,7 @@ library AgreementLibrary {
                 agreementClass,
                 agreementId
             );
-            (cbdata, newCtx) = host.callAppBeforeCallback(account, data, ctx);
+            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, ctx);
         }
     }
 
@@ -53,7 +53,7 @@ library AgreementLibrary {
         returns(bytes memory newCtx)
     {
         (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(account);
+            host.getAppManifest(ISuperApp(account));
 
 
         if (isSuperApp &&
@@ -66,7 +66,7 @@ library AgreementLibrary {
                 agreementId,
                 cbdata
             );
-            return host.callAppAfterCallback(account, data, ctx);
+            return host.callAppAfterCallback(ISuperApp(account), data, ctx);
         }
 
         return ctx;

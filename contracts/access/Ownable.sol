@@ -1,7 +1,22 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.5.0;
+pragma solidity 0.7.0;
 
-// FIXME remove and use the openzeppelin
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ *
+ * It is a fork from openzeppelin Ownable, making it Proxiable contract friendly
+ * by having `_owner` variable internal. It also removes the usage of GSN Context,
+ * as in superfluid we use a different mechanism for providing transaction Context.
+ *
+ * @author Superfluid
+ */
 contract Ownable {
     /// @dev For ownable contract
     address internal _owner;

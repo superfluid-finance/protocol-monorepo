@@ -44,13 +44,14 @@ contract MultiFlowsApp is SuperAppBase {
         bytes calldata ctx
     )
         external
+        returns(bytes memory newCtx)
     {
         require(msg.sender == address(_host), "MFA: Only official superfluid host is supported by the app");
         require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
         address sender = ContextLibrary.decode(ctx).msgSender;
         require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
 
-        _host.chargeGasFee(30000);
+        newCtx = _host.chargeGasFee(ctx, 30000);
 
         (int256 receivingFlowRate) = _constantFlow.getFlow(
             superToken,
@@ -112,7 +113,7 @@ contract MultiFlowsApp is SuperAppBase {
             require(sum != 0 , "Sum is zero zero zero");
             require((int96(_userFlows[sender][i].proportion) * receivingFlowRate) / sum != 0, "SUM IS ZERO");
             (newCtx, ) = _host.callAgreementWithContext(
-                address(_constantFlow),
+                _constantFlow,
                 abi.encodeWithSelector(
                     _constantFlow.createFlow.selector,
                     superToken,
@@ -141,7 +142,7 @@ contract MultiFlowsApp is SuperAppBase {
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(
-                address(_constantFlow),
+                _constantFlow,
                 abi.encodeWithSelector(
                     _constantFlow.deleteFlow.selector,
                     superToken,

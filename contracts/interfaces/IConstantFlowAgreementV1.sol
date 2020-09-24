@@ -5,7 +5,8 @@ import "./ISuperToken.sol";
 import "./ISuperAgreement.sol";
 
 /**
- * @title Superfluid's flow agreement interface
+ * @dev Superfluid's flow agreement interface
+ *
  * @author Superfluid
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {

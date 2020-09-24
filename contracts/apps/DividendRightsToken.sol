@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
+import { Ownable } from "../access/Ownable.sol";
 
-import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
-import { IInstantDistributionAgreementV1, ISuperToken } from "../interfaces/IInstantDistributionAgreementV1.sol";
+import {
+    ISuperfluid,
+    ISuperToken
+} from "../interfaces/ISuperfluid.sol";
+import { IInstantDistributionAgreementV1 } from "../interfaces/IInstantDistributionAgreementV1.sol";
+
 import { SuperAppDefinitions } from "../superfluid/SuperAppDefinitions.sol";
-import { Ownable } from "../interfaces/Ownable.sol";
-import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { SuperAppBase } from "./SuperAppBase.sol";
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
 contract DividendRightsToken is
@@ -46,7 +50,7 @@ contract DividendRightsToken is
         _host.registerApp(configWord);
 
         _host.callAgreement(
-            address(_ida),
+            _ida,
             abi.encodeWithSelector(
                 _ida.createIndex.selector,
                 _cashToken,
@@ -67,7 +71,7 @@ contract DividendRightsToken is
         ERC20._mint(beneficiary, amount);
 
         _host.callAgreement(
-            address(_ida),
+            _ida,
             abi.encodeWithSelector(
                 _ida.updateSubscription.selector,
                 _cashToken,
@@ -93,7 +97,7 @@ contract DividendRightsToken is
 
         // update the index
         _host.callAgreement(
-            address(_ida),
+            _ida,
             abi.encodeWithSelector(
                 _ida.updateIndex.selector,
                 _cashToken,
@@ -114,7 +118,7 @@ contract DividendRightsToken is
 
         (,currentUnits,) = _ida.getSubscription(_cashToken, address(this), INDEX_ID, sender);
         _host.callAgreement(
-            address(_ida),
+            _ida,
             abi.encodeWithSelector(
                 _ida.updateSubscription.selector,
                 _cashToken,
@@ -127,7 +131,7 @@ contract DividendRightsToken is
 
         (,currentUnits,) = _ida.getSubscription(_cashToken, address(this), INDEX_ID, recipient);
         _host.callAgreement(
-            address(_ida),
+            _ida,
             abi.encodeWithSelector(
                 _ida.updateSubscription.selector,
                 _cashToken,

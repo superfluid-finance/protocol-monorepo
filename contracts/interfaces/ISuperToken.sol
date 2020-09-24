@@ -214,7 +214,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
       * @return activeAgreements List of accounts that have non-zero states for the account
       */
     function getAccountActiveAgreements(address account)
-        public
+        external
         virtual
         view
         returns(address[] memory activeAgreements);
@@ -227,7 +227,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     function isAccountInsolvent(
         address account
     )
-        public
+        external
         view
         virtual
         returns(bool isInsolvent);

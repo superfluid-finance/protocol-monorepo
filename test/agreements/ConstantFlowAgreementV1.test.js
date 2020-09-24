@@ -66,7 +66,7 @@ contract("Constant Flow Agreement", accounts => {
     });
 
     describe("#1 FlowAgreement.updateFlow", () => {
-        it("#1.2 should stream in correct flow rate with single flow", async() => {
+        it("#1.1 should stream in correct flow rate with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 
@@ -124,7 +124,7 @@ contract("Constant Flow Agreement", accounts => {
             await tester.validateSystem();
         });
 
-        it("#1.3 should stream in correct flow rate after two out flows of the same account", async() => {
+        it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 
@@ -135,7 +135,7 @@ contract("Constant Flow Agreement", accounts => {
                 "0x"
             ).encodeABI();
 
-            const tx = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+            const tx = await web3tx(superfluid.callAgreement, "CreateFlow alice -> bob")(
                 cfa.address,
                 dataAgreement,
                 {
@@ -166,7 +166,7 @@ contract("Constant Flow Agreement", accounts => {
                 "0x"
             ).encodeABI();
 
-            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> carol")(
+            const tx2 = await web3tx(superfluid.callAgreement, "CreateFlow alice -> carol")(
                 cfa.address,
                 dataAgreement,
                 {

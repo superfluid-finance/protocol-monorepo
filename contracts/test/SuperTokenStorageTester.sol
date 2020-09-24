@@ -50,7 +50,7 @@ contract SuperTokenStorageTester is SuperToken {
         require (slot == 6 && offset == 0, "_allowances changed location");
 
         // mapping(address => address[]) internal _activeAgreementClasses;
-        assembly { slot:= _activeAgreementClasses.slot offset := _activeAgreementClasses.offset }
-        require (slot == 7 && offset == 0, "_activeAgreementClasses changed location");
+        assembly { slot:= _inactiveAgreementBitmap.slot offset := _inactiveAgreementBitmap.offset }
+        require (slot == 7 && offset == 0, "_inactiveAgreementBitmap changed location");
     }
 }

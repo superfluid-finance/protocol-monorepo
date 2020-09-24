@@ -146,122 +146,122 @@ contract("Super Token", accounts => {
         });
     });
 
-    describe("#3 SuperToken ISuperAgreementStorage(TBD) operations", () => {
-        // TODO To be improved with a mock agreement class
-
-        it("#3.1 - should track active agreement classes", async() => {
-
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            await superToken.upgrade(INIT_BALANCE, {from: bob});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            const flowRate = await cfa.getNetFlow(superToken.address, bob);
-            console.log("Bob flowRate: ", flowRate.toString());
-            console.log("Check with ", FLOW_RATE.toString());
-            assert.equal(flowRate.toString(), FLOW_RATE.toString(), "Not the same flow Rate");
-
-            dataAgreement = cfa.contract.methods.updateFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            let aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            let bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
-            let carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
-
-            assert.ok(aliceAgreementClasses.length == 1);
-            assert.ok(bobAgreementClasses.length == 1);
-            assert.ok(carolAgreementClasses.length == 0);
-            assert.equal(aliceAgreementClasses[0], cfa.address);
-            assert.equal(bobAgreementClasses[0], cfa.address);
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                FLOW_RATE.mul(toBN(2)).toString(),
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: bob,
-                }
-            );
-
-            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
-            carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
-            assert.ok(aliceAgreementClasses.length == 1);
-            assert.ok(bobAgreementClasses.length == 1);
-            assert.ok(carolAgreementClasses.length == 1);
-            assert.equal(aliceAgreementClasses[0], cfa.address);
-            assert.equal(bobAgreementClasses[0], cfa.address);
-            assert.equal(carolAgreementClasses[0], cfa.address);
-
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
-            aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
-            bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
-            carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
-            //FIXME THIS TEST
-            //assert.ok(aliceAgreementClasses.length == 0);
-            assert.ok(bobAgreementClasses.length == 1);
-            assert.ok(carolAgreementClasses.length == 1);
-            assert.equal(bobAgreementClasses[0], cfa.address);
-            assert.equal(carolAgreementClasses[0], cfa.address);
-
-            await tester.validateSystem();
-        });
-
-        //TODO Implement this check on solidity
-        /*
-        it("#3.2 - should only be updated by authorized agreement", async () => {
-            await expectRevert(
-                web3tx(superToken.updateAgreementAccountState,
-                    "SuperToken.updateAgreementAccountState by alice directly")(
-                    alice,
-                    "0x42", {from: alice}
-                ), "SuperToken: unauthorized agreement storage access");
-        });
-        */
-    });
+    // describe("#3 SuperToken ISuperAgreementStorage(TBD) operations", () => {
+    //     // TODO To be improved with a mock agreement class
+    //
+    //     it("#3.1 - should track active agreement classes", async() => {
+    //
+    //         await superToken.upgrade(INIT_BALANCE, {from: alice});
+    //         await superToken.upgrade(INIT_BALANCE, {from: bob});
+    //         let dataAgreement = cfa.contract.methods.createFlow(
+    //             superToken.address,
+    //             bob,
+    //             FLOW_RATE.toString(),
+    //             "0x"
+    //         ).encodeABI();
+    //         await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+    //             cfa.address,
+    //             dataAgreement,
+    //             {
+    //                 from: alice,
+    //             }
+    //         );
+    //
+    //         const flowRate = await cfa.getNetFlow(superToken.address, bob);
+    //         console.log("Bob flowRate: ", flowRate.toString());
+    //         console.log("Check with ", FLOW_RATE.toString());
+    //         assert.equal(flowRate.toString(), FLOW_RATE.toString(), "Not the same flow Rate");
+    //
+    //         dataAgreement = cfa.contract.methods.updateFlow(
+    //             superToken.address,
+    //             bob,
+    //             FLOW_RATE.toString(),
+    //             "0x"
+    //         ).encodeABI();
+    //         await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+    //             cfa.address,
+    //             dataAgreement,
+    //             {
+    //                 from: alice,
+    //             }
+    //         );
+    //
+    //         let aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+    //         let bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+    //         let carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
+    //
+    //         assert.ok(aliceAgreementClasses.length == 1);
+    //         assert.ok(bobAgreementClasses.length == 1);
+    //         assert.ok(carolAgreementClasses.length == 0);
+    //         assert.equal(aliceAgreementClasses[0], cfa.address);
+    //         assert.equal(bobAgreementClasses[0], cfa.address);
+    //
+    //         dataAgreement = cfa.contract.methods.createFlow(
+    //             superToken.address,
+    //             carol,
+    //             FLOW_RATE.mul(toBN(2)).toString(),
+    //             "0x"
+    //         ).encodeABI();
+    //         await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
+    //             cfa.address,
+    //             dataAgreement,
+    //             {
+    //                 from: bob,
+    //             }
+    //         );
+    //
+    //         aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+    //         bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+    //         carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
+    //         assert.ok(aliceAgreementClasses.length == 1);
+    //         assert.ok(bobAgreementClasses.length == 1);
+    //         assert.ok(carolAgreementClasses.length == 1);
+    //         assert.equal(aliceAgreementClasses[0], cfa.address);
+    //         assert.equal(bobAgreementClasses[0], cfa.address);
+    //         assert.equal(carolAgreementClasses[0], cfa.address);
+    //
+    //         dataAgreement = cfa.contract.methods.deleteFlow(
+    //             superToken.address,
+    //             alice,
+    //             bob,
+    //             "0x"
+    //         ).encodeABI();
+    //
+    //         await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+    //             cfa.address,
+    //             dataAgreement,
+    //             {
+    //                 from: alice,
+    //             }
+    //         );
+    //
+    //         aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+    //         bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+    //         aliceAgreementClasses = await superToken.getAccountActiveAgreements.call(alice);
+    //         bobAgreementClasses = await superToken.getAccountActiveAgreements.call(bob);
+    //         carolAgreementClasses = await superToken.getAccountActiveAgreements.call(carol);
+    //         //FIXME THIS TEST
+    //         //assert.ok(aliceAgreementClasses.length == 0);
+    //         assert.ok(bobAgreementClasses.length == 1);
+    //         assert.ok(carolAgreementClasses.length == 1);
+    //         assert.equal(bobAgreementClasses[0], cfa.address);
+    //         assert.equal(carolAgreementClasses[0], cfa.address);
+    //
+    //         await tester.validateSystem();
+    //     });
+    //
+    //     //TODO Implement this check on solidity
+    //     /*
+    //     it("#3.2 - should only be updated by authorized agreement", async () => {
+    //         await expectRevert(
+    //             web3tx(superToken.updateAgreementAccountState,
+    //                 "SuperToken.updateAgreementAccountState by alice directly")(
+    //                 alice,
+    //                 "0x42", {from: alice}
+    //             ), "SuperToken: unauthorized agreement storage access");
+    //     });
+    //     */
+    // });
 
     describe("#4 SuperToken.transfer", () => {
         it("#4.1 - should transfer available amount", async() => {

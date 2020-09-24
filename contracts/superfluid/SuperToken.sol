@@ -47,8 +47,8 @@ contract SuperTokenStorage {
     /// @dev ERC20 Allowances Storage
     mapping (address => mapping (address => uint256)) internal _allowances;
 
-    /// @dev List of enabled agreement classes for the account
-    mapping(address => address[]) internal _activeAgreementClasses;
+    /// @dev Active agreement bitmap
+    mapping(address => uint256) internal _inactiveAgreementBitmap;
 }
 
 /**
@@ -286,7 +286,8 @@ contract SuperToken is
         view
         returns(address[] memory)
     {
-        return _activeAgreementClasses[account];
+        ISuperfluidGovernance gov = _host.getGovernance();
+        return gov.mapAgreements(~_inactiveAgreementBitmap[account]);
     }
 
     /// @dev ISuperToken.isAccountInsolvent implementation
@@ -436,7 +437,7 @@ contract SuperToken is
         bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
         _storeData(slot, slotData);
         // FIXME change how this is done
-        _addAgreementClass(msg.sender, account);
+        //_addAgreementClass(msg.sender, account);
         emit AgreementStateUpdated(msg.sender, account, slotId);
     }
 
@@ -493,12 +494,13 @@ contract SuperToken is
 
    function _grossBalance(address account, uint256 timestamp) internal view returns(int256 balance) {
         balance = _balances[account];
-        for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
+        address[] memory activeAgreements = getAccountActiveAgreements(account);
+        for (uint256 i = 0; i < activeAgreements.length; i++) {
             (
                 int256 agreementDynamicBalance,
                 ,
                 ) = _realtimeBalanceOf(
-                    _activeAgreementClasses[account][i],
+                    activeAgreements[i],
                     account,
                     timestamp
                 );
@@ -517,12 +519,13 @@ contract SuperToken is
         returns(int256 availableBalance, uint256 deposit, uint256 owedDeposit)
     {
         int256 realtimeBalance = _balances[account];
-        for (uint256 i = 0; i < _activeAgreementClasses[account].length; i++) {
+        address[] memory activeAgreements = getAccountActiveAgreements(account);
+        for (uint256 i = 0; i < activeAgreements.length; i++) {
             (
                 int256 agreementDynamicBalance,
                 uint256 agreementDeposit,
                 uint256 agreementOwedDeposit) = _realtimeBalanceOf(
-                    _activeAgreementClasses[account][i],
+                    activeAgreements[i],
                     account,
                     timestamp
                 );
@@ -551,53 +554,6 @@ contract SuperToken is
                 account,
                 timestamp
             );
-    }
-
-    /// @dev if returns -1 agreement is not active
-    function _indexOfAgreementClass(address agreementClass, address account) internal view returns(int256) {
-
-        int256 i;
-        int256 size = int256(_activeAgreementClasses[account].length);
-
-        while (i < size) {
-
-            if (_activeAgreementClasses[account][uint256(i)] == agreementClass) {
-                return i;
-            }
-
-            i++;
-        }
-
-        return -1;
-    }
-
-    /// @dev Delete Agreement Class to account
-    /// @param agreementClass Agreement address to delete
-    /// @param account Address to delete the agreeement
-    function _delAgreementClass(address agreementClass, address account) internal {
-
-        int256 idx = _indexOfAgreementClass(agreementClass, account);
-        uint256 size = _activeAgreementClasses[account].length;
-
-        if (idx >= 0) {
-
-            if (size - 1 == uint256(idx)) {
-                _activeAgreementClasses[account].pop();
-            } else {
-                //swap element and pop
-                _activeAgreementClasses[account][uint256(idx)] = _activeAgreementClasses[account][size - 1];
-                _activeAgreementClasses[account].pop();
-            }
-        }
-    }
-
-    /// @dev Add Agreement Class to account
-    /// @param agreementClass Agreement address to add
-    /// @param account Address to add the agreeement
-    function _addAgreementClass(address agreementClass, address account) internal {
-        if (_indexOfAgreementClass(agreementClass, account) == -1) {
-            _activeAgreementClasses[account].push(agreementClass);
-        }
     }
 
     /// @dev Save the balance until now

@@ -1,81 +1,59 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import { ISuperfluidGovernance } from "../interfaces/ISuperfluidGovernance.sol";
-import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
+import { Ownable } from "../access/Ownable.sol";
+import {
+    ISuperfluid,
+    ISuperfluidGovernance
+} from "../interfaces/ISuperfluid.sol";
 
-contract TestGovernance is ISuperfluidGovernance {
-
-    address public governor;
-
-    struct GovernanceConfig {
-        address rewardAddress;
-        uint16 period;
-        uint64 maxGasCallback;
-        uint64 maxGasApp;
-        address superfluid;
-    }
-
-    GovernanceConfig private _defaultConfig;
+contract TestGovernance is
+    Ownable,
+    ISuperfluidGovernance
+{
+    address private _rewardAddress;
+    uint256 private _liquidationPeriod;
+    address[] private _agreementList;
+    mapping (address => uint) private _agreementListedFlags;
 
     constructor(
         address rewardAddress,
-        uint16 period,
-        uint64 maxGasCallback,
-        uint64 maxGasApp,
-        address superfluid
+        uint256 liquidationPeriod
     )
     {
-        governor = msg.sender;
-        _defaultConfig = GovernanceConfig(
-            rewardAddress,
-            period,
-            maxGasCallback,
-            maxGasApp,
-            superfluid
-        );
+        _owner = msg.sender;
+        _rewardAddress = rewardAddress;
+        _liquidationPeriod = liquidationPeriod;
     }
 
     function getRewardAddress(
-        address
+        address /* superToken */
     )
         external
         view
         override
         returns(address rewardAddress)
     {
-        return _defaultConfig.rewardAddress;
+        return _rewardAddress;
     }
 
     function getLiquidationPeriod(
-        address
+        address /* superToken */
     )
         external
         view
         override
-        returns(uint16 period)
+        returns(uint256 period)
     {
-        return _defaultConfig.period;
+        return _liquidationPeriod;
     }
 
-    function getMaxGasCallback() external view override returns(uint64) {
-        return _defaultConfig.maxGasCallback;
+    function addAgreement(address agreementClass) external onlyOwner override {
+        _agreementList.push(agreementClass);
+        _agreementListedFlags[agreementClass] = _agreementList.length;
     }
 
-    function getMaxGasApp() external view override returns(uint64) {
-        return _defaultConfig.maxGasApp;
-    }
-
-    function getSuperfluid() external view override returns(address) {
-        return _defaultConfig.superfluid;
-    }
-
-    function addAgreement(address agreement) external onlyGovernator override {
-        ISuperfluid(_defaultConfig.superfluid).addAgreement(agreement);
-    }
-
-    modifier onlyGovernator {
-        require(msg.sender == governor, "Gov: Not allowed");
-        _;
+    function isAgreementListed(address agreementClass) external override view returns(bool yes) {
+        return _agreementListedFlags[agreementClass] > 0;
     }
 }

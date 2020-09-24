@@ -29,12 +29,6 @@ interface ISuperfluid {
      *************************************************************************/
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
-    // FIXME move to governance
-    function addAgreement(address agreement) external;
-
-    // FIXME move to governance
-    function isAgreementValid(address agreement) external view returns(bool isValid);
-
     /**************************************************************************
      * Token Registry
      *************************************************************************/

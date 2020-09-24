@@ -17,10 +17,7 @@ contract("Superfluid", accounts => {
             });
         const governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
             accounts[0],
-            3600,
-            10000,
-            10000,
-            superfluid.address);
+            3600);
         await web3tx(superfluid.initialize, "superfluid.initialize")();
         await web3tx(superfluid.setGovernance, "superfluid.setGovernance")(
             governance.address

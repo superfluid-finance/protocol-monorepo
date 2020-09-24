@@ -41,14 +41,14 @@ contract SuperTokenStorage {
     /// @dev Superfluid contract
     ISuperfluid internal _host;
 
-    /// @dev List of enabled agreement classes for the account
-    mapping(address => address[]) internal _activeAgreementClasses;
-
     /// @dev Settled balance for the account
     mapping(address => int256) internal _balances;
 
     /// @dev ERC20 Allowances Storage
     mapping (address => mapping (address => uint256)) internal _allowances;
+
+    /// @dev List of enabled agreement classes for the account
+    mapping(address => address[]) internal _activeAgreementClasses;
 }
 
 /**

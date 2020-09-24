@@ -44,7 +44,7 @@ module.exports = class Tester {
             MAX_UINT256: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
             INIT_BALANCE: toWad(100),
             ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
-            DEPOSIT_REQUIREMENT: 2,
+            LIQUIDATION_PERIOD: 2,
             DUST_AMOUNT: toBN(10000),
         };
     }
@@ -82,11 +82,8 @@ module.exports = class Tester {
 
         // governance contract
         this.contracts.governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
-            this.aliases.admin,
-            this.constants.DEPOSIT_REQUIREMENT,
-            10000,
-            10000,
-            this.contracts.superfluid.address,
+            this.aliases.admin /* rewardAddress */,
+            this.constants.LIQUIDATION_PERIOD /* liquidationReriod */,
             {
                 from: this.aliases.admin
             });
@@ -127,9 +124,18 @@ module.exports = class Tester {
                 from: this.aliases.admin
             });
 
-        //Register agreements to whiteList
-        await this.contracts.governance.addAgreement.call(this.contracts.cfa.address);
-        await this.contracts.governance.addAgreement.call(this.contracts.ida.address);
+        // Add agreements to whiteList
+        if (!(await this.contracts.governance.isAgreementListed.call(this.contracts.cfa.address))) {
+            await web3tx(this.contracts.governance.addAgreement, "Governance lists CFA")(
+                this.contracts.cfa.address
+            );
+        }
+        if (!(await this.contracts.governance.isAgreementListed.call(this.contracts.ida.address))) {
+            await web3tx(this.contracts.governance.addAgreement, "Governance lists IDA")(
+                this.contracts.ida.address
+            );
+        }
+
         // mint test tokens to test accounts
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];

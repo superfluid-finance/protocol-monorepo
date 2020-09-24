@@ -42,14 +42,13 @@ contract SuperfluidStorage {
     /// @dev Super token logic contract
     ISuperToken internal _superTokenLogic;
 
-    // Composite app white-listing: source app => (target app => isAllowed)
-    mapping(ISuperApp => mapping(ISuperApp => bool)) internal _compositeApps;
-    // App manifests
+    /// @dev App manifests
     mapping(ISuperApp => AppManifest) internal _appManifests;
-    // Ctx stamp of the current transaction, it should always be cleared to zero before transaction finishes
+    /// @dev Composite app white-listing: source app => (target app => isAllowed)
+    mapping(ISuperApp => mapping(ISuperApp => bool)) internal _compositeApps;
+    /// @dev Ctx stamp of the current transaction, it should always be cleared to
+    ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
-
-    mapping(address => bool) internal _agreementList;
 }
 
 contract Superfluid is
@@ -269,7 +268,7 @@ contract Superfluid is
     )
         external
         override
-        //onlyAgreement
+        onlyAgreement
         onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata, bytes memory newCtx)
     {
@@ -293,7 +292,7 @@ contract Superfluid is
     )
         external
         override
-        //onlyAgreement
+        onlyAgreement
         onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
@@ -474,15 +473,6 @@ contract Superfluid is
         (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
     }
 
-    function addAgreement(address agreement) external onlyGovernance override {
-        require(!_agreementList[agreement], "SF: Agreement is register");
-        _agreementList[agreement] = true;
-    }
-
-    function isAgreementValid(address agreement) external view override returns(bool) {
-        return _agreementList[agreement];
-    }
-
     /* Basic Law Rules */
     function isApp(ISuperApp app) external view override returns(bool) {
         return _isApp(app);
@@ -565,7 +555,7 @@ contract Superfluid is
     }
 
     modifier onlyAgreement() {
-        require(_agreementList[msg.sender], "SF: Not agreeement");
+        require(_gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;
     }
 

@@ -92,10 +92,7 @@ module.exports = async function (callback) {
             if (reset || await codeChanged(TestGovernance, governanceAddress)) {
                 governance = await web3tx(TestGovernance.new, "TestGovernance.new due to code change")(
                     accounts[0], // rewardAddress
-                    3600, // period
-                    10000, // maxGasCallback
-                    10000, // maxGasApp
-                    superfluid.address
+                    3600, // liquidationPeriod
                 );
                 console.log("TestGovernance address", governance.address);
                 await web3tx(testResolver.set, `TestResolver set ${name}`)(
@@ -128,8 +125,10 @@ module.exports = async function (callback) {
             } else {
                 console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
             }
-            if (!(await superfluid.isAgreementValid.call(cfaAddress))) {
-                await web3tx(governance.addAgreement, "governance add CFA agreement")(cfaAddress);
+            if (!(await governance.isAgreementListed.call(cfaAddress))) {
+                await web3tx(governance.addAgreement, "Governance lists CFA")(
+                    cfaAddress
+                );
             }
         }
 
@@ -149,8 +148,10 @@ module.exports = async function (callback) {
             } else {
                 console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
             }
-            if (!(await superfluid.isAgreementValid.call(idaAddress))) {
-                await web3tx(governance.addAgreement, "governance add IDA agreement")(idaAddress);
+            if (!(await governance.isAgreementListed.call(idaAddress))) {
+                await web3tx(governance.addAgreement, "Governance lists IDA")(
+                    idaAddress
+                );
             }
         }
 

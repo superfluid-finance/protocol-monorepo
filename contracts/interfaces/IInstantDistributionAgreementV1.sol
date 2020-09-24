@@ -5,7 +5,8 @@ import "./ISuperToken.sol";
 import "./ISuperAgreement.sol";
 
 /**
- * @title Superfluid's instant distribution agreement interface
+ * @title Superfluid's instant distribution agreement interface.
+ *
  * @author Superfluid
  *
  * Notes:

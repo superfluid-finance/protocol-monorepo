@@ -68,7 +68,7 @@ contract("Constant Flow Agreement", accounts => {
     describe("#1 FlowAgreement.updateFlow", () => {
         it("#1.2 should stream in correct flow rate with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(tester.constants.DEPOSIT_REQUIREMENT * FLOW_RATE);
+            const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 
             const dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -126,7 +126,7 @@ contract("Constant Flow Agreement", accounts => {
 
         it("#1.3 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(tester.constants.DEPOSIT_REQUIREMENT * FLOW_RATE);
+            const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -413,7 +413,7 @@ contract("Constant Flow Agreement", accounts => {
         });
 
         it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
-            const deposit = toBN(tester.constants.DEPOSIT_REQUIREMENT * FLOW_RATE * 2);
+            const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE * 2);
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
             let dataAgreement = cfa.contract.methods.createFlow(

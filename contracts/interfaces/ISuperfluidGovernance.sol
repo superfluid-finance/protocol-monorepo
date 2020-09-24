@@ -10,32 +10,40 @@ import "./ISuperToken.sol";
  */
 interface ISuperfluidGovernance {
 
-    /// @notice Get the Reward address that receives the liquidation fees.
-    /// @param underlying Token address.
+    /**
+     * @dev Get the Reward address that receives the liquidation fees.
+     * @param superToken Super token address.
+     */
     function getRewardAddress(
-        address underlying
+        address superToken
     )
         external
         view
         returns(address rewardAddress);
 
-    /// @notice Get the Period that is allowed to perform a liquidation
-    /// @param underlying Token address.
+    /**
+     * @dev Get the Period that is allowed to perform a liquidation
+     * @param superToken Super token address.
+     */
     function getLiquidationPeriod(
-        address underlying
+        address superToken
     )
         external
         view
-        returns(uint16 period);
+        returns(uint256 period);
 
-    function getMaxGasCallback() external view returns(uint64 maxGas);
+    /**
+     * @dev Add an agreement to the whitelist
+     */
+    function addAgreement(address agreementClass) external;
 
-    function getMaxGasApp() external view returns(uint64 maxGas);
+    /**
+     * @dev Check if the agreement is whitelisted
+     */
+    function isAgreementListed(address agreementClass) external view returns(bool yes);
 
-    function getSuperfluid()
-        external
-        view
-        returns(address superfluidAddr);
-
-    function addAgreement(address agreement) external;
+    /**
+     * @dev
+     */
+    //function getActiveAgreements(address account) external view returns (address[]);
 }

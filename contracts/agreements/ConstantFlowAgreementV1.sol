@@ -319,7 +319,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
         //bytes32 flowId = _generateId(sender, receiver);
         (, FlowData memory data) = _getAgreementData(token, flowId);
-        allowanceUsed = _minimalDeposit(token, flowRate);
+        allowanceUsed = _minimalDeposit(token, uint256(flowRate));
         if(chargeDeposit) {
             (int256 availabelBalance, ,) = token.realtimeBalanceOf(sender, block.timestamp);
             require(availabelBalance > int256(allowanceUsed), "BUHHHHHHCFA: not enough available balance");
@@ -431,15 +431,10 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         return !exist;
     }
 
-    function _minimalDeposit(ISuperToken token, int96 flowRate) internal view returns(uint256 deposit) {
+    function _minimalDeposit(ISuperToken token, uint256 flowRate) internal view returns(uint256 deposit) {
         ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
-        uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
-        deposit = uint256(flowRate * liquidationPeriod);
-    }
-
-    function _getDepositFactor(ISuperToken token) internal view returns(uint16 factor) {
-        ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
-        factor = gov.getLiquidationPeriod(token.getUnderlayingToken());
+        uint256 liquidationPeriod = gov.getLiquidationPeriod(address(token));
+        deposit = flowRate * liquidationPeriod;
     }
 
     function _updateDeposits(

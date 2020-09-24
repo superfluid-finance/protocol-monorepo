@@ -7,6 +7,7 @@ import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
+import { SuperAppDefinitions } from "../interfaces/SuperAppDefinitions.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 

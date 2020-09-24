@@ -5,12 +5,12 @@ import { Ownable } from "../access/Ownable.sol";
 
 import {
     ISuperfluid,
-    ISuperToken
-} from "../interfaces/ISuperfluid.sol";
+    ISuperToken,
+    SuperAppBase,
+    SuperAppDefinitions
+} from "./SuperAppBase.sol";
 import { IInstantDistributionAgreementV1 } from "../interfaces/IInstantDistributionAgreementV1.sol";
 
-import { SuperAppDefinitions } from "../superfluid/SuperAppDefinitions.sol";
-import { SuperAppBase } from "./SuperAppBase.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 

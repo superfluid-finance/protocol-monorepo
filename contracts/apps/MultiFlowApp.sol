@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import "../interfaces/IConstantFlowAgreementV1.sol";
-import "../interfaces/ISuperfluid.sol";
-import "./SuperAppBase.sol";
-import { SuperAppDefinitions } from "../superfluid/SuperAppDefinitions.sol";
+import {
+    ISuperfluid,
+    ISuperToken,
+    SuperAppBase,
+    SuperAppDefinitions
+} from "./SuperAppBase.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/IConstantFlowAgreementV1.sol";
 import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 // FIXME Create and use a SuperAppBase abstract contract,

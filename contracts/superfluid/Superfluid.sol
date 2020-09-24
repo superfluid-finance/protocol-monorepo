@@ -11,12 +11,12 @@ import {
     ISuperfluidGovernance,
     ISuperAgreement,
     ISuperApp,
+    SuperAppDefinitions,
     ISuperToken,
     IERC20
 } from "../interfaces/ISuperfluid.sol";
 
 import { SuperToken } from "./SuperToken.sol";
-import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
 import { ContextLibrary } from "./ContextLibrary.sol";
 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";

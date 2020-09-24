@@ -3,7 +3,7 @@ pragma solidity 0.7.0;
 
 import "../interfaces/ISuperfluid.sol";
 import "../interfaces/ISuperApp.sol";
-import "../superfluid/SuperAppDefinitions.sol";
+import "../interfaces/SuperAppDefinitions.sol";
 
 library AgreementLibrary {
 

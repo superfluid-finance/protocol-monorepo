@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import "../interfaces/ISuperToken.sol";
-import "../interfaces/ISuperApp.sol";
+import {
+    ISuperfluid,
+    ISuperToken,
+    ISuperApp,
+    SuperAppDefinitions
+} from "../interfaces/ISuperfluid.sol";
 
 abstract contract SuperAppBase is ISuperApp {
 

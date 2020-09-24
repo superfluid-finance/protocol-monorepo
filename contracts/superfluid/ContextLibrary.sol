@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import "../interfaces/ISuperfluid.sol";
+import "../interfaces/superfluid/ISuperfluid.sol";
 /*
     Implementation of Context Helper
 */

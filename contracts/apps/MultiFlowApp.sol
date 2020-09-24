@@ -7,7 +7,7 @@ import {
     SuperAppBase,
     SuperAppDefinitions
 } from "./SuperAppBase.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 // FIXME Create and use a SuperAppBase abstract contract,

@@ -5,7 +5,7 @@ import { Ownable } from "../access/Ownable.sol";
 import {
     ISuperfluid,
     ISuperfluidGovernance
-} from "../interfaces/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 contract TestGovernance is
     Ownable,

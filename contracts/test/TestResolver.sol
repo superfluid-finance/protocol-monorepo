@@ -2,7 +2,7 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
 
-import { IResolver } from "../interfaces/IResolver.sol";
+import { IResolver } from "../interfaces/misc/IResolver.sol";
 
 
 contract TestResolver is IResolver {

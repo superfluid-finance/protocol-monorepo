@@ -6,7 +6,7 @@ import {
     ISuperToken,
     ISuperApp,
     SuperAppDefinitions
-} from "../interfaces/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 abstract contract SuperAppBase is ISuperApp {
 

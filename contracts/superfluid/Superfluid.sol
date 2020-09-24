@@ -14,7 +14,7 @@ import {
     SuperAppDefinitions,
     ISuperToken,
     IERC20
-} from "../interfaces/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { SuperToken } from "./SuperToken.sol";
 import { ContextLibrary } from "./ContextLibrary.sol";

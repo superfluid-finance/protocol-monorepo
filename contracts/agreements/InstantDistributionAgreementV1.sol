@@ -2,10 +2,17 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
 
-import { IInstantDistributionAgreementV1, ISuperToken } from "../interfaces/IInstantDistributionAgreementV1.sol";
-import { ISuperfluid } from "../interfaces/ISuperfluid.sol";
+import { IInstantDistributionAgreementV1 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import {
+    ISuperfluid,
+    ISuperfluidGovernance,
+    ISuperApp,
+    ISuperToken
+}
+from "../interfaces/superfluid/ISuperfluid.sol";
 import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
+
 
 contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 

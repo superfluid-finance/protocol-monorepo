@@ -12,7 +12,7 @@ import {
     ISuperToken,
     ISuperAgreement,
     IERC20
-} from "../interfaces/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";

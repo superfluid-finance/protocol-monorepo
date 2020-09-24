@@ -2,14 +2,14 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
 
-import { IConstantFlowAgreementV1 } from "../interfaces/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
     ISuperToken
 }
-from "../interfaces/ISuperfluid.sol";
+from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";

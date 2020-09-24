@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.0;
 
-import "../interfaces/ISuperfluid.sol";
-import "../interfaces/ISuperApp.sol";
-import "../interfaces/SuperAppDefinitions.sol";
+import "../interfaces/superfluid/ISuperfluid.sol";
+import "../interfaces/superfluid/ISuperApp.sol";
+import "../interfaces/superfluid/SuperAppDefinitions.sol";
 
 library AgreementLibrary {
 

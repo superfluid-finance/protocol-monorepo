@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.5.0;
 
-import "./ISuperToken.sol";
-import "./ISuperAgreement.sol";
+import "../superfluid/ISuperToken.sol";
+import "../superfluid/ISuperAgreement.sol";
+
 
 /**
  * @title Superfluid's instant distribution agreement interface.

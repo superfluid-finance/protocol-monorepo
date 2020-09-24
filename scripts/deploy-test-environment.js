@@ -17,16 +17,24 @@ module.exports = async function (callback) {
     try {
         global.web3 = web3;
 
-        console.log("Deploy superfluid framework...");
+        console.log("==== Deploying superfluid framework...");
         await deployFramework(errorHandler);
-        console.log("Superfluid framework deployed.");
+        console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC"];
         for (let i = 0; i < tokens.length; ++i) {
-            console.log(`Deploying test token ${tokens[i]}...`);
+            console.log(`==== Deploying test token ${tokens[i]}...`);
             await deployTestToken(errorHandler, [":", tokens[i]]);
-            console.log(`Creating super token ${tokens[i]}...`);
+            console.log(`==== Test token ${tokens[i]} deployed.`);
+
+            console.log(`==== Creating super token ${tokens[i]}...`);
             await deploySuperToken(errorHandler, [":", tokens[i]]);
+            console.log(`==== Super token ${tokens[i]} deployed.`);
+        }
+
+        if (process.env.TEST_RESOLVER_ADDRESS) {
+            console.log("=============== TEST ENVIRONMENT RESOLVER ======================");
+            console.log(`export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`);
         }
 
         callback();

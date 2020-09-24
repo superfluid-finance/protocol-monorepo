@@ -157,21 +157,18 @@ module.exports = async function (callback) {
 
         let superTokenLogicAddress;
         {
-            const name = `SuperTokenLogic.${version}`;
-            superTokenLogicAddress = await testResolver.get(name);
+            superTokenLogicAddress = await superfluid.getSuperTokenLogic.call();
             console.log("SuperTokenLogic address", superTokenLogicAddress);
             if (reset || await codeChanged(SuperToken, superTokenLogicAddress)) {
                 const superTokenLogic = await web3tx(SuperToken.new, "SuperToken.new due to code change")();
                 superTokenLogicAddress = superTokenLogic.address;
                 console.log("SuperTokenLogic address", superTokenLogicAddress);
+                await web3tx(superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
+                    superTokenLogicAddress
+                );
             } else {
                 console.log("SuperTokenLogic has the same code, no deployment needed.");
             }
-        }
-        if ((await superfluid.getSuperTokenLogic.call()) !== superTokenLogicAddress){
-            await web3tx(superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
-                superTokenLogicAddress
-            );
         }
 
         callback();

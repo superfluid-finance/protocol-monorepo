@@ -45,6 +45,8 @@ module.exports = async function (callback, argv) {
                 name,
                 testTokenAddress
             );
+        } else {
+            console.log("Token already deployed");
         }
         console.log(`Token ${tokenName} address`, testTokenAddress);
 

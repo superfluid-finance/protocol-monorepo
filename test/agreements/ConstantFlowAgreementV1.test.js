@@ -124,7 +124,7 @@ contract("Constant Flow Agreement", accounts => {
             await tester.validateSystem();
         });
 
-        it("#1.3 should stream in correct flow rate after two out flows of the same account", async() => {
+        it.only("#1.3 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 

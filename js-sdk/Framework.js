@@ -40,7 +40,7 @@ Framework.prototype.initialize = async function () {
     const config = getConfig(chainId);
 
     console.debug("Resolver at", config.resolverAddress);
-    this.resolver = await this.contracts.TestResolver.at(config.resolverAddress);
+    this.resolver = await this.contracts.IResolver.at(config.resolverAddress);
 
     console.debug("Resolving contracts with version", this.version);
     const superfluidAddress = await this.resolver.get.call(`Superfluid.${this.version}`);

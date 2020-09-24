@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable private-vars-leading-underscore*/
-pragma solidity 0.7.0;
+pragma solidity >= 0.5.0;
 
+/**
+ * @dev Super app definitions library
+ */
 library SuperAppDefinitions {
 
     //

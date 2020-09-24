@@ -7,7 +7,7 @@ CONTRACTS=(
     TokenInfo
     ERC20WithTokenInfo
     TestToken
-    TestResolver
+    IResolver
     ISuperfluid
     ISuperToken
     IConstantFlowAgreementV1

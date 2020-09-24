@@ -46,7 +46,8 @@
     "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
     "lint": "run-s lint:*",
     "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-    "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'"
+    "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+    "lint:tests": "grep -FR .only test || exit 0 && echo '✘ You have focused test.' && exit 1"
   },
   "husky": {
     "hooks": {

@@ -474,12 +474,8 @@ contract SuperToken is
         emit TokenDowngraded(msg.sender, amount);
     }
 
-    function getSuperfluidAddress() external view override returns(address host) {
+    function getHost() external view override returns(address host) {
         return address(_host);
-    }
-
-    function getGovernance() external view override returns(address governance) {
-        return address(_host.getGovernance());
     }
 
     /// @dev ISuperfluidGovernance.getUnderlayingToken implementation

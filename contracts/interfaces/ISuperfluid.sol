@@ -240,6 +240,7 @@ interface ISuperfluid {
         external
         returns (bytes memory newCtx);
 
+    // FIXME this function is under review
     function updateCtxDeposit(
         bytes calldata ctx,
         address receiver,

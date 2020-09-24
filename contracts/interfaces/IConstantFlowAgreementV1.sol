@@ -11,6 +11,7 @@ import "./ISuperAgreement.sol";
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
+    /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {
         return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     }

@@ -63,7 +63,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
-        require(token.getSuperfluidAddress() == msg.sender, "Not Superfluid");
+        require(token.getHost() == msg.sender, "Not Superfluid");
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
@@ -118,7 +118,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
-        require(token.getSuperfluidAddress() == msg.sender, "Not Superfluid");
+        require(token.getHost() == msg.sender, "Not Superfluid");
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
         ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
@@ -173,7 +173,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
-        require(token.getSuperfluidAddress() == msg.sender, "Not Superfluid");
+        require(token.getHost() == msg.sender, "Not Superfluid");
         // TODO: Decode return cbdata before calling the next step
         address msgSender = ContextLibrary.decode(ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
@@ -421,13 +421,13 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     function _minimalDeposit(ISuperToken token, int96 flowRate) internal view returns(uint256 deposit) {
-        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernance());
+        ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
         uint16 liquidationPeriod = gov.getLiquidationPeriod(token.getUnderlayingToken());
         deposit = uint256(flowRate * liquidationPeriod);
     }
 
     function _getDepositFactor(ISuperToken token) internal view returns(uint16 factor) {
-        ISuperfluidGovernance gov = ISuperfluidGovernance(token.getGovernance());
+        ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
         factor = gov.getLiquidationPeriod(token.getUnderlayingToken());
     }
 

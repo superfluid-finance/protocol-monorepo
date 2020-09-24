@@ -216,4 +216,12 @@ library AgreementLibrary {
             cbdata
         );
     }
+
+    function getGovernance()
+        internal
+        view
+        returns(ISuperfluidGovernance gov)
+    {
+        return ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
+    }
 }

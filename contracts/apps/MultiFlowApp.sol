@@ -56,7 +56,7 @@ contract MultiFlowsApp is SuperAppBase {
 
         newCtx = _host.chargeGasFee(ctx, 30000);
 
-        (int256 receivingFlowRate) = _constantFlow.getFlow(
+        (, int256 receivingFlowRate, ,) = _constantFlow.getFlow(
             superToken,
             sender,
             address(this)

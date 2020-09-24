@@ -5,7 +5,7 @@ import "./ISuperToken.sol";
 import "./ISuperAgreement.sol";
 
 /**
- * @dev Superfluid's flow agreement interface
+ * @dev Superfluid's constant flow agreement interface
  *
  * @author Superfluid
  */
@@ -16,12 +16,16 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     }
 
-    /// @notice Create the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
-    /// @param token Super token address.
-    /// @param receiver Flow sender address.
-    /// @param receiver Flow receiver address.
-    /// @param flowRate New flow rate in amount per second.
-    /// @dev Sender must be msg.sender or meta transaction relayer.
+    /**
+     * @dev Create a flow betwen sender and receiver.
+     * @param token Super token address.
+     * @param receiver Flow receiver address.
+     * @param flowRate New flow rate in amount per second.
+     *
+     * NOTE:
+     * - A deposit is taken as safety margin for the solvency agents.
+     * - A extra gas fee may be taken to pay for solvency agent liquidations.
+     */
     function createFlow(
         ISuperToken token,
         address receiver,
@@ -32,12 +36,19 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         virtual
         returns(bytes memory newCtx);
 
-    /// @notice Update the flow between `msg.sender` and `receiver` with a flow rate of `flowRate` in token@`token`.
-    /// @param token Super token address.
-    /// @param receiver Flow sender address.
-    /// @param receiver Flow receiver address.
-    /// @param flowRate New flow rate in amount per second.
-    /// @dev Sender must be msg.sender or meta transaction relayer.
+    /**
+     * @dev Update the flow rate between sender and receiver.
+     * @param token Super token address.
+     * @param receiver Flow receiver address.
+     * @param flowRate New flow rate in amount per second.
+     *
+     * NOTE:
+     * - Only the flow sender may update the flow rate.
+     * - Even if the flow rate is zero, the flow is not deleted
+     * from the system.
+     * - Deposit amount will be adjusted accordingly.
+     * - No new gas fee is charged.
+     */
     function updateFlow(
         ISuperToken token,
         address receiver,
@@ -48,26 +59,21 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         virtual
         returns(bytes memory newCtx);
 
+
+    /**
+     * @dev Get the flow data between `sender` and `receiver`.
+     * @param token Super token address.
+     * @param sender Flow receiver.
+     * @param receiver Flow sender.
+     * @return timestamp Timestamp of when the flow is updated.
+     * @return flowRate The flow rate.
+     * @return deposit The amount of deposit the flow.
+     * @return owedDeposit The amount of owed deposit of the flow.
+     */
     function getFlow(
         ISuperToken token,
         address sender,
         address receiver
-    )
-        external
-        view
-        virtual
-        returns(int96 flowRate);
-
-    /// @notice Get the current flow rate between `sender` and `receiver`.
-    /// @param token Super token address.
-    /// @param flowId Identification of flow
-    /// @return timestamp of Flow.
-    /// @return flowRate of Flow.
-    /// @return deposit of Flow.
-    /// @return owedDeposit of Flow.
-    function getFlow(
-       ISuperToken token,
-       bytes32 flowId
     )
         external
         view
@@ -79,10 +85,35 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
             uint256 owedDeposit
         );
 
-    /// @notice Get the net flow rate of the `account` in token@`token`.
-    /// @param token Super token address.
-    /// @param account Account for the query.
-    /// @return flowRate Flow rate.
+    /**
+     * @dev Get flow data using agreement ID
+     * @param token Super token address.
+     * @param agreementId The agreement ID.
+     * @return timestamp Timestamp of when the flow is updated.
+     * @return flowRate The flow rate.
+     * @return deposit The amount of deposit the flow.
+     * @return owedDeposit The amount of owed deposit of the flow.
+     */
+    function getFlow(
+       ISuperToken token,
+       bytes32 agreementId
+    )
+        external
+        view
+        virtual
+        returns (
+            uint256 timestamp,
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
+        );
+
+    /**
+     * @dev Get the net flow rate of the account
+     * @param token Super token address.
+     * @param account Account for the query.
+     * @return flowRate Flow rate.
+     */
     function getNetFlow(
        ISuperToken token,
        address account)
@@ -91,26 +122,18 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
        virtual
        returns (int96 flowRate);
 
-    /// @notice Flow updated event.
-    /// @param token Super token address.
-    /// @param sender Flow sender address.
-    /// @param receiver Flow recipient address.
-    /// @param flowRate Flow rate in amount per second for this flow.
-    /// @param flowRate Total flow rate in amount per second for the sender.
-    /// @param flowRate Total flow rate in amount per second for the receiver.
-    event FlowUpdated(
-        ISuperToken indexed token,
-        address indexed sender,
-        address indexed receiver,
-        int96 flowRate,
-        int256 totalSenderFlowRate,
-        int256 totalReceiverFlowRate
-    );
-
-    /// @notice Delete the flow between `sender` and `receiver`.
-    /// @param token Super token address.
-    /// @param ctx Context bytes.
-    /// @param receiver Flow receiver address.
+    /**
+     * @dev Delete the flow between sender and receiver
+     * @param token Super token address.
+     * @param ctx Context bytes.
+     * @param receiver Flow receiver address.
+     *
+     * NOTE:
+     * - Both flow sender and receiver may delete the flow.
+     * - If Sender account is insolvent or in critical state, a solvency agent may
+     *   also terminate the agreement.
+     * - Gas fee may be returned to the sender.
+     */
     function deleteFlow(
         ISuperToken token,
         address sender,
@@ -120,5 +143,23 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external
         virtual
         returns(bytes memory newCtx);
+
+     /**
+      * @dev Flow updated event.
+      * @param token Super token address.
+      * @param sender Flow sender address.
+      * @param receiver Flow recipient address.
+      * @param flowRate Flow rate in amount per second for this flow.
+      * @param flowRate Total flow rate in amount per second for the sender.
+      * @param flowRate Total flow rate in amount per second for the receiver.
+      */
+     event FlowUpdated(
+         ISuperToken indexed token,
+         address indexed sender,
+         address indexed receiver,
+         int96 flowRate,
+         int256 totalSenderFlowRate,
+         int256 totalReceiverFlowRate
+     );
 
 }

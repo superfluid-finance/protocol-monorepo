@@ -209,13 +209,24 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         external
         view
         override
-        returns(int96 flowRate)
+        returns (
+            uint256 timestamp,
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
+        )
     {
         (, FlowData memory data) = _getAgreementData(
             token,
             keccak256(abi.encodePacked(sender, receiver))
         );
-        return data.flowRate;
+
+        return(
+            data.timestamp,
+            data.flowRate,
+            data.deposit,
+            data.owedDeposit
+        );
     }
 
     /// @dev IFlowAgreement.getFlow implementation

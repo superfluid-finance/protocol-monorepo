@@ -112,7 +112,7 @@ module.exports = async function (callback) {
         // deploy ConstantFlowAgreementV1
         {
             const name = `ConstantFlowAgreementV1.${version}`;
-            const cfaAddress = await testResolver.get(name);
+            let cfaAddress = await testResolver.get(name);
             console.log("ConstantFlowAgreementV1 address", cfaAddress);
             if (reset || await codeChanged(ConstantFlowAgreementV1, cfaAddress)) {
                 const agreement = await web3tx(
@@ -122,6 +122,7 @@ module.exports = async function (callback) {
                 await web3tx(testResolver.set, `TestResolver set ${name}`)(
                     name, agreement.address
                 );
+                cfaAddress = agreement.address;
             } else {
                 console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
             }
@@ -135,7 +136,7 @@ module.exports = async function (callback) {
         // deploy InstantDistributionAgreementV1
         {
             const name = `InstantDistributionAgreementV1.${version}`;
-            const idaAddress = await testResolver.get(name);
+            let idaAddress = await testResolver.get(name);
             console.log("InstantDistributionAgreementV1 address", idaAddress);
             if (reset || await codeChanged(InstantDistributionAgreementV1, idaAddress)) {
                 const agreement = await web3tx(
@@ -145,6 +146,7 @@ module.exports = async function (callback) {
                 await web3tx(testResolver.set, `TestResolver set ${name}`)(
                     name, agreement.address
                 );
+                idaAddress = agreement.address;
             } else {
                 console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
             }

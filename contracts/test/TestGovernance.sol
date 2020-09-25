@@ -49,6 +49,7 @@ contract TestGovernance is
     }
 
     function addAgreement(address agreementClass) external onlyOwner override {
+        require(agreementClass != address(0), "TestGovernance: 0x address detected");
         _agreementList.push(agreementClass);
         _agreementMap[agreementClass] = _agreementList.length;
     }

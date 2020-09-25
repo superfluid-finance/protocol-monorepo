@@ -4,6 +4,7 @@ const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
 const TestResolver = artifacts.require("TestResolver");
+const ISuperfluidGovernance = artifacts.require("ISuperfluidGovernance");
 const Superfluid = artifacts.require("Superfluid");
 
 contract("deployment test", () => {
@@ -40,6 +41,9 @@ contract("deployment test", () => {
         assert.notEqual(gov1, "0x0000000000000000000000000000000000000000");
         assert.notEqual(cfa1, "0x0000000000000000000000000000000000000000");
         assert.notEqual(ida1, "0x0000000000000000000000000000000000000000");
+        const gov1Contract = await ISuperfluidGovernance.at(gov1);
+        assert.isTrue(await gov1Contract.isAgreementListed.call(cfa1));
+        assert.isTrue(await gov1Contract.isAgreementListed.call(ida1));
 
         console.log("Upgrade logic contract");
         await deployFramework(errorHandler);

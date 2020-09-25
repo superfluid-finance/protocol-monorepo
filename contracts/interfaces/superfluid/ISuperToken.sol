@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.5.0;
-pragma experimental ABIEncoderV2;
 
 import { ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
 

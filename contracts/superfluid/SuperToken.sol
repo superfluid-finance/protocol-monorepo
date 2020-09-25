@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.0;
-pragma experimental ABIEncoderV2;
 
 import { Proxiable } from "../upgradability/Proxiable.sol";
 import { Ownable } from "../access/Ownable.sol";

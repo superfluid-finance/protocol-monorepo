@@ -10,7 +10,6 @@ import {
     ISuperToken
 }
 from "../interfaces/superfluid/ISuperfluid.sol";
-import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
@@ -111,7 +110,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             external
             override
             returns(bytes memory newCtx) {
-        address publisher = ContextLibrary.decode(ctx).msgSender;
+        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         require(!_hasIndexData(token, iId), "IDAv1: index already exists");
 
@@ -153,7 +152,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             external
             override
             returns(bytes memory newCtx) {
-        address publisher = ContextLibrary.decode(ctx).msgSender;
+        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
@@ -191,7 +190,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             returns(bytes memory newCtx) {
         bool exist;
         StackData memory sd;
-        address subscriber = ContextLibrary.decode(ctx).msgSender;
+        address subscriber = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         sd.iId = _getPublisherId(publisher, indexId);
         sd.sId = _getSubscriptionId(subscriber, sd.iId);
         (exist, sd.idata) = _getIndexData(token, sd.iId);
@@ -266,7 +265,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             returns(bytes memory newCtx) {
         bool exist;
         StackData memory sd;
-        address publisher = ContextLibrary.decode(ctx).msgSender;
+        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         bytes32 sId = _getSubscriptionId(subscriber, iId);
         (exist, sd.idata) = _getIndexData(token, iId);
@@ -450,7 +449,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             returns(bytes memory newCtx) {
         bool exist;
         StackData memory sd;
-        address sender = ContextLibrary.decode(ctx).msgSender;
+        address sender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         require(sender == publisher || sender == subscriber, "IDAv1: operation not allowed");
         sd.iId = _getPublisherId(publisher, indexId);
         sd.sId = _getSubscriptionId(subscriber, sd.iId);

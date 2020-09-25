@@ -17,13 +17,19 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { SuperToken } from "./SuperToken.sol";
-import { ContextLibrary } from "./ContextLibrary.sol";
 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 
 contract SuperfluidStorage {
+
+    struct FullContext {
+        uint8 appLevel;
+        address msgSender;
+        uint256 allowance;
+        uint256 allowanceUsed;
+    }
 
     struct AppManifest {
         uint256 configWord;
@@ -276,7 +282,7 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callCallback(app, data, true);
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
-            //(newCtx, cbdata) = ContextLibrary.splitReturnedData(returnedData);
+            //(newCtx, cbdata) = splitReturnedData(returnedData);
             //TODO Change counter gas measurement
             newCtx = ctx;
         } else {
@@ -301,7 +307,7 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
         newCtx = abi.decode(returnedData, (bytes));
         if(success) {
-            if(!ContextLibrary.validate(newCtx, _ctxStamp)) {
+            if(!_isCtxValid(newCtx)) {
                 // TODO: JAIL if callback changes ctx
                 //Change return context
                 emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
@@ -323,7 +329,12 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
+        ctx = _updateContext(FullContext({
+            appLevel: 0,
+            msgSender: msg.sender,
+            allowance: 0,
+            allowanceUsed: 0
+        }));
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
         if (success) {
@@ -343,7 +354,12 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
+        ctx = _updateContext(FullContext({
+            appLevel: 0,
+            msgSender: msg.sender,
+            allowance: 0,
+            allowanceUsed: 0
+        }));
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
         if (success) {
@@ -363,19 +379,19 @@ contract Superfluid is
         validCtx(ctx)
         returns(bytes memory newCtx, bytes memory returnedData)
     {
-        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
-        address oldSender = stcCtx.msgSender;
-        stcCtx.msgSender = msg.sender;
-        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
+        FullContext memory context = _decodeFullContext(ctx);
+        address oldSender = context.msgSender;
+        context.msgSender = msg.sender;
+        newCtx = _updateContext(context);
 
         //Call app
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
         if(success) {
             (newCtx) = abi.decode(returnedData, (bytes));
-            stcCtx = ContextLibrary.decode(newCtx);
-            stcCtx.msgSender = oldSender;
-            (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
+            context = _decodeFullContext(newCtx);
+            context.msgSender = oldSender;
+            newCtx = _updateContext(context);
         } else {
             revert("SF: call agreement failed");
         }
@@ -410,7 +426,12 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        (ctx, _ctxStamp) = ContextLibrary.encode(ContextLibrary.Context(0, msg.sender, 0, 0));
+        ctx = _updateContext(FullContext({
+            appLevel: 0,
+            msgSender: msg.sender,
+            allowance: 0,
+            allowanceUsed: 0
+        }));
         (success, returnedData) = _callExternal(address(app), data, ctx);
         if(!success) {
             revert(string(returnedData));
@@ -428,14 +449,15 @@ contract Superfluid is
         validCtx(ctx)
         returns(bytes memory newCtx)
     {
-        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
+        FullContext memory context = _decodeFullContext(ctx);
 
-        stcCtx.level++;
-        require(_checkAppCallDepth(ISuperApp(msg.sender), stcCtx.level), "SF: App Call Stack too deep");
-        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
+        context.appLevel++;
+        require(_checkAppCallDepth(ISuperApp(msg.sender), context.appLevel), "SF: App Call Stack too deep");
+        newCtx = _updateContext(context);
+
         _callExternal(address(app), data, newCtx);
-        stcCtx.level--;
-        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
+        context.appLevel--;
+        newCtx = _updateContext(context);
     }
 
     function chargeGasFee(
@@ -453,24 +475,39 @@ contract Superfluid is
         newCtx = ctx;
     }
 
-    function updateCtxDeposit(
+    function decodeCtx(bytes calldata ctx)
+        external pure
+        override
+        returns (
+            uint8 appLevel,
+            address msgSender,
+            uint256 allowance,
+            uint256 allowanceUsed
+        )
+    {
+        FullContext memory context = _decodeFullContext(ctx);
+        appLevel = context.appLevel;
+        msgSender = context.msgSender;
+        allowance = context.allowance;
+        allowanceUsed = context.allowanceUsed;
+    }
+
+    function ctxUpdate(
         bytes calldata ctx,
-        address receiver,
-        uint256 unitOfAllowance
+        uint8 appLevel,
+        uint256 allowance,
+        uint256 allowanceUsed
+
     )
         external
         override
-        returns(bytes memory newCtx)
+        returns (bytes memory newCtx)
     {
-        uint256 level = uint256(_getAppLevel(ISuperApp(receiver)));
-        ContextLibrary.Context memory stcCtx = ContextLibrary.decode(ctx);
-        stcCtx.allowanceUsed +=
-            (unitOfAllowance > stcCtx.allowance ?
-             unitOfAllowance - stcCtx.allowance :
-             unitOfAllowance);
-
-        stcCtx.allowance = (level * unitOfAllowance);
-        (newCtx, _ctxStamp) = ContextLibrary.encode(stcCtx);
+        FullContext memory context = _decodeFullContext(ctx);
+        context.appLevel = appLevel;
+        context.allowance = allowance;
+        context.allowanceUsed = allowanceUsed;
+        newCtx = _updateContext(context);
     }
 
     /* Basic Law Rules */
@@ -514,10 +551,23 @@ contract Superfluid is
         private
         returns(bool success, bytes memory returnedData)
     {
-        /* solhint-disable-next-line avoid-low-level-calls */
-        (success, returnedData) = target.call(
-            ContextLibrary.replaceContext(data, ctx)
+        // STEP 1 : replace placeholder ctx with actual ctx
+
+        // ctx needs to be padded to align with 32 bytes bouondary
+        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
+        // ctx length has to be stored in the length word of placehoolder ctx
+        // we support up to 2^16 length of the data
+        data[data.length - 2] = byte(uint8(ctx.length >> 8));
+        data[data.length - 1] = byte(uint8(ctx.length));
+        // pack data with the replacement ctx
+        ctx = abi.encodePacked(
+            data,
+            ctx, new bytes(paddedLength - ctx.length) // ctx padding
         );
+
+        // STEP 2: Call external with replaced context
+        /* solhint-disable-next-line avoid-low-level-calls */
+        (success, returnedData) = target.call(ctx);
 
         if(!success) {
             revert(string(returnedData));
@@ -549,6 +599,34 @@ contract Superfluid is
          }
     }
 
+    function _decodeFullContext(bytes memory ctx)
+        private pure
+        returns (FullContext memory context) {
+        (
+            context.appLevel,
+            context.msgSender,
+            context.allowance,
+            context.allowanceUsed
+        ) = abi.decode(ctx, (uint8, address, uint256, uint256));
+    }
+
+    function _updateContext(FullContext memory context)
+        private
+        returns (bytes memory ctx)
+    {
+        ctx = abi.encode(
+            context.appLevel,
+            context.msgSender,
+            context.allowance,
+            context.allowanceUsed
+        );
+        _ctxStamp = keccak256(abi.encodePacked(ctx));
+    }
+
+    function _isCtxValid(bytes memory ctx) private view returns (bool) {
+        return keccak256(abi.encodePacked(ctx)) == _ctxStamp;
+    }
+
     modifier cleanCtx() {
         require(_ctxStamp == 0, "Superfluid: Ctx is not clean");
         _;
@@ -570,8 +648,7 @@ contract Superfluid is
     }
 
     modifier validCtx(bytes memory ctx) {
-        //require(ContextLibrary.validate(ctx, _ctxStamp), "Superfluid: Invalid ctx");
-        if(!ContextLibrary.validate(ctx, _ctxStamp)) {
+        if(!_isCtxValid(ctx)) {
             _appManifests[ISuperApp(msg.sender)].configWord |= SuperAppDefinitions.JAIL;
             emit Jail(ISuperApp(msg.sender), uint256(Info.B_1_READONLY_CONTEXT));
         } else {

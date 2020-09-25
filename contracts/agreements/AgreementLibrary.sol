@@ -7,6 +7,37 @@ import "../interfaces/superfluid/SuperAppDefinitions.sol";
 
 library AgreementLibrary {
 
+    struct Context {
+        uint8 appLevel;
+        address msgSender;
+        uint256 allowance;
+        uint256 allowanceUsed;
+    }
+
+    function updateCtx(ISuperfluid host, bytes memory ctx, Context memory context)
+        internal
+        returns (bytes memory newCtx)
+    {
+        newCtx = host.ctxUpdate(
+            ctx,
+            context.appLevel,
+            context.allowance,
+            context.allowanceUsed);
+    }
+
+    function decodeCtx(ISuperfluid host, bytes memory ctx)
+        internal
+        pure
+        returns (Context memory context)
+    {
+        (
+            context.appLevel,
+            context.msgSender,
+            context.allowance,
+            context.allowanceUsed
+        ) = host.decodeCtx(ctx);
+    }
+
     function _beforeAgreement(
         bytes4 selector,
         uint256 noopBit,

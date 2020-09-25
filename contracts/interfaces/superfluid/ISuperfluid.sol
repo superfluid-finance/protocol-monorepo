@@ -133,6 +133,15 @@ interface ISuperfluid {
         external
         returns(bytes memory newCtx);
 
+    function ctxUpdate(
+        bytes calldata ctx,
+        uint8 appLevel,
+        uint256 allowance,
+        uint256 allowanceUsed
+    )
+        external
+        returns (bytes memory newCtx);
+
     /**************************************************************************
      * Non-app Call Proxies
      *
@@ -203,7 +212,7 @@ interface ISuperfluid {
     function batchCall(Operation[] memory operations) external;
 
     /**************************************************************************
-     * Contextual Call Proxy
+     * Contextual Call Proxy and Context Utilities
      *
      * For apps, they must use context they receive to interact with
      * agreements or apps.
@@ -235,13 +244,14 @@ interface ISuperfluid {
         external
         returns (bytes memory newCtx);
 
-    // FIXME this function is under review
-    function updateCtxDeposit(
-        bytes calldata ctx,
-        address receiver,
-        uint256 unitOfAllowance
-    )
+    function decodeCtx(bytes calldata ctx)
         external
-        returns(bytes memory newCtx);
+        pure
+        returns (
+            uint8 appLevel,
+            address msgSender,
+            uint256 allowance,
+            uint256 allowanceUsed
+        );
 
 }

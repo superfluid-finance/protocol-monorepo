@@ -8,7 +8,6 @@ import {
     SuperAppDefinitions
 } from "./SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { ContextLibrary } from "../superfluid/ContextLibrary.sol";
 
 // FIXME Create and use a SuperAppBase abstract contract,
 //       which implements all the callbacks as reverts.
@@ -51,7 +50,7 @@ contract MultiFlowsApp is SuperAppBase {
     {
         require(msg.sender == address(_host), "MFA: Only official superfluid host is supported by the app");
         require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
-        address sender = ContextLibrary.decode(ctx).msgSender;
+        (,address sender,,) = _host.decodeCtx(ctx);
         require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
 
         newCtx = _host.chargeGasFee(ctx, 30000);
@@ -95,7 +94,7 @@ contract MultiFlowsApp is SuperAppBase {
     override
     returns(bytes memory newCtx)
     {
-        address sender = ContextLibrary.decode(ctx).msgSender;
+        (,address sender,,) = _host.decodeCtx(ctx);
         require(_userFlows[sender].length > 0 , "MFA: Create Multi Flow first or go away");
         (, int96 receivingFlowRate, , ) = _constantFlow.getFlow(superToken, agreementId);
         /*
@@ -141,7 +140,7 @@ contract MultiFlowsApp is SuperAppBase {
         override
         returns (bytes memory newCtx)
     {
-        address sender = ContextLibrary.decode(ctx).msgSender;
+        (,address sender,,) = _host.decodeCtx(ctx);
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(

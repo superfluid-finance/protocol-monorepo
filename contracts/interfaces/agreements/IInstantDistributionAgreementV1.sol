@@ -102,6 +102,51 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     /**
+     * @dev Distribute tokens through the index.
+     * @param token Super token address.
+     * @param indexId Id of the index.
+     * @param amount The amount of tokens desired to be distributed.
+     *
+     * NOTE:
+     * - This is a convenient version of updateIndex. It adds to the index
+     *   a delta that equals to `amount / totalUnits`.
+     * - The actual amount distributed could be obtained via
+     *   `calculateDistribution`. This is due to precision error with index
+     *   value and units data range.
+     *
+     * # App callbacks
+     *
+     * None
+     */
+    function distribute(
+        ISuperToken token,
+        uint32 indexId,
+        uint256 amount,
+        bytes calldata ctx)
+            external
+            virtual
+            returns(bytes memory newCtx);
+
+
+    /**
+     * @dev Calculate actual distribution amount
+     * @param token Super token address.
+     * @param publisher The publisher of the index.
+     * @param indexId Id of the index.
+     * @param amount The amount of tokens desired to be distributed.
+     */
+    function calculateDistribution(
+       ISuperToken token,
+       address publisher,
+       uint32 indexId,
+       uint256 amount)
+           external view
+           virtual
+           returns(
+               uint256 actualAmount,
+               uint128 newIndexValue);
+
+    /**
      * @dev Approve the subscription of an index.
      * @param token Super token address.
      * @param publisher The publisher of the index.

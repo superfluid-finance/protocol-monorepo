@@ -85,24 +85,20 @@ contract DividendRightsToken is
 
     /// @dev Distribute `amount` of cash among all token holders
     function distribute(uint256 cashAmount) external onlyOwner {
-        uint128 indexValue;
-        uint128 totalUnitsApproved;
-        uint128 totalUnitsPending;
-        (, indexValue, totalUnitsApproved, totalUnitsPending) = _ida.getIndex(_cashToken, address(this), INDEX_ID);
-        uint128 indexDelta = uint128(cashAmount / uint256(totalUnitsApproved + totalUnitsPending));
+        (uint256 actualCashAmount,) = _ida.calculateDistribution(
+            _cashToken,
+            address(this), INDEX_ID,
+            cashAmount);
 
-        // adjust actual cashAmount for imprecision
-        cashAmount = uint256(indexDelta) * uint256(totalUnitsApproved + totalUnitsPending);
-        _cashToken.transferFrom(_owner, address(this), cashAmount);
+        _cashToken.transferFrom(_owner, address(this), actualCashAmount);
 
-        // update the index
         _host.callAgreement(
             _ida,
             abi.encodeWithSelector(
-                _ida.updateIndex.selector,
+                _ida.distribute.selector,
                 _cashToken,
                 INDEX_ID,
-                indexValue + indexDelta,
+                actualCashAmount,
                 new bytes(0)
             )
         );

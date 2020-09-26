@@ -148,7 +148,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         ISuperToken token,
         uint32 indexId,
         uint128 indexValue,
-        bytes calldata ctx)
+        bytes calldata ctx
+    )
             external
             override
             returns(bytes memory newCtx) {
@@ -158,6 +159,46 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
         require(indexValue >= idata.indexValue, "IDAv1: index value should grow");
 
+        _updateIndex(token, publisher, iId, idata, indexValue);
+
+        // nothing to be recorded so far
+        newCtx = ctx;
+    }
+
+    function distribute(
+       ISuperToken token,
+       uint32 indexId,
+       uint256 amount,
+       bytes calldata ctx
+      )
+           external
+           override
+           returns(bytes memory newCtx)
+    {
+        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        bytes32 iId = _getPublisherId(publisher, indexId);
+        (bool exist, IndexData memory idata) = _getIndexData(token, iId);
+        require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
+
+        uint128 indexDelta = uint128(
+            amount /
+            uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
+        );
+        _updateIndex(token, publisher, iId, idata, idata.indexValue + indexDelta);
+
+        // nothing to be recorded so far
+        newCtx = ctx;
+    }
+
+    function _updateIndex(
+        ISuperToken token,
+        address publisher,
+        bytes32 iId,
+        IndexData memory idata,
+        uint128 indexValue
+    )
+        private
+    {
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
         token.settleBalance(
@@ -174,9 +215,27 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
         // check account solvency
         require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance of publisher");
+    }
 
-        // nothing to be recorded so far
-        newCtx = ctx;
+    function calculateDistribution(
+        ISuperToken token,
+        address publisher,
+        uint32 indexId,
+        uint256 amount)
+          external view
+          override
+          returns(
+              uint256 actualAmount,
+              uint128 newIndexValue)
+    {
+        bytes32 iId = _getPublisherId(publisher, indexId);
+        (bool exist, IndexData memory idata) = _getIndexData(token, iId);
+        require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
+
+        uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
+        uint128 indexDelta = uint128(amount / totalUnits);
+        newIndexValue = idata.indexValue + indexDelta;
+        actualAmount = uint256(indexDelta) * totalUnits;
     }
 
     /// @dev IInstantDistributionAgreementV1.approveSubscription implementation

@@ -429,7 +429,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             unitsList[nSlots] = sdata.units;
             ++nSlots;
         }
-        // resize memory
+        // resize memory arrays
         assembly {
             mstore(publishers, nSlots)
             mstore(indexIds, nSlots)
@@ -717,9 +717,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
         bytes32[] memory slotData = new bytes32[](1);
-        // use XOR operator to flip the bit from 1 to 0
-        // this is to assume that the caller make sure the subscription is actually alocated
-        slotData[0] = bytes32(subsBitmap ^ (1 << uint256(sdata.subId)));
+        slotData[0] = bytes32(subsBitmap & ~(1 << uint256(sdata.subId)));
         // zero the data
         token.updateAgreementStateSlot(
             subscriber,

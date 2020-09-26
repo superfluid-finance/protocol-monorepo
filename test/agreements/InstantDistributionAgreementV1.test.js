@@ -1096,6 +1096,8 @@ contract("Instance Distribution Agreement v1", accounts => {
                     from:bob,
                 }
             );
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
             await web3tx(superfluid.callAgreement, "Alice update the subscription")(
                 ida.address,
                 ida.contract.methods.updateSubscription(
@@ -1317,6 +1319,66 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(subs.publishers.length, 0);
 
             await tester.validateSystem();
+        });
+
+        it("#3.8 subscriber delete then resubscribe a subscription", async() => {
+            let subs;
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+
+            await web3tx(superfluid.callAgreement, "Alice create default index")(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from:bob,
+                }
+            );
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
+            await web3tx(superfluid.callAgreement, "Bob delete the subscription")(
+                ida.address,
+                ida.contract.methods.deleteSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: bob,
+                }
+            );
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+            await web3tx(superfluid.callAgreement, "Bob approve the subscription again")(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                {
+                    from:bob,
+                }
+            );
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 1);
         });
     });
 

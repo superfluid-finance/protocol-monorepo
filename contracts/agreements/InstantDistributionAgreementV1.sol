@@ -17,6 +17,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     string private constant _ERR_STR_INDEX_DOES_NOT_EXIST = "IDAv1: index does not exist";
     string private constant _ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST = "IDAv1: subscription does not exist";
+    string private constant _ERR_STR_SUBSCRIPTION_ALREADY_APPROVED = "IDAv1: subscription already approved";
     string private constant _ERR_STR_INCORRECT_PUBLISHER = "IDAv1: incorrect publisher";
     string private constant _ERR_STR_INCORRECT_INDEX_ID = "IDAv1: incorrect indexId";
     string private constant _ERR_STR_INCORRECT_SLOT_ID = "IDAv1: incorrect slot id";
@@ -260,7 +261,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             require(sd.sdata.publisher == publisher, _ERR_STR_INCORRECT_PUBLISHER);
             require(sd.sdata.indexId == indexId, _ERR_STR_INCORRECT_INDEX_ID);
             // required condition check
-            require(sd.sdata.subId == _UNALLOCATED_SUB_ID, "IDAv1: subscription already approved");
+            require(sd.sdata.subId == _UNALLOCATED_SUB_ID, _ERR_STR_SUBSCRIPTION_ALREADY_APPROVED);
         }
 
         if (!exist) {
@@ -445,6 +446,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         bytes32 sId = _getSubscriptionId(subscriber, iId);
         (exist, sdata) = _getSubscriptionData(token, sId);
         require(exist, _ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
+        require(sdata.publisher == publisher, _ERR_STR_INCORRECT_PUBLISHER);
+        require(sdata.indexId == indexId, _ERR_STR_INCORRECT_INDEX_ID);
         approved = sdata.subId != _UNALLOCATED_SUB_ID;
         units = sdata.units;
         pendingDistribution = approved ? 0 :
@@ -516,7 +519,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
         (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
         require(exist, _ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
-
+        require(sd.sdata.publisher == publisher, _ERR_STR_INCORRECT_PUBLISHER);
+        require(sd.sdata.indexId == indexId, _ERR_STR_INCORRECT_INDEX_ID);
 
         (sd.cbdata, newCtx) = AgreementLibrary.beforeAgreementTerminated(
             ISuperfluid(msg.sender), token, ctx,
@@ -553,6 +557,58 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             ISuperfluid(msg.sender), token, newCtx,
             address(this), sender == subscriber ? publisher : subscriber, sd.sId, sd.cbdata
         );
+    }
+
+    function claim(
+        ISuperToken token,
+        address publisher,
+        uint32 indexId,
+        bytes calldata ctx
+    )
+        external
+        override
+        returns(bytes memory newCtx)
+    {
+        bool exist;
+        StackData memory sd;
+        address subscriber = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        sd.iId = _getPublisherId(publisher, indexId);
+        sd.sId = _getSubscriptionId(subscriber, sd.iId);
+        (exist, sd.idata) = _getIndexData(token, sd.iId);
+        require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
+        (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
+        require(exist, _ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
+         // sanity check
+        require(sd.sdata.publisher == publisher, _ERR_STR_INCORRECT_PUBLISHER);
+        require(sd.sdata.indexId == indexId, _ERR_STR_INCORRECT_INDEX_ID);
+        // required condition check
+        require(sd.sdata.subId == _UNALLOCATED_SUB_ID, _ERR_STR_SUBSCRIPTION_ALREADY_APPROVED);
+
+        uint256 pendingDistribution = uint256(sd.idata.indexValue - sd.sdata.indexValue) * uint256(sd.sdata.units);
+
+        if (pendingDistribution > 0) {
+            (sd.cbdata, newCtx) = AgreementLibrary.beforeAgreementUpdated(
+                ISuperfluid(msg.sender), token, ctx,
+                address(this), publisher, sd.sId
+            );
+
+            // adjust publisher's deposits
+            _adjustPublisherDeposit(token, publisher, -int256(pendingDistribution));
+            token.settleBalance(publisher, -int256(pendingDistribution));
+
+            // update subscription data and adjust subscriber's balance
+            sd.sdata.indexValue = sd.idata.indexValue;
+            token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
+            token.settleBalance(subscriber, int256(pendingDistribution));
+
+            newCtx = AgreementLibrary.afterAgreementUpdated(
+                ISuperfluid(msg.sender), token, newCtx,
+                address(this), publisher, sd.sId, sd.cbdata
+            );
+        } else {
+            // nothing to be recorded in this case
+            newCtx = ctx;
+        }
     }
 
     function _getPublisherId(

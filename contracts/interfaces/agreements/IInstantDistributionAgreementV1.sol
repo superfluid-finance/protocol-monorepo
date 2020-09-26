@@ -29,9 +29,10 @@ import "../superfluid/ISuperAgreement.sol";
  *     each time the index is updated.
  *     - The amount distributed is $$\Delta{index} * units$$
  *   - Distributions to a non approved subscription stays in the publisher's deposit until:
- *     - the subscriber approve the subscription,
- *     - the publisher update the subscription,
- *     - the subscriber delete the subscription even if it is never approved.
+ *     - the subscriber approve the subscription (side effect),
+ *     - the publisher update the subscription (side effect),
+ *     - the subscriber delete the subscription even if it is never approved (side effect),
+ *     - or the subscriber can explicitly claim them.
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
@@ -126,7 +127,6 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
-
 
     /**
      * @dev Calculate actual distribution amount
@@ -264,5 +264,27 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
+
+    /**
+    * @dev Claim pending distributions.
+    * @param token Super token address.
+    * @param publisher The publisher of the index.
+    * @param indexId Id of the index.
+    *
+    * The subscription should not exist yet.
+    *
+    * # App callbacks
+    *
+    * - AgreementUpdated callback to the publisher:
+    *    - agreementId is for the subscription
+    */
+    function claim(
+        ISuperToken token,
+        address publisher,
+        uint32 indexId,
+        bytes calldata ctx)
+        external
+        virtual
+        returns(bytes memory newCtx);
 
 }

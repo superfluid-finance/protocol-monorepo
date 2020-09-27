@@ -304,9 +304,11 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      *
      * While they cannot be explicitly stated in function definitions, they are
      * listed in function definition comments instead for clarity.
+     *
+     * TODO: turning these off because solidity-coverage don't like it
      *************************************************************************/
 
-    /// @dev The msg.sender must be a listed agreement.
-    modifier onlyAgreement() virtual;
+    /* /// @dev The msg.sender must be a listed agreement.
+    modifier onlyAgreement() virtual; */
 
 }

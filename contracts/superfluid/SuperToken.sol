@@ -566,7 +566,7 @@ contract SuperToken is
         return a < b ? a : b;
     }
 
-    modifier onlyAgreement() override {
+    modifier onlyAgreement() {
         ISuperfluidGovernance gov = _host.getGovernance();
         require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;

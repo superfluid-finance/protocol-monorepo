@@ -272,8 +272,10 @@ interface ISuperfluid {
      *
      * While they cannot be explicitly stated in function definitions, they are
      * listed in function definition comments instead for clarity.
+     *
+     * TODO: turning these off because solidity-coverage don't like it
      *************************************************************************/
-     /// @dev The current superfluid context is clean.
+     /* /// @dev The current superfluid context is clean.
      modifier cleanCtx() virtual;
 
      /// @dev The superfluid context is valid.
@@ -286,5 +288,5 @@ interface ISuperfluid {
      modifier onlyAgreement() virtual;
 
      /// @dev The app is registered and not jailed.
-     modifier isAppActive(ISuperApp app) virtual;
+     modifier isAppActive(ISuperApp app) virtual; */
 }

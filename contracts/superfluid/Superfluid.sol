@@ -597,12 +597,12 @@ contract Superfluid is
         return ctx.length > 0 && keccak256(abi.encodePacked(ctx)) == _ctxStamp;
     }
 
-    modifier cleanCtx() override {
+    modifier cleanCtx() {
         require(_ctxStamp == 0, "Superfluid: Ctx is not clean");
         _;
     }
 
-    modifier validCtx(bytes memory ctx) override {
+    modifier validCtx(bytes memory ctx) {
         if(!_isCtxValid(ctx)) {
             _appManifests[ISuperApp(msg.sender)].configWord |= SuperAppDefinitions.JAIL;
             emit Jail(ISuperApp(msg.sender), uint256(Info.B_1_READONLY_CONTEXT));
@@ -611,17 +611,17 @@ contract Superfluid is
         }
     }
 
-    modifier isAgreement(ISuperAgreement agreementClass) override {
+    modifier isAgreement(ISuperAgreement agreementClass) {
         require(_gov.isAgreementListed(address(agreementClass)), "SF: Only listed agreeement allowed");
         _;
     }
 
-    modifier onlyAgreement() override {
+    modifier onlyAgreement() {
         require(_gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;
     }
 
-    modifier isAppActive(ISuperApp app) override {
+    modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
         require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "Superfluid: not an active app");
         _;

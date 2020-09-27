@@ -64,7 +64,7 @@ module.exports = class Tester {
             });
 
         // superfluid host contract
-        const superfluidLogic = await web3tx(Superfluid.new, "SuperToken.new")(
+        const superfluidLogic = await web3tx(Superfluid.new, "Superfluid.new")(
             {
                 from: this.aliases.admin
             });
@@ -93,11 +93,13 @@ module.exports = class Tester {
             this.contracts.governance.address
         );
 
-        // super test token contract (STT)
+        // super token logic contract
         const superTokenLogic = await web3tx(SuperToken.new, "Create super token logic contract")();
         await web3tx(this.contracts.superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
             superTokenLogic.address
         );
+
+        // create super token
         this.contracts.superfluid.createERC20Wrapper(
             this.contracts.token.address,
             18,

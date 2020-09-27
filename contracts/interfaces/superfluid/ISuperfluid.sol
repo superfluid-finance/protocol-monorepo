@@ -154,7 +154,7 @@ interface ISuperfluid {
         returns (bytes memory newCtx);
 
     /**************************************************************************
-     * Non-app Call Proxies
+     * Non-app Call Proxy
      *
      * For EOAs or non-app contracts, they are the entry points for interacting
      * with agreements or apps.
@@ -199,7 +199,7 @@ interface ISuperfluid {
      * @dev Operation type for batch operations
      */
     enum OperationType {
-        Approved,         // 0
+        Approve,          // 0
         TransferFrom,     // 1
         Upgrade,          // 2
         Downgrade,        // 3

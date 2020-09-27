@@ -401,16 +401,44 @@ contract Superfluid is
     )
        external override
     {
-       require(operations.length > 1, "SF: Use the single method");
-       for(uint256 i = 0; i < operations.length; i++) {
-           if(operations[i].opType == OperationType.CallApp) {
-               callAppAction(ISuperApp(operations[i].target), operations[i].data);
-           } else if(operations[i].opType == OperationType.CallAgreement) {
-               callAgreement(ISuperAgreement(operations[i].target), operations[i].data);
-           } else {
-               revert("not implemented");
-           }
-       }
+        require(operations.length > 1, "SF: Use the single method");
+        for(uint256 i = 0; i < operations.length; i++) {
+            OperationType opType = operations[i].opType;
+            /*  */ if (opType == OperationType.Approve) {
+                (address spender, uint256 amount) =
+                    abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationApprove(
+                    msg.sender,
+                    spender,
+                    amount);
+            } else if (opType == OperationType.TransferFrom) {
+                (address sender, address receiver, uint256 amount) =
+                    abi.decode(operations[i].data, (address, address, uint256));
+                ISuperToken(operations[i].target).operationTransferFrom(
+                    msg.sender,
+                    sender,
+                    receiver,
+                    amount);
+            } else if (opType == OperationType.Upgrade) {
+                ISuperToken(operations[i].target).operationUpgrade(
+                    msg.sender,
+                    abi.decode(operations[i].data, (uint256)));
+            } else if (opType == OperationType.Downgrade) {
+                ISuperToken(operations[i].target).operationDowngrade(
+                    msg.sender,
+                    abi.decode(operations[i].data, (uint256)));
+            } else if (opType == OperationType.CallAgreement) {
+               callAgreement(
+                   ISuperAgreement(operations[i].target),
+                   operations[i].data);
+            } else if (opType == OperationType.CallApp) {
+               callAppAction(
+                   ISuperApp(operations[i].target),
+                   operations[i].data);
+            } else {
+               revert("SF: Unknown operation type");
+            }
+        }
     }
 
     /**************************************************************************

@@ -192,7 +192,8 @@ contract SuperToken is
      * - `spender` cannot be the zero address.
      */
     function approve(address spender, uint256 amount)
-        public override returns (bool)
+        public override
+        returns (bool)
     {
         _approve(msg.sender, spender, amount);
         return true;
@@ -213,13 +214,19 @@ contract SuperToken is
     function transferFrom(address sender, address recipient, uint256 amount)
         public override returns (bool)
     {
+        _transferFrom(msg.sender, sender, recipient, amount);
+        return true;
+    }
+
+    function _transferFrom(address account, address sender, address recipient, uint amount)
+        private
+    {
         _transfer(sender, recipient, amount);
         _approve(
             sender,
-            msg.sender,
-            _allowances[sender][msg.sender].sub(amount, "ERC20: transfer amount exceeds allowance")
+            account,
+            _allowances[sender][account].sub(amount, "ERC20: transfer amount exceeds allowance")
         );
-        return true;
     }
 
     /// @dev Calculate balance as split result if negative return as zero.
@@ -525,21 +532,29 @@ contract SuperToken is
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
+        _upgrade(msg.sender, amount);
+    }
+
+    function _upgrade(address account, uint256 amount) private {
         uint256 underlyingAmount;
         (underlyingAmount, amount) = _toUnderlyingAmount(amount);
-        _underlyingToken.transferFrom(msg.sender, address(this), underlyingAmount);
-        _mint(msg.sender, amount);
-        emit TokenUpgraded(msg.sender, amount);
+        _underlyingToken.transferFrom(account, address(this), underlyingAmount);
+        _mint(account, amount);
+        emit TokenUpgraded(account, amount);
     }
 
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
-        require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
+        _downgrade(msg.sender, amount);
+    }
+
+    function _downgrade(address account, uint256 amount) private {
+        require(uint256(balanceOf(account)) >= amount, "SuperToken: downgrade amount exceeds balance");
         uint256 underlyingAmount;
         (underlyingAmount, amount) = _toUnderlyingAmount(amount);
-        _burn(msg.sender, amount);
-        _underlyingToken.transfer(msg.sender, underlyingAmount);
-        emit TokenDowngraded(msg.sender, amount);
+        _burn(account, amount);
+        _underlyingToken.transfer(account, underlyingAmount);
+        emit TokenDowngraded(account, amount);
     }
 
     function _toUnderlyingAmount(uint256 amount)
@@ -562,15 +577,76 @@ contract SuperToken is
     }
 
     /**************************************************************************
+     * Superfluid Batch Operations
+     *************************************************************************/
+
+    function operationApprove(
+        address account,
+        address spender,
+        uint256 amount
+    )
+        external override
+        onlyHost
+    {
+        _approve(account, spender, amount);
+    }
+
+    function operationTransferFrom(
+        address account,
+        address sender,
+        address recipient,
+        uint256 amount
+    )
+        external override
+        onlyHost
+    {
+        if (account == sender) {
+            _transfer(account, recipient, amount);
+        } else {
+            _transferFrom(account, sender, recipient, amount);
+        }
+    }
+
+    function operationUpgrade(address account, uint256 amount)
+        external override
+        onlyHost
+    {
+        _upgrade(account, amount);
+    }
+
+    function operationDowngrade(address account, uint256 amount)
+        external override
+        onlyHost
+    {
+        _downgrade(account, amount);
+    }
+
+    /**************************************************************************
     * System functions
     *************************************************************************/
+
     function getHost() external view override returns(address host) {
         return address(_host);
     }
 
-    /*
-    *  Internal functions
-    */
+    /**************************************************************************
+    * Modifiers
+    *************************************************************************/
+
+    modifier onlyHost() {
+        require(address(_host) == msg.sender, "SF: Only host contract allowed");
+        _;
+    }
+
+    modifier onlyAgreement() {
+        ISuperfluidGovernance gov = _host.getGovernance();
+        require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
+        _;
+    }
+
+    /**************************************************************************
+    * Other utility private functions
+    *************************************************************************/
 
     function _storeData(bytes32 slot, bytes32[] memory data) private {
         for (uint j = 0; j < data.length; ++j) {
@@ -598,9 +674,4 @@ contract SuperToken is
         return a < b ? a : b;
     }
 
-    modifier onlyAgreement() {
-        ISuperfluidGovernance gov = _host.getGovernance();
-        require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
-        _;
-    }
 }

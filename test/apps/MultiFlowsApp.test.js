@@ -101,22 +101,24 @@ contract("MultiFlowsApp", accounts => {
 
         await superToken.upgrade(INIT_BALANCE, {from: accounts[1]});
         const app = await web3tx(MultiApp.new, "MultiApp.new")(cfa.address, superfluid.address);
-        const dataApp = [5,
-            app.address,
-            app.contract.methods.createMultiFlows(superToken.address, [bob, carol], [6, 4], "0x").encodeABI()
-        ];
 
-        const dataAgreement = [4,
-            cfa.address, cfa.contract.methods.createFlow(
-                superToken.address,
-                app.address,
-                "1000000000000000000",
-                "0x"
-            ).encodeABI()
-        ];
-
-        await web3tx(superfluid.batchCall, "Superfluid.callAppAction")(
-            [dataApp, dataAgreement],
+        await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+            [
+                [
+                    5,
+                    app.address,
+                    app.contract.methods.createMultiFlows(superToken.address, [bob, carol], [6, 4], "0x").encodeABI()
+                ],
+                [
+                    4,
+                    cfa.address, cfa.contract.methods.createFlow(
+                        superToken.address,
+                        app.address,
+                        "1000000000000000000",
+                        "0x"
+                    ).encodeABI()
+                ]
+            ],
             {
                 from: alice
             }

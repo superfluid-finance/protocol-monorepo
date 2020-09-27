@@ -202,23 +202,23 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * Account functions
      *************************************************************************/
 
-     /**
-      * @dev Get a list of agreements that is active for the account
-      * @dev An active agreement is one that has state for the account
-      * @param account Account to query
-      * @return activeAgreements List of accounts that have non-zero states for the account
-      */
+    /**
+     * @dev Get a list of agreements that is active for the account
+     * @dev An active agreement is one that has state for the account
+     * @param account Account to query
+     * @return activeAgreements List of accounts that have non-zero states for the account
+     */
     function getAccountActiveAgreements(address account)
         external
         virtual
         view
         returns(address[] memory activeAgreements);
 
-     /**
-      * @dev Check if one account is insolvent
-      * @param account Account check if is insolvent
-      * @return isInsolvent Is the account insolvent?
-      */
+    /**
+     * @dev Check if one account is insolvent
+     * @param account Account check if is insolvent
+     * @return isInsolvent Is the account insolvent?
+     */
     function isAccountInsolvent(
         address account
     )
@@ -228,8 +228,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         returns(bool isInsolvent);
 
     /**
-     * @dev Calculate the real balance of a user, taking in consideration
-             all agreements of the account
+     * @dev Calculate the real balance of a user, taking in consideration all agreements of the account
      * @param account for the query
      * @param timestamp Time of balance
      * @param account Account to query
@@ -256,10 +255,13 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      */
     function getUnderlayingToken() external virtual view returns(address tokenAddr);
 
-    /// @notice Upgrade ERC20 to SuperToken.
-    /// @dev It will use ´transferFrom´ to get tokens. Before calling this
-    ///      function you should ´approve´ this contract
-    /// @param amount Number of tokens to be upgraded (in 18 decimals)
+    /**
+     * @dev Upgrade ERC20 to SuperToken.
+     * @param amount Number of tokens to be upgraded (in 18 decimals)
+     *
+     * NOTE: It will use ´transferFrom´ to get tokens. Before calling this
+     * function you should ´approve´ this contract
+     */
     function upgrade(uint256 amount) external virtual;
 
     /**
@@ -288,6 +290,50 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address indexed account,
         uint256 amount
     );
+
+    /**************************************************************************
+     * Superfluid Batch Operations
+     *************************************************************************/
+
+    /**
+     * @dev Perform ERC20 approve by host contract.
+     * @param account The account owner to be approved.
+     * @param spender The spender of account owner's funds.
+     * @param amount Number of tokens to be approved.
+     */
+    function operationApprove(
+        address account,
+        address spender,
+        uint256 amount
+    ) external virtual;
+
+    /**
+     * @dev Perform ERC20 transfer from by host contract.
+     * @param account The account to spend sender's funds.
+     * @param sender  The account where the funds is sent from.
+     * @param recipient The recipient of thefunds.
+     * @param amount Number of tokens to be transferred.
+     */
+    function operationTransferFrom(
+        address account,
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external virtual;
+
+    /**
+     * @dev Upgrade ERC20 to SuperToken by host contract.
+     * @param account The account to be changed.
+     * @param amount Number of tokens to be upgraded (in 18 decimals)
+     */
+    function operationUpgrade(address account, uint256 amount) external virtual;
+
+    /**
+     * @dev Downgrade ERC20 to SuperToken by host contract.
+     * @param account The account to be changed.
+     * @param amount Number of tokens to be downgraded (in 18 decimals)
+     */
+    function operationDowngrade(address account, uint256 amount) external virtual;
 
     /**************************************************************************
     * System functions

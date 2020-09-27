@@ -12,26 +12,26 @@
     "js-sdk/*.js"
   ],
   "dependencies": {
-    "@openzeppelin/contracts": "^3.1.0-solc-0.7"
+    "@openzeppelin/contracts": "3.2.1-solc-0.7"
   },
   "peerDependencies": {
-    "@truffle/contract": "^4.2.19"
+    "@truffle/contract": "^4.2.23"
   },
   "devDependencies": {
     "@decentral.ee/web3-helpers": "0.3.2",
     "@openzeppelin/test-helpers": "0.5.6",
-    "@truffle/hdwallet-provider": "1.0.42",
+    "@truffle/hdwallet-provider": "1.1.0",
     "dotenv": "8.2.0",
-    "eslint": "7.7.0",
+    "eslint": "7.10.0",
     "eth-gas-reporter": "0.2.17",
-    "ganache-time-traveler": "1.0.14",
-    "husky": "4.2.5",
+    "ganache-time-traveler": "1.0.15",
+    "husky": "4.3.0",
     "npm-run-all": "4.1.5",
-    "solhint": "3.2.0",
+    "solhint": "3.2.1",
     "solidity-coverage": "0.7.10",
-    "truffle": "5.1.41",
-    "truffle-flattener": "1.4.4",
-    "truffle-plugin-verify": "0.3.11"
+    "truffle": "5.1.46",
+    "truffle-flattener": "1.5.0",
+    "truffle-plugin-verify": "0.4.0"
   },
   "scripts": {
     "build": "run-s build:*",

@@ -25,7 +25,7 @@ require("dotenv").config();
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
-const GAS_LIMIT = 12e6;
+const GAS_LIMIT = 8e6;
 
 module.exports = {
 

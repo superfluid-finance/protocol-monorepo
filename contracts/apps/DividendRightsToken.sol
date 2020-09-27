@@ -26,6 +26,9 @@ contract DividendRightsToken is
     ISuperfluid private _host;
     IInstantDistributionAgreementV1 private _ida;
 
+    // use callbacks to track approved subscriptions
+    mapping (address => bool) public isSubscribing;
+
     constructor(
         string memory name,
         string memory symbol,
@@ -40,10 +43,6 @@ contract DividendRightsToken is
 
         uint256 configWord =
             SuperAppDefinitions.TYPE_APP_FINAL |
-            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
-            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
-            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
-            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
@@ -60,6 +59,88 @@ contract DividendRightsToken is
         );
 
         _owner = msg.sender;
+    }
+
+    function beforeAgreementCreated(
+        ISuperToken superToken,
+        bytes calldata /*ctx*/,
+        address agreementClass,
+        bytes32 /* agreementId */
+    )
+        external view override
+        returns (bytes memory /* data */)
+    {
+        require(superToken == _cashToken, "DRT: Unsupported cash token");
+        require(agreementClass == address(_ida), "DRT: Unsupported agreement");
+    }
+
+    function afterAgreementCreated(
+        ISuperToken superToken,
+        bytes calldata ctx,
+        address /* agreementClass */,
+        bytes32 agreementId,
+        bytes calldata /*cbdata*/
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        _checkSubscription(superToken, ctx, agreementId);
+        newCtx = ctx;
+    }
+
+    function beforeAgreementUpdated(
+        ISuperToken superToken,
+        bytes calldata /*ctx*/,
+        address agreementClass,
+        bytes32 /* agreementId */
+    )
+        external view override
+        returns (bytes memory /* data */)
+    {
+        require(superToken == _cashToken, "DRT: Unsupported cash token");
+        require(agreementClass == address(_ida), "DRT: Unsupported agreement");
+    }
+
+    function afterAgreementUpdated(
+        ISuperToken superToken,
+        bytes calldata ctx,
+        address /* agreementClass */,
+        bytes32 agreementId,
+        bytes calldata /*cbdata*/
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        _checkSubscription(superToken, ctx, agreementId);
+        newCtx = ctx;
+    }
+
+    function _checkSubscription(
+        ISuperToken superToken,
+        bytes calldata ctx,
+        bytes32 agreementId
+    )
+        private
+    {
+        (bytes4 agreementSelector,,address subscriber,,) = _host.decodeCtx(ctx);
+        // only interested in the subscription approval callbacks
+        if (agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
+            address publisher;
+            uint32 indexId;
+            bool approved;
+            uint128 units;
+            uint256 pendingDistribution;
+            (publisher, indexId, approved, units, pendingDistribution) =
+                _ida.getSubscriptionByID(superToken, agreementId);
+
+            // sanity checks for testing purpose
+            require(publisher == address(this), "DRT: publisher mismatch");
+            require(indexId == INDEX_ID, "DRT: publisher mismatch");
+
+            if (approved) {
+                isSubscribing[subscriber] = true;
+            }
+        }
     }
 
     /// @dev Issue new `amount` of giths to `beneficiary`

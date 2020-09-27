@@ -31,6 +31,7 @@ library AgreementLibrary {
         returns (Context memory context)
     {
         (
+            ,
             context.appLevel,
             context.msgSender,
             context.allowance,
@@ -54,7 +55,6 @@ library AgreementLibrary {
         newCtx = ctx;
         (bool isSuperApp, uint256 configWord) =
             host.getAppManifest(ISuperApp(account));
-
 
         if (isSuperApp &&
             ((configWord & noopBit) == 0)) {
@@ -141,7 +141,7 @@ library AgreementLibrary {
 
         return _afterAgreement(
             ISuperApp.afterAgreementCreated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP,
+            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP,
             host,
             token,
             ctx,

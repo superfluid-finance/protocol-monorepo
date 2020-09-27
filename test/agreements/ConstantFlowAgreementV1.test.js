@@ -96,12 +96,12 @@ contract("Constant Flow Agreement", accounts => {
 
             /*
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(alice, bob)
+                superToken.address, alice, bob
             ))[1].toString(), FLOW_RATE.toString());
             */
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(bob, alice)
+                superToken.address, bob, alice
             ))[1].toString(), "0");
 
             const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -151,10 +151,10 @@ contract("Constant Flow Agreement", accounts => {
                 superToken.address, bob
             )).toString(), FLOW_RATE.toString());
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(alice, bob)
+                superToken.address, alice, bob
             ))[1].toString(), FLOW_RATE.toString());
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(bob, alice)
+                superToken.address, bob, alice
             ))[1].toString(), "0");
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
@@ -189,27 +189,27 @@ contract("Constant Flow Agreement", accounts => {
             )).toString(), FLOW_RATE.toString());
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(alice, bob)
+                superToken.address, alice, bob
             ))[1].toString(), FLOW_RATE.toString());
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(bob, alice)
+                superToken.address, bob, alice
             ))[1].toString(), "0");
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(alice, carol)
+                superToken.address, alice, carol
             ))[1].toString(), FLOW_RATE.toString());
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(carol, alice)
+                superToken.address, carol, alice
             ))[1].toString(), "0");
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(bob, carol)
+                superToken.address, bob,carol
             ))[1].toString(), "0");
 
             assert.equal((await cfa.getFlow.call(
-                superToken.address, web3.utils.soliditySha3(carol, bob)
+                superToken.address, carol, bob
             ))[1].toString(), "0");
 
             const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
@@ -1169,7 +1169,7 @@ contract("Constant Flow Agreement", accounts => {
 
             const flowRate = (await cfa.getFlow.call(
                 superToken.address,
-                web3.utils.soliditySha3(alice, bob)))[3].toString();
+                alice, bob))[3].toString();
 
             assert.equal(flowRate.toString(), "0", "Liquidation didn't happen");
         });

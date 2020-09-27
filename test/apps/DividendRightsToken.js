@@ -41,7 +41,7 @@ contract("DividendRightsToken", accounts => {
             { from: alice }
         );
 
-        // alice issue rights to bob
+        // alice issue rights to bob then got approved
         await web3tx(app.issue, "Alice issue 100 rights to bob")(
             bob, "100",
             { from: alice }
@@ -50,6 +50,7 @@ contract("DividendRightsToken", accounts => {
             (await app.balanceOf.call(bob)).toString(),
             "100"
         );
+        assert.isFalse(await app.isSubscribing.call(bob));
         await web3tx(superfluid.callAgreement, "Bob approves subscription to the app")(
             ida.address,
             ida.contract.methods.approveSubscription(
@@ -62,8 +63,10 @@ contract("DividendRightsToken", accounts => {
                 from: bob,
             }
         );
+        assert.isTrue(await app.isSubscribing.call(bob));
 
-        // alice issue rights to carol
+        // alice issue rights to carol after approval
+        assert.isFalse(await app.isSubscribing.call(carol));
         await web3tx(superfluid.callAgreement, "Carol approves subscription to the app")(
             ida.address,
             ida.contract.methods.approveSubscription(
@@ -76,6 +79,7 @@ contract("DividendRightsToken", accounts => {
                 from: carol,
             }
         );
+        assert.isTrue(await app.isSubscribing.call(carol));
         await web3tx(app.issue, "Alice issue 200 rights to carol")(
             carol, "200",
             { from: alice }

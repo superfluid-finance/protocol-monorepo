@@ -25,9 +25,15 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 contract SuperfluidStorage {
 
     struct FullContext {
+        // For callbacks it is used to know which agreement function selector is called
+        bytes4 agreementSelector;
+        // The level of the app
         uint8 appLevel;
+        // The intended message sender for the call
         address msgSender;
+        // deposit allowance given
         uint256 allowance;
+        // deposit allowance used
         uint256 allowanceUsed;
     }
 
@@ -341,7 +347,14 @@ contract Superfluid is
     {
         //Build context data
         bytes memory ctx;
+        // beaware of the endiness
+        bytes4 agreementSelector = bytes4(
+            uint32(uint8(data[3])) |
+            (uint32(uint8(data[2])) << 8) |
+            (uint32(uint8(data[1])) << 16) |
+            (uint32(uint8(data[0])) << 24));
         ctx = _updateContext(FullContext({
+            agreementSelector: agreementSelector,
             appLevel: 0,
             msgSender: msg.sender,
             allowance: 0,
@@ -373,6 +386,7 @@ contract Superfluid is
 
         bytes memory ctx;
         ctx = _updateContext(FullContext({
+            agreementSelector: 0,
             appLevel: 0,
             msgSender: msg.sender,
             allowance: 0,
@@ -470,6 +484,7 @@ contract Superfluid is
     function decodeCtx(bytes calldata ctx)
         external pure override
         returns (
+            bytes4 agreementSelector,
             uint8 appLevel,
             address msgSender,
             uint256 allowance,
@@ -477,6 +492,7 @@ contract Superfluid is
         )
     {
         FullContext memory context = _decodeFullContext(ctx);
+        agreementSelector = context.agreementSelector;
         appLevel = context.appLevel;
         msgSender = context.msgSender;
         allowance = context.allowance;
@@ -555,11 +571,12 @@ contract Superfluid is
         private pure
         returns (FullContext memory context) {
         (
+            context.agreementSelector,
             context.appLevel,
             context.msgSender,
             context.allowance,
             context.allowanceUsed
-        ) = abi.decode(ctx, (uint8, address, uint256, uint256));
+        ) = abi.decode(ctx, (bytes4, uint8, address, uint256, uint256));
     }
 
     function _updateContext(FullContext memory context)
@@ -567,6 +584,7 @@ contract Superfluid is
         returns (bytes memory ctx)
     {
         ctx = abi.encode(
+            context.agreementSelector,
             context.appLevel,
             context.msgSender,
             context.allowance,

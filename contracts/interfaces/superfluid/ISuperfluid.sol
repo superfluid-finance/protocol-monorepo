@@ -260,6 +260,7 @@ interface ISuperfluid {
     function decodeCtx(bytes calldata ctx)
         external pure
         returns (
+            bytes4 agreementSelector,
             uint8 appLevel,
             address msgSender,
             uint256 allowance,

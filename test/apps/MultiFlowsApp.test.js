@@ -85,7 +85,7 @@ contract("MultiFlowsApp", accounts => {
         const carolNetFlowAfter = await cfa.getNetFlow.call(superToken.address, carol);
         const appNetFlowAfter = await cfa.getFlow.call(
             superToken.address,
-            web3.utils.soliditySha3(app.address, carol));
+            app.address, carol);
 
         console.log("Alice", aliceNetFlowAfter.toString());
         console.log("Bob", bobNetFlowAfter.toString());

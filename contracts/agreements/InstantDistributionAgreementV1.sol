@@ -65,14 +65,13 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         address account,
         uint256 /*time*/
     )
-        external
-        view
-        override
+        external view override
         returns (
             int256 dynamicBalance,
             uint256 deposit,
             uint256 /*owedDeposit*/
-        ) {
+        )
+    {
         bool exist;
         IndexData memory idata;
         SubscriptionData memory sdata;
@@ -107,10 +106,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function createIndex(
         ISuperToken token,
         uint32 indexId,
-        bytes calldata ctx)
-            external
-            override
-            returns(bytes memory newCtx) {
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
         address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         require(!_hasIndexData(token, iId), "IDAv1: index already exists");
@@ -125,15 +125,15 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function getIndex(
         ISuperToken token,
         address publisher,
-        uint32 indexId)
-            external
-            view
-            override
-            returns(
-                bool exist,
-                uint128 indexValue,
-                uint128 totalUnitsApproved,
-                uint128 totalUnitsPending) {
+        uint32 indexId
+    )
+        external view override
+        returns (
+            bool exist,
+            uint128 indexValue,
+            uint128 totalUnitsApproved,
+            uint128 totalUnitsPending)
+    {
         IndexData memory idata;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (exist, idata) = _getIndexData(token, iId);
@@ -151,9 +151,9 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         uint128 indexValue,
         bytes calldata ctx
     )
-            external
-            override
-            returns(bytes memory newCtx) {
+        external override
+        returns(bytes memory newCtx)
+    {
         address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
@@ -167,14 +167,13 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function distribute(
-       ISuperToken token,
-       uint32 indexId,
-       uint256 amount,
-       bytes calldata ctx
-      )
-           external
-           override
-           returns(bytes memory newCtx)
+        ISuperToken token,
+        uint32 indexId,
+        uint256 amount,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
     {
         address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
@@ -222,12 +221,12 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         ISuperToken token,
         address publisher,
         uint32 indexId,
-        uint256 amount)
-          external view
-          override
-          returns(
-              uint256 actualAmount,
-              uint128 newIndexValue)
+        uint256 amount
+    )
+        external view override
+        returns(
+            uint256 actualAmount,
+            uint128 newIndexValue)
     {
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
@@ -244,10 +243,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         ISuperToken token,
         address publisher,
         uint32 indexId,
-        bytes calldata ctx)
-            external
-            override
-            returns(bytes memory newCtx) {
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
         bool exist;
         StackData memory sd;
         address subscriber = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
@@ -319,10 +319,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         uint32 indexId,
         address subscriber,
         uint128 units,
-        bytes calldata ctx)
-            external
-            override
-            returns(bytes memory newCtx) {
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
         bool exist;
         StackData memory sd;
         address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
@@ -428,15 +429,15 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         ISuperToken token,
         address publisher,
         uint32 indexId,
-        address subscriber)
-            external
-            view
-            override
-            returns (
-                bool approved,
-                uint128 units,
-                uint256 pendingDistribution
-            ) {
+        address subscriber
+    )
+        external view override
+        returns (
+            bool approved,
+            uint128 units,
+            uint256 pendingDistribution
+        )
+    {
         bool exist;
         IndexData memory idata;
         SubscriptionData memory sdata;
@@ -454,17 +455,49 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             uint256(idata.indexValue - sdata.indexValue) * uint256(sdata.units);
     }
 
+    /// @dev IInstantDistributionAgreementV1.getSubscriptionByID implementation
+    function getSubscriptionByID(
+       ISuperToken token,
+       bytes32 agreementId
+    )
+       external view override
+       returns(
+           address publisher,
+           uint32 indexId,
+           bool approved,
+           uint128 units,
+           uint256 pendingDistribution
+       )
+    {
+        bool exist;
+        IndexData memory idata;
+        SubscriptionData memory sdata;
+        (exist, sdata) = _getSubscriptionData(token, agreementId);
+        require(exist, _ERR_STR_SUBSCRIPTION_DOES_NOT_EXIST);
+
+        publisher = sdata.publisher;
+        indexId = sdata.indexId;
+        bytes32 iId = _getPublisherId(publisher, indexId);
+        (exist, idata) = _getIndexData(token, iId);
+        require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
+
+        approved = sdata.subId != _UNALLOCATED_SUB_ID;
+        units = sdata.units;
+        pendingDistribution = approved ? 0 :
+            uint256(idata.indexValue - sdata.indexValue) * uint256(sdata.units);
+    }
+
     /// @dev IInstantDistributionAgreementV1.listSubscriptions implementation
     function listSubscriptions(
         ISuperToken token,
-        address subscriber)
-            external
-            view
-            override
-            returns(
-                address[] memory publishers,
-                uint32[] memory indexIds,
-                uint128[] memory unitsList) {
+        address subscriber
+    )
+        external view override
+        returns(
+            address[] memory publishers,
+            uint32[] memory indexIds,
+            uint128[] memory unitsList)
+    {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,
@@ -505,10 +538,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         address publisher,
         uint32 indexId,
         address subscriber,
-        bytes calldata ctx)
-            external
-            override
-            returns(bytes memory newCtx) {
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
         bool exist;
         StackData memory sd;
         address sender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
@@ -565,8 +599,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         uint32 indexId,
         bytes calldata ctx
     )
-        external
-        override
+        external override
         returns(bytes memory newCtx)
     {
         bool exist;
@@ -614,8 +647,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _getPublisherId(
         address publisher,
         uint32 indexId)
-        private
-        pure
+        private pure
         returns (bytes32 iId)
     {
         return keccak256(abi.encodePacked("publisher", publisher, indexId));
@@ -624,8 +656,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _getSubscriptionId(
         address subscriber,
         bytes32 iId)
-        private
-        pure
+        private pure
         returns (bytes32 sId)
     {
         return keccak256(abi.encodePacked("subscription", subscriber, iId));
@@ -642,8 +673,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     function _encodeIndexData(
         IndexData memory idata)
-        private
-        pure
+        private pure
         returns (bytes32[] memory data) {
         data = new bytes32[](2);
         data[0] = bytes32(
@@ -659,8 +689,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _hasIndexData(
         ISuperToken token,
         bytes32 iId)
-        private
-        view
+        private view
         returns (bool exist)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
@@ -671,8 +700,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _getIndexData(
         ISuperToken token,
         bytes32 iId)
-        private
-        view
+        private view
         returns (bool exist, IndexData memory idata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
@@ -695,8 +723,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         ISuperToken token,
         address publisher
     )
-        private
-        view
+        private view
         returns (uint256)
     {
         bytes32[] memory data = token.getAgreementStateSlot(
@@ -738,8 +765,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     function _encodeSubscriptionData(
         SubscriptionData memory sdata)
-        private
-        pure
+        private pure
         returns (bytes32[] memory data)
     {
         data = new bytes32[](2);
@@ -757,8 +783,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _getSubscriptionData(
         ISuperToken token,
         bytes32 sId)
-        private
-        view
+        private view
         returns (bool exist, SubscriptionData memory sdata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), sId, 2);
@@ -793,9 +818,11 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _findAndFillSubsBitmap(
         ISuperToken token,
         address subscriber,
-        bytes32 iId)
+        bytes32 iId
+    )
         private
-        returns (uint32 subId) {
+        returns (uint32 subId)
+    {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,
@@ -826,7 +853,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         address subscriber,
         SubscriptionData memory sdata
     )
-        private {
+        private
+    {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,

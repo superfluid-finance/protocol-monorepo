@@ -95,7 +95,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return deposit The amount of deposit the flow.
      * @return owedDeposit The amount of owed deposit of the flow.
      */
-    function getFlow(
+    function getFlowByID(
        ISuperToken token,
        bytes32 agreementId
     )

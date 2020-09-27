@@ -250,7 +250,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     /// @dev IFlowAgreement.getFlow implementation
-    function getFlow(
+    function getFlowByID(
         ISuperToken token,
         bytes32 flowId
     )

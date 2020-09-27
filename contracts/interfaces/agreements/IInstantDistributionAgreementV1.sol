@@ -221,6 +221,30 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             );
 
     /**
+     * @dev Get data of a subscription by agreement ID
+     * @param token Super token address.
+     * @param agreementId The agreement ID.
+     * @return publisher The publisher of the index.
+     * @return indexId Id of the index.
+     * @return approved Is the subscription approved?
+     * @return units Units of the suscription.
+     * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription.
+     */
+    function getSubscriptionByID(
+        ISuperToken token,
+        bytes32 agreementId)
+            external
+            view
+            virtual
+            returns(
+                address publisher,
+                uint32 indexId,
+                bool approved,
+                uint128 units,
+                uint256 pendingDistribution
+            );
+
+    /**
      * @dev List subscriptions of an user.
      * @param token Super token address.
      * @param subscriber The user, a subscriber.

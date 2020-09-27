@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.0;
+pragma solidity 0.7.1;
 
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.5.0;
+pragma solidity >= 0.7.0;
 
 import { ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
 
@@ -23,8 +23,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32 id,
         bytes32[] calldata data
     )
-        external
-        virtual;
+        //onlyAgreement
+        external virtual;
 
     /**
      * @dev Agreement creation event
@@ -49,9 +49,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32 id,
         uint dataLength
     )
-        external
-        virtual
-        view
+        external virtual view
         returns(bytes32[] memory data);
 
     /**
@@ -63,8 +61,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32 id,
         bytes32[] calldata data
     )
-        external
-        virtual;
+        //onlyAgreement
+        external virtual;
 
     /**
      * @dev Agreement creation event
@@ -86,8 +84,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32 id,
         uint dataLength
     )
-        external
-        virtual;
+        //onlyAgreement
+        external virtual;
 
     /**
      * @dev Agreement termination event
@@ -98,6 +96,23 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address indexed agreementClass,
         bytes32 id
     );
+
+    /**
+     * @dev Liquidate the Aagreement
+     * @param liquidator Address of the executer of liquidation
+     * @param id Agreement ID
+     * @param account Account of the agrement
+     * @param deposit Deposit from the account that is going to taken as penalty
+     */
+    function liquidateAgreement
+    (
+        address liquidator,
+        bytes32 id,
+        address account,
+        uint256 deposit
+    )
+        // onlyAgreement
+        external virtual;
 
     /**
      * @dev Update agreement state slot
@@ -111,8 +126,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint256 slotId,
         bytes32[] calldata slotData
     )
-        external
-        virtual;
+        //onlyAgreement
+        external virtual;
 
     /**
      * @dev Agreement account state updated event
@@ -139,27 +154,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint256 slotId,
         uint dataLength
     )
-        external
-        virtual
-        view
+        external virtual view
         returns (bytes32[] memory slotData);
-
-    /**
-     * @dev Liquidate the Aagreement
-     * @param liquidator Address of the executer of liquidation
-     * @param id Agreement ID
-     * @param account Account of the agrement
-     * @param deposit Deposit from the account that is going to taken as penalty
-     */
-    function liquidateAgreement
-    (
-        address liquidator,
-        bytes32 id,
-        address account,
-        uint256 deposit
-    )
-    external
-    virtual;
 
     /**
      * @dev Agreement liquidation event
@@ -199,8 +195,8 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address account,
         int256 delta
     )
-        external
-        virtual;
+        // onlyAgreement
+        external virtual;
 
     /**************************************************************************
      * Account functions
@@ -302,5 +298,15 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * @return host Superfluid host contract address
      */
     function getHost() external view virtual returns(address host);
+
+    /**************************************************************************
+     * Function modifiers for access control and parameter validations
+     *
+     * While they cannot be explicitly stated in function definitions, they are
+     * listed in function definition comments instead for clarity.
+     *************************************************************************/
+
+    /// @dev The msg.sender must be a listed agreement.
+    modifier onlyAgreement() virtual;
 
 }

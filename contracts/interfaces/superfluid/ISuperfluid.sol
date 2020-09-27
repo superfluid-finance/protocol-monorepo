@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.5.0;
+pragma solidity >= 0.7.0;
 pragma experimental ABIEncoderV2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
@@ -80,8 +80,7 @@ interface ISuperfluid {
     function getAppManifest(
         ISuperApp app
     )
-        external
-        view
+        external view
         returns (
             bool exist,
             uint256 configWord
@@ -108,7 +107,8 @@ interface ISuperfluid {
         ISuperApp app,
         ISuperApp targetApp
     )
-        external view returns (bool isAppAllowed);
+        external view
+        returns (bool isAppAllowed);
 
     event Jail(ISuperApp app, uint256 info);
 
@@ -123,6 +123,8 @@ interface ISuperfluid {
         bytes calldata ctx
     )
         external
+        // onlyAgreement
+        // isAppActive(app)
         returns(bytes memory newCtx, bytes memory cbdata);
 
     function callAppAfterCallback(
@@ -131,6 +133,8 @@ interface ISuperfluid {
         bytes calldata ctx
     )
         external
+        // onlyAgreement
+        // isAppActive(app)
         returns(bytes memory newCtx);
 
     function ctxUpdate(
@@ -140,6 +144,7 @@ interface ISuperfluid {
         uint256 allowanceUsed
     )
         external
+        // onlyAgreement
         returns (bytes memory newCtx);
 
     /**************************************************************************
@@ -165,6 +170,7 @@ interface ISuperfluid {
          bytes calldata data
      )
         external
+        //cleanCtx
         returns(bytes memory returnedData);
 
     /**
@@ -178,6 +184,8 @@ interface ISuperfluid {
         bytes calldata data
     )
         external
+        //cleanCtx
+        //isAppActive(app)
         returns(bytes memory returnedData);
 
 
@@ -227,6 +235,8 @@ interface ISuperfluid {
         bytes calldata ctx
     )
         external
+        // validCtx(ctx)
+        // onlyAgreement(agreementClass)
         returns (bytes memory newCtx, bytes memory returnedData);
 
     function callAppActionWithContext(
@@ -235,6 +245,8 @@ interface ISuperfluid {
         bytes calldata ctx
     )
         external
+        // validCtx(ctx)
+        // isAppActive(app)
         returns (bytes memory newCtx);
 
     function chargeGasFee(
@@ -242,11 +254,11 @@ interface ISuperfluid {
         uint fee
     )
         external
+        // validCtx(ctx)
         returns (bytes memory newCtx);
 
     function decodeCtx(bytes calldata ctx)
-        external
-        pure
+        external pure
         returns (
             uint8 appLevel,
             address msgSender,
@@ -254,4 +266,24 @@ interface ISuperfluid {
             uint256 allowanceUsed
         );
 
+    /**************************************************************************
+     * Function modifiers for access control and parameter validations
+     *
+     * While they cannot be explicitly stated in function definitions, they are
+     * listed in function definition comments instead for clarity.
+     *************************************************************************/
+     /// @dev The current superfluid context is clean.
+     modifier cleanCtx() virtual;
+
+     /// @dev The superfluid context is valid.
+     modifier validCtx(bytes memory ctx) virtual;
+
+     /// @dev The agreement is a listed agreement.
+     modifier isAgreement(ISuperAgreement agreementClass) virtual;
+
+     /// @dev The msg.sender must be a listed agreement.
+     modifier onlyAgreement() virtual;
+
+     /// @dev The app is registered and not jailed.
+     modifier isAppActive(ISuperApp app) virtual;
 }

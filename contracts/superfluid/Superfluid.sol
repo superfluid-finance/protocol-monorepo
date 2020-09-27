@@ -98,6 +98,17 @@ contract Superfluid is
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Governance
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    function getGovernance() external view override returns (ISuperfluidGovernance) {
+        return _gov;
+    }
+
+    function setGovernance(ISuperfluidGovernance gov) external onlyOwner {
+        _gov = gov;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ERC20 Token Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     function setSuperTokenLogic(ISuperToken logic) external onlyOwner {
@@ -108,27 +119,14 @@ contract Superfluid is
         return _superTokenLogic;
     }
 
-    function _genereateERC20WrapperSalt(
-        string memory symbol,
-        uint8 decimals,
-        IERC20 token
-    ) private pure returns (bytes32 salt) {
-        return keccak256(abi.encodePacked(
-            symbol,
-            decimals,
-            token
-        ));
-    }
-
     function getERC20Wrapper(
         string calldata symbol,
         uint8 decimals,
         IERC20 token
     )
-    external
-    view
-    override
-    returns (address wrapperAddress, bool created) {
+        external view override
+        returns (address wrapperAddress, bool created)
+    {
         bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
         wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
         created = Address.isContract(wrapperAddress);
@@ -140,9 +138,8 @@ contract Superfluid is
         uint8 decimals,
         IERC20 token
     )
-    external
-    override
-    returns (ISuperToken)
+        external override
+        returns (ISuperToken)
     {
         require(address(token) != address(0), "SuperfluidRegistry: ZERO_ADDRESS");
         bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
@@ -162,42 +159,56 @@ contract Superfluid is
         );
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Governance
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    function setGovernance(ISuperfluidGovernance gov) external onlyOwner {
-        _gov = gov;
+    function _genereateERC20WrapperSalt(
+        string memory symbol,
+        uint8 decimals,
+        IERC20 token
+    )
+        private pure
+        returns (bytes32 salt)
+    {
+        return keccak256(abi.encodePacked(
+            symbol,
+            decimals,
+            token
+        ));
     }
 
-    function getGovernance() external view override returns (ISuperfluidGovernance) {
-        return _gov;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // App System
+    // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        /**
+    /**
      * @notice Message sender declares it as a super app.
      * @param configWord The super app manifest configuration
      */
     function registerApp(
         uint256 configWord
     )
-        external
-        override
+        external override
     {
         require(configWord > 0, "Superfluid: invalid config word");
         require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "Superfluid: app already registered");
         _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
     }
 
+    function isApp(ISuperApp app) public view override returns(bool) {
+        return _appManifests[app].configWord > 0;
+    }
+
+    function getAppLevel(ISuperApp appAddr) public override view returns(uint8) {
+        if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_FINAL > 0) {
+            return 1;
+        } else if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_SECOND > 0) {
+            return 2;
+        }
+        return 0;
+    }
+
     function getAppManifest(
         ISuperApp app
     )
-    external
-    view
-    override
+        external view override
     returns (
         bool exist,
         uint256 configWord
@@ -210,9 +221,7 @@ contract Superfluid is
     function isAppJailed(
         ISuperApp app
     )
-        public
-        view
-        override
+        public view override
         returns(bool)
     {
         return (_appManifests[app].configWord & SuperAppDefinitions.JAIL) > 0;
@@ -225,11 +234,10 @@ contract Superfluid is
     function allowCompositeApp(
         ISuperApp targetApp
     )
-        external
-        override
+        external override
     {
-        require(_isApp(ISuperApp(msg.sender)), "Superfluid: msg.sender is not an app");
-        require(_isApp(targetApp), "Superfluid: target is not an app");
+        require(isApp(ISuperApp(msg.sender)), "Superfluid: msg.sender is not an app");
+        require(isApp(targetApp), "Superfluid: target is not an app");
         _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }
 
@@ -237,33 +245,16 @@ contract Superfluid is
         ISuperApp app,
         ISuperApp targetApp
     )
-        external
-        view
-        override
+        external view override
         returns (bool)
     {
         return _compositeApps[app][targetApp];
     }
 
-    function batchCall(
-        Operation[] memory operations
-    )
-        external
-        override
-    {
-        require(operations.length > 1, "SF: Use the single method");
-        for(uint256 i = 0; i < operations.length; i++) {
-            if(operations[i].opType == OperationType.CallApp) {
-                /* solhint-disable-next-line avoid-low-level-calls */
-                _callAppAction(ISuperApp(operations[i].target), operations[i].data);
-            } else if(operations[i].opType == OperationType.CallAgreement) {
-                /* solhint-disable-next-line avoid-low-level-calls */
-                _callAgreement(ISuperAgreement(operations[i].target), operations[i].data);
-            } else {
-                revert("not implemented");
-            }
-        }
-    }
+
+    /**************************************************************************
+     * Agreement Callback System
+     *************************************************************************/
 
     //Split the callback in the two functions so they can have different rules and returns data formats
     //TODO : msg.sender should be only SuperAgreement
@@ -272,10 +263,9 @@ contract Superfluid is
         bytes calldata data,
         bytes calldata ctx
     )
-        external
-        override
+        external override
         onlyAgreement
-        onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
+        isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata, bytes memory newCtx)
     {
         //TODO: _callCallback
@@ -296,10 +286,9 @@ contract Superfluid is
         bytes calldata data,
         bytes calldata /*ctx*/
     )
-        external
-        override
+        external override
         onlyAgreement
-        onlyApp(app) // although agreement library should make sure it is an app, but we decide to double check it
+        isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
         require(!isAppJailed(app), "SF: App already jailed");
@@ -318,38 +307,36 @@ contract Superfluid is
         }
     }
 
-    function callAgreement(
-        ISuperAgreement agreementClass,
-        bytes calldata data
+    function ctxUpdate(
+        bytes calldata ctx,
+        uint8 appLevel,
+        uint256 allowance,
+        uint256 allowanceUsed
+
     )
-        external
-        override
-        cleanCtx
-        returns(bytes memory returnedData)
+        external override
+        onlyAgreement
+        returns (bytes memory newCtx)
     {
-        //Build context data
-        bytes memory ctx;
-        ctx = _updateContext(FullContext({
-            appLevel: 0,
-            msgSender: msg.sender,
-            allowance: 0,
-            allowanceUsed: 0
-        }));
-        bool success;
-        (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
-        if (success) {
-            _ctxStamp = 0;
-        } else {
-            revert("SF: call agreement failed");
-        }
+        FullContext memory context = _decodeFullContext(ctx);
+        context.appLevel = appLevel;
+        context.allowance = allowance;
+        context.allowanceUsed = allowanceUsed;
+        newCtx = _updateContext(context);
     }
 
-    function _callAgreement(
+
+    /**************************************************************************
+    * Non-app Call Proxies
+    *************************************************************************/
+
+    function callAgreement(
         ISuperAgreement agreementClass,
         bytes memory data
     )
-        private
+        public override
         cleanCtx
+        isAgreement(agreementClass)
         returns(bytes memory returnedData)
     {
         //Build context data
@@ -364,34 +351,6 @@ contract Superfluid is
         (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
         if (success) {
             _ctxStamp = 0;
-        } else {
-            revert("SF: call agreement failed");
-        }
-    }
-
-    function callAgreementWithContext(
-        ISuperAgreement agreementClass,
-        bytes calldata data,
-        bytes calldata ctx
-    )
-        external
-        override
-        validCtx(ctx)
-        returns(bytes memory newCtx, bytes memory returnedData)
-    {
-        FullContext memory context = _decodeFullContext(ctx);
-        address oldSender = context.msgSender;
-        context.msgSender = msg.sender;
-        newCtx = _updateContext(context);
-
-        //Call app
-        bool success;
-        (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
-        if(success) {
-            (newCtx) = abi.decode(returnedData, (bytes));
-            context = _decodeFullContext(newCtx);
-            context.msgSender = oldSender;
-            newCtx = _updateContext(context);
         } else {
             revert("SF: call agreement failed");
         }
@@ -399,24 +358,11 @@ contract Superfluid is
 
     function callAppAction(
         ISuperApp app,
-        bytes calldata data
-    )
-        external
-        override
-        cleanCtx
-        onlyApp(app)
-        returns(bytes memory returnedData)
-    {
-        return _callAppAction(app, data);
-    }
-
-    function _callAppAction(
-        ISuperApp app,
         bytes memory data
     )
-        private
+        public override
         cleanCtx
-        onlyApp(app)
+        isAppActive(app)
         returns(bytes memory returnedData)
     {
         require(!isAppJailed(app), "SF: App already jailed");
@@ -439,13 +385,60 @@ contract Superfluid is
         _ctxStamp = 0;
     }
 
+    function batchCall(
+       Operation[] memory operations
+    )
+       external override
+    {
+       require(operations.length > 1, "SF: Use the single method");
+       for(uint256 i = 0; i < operations.length; i++) {
+           if(operations[i].opType == OperationType.CallApp) {
+               callAppAction(ISuperApp(operations[i].target), operations[i].data);
+           } else if(operations[i].opType == OperationType.CallAgreement) {
+               callAgreement(ISuperAgreement(operations[i].target), operations[i].data);
+           } else {
+               revert("not implemented");
+           }
+       }
+    }
+
+    /**************************************************************************
+     * Contextual Call Proxy and Context Utilities
+     *************************************************************************/
+    function callAgreementWithContext(
+        ISuperAgreement agreementClass,
+        bytes calldata data,
+        bytes calldata ctx
+    )
+        external override
+        isAgreement(agreementClass)
+        validCtx(ctx)
+        returns(bytes memory newCtx, bytes memory returnedData)
+    {
+        FullContext memory context = _decodeFullContext(ctx);
+        address oldSender = context.msgSender;
+        context.msgSender = msg.sender;
+        newCtx = _updateContext(context);
+
+        //Call app
+        bool success;
+        (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
+        if(success) {
+            (newCtx) = abi.decode(returnedData, (bytes));
+            context = _decodeFullContext(newCtx);
+            context.msgSender = oldSender;
+            newCtx = _updateContext(context);
+        } else {
+            revert("SF: call agreement failed");
+        }
+    }
+
     function callAppActionWithContext(
         ISuperApp app,
         bytes calldata data,
         bytes calldata ctx
     )
-        external
-        override
+        external override
         validCtx(ctx)
         returns(bytes memory newCtx)
     {
@@ -464,8 +457,7 @@ contract Superfluid is
         bytes calldata ctx,
         uint fee
     )
-        external
-        override
+        external override
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
@@ -476,8 +468,7 @@ contract Superfluid is
     }
 
     function decodeCtx(bytes calldata ctx)
-        external pure
-        override
+        external pure override
         returns (
             uint8 appLevel,
             address msgSender,
@@ -492,35 +483,9 @@ contract Superfluid is
         allowanceUsed = context.allowanceUsed;
     }
 
-    function ctxUpdate(
-        bytes calldata ctx,
-        uint8 appLevel,
-        uint256 allowance,
-        uint256 allowanceUsed
-
-    )
-        external
-        override
-        returns (bytes memory newCtx)
-    {
-        FullContext memory context = _decodeFullContext(ctx);
-        context.appLevel = appLevel;
-        context.allowance = allowance;
-        context.allowanceUsed = allowanceUsed;
-        newCtx = _updateContext(context);
-    }
-
     /* Basic Law Rules */
-    function isApp(ISuperApp app) external view override returns(bool) {
-        return _isApp(app);
-    }
-
-    function _isApp(ISuperApp app) internal view returns(bool) {
-        return _appManifests[app].configWord > 0;
-    }
-
     function _checkAppCallDepth(ISuperApp appAddr, uint8 currentAppLevel) internal view returns(bool) {
-        uint8 appLevel = _getAppLevel(appAddr);
+        uint8 appLevel = getAppLevel(appAddr);
         if(appLevel == 1 && currentAppLevel > 1) {
             return false;
         }
@@ -528,19 +493,6 @@ contract Superfluid is
             return false;
         }
         return true;
-    }
-
-    function _getAppLevel(ISuperApp appAddr) internal view returns(uint8) {
-        if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_FINAL > 0) {
-            return 1;
-        } else if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_SECOND > 0) {
-            return 2;
-        }
-        return 0;
-    }
-
-    function getAppLevel(ISuperApp appAddr) external override view returns(uint8) {
-        return _getAppLevel(appAddr);
     }
 
     function _callExternal(
@@ -624,35 +576,36 @@ contract Superfluid is
     }
 
     function _isCtxValid(bytes memory ctx) private view returns (bool) {
-        return keccak256(abi.encodePacked(ctx)) == _ctxStamp;
+        return ctx.length > 0 && keccak256(abi.encodePacked(ctx)) == _ctxStamp;
     }
 
-    modifier cleanCtx() {
+    modifier cleanCtx() override {
         require(_ctxStamp == 0, "Superfluid: Ctx is not clean");
         _;
     }
 
-    modifier onlyAgreement() {
-        require(_gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
-        _;
-    }
-
-    modifier onlyApp(ISuperApp app) {
-        require(_isApp(app), "Superfluid: target is not an app");
-        _;
-    }
-
-    modifier onlyGovernance() {
-        require(msg.sender == address(_gov), "SF: action not from governance");
-        _;
-    }
-
-    modifier validCtx(bytes memory ctx) {
+    modifier validCtx(bytes memory ctx) override {
         if(!_isCtxValid(ctx)) {
             _appManifests[ISuperApp(msg.sender)].configWord |= SuperAppDefinitions.JAIL;
             emit Jail(ISuperApp(msg.sender), uint256(Info.B_1_READONLY_CONTEXT));
         } else {
             _;
         }
+    }
+
+    modifier isAgreement(ISuperAgreement agreementClass) override {
+        require(_gov.isAgreementListed(address(agreementClass)), "SF: Only listed agreeement allowed");
+        _;
+    }
+
+    modifier onlyAgreement() override {
+        require(_gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
+        _;
+    }
+
+    modifier isAppActive(ISuperApp app) override {
+        uint256 w = _appManifests[app].configWord;
+        require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "Superfluid: not an active app");
+        _;
     }
 }

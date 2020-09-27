@@ -396,21 +396,21 @@ contract("Super Token", accounts => {
         });
     });
 
-    describe("#6 - SuperToken.liquidateAgreement", () => {
-        it("#6.1 - should make a liquidation", async() => {
-            await web3tx(superToken.upgrade, "upgrade all from alice")(
-                INIT_BALANCE, {from: alice});
-            await web3tx(superToken.liquidateAgreement, "liquidate alice")(
-                carol, "0x00000", alice, INIT_BALANCE);
-            const balanceAlice = await superToken.balanceOf.call(alice);
-            assert.equal(balanceAlice.toString(), "0", "alice balanceOf should be zero");
-            await web3tx(superToken.liquidateAgreement, "liquidate alice")(
-                carol, "0x00000", alice, toWad(1));
-            const balanceCarol = await superToken.balanceOf.call(carol);
-            assert.equal(balanceCarol.toString(),
-                INIT_BALANCE.add(toWad(1)).toString(),
-                "carol final balance not correct"
-            );
-        });
-    });
+    // describe("#6 - SuperToken.liquidateAgreement", () => {
+    //     it("#6.1 - should make a liquidation", async() => {
+    //         await web3tx(superToken.upgrade, "upgrade all from alice")(
+    //             INIT_BALANCE, {from: alice});
+    //         await web3tx(superToken.liquidateAgreement, "liquidate alice")(
+    //             carol, "0x00000", alice, INIT_BALANCE);
+    //         const balanceAlice = await superToken.balanceOf.call(alice);
+    //         assert.equal(balanceAlice.toString(), "0", "alice balanceOf should be zero");
+    //         await web3tx(superToken.liquidateAgreement, "liquidate alice")(
+    //             carol, "0x00000", alice, toWad(1));
+    //         const balanceCarol = await superToken.balanceOf.call(carol);
+    //         assert.equal(balanceCarol.toString(),
+    //             INIT_BALANCE.add(toWad(1)).toString(),
+    //             "carol final balance not correct"
+    //         );
+    //     });
+    // });
 });

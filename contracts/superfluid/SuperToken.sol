@@ -81,9 +81,17 @@ contract SuperToken is
         _host = host;
     }
 
-    /*
-     *  ERC20 Implementation
-     */
+    function proxiableUUID() public pure override returns (bytes32) {
+        return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
+    }
+
+    function updateCode(address newAddress) external onlyOwner {
+        return _updateCodeAddress(newAddress);
+    }
+
+    /**************************************************************************
+     * ERC20 Token Info
+     *************************************************************************/
 
     /**
      * @dev Returns the name of the token.
@@ -117,6 +125,9 @@ contract SuperToken is
         return _decimals;
     }
 
+    /**************************************************************************
+     * ERC20 Implementations
+     *************************************************************************/
     /**
      * @dev See {IERC20-totalSupply}.
      */
@@ -124,6 +135,19 @@ contract SuperToken is
         public view override returns (uint256)
     {
         return _token.balanceOf(address(this));
+    }
+
+    /// @dev ERC20.balanceOf implementation
+    function balanceOf(
+        address account
+    )
+        public
+        view
+        override
+        returns(uint256 balance)
+    {
+        (int256 availableBalance, , ) = _calcAvailabelBalance(account, block.timestamp);
+        return availableBalance < 0 ? 0 : uint256(availableBalance);
     }
 
 
@@ -187,6 +211,36 @@ contract SuperToken is
             _allowances[sender][msg.sender].sub(amount, "ERC20: transfer amount exceeds allowance")
         );
         return true;
+    }
+
+    /// @dev Calculate balance as split result if negative return as zero.
+    function _calcAvailabelBalance(
+        address account,
+        uint256 timestamp
+    )
+        private view
+        returns(int256 availableBalance, uint256 deposit, uint256 owedDeposit)
+    {
+        int256 realtimeBalance = _balances[account];
+        address[] memory activeAgreements = getAccountActiveAgreements(account);
+        for (uint256 i = 0; i < activeAgreements.length; i++) {
+            (
+                int256 agreementDynamicBalance,
+                uint256 agreementDeposit,
+                uint256 agreementOwedDeposit) = ISuperAgreement(activeAgreements[i])
+                    .realtimeBalanceOf(
+                         this,
+                         account,
+                         timestamp
+                     );
+            realtimeBalance = realtimeBalance.add(agreementDynamicBalance);
+            deposit = deposit.add(agreementDeposit);
+            owedDeposit = owedDeposit.add(agreementOwedDeposit);
+        }
+        //availableBalance = realtimeBalance;
+        availableBalance = realtimeBalance
+            .sub(int256(deposit))
+            .add(int256(_min(deposit, owedDeposit)));
     }
 
     /**
@@ -274,9 +328,11 @@ contract SuperToken is
         _allowances[account][spender] = amount;
         emit Approval(account, spender, amount);
     }
-    /*
+
+
+    /**************************************************************************
      * Account functions
-     */
+     *************************************************************************/
 
     /// @dev ISuperToken.getAccountActiveAgreements implementation
     function getAccountActiveAgreements(address account)
@@ -302,19 +358,6 @@ contract SuperToken is
         return amount < 0;
     }
 
-    /// @dev ERC20.balanceOf implementation
-    function balanceOf(
-        address account
-    )
-        public
-        view
-        override
-        returns(uint256 balance)
-    {
-        (int256 availableBalance, , ) = _calcAvailabelBalance(account, block.timestamp);
-        return availableBalance < 0 ? 0 : uint256(availableBalance);
-    }
-
     /// @dev ISuperToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
         address account,
@@ -331,17 +374,17 @@ contract SuperToken is
         ) = _calcAvailabelBalance(account, timestamp);
     }
 
-    /*
-    *   Agreement functions
-    */
+    /**************************************************************************
+     * Agreement hosting functions
+     *************************************************************************/
 
     /// @dev ISuperToken.createAgreement implementation
     function createAgreement(
         bytes32 id,
         bytes32[] calldata data
     )
-        external
-        override
+        external override
+        onlyAgreement
     {
         // TODO check data existence??
         address agreementClass = msg.sender;
@@ -356,9 +399,7 @@ contract SuperToken is
         bytes32 id,
         uint dataLength
     )
-        external
-        view
-        override
+        external view override
         returns(bytes32[] memory data)
     {
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -370,8 +411,8 @@ contract SuperToken is
         bytes32 id,
         bytes32[] calldata data
     )
-        external
-        override
+        external override
+        onlyAgreement
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -384,8 +425,8 @@ contract SuperToken is
         bytes32 id,
         uint dataLength
     )
-        external
-        override
+        external override
+        onlyAgreement
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -401,8 +442,8 @@ contract SuperToken is
         address account,
         uint256 deposit
     )
-    external
-    override
+        external override
+        onlyAgreement
     {
         ISuperfluidGovernance gov = _host.getGovernance();
         address rewardAccount = gov.getRewardAddress(address(_token));
@@ -431,8 +472,9 @@ contract SuperToken is
         uint256 slotId,
         bytes32[] calldata slotData
     )
-        external
-        override {
+        external override
+        onlyAgreement
+    {
         bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
         _storeData(slot, slotData);
         // FIXME change how this is done
@@ -447,17 +489,30 @@ contract SuperToken is
         uint256 slotId,
         uint dataLength
     )
-        external
-        override
-        view
+        external override view
         returns (bytes32[] memory slotData) {
         bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
         slotData = _loadData(slot, dataLength);
     }
 
-    /*
-     * ERC20 compatability functions
-     */
+    function settleBalance(
+        address account,
+        int256 delta
+    )
+        external override
+        onlyAgreement
+    {
+        _balances[account] = _balances[account].add(delta);
+    }
+
+    /**************************************************************************
+     * ERC20 wrapping
+     *************************************************************************/
+
+    /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
+    function getUnderlayingToken() external view override returns(address) {
+        return address(_token);
+    }
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
@@ -474,107 +529,16 @@ contract SuperToken is
         emit TokenDowngraded(msg.sender, amount);
     }
 
+    /**************************************************************************
+    * System functions
+    *************************************************************************/
     function getHost() external view override returns(address host) {
         return address(_host);
-    }
-
-    /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
-    function getUnderlayingToken() external view override returns(address) {
-        return address(_token);
-    }
-
-    function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
     /*
     *  Internal functions
     */
-
-   function _grossBalance(address account, uint256 timestamp) internal view returns(int256 balance) {
-        balance = _balances[account];
-        address[] memory activeAgreements = getAccountActiveAgreements(account);
-        for (uint256 i = 0; i < activeAgreements.length; i++) {
-            (
-                int256 agreementDynamicBalance,
-                ,
-                ) = _realtimeBalanceOf(
-                    activeAgreements[i],
-                    account,
-                    timestamp
-                );
-            balance = balance.add(agreementDynamicBalance);
-        }
-   }
-
-    /* solhint-disable mark-callable-contracts */
-    /// @dev Calculate balance as split result if negative return as zero.
-    function _calcAvailabelBalance(
-        address account,
-        uint256 timestamp
-    )
-        internal
-        view
-        returns(int256 availableBalance, uint256 deposit, uint256 owedDeposit)
-    {
-        int256 realtimeBalance = _balances[account];
-        address[] memory activeAgreements = getAccountActiveAgreements(account);
-        for (uint256 i = 0; i < activeAgreements.length; i++) {
-            (
-                int256 agreementDynamicBalance,
-                uint256 agreementDeposit,
-                uint256 agreementOwedDeposit) = _realtimeBalanceOf(
-                    activeAgreements[i],
-                    account,
-                    timestamp
-                );
-            realtimeBalance = realtimeBalance.add(agreementDynamicBalance);
-            deposit = deposit.add(agreementDeposit);
-            owedDeposit = owedDeposit.add(agreementOwedDeposit);
-        }
-        //availableBalance = realtimeBalance;
-        availableBalance = realtimeBalance
-            .sub(int256(deposit))
-            .add(int256(_min(deposit, owedDeposit)));
-    }
-
-    function _realtimeBalanceOf(
-        address agreementClass,
-        address account,
-        uint256 timestamp
-    )
-        internal
-        view
-        returns(int256, uint256, uint256)
-    {
-       return ISuperAgreement(
-                agreementClass).realtimeBalanceOf(
-                this,
-                account,
-                timestamp
-            );
-    }
-
-    /// @dev Save the balance until now
-    /// @param account User to snapshot balance
-    function _takeBalanceSnapshot(address account) internal {
-        //(int256 amount, , ) = realtimeBalanceOf(account, block.timestamp);
-        //_balances[account] = amount;
-        _balances[account] = _grossBalance(account, block.timestamp);
-    }
-
-    function updateCode(address newAddress) external onlyOwner {
-        return _updateCodeAddress(newAddress);
-    }
-
-    function settleBalance(
-        address account,
-        int256 delta
-    )
-        external
-        override {
-        _balances[account] = _balances[account].add(delta);
-    }
 
     function _storeData(bytes32 slot, bytes32[] memory data) private {
         for (uint j = 0; j < data.length; ++j) {
@@ -600,5 +564,11 @@ contract SuperToken is
 
     function _min(uint256 a, uint256 b) internal pure returns (uint256) {
         return a < b ? a : b;
+    }
+
+    modifier onlyAgreement() override {
+        ISuperfluidGovernance gov = _host.getGovernance();
+        require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
+        _;
     }
 }

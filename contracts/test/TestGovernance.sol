@@ -63,18 +63,18 @@ contract TestGovernance is
         returns (address[] memory agreementClasses) {
         uint i;
         uint n;
-        // count number of agreements mapped
-        for (i = 0; i < _agreementList.length; ++i) {
-            if ((bitmap & (1 << i)) > 0) ++n;
-        }
         // create memory output using the counted size
-        agreementClasses = new address[](n);
+        agreementClasses = new address[](_agreementList.length);
         // add to the output
         n = 0;
         for (i = 0; i < _agreementList.length; ++i) {
             if ((bitmap & (1 << i)) > 0) {
                 agreementClasses[n++] = _agreementList[i];
             }
+        }
+        // resize memory arrays
+        assembly {
+            mstore(agreementClasses, n)
         }
     }
 

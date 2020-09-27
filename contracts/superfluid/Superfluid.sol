@@ -126,29 +126,28 @@ contract Superfluid is
     }
 
     function getERC20Wrapper(
-        string calldata symbol,
-        uint8 decimals,
-        IERC20 token
+        IERC20 underlyingToken,
+        string calldata symbol
     )
         external view override
         returns (address wrapperAddress, bool created)
     {
-        bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
+        bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);
         wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
         created = Address.isContract(wrapperAddress);
     }
 
     function createERC20Wrapper(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
         string calldata name,
-        string calldata symbol,
-        uint8 decimals,
-        IERC20 token
+        string calldata symbol
     )
         external override
         returns (ISuperToken)
     {
-        require(address(token) != address(0), "SuperfluidRegistry: ZERO_ADDRESS");
-        bytes32 salt = _genereateERC20WrapperSalt(symbol, decimals, token);
+        require(address(underlyingToken) != address(0), "SuperfluidRegistry: ZERO_ADDRESS");
+        bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);
         address wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
         require(!Address.isContract(wrapperAddress), "SuperfluidRegistry: WRAPPER_EXIST");
         Proxy proxy = new Proxy{salt: salt}();
@@ -157,26 +156,24 @@ contract Superfluid is
         // initialize the token
         SuperToken superToken = SuperToken(address(proxy));
         superToken.initialize(
+            underlyingToken,
+            underlyingDecimals,
             name,
             symbol,
-            decimals,
-            token,
             this
         );
     }
 
     function _genereateERC20WrapperSalt(
-        string memory symbol,
-        uint8 decimals,
-        IERC20 token
+        IERC20 underlyingToken,
+        string calldata symbol
     )
         private pure
         returns (bytes32 salt)
     {
         return keccak256(abi.encodePacked(
-            symbol,
-            decimals,
-            token
+            underlyingToken,
+            symbol
         ));
     }
 

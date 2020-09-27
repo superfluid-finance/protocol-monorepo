@@ -34,19 +34,25 @@ interface ISuperfluid {
      *************************************************************************/
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
 
+    /**
+     * @dev Query the token wrapper.
+     * @param underlyingToken The underlrying token to wrap.
+     * @param symbol The super token symbol.
+     *
+     * NOTE: Deterministic address is generated based on the input.
+     */
     function getERC20Wrapper(
-        string calldata symbol,
-        uint8 decimals,
-        IERC20 token
+        IERC20 underlyingToken,
+        string calldata symbol
     )
         external
         returns (address wrapperAddress, bool created);
 
     function createERC20Wrapper(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
         string calldata name,
-        string calldata symbol,
-        uint8 decimals,
-        IERC20 token
+        string calldata symbol
     )
         external
         returns (ISuperToken superToken);

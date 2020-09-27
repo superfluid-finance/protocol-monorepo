@@ -59,11 +59,9 @@ Framework.prototype.initialize = async function () {
 
 Framework.prototype.getERC20Wrapper = async function(tokenInfo) {
     const tokenInfoSymbol = await tokenInfo.symbol.call();
-    const tokenInfoDecimals = await tokenInfo.decimals.call();
     return await this.host.getERC20Wrapper.call(
+        tokenInfo.address,
         `${tokenInfoSymbol}x`,
-        tokenInfoDecimals.toString(),
-        tokenInfo.address
     );
 };
 
@@ -72,10 +70,10 @@ Framework.prototype.createERC20Wrapper = async function(tokenInfo) {
     const tokenInfoSymbol = await tokenInfo.symbol.call();
     const tokenInfoDecimals = await tokenInfo.decimals.call();
     await this.host.createERC20Wrapper(
+        tokenInfo.address,
+        tokenInfoDecimals,
         `Super ${tokenInfoName}`,
         `${tokenInfoSymbol}x`,
-        tokenInfoDecimals,
-        tokenInfo.address
     );
 };
 

@@ -27,15 +27,15 @@ contract SuperTokenStorage {
     /// @dev avoid double initialization
     bool internal _initialized;
 
+    /// @dev The underlaying ERC20 token
+    IERC20 internal _underlyingToken;
+    /// @dev Decimals of the underlying token
+    uint8 internal _underlyingDecimals;
+
     /// @dev ERC20 Name property
     string internal _name;
     /// @dev ERC20 Symbol property
     string internal _symbol;
-    /// @dev ERC20 Decimals property
-    uint8 internal _decimals;
-
-    /// @dev The underlaying ERC20 token
-    IERC20 internal _token;
 
     /// @dev Superfluid contract
     ISuperfluid internal _host;
@@ -58,15 +58,19 @@ contract SuperToken is
     Ownable,
     SuperTokenStorage, // storage should come after logic contract
     ISuperToken,
-    Proxiable {
+    Proxiable
+{
+
+    uint8 constant public STANDARD_DECIMALS = 18;
+
     using SignedSafeMath for int256;
     using SafeMath for uint256;
 
     function initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
         string calldata name,
         string calldata symbol,
-        uint8 decimals,
-        IERC20 token,
         ISuperfluid host
     )
         external
@@ -74,10 +78,13 @@ contract SuperToken is
         require(!_initialized, "already initialized");
         _initialized = true;
         _owner = msg.sender;
+
+        _underlyingToken = underlyingToken;
+        _underlyingDecimals = underlyingDecimals;
+
         _name = name;
         _symbol = symbol;
-        _decimals = decimals;
-        _token = token;
+
         _host = host;
     }
 
@@ -96,7 +103,7 @@ contract SuperToken is
     /**
      * @dev Returns the name of the token.
      */
-    function name() public view override returns (string memory) {
+    function name() external view override returns (string memory) {
         return _name;
     }
 
@@ -104,7 +111,7 @@ contract SuperToken is
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() public view override returns (string memory) {
+    function symbol() external view override returns (string memory) {
         return _symbol;
     }
 
@@ -117,13 +124,15 @@ contract SuperToken is
      * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
      * called.
      *
+     * NOTE: SuperToken always uses 18 decimals.
+     *
      * Note: This information is only used for _display_ purposes: it in
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() public view override returns (uint8) {
-        return _decimals;
-    }
+     function decimals() external pure override returns (uint8) {
+         return STANDARD_DECIMALS;
+     }
 
     /**************************************************************************
      * ERC20 Implementations
@@ -134,7 +143,7 @@ contract SuperToken is
     function totalSupply()
         public view override returns (uint256)
     {
-        return _token.balanceOf(address(this));
+        return _underlyingToken.balanceOf(address(this));
     }
 
     /// @dev ERC20.balanceOf implementation
@@ -446,7 +455,7 @@ contract SuperToken is
         onlyAgreement
     {
         ISuperfluidGovernance gov = _host.getGovernance();
-        address rewardAccount = gov.getRewardAddress(address(_token));
+        address rewardAccount = gov.getRewardAddress(address(this));
 
         (int256 balance, , ) = realtimeBalanceOf(account, block.timestamp);
         int256 remain = balance.sub(int256(deposit));
@@ -511,12 +520,14 @@ contract SuperToken is
 
     /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
     function getUnderlayingToken() external view override returns(address) {
-        return address(_token);
+        return address(_underlyingToken);
     }
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
-        _token.transferFrom(msg.sender, address(this), amount);
+        uint256 underlyingAmount;
+        (underlyingAmount, amount) = _toUnderlyingAmount(amount);
+        _underlyingToken.transferFrom(msg.sender, address(this), underlyingAmount);
         _mint(msg.sender, amount);
         emit TokenUpgraded(msg.sender, amount);
     }
@@ -524,9 +535,30 @@ contract SuperToken is
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
         require(uint256(balanceOf(msg.sender)) >= amount, "SuperToken: downgrade amount exceeds balance");
+        uint256 underlyingAmount;
+        (underlyingAmount, amount) = _toUnderlyingAmount(amount);
         _burn(msg.sender, amount);
-        _token.transfer(msg.sender, amount);
+        _underlyingToken.transfer(msg.sender, underlyingAmount);
         emit TokenDowngraded(msg.sender, amount);
+    }
+
+    function _toUnderlyingAmount(uint256 amount)
+        private view
+        returns (uint256 underlyingAmount, uint256 actualAmount)
+    {
+        uint256 factor;
+        if (_underlyingDecimals < STANDARD_DECIMALS) {
+            factor = 10 ** (STANDARD_DECIMALS - _underlyingDecimals);
+            underlyingAmount = amount / factor;
+            // remove precision errors
+            actualAmount = underlyingAmount * factor;
+        } else if (_underlyingDecimals > STANDARD_DECIMALS) {
+            factor = 10 ** (_underlyingDecimals - STANDARD_DECIMALS);
+            underlyingAmount = amount * factor;
+            actualAmount = amount;
+        } else {
+            underlyingAmount = actualAmount = amount;
+        }
     }
 
     /**************************************************************************

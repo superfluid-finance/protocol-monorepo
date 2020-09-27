@@ -259,13 +259,13 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     /// @notice Upgrade ERC20 to SuperToken.
     /// @dev It will use ´transferFrom´ to get tokens. Before calling this
     ///      function you should ´approve´ this contract
-    /// @param amount Number of tokens to be upgraded
+    /// @param amount Number of tokens to be upgraded (in 18 decimals)
     function upgrade(uint256 amount) external virtual;
 
     /**
      * @dev Token upgrade event
      * @param account Account whose tokens are upgraded
-     * @param amount Amount of tokens upgraded
+     * @param amount Amount of tokens upgraded (in 18 decimals)
      */
     event TokenUpgraded(
         address indexed account,

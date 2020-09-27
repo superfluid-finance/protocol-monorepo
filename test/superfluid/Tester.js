@@ -99,16 +99,15 @@ module.exports = class Tester {
             superTokenLogic.address
         );
         this.contracts.superfluid.createERC20Wrapper(
+            this.contracts.token.address,
+            18,
             "Super Test Token",
             "TESTx",
-            18,
-            this.contracts.token.address
         );
         this.contracts.superToken = await ISuperToken.at(
             (await this.contracts.superfluid.getERC20Wrapper.call(
-                "TESTx",
-                18,
                 this.contracts.token.address,
+                "TESTx"
             )).wrapperAddress
         );
 

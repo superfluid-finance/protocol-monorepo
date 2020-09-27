@@ -3,10 +3,14 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const {
     web3tx,
     toWad,
+    toDecimals,
     toBN
 } = require("@decentral.ee/web3-helpers");
 
 const traveler = require("ganache-time-traveler");
+
+const TestToken = artifacts.require("TestToken");
+const ISuperToken = artifacts.require("ISuperToken");
 
 const Tester = require("./Tester");
 
@@ -17,7 +21,7 @@ contract("Super Token", accounts => {
 
     const tester = new Tester(accounts.slice(0, 4));
     const { alice, bob, carol} = tester.aliases;
-    const { INIT_BALANCE } = tester.constants;
+    const { INIT_BALANCE, MAX_UINT256 } = tester.constants;
     const { ZERO_ADDRESS } = tester.constants;
 
     let token;
@@ -47,7 +51,7 @@ contract("Super Token", accounts => {
         });
     });
 
-    describe("#1 SuperToken.upgrade", () => {
+    describe("#1 SuperToken.upgrade/downgrade", () => {
         it("#1.1 - should upgrade if enough balance", async () => {
             const initialBalance = await token.balanceOf.call(alice);
 
@@ -77,10 +81,8 @@ contract("Super Token", accounts => {
                 initialBalance.add(toBN(1)), {from: alice}), "ERC20: transfer amount exceeds balance");
             await tester.validateSystem();
         });
-    });
 
-    describe("#2 SuperToken.downgrade", () => {
-        it("#2.1 - should downgrade by single account", async() => {
+        it("#1.3 - should downgrade by single account", async() => {
             const initialBalance = await token.balanceOf.call(alice);
 
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice") (
@@ -104,7 +106,7 @@ contract("Super Token", accounts => {
             await tester.validateSystem();
         });
 
-        it("#2.2 - should downgrade by multiple accounts", async () => {
+        it("#1.4 - should downgrade by multiple accounts", async () => {
             const initialBalanceAlice = await token.balanceOf.call(alice);
             const initialSuperBalanceAlice = await superToken.balanceOf.call(alice);
 
@@ -138,11 +140,168 @@ contract("Super Token", accounts => {
             await tester.validateSystem();
         });
 
-        it("#2.3 - should not downgrade if there is no balance", async () => {
+        it("#1.5 - should not downgrade if there is no balance", async () => {
             await expectRevert(web3tx(superToken.downgrade, "SuperToken.downgrade - bad balance")(
                 toBN(1), {
                     from: alice
                 }), "SuperToken: downgrade amount exceeds balance");
+        });
+
+        it("#1.6 - should convert from smaller underlying decimals", async () => {
+            const token6D = await web3tx(TestToken.new, "TestToken.new")(
+                "Test Token 6 Decimals", "TEST6D",
+                {
+                    from: bob
+                });
+            await web3tx(token6D.mint, "Mint token for bob")(
+                bob,
+                toDecimals("100", 6), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("100", 6));
+
+            superfluid.createERC20Wrapper(
+                token6D.address,
+                6,
+                "Super Test Token 6D",
+                "TEST6Dx",
+            );
+            const superToken6D = await ISuperToken.at(
+                (await superfluid.getERC20Wrapper.call(
+                    token6D.address,
+                    "TEST6Dx"
+                )).wrapperAddress
+            );
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                "0");
+
+            await web3tx(token6D.approve, "TestToken.approve - from bob to SuperToken")(
+                superToken6D.address,
+                MAX_UINT256, {
+                    from: bob
+                }
+            );
+
+            await web3tx(superToken6D.upgrade, "upgrade 1 from bob")(
+                toWad(1), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad(1).toString());
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("99", 6));
+
+            await web3tx(superToken6D.upgrade, "upgrade 0.1234567 from bob")(
+                toWad("0.1234567"), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("98.876544", 6));
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad("1.123456").toString());
+
+            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
+                toWad(1), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("99.876544", 6));
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad("0.123456").toString());
+
+            await expectRevert(superToken6D.downgrade(
+                toWad("0.1234561"), {
+                    from: bob
+                }
+            ), "SuperToken: downgrade amount exceeds balance");
+            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
+                toWad("0.123456"), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("100", 6));
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad("0").toString());
+        });
+
+        it("#1.7 - should convert from larger underlying decimals", async () => {
+            const token20D = await web3tx(TestToken.new, "TestToken.new")(
+                "Test Token 20 Decimals", "TEST20D",
+                {
+                    from: bob
+                });
+            await web3tx(token20D.mint, "Mint token for bob")(
+                bob,
+                toDecimals("100", 20), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await token20D.balanceOf.call(bob)).toString(),
+                toDecimals("100", 20));
+
+            superfluid.createERC20Wrapper(
+                token20D.address,
+                20,
+                "Super Test Token 20D",
+                "TEST20Dx",
+            );
+            const superToken6D = await ISuperToken.at(
+                (await superfluid.getERC20Wrapper.call(
+                    token20D.address,
+                    "TEST20Dx"
+                )).wrapperAddress
+            );
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                "0");
+
+            await web3tx(token20D.approve, "TestToken.approve - from bob to SuperToken")(
+                superToken6D.address,
+                MAX_UINT256, {
+                    from: bob
+                }
+            );
+
+            await web3tx(superToken6D.upgrade, "upgrade 1 from bob")(
+                toWad(1), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad(1).toString());
+            assert.equal(
+                (await token20D.balanceOf.call(bob)).toString(),
+                toDecimals("99", 20));
+
+            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
+                toWad(1), {
+                    from: bob
+                }
+            );
+            assert.equal(
+                (await token20D.balanceOf.call(bob)).toString(),
+                toDecimals("100", 20));
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad("0").toString());
         });
     });
 

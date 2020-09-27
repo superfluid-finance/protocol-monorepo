@@ -20,21 +20,21 @@ contract SuperTokenStorageTester is SuperToken {
         assembly { slot:= _initialized.slot offset := _initialized.offset }
         require (slot == 0 && offset == 20, "initialized changed location");
 
+        // IERC20 internal _token;
+        assembly { slot:= _underlyingToken.slot offset := _underlyingToken.offset }
+        require (slot == 1 && offset == 0, "_underlyingToken changed location");
+
+        // uint8 internal _decimals;
+        assembly { slot:= _underlyingDecimals.slot offset := _underlyingDecimals.offset }
+        require (slot == 1 && offset == 20, "_underlyingDecimals changed location");
+
         // string internal _name;
         assembly { slot:= _name.slot offset := _name.offset }
-        require (slot == 1 && offset == 0, "_name changed location");
+        require (slot == 2 && offset == 0, "_name changed location");
 
         // string internal _symbol;
         assembly { slot:= _symbol.slot offset := _symbol.offset }
-        require (slot == 2 && offset == 0, "_symbol changed location");
-
-        // uint8 internal _decimals;
-        assembly { slot:= _decimals.slot offset := _decimals.offset }
-        require (slot == 3 && offset == 0, "_decimals changed location");
-
-        // IERC20 internal _token;
-        assembly { slot:= _token.slot offset := _token.offset }
-        require (slot == 3 && offset == 1, "_token changed location");
+        require (slot == 3 && offset == 0, "_symbol changed location");
 
         // ISuperfluid internal _host
         assembly { slot:= _host.slot offset := _host.offset }

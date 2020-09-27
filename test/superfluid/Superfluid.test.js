@@ -29,7 +29,9 @@ contract("Superfluid", accounts => {
 
     describe("#1 Governance", () => {
         it("#1.1 getGovernance", async () => {
-            assert.isTrue(await superfluid.getGovernance.call(), tester.contracts.governance);
+            assert.equal(
+                await superfluid.getGovernance.call(),
+                tester.contracts.governance.address);
         });
     });
 

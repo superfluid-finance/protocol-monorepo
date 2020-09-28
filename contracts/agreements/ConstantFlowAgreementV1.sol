@@ -342,7 +342,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         allowanceUsed = _minimalDeposit(token, uint256(flowRate));
         if(chargeDeposit) {
             (int256 availabelBalance, ,) = token.realtimeBalanceOf(sender, block.timestamp);
-            require(availabelBalance > int256(allowanceUsed), "BUHHHHHHCFA: not enough available balance");
+            require(availabelBalance > int256(allowanceUsed), "CFA: not enough available balance");
         }
 
         newData = FlowData(

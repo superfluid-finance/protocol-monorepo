@@ -25,6 +25,8 @@ require("dotenv").config();
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
+const GAS_LIMIT = 8e6;
+
 module.exports = {
 
     plugins: [
@@ -59,8 +61,8 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 4, // Rinkeby's id
+            gas: GAS_LIMIT,
             gasPrice: 1e9, // 1 GWEI
-            gas: 8e6,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
@@ -75,8 +77,8 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 42, // Kovan's id
+            gas: GAS_LIMIT,
             gasPrice: 1e9, // 1 GWEI
-            gas: 8e6,
             //gas: 7017622, //
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -92,8 +94,8 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 5, // Goerli's id
+            gas: GAS_LIMIT,
             gasPrice: 1e9, // 1 GWEI
-            gas: 8e6,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
@@ -109,6 +111,7 @@ module.exports = {
             ),
             network_id: 1, // mainnet's id
             //gas: 7017622, //
+            gas: GAS_LIMIT,
             gasPrice: +process.env.MAINNET_GAS_PRICE || 1000*1000*1000, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -171,7 +174,7 @@ module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.6.6",   // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.7.1",   // Fetch exact version from solc-bin (default: truffle's version)
             settings: {          // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
                     enabled: true,

@@ -2,7 +2,7 @@ const { web3tx } = require("@decentral.ee/web3-helpers");
 const Superfluid = require("..");
 const { parseColonArgs } = require("./utils");
 
-const TestResolver = artifacts.require("TestResolver");
+const IResolver = artifacts.require("IResolver");
 const TestToken = artifacts.require("TestToken");
 
 
@@ -12,6 +12,7 @@ const TestToken = artifacts.require("TestToken");
  * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}
  */
 module.exports = async function (callback, argv) {
+
     try {
         global.web3 = web3;
 
@@ -28,7 +29,7 @@ module.exports = async function (callback, argv) {
         const tokenName = args.pop();
         console.log("Token name", tokenName);
 
-        const testResolver = await TestResolver.at(config.resolverAddress);
+        const testResolver = await IResolver.at(config.resolverAddress);
         console.log("Resolver address", testResolver.address);
 
         // deploy test token and its super token
@@ -44,6 +45,8 @@ module.exports = async function (callback, argv) {
                 name,
                 testTokenAddress
             );
+        } else {
+            console.log("Token already deployed");
         }
         console.log(`Token ${tokenName} address`, testTokenAddress);
 

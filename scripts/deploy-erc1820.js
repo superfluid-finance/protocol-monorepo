@@ -50,7 +50,7 @@ module.exports = async function (callback) {
             await web3.eth.sendTransaction({
                 from: account,
                 to: res.sender,
-                value: "100000000000000000" /* web3.utils.toWei(0.1) */
+                value: "100000000000000000" //web3.utils.toWei(0.1)
             });
             console.log("Step 2: send signed transaction");
             await web3.eth.sendSignedTransaction(res.rawTx);

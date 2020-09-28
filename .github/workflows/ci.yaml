@@ -137,4 +137,4 @@ jobs:
         npm run build
         .github/workflows/npm-publish.sh
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

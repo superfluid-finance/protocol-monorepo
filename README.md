@@ -9,6 +9,9 @@ This repository implements the superfluid protocol as Ethereum contracts. It als
 contains a Javascript SDK for developing Web3 applications using the superfluid
 protocol.
 
+For technical document, references and tutorials, etc, please refer to the
+[docs site](http://docs.superfluid.finance/).
+
 Installation
 ============
 

@@ -43,7 +43,9 @@ module.exports = async function (callback, argv) {
         const superTokenWrapper = await sf.getERC20Wrapper(tokenInfo);
         console.log("SuperToken wrapper address: ", superTokenWrapper.wrapperAddress);
         if (!superTokenWrapper.created) {
+            console.log("Creating the wrapper...");
             await sf.createERC20Wrapper(tokenInfo);
+            console.log("Wrapper created.");
         } else {
             console.log("SuperToken wrapper already created.");
         }

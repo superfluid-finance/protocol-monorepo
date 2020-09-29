@@ -97,6 +97,12 @@ const sf = new SuperfluidSDK.Framework({
 });
 
 await sf.initialize();
+
+const daiAddress = await sf.resolver.get("tokens.fDAI");
+const dai = await sf.contracts.TestToken.at(daiAddress);
+const daixWrapper = await sf.getERC20Wrapper(dai);
+// assert(daixWrapper.created);
+const daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
 ```
 
 What's In the Bag

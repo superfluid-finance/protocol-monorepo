@@ -117,6 +117,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
         token.createAgreement(iId, _encodeIndexData(IndexData(0, 0, 0)));
 
+        emit IndexCreated(token, publisher, indexId);
+
         // nothing to be recorded so far
         newCtx = ctx;
     }
@@ -160,7 +162,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         require(exist, _ERR_STR_INDEX_DOES_NOT_EXIST);
         require(indexValue >= idata.indexValue, "IDAv1: index value should grow");
 
-        _updateIndex(token, publisher, iId, idata, indexValue);
+        _updateIndex(token, publisher, indexId, iId, idata, indexValue);
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -184,7 +186,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             amount /
             uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
         );
-        _updateIndex(token, publisher, iId, idata, idata.indexValue + indexDelta);
+        _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta);
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -193,6 +195,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     function _updateIndex(
         ISuperToken token,
         address publisher,
+        uint32 indexId,
         bytes32 iId,
         IndexData memory idata,
         uint128 indexValue
@@ -212,6 +215,8 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
         // adjust the publisher's index data
         idata.indexValue = indexValue;
         token.updateAgreementData(iId, _encodeIndexData(idata));
+
+        emit IndexUpdated(token, publisher, indexId, indexValue, idata.totalUnitsPending, idata.totalUnitsApproved);
 
         // check account solvency
         require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance of publisher");
@@ -311,6 +316,10 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
                 address(this), publisher, sd.sId, sd.cbdata
             );
         }
+
+        // can index up to three words, hence splitting into two events from publisher or subscriber's view.
+        emit IndexSubscribed(token, publisher, indexId, subscriber);
+        emit SubscriptionApproved(token, subscriber, publisher, indexId);
     }
 
     /// @dev IInstantDistributionAgreementV1.updateSubscription implementation
@@ -422,6 +431,9 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
                 address(this), subscriber, sId, sd.cbdata
             );
         }
+
+        emit IndexUnitsUpdated(token, publisher, indexId, subscriber, units);
+        emit SubscriptionUnitsUpdated(token, subscriber, publisher, indexId, units);
     }
 
     /// @dev IInstantDistributionAgreementV1.getSubscription implementation
@@ -591,6 +603,9 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
             ISuperfluid(msg.sender), token, newCtx,
             address(this), sender == subscriber ? publisher : subscriber, sd.sId, sd.cbdata
         );
+
+        emit IndexUnsubscribed(token, publisher, indexId, subscriber);
+        emit SubscriptionDeleted(token, subscriber, publisher, indexId);
     }
 
     function claim(

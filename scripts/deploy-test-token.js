@@ -16,7 +16,7 @@ module.exports = async function (callback, argv) {
     try {
         global.web3 = web3;
 
-        const reset = !!process.env.RESET;
+        const reset = !!process.env.RESET_TOKEN;
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
         const config = Superfluid.getConfig(chainId);
         console.log("reset: ", reset);

@@ -2,7 +2,7 @@ const { web3tx } = require("@decentral.ee/web3-helpers");
 const Superfluid = require("..");
 const { parseColonArgs } = require("./utils");
 
-const IResolver = artifacts.require("IResolver");
+const TestResolver = artifacts.require("TestResolver");
 const TestToken = artifacts.require("TestToken");
 
 
@@ -16,7 +16,7 @@ module.exports = async function (callback, argv) {
     try {
         global.web3 = web3;
 
-        const reset = !!process.env.RESET;
+        const reset = !!process.env.RESET_TOKEN;
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
         const config = Superfluid.getConfig(chainId);
         console.log("reset: ", reset);
@@ -29,7 +29,7 @@ module.exports = async function (callback, argv) {
         const tokenName = args.pop();
         console.log("Token name", tokenName);
 
-        const testResolver = await IResolver.at(config.resolverAddress);
+        const testResolver = await TestResolver.at(config.resolverAddress);
         console.log("Resolver address", testResolver.address);
 
         // deploy test token and its super token

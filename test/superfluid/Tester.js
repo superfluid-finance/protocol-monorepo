@@ -82,7 +82,7 @@ module.exports = class Tester {
 
         // governance contract
         this.contracts.governance = await web3tx(TestGovernance.new, "TestGovernance.new")(
-            this.aliases.admin /* rewardAddress */,
+            this.constants.ZERO_ADDRESS /* rewardAddress */,
             this.constants.LIQUIDATION_PERIOD /* liquidationReriod */,
             {
                 from: this.aliases.admin

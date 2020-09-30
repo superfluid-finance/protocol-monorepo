@@ -2,6 +2,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const {
     web3tx,
+    wad4human,
     toWad,
     toBN
 } = require("@decentral.ee/web3-helpers");
@@ -12,6 +13,7 @@ const Tester = require("../superfluid/Tester");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toWad(1);
+const FLOW_RATE2 = "385802469135802";
 
 contract("Constant Flow Agreement", accounts => {
 
@@ -19,6 +21,7 @@ contract("Constant Flow Agreement", accounts => {
     const { admin, alice, bob, carol, dan } = tester.aliases;
     const { INIT_BALANCE } = tester.constants;
 
+    let governance;
     let token;
     let superToken;
     let cfa;
@@ -31,6 +34,7 @@ contract("Constant Flow Agreement", accounts => {
     beforeEach(async function () {
         await tester.resetContracts();
         ({
+            governance,
             token,
             superToken,
             cfa,
@@ -1085,7 +1089,7 @@ contract("Constant Flow Agreement", accounts => {
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
-                (FLOW_RATE).toString(),
+                FLOW_RATE.toString(),
                 "0x"
             ).encodeABI();
 
@@ -1231,7 +1235,6 @@ contract("Constant Flow Agreement", accounts => {
 
     });
 
-
     describe("#6 FlowAgreement Deposit and OwedDeposit", () => {
         it("#6.1 Should fail if sender don't have balance to pay deposit", async() => {
             let dataAgreement = cfa.contract.methods.createFlow(
@@ -1268,5 +1271,258 @@ contract("Constant Flow Agreement", accounts => {
                     }
                 ), "CFA: not enough available balance");
         });
+    });
+
+    describe("#7 FlowAgreement Liquidation Test", () => {
+
+        it("#7.1 Liquidator should take the deposit", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                cfa.address,
+                cfa.contract.methods.createFlow(
+                    superToken.address,
+                    bob,
+                    FLOW_RATE2.toString(), // use a less nice number to test rounding
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
+                "-385802469135802");
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
+                "385802469135802");
+
+            await expectRevert(superfluid.callAgreement(
+                cfa.address,
+                cfa.contract.methods.deleteFlow(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0x"
+                ).encodeABI(), {
+                    from: dan,
+                }
+            ), "FlowAgreement: account is solvent");
+
+            // drain alice account
+            let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            await web3tx(superToken.transferAll, "Alice transfer all")(
+                carol, {
+                    from: alice
+                }
+            );
+            assert.isTrue(!await superToken.isAccountInsolvent(alice));
+
+            // alice become insolvent
+            await traveler.advanceTimeAndBlock(1);
+            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            assert.isTrue(await superToken.isAccountInsolvent(alice));
+
+            // dan liquidates alice
+            await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
+                cfa.address,
+                cfa.contract.methods.deleteFlow(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0x"
+                ).encodeABI(), {
+                    from: dan,
+                }
+            );
+            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            let danBalance = await superToken.balanceOf.call(dan);
+            console.log("Dan balance: ", wad4human(danBalance));
+            assert.isTrue(toBN(dan).gt(toWad(0)));
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
+                "0");
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
+                "0");
+
+            await tester.validateSystem();
+        });
+
+        it("#7.2 Liquidator should take the deposit but also pay for the deficit", async() => {
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                cfa.address,
+                cfa.contract.methods.createFlow(
+                    superToken.address,
+                    bob,
+                    FLOW_RATE.toString(), // use a less nice number to test rounding
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
+                "-1000000000000000000");
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
+                "1000000000000000000");
+
+            await expectRevert(superfluid.callAgreement(
+                cfa.address,
+                cfa.contract.methods.deleteFlow(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0x"
+                ).encodeABI(), {
+                    from: dan,
+                }
+            ), "FlowAgreement: account is solvent");
+
+            // drain alice account
+            let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            await web3tx(superToken.transferAll, "Alice transfer all")(
+                carol, {
+                    from: alice
+                }
+            );
+            assert.isTrue(!await superToken.isAccountInsolvent(alice));
+
+            // alice become insolvent
+            await traveler.advanceTimeAndBlock(10);
+            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            assert.isTrue(await superToken.isAccountInsolvent(alice));
+
+            // dan liquidates alice
+            await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
+                cfa.address,
+                cfa.contract.methods.deleteFlow(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0x"
+                ).encodeABI(), {
+                    from: dan,
+                }
+            );
+            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            const danBalance = await superToken.realtimeBalanceOfNow.call(dan);
+            console.log("Dan balance: ", wad4human(danBalance.availableBalance));
+            assert.isTrue(toBN(danBalance.availableBalance).lt(toWad(0)));
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
+                "0");
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
+                "0");
+
+            await tester.validateSystem();
+        });
+
+        it("#7.3 Liquidator should take the deposit, but reward address pays for the deficit", async() => {
+            // let admin be the reward address
+            await governance.setRewardAddress(admin, { from: admin });
+            await superToken.upgrade(INIT_BALANCE, {from : alice});
+            await superToken.upgrade(INIT_BALANCE, {from : dan});
+
+            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+                cfa.address,
+                cfa.contract.methods.createFlow(
+                    superToken.address,
+                    bob,
+                    FLOW_RATE.toString(), // use a less nice number to test rounding
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: alice,
+                }
+            );
+            await traveler.advanceTimeAndBlock(ADV_TIME);
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
+                "-1000000000000000000");
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
+                "1000000000000000000");
+
+            await expectRevert(superfluid.callAgreement(
+                cfa.address,
+                cfa.contract.methods.deleteFlow(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0x"
+                ).encodeABI(), {
+                    from: dan,
+                }
+            ), "FlowAgreement: account is solvent");
+
+            // drain alice account
+            let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            await web3tx(superToken.transferAll, "Alice transfer all")(
+                carol, {
+                    from: alice
+                }
+            );
+            assert.isTrue(!await superToken.isAccountInsolvent(alice));
+
+            // alice become insolvent
+            await traveler.advanceTimeAndBlock(10);
+            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            assert.isTrue(await superToken.isAccountInsolvent(alice));
+
+            // dan liquidates alice
+            await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
+                cfa.address,
+                cfa.contract.methods.deleteFlow(
+                    superToken.address,
+                    alice,
+                    bob,
+                    "0x"
+                ).encodeABI(), {
+                    from: dan,
+                }
+            );
+            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
+            console.log("Alice balance: ",
+                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
+            const adminBalance = await superToken.realtimeBalanceOfNow.call(admin);
+            const danBalance = await superToken.realtimeBalanceOfNow.call(dan);
+            console.log("Admin balance: ", wad4human(adminBalance.availableBalance));
+            console.log("Dan balance: ", wad4human(danBalance.availableBalance));
+            assert.isTrue(toBN(adminBalance.availableBalance).lt(toWad(0)));
+            assert.isTrue(toBN(danBalance.availableBalance).gt(toWad(0)));
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
+                "0");
+            assert.equal(
+                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
+                "0");
+
+            await tester.validateSystem();
+        });
+
     });
 });

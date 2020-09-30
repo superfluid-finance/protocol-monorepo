@@ -236,14 +236,27 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * @return deposit Account deposit
      * @return owedDeposit Account owed Deposit
      */
-     function realtimeBalanceOf(
-         address account,
-         uint256 timestamp
-     )
-         external
-         virtual
-         view
-         returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+    function realtimeBalanceOf(
+        address account,
+        uint256 timestamp
+    )
+        external
+        virtual
+        view
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+
+    /// @dev realtimeBalanceOf with timestamp equals to block.timestamp
+    function realtimeBalanceOfNow(
+        address account
+    )
+        external
+        virtual
+        view
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+
+    function transferAll(address recipient)
+        external
+        virtual;
 
     /**************************************************************************
      * ERC20 wrapping

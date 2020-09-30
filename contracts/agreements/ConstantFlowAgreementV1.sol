@@ -388,7 +388,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         bool liquidation
     )
         private
-        returns(uint256 deposit)
     {
         bytes32 flowId = _generateId(sender, receiver);
         (bool exist, FlowData memory data) = _getAgreementData(token, flowId);
@@ -411,16 +410,16 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             true
         );
 
+        token.terminateAgreement(flowId, 1);
+
         // Close this Agreement Data
         if (liquidation) {
             token.liquidateAgreement(
                 caller,
                 flowId,
                 sender,
-                deposit
+                data.deposit
             );
-        } else {
-            token.terminateAgreement(flowId, 1);
         }
 
         emit FlowUpdated(

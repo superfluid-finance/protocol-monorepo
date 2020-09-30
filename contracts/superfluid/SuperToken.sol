@@ -390,6 +390,23 @@ contract SuperToken is
         ) = _calcAvailabelBalance(account, timestamp);
     }
 
+    function realtimeBalanceOfNow(
+        address account
+    )
+        external
+        override
+        view
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit) {
+        return realtimeBalanceOf(account, block.timestamp);
+    }
+
+    function transferAll(address recipient)
+        external
+        override
+    {
+        _transfer(msg.sender, recipient, balanceOf(msg.sender));
+    }
+
     /**************************************************************************
      * Agreement hosting functions
      *************************************************************************/
@@ -464,22 +481,34 @@ contract SuperToken is
         ISuperfluidGovernance gov = _host.getGovernance();
         address rewardAccount = gov.getRewardAddress(address(this));
 
-        (int256 balance, , ) = realtimeBalanceOf(account, block.timestamp);
-        int256 remain = balance.sub(int256(deposit));
-
-        //if there is fees to be collected discount user account, if not then discount rewardAccount
-        if (remain > 0) {
-            _balances[account] = _balances[account].sub(int256(deposit));
-            _balances[rewardAccount] = _balances[rewardAccount].add(int256(deposit));
-        } else {
-            _balances[account] = _balances[account].sub(balance);
-            _balances[rewardAccount] = _balances[rewardAccount].add(remain);
-            _balances[liquidator] = _balances[liquidator].add(int256(deposit));
+        // reward go to liquidator if reward address is null
+        if (rewardAccount == address(0)) {
+            rewardAccount = liquidator;
         }
 
-        //delete _agreementData[msg.sender][id];
-        emit AgreementTerminated(msg.sender, id);
-        emit AgreementLiquidated(msg.sender, id, account, remain > 0 ? rewardAccount : liquidator, deposit);
+        (int256 availableBalance, , ) = realtimeBalanceOf(account, block.timestamp);
+
+        int256 remain = availableBalance.add(int256(deposit));
+
+        // Liquidation rules:
+        // #1 Can the agreement deposit can still cover the available balance deficit?
+        if (remain > 0) {
+            // #1.1 yes: then the reward address takes the deposit
+            _balances[rewardAccount] = _balances[rewardAccount].add(int256(deposit));
+            // #2.1 the account pays for the deposit
+            _balances[account] = _balances[account].sub(int256(deposit));
+            emit AgreementLiquidated(msg.sender, id, account, rewardAccount, deposit);
+        } else {
+            // #1.2 no: then the liquidator takes the deposit
+            _balances[liquidator] = _balances[liquidator].add(int256(deposit));
+            // #2.2 the account still pays for the deposit, but also refunded with the deficit
+            _balances[account] = _balances[account]
+                .sub(availableBalance)
+                .sub(int256(deposit));
+            // #2.3 and the reward address pay the deficit
+            _balances[rewardAccount] = _balances[rewardAccount].add(availableBalance);
+            emit AgreementLiquidated(msg.sender, id, account, liquidator, deposit);
+        }
     }
 
     /// @dev ISuperToken.updateAgreementState implementation

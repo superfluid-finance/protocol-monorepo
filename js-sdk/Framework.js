@@ -41,7 +41,7 @@ Framework.prototype.initialize = async function () {
     const chainId = this.chainId || await this.web3.eth.net.getId(); // TODO use eth.getChainId;
     console.log("chainId", chainId);
 
-    const config = getConfig(this.chainId);
+    const config = getConfig(chainId);
 
     console.debug("Resolver at", config.resolverAddress);
     this.resolver = await this.contracts.IResolver.at(config.resolverAddress);

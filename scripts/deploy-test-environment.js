@@ -21,7 +21,7 @@ module.exports = async function (callback) {
         await deployFramework(errorHandler);
         console.log("==== Superfluid framework deployed.");
 
-        const tokens = ["fDAI", "fUSDC"];
+        const tokens = ["fDAI", "fUSDC", "fTUSD"];
         for (let i = 0; i < tokens.length; ++i) {
             console.log(`==== Deploying test token ${tokens[i]}...`);
             await deployTestToken(errorHandler, [":", tokens[i]]);

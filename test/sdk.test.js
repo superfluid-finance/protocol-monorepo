@@ -26,7 +26,7 @@ contract("sdk test", () => {
 
         assert.isDefined(IResolver.abi);
         assert.equal(IResolver.contractName, "IResolver");
-        assert.isTrue(IResolver.abi.filter(i => i.name === "set").length > 0);
+        assert.isTrue(IResolver.abi.filter(i => i.name === "get").length > 0);
 
         assert.isDefined(TokenInfo.abi);
         assert.equal(TokenInfo.contractName, "TokenInfo");
@@ -53,9 +53,6 @@ contract("sdk test", () => {
         // goerli
         const goerliConfig = Superfluid.getConfig(5);
         assert.isNotEmpty(goerliConfig.resolverAddress);
-        // kovan
-        const kovanConfig = Superfluid.getConfig(42);
-        assert.isNotEmpty(kovanConfig.resolverAddress);
         /*
         // test environment
         let testConfig = Superfluid.getConfig(5555);

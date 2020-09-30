@@ -56,6 +56,11 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    event IndexCreated(
+        ISuperToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId);
+
     /**
      * @dev Query the data of a index.
      * @param token Super token address.
@@ -101,6 +106,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
+
+    event IndexUpdated(
+        ISuperToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId,
+        uint128 indexValue,
+        uint128 totalUnitsPending,
+        uint128 totalUnitsApproved);
 
     /**
      * @dev Distribute tokens through the index.
@@ -170,6 +183,18 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
+    event IndexSubscribed(
+        ISuperToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId,
+        address subscriber);
+
+    event SubscriptionApproved(
+        ISuperToken indexed token,
+        address indexed subscriber,
+        address publisher,
+        uint32 indexId);
+
     /**
      * @dev Update the nuber of units of a subscription.
      * @param token Super token address.
@@ -195,6 +220,20 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
+
+    event IndexUnitsUpdated(
+        ISuperToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId,
+        address subscriber,
+        uint128 units);
+
+    event SubscriptionUnitsUpdated(
+        ISuperToken indexed token,
+        address indexed subscriber,
+        address publisher,
+        uint32 indexId,
+        uint128 units);
 
     /**
      * @dev Get data of a subscription
@@ -288,6 +327,18 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
+
+    event IndexUnsubscribed(
+        ISuperToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId,
+        address subscriber);
+
+    event SubscriptionDeleted(
+        ISuperToken indexed token,
+        address indexed subscriber,
+        address publisher,
+        uint32 indexId);
 
     /**
     * @dev Claim pending distributions.

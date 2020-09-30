@@ -6,10 +6,12 @@ const getConfig = require("./getConfig");
 function Framework({
     web3Provider,
     isTruffle,
-    version
+    version,
+    chainId
 }) {
     const contractNames = Object.keys(SuperfluidABI);
 
+    this.chainId = chainId;
     this.version = version || "test";
 
     // load contracts
@@ -36,8 +38,10 @@ function Framework({
 }
 
 Framework.prototype.initialize = async function () {
-    const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
-    const config = getConfig(chainId);
+    const chainId = this.chainId || await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+    console.log("chainId", chainId);
+
+    const config = getConfig(this.chainId);
 
     console.debug("Resolver at", config.resolverAddress);
     this.resolver = await this.contracts.IResolver.at(config.resolverAddress);

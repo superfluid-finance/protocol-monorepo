@@ -9,7 +9,7 @@ contract TestResolver is IResolver {
 
     mapping(string => address) private _registry;
 
-    function set(string calldata name, address target) external override {
+    function set(string calldata name, address target) external {
         _registry[name] = target;
     }
 

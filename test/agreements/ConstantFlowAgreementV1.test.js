@@ -1089,7 +1089,7 @@ contract("Constant Flow Agreement", accounts => {
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
-                FLOW_RATE,
+                FLOW_RATE.toString(),
                 "0x"
             ).encodeABI();
 

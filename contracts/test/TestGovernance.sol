@@ -37,6 +37,15 @@ contract TestGovernance is
         return _rewardAddress;
     }
 
+    function setRewardAddress(
+        address rewardAddress
+    )
+        external
+        onlyOwner
+    {
+        _rewardAddress = rewardAddress;
+    }
+
     function getLiquidationPeriod(
         address /* superToken */
     )

@@ -9,7 +9,7 @@ function getLatestFlows(flows) {
     return Object.values(flows.reduce((acc, i) => {
         acc[i.args.sender + ":" + i.args.receiver] = i;
         return acc;
-    }, {}));
+    }, {})).filter(i => i.args.flowRate.toString() != "0");
 }
 
 /**

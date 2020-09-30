@@ -92,7 +92,7 @@ Initialize the SDK
 ```
 const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
 const sf = new SuperfluidSDK.Framework({
-    version: "0.1.0-alpha-20200928", // This is for using different protocol release
+    version: "preview-20200928", // This is for using different protocol release
     web3Provider: web3.currentProvider // your web3 provider
 });
 

@@ -2,6 +2,8 @@
 
 cd "$(dirname "$0")/.."
 
+which jq &>/dev/null || { echo "Install jq utility!" && exit; }
+
 CONTRACTS=(
     IERC20
     TokenInfo

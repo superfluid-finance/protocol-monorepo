@@ -9,7 +9,8 @@
     "/contracts/**/*.sol",
     "/build/abi.js",
     "/build/contracts/*.json",
-    "js-sdk/*.js"
+    "scripts/**/*.js",
+    "js-sdk/**/*.js"
   ],
   "dependencies": {
     "@openzeppelin/contracts": "3.2.1-solc-0.7"

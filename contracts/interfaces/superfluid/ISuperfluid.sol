@@ -126,6 +126,7 @@ interface ISuperfluid {
     function callAppBeforeCallback(
         ISuperApp app,
         bytes calldata data,
+        bool isTermination,
         bytes calldata ctx
     )
         external
@@ -136,6 +137,7 @@ interface ISuperfluid {
     function callAppAfterCallback(
         ISuperApp app,
         bytes calldata data,
+        bool isTermination,
         bytes calldata ctx
     )
         external

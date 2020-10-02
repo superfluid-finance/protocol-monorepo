@@ -47,7 +47,8 @@ library AgreementLibrary {
         bytes memory ctx,
         address agreementClass,
         address account,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bool isTermination
     )
         private
         returns(bytes memory cbdata, bytes memory newCtx)
@@ -65,7 +66,7 @@ library AgreementLibrary {
                 agreementClass,
                 agreementId
             );
-            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, ctx);
+            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, isTermination, ctx);
         }
     }
 
@@ -78,7 +79,8 @@ library AgreementLibrary {
         address agreementClass,
         address account,
         bytes32 agreementId,
-        bytes memory cbdata
+        bytes memory cbdata,
+        bool isTermination
     )
         private
         returns(bytes memory newCtx)
@@ -97,7 +99,7 @@ library AgreementLibrary {
                 agreementId,
                 cbdata
             );
-            return host.callAppAfterCallback(ISuperApp(account), data, ctx);
+            return host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
         }
 
         return ctx;
@@ -122,7 +124,8 @@ library AgreementLibrary {
             ctx,
             agreementClass,
             account,
-            agreementId
+            agreementId,
+            false
         );
     }
 
@@ -148,7 +151,8 @@ library AgreementLibrary {
             agreementClass,
             account,
             agreementId,
-            cbdata
+            cbdata,
+            false
         );
     }
 
@@ -171,7 +175,8 @@ library AgreementLibrary {
             ctx,
             agreementClass,
             account,
-            agreementId
+            agreementId,
+            false
         );
     }
 
@@ -196,7 +201,8 @@ library AgreementLibrary {
             agreementClass,
             account,
             agreementId,
-            cbdata
+            cbdata,
+            false
         );
     }
 
@@ -219,7 +225,8 @@ library AgreementLibrary {
             ctx,
             agreementClass,
             account,
-            agreementId
+            agreementId,
+            true
         );
     }
 
@@ -244,7 +251,8 @@ library AgreementLibrary {
             agreementClass,
             account,
             agreementId,
-            cbdata
+            cbdata,
+            true
         );
     }
 

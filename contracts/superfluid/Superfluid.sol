@@ -264,6 +264,7 @@ contract Superfluid is
     function callAppBeforeCallback(
         ISuperApp app,
         bytes calldata data,
+        bool isTermination,
         bytes calldata ctx
     )
         external override
@@ -276,17 +277,20 @@ contract Superfluid is
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
             //(newCtx, cbdata) = splitReturnedData(returnedData);
-            //TODO Change counter gas measurement
             newCtx = ctx;
         } else {
-            revert("Superfluid: before callback failed");
-            // TODO jail if it is termination callback
+            if (!isTermination) {
+                revert("Superfluid: before callback failed");
+            } else {
+                emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
+            }
         }
     }
 
     function callAppAfterCallback(
         ISuperApp app,
         bytes calldata data,
+        bool isTermination,
         bytes calldata /*ctx*/
     )
         external override
@@ -297,16 +301,19 @@ contract Superfluid is
         require(!isAppJailed(app), "SF: App already jailed");
 
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
-        newCtx = abi.decode(returnedData, (bytes));
         if(success) {
+            newCtx = abi.decode(returnedData, (bytes));
             if(!_isCtxValid(newCtx)) {
                 // TODO: JAIL if callback changes ctx
                 //Change return context
                 emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
             }
         } else {
-            revert("SF: Insuccessful external call");
-            // TODO jail if it is termination callback
+            if (!isTermination) {
+                revert("Superfluid: after callback failed");
+            } else {
+                emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
+            }
         }
     }
 

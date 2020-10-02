@@ -81,8 +81,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # only publish npm package for master branch push
-    if: github.event_name  == 'push' && github.ref == 'refs/heads/master'
+    # publish npm package
+    if: github.event_name  == 'push' && github.ref == 'refs/heads/v0.1'
 
     steps:
 
@@ -119,8 +119,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # only publish npm package for master branch push
-    if: github.event_name  == 'push' && github.ref == 'refs/heads/master'
+    # publish npm package
+    if: github.event_name  == 'push' && github.ref == 'refs/heads/v0.1'
 
     steps:
 

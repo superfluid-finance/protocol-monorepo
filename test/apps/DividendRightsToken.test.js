@@ -15,7 +15,7 @@ contract("DividendRightsToken", accounts => {
     let superfluid;
 
     const { MAX_UINT256, INIT_BALANCE } = tester.constants;
-    const { alice, bob, carol } = tester.aliases;
+    const { alice, bob, carol, dan } = tester.aliases;
 
     beforeEach(async function () {
         await tester.resetContracts();
@@ -50,6 +50,16 @@ contract("DividendRightsToken", accounts => {
             (await app.balanceOf.call(bob)).toString(),
             "100"
         );
+        // test erc20 transfers
+        await web3tx(app.transfer, "Bob transfers 5 rights to dan")(
+            dan, "5",
+            { from: bob }
+        );
+        await web3tx(app.transfer, "Dan transfers 5 rights back to bob")(
+            bob, "5",
+            { from: dan }
+        );
+        // bob approving
         assert.isFalse(await app.isSubscribing.call(bob));
         await web3tx(superfluid.callAgreement, "Bob approves subscription to the app")(
             ida.address,

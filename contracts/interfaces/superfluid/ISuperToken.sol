@@ -1,14 +1,138 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
-import { ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
+import { TokenInfo } from "../tokens/TokenInfo.sol";
+import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Superfluid's token interface.
  *
  * @author Superfluid
  */
-abstract contract ISuperToken is ERC20WithTokenInfo {
+interface ISuperToken is TokenInfo, IERC20, IERC777 {
+
+    /**************************************************************************
+    * TokenInfo & ERC777
+    *************************************************************************/
+
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() external view override(IERC777, TokenInfo) returns (string memory);
+
+    /**
+     * @dev Returns the symbol of the token, usually a shorter version of the
+     * name.
+     */
+    function symbol() external view override(IERC777, TokenInfo) returns (string memory);
+
+
+
+    /**
+     * @dev Returns the number of decimals used to get its user representation.
+     * For example, if `decimals` equals `2`, a balance of `505` tokens should
+     * be displayed to a user as `5,05` (`505 / 10 ** 2`).
+     *
+     * Tokens usually opt for a value of 18, imitating the relationship between
+     * Ether and Wei. This is the value {ERC20} uses, unless {_setupDecimals} is
+     * called.
+     *
+     * NOTE: SuperToken always uses 18 decimals.
+     *
+     * Note: This information is only used for _display_ purposes: it in
+     * no way affects any of the arithmetic of the contract, including
+     * {IERC20-balanceOf} and {IERC20-transfer}.
+     */
+    function decimals() external view override(TokenInfo) returns (uint8);
+
+    /**************************************************************************
+    * ERC20 & ERC777
+    *************************************************************************/
+
+    /**
+     * @dev See {IERC20-totalSupply}.
+     */
+    function totalSupply() external view override(IERC777, IERC20) returns (uint256);
+
+    /**
+     * @dev Returns the amount of tokens owned by an account (`owner`).
+     */
+    function balanceOf(address account) external view override(IERC777, IERC20) returns(uint256 balance);
+
+    /**************************************************************************
+    * ERC20
+    *************************************************************************/
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transfer(address recipient, uint256 amount) external override(IERC20) returns (bool);
+
+    /**
+     * @dev Returns the remaining number of tokens that `spender` will be
+     * allowed to spend on behalf of `owner` through {transferFrom}. This is
+     * zero by default.
+     *
+     * This value changes when {approve} or {transferFrom} are called.
+     */
+    function allowance(address owner, address spender) external override(IERC20) view returns (uint256);
+
+    /**
+     * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * IMPORTANT: Beware that changing an allowance with this method brings the risk
+     * that someone may use both the old and the new allowance by unfortunate
+     * transaction ordering. One possible solution to mitigate this race
+     * condition is to first reduce the spender's allowance to 0 and set the
+     * desired value afterwards:
+     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+     *
+     * Emits an {Approval} event.
+     */
+    function approve(address spender, uint256 amount) external override(IERC20) returns (bool);
+
+    /**
+     * @dev Moves `amount` tokens from `sender` to `recipient` using the
+     * allowance mechanism. `amount` is then deducted from the caller's
+     * allowance.
+     *
+     * Returns a boolean value indicating whether the operation succeeded.
+     *
+     * Emits a {Transfer} event.
+     */
+    function transferFrom(address sender, address recipient, uint256 amount) external override(IERC20) returns (bool);
+
+    /**************************************************************************
+    * ERC777
+    *************************************************************************/
+
+    function granularity() external view override(IERC777) returns (uint256);
+    function send(address recipient, uint256 amount, bytes calldata data) external override(IERC777);
+    function burn(uint256 amount, bytes calldata data) external override(IERC777);
+    function isOperatorFor(address operator, address tokenHolder) external override(IERC777) view returns (bool);
+    function authorizeOperator(address operator) external override(IERC777);
+    function revokeOperator(address operator) external override(IERC777);
+    function defaultOperators() external override(IERC777) view returns (address[] memory);
+    function operatorSend(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata operatorData
+    ) external override(IERC777);
+    function operatorBurn(
+        address account,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata operatorData
+    ) external override(IERC777);
 
     /**************************************************************************
      * Agreement hosting functions
@@ -24,7 +148,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32[] calldata data
     )
         //onlyAgreement
-        external virtual;
+        external;
 
     /**
      * @dev Agreement creation event
@@ -49,7 +173,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32 id,
         uint dataLength
     )
-        external virtual view
+        external view
         returns(bytes32[] memory data);
 
     /**
@@ -62,7 +186,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32[] calldata data
     )
         //onlyAgreement
-        external virtual;
+        external;
 
     /**
      * @dev Agreement creation event
@@ -85,7 +209,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint dataLength
     )
         //onlyAgreement
-        external virtual;
+        external;
 
     /**
      * @dev Agreement termination event
@@ -112,7 +236,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint256 deposit
     )
         // onlyAgreement
-        external virtual;
+        external;
 
     /**
      * @dev Update agreement state slot
@@ -127,7 +251,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         bytes32[] calldata slotData
     )
         //onlyAgreement
-        external virtual;
+        external;
 
     /**
      * @dev Agreement account state updated event
@@ -154,7 +278,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint256 slotId,
         uint dataLength
     )
-        external virtual view
+        external view
         returns (bytes32[] memory slotData);
 
     /**
@@ -196,7 +320,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         int256 delta
     )
         // onlyAgreement
-        external virtual;
+        external;
 
     /**************************************************************************
      * Account functions
@@ -210,7 +334,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      */
     function getAccountActiveAgreements(address account)
         external
-        virtual
+
         view
         returns(address[] memory activeAgreements);
 
@@ -224,7 +348,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
     )
         external
         view
-        virtual
+
         returns(bool isInsolvent);
 
     /**
@@ -241,7 +365,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         uint256 timestamp
     )
         external
-        virtual
+
         view
         returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
 
@@ -250,13 +374,13 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address account
     )
         external
-        virtual
+
         view
         returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
 
     function transferAll(address recipient)
         external
-        virtual;
+        ;
 
     /**************************************************************************
      * ERC20 wrapping
@@ -266,7 +390,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * @dev Return the underlaying token contract
      * @return tokenAddr Underlying token address
      */
-    function getUnderlayingToken() external virtual view returns(address tokenAddr);
+    function getUnderlayingToken() external view returns(address tokenAddr);
 
     /**
      * @dev Upgrade ERC20 to SuperToken.
@@ -275,7 +399,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * NOTE: It will use ´transferFrom´ to get tokens. Before calling this
      * function you should ´approve´ this contract
      */
-    function upgrade(uint256 amount) external virtual;
+    function upgrade(uint256 amount) external;
 
     /**
      * @dev Token upgrade event
@@ -292,7 +416,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * @dev It will call transfer to send tokens
      * @param amount Number of tokens to be downgraded
      */
-    function downgrade(uint256 amount) external virtual;
+    function downgrade(uint256 amount) external;
 
     /**
      * @dev Token downgrade event
@@ -318,7 +442,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address account,
         address spender,
         uint256 amount
-    ) external virtual;
+    ) external;
 
     /**
      * @dev Perform ERC20 transfer from by host contract.
@@ -332,21 +456,21 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
         address sender,
         address recipient,
         uint256 amount
-    ) external virtual;
+    ) external;
 
     /**
      * @dev Upgrade ERC20 to SuperToken by host contract.
      * @param account The account to be changed.
      * @param amount Number of tokens to be upgraded (in 18 decimals)
      */
-    function operationUpgrade(address account, uint256 amount) external virtual;
+    function operationUpgrade(address account, uint256 amount) external;
 
     /**
      * @dev Downgrade ERC20 to SuperToken by host contract.
      * @param account The account to be changed.
      * @param amount Number of tokens to be downgraded (in 18 decimals)
      */
-    function operationDowngrade(address account, uint256 amount) external virtual;
+    function operationDowngrade(address account, uint256 amount) external;
 
     /**************************************************************************
     * System functions
@@ -356,7 +480,7 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      * @dev Get the contract address that is hosting this token.
      * @return host Superfluid host contract address
      */
-    function getHost() external view virtual returns(address host);
+    function getHost() external view returns(address host);
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations
@@ -368,6 +492,6 @@ abstract contract ISuperToken is ERC20WithTokenInfo {
      *************************************************************************/
 
     /* /// @dev The msg.sender must be a listed agreement.
-    modifier onlyAgreement() virtual; */
+    modifier onlyAgreement() ; */
 
 }

@@ -728,6 +728,11 @@ contract SuperToken is
     }
 
     function _downgrade(address account, uint256 amount) private {
+        // - even though _burn will check the (actual) amount availability again
+        // we need to first check it here
+        // - in case of downcasting of decimals, actual amount can be smaller than
+        // requested amount
+        require(balanceOf(account) >= amount, "SuperToken: downgrade amount exceeds balance");
         uint256 underlyingAmount;
         (underlyingAmount, amount) = _toUnderlyingAmount(amount);
         _burn(msg.sender /* operator */, account, amount, "", "");

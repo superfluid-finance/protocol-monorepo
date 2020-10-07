@@ -422,7 +422,7 @@ contract("Super Token", accounts => {
     //     */
     // });
 
-    describe.only("#4 SuperToken.transfer", () => {
+    describe("#4 SuperToken.transfer", () => {
         it("#4.1 - should transfer available amount", async() => {
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice") (
                 toWad(2), {

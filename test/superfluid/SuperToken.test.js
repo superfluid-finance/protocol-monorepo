@@ -422,7 +422,7 @@ contract("Super Token", accounts => {
     //     */
     // });
 
-    describe("#4 SuperToken.transfer", () => {
+    describe.only("#4 SuperToken.transfer", () => {
         it("#4.1 - should transfer available amount", async() => {
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice") (
                 toWad(2), {
@@ -450,7 +450,7 @@ contract("Super Token", accounts => {
             await expectRevert(
                 web3tx(superToken.transfer, "transfer 2(+1wei) from alice to bob should fail")(
                     bob, toWad(2).add(toBN(1)), {from: alice}
-                ), "transfer amount exceeds balance");
+                ), "SuperToken: transfer amount exceeds balance");
             await tester.validateSystem();
         });
 
@@ -489,7 +489,7 @@ contract("Super Token", accounts => {
             await expectRevert(
                 web3tx(superToken.transfer, "transfer to zero address")(
                     ZERO_ADDRESS, 1, {from: alice}),
-                "transfer to zero address");
+                "SuperToken: transfer to zero address");
         });
     });
 
@@ -544,14 +544,14 @@ contract("Super Token", accounts => {
                     alice,
                     bob,
                     1, {from: bob}
-                ), "transfer amount exceeds balance");
+                ), "SuperToken: transfer amount exceeds balance");
         });
 
         it("#5.3 - should not approve zero address", async () => {
             await expectRevert(
                 web3tx(superToken.approve, "approve to zero address")(
                     ZERO_ADDRESS, 1, {from: alice}),
-                "approve to zero address");
+                "SuperToken: approve to zero address");
         });
     });
 

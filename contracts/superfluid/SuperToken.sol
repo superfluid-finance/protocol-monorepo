@@ -17,6 +17,11 @@ import {
 
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
+import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
+import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
+import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+
 
 /**
  * @dev Storage layout of SuperToken
@@ -62,6 +67,21 @@ contract SuperToken is
     ISuperToken,
     Proxiable
 {
+
+    using Address for address;
+
+    IERC1820Registry constant internal _ERC1820_REGISTRY = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+
+    // keccak256("ERC777TokensSender")
+    bytes32 constant private _TOKENS_SENDER_INTERFACE_HASH =
+        0x29ddb589b1fb5fc7cf394961c1adf5f8c6454761adf795e67fe149f658abe895;
+
+    // keccak256("ERC777TokensRecipient")
+    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH =
+        0xb281fc8c12954d22544db45de3159a39272895b169a852b314f9cc762e44c53b;
+
+    string constant private _ERR_TRANSFER_FROM_ZERO_ADDRESS = "SuperToken: transfer from zero address";
+    string constant private _ERR_TRANSFER_TO_ZERO_ADDRESS = "SuperToken: transfer to zero address";
 
     uint8 constant public STANDARD_DECIMALS = 18;
 
@@ -139,8 +159,7 @@ contract SuperToken is
     function transfer(address recipient, uint256 amount)
         public override returns (bool)
     {
-        _transfer(msg.sender, recipient, amount);
-        return true;
+        return _transferFrom(msg.sender, msg.sender, recipient, amount);
     }
 
     function allowance(address account, address spender)
@@ -157,22 +176,32 @@ contract SuperToken is
         return true;
     }
 
-    function transferFrom(address sender, address recipient, uint256 amount)
+    function transferFrom(address holder, address recipient, uint256 amount)
         public override returns (bool)
     {
-        _transferFrom(msg.sender, sender, recipient, amount);
-        return true;
+        return _transferFrom(msg.sender, holder, recipient, amount);
     }
 
-    function _transferFrom(address account, address sender, address recipient, uint amount)
-        private
+    function _transferFrom(address spender, address holder, address recipient, uint amount)
+        private returns (bool)
     {
-        _transfer(sender, recipient, amount);
-        _approve(
-            sender,
-            account,
-            _allowances[sender][account].sub(amount, "ERC20: transfer amount exceeds allowance")
-        );
+        require(holder != address(0), _ERR_TRANSFER_FROM_ZERO_ADDRESS);
+        require(recipient != address(0), _ERR_TRANSFER_TO_ZERO_ADDRESS);
+
+        _callTokensToSend(spender, holder, recipient, amount, "", "");
+
+        _move(spender, holder, recipient, amount, "", "");
+
+        if (spender != holder) {
+            _approve(
+                holder,
+                spender,
+                _allowances[holder][spender].sub(amount, "SuperToken: transfer amount exceeds allowance"));
+        }
+
+        _callTokensReceived(spender, holder, recipient, amount, "", "", false);
+
+        return true;
     }
 
     /// @dev Calculate balance as split result if negative return as zero.
@@ -206,66 +235,119 @@ contract SuperToken is
     }
 
     /**
-     * @dev Moves tokens `amount` from `sender` to `recipient`.
-     *
-     * This is internal function is equivalent to {transfer}, and can be used to
-     * e.g. implement automatic token fees, slashing mechanisms, etc.
-     *
-     * Emits a {Transfer} event.
-     *
-     * Requirements:
-     *
-     * - `sender` cannot be the zero address.
-     * - `recipient` cannot be the zero address.
-     * - `sender` must have a balance of at least `amount`.
+     * @dev Send tokens
+     * @param operator address operator address
+     * @param from address token holder address
+     * @param to address recipient address
+     * @param amount uint256 amount of tokens to transfer
+     * @param userData bytes extra information provided by the token holder (if any)
+     * @param operatorData bytes extra information provided by the operator (if any)
+     * @param requireReceptionAck if true, contract recipients are required to implement ERC777TokensRecipient
      */
-    function _transfer(address sender, address recipient, uint256 amount)
+    function _send(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData,
+        bool requireReceptionAck
+    )
         private
     {
-        require(recipient != address(0), "transfer to zero address");
-        require(balanceOf(sender) >= amount, "transfer amount exceeds balance");
+        require(from != address(0), _ERR_TRANSFER_FROM_ZERO_ADDRESS);
+        require(to != address(0), _ERR_TRANSFER_TO_ZERO_ADDRESS);
 
-        _balances[sender] = _balances[sender].sub(int256(amount));
-        _balances[recipient] = _balances[recipient].add(int256(amount));
-        emit Transfer(sender, recipient, amount);
+        _callTokensToSend(operator, from, to, amount, userData, operatorData);
+
+        _move(operator, from, to, amount, userData, operatorData);
+
+        _callTokensReceived(operator, from, to, amount, userData, operatorData, requireReceptionAck);
     }
 
-    /** @dev Creates `amount` tokens and assigns them to `account`, increasing
-     * the total supply.
-     *
-     * Emits a {Transfer} event with `from` set to the zero address.
-     *
-     * Requirements
-     *
-     * - `to` cannot be the zero address.
-     */
-    function _mint(address account, uint256 amount)
-        internal
+    function _move(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData
+    )
+        private
     {
-        require(account != address(0), "mint to zero address");
+        require(balanceOf(from) >= amount, "SuperToken: transfer amount exceeds balance");
 
-        _balances[account] = _balances[account].add(int256(amount));
-        emit Transfer(address(0), account, amount);
+        _balances[from] = _balances[from].sub(int256(amount));
+        _balances[to] = _balances[to].add(int256(amount));
+
+        emit Sent(operator, from, to, amount, userData, operatorData);
+        emit Transfer(from, to, amount);
     }
 
     /**
-     * @dev Destroys `amount` tokens from `account`, reducing the
-     * total supply.
+     * @dev Creates `amount` tokens and assigns them to `account`, increasing
+     * the total supply.
      *
-     * Emits a {Transfer} event with `to` set to the zero address.
+     * If a send hook is registered for `account`, the corresponding function
+     * will be called with `operator`, `data` and `operatorData`.
+     *
+     * See {IERC777Sender} and {IERC777Recipient}.
+     *
+     * Emits {Minted} and {IERC20-Transfer} events.
      *
      * Requirements
      *
      * - `account` cannot be the zero address.
-     * - `account` must have at least `amount` tokens.
+     * - if `account` is a contract, it must implement the {IERC777Recipient}
+     * interface.
      */
-    function _burn(address account, uint256 amount)
+    function _mint(
+        address operator,
+        address account,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData
+    )
         internal
     {
-        require(account != address(0), "burn from zero address");
+        require(account != address(0), "SuperToken: mint to zero address");
 
-        _balances[account] = _balances[account].sub(int256(amount));
-        emit Transfer(account, address(0), amount);
+        _balances[account] = _balances[account].add(int256(amount));
+
+        _callTokensReceived(operator, address(0), account, amount, userData, operatorData, true);
+
+        emit Minted(operator, account, amount, userData, operatorData);
+        emit Transfer(address(0), account, amount);
+    }
+
+    /**
+     * @dev Burn tokens
+     * @param from address token holder address
+     * @param amount uint256 amount of tokens to burn
+     * @param data bytes extra information provided by the token holder
+     * @param operatorData bytes extra information provided by the operator (if any)
+     */
+    function _burn(
+        address operator,
+        address from,
+        uint256 amount,
+        bytes memory data,
+        bytes memory operatorData
+    )
+        internal
+    {
+        require(from != address(0), "SuperToken: burn from zero address");
+
+        _callTokensToSend(operator, from, address(0), amount, data, operatorData);
+
+        // NB! Check balance after the _callTokensToSend is called
+        require(balanceOf(from) >= amount, "SuperToken: burn amount exceeds balance");
+
+        // Update state variables
+        _balances[from] = _balances[from].sub(int256(amount));
+
+        emit Burned(operator, from, amount, data, operatorData);
+        emit Transfer(from, address(0), amount);
     }
 
     /**
@@ -284,13 +366,67 @@ contract SuperToken is
     function _approve(address account, address spender, uint256 amount)
         private
     {
-        require(account != address(0), "approve from zero address");
-        require(spender != address(0), "approve to zero address");
+        require(account != address(0), "SuperToken: approve from zero address");
+        require(spender != address(0), "SuperToken: approve to zero address");
 
         _allowances[account][spender] = amount;
         emit Approval(account, spender, amount);
     }
 
+    /**
+     * @dev Call from.tokensToSend() if the interface is registered
+     * @param operator address operator requesting the transfer
+     * @param from address token holder address
+     * @param to address recipient address
+     * @param amount uint256 amount of tokens to transfer
+     * @param userData bytes extra information provided by the token holder (if any)
+     * @param operatorData bytes extra information provided by the operator (if any)
+     */
+    function _callTokensToSend(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData
+    )
+        private
+    {
+        address implementer = _ERC1820_REGISTRY.getInterfaceImplementer(from, _TOKENS_SENDER_INTERFACE_HASH);
+        if (implementer != address(0)) {
+            IERC777Sender(implementer).tokensToSend(operator, from, to, amount, userData, operatorData);
+        }
+    }
+
+    /**
+     * @dev Call to.tokensReceived() if the interface is registered. Reverts if the recipient is a contract but
+     * tokensReceived() was not registered for the recipient
+     * @param operator address operator requesting the transfer
+     * @param from address token holder address
+     * @param to address recipient address
+     * @param amount uint256 amount of tokens to transfer
+     * @param userData bytes extra information provided by the token holder (if any)
+     * @param operatorData bytes extra information provided by the operator (if any)
+     * @param requireReceptionAck if true, contract recipients are required to implement ERC777TokensRecipient
+     */
+    function _callTokensReceived(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData,
+        bool requireReceptionAck
+    )
+        private
+    {
+        address implementer = _ERC1820_REGISTRY.getInterfaceImplementer(to, _TOKENS_RECIPIENT_INTERFACE_HASH);
+        if (implementer != address(0)) {
+            IERC777Recipient(implementer).tokensReceived(operator, from, to, amount, userData, operatorData);
+        } else if (requireReceptionAck) {
+            require(!to.isContract(), "ERC777: token recipient contract has no implementer for ERC777TokensRecipient");
+        }
+    }
 
     /**************************************************************************
      * ERC-777 functions
@@ -299,11 +435,11 @@ contract SuperToken is
     function granularity() external pure override returns (uint256) { return 1; }
 
     function send(address recipient, uint256 amount, bytes calldata data) external override {
-        assert(false);
+        _send(msg.sender, msg.sender, recipient, amount, data, "", true);
     }
 
     function burn(uint256 amount, bytes calldata data) external override {
-        assert(false);
+        _burn(msg.sender, msg.sender, amount, data, "");
     }
 
     function isOperatorFor(address operator, address tokenHolder) external override view returns (bool) {
@@ -399,7 +535,7 @@ contract SuperToken is
         external
         override
     {
-        _transfer(msg.sender, recipient, balanceOf(msg.sender));
+        _transferFrom(msg.sender, msg.sender, recipient, balanceOf(msg.sender));
     }
 
     /**************************************************************************
@@ -563,7 +699,7 @@ contract SuperToken is
         uint256 underlyingAmount;
         (underlyingAmount, amount) = _toUnderlyingAmount(amount);
         _underlyingToken.transferFrom(account, address(this), underlyingAmount);
-        _mint(account, amount);
+        _mint(msg.sender, account, amount, "", "");
         emit TokenUpgraded(account, amount);
     }
 
@@ -573,10 +709,9 @@ contract SuperToken is
     }
 
     function _downgrade(address account, uint256 amount) private {
-        require(uint256(balanceOf(account)) >= amount, "SuperToken: downgrade amount exceeds balance");
         uint256 underlyingAmount;
         (underlyingAmount, amount) = _toUnderlyingAmount(amount);
-        _burn(account, amount);
+        _burn(msg.sender, account, amount, "", "");
         _underlyingToken.transfer(account, underlyingAmount);
         emit TokenDowngraded(account, amount);
     }
@@ -624,11 +759,7 @@ contract SuperToken is
         external override
         onlyHost
     {
-        if (account == sender) {
-            _transfer(account, recipient, amount);
-        } else {
-            _transferFrom(account, sender, recipient, amount);
-        }
+        _transferFrom(account, sender, recipient, amount);
     }
 
     function operationUpgrade(address account, uint256 amount)

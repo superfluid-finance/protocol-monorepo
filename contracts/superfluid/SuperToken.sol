@@ -87,6 +87,7 @@ contract SuperToken is
     string constant private _ERR_TRANSFER_FROM_ZERO_ADDRESS = "SuperToken: transfer from zero address";
     string constant private _ERR_TRANSFER_TO_ZERO_ADDRESS = "SuperToken: transfer to zero address";
     string constant private _ERR_CALLER_NOT_AN_OPERATOR = "SuperToken: caller is not an operator for holder";
+    string constant private _ERR_NOT_SUPPORTED = "SuperToken: not supported";
 
     uint8 constant public STANDARD_DECIMALS = 18;
 
@@ -433,7 +434,7 @@ contract SuperToken is
         } else if (requireReceptionAck) {
             require(
                 !to.isContract(),
-                "SuperToken: no ERC777TokensRecipient for recipient contract");
+                "SuperToken: not an ERC777TokensRecipient");
         }
     }
 
@@ -447,8 +448,8 @@ contract SuperToken is
         _send(msg.sender, msg.sender, recipient, amount, data, "", true);
     }
 
-    function burn(uint256 amount, bytes calldata data) external override {
-        _burn(msg.sender, msg.sender, amount, data, "");
+    function burn(uint256 /* amount */, bytes calldata /* data */) external pure override {
+        revert(_ERR_NOT_SUPPORTED);
     }
 
     function isOperatorFor(address operator, address tokenHolder) public override view returns (bool) {
@@ -486,14 +487,12 @@ contract SuperToken is
     }
 
     function operatorBurn(
-        address account,
-        uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
-    ) external override {
-        address operator = msg.sender;
-        require(isOperatorFor(operator, account), _ERR_CALLER_NOT_AN_OPERATOR);
-        _burn(operator, account, amount, data, operatorData);
+        address /* account */,
+        uint256 /* amount */,
+        bytes calldata /* data */,
+        bytes calldata /* operatorData */
+    ) external pure override {
+        revert(_ERR_NOT_SUPPORTED);
     }
 
     /**************************************************************************

@@ -45,9 +45,6 @@ contract SuperfluidStorage {
        variables are added APPEND-ONLY. Re-ordering variables can
        permanently BREAK the deployed proxy contract. */
 
-    /// @dev Flag to avoid double initialization
-    bool internal _initialized;
-
     /// @dev Governance contract
     ISuperfluidGovernance internal _gov;
 
@@ -64,10 +61,11 @@ contract SuperfluidStorage {
 }
 
 contract Superfluid is
+    Proxiable,
     Ownable,
     SuperfluidStorage,
-    ISuperfluid,
-    Proxiable {
+    ISuperfluid
+{
 
     enum Info {
         A_1_MANIFEST,
@@ -90,7 +88,7 @@ contract Superfluid is
     // Proxiable
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     function initialize() external {
-        require(!_initialized, "already initialized");
+        Proxiable._initialize();
         _owner = msg.sender;
         _initialized = true;
     }

@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.1;
 
-import "../interfaces/superfluid/ISuperfluid.sol";
-import "../interfaces/superfluid/ISuperApp.sol";
-import "../interfaces/superfluid/SuperAppDefinitions.sol";
+import {
+    ISuperfluid,
+    ISuperfluidGovernance,
+    ISuperApp,
+    SuperAppDefinitions
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+
 
 library AgreementLibrary {
 
@@ -43,7 +48,7 @@ library AgreementLibrary {
         bytes4 selector,
         uint256 noopBit,
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -74,7 +79,7 @@ library AgreementLibrary {
         bytes4 selector,
         uint256 noopBit,
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -107,7 +112,7 @@ library AgreementLibrary {
 
     function beforeAgreementCreated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -131,7 +136,7 @@ library AgreementLibrary {
 
     function afterAgreementCreated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -158,7 +163,7 @@ library AgreementLibrary {
 
     function beforeAgreementUpdated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -182,7 +187,7 @@ library AgreementLibrary {
 
     function afterAgreementUpdated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -208,7 +213,7 @@ library AgreementLibrary {
 
     function beforeAgreementTerminated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -232,7 +237,7 @@ library AgreementLibrary {
 
     function afterAgreementTerminated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,

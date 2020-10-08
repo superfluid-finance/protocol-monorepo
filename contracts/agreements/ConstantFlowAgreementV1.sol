@@ -2,12 +2,14 @@
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.1;
 
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1,
+    ISuperfluidToken
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid,
     ISuperfluidGovernance,
-    ISuperApp,
-    ISuperToken
+    ISuperApp
 }
 from "../interfaces/superfluid/ISuperfluid.sol";
 
@@ -34,7 +36,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
      */
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
-        ISuperToken token,
+        ISuperfluidToken token,
         address account,
         uint256 time
     )
@@ -53,7 +55,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     /// @dev IFlowAgreement.createFlow implementation
     function createFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
@@ -62,7 +64,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
-        require(token.getHost() == msg.sender, "Not Superfluid");
         AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_isNewFlow(token, flowId), "Flow already exist");
@@ -116,7 +117,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     function updateFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
@@ -125,7 +126,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
-        require(token.getHost() == msg.sender, "Not Superfluid");
         // TODO meta-tx support
         // TODO: Decode return cbdata before calling the next step
         AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
@@ -179,7 +179,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     /// @dev IFlowAgreement.deleteFlow implementation
     function deleteFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address sender,
         address receiver,
         bytes calldata ctx
@@ -188,7 +188,6 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         override
         returns(bytes memory newCtx)
     {
-        require(token.getHost() == msg.sender, "Not Superfluid");
         // TODO: Decode return cbdata before calling the next step
         address msgSender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
@@ -222,7 +221,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     /// @dev IFlowAgreement.getFlow implementation
     function getFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address sender,
         address receiver
     )
@@ -251,7 +250,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     /// @dev IFlowAgreement.getFlow implementation
     function getFlowByID(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 flowId
     )
         external
@@ -279,7 +278,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     /// @dev IFlowAgreement.getNetFlow implementation
     function getNetFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address account
     )
         external
@@ -296,7 +295,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
      */
 
     function _updateAccountState(
-        ISuperToken token,
+        ISuperfluidToken token,
         address account,
         int96 flowRate,
         uint256 deposit,
@@ -322,7 +321,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     function _updateFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 flowId,
         address sender,
         address receiver,
@@ -381,7 +380,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     function _terminateAgreementData(
-        ISuperToken token,
+        ISuperfluidToken token,
         address caller,
         address sender,
         address receiver,
@@ -439,7 +438,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
     }
 
     function _isNewFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 flowId
     )
         internal
@@ -450,14 +449,14 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
         return !exist;
     }
 
-    function _minimalDeposit(ISuperToken token, uint256 flowRate) internal view returns(uint256 deposit) {
+    function _minimalDeposit(ISuperfluidToken token, uint256 flowRate) internal view returns(uint256 deposit) {
         ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
         uint256 liquidationPeriod = gov.getLiquidationPeriod(address(token));
         deposit = flowRate * liquidationPeriod;
     }
 
     function _updateDeposits(
-        ISuperToken token,
+        ISuperfluidToken token,
         FlowData memory data,
         address account,
         bytes32 flowId
@@ -545,7 +544,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     function _getAccountState
     (
-        ISuperToken token,
+        ISuperfluidToken token,
         address account
     )
         private
@@ -565,7 +564,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     function _getAgreementData
     (
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 dId
     )
         private

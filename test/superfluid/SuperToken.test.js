@@ -52,6 +52,12 @@ contract("Super Token", accounts => {
             assert.equal(await superToken.symbol.call(), "TESTx");
             assert.equal(await superToken.decimals.call(), 18);
         });
+
+        it("#0.2 validate immutable storage layout", async () => {
+            const SuperTokenMock = artifacts.require("SuperTokenMock");
+            const tester = await SuperTokenMock.new();
+            await tester.validateStorageLayout.call();
+        });
     });
 
     describe("#1 SuperToken.upgrade/downgrade", () => {

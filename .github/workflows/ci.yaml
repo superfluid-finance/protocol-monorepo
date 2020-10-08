@@ -2,12 +2,7 @@ name: Dev CI/CD
 
 on:
   push:
-    branches:
-    - '*'
-  pull_request:
-    branches:
-    - '*'
-    types: [opened]
+    branches: ['*']
 
 jobs:
 

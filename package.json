@@ -19,7 +19,7 @@
     "@openzeppelin/contracts": "3.2.1-solc-0.7"
   },
   "peerDependencies": {
-    "@truffle/contract": "^4.2.24"
+    "@truffle/contract": "^4.2.25"
   },
   "devDependencies": {
     "@decentral.ee/web3-helpers": "0.3.2",
@@ -33,8 +33,8 @@
     "npm-run-all": "4.1.5",
     "readline": "1.3.0",
     "solhint": "3.2.1",
-    "solidity-coverage": "0.7.10",
-    "truffle": "5.1.47",
+    "solidity-coverage": "0.7.11",
+    "truffle": "5.1.48",
     "truffle-flattener": "1.5.0",
     "truffle-plugin-verify": "0.4.0"
   },

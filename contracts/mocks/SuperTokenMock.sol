@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable */
-pragma solidity 0.7.1;
+pragma solidity 0.7.3;
 
 import {SuperToken} from "../superfluid/SuperToken.sol";
 
@@ -51,7 +51,7 @@ contract SuperTokenMock is SuperToken {
         assembly { slot:= _allowances.slot offset := _allowances.offset }
         require (slot == 7 && offset == 0, "_allowances changed location");
 
-        // mapping(address => mapping(address => bool)) internal _operators;
+        // ERC777Operators.Object internal _operators;
         assembly { slot:= _operators.slot offset := _operators.offset }
         require (slot == 8 && offset == 0, "_operators changed location");
     }

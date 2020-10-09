@@ -345,6 +345,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     * @param token Super token address.
     * @param publisher The publisher of the index.
     * @param indexId Id of the index.
+    * @param subscriber The user, a subscriber.
     *
     * The subscription should not exist yet.
     *
@@ -357,6 +358,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address publisher,
         uint32 indexId,
+        address subscriber,
         bytes calldata ctx)
         external
         virtual

@@ -13,13 +13,15 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
 
+/**
+ * @title Superfluid's token implementation
+ * @author Superfluid
+ */
 abstract contract SuperfluidToken is ISuperfluidToken
 {
 
     using SafeMath for uint256;
     using SignedSafeMath for int256;
-
-    string constant private _ERR_ONLY_HOST = "SuperfluidToken: Only host contract allowed";
 
     /// @dev Superfluid contract
     ISuperfluid internal _host;
@@ -237,7 +239,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     *************************************************************************/
 
     modifier onlyHost() {
-        require(address(_host) == msg.sender, _ERR_ONLY_HOST);
+        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
         _;
     }
 

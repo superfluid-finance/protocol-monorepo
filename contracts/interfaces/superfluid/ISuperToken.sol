@@ -7,7 +7,7 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title Superfluid's token interface.
+ * @title Superfluid's super token (Superfluid Token + ERC20 + ERC777) interface
  *
  * @author Superfluid
  */

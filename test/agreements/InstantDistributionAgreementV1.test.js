@@ -1406,6 +1406,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 superToken.address,
                 alice,
                 DEFAULT_INDEX_ID,
+                bob,
                 "0x"
             ).encodeABI(),
             {
@@ -1461,6 +1462,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 superToken.address,
                 alice,
                 DEFAULT_INDEX_ID,
+                bob,
                 "0x"
             ).encodeABI(),
             {
@@ -1476,16 +1478,17 @@ contract("Instance Distribution Agreement v1", accounts => {
             [bob,   toWad("0.3")],
         ]);
 
-        await web3tx(superfluid.callAgreement, "Bob claims his pending distribution again")(
+        await web3tx(superfluid.callAgreement, "Alice claims bob's pending distribution")(
             ida.address,
             ida.contract.methods.claim(
                 superToken.address,
                 alice,
                 DEFAULT_INDEX_ID,
+                bob,
                 "0x"
             ).encodeABI(),
             {
-                from:bob,
+                from: alice,
             }
         );
         idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
@@ -1515,6 +1518,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 superToken.address,
                 alice,
                 DEFAULT_INDEX_ID,
+                bob,
                 "0x"
             ).encodeABI(),
             {

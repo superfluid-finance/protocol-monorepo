@@ -2,6 +2,11 @@
 pragma solidity >= 0.7.0;
 
 
+/**
+ * @title Superfluid's token interface.
+ *
+ * @author Superfluid
+ */
 interface ISuperfluidToken {
 
     function getHost() external view returns(address host);

@@ -25,8 +25,6 @@ require("dotenv").config();
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
-const GAS_LIMIT = 8e6;
-
 module.exports = {
 
     plugins: [
@@ -61,7 +59,7 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 4, // Rinkeby's id
-            gas: GAS_LIMIT,
+            gas: 8e6,
             gasPrice: 10e9, // 1 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -77,7 +75,7 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 5, // Goerli's id
-            gas: GAS_LIMIT,
+            gas: 8e6,
             gasPrice: +process.env.GOERLI_GAS_PRICE || 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
@@ -93,8 +91,7 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 1, // mainnet's id
-            //gas: 7017622, //
-            gas: GAS_LIMIT,
+            gas: 8e6,
             gasPrice: +process.env.MAINNET_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)

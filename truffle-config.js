@@ -25,7 +25,7 @@ require("dotenv").config();
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
-const GAS_LIMIT = 8e6;
+const GAS_LIMIT = 10e6;
 
 module.exports = {
 
@@ -93,7 +93,6 @@ module.exports = {
                 true // shareNonce
             ),
             network_id: 1, // mainnet's id
-            //gas: 7017622, //
             gas: GAS_LIMIT,
             gasPrice: +process.env.MAINNET_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)

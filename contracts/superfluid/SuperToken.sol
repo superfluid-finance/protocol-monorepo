@@ -80,14 +80,6 @@ contract SuperToken is
     /// @dev ERC20 Allowances Storage
     mapping(address => mapping (address => uint256)) internal _allowances;
 
-    /// @dev ERC777 operators support data structure
-    struct ERC777OperatorData {
-        address[] defaultOperatorsArray;
-        mapping(address => bool) defaultOperators;
-        mapping(address => mapping(address => bool)) operators;
-        mapping(address => mapping(address => bool)) revokedDefaultOperators;
-    }
-
     /// @dev ERC777 operators support data
     ERC777Operators.Object internal _operators;
 

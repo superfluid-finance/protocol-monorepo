@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.1;
+pragma solidity 0.7.3;
 
-import { IInstantDistributionAgreementV1 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import {
+    IInstantDistributionAgreementV1,
+    ISuperfluidToken
+} from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import {
     ISuperfluid,
     ISuperfluidGovernance,
-    ISuperApp,
-    ISuperToken
+    ISuperApp
 }
 from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
@@ -61,7 +63,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
-        ISuperToken token,
+        ISuperfluidToken token,
         address account,
         uint256 /*time*/
     )
@@ -104,7 +106,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.createIndex implementation
     function createIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         bytes calldata ctx
     )
@@ -125,7 +127,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.getIndex implementation
     function getIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId
     )
@@ -148,7 +150,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.updateIndex implementation
     function updateIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         uint128 indexValue,
         bytes calldata ctx
@@ -169,7 +171,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function distribute(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         uint256 amount,
         bytes calldata ctx
@@ -193,7 +195,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function _updateIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes32 iId,
@@ -223,7 +225,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function calculateDistribution(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         uint256 amount
@@ -245,7 +247,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.approveSubscription implementation
     function approveSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes calldata ctx
@@ -324,7 +326,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.updateSubscription implementation
     function updateSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         address subscriber,
         uint128 units,
@@ -438,7 +440,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.getSubscription implementation
     function getSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber
@@ -469,7 +471,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.getSubscriptionByID implementation
     function getSubscriptionByID(
-       ISuperToken token,
+       ISuperfluidToken token,
        bytes32 agreementId
     )
        external view override
@@ -501,7 +503,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.listSubscriptions implementation
     function listSubscriptions(
-        ISuperToken token,
+        ISuperfluidToken token,
         address subscriber
     )
         external view override
@@ -546,7 +548,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
 
     /// @dev IInstantDistributionAgreementV1.deleteSubscription implementation
     function deleteSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber,
@@ -609,7 +611,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function claim(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes calldata ctx
@@ -702,7 +704,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function _hasIndexData(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 iId)
         private view
         returns (bool exist)
@@ -713,7 +715,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function _getIndexData(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 iId)
         private view
         returns (bool exist, IndexData memory idata)
@@ -735,7 +737,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     // It is stored in state slot in one word
 
     function _getPublisherDeposit(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher
     )
         private view
@@ -750,7 +752,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function _adjustPublisherDeposit(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         int256 delta
     )
@@ -796,7 +798,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function _getSubscriptionData(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 sId)
         private view
         returns (bool exist, SubscriptionData memory sdata)
@@ -831,7 +833,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     // It stores the index data ID.
 
     function _findAndFillSubsBitmap(
-        ISuperToken token,
+        ISuperfluidToken token,
         address subscriber,
         bytes32 iId
     )
@@ -864,7 +866,7 @@ contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
     }
 
     function _clearSubsBitmap(
-        ISuperToken token,
+        ISuperfluidToken token,
         address subscriber,
         SubscriptionData memory sdata
     )

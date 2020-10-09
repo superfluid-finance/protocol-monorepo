@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
+import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -10,7 +11,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  *
  * @author Superfluid
  */
-interface ISuperToken is TokenInfo, IERC20, IERC777 {
+interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -26,8 +27,6 @@ interface ISuperToken is TokenInfo, IERC20, IERC777 {
      * name.
      */
     function symbol() external view override(IERC777, TokenInfo) returns (string memory);
-
-
 
     /**
      * @dev Returns the number of decimals used to get its user representation.
@@ -113,13 +112,112 @@ interface ISuperToken is TokenInfo, IERC20, IERC777 {
     * ERC777
     *************************************************************************/
 
+    /**
+     * @dev Returns the smallest part of the token that is not divisible. This
+     * means all token operations (creation, movement and destruction) must have
+     * amounts that are a multiple of this number.
+     *
+     * For super token contracts, this value is 1 always
+     */
     function granularity() external view override(IERC777) returns (uint256);
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * If send or receive hooks are registered for the caller and `recipient`,
+     * the corresponding functions will be called with `data` and empty
+     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
+     *
+     * Emits a {Sent} event.
+     *
+     * Requirements
+     *
+     * - the caller must have at least `amount` tokens.
+     * - `recipient` cannot be the zero address.
+     * - if `recipient` is a contract, it must implement the {IERC777Recipient}
+     * interface.
+     */
     function send(address recipient, uint256 amount, bytes calldata data) external override(IERC777);
+
+    /**
+     * @dev Destroys `amount` tokens from the caller's account, reducing the
+     * total supply.
+     *
+     * If a send hook is registered for the caller, the corresponding function
+     * will be called with `data` and empty `operatorData`. See {IERC777Sender}.
+     *
+     * Emits a {Burned} event.
+     *
+     * Requirements
+     *
+     * - the caller must have at least `amount` tokens.
+     */
     function burn(uint256 amount, bytes calldata data) external override(IERC777);
+
+    /**
+     * @dev Returns true if an account is an operator of `tokenHolder`.
+     * Operators can send and burn tokens on behalf of their owners. All
+     * accounts are their own operator.
+     *
+     * See {operatorSend} and {operatorBurn}.
+     */
     function isOperatorFor(address operator, address tokenHolder) external override(IERC777) view returns (bool);
+
+    /**
+     * @dev Make an account an operator of the caller.
+     *
+     * See {isOperatorFor}.
+     *
+     * Emits an {AuthorizedOperator} event.
+     *
+     * Requirements
+     *
+     * - `operator` cannot be calling address.
+     */
     function authorizeOperator(address operator) external override(IERC777);
+
+    /**
+     * @dev Revoke an account's operator status for the caller.
+     *
+     * See {isOperatorFor} and {defaultOperators}.
+     *
+     * Emits a {RevokedOperator} event.
+     *
+     * Requirements
+     *
+     * - `operator` cannot be calling address.
+     */
     function revokeOperator(address operator) external override(IERC777);
+
+    /**
+     * @dev Returns the list of default operators. These accounts are operators
+     * for all token holders, even if {authorizeOperator} was never called on
+     * them.
+     *
+     * This list is immutable, but individual holders may revoke these via
+     * {revokeOperator}, in which case {isOperatorFor} will return false.
+     */
     function defaultOperators() external override(IERC777) view returns (address[] memory);
+
+    /**
+     * @dev Moves `amount` tokens from `sender` to `recipient`. The caller must
+     * be an operator of `sender`.
+     *
+     * If send or receive hooks are registered for `sender` and `recipient`,
+     * the corresponding functions will be called with `data` and
+     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
+     *
+     * Emits a {Sent} event.
+     *
+     * Requirements
+     *
+     * - `sender` cannot be the zero address.
+     * - `sender` must have at least `amount` tokens.
+     * - the caller must be an operator for `sender`.
+     * - `recipient` cannot be the zero address.
+     * - if `recipient` is a contract, it must implement the {IERC777Recipient}
+     * interface.
+     */
     function operatorSend(
         address sender,
         address recipient,
@@ -127,6 +225,22 @@ interface ISuperToken is TokenInfo, IERC20, IERC777 {
         bytes calldata data,
         bytes calldata operatorData
     ) external override(IERC777);
+
+    /**
+     * @dev Destroys `amount` tokens from `account`, reducing the total supply.
+     * The caller must be an operator of `account`.
+     *
+     * If a send hook is registered for `account`, the corresponding function
+     * will be called with `data` and `operatorData`. See {IERC777Sender}.
+     *
+     * Emits a {Burned} event.
+     *
+     * Requirements
+     *
+     * - `account` cannot be the zero address.
+     * - `account` must have at least `amount` tokens.
+     * - the caller must be an operator for `account`.
+     */
     function operatorBurn(
         address account,
         uint256 amount,
@@ -135,252 +249,13 @@ interface ISuperToken is TokenInfo, IERC20, IERC777 {
     ) external override(IERC777);
 
     /**************************************************************************
-     * Agreement hosting functions
+     * SuperToken extra functions
      *************************************************************************/
 
     /**
-     * @dev Create a new agreement
-     * @param id Agreement ID
-     * @param data Agreement data
+     * @dev Transfer all available balance from `msg.sender` to `recipient`
      */
-    function createAgreement(
-        bytes32 id,
-        bytes32[] calldata data
-    )
-        //onlyAgreement
-        external;
-
-    /**
-     * @dev Agreement creation event
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     * @param data Agreement data
-     */
-    event AgreementCreated(
-        address indexed agreementClass,
-        bytes32 id,
-        bytes32[] data
-    );
-
-    /**
-     * @dev Get data of the agreement
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     * @return data Data of the agreement
-     */
-    function getAgreementData(
-        address agreementClass,
-        bytes32 id,
-        uint dataLength
-    )
-        external view
-        returns(bytes32[] memory data);
-
-    /**
-     * @dev Create a new agreement
-     * @param id Agreement ID
-     * @param data Agreement data
-     */
-    function updateAgreementData(
-        bytes32 id,
-        bytes32[] calldata data
-    )
-        //onlyAgreement
-        external;
-
-    /**
-     * @dev Agreement creation event
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     * @param data Agreement data
-     */
-    event AgreementUpdated(
-        address indexed agreementClass,
-        bytes32 id,
-        bytes32[] data
-    );
-
-    /**
-     * @dev Close the agreement
-     * @param id Agreement ID
-     */
-    function terminateAgreement(
-        bytes32 id,
-        uint dataLength
-    )
-        //onlyAgreement
-        external;
-
-    /**
-     * @dev Agreement termination event
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     */
-    event AgreementTerminated(
-        address indexed agreementClass,
-        bytes32 id
-    );
-
-    /**
-     * @dev Liquidate the Aagreement
-     * @param liquidator Address of the executer of liquidation
-     * @param id Agreement ID
-     * @param account Account of the agrement
-     * @param deposit Deposit from the account that is going to taken as penalty
-     */
-    function liquidateAgreement
-    (
-        address liquidator,
-        bytes32 id,
-        address account,
-        uint256 deposit
-    )
-        // onlyAgreement
-        external;
-
-    /**
-     * @dev Update agreement state slot
-     * @param account Account to be updated
-     *
-     * NOTE
-     * - To clear the storage out, provide zero-ed array of intended length
-     */
-    function updateAgreementStateSlot(
-        address account,
-        uint256 slotId,
-        bytes32[] calldata slotData
-    )
-        //onlyAgreement
-        external;
-
-    /**
-     * @dev Agreement account state updated event
-     * @param agreementClass Contract address of the agreement
-     * @param account Account updated
-     * @param slotId slot id of the agreement state
-     */
-    event AgreementStateUpdated(
-        address indexed agreementClass,
-        address indexed account,
-        uint256 slotId
-    );
-
-    /**
-     * @dev Get data of the slot of the state of a agreement
-     * @param agreementClass Contract address of the agreement
-     * @param account Account to query
-     * @param slotId slot id of the state
-     * @param dataLength length of the state data
-     */
-    function getAgreementStateSlot(
-        address agreementClass,
-        address account,
-        uint256 slotId,
-        uint dataLength
-    )
-        external view
-        returns (bytes32[] memory slotData);
-
-    /**
-     * @dev Agreement liquidation event
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     * @param penaltyAccount Account of the agreement
-     * @param rewardAccount Account that collect the reward
-     * @param deposit Amount of liquidation fee collected
-     */
-    event AgreementLiquidated(
-        address indexed agreementClass,
-        bytes32 id,
-        address indexed penaltyAccount,
-        address indexed rewardAccount,
-        uint256 deposit
-    );
-
-    /**
-     * @dev Agreement account state updated event
-     * @param agreementClass Contract address of the agreement
-     * @param account Account of the agrement
-     * @param state Agreement state of the account
-     */
-    event AgreementAccountStateUpdated(
-        address indexed agreementClass,
-        address indexed account,
-        bytes state
-    );
-
-    /**
-     * @dev Settle balance from an account by the agreement.
-     *      The agreement needs to make sure that the balance delta is balanced afterwards
-     * @param account Account to query.
-     * @param delta Amount of balance delta to be settled
-     */
-    function settleBalance(
-        address account,
-        int256 delta
-    )
-        // onlyAgreement
-        external;
-
-    /**************************************************************************
-     * Account functions
-     *************************************************************************/
-
-    /**
-     * @dev Get a list of agreements that is active for the account
-     * @dev An active agreement is one that has state for the account
-     * @param account Account to query
-     * @return activeAgreements List of accounts that have non-zero states for the account
-     */
-    function getAccountActiveAgreements(address account)
-        external
-
-        view
-        returns(address[] memory activeAgreements);
-
-    /**
-     * @dev Check if one account is insolvent
-     * @param account Account check if is insolvent
-     * @return isInsolvent Is the account insolvent?
-     */
-    function isAccountInsolvent(
-        address account
-    )
-        external
-        view
-
-        returns(bool isInsolvent);
-
-    /**
-     * @dev Calculate the real balance of a user, taking in consideration all agreements of the account
-     * @param account for the query
-     * @param timestamp Time of balance
-     * @param account Account to query
-     * @return availableBalance Real-time balance
-     * @return deposit Account deposit
-     * @return owedDeposit Account owed Deposit
-     */
-    function realtimeBalanceOf(
-        address account,
-        uint256 timestamp
-    )
-        external
-
-        view
-        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
-
-    /// @dev realtimeBalanceOf with timestamp equals to block.timestamp
-    function realtimeBalanceOfNow(
-        address account
-    )
-        external
-
-        view
-        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
-
-    function transferAll(address recipient)
-        external
-        ;
+    function transferAll(address recipient) external;
 
     /**************************************************************************
      * ERC20 wrapping
@@ -427,71 +302,5 @@ interface ISuperToken is TokenInfo, IERC20, IERC777 {
         address indexed account,
         uint256 amount
     );
-
-    /**************************************************************************
-     * Superfluid Batch Operations
-     *************************************************************************/
-
-    /**
-     * @dev Perform ERC20 approve by host contract.
-     * @param account The account owner to be approved.
-     * @param spender The spender of account owner's funds.
-     * @param amount Number of tokens to be approved.
-     */
-    function operationApprove(
-        address account,
-        address spender,
-        uint256 amount
-    ) external;
-
-    /**
-     * @dev Perform ERC20 transfer from by host contract.
-     * @param account The account to spend sender's funds.
-     * @param sender  The account where the funds is sent from.
-     * @param recipient The recipient of thefunds.
-     * @param amount Number of tokens to be transferred.
-     */
-    function operationTransferFrom(
-        address account,
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external;
-
-    /**
-     * @dev Upgrade ERC20 to SuperToken by host contract.
-     * @param account The account to be changed.
-     * @param amount Number of tokens to be upgraded (in 18 decimals)
-     */
-    function operationUpgrade(address account, uint256 amount) external;
-
-    /**
-     * @dev Downgrade ERC20 to SuperToken by host contract.
-     * @param account The account to be changed.
-     * @param amount Number of tokens to be downgraded (in 18 decimals)
-     */
-    function operationDowngrade(address account, uint256 amount) external;
-
-    /**************************************************************************
-    * System functions
-    *************************************************************************/
-
-    /**
-     * @dev Get the contract address that is hosting this token.
-     * @return host Superfluid host contract address
-     */
-    function getHost() external view returns(address host);
-
-    /**************************************************************************
-     * Function modifiers for access control and parameter validations
-     *
-     * While they cannot be explicitly stated in function definitions, they are
-     * listed in function definition comments instead for clarity.
-     *
-     * TODO: turning these off because solidity-coverage don't like it
-     *************************************************************************/
-
-    /* /// @dev The msg.sender must be a listed agreement.
-    modifier onlyAgreement() ; */
 
 }

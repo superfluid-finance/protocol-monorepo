@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.1;
+pragma solidity 0.7.3;
 
 import "./ProxyUtils.sol";
 import "./Proxy.sol";
@@ -10,10 +10,20 @@ import "./Proxy.sol";
  */
 abstract contract Proxiable {
 
+    /// @dev avoid double initialization
+    bool internal _initialized;
+
+    function _initialize() internal
+    {
+        require(!_initialized, "Proxiable: already initialized");
+        _initialized = true;
+    }
+
     /**
      * @dev Get current implementation code address.
      */
-    function getCodeAddress() external view returns (address codeAddress){
+    function getCodeAddress() external view returns (address codeAddress)
+    {
         return ProxyUtils.implementation();
     }
 
@@ -27,7 +37,8 @@ abstract contract Proxiable {
      * @dev Update code address function.
      *      It is internal, so the derived contract could setup its own permission logic.
      */
-    function _updateCodeAddress(address newAddress) internal {
+    function _updateCodeAddress(address newAddress) internal
+    {
         require(
             proxiableUUID() == Proxiable(newAddress).proxiableUUID(),
             "Proxiable: NOT_COMPATIBLE"

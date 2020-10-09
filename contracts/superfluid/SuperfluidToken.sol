@@ -8,6 +8,7 @@ import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGover
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 import { FixedSizeData } from "../utils/FixedSizeData.sol";
+import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
@@ -74,7 +75,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         //availableBalance = realtimeBalance;
         availableBalance = realtimeBalance
             .sub(int256(deposit))
-            .add(int256(_min(deposit, owedDeposit)));
+            .add(int256(Math.min(deposit, owedDeposit)));
     }
 
     function realtimeBalanceOfNow(
@@ -241,10 +242,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
         ISuperfluidGovernance gov = _host.getGovernance();
         require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;
-    }
-
-    function _min(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a < b ? a : b;
     }
 
 }

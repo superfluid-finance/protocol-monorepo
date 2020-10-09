@@ -7,6 +7,7 @@ import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
+import { FixedSizeData } from "../utils/FixedSizeData.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
@@ -94,7 +95,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         // TODO check data existence??
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
-        _storeData(slot, data);
+        FixedSizeData.storeData(slot, data);
         emit AgreementCreated(agreementClass, id, data);
     }
 
@@ -108,7 +109,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         returns(bytes32[] memory data)
     {
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
-        data = _loadData(slot, dataLength);
+        data = FixedSizeData.loadData(slot, dataLength);
     }
 
     /// @dev ISuperToken.updateAgreementData implementation
@@ -120,7 +121,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
-        _storeData(slot, data);
+        FixedSizeData.storeData(slot, data);
         emit AgreementUpdated(msg.sender, id, data);
     }
 
@@ -133,7 +134,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
-        _eraseData(slot, dataLength);
+        FixedSizeData.eraseData(slot, dataLength);
         emit AgreementTerminated(msg.sender, id);
     }
 
@@ -190,7 +191,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         external override
     {
         bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
-        _storeData(slot, slotData);
+        FixedSizeData.storeData(slot, slotData);
         // FIXME change how this is done
         //_addAgreementClass(msg.sender, account);
         emit AgreementStateUpdated(msg.sender, account, slotId);
@@ -206,7 +207,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         external override view
         returns (bytes32[] memory slotData) {
         bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
-        slotData = _loadData(slot, dataLength);
+        slotData = FixedSizeData.loadData(slot, dataLength);
     }
 
     function settleBalance(
@@ -231,28 +232,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /**************************************************************************
     * Other utility private functions
     *************************************************************************/
-
-    function _storeData(bytes32 slot, bytes32[] memory data) private {
-        for (uint j = 0; j < data.length; ++j) {
-            bytes32 d = data[j];
-            assembly { sstore(add(slot, j), d) }
-        }
-    }
-
-    function _loadData(bytes32 slot, uint dataLength) private view returns (bytes32[] memory data) {
-        data = new bytes32[](dataLength);
-        for (uint j = 0; j < dataLength; ++j) {
-            bytes32 d;
-            assembly { d := sload(add(slot, j)) }
-            data[j] = d;
-        }
-    }
-
-    function _eraseData(bytes32 slot, uint dataLength) private {
-        for (uint j = 0; j < dataLength; ++j) {
-            assembly { sstore(add(slot, j), 0) }
-        }
-    }
 
     /**************************************************************************
     * Modifiers

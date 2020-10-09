@@ -126,52 +126,8 @@ contract SuperToken is
     }
 
     /**************************************************************************
-     * ERC20 Implementations
+     * (private) Token Logics
      *************************************************************************/
-
-    function totalSupply()
-        public view override returns (uint256)
-    {
-        return _underlyingToken.balanceOf(address(this));
-    }
-
-    function balanceOf(
-        address account
-    )
-        public
-        view
-        override
-        returns(uint256 balance)
-    {
-        (int256 availableBalance, , ) = super.realtimeBalanceOf(account, block.timestamp);
-        return availableBalance < 0 ? 0 : uint256(availableBalance);
-    }
-
-    function transfer(address recipient, uint256 amount)
-        public override returns (bool)
-    {
-        return _transferFrom(msg.sender, msg.sender, recipient, amount);
-    }
-
-    function allowance(address account, address spender)
-        public view override returns (uint256)
-    {
-        return _allowances[account][spender];
-    }
-
-    function approve(address spender, uint256 amount)
-        public override
-        returns (bool)
-    {
-        _approve(msg.sender, spender, amount);
-        return true;
-    }
-
-    function transferFrom(address holder, address recipient, uint256 amount)
-        public override returns (bool)
-    {
-        return _transferFrom(msg.sender, holder, recipient, amount);
-    }
 
     function _transferFrom(address spender, address holder, address recipient, uint amount)
         private returns (bool)
@@ -391,6 +347,54 @@ contract SuperToken is
                 !to.isContract(),
                 "SuperToken: not an ERC777TokensRecipient");
         }
+    }
+
+    /**************************************************************************
+     * ERC20 Implementations
+     *************************************************************************/
+
+    function totalSupply()
+        public view override returns (uint256)
+    {
+        return _underlyingToken.balanceOf(address(this));
+    }
+
+    function balanceOf(
+        address account
+    )
+        public
+        view
+        override
+        returns(uint256 balance)
+    {
+        (int256 availableBalance, , ) = super.realtimeBalanceOf(account, block.timestamp);
+        return availableBalance < 0 ? 0 : uint256(availableBalance);
+    }
+
+    function transfer(address recipient, uint256 amount)
+        public override returns (bool)
+    {
+        return _transferFrom(msg.sender, msg.sender, recipient, amount);
+    }
+
+    function allowance(address account, address spender)
+        public view override returns (uint256)
+    {
+        return _allowances[account][spender];
+    }
+
+    function approve(address spender, uint256 amount)
+        public override
+        returns (bool)
+    {
+        _approve(msg.sender, spender, amount);
+        return true;
+    }
+
+    function transferFrom(address holder, address recipient, uint256 amount)
+        public override returns (bool)
+    {
+        return _transferFrom(msg.sender, holder, recipient, amount);
     }
 
     /**************************************************************************

@@ -236,12 +236,12 @@ abstract contract SuperfluidToken is ISuperfluidToken
     * Modifiers
     *************************************************************************/
 
-    modifier onlyHost() override {
+    modifier onlyHost() {
         require(address(_host) == msg.sender, _ERR_ONLY_HOST);
         _;
     }
 
-    modifier onlyAgreement() override {
+    modifier onlyAgreement() {
         ISuperfluidGovernance gov = _host.getGovernance();
         require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;

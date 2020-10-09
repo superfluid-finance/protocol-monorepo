@@ -302,12 +302,14 @@ interface ISuperfluidToken {
      *
      * While they cannot be explicitly stated in function definitions, they are
      * listed in function definition comments instead for clarity.
+     *
+     * NOTE: solidity-coverage not supporting it
      *************************************************************************/
 
     /// @dev The msg.sender must be host contract
-    modifier onlyHost() virtual;
+    //modifier onlyHost() virtual;
 
     /// @dev The msg.sender must be a listed agreement.
-    modifier onlyAgreement() virtual;
+    //modifier onlyAgreement() virtual;
 
 }

@@ -66,7 +66,6 @@ interface ISuperfluidToken {
         bytes32 id,
         bytes32[] calldata data
     )
-        //onlyAgreement
         external;
 
     /**
@@ -104,7 +103,6 @@ interface ISuperfluidToken {
         bytes32 id,
         bytes32[] calldata data
     )
-        //onlyAgreement
         external;
 
     /**
@@ -127,7 +125,6 @@ interface ISuperfluidToken {
         bytes32 id,
         uint dataLength
     )
-        //onlyAgreement
         external;
 
     /**
@@ -146,6 +143,9 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param account Account of the agrement
      * @param deposit Deposit from the account that is going to taken as penalty
+     *
+     * Modifiers:
+     *  - onlyAgreement
      */
     function liquidateAgreement
     (
@@ -154,7 +154,6 @@ interface ISuperfluidToken {
         address account,
         uint256 deposit
     )
-        // onlyAgreement
         external;
 
     /**
@@ -169,7 +168,6 @@ interface ISuperfluidToken {
         uint256 slotId,
         bytes32[] calldata slotData
     )
-        //onlyAgreement
         external;
 
     /**
@@ -233,12 +231,83 @@ interface ISuperfluidToken {
      *      The agreement needs to make sure that the balance delta is balanced afterwards
      * @param account Account to query.
      * @param delta Amount of balance delta to be settled
+     *
+     * Modifiers:
+     *  - onlyAgreement
      */
     function settleBalance(
         address account,
         int256 delta
     )
-        // onlyAgreement
         external;
+
+    /**************************************************************************
+     * Superfluid Batch Operations
+     *************************************************************************/
+
+    /**
+     * @dev Perform ERC20 approve by host contract.
+     * @param account The account owner to be approved.
+     * @param spender The spender of account owner's funds.
+     * @param amount Number of tokens to be approved.
+     *
+     * Modifiers:
+     *  - onlyHost
+     */
+    function operationApprove(
+        address account,
+        address spender,
+        uint256 amount
+    ) external;
+
+    /**
+     * @dev Perform ERC20 transfer from by host contract.
+     * @param account The account to spend sender's funds.
+     * @param sender  The account where the funds is sent from.
+     * @param recipient The recipient of thefunds.
+     * @param amount Number of tokens to be transferred.
+     *
+     * Modifiers:
+     *  - onlyHost
+     */
+    function operationTransferFrom(
+        address account,
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external;
+
+    /**
+     * @dev Upgrade ERC20 to SuperToken by host contract.
+     * @param account The account to be changed.
+     * @param amount Number of tokens to be upgraded (in 18 decimals)
+     *
+     * Modifiers:
+     *  - onlyHost
+     */
+    function operationUpgrade(address account, uint256 amount) external;
+
+    /**
+     * @dev Downgrade ERC20 to SuperToken by host contract.
+     * @param account The account to be changed.
+     * @param amount Number of tokens to be downgraded (in 18 decimals)
+     *
+     * Modifiers:
+     *  - onlyHost
+     */
+    function operationDowngrade(address account, uint256 amount) external;
+
+    /**************************************************************************
+     * Function modifiers for access control and parameter validations
+     *
+     * While they cannot be explicitly stated in function definitions, they are
+     * listed in function definition comments instead for clarity.
+     *************************************************************************/
+
+    /// @dev The msg.sender must be host contract
+    modifier onlyHost() virtual;
+
+    /// @dev The msg.sender must be a listed agreement.
+    modifier onlyAgreement() virtual;
 
 }

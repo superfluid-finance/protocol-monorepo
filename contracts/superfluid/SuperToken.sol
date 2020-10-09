@@ -43,7 +43,6 @@ contract SuperToken is
 
     uint8 constant private _STANDARD_DECIMALS = 18;
 
-    string constant private _ERR_ONLY_HOST = "SuperToken: Only host contract allowed";
     string constant private _ERR_TRANSFER_FROM_ZERO_ADDRESS = "SuperToken: transfer from zero address";
     string constant private _ERR_TRANSFER_TO_ZERO_ADDRESS = "SuperToken: transfer to zero address";
     string constant private _ERR_TRANSFER_EXCEED_ALLOWANCE = "SuperToken: transfer amount exceeds allowance";
@@ -598,15 +597,6 @@ contract SuperToken is
     {
         // FIXME correct operator
         _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
-    }
-
-    /**************************************************************************
-    * Modifiers
-    *************************************************************************/
-
-    modifier onlyHost() {
-        require(address(_host) == msg.sender, _ERR_ONLY_HOST);
-        _;
     }
 
 }

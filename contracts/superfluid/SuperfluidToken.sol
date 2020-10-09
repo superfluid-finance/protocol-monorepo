@@ -19,6 +19,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     using SafeMath for uint256;
     using SignedSafeMath for int256;
 
+    string constant private _ERR_ONLY_HOST = "SuperfluidToken: Only host contract allowed";
+
     /// @dev Superfluid contract
     ISuperfluid internal _host;
 
@@ -231,14 +233,15 @@ abstract contract SuperfluidToken is ISuperfluidToken
     }
 
     /**************************************************************************
-    * Other utility private functions
-    *************************************************************************/
-
-    /**************************************************************************
     * Modifiers
     *************************************************************************/
 
-    modifier onlyAgreement() {
+    modifier onlyHost() override {
+        require(address(_host) == msg.sender, _ERR_ONLY_HOST);
+        _;
+    }
+
+    modifier onlyAgreement() override {
         ISuperfluidGovernance gov = _host.getGovernance();
         require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;

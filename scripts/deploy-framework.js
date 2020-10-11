@@ -126,8 +126,9 @@ module.exports = async function (callback) {
             } else {
                 console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
             }
-            if (!(await governance.isAgreementListed.call(cfaAddress))) {
+            if (!(await superfluid.isAgreementListed.call(cfaAddress))) {
                 await web3tx(governance.addAgreement, "Governance lists CFA")(
+                    superfluid.address,
                     cfaAddress
                 );
             }
@@ -150,8 +151,9 @@ module.exports = async function (callback) {
             } else {
                 console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
             }
-            if (!(await governance.isAgreementListed.call(idaAddress))) {
+            if (!(await superfluid.isAgreementListed.call(idaAddress))) {
                 await web3tx(governance.addAgreement, "Governance lists IDA")(
+                    superfluid.address,
                     idaAddress
                 );
             }

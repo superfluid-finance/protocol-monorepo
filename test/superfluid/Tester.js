@@ -126,13 +126,15 @@ module.exports = class Tester {
             });
 
         // Add agreements to whiteList
-        if (!(await this.contracts.governance.isAgreementListed.call(this.contracts.cfa.address))) {
+        if (!(await this.contracts.superfluid.isAgreementListed.call(this.contracts.cfa.address))) {
             await web3tx(this.contracts.governance.addAgreement, "Governance lists CFA")(
+                this.contracts.superfluid.address,
                 this.contracts.cfa.address
             );
         }
-        if (!(await this.contracts.governance.isAgreementListed.call(this.contracts.ida.address))) {
+        if (!(await this.contracts.superfluid.isAgreementListed.call(this.contracts.ida.address))) {
             await web3tx(this.contracts.governance.addAgreement, "Governance lists IDA")(
+                this.contracts.superfluid.address,
                 this.contracts.ida.address
             );
         }

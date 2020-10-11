@@ -303,4 +303,60 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         uint256 amount
     );
 
+    /**************************************************************************
+    * Batch Operations
+    *************************************************************************/
+
+    /**
+    * @dev Perform ERC20 approve by host contract.
+    * @param account The account owner to be approved.
+    * @param spender The spender of account owner's funds.
+    * @param amount Number of tokens to be approved.
+    *
+    * Modifiers:
+    *  - onlyHost
+    */
+    function operationApprove(
+    address account,
+    address spender,
+    uint256 amount
+    ) external;
+
+    /**
+    * @dev Perform ERC20 transfer from by host contract.
+    * @param account The account to spend sender's funds.
+    * @param sender  The account where the funds is sent from.
+    * @param recipient The recipient of thefunds.
+    * @param amount Number of tokens to be transferred.
+    *
+    * Modifiers:
+    *  - onlyHost
+    */
+    function operationTransferFrom(
+    address account,
+    address sender,
+    address recipient,
+    uint256 amount
+    ) external;
+
+    /**
+    * @dev Upgrade ERC20 to SuperToken by host contract.
+    * @param account The account to be changed.
+    * @param amount Number of tokens to be upgraded (in 18 decimals)
+    *
+    * Modifiers:
+    *  - onlyHost
+    */
+    function operationUpgrade(address account, uint256 amount) external;
+
+    /**
+    * @dev Downgrade ERC20 to SuperToken by host contract.
+    * @param account The account to be changed.
+    * @param amount Number of tokens to be downgraded (in 18 decimals)
+    *
+    * Modifiers:
+    *  - onlyHost
+    */
+    function operationDowngrade(address account, uint256 amount) external;
+
 }

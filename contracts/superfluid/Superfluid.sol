@@ -48,6 +48,9 @@ contract SuperfluidStorage {
     /// @dev Governance contract
     ISuperfluidGovernance internal _gov;
 
+    address[] internal _agreementList;
+    mapping (address => uint) internal _agreementMap;
+
     /// @dev Super token logic contract
     ISuperToken internal _superTokenLogic;
 
@@ -110,6 +113,56 @@ contract Superfluid is
 
     function setGovernance(ISuperfluidGovernance gov) external onlyOwner {
         _gov = gov;
+    }
+
+    /**************************************************************************
+     * Agreement Whitelisting
+     *************************************************************************/
+
+    function addAgreement(address agreementClass) external onlyGovernance override {
+        require(agreementClass != address(0), "SF: 0x address detected");
+        _agreementList.push(agreementClass);
+        _agreementMap[agreementClass] = _agreementList.length;
+    }
+
+    function isAgreementListed(address agreementClass) public override view returns(bool yes) {
+        return _agreementMap[agreementClass] > 0;
+    }
+
+    function mapAgreements(uint256 bitmap)
+        external view override
+        returns (address[] memory agreementClasses) {
+        uint i;
+        uint n;
+        // create memory output using the counted size
+        agreementClasses = new address[](_agreementList.length);
+        // add to the output
+        n = 0;
+        for (i = 0; i < _agreementList.length; ++i) {
+            if ((bitmap & (1 << i)) > 0) {
+                agreementClasses[n++] = _agreementList[i];
+            }
+        }
+        // resize memory arrays
+        assembly {
+            mstore(agreementClasses, n)
+        }
+    }
+
+    function maskAgreementBit(uint256 bitmap, address agreementClass)
+        external view override
+        returns (uint256 newBitmap)
+    {
+        require(_agreementMap[agreementClass] > 0, "TestGovernance: Agreement not listed");
+        return bitmap | (1 << (_agreementMap[agreementClass] - 1));
+    }
+
+    function unmaskAgreementBit(uint256 bitmap, address agreementClass)
+        external view override
+        returns (uint256 newBitmap)
+    {
+        require(_agreementMap[agreementClass] > 0, "TestGovernance: Agreement not listed");
+        return bitmap & ~(1 << (_agreementMap[agreementClass] - 1));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -642,12 +695,17 @@ contract Superfluid is
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
-        require(_gov.isAgreementListed(address(agreementClass)), "SF: Only listed agreeement allowed");
+        require(isAgreementListed(address(agreementClass)), "SF: Only listed agreeement allowed");
+        _;
+    }
+
+    modifier onlyGovernance() {
+        require(msg.sender == address(_gov), "SF: Only governance allowed");
         _;
     }
 
     modifier onlyAgreement() {
-        require(_gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
+        require(isAgreementListed(msg.sender), "SF: Sender is not listed agreeement");
         _;
     }
 

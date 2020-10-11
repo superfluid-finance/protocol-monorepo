@@ -32,6 +32,39 @@ interface ISuperfluid {
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
     /**************************************************************************
+     * Agreement Whitelisting
+     *************************************************************************/
+
+    /**
+    * @dev Add an agreement to the whitelist
+    *
+    * Modifiers:
+    *  - onlyGovernance
+    */
+    function addAgreement(address agreementClass) external;
+
+    /**
+    * @dev Check if the agreement is whitelisted
+    */
+    function isAgreementListed(address agreementClass) external view returns(bool yes);
+
+    /**
+    * @dev Map list of the agreements using a bitmap
+    * @param bitmap Agreement class ID based bitmap
+    */
+    function mapAgreements(uint256 bitmap) external view returns (address[] memory agreementClasses);
+
+    /**
+    * @dev Create a new bitmask by adding agreement class to it.
+    */
+    function maskAgreementBit(uint256 bitmap, address agreementClass) external view returns (uint256 newBitmap);
+
+    /**
+    * @dev Create a new bitmask by removing agreement class from it.
+    */
+    function unmaskAgreementBit(uint256 bitmap, address agreementClass) external view returns (uint256 newBitmap);
+
+    /**************************************************************************
      * Token Registry
      *************************************************************************/
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
@@ -293,6 +326,8 @@ interface ISuperfluid {
 
      /// @dev The agreement is a listed agreement.
      modifier isAgreement(ISuperAgreement agreementClass) virtual;
+
+     // onlyGovernance
 
      /// @dev The msg.sender must be a listed agreement.
      modifier onlyAgreement() virtual;

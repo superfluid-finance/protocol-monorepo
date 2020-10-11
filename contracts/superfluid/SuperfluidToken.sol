@@ -15,6 +15,7 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 
 /**
  * @title Superfluid's token implementation
+ *
  * @author Superfluid
  */
 abstract contract SuperfluidToken is ISuperfluidToken
@@ -32,16 +33,20 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev Settled balance for the account
     mapping(address => int256) internal _balances;
 
-    /// @dev ISuperToken.getAccountActiveAgreements implementation
-    function getAccountActiveAgreements(address account)
-       public view override
-       returns(address[] memory)
+    /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
+    function getHost()
+       external view
+       override(ISuperfluidToken)
+       returns(address host)
     {
-       ISuperfluidGovernance gov = _host.getGovernance();
-       return gov.mapAgreements(~_inactiveAgreementBitmap[account]);
+       return address(_host);
     }
 
-    /// @dev ISuperToken.isAccountInsolvent implementation
+    /**************************************************************************
+     * Real-time balance functions
+     *************************************************************************/
+
+    /// @dev ISuperfluidToken.isAccountInsolvent implementation
     function isAccountInsolvent(
        address account
     )
@@ -52,7 +57,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
        return amount < 0;
     }
 
-    /// @dev ISuperToken.realtimeBalanceOf implementation
+    /// @dev ISuperfluidToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
        address account,
        uint256 timestamp
@@ -82,6 +87,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
             .add(int256(Math.min(deposit, owedDeposit)));
     }
 
+    /// @dev ISuperfluidToken.realtimeBalanceOfNow implementation
     function realtimeBalanceOfNow(
        address account
     )
@@ -90,7 +96,56 @@ abstract contract SuperfluidToken is ISuperfluidToken
        return realtimeBalanceOf(account, block.timestamp);
     }
 
-    /// @dev ISuperToken.createAgreement implementation
+    /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
+    function getAccountActiveAgreements(address account)
+       public view override
+       returns(address[] memory)
+    {
+       return _host.mapAgreements(~_inactiveAgreementBitmap[account]);
+    }
+
+    /**************************************************************************
+     * Token implementation helpers
+     *************************************************************************/
+
+    function _mint(
+        address account,
+        int256 amount
+    )
+        internal
+    {
+        _balances[account] = _balances[account].add(amount);
+    }
+
+    function _burn(
+        address account,
+        int256 amount
+    )
+        internal
+    {
+        (int256 availableBalance,,) = realtimeBalanceOf(account, block.timestamp);
+        require(availableBalance >= amount, "SuperfluidToken: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(amount);
+    }
+
+    function _move(
+        address from,
+        address to,
+        int256 amount
+    )
+        internal
+    {
+        (int256 availableBalance,,) = realtimeBalanceOf(from, block.timestamp);
+        require(availableBalance >= amount, "SuperfluidToken: move amount exceeds balance");
+        _balances[from] = _balances[from].sub(amount);
+        _balances[to] = _balances[to].add(amount);
+    }
+
+    /**************************************************************************
+     * Super Agreement hosting functions
+     *************************************************************************/
+
+    /// @dev ISuperfluidToken.createAgreement implementation
     function createAgreement(
         bytes32 id,
         bytes32[] calldata data
@@ -104,7 +159,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         emit AgreementCreated(agreementClass, id, data);
     }
 
-    /// @dev ISuperToken.getAgreementData implementation
+    /// @dev ISuperfluidToken.getAgreementData implementation
     function getAgreementData(
         address agreementClass,
         bytes32 id,
@@ -117,7 +172,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         data = FixedSizeData.loadData(slot, dataLength);
     }
 
-    /// @dev ISuperToken.updateAgreementData implementation
+    /// @dev ISuperfluidToken.updateAgreementData implementation
     function updateAgreementData(
         bytes32 id,
         bytes32[] calldata data
@@ -130,7 +185,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         emit AgreementUpdated(msg.sender, id, data);
     }
 
-    /// @dev ISuperToken.terminateAgreement implementation
+    /// @dev ISuperfluidToken.terminateAgreement implementation
     function terminateAgreement(
         bytes32 id,
         uint dataLength
@@ -143,7 +198,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         emit AgreementTerminated(msg.sender, id);
     }
 
-    /// @dev ISuperToken.liquidateAgreement implementation
+    /// @dev ISuperfluidToken.liquidateAgreement implementation
     function liquidateAgreement
     (
         address liquidator,
@@ -187,7 +242,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         }
     }
 
-    /// @dev ISuperToken.updateAgreementState implementation
+    /// @dev ISuperfluidToken.updateAgreementState implementation
     function updateAgreementStateSlot(
         address account,
         uint256 slotId,
@@ -202,7 +257,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         emit AgreementStateUpdated(msg.sender, account, slotId);
     }
 
-    /// @dev ISuperToken.getAgreementState implementation
+    /// @dev ISuperfluidToken.getAgreementState implementation
     function getAgreementStateSlot(
         address agreementClass,
         address account,
@@ -225,15 +280,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[account] = _balances[account].add(delta);
     }
 
-    function _settleBalance(
-        address account,
-        int256 delta
-    )
-        internal
-    {
-        _balances[account] = _balances[account].add(delta);
-    }
-
     /**************************************************************************
     * Modifiers
     *************************************************************************/
@@ -244,8 +290,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     }
 
     modifier onlyAgreement() {
-        ISuperfluidGovernance gov = _host.getGovernance();
-        require(gov.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
+        require(_host.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
         _;
     }
 

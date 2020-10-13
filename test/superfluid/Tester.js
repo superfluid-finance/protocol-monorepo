@@ -113,29 +113,33 @@ module.exports = class Tester {
             )).wrapperAddress
         );
 
-        // CFA contract
-        this.contracts.cfa = await web3tx(ConstantFlowAgreementV1.new, "ConstantFlowAgreementV1.new")(
-            {
-                from: this.aliases.admin
-            });
-
-        // IDA contract
-        this.contracts.ida = await web3tx(InstantDistributionAgreementV1.new, "InstantDistributionAgreementV1.new")(
-            {
-                from: this.aliases.admin
-            });
-
-        // Add agreements to whiteList
-        if (!(await this.contracts.superfluid.isAgreementListed.call(this.contracts.cfa.address))) {
-            await web3tx(this.contracts.governance.addAgreement, "Governance lists CFA")(
+        // CFA
+        {
+            const cfaLogic = await web3tx(ConstantFlowAgreementV1.new, "ConstantFlowAgreementV1.new")(
+                {
+                    from: this.aliases.admin
+                });
+            await web3tx(this.contracts.governance.registerAgreementClass, "Governance registers CFA")(
                 this.contracts.superfluid.address,
-                this.contracts.cfa.address
+                cfaLogic.address
+            );
+            this.contracts.cfa = await ConstantFlowAgreementV1.at(
+                await this.contracts.superfluid.getAgreementClass(await cfaLogic.agreementType.call())
             );
         }
-        if (!(await this.contracts.superfluid.isAgreementListed.call(this.contracts.ida.address))) {
-            await web3tx(this.contracts.governance.addAgreement, "Governance lists IDA")(
+
+        // IDA
+        {
+            const idaLogic = await web3tx(InstantDistributionAgreementV1.new, "InstantDistributionAgreementV1.new")(
+                {
+                    from: this.aliases.admin
+                });
+            await web3tx(this.contracts.governance.registerAgreementClass, "Governance registers IDA")(
                 this.contracts.superfluid.address,
-                this.contracts.ida.address
+                idaLogic.address
+            );
+            this.contracts.ida = await InstantDistributionAgreementV1.at(
+                await this.contracts.superfluid.getAgreementClass(await idaLogic.agreementType.call())
             );
         }
 

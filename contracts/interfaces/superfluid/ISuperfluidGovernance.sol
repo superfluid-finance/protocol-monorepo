@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
+import { ISuperAgreement } from "./ISuperAgreement.sol";
+import { ISuperfluidToken } from "./ISuperToken.sol";
+
 
 /**
  * @dev Superfluid's Governance interface
@@ -9,14 +12,16 @@ pragma solidity >= 0.7.0;
  */
 interface ISuperfluidGovernance {
 
-    function addAgreement(address host, address agreementClass) external;
+    function registerAgreementClass(address host, ISuperAgreement agreementClass) external;
+
+    function updateAgreementClass(address host, ISuperAgreement agreementClass) external;
 
     /**
      * @dev Get the Reward address that receives the liquidation fees.
      * @param superToken Super token address.
      */
     function getRewardAddress(
-        address superToken
+        ISuperfluidToken superToken
     )
         external
         view
@@ -27,7 +32,7 @@ interface ISuperfluidGovernance {
      * @param superToken Super token address.
      */
     function getLiquidationPeriod(
-        address superToken
+        ISuperfluidToken superToken
     )
         external
         view

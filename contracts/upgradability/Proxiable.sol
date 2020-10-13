@@ -31,7 +31,7 @@ abstract contract Proxiable {
      * @dev Proxiable UUID marker function.
      *      This would help to avoid wrong logic contract to be used for upgrading.
      */
-    function proxiableUUID() public pure virtual returns (bytes32);
+    function proxiableUUID() public view virtual returns (bytes32);
 
     /**
      * @dev Update code address function.

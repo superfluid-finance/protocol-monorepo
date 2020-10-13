@@ -12,17 +12,40 @@ import {
     ISuperAgreement,
     ISuperApp,
     SuperAppDefinitions,
+    ISuperfluidToken,
     ISuperToken,
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { SuperToken } from "./SuperToken.sol";
+import { AgreementBase } from "../agreements/AgreementBase.sol";
 
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 
-contract SuperfluidStorage {
+contract Superfluid is
+    Proxiable,
+    Ownable,
+    ISuperfluid
+{
+
+    enum Info {
+        A_1_MANIFEST,
+        A_2_DOWNSTREAM_WHITELIST,
+        A_3_IMMUTABLE_CALLBACK,
+        B_1_READONLY_CONTEXT,
+        B_2_UPSTREAM_CONTEXT,
+        B_3_CALL_JAIL_APP,
+        C_2_TERMINATION_CALLBACK,
+        C_3_REVERT_NO_REASON,
+        C_4_GAS_LIMIT,
+        E_2_GAS_REFUND,
+        J_1_UPSTREAM_RESPONSABILITY
+    }
+
+    // ????? TODO
+    uint64 constant private _GAS_RESERVATION = 5000;
 
     struct FullContext {
         // For callbacks it is used to know which agreement function selector is called
@@ -48,8 +71,10 @@ contract SuperfluidStorage {
     /// @dev Governance contract
     ISuperfluidGovernance internal _gov;
 
-    address[] internal _agreementList;
-    mapping (address => uint) internal _agreementMap;
+    /// @dev Agreement list indexed by agreement index minus one
+    ISuperAgreement[] internal _agreementClasses;
+    /// @dev Mapping between agreement type to agreement index (starting from 1)
+    mapping (bytes32 => uint) internal _agreementClassIndices;
 
     /// @dev Super token logic contract
     ISuperToken internal _superTokenLogic;
@@ -61,31 +86,6 @@ contract SuperfluidStorage {
     /// @dev Ctx stamp of the current transaction, it should always be cleared to
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
-}
-
-contract Superfluid is
-    Proxiable,
-    Ownable,
-    SuperfluidStorage,
-    ISuperfluid
-{
-
-    enum Info {
-        A_1_MANIFEST,
-        A_2_DOWNSTREAM_WHITELIST,
-        A_3_IMMUTABLE_CALLBACK,
-        B_1_READONLY_CONTEXT,
-        B_2_UPSTREAM_CONTEXT,
-        B_3_CALL_JAIL_APP,
-        C_2_TERMINATION_CALLBACK,
-        C_3_REVERT_NO_REASON,
-        C_4_GAS_LIMIT,
-        E_2_GAS_REFUND,
-        J_1_UPSTREAM_RESPONSABILITY
-    }
-
-    // ????? TODO
-    uint64 constant private _GAS_RESERVATION = 5000;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Proxiable
@@ -119,50 +119,87 @@ contract Superfluid is
      * Agreement Whitelisting
      *************************************************************************/
 
-    function addAgreement(address agreementClass) external onlyGovernance override {
-        require(agreementClass != address(0), "SF: 0x address detected");
-        _agreementList.push(agreementClass);
-        _agreementMap[agreementClass] = _agreementList.length;
+    function registerAgreementClass(ISuperAgreement agreementClass) external onlyGovernance override {
+        bytes32 agreementType = agreementClass.agreementType();
+        require(_agreementClassIndices[agreementType] == 0,
+            "SF: Agreement class already registered");
+        require(_agreementClasses.length < 256,
+            "SF: Support up to 256 agreement classes");
+        Proxy proxy = new Proxy();
+        proxy.initializeProxy(address(agreementClass));
+        _agreementClasses.push(ISuperAgreement(address(proxy)));
+        _agreementClassIndices[agreementType] = _agreementClasses.length;
     }
 
-    function isAgreementListed(address agreementClass) public override view returns(bool yes) {
-        return _agreementMap[agreementClass] > 0;
+    function updateAgreementClass(ISuperAgreement agreementClass) external onlyGovernance override {
+        bytes32 agreementType = agreementClass.agreementType();
+        uint idx = _agreementClassIndices[agreementType];
+        require(idx != 0, "SF: Agreement class not registered");
+        AgreementBase(address(_agreementClasses[idx - 1])).updateCode(address(agreementClass));
     }
 
-    function mapAgreements(uint256 bitmap)
+    function isAgreementTypeListed(bytes32 agreementType)
         external view override
-        returns (address[] memory agreementClasses) {
+        returns(bool yes)
+    {
+        uint idx = _agreementClassIndices[agreementType];
+        return idx != 0;
+    }
+
+    function isAgreementClassListed(ISuperAgreement agreementClass)
+        public view override
+        returns(bool yes)
+    {
+        bytes32 agreementType = agreementClass.agreementType();
+        uint idx = _agreementClassIndices[agreementType];
+        return idx != 0;
+    }
+
+    function getAgreementClass(bytes32 agreementType)
+        external view override
+        returns(ISuperAgreement agreementClass)
+    {
+        uint idx = _agreementClassIndices[agreementType];
+        require(idx != 0, "SF: Agreement class not registered");
+        return ISuperAgreement(_agreementClasses[idx - 1]);
+    }
+
+    function mapAgreementClasses(uint256 bitmap)
+        external view override
+        returns (ISuperAgreement[] memory agreementClasses) {
         uint i;
         uint n;
         // create memory output using the counted size
-        agreementClasses = new address[](_agreementList.length);
+        agreementClasses = new ISuperAgreement[](_agreementClasses.length);
         // add to the output
         n = 0;
-        for (i = 0; i < _agreementList.length; ++i) {
+        for (i = 0; i < _agreementClasses.length; ++i) {
             if ((bitmap & (1 << i)) > 0) {
-                agreementClasses[n++] = _agreementList[i];
+                agreementClasses[n++] = _agreementClasses[i];
             }
         }
         // resize memory arrays
-        assembly {
-            mstore(agreementClasses, n)
-        }
+        assembly { mstore(agreementClasses, n) }
     }
 
-    function maskAgreementBit(uint256 bitmap, address agreementClass)
+    function addToAgreementClassesBitmap(uint256 bitmap, ISuperAgreement agreementClass)
         external view override
         returns (uint256 newBitmap)
     {
-        require(_agreementMap[agreementClass] > 0, "TestGovernance: Agreement not listed");
-        return bitmap | (1 << (_agreementMap[agreementClass] - 1));
+        bytes32 agreementType = agreementClass.agreementType();
+        uint idx = _agreementClassIndices[agreementType];
+        require(idx != 0, "SF: Agreement class not registered");
+        return bitmap | (1 << (idx - 1));
     }
 
-    function unmaskAgreementBit(uint256 bitmap, address agreementClass)
+    function removeFromAgreementClassesBitmap(uint256 bitmap, ISuperAgreement agreementClass)
         external view override
         returns (uint256 newBitmap)
     {
-        require(_agreementMap[agreementClass] > 0, "TestGovernance: Agreement not listed");
-        return bitmap & ~(1 << (_agreementMap[agreementClass] - 1));
+        bytes32 agreementType = agreementClass.agreementType();
+        uint idx = _agreementClassIndices[agreementType];
+        require(idx != 0, "SF: Agreement class not registered");
+        return bitmap & ~(1 << (idx - 1));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -695,7 +732,7 @@ contract Superfluid is
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
-        require(isAgreementListed(address(agreementClass)), "SF: Only listed agreeement allowed");
+        require(isAgreementClassListed(agreementClass), "SF: Only listed agreeement allowed");
         _;
     }
 
@@ -705,7 +742,7 @@ contract Superfluid is
     }
 
     modifier onlyAgreement() {
-        require(isAgreementListed(msg.sender), "SF: Sender is not listed agreeement");
+        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: Sender is not listed agreeement");
         _;
     }
 

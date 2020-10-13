@@ -111,51 +111,61 @@ module.exports = async function (callback) {
 
         // deploy ConstantFlowAgreementV1
         {
-            const name = `ConstantFlowAgreementV1.${version}`;
-            let cfaAddress = await testResolver.get(name);
-            console.log("ConstantFlowAgreementV1 address", cfaAddress);
-            if (reset || await codeChanged(ConstantFlowAgreementV1, cfaAddress)) {
+            const agreementType = web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+            const isListed = await superfluid.isAgreementTypeListed.call(agreementType);
+            const isChanged = !isListed || await codeChanged(
+                ConstantFlowAgreementV1,
+                await (await Proxiable.at(await superfluid.getAgreementClass.call(agreementType))).getCodeAddress()
+            );
+            console.log(`ConstantFlowAgreementV1 isListed ${isListed} isChanged ${isChanged}`);
+            if (reset || !isListed || isChanged) {
                 const agreement = await web3tx(
                     ConstantFlowAgreementV1.new,
-                    "ConstantFlowAgreementV1.new due to code change")();
+                    "ConstantFlowAgreementV1.new")();
                 console.log("New ConstantFlowAgreementV1 address", agreement.address);
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, agreement.address
-                );
-                cfaAddress = agreement.address;
+                if (reset || !isListed) {
+                    await web3tx(governance.registerAgreementClass, "Governance registers CFA")(
+                        superfluid.address,
+                        agreement.address
+                    );
+                } else {
+                    await web3tx(governance.updateAgreementClass, "Governance updates CFA code")(
+                        superfluid.address,
+                        agreement.address
+                    );
+                }
             } else {
                 console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
-            }
-            if (!(await superfluid.isAgreementListed.call(cfaAddress))) {
-                await web3tx(governance.addAgreement, "Governance lists CFA")(
-                    superfluid.address,
-                    cfaAddress
-                );
             }
         }
 
         // deploy InstantDistributionAgreementV1
         {
-            const name = `InstantDistributionAgreementV1.${version}`;
-            let idaAddress = await testResolver.get(name);
-            console.log("InstantDistributionAgreementV1 address", idaAddress);
-            if (reset || await codeChanged(InstantDistributionAgreementV1, idaAddress)) {
+            const agreementType = web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
+            const isListed = await superfluid.isAgreementTypeListed.call(agreementType);
+            const isChanged = !isListed || await codeChanged(
+                InstantDistributionAgreementV1,
+                await (await Proxiable.at(await superfluid.getAgreementClass.call(agreementType))).getCodeAddress()
+            );
+            console.log(`InstantDistributionAgreementV1 isListed ${isListed} isChanged ${isChanged}`);
+            if (reset || !isListed || isChanged) {
                 const agreement = await web3tx(
                     InstantDistributionAgreementV1.new,
-                    "InstantDistributionAgreementV1.new due to code change")();
+                    "InstantDistributionAgreementV1.new")();
                 console.log("New InstantDistributionAgreementV1 address", agreement.address);
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, agreement.address
-                );
-                idaAddress = agreement.address;
+                if (reset || !isListed) {
+                    await web3tx(governance.registerAgreementClass, "Governance registers IDA")(
+                        superfluid.address,
+                        agreement.address
+                    );
+                } else {
+                    await web3tx(governance.updateAgreementClass, "Governance updates IDA code")(
+                        superfluid.address,
+                        agreement.address
+                    );
+                }
             } else {
                 console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
-            }
-            if (!(await superfluid.isAgreementListed.call(idaAddress))) {
-                await web3tx(governance.addAgreement, "Governance lists IDA")(
-                    superfluid.address,
-                    idaAddress
-                );
             }
         }
 

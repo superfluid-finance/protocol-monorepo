@@ -66,12 +66,12 @@ abstract contract SuperfluidToken is ISuperfluidToken
        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
     {
         int256 realtimeBalance = _balances[account];
-        address[] memory activeAgreements = getAccountActiveAgreements(account);
+        ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
         for (uint256 i = 0; i < activeAgreements.length; i++) {
             (
                 int256 agreementDynamicBalance,
                 uint256 agreementDeposit,
-                uint256 agreementOwedDeposit) = ISuperAgreement(activeAgreements[i])
+                uint256 agreementOwedDeposit) = activeAgreements[i]
                     .realtimeBalanceOf(
                          this,
                          account,
@@ -99,9 +99,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
     function getAccountActiveAgreements(address account)
        public view override
-       returns(address[] memory)
+       returns(ISuperAgreement[] memory)
     {
-       return _host.mapAgreements(~_inactiveAgreementBitmap[account]);
+       return _host.mapAgreementClasses(~_inactiveAgreementBitmap[account]);
     }
 
     /**************************************************************************
@@ -210,7 +210,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         onlyAgreement
     {
         ISuperfluidGovernance gov = _host.getGovernance();
-        address rewardAccount = gov.getRewardAddress(address(this));
+        address rewardAccount = gov.getRewardAddress(this);
 
         // reward go to liquidator if reward address is null
         if (rewardAccount == address(0)) {
@@ -290,7 +290,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     }
 
     modifier onlyAgreement() {
-        require(_host.isAgreementListed(msg.sender), "SF: Only listed agreeement allowed");
+        require(_host.isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: Only listed agreeement allowed");
         _;
     }
 

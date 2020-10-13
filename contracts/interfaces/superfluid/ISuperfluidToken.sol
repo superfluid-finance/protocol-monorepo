@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
+import { ISuperAgreement } from "./ISuperAgreement.sol";
+
 
 /**
  * @title Superfluid's token interface.
@@ -67,7 +69,7 @@ interface ISuperfluidToken {
        external
 
        view
-       returns(address[] memory activeAgreements);
+       returns(ISuperAgreement[] memory activeAgreements);
 
 
    /**************************************************************************

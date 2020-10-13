@@ -4,8 +4,11 @@ pragma solidity 0.7.3;
 import { Ownable } from "../access/Ownable.sol";
 import {
     ISuperfluid,
+    ISuperAgreement,
+    ISuperfluidToken,
     ISuperfluidGovernance
 } from "../interfaces/superfluid/ISuperfluid.sol";
+
 
 contract TestGovernance is
     Ownable,
@@ -24,22 +27,16 @@ contract TestGovernance is
         _liquidationPeriod = liquidationPeriod;
     }
 
-    function addAgreement(address host, address agreementClass)
-        external
-        override
+    function registerAgreementClass(address host, ISuperAgreement agreementClass)
+        external override
     {
-        ISuperfluid(host).addAgreement(agreementClass);
+        ISuperfluid(host).registerAgreementClass(agreementClass);
     }
 
-    function getRewardAddress(
-        address /* superToken */
-    )
-        external
-        view
-        override
-        returns(address rewardAddress)
+    function updateAgreementClass(address host, ISuperAgreement agreementClass)
+        external override
     {
-        return _rewardAddress;
+        ISuperfluid(host).updateAgreementClass(agreementClass);
     }
 
     function setRewardAddress(
@@ -51,8 +48,19 @@ contract TestGovernance is
         _rewardAddress = rewardAddress;
     }
 
+    function getRewardAddress(
+        ISuperfluidToken /* superToken */
+    )
+        external
+        view
+        override
+        returns(address rewardAddress)
+    {
+        return _rewardAddress;
+    }
+
     function getLiquidationPeriod(
-        address /* superToken */
+        ISuperfluidToken /* superToken */
     )
         external
         view

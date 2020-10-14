@@ -33,12 +33,13 @@ module.exports = async function (callback, argv) {
         });
         await sf.initialize();
 
-        const tokens = ["fDAI"];
+        const tokens = ["fDAI", "fUSDC", "fTUSD"];
         while (args.length) {
             const account = args.shift();
             console.log("=".repeat(80));
             console.log("account", account);
             for (let i = 0; i < tokens.length; ++i) {
+                console.log("-".repeat(80));
                 const tokenName = tokens[i];
                 const tokenAddress = await sf.resolver.get(`tokens.${tokenName}`);
                 const token = await sf.contracts.ERC20WithTokenInfo.at(tokenAddress);
@@ -56,14 +57,18 @@ module.exports = async function (callback, argv) {
                 console.log("In Flows:");
                 console.log(getLatestFlows(await sf.agreements.cfa.getPastEvents("FlowUpdated", {
                     fromBlock: 0,
+                    toBlock: "latest",
                     filter: {
+                        token: superToken.address,
                         receiver: account
                     }
                 })).map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));
                 console.log("Out Flows:");
                 console.log(getLatestFlows(await sf.agreements.cfa.getPastEvents("FlowUpdated", {
                     fromBlock: 0,
+                    toBlock: "latest",
                     filter: {
+                        token: superToken.address,
                         sender: account
                     }
                 })).map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));

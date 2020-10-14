@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
-import "../superfluid/ISuperToken.sol";
-import "../superfluid/ISuperAgreement.sol";
+import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
+import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 
 
 /**
@@ -28,7 +28,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * - A extra gas fee may be taken to pay for solvency agent liquidations.
      */
     function createFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
@@ -51,7 +51,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * - No new gas fee is charged.
      */
     function updateFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
@@ -72,7 +72,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return owedDeposit The amount of owed deposit of the flow.
      */
     function getFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address sender,
         address receiver
     )
@@ -96,7 +96,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return owedDeposit The amount of owed deposit of the flow.
      */
     function getFlowByID(
-       ISuperToken token,
+       ISuperfluidToken token,
        bytes32 agreementId
     )
         external
@@ -116,7 +116,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return flowRate Flow rate.
      */
     function getNetFlow(
-       ISuperToken token,
+       ISuperfluidToken token,
        address account)
        external
        view
@@ -136,7 +136,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * - Gas fee may be returned to the sender.
      */
     function deleteFlow(
-        ISuperToken token,
+        ISuperfluidToken token,
         address sender,
         address receiver,
         bytes calldata ctx
@@ -155,7 +155,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
       * @param flowRate Total flow rate in amount per second for the receiver.
       */
      event FlowUpdated(
-         ISuperToken indexed token,
+         ISuperfluidToken indexed token,
          address indexed sender,
          address indexed receiver,
          int96 flowRate,

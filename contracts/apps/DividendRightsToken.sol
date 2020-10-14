@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.1;
+pragma solidity 0.7.3;
 
 import { Ownable } from "../access/Ownable.sol";
 
@@ -59,6 +59,7 @@ contract DividendRightsToken is
         );
 
         _owner = msg.sender;
+        _setupDecimals(0); // no decimals
     }
 
     function beforeAgreementCreated(
@@ -187,13 +188,11 @@ contract DividendRightsToken is
 
     /// @dev ERC20._transfer override
     function _transfer(address sender, address recipient, uint256 amount) internal override {
+        uint128 senderUnits = uint128(ERC20.balanceOf(sender));
+        uint128 recipientUnits = uint128(ERC20.balanceOf(recipient));
         // first try to do ERC20 transfer
         ERC20._transfer(sender, recipient, amount);
 
-        // then adjust sender and receiver's  subscription units
-        uint128 currentUnits;
-
-        (,currentUnits,) = _ida.getSubscription(_cashToken, address(this), INDEX_ID, sender);
         _host.callAgreement(
             _ida,
             abi.encodeWithSelector(
@@ -201,12 +200,11 @@ contract DividendRightsToken is
                 _cashToken,
                 INDEX_ID,
                 sender,
-                currentUnits - uint128(amount),
+                senderUnits - uint128(amount),
                 new bytes(0)
             )
         );
 
-        (,currentUnits,) = _ida.getSubscription(_cashToken, address(this), INDEX_ID, recipient);
         _host.callAgreement(
             _ida,
             abi.encodeWithSelector(
@@ -214,7 +212,7 @@ contract DividendRightsToken is
                 _cashToken,
                 INDEX_ID,
                 recipient,
-                currentUnits + uint128(amount),
+                recipientUnits + uint128(amount),
                 new bytes(0)
             )
         );

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
-import "../superfluid/ISuperToken.sol";
-import "../superfluid/ISuperAgreement.sol";
+import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
+import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 
 
 /**
@@ -49,7 +49,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * App callbacks: None
      */
     function createIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         bytes calldata ctx)
             external
@@ -57,7 +57,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     event IndexCreated(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId);
 
@@ -76,7 +76,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * None
      */
     function getIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId)
             external
@@ -99,7 +99,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * None
      */
     function updateIndex(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         uint128 indexValue,
         bytes calldata ctx)
@@ -108,7 +108,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     event IndexUpdated(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
         uint128 indexValue,
@@ -133,7 +133,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * None
      */
     function distribute(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         uint256 amount,
         bytes calldata ctx)
@@ -149,7 +149,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param amount The amount of tokens desired to be distributed.
      */
     function calculateDistribution(
-       ISuperToken token,
+       ISuperfluidToken token,
        address publisher,
        uint32 indexId,
        uint256 amount)
@@ -175,7 +175,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      *      - agreementId is for the subscription
      */
     function approveSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         bytes calldata ctx)
@@ -184,13 +184,13 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     event IndexSubscribed(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
         address subscriber);
 
     event SubscriptionApproved(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
         uint32 indexId);
@@ -212,7 +212,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      *      - agreementId is for the subscription
      */
     function updateSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         uint32 indexId,
         address subscriber,
         uint128 units,
@@ -222,14 +222,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     event IndexUnitsUpdated(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
         address subscriber,
         uint128 units);
 
     event SubscriptionUnitsUpdated(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
         uint32 indexId,
@@ -246,7 +246,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription.
      */
     function getSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber)
@@ -270,7 +270,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription.
      */
     function getSubscriptionByID(
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes32 agreementId)
             external
             view
@@ -292,7 +292,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @return unitsList Units of the subscriptions.
      */
     function listSubscriptions(
-        ISuperToken token,
+        ISuperfluidToken token,
         address subscriber)
             external
             view
@@ -319,7 +319,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      *      - agreementId is for the subscription
      */
     function deleteSubscription(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
         address subscriber,
@@ -329,13 +329,13 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             returns(bytes memory newCtx);
 
     event IndexUnsubscribed(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
         address subscriber);
 
     event SubscriptionDeleted(
-        ISuperToken indexed token,
+        ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
         uint32 indexId);
@@ -345,6 +345,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     * @param token Super token address.
     * @param publisher The publisher of the index.
     * @param indexId Id of the index.
+    * @param subscriber The user, a subscriber.
     *
     * The subscription should not exist yet.
     *
@@ -354,9 +355,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     *    - agreementId is for the subscription
     */
     function claim(
-        ISuperToken token,
+        ISuperfluidToken token,
         address publisher,
         uint32 indexId,
+        address subscriber,
         bytes calldata ctx)
         external
         virtual

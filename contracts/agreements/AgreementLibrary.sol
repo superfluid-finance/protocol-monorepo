@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.1;
+pragma solidity 0.7.3;
 
-import "../interfaces/superfluid/ISuperfluid.sol";
-import "../interfaces/superfluid/ISuperApp.sol";
-import "../interfaces/superfluid/SuperAppDefinitions.sol";
+import {
+    ISuperfluid,
+    ISuperfluidGovernance,
+    ISuperApp,
+    SuperAppDefinitions
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+
 
 library AgreementLibrary {
 
@@ -43,11 +48,12 @@ library AgreementLibrary {
         bytes4 selector,
         uint256 noopBit,
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bool isTermination
     )
         private
         returns(bytes memory cbdata, bytes memory newCtx)
@@ -65,7 +71,7 @@ library AgreementLibrary {
                 agreementClass,
                 agreementId
             );
-            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, ctx);
+            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, isTermination, ctx);
         }
     }
 
@@ -73,12 +79,13 @@ library AgreementLibrary {
         bytes4 selector,
         uint256 noopBit,
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
         bytes32 agreementId,
-        bytes memory cbdata
+        bytes memory cbdata,
+        bool isTermination
     )
         private
         returns(bytes memory newCtx)
@@ -97,7 +104,7 @@ library AgreementLibrary {
                 agreementId,
                 cbdata
             );
-            return host.callAppAfterCallback(ISuperApp(account), data, ctx);
+            return host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
         }
 
         return ctx;
@@ -105,7 +112,7 @@ library AgreementLibrary {
 
     function beforeAgreementCreated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -122,13 +129,14 @@ library AgreementLibrary {
             ctx,
             agreementClass,
             account,
-            agreementId
+            agreementId,
+            false
         );
     }
 
     function afterAgreementCreated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -148,13 +156,14 @@ library AgreementLibrary {
             agreementClass,
             account,
             agreementId,
-            cbdata
+            cbdata,
+            false
         );
     }
 
     function beforeAgreementUpdated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -171,13 +180,14 @@ library AgreementLibrary {
             ctx,
             agreementClass,
             account,
-            agreementId
+            agreementId,
+            false
         );
     }
 
     function afterAgreementUpdated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -196,13 +206,14 @@ library AgreementLibrary {
             agreementClass,
             account,
             agreementId,
-            cbdata
+            cbdata,
+            false
         );
     }
 
     function beforeAgreementTerminated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -219,13 +230,14 @@ library AgreementLibrary {
             ctx,
             agreementClass,
             account,
-            agreementId
+            agreementId,
+            true
         );
     }
 
     function afterAgreementTerminated(
         ISuperfluid host,
-        ISuperToken token,
+        ISuperfluidToken token,
         bytes memory ctx,
         address agreementClass,
         address account,
@@ -244,7 +256,8 @@ library AgreementLibrary {
             agreementClass,
             account,
             agreementId,
-            cbdata
+            cbdata,
+            true
         );
     }
 

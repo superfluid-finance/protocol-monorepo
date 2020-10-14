@@ -174,6 +174,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
             );
         } else {
             _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate, true);
+            newCtx = ctx;
         }
     }
 

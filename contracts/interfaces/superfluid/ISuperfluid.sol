@@ -3,8 +3,8 @@ pragma solidity >= 0.7.0;
 pragma experimental ABIEncoderV2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
+import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
-import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
@@ -32,6 +32,67 @@ interface ISuperfluid {
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
     /**************************************************************************
+     * Agreement Whitelisting
+     *************************************************************************/
+
+    /**
+     * @dev Register a new agreement class to the system
+     * @param agreementClass INitial agreement class code
+     *
+     * Modifiers:
+     *  - onlyGovernance
+     */
+    function registerAgreementClass(ISuperAgreement agreementClass) external;
+
+    /**
+    * @dev Update code of an agreement class
+    * @param agreementClass New code for the agreement class
+    *
+    * Modifiers:
+    *  - onlyGovernance
+    */
+    function updateAgreementClass(ISuperAgreement agreementClass) external;
+
+    /**
+    * @dev Check if the agreement class is whitelisted
+    */
+    function isAgreementTypeListed(bytes32 agreementType) external view returns(bool yes);
+
+    /**
+    * @dev Check if the agreement class is whitelisted
+    */
+    function isAgreementClassListed(ISuperAgreement agreementClass) external view returns(bool yes);
+
+    /**
+    * @dev Get agreement class
+    */
+    function getAgreementClass(bytes32 agreementType) external view returns(ISuperAgreement agreementClass);
+
+    /**
+    * @dev Map list of the agreement classes using a bitmap
+    * @param bitmap Agreement class bitmap
+    */
+    function mapAgreementClasses(uint256 bitmap)
+        external view
+        returns (ISuperAgreement[] memory agreementClasses);
+
+    /**
+    * @dev Create a new bitmask by adding a agreement class to it.
+    * @param bitmap Agreement class bitmap
+    */
+    function addToAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
+        external view
+        returns (uint256 newBitmap);
+
+    /**
+    * @dev Create a new bitmask by removing a agreement class from it.
+    * @param bitmap Agreement class bitmap
+    */
+    function removeFromAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
+        external view
+        returns (uint256 newBitmap);
+
+    /**************************************************************************
      * Token Registry
      *************************************************************************/
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
@@ -47,7 +108,7 @@ interface ISuperfluid {
         IERC20 underlyingToken,
         string calldata symbol
     )
-        external
+        external view
         returns (address wrapperAddress, bool created);
 
     function createERC20Wrapper(
@@ -293,6 +354,8 @@ interface ISuperfluid {
 
      /// @dev The agreement is a listed agreement.
      modifier isAgreement(ISuperAgreement agreementClass) virtual;
+
+     // onlyGovernance
 
      /// @dev The msg.sender must be a listed agreement.
      modifier onlyAgreement() virtual;

@@ -12,13 +12,18 @@ import {
     ISuperApp
 }
 from "../interfaces/superfluid/ISuperfluid.sol";
+import { AgreementBase } from "./AgreementBase.sol";
 
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
-contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
+
+contract ConstantFlowAgreementV1 is
+    AgreementBase,
+    IConstantFlowAgreementV1
+{
 
     using SignedSafeMath for int256;
     using SafeMath for uint256;
@@ -452,7 +457,7 @@ contract ConstantFlowAgreementV1 is IConstantFlowAgreementV1 {
 
     function _minimalDeposit(ISuperfluidToken token, uint256 flowRate) internal view returns(uint256 deposit) {
         ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
-        uint256 liquidationPeriod = gov.getLiquidationPeriod(address(token));
+        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
         deposit = flowRate * liquidationPeriod;
     }
 

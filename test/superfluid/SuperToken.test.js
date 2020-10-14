@@ -459,7 +459,7 @@ contract("Super Token", accounts => {
             await expectRevert(
                 web3tx(superToken.transfer, "transfer 2(+1wei) from alice to bob should fail")(
                     bob, toWad(2).add(toBN(1)), {from: alice}
-                ), "SuperToken: transfer amount exceeds balance");
+                ), "SuperfluidToken: move amount exceeds balance");
             await tester.validateSystem();
         });
 
@@ -553,7 +553,7 @@ contract("Super Token", accounts => {
                     alice,
                     bob,
                     1, {from: bob}
-                ), "SuperToken: transfer amount exceeds balance");
+                ), "SuperfluidToken: move amount exceeds balance");
         });
 
         it("#5.3 - should not approve zero address", async () => {

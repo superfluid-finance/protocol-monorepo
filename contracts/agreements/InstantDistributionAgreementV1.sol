@@ -12,14 +12,18 @@ import {
     ISuperApp
 }
 from "../interfaces/superfluid/ISuperfluid.sol";
-import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { AgreementBase } from "./AgreementBase.sol";
 
 import { UInt128SafeMath } from "../utils/UInt128SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
-contract InstantDistributionAgreementV1 is IInstantDistributionAgreementV1 {
+contract InstantDistributionAgreementV1 is
+    AgreementBase,
+    IInstantDistributionAgreementV1
+{
 
     using SafeMath for uint256;
     using UInt128SafeMath for uint128;

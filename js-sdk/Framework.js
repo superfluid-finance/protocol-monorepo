@@ -38,6 +38,7 @@ function Framework({
 }
 
 Framework.prototype.initialize = async function () {
+
     const chainId = this.chainId || await this.web3.eth.net.getId(); // TODO use eth.getChainId;
     console.log("chainId", chainId);
 
@@ -48,13 +49,16 @@ Framework.prototype.initialize = async function () {
 
     console.debug("Resolving contracts with version", this.version);
     const superfluidAddress = await this.resolver.get.call(`Superfluid.${this.version}`);
-    const cfaAddress = await this.resolver.get.call(`ConstantFlowAgreementV1.${this.version}`);
-    const idaAddress = await this.resolver.get.call(`InstantDistributionAgreementV1.${this.version}`);
+    this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
+
+    const cfav1Type = this.web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+    const idav1Type = this.web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
+    const cfaAddress = await this.host.getAgreementClass.call(cfav1Type);
+    const idaAddress = await this.host.getAgreementClass.call(idav1Type);
     console.debug("Superfluid", superfluidAddress);
     console.debug("ConstantFlowAgreementV1", cfaAddress);
     console.debug("InstantDistributionAgreementV1", idaAddress);
 
-    this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
     this.agreements = {
         cfa : await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
         ida : await this.contracts.IInstantDistributionAgreementV1.at(idaAddress),

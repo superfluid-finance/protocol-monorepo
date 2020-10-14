@@ -180,10 +180,7 @@ contract SuperToken is
     )
         private
     {
-        require(balanceOf(from) >= amount, "SuperToken: transfer amount exceeds balance");
-
-        _settleBalance(from, -int256(amount));
-        _settleBalance(to, int256(amount));
+        SuperfluidToken._move(from, to, int256(amount)); // FIXME safe downcasting
 
         emit Sent(operator, from, to, amount, userData, operatorData);
         emit Transfer(from, to, amount);
@@ -217,7 +214,7 @@ contract SuperToken is
     {
         require(account != address(0), "SuperToken: mint to zero address");
 
-        _settleBalance(account, int256(amount));
+        SuperfluidToken._mint(account, int256(amount));
 
         _callTokensReceived(operator, address(0), account, amount, userData, operatorData, true);
 
@@ -245,11 +242,7 @@ contract SuperToken is
 
         _callTokensToSend(operator, from, address(0), amount, data, operatorData);
 
-        // NB! Check balance after the _callTokensToSend is called
-        require(balanceOf(from) >= amount, "SuperToken: burn amount exceeds balance");
-
-        // Update state variables
-        _settleBalance(from, -int256(amount));
+        SuperfluidToken._burn(from, int256(amount));
 
         emit Burned(operator, from, amount, data, operatorData);
         emit Transfer(from, address(0), amount);
@@ -447,14 +440,6 @@ contract SuperToken is
      * SuperToken extra functions
      *************************************************************************/
 
-    function getHost()
-        external view
-        override(ISuperfluidToken)
-        returns(address host)
-    {
-        return address(_host);
-    }
-
     function transferAll(address recipient)
         external
         override
@@ -466,8 +451,8 @@ contract SuperToken is
      * ERC20 wrapping
      *************************************************************************/
 
-    /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
-    function getUnderlayingToken() external view override returns(address) {
+    /// @dev ISuperfluidGovernance.getUnderlyingToken implementation
+    function getUnderlyingToken() external view override returns(address) {
         return address(_underlyingToken);
     }
 

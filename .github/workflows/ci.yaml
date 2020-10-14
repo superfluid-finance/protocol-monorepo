@@ -44,6 +44,15 @@ jobs:
         name: contracts-eth-gas-report
         path: build/contracts-eth-gas-report.txt
 
+    - name: archive build
+      # only archive for master branch push
+      if: github.event_name  == 'push'
+      uses: actions/upload-artifact@v2
+      with:
+        name: build
+        path: build
+        retention-days: 1
+
   coverage:
 
     runs-on: ubuntu-latest
@@ -81,19 +90,11 @@ jobs:
 
     steps:
 
-    - uses: actions/checkout@v2
-
-    - uses: actions/setup-node@v1
+    - name: download build
+      uses: actions/download-artifact@v2
       with:
-        node-version: '12.x'
-        registry-url: 'https://npm.pkg.github.com'
-
-    - name: Build package
-      run: |
-        npm ci
-        npm run build
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: build
+        path: build
 
     - name: Determine release version
       run: |
@@ -120,17 +121,14 @@ jobs:
 
     steps:
 
-    - uses: actions/checkout@v2
-
-    - uses: actions/setup-node@v1
+    - name: download build
+      uses: actions/download-artifact@v2
       with:
-        node-version: '12.x'
-        registry-url: 'https://npm.pkg.github.com'
+        name: build
+        path: build
 
-    - name: Build and Publish package
+    - name: Publish package
       run: |
-        npm ci
-        npm run build
         .github/workflows/npm-publish.sh
       env:
         NODE_AUTH_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

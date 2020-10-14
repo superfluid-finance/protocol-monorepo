@@ -17,7 +17,7 @@ contract MultiFlowsApp is SuperAppBase {
 
     struct ReceiverData {
         address to;
-        int96 proportion;
+        uint256 proportion;
     }
 
     IConstantFlowAgreementV1 internal _constantFlow;
@@ -42,7 +42,7 @@ contract MultiFlowsApp is SuperAppBase {
     function createMultiFlows(
         ISuperToken superToken,
         address[] calldata receivers,
-        int96[] calldata proportions,
+        uint256[] calldata proportions,
         bytes calldata ctx
     )
         external
@@ -67,20 +67,35 @@ contract MultiFlowsApp is SuperAppBase {
         }
     }
 
-    function beforeAgreementUpdated(
+    function _updateMultiFlow(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
-        address agreementClass,
-        bytes32 agreementId
+        address sender,
+        bytes4 selector,
+        int96 receivingFlowRate,
+        bytes calldata ctx
     )
-        external
-        view
-        override
-        returns (bytes memory data)
+        private
+        returns (bytes memory newCtx)
     {
-        require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
-        (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
-        return _packData(agreementId, oldFlowRate);
+        uint256 sum = _sumProportions(_userFlows[sender]);
+        require(sum != 0 , "MFA: Sum is zero");
+
+        newCtx = ctx;
+        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+            require(_userFlows[sender][i].proportion > 0, "Proportion > 0");
+            int96 targetFlowrate = (int96(_userFlows[sender][i].proportion) * receivingFlowRate) / int96(sum);
+            (newCtx, ) = _host.callAgreementWithContext(
+                _constantFlow,
+                abi.encodeWithSelector(
+                    selector,
+                    superToken,
+                    _userFlows[sender][i].to,
+                    targetFlowrate,
+                    new bytes(0)
+                ),
+                newCtx
+            );
+        }
     }
 
     function afterAgreementCreated(
@@ -97,35 +112,45 @@ contract MultiFlowsApp is SuperAppBase {
         (,,address sender,,) = _host.decodeCtx(ctx);
         require(_userFlows[sender].length > 0 , "MFA: Create Multi Flow first or go away");
         (, int96 receivingFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
-        /*
-        (int96 receivingFlowRate) = _constantFlow.getFlow(
-            superToken,
-            sender,
-            address(this)
-        );
-        */
 
-        require(receivingFlowRate != 0, "not zero pls");
-        int96 sum = _sumProportions(_userFlows[sender]);
-        newCtx = ctx;
+        require(receivingFlowRate != 0, "MFA: not zero pls");
 
-        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-            require(_userFlows[sender][i].proportion > 0, "Proportion > 0");
-            require(receivingFlowRate > 0, "Receiving flow is zero");
-            require(sum != 0 , "Sum is zero zero zero");
-            require((int96(_userFlows[sender][i].proportion) * receivingFlowRate) / sum != 0, "SUM IS ZERO");
-            (newCtx, ) = _host.callAgreementWithContext(
-                _constantFlow,
-                abi.encodeWithSelector(
-                    _constantFlow.createFlow.selector,
-                    superToken,
-                    _userFlows[sender][i].to,
-                    (int96(_userFlows[sender][i].proportion) * receivingFlowRate) / int96(sum),
-                    new bytes(0)
-                ),
-                newCtx
-            );
-        }
+        newCtx = _updateMultiFlow(superToken, sender, _constantFlow.createFlow.selector, receivingFlowRate, ctx);
+    }
+
+    function beforeAgreementUpdated(
+        ISuperToken superToken,
+        bytes calldata /*ctx*/,
+        address agreementClass,
+        bytes32 agreementId
+    )
+        external
+        view
+        override
+        returns (bytes memory cbdata)
+    {
+        require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
+        (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
+        return abi.encode(oldFlowRate);
+    }
+
+    function afterAgreementUpdated(
+        ISuperToken superToken,
+        bytes calldata ctx,
+        address /*agreementClass*/,
+        bytes32 agreementId,
+        bytes calldata cbdata
+    )
+        external override
+        returns (bytes memory newCtx)
+    {
+        (,,address sender,,) = _host.decodeCtx(ctx);
+        (, int96 newFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
+
+        int96 oldFlowRate = abi.decode(cbdata, (int96));
+        require(newFlowRate > oldFlowRate, "MFA: only increasing flow rate"); // Funcky logic for testing purpose
+
+        newCtx = _updateMultiFlow(superToken, sender, _constantFlow.updateFlow.selector, newFlowRate, ctx);
     }
 
     function afterAgreementTerminated(
@@ -158,15 +183,11 @@ contract MultiFlowsApp is SuperAppBase {
         delete _userFlows[sender];
     }
 
-    function _packData(bytes32 id, int256 flowRate) internal pure returns(bytes memory) {
-        return abi.encodePacked(id, flowRate);
-    }
-
     function _unpackData(bytes memory data) internal pure returns(bytes32, int256) {
         return abi.decode(data, (bytes32, int256));
     }
 
-    function _sumProportions(ReceiverData[] memory receivers) internal pure returns(int96 sum) {
+    function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256 sum) {
         for(uint256 i = 0; i < receivers.length; i++) {
             sum += receivers[i].proportion;
         }

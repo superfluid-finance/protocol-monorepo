@@ -44,17 +44,6 @@ jobs:
         name: contracts-eth-gas-report
         path: build/contracts-eth-gas-report.txt
 
-    - name: archive 12.x build
-      # only archive for master branch push
-      if: github.event_name  == 'push' && ${{ matrix.node-version }} == '12.x'
-      uses: actions/upload-artifact@v2
-      with:
-        name: build
-        path: |
-          node_modules
-          build
-        retention-days: 1
-
   coverage:
 
     runs-on: ubuntu-latest
@@ -74,8 +63,6 @@ jobs:
         npm run test-coverage
 
     - name: Create coverage artifact
-      # only report coverage for branch push
-      if: github.event_name  == 'push'
       uses: actions/upload-artifact@v2
       with:
         name: coverage
@@ -88,14 +75,14 @@ jobs:
     runs-on: ubuntu-latest
 
     # only publish npm package for master branch push
-    if: github.event_name  == 'push' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
 
     steps:
 
-    - name: download build
-      uses: actions/download-artifact@v2
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
       with:
-        name: build
+        node-version: 12.x
 
     - name: Determine release version
       run: |
@@ -105,6 +92,8 @@ jobs:
 
     - name: Deploy to goerli
       run: |
+        npm ci
+        npm run build
         npx truffle exec --network goerli scripts/deploy-framework.js
       env:
         GOERLI_GAS_PRICE: 100e9 # 100 GWEI!
@@ -118,17 +107,19 @@ jobs:
     runs-on: ubuntu-latest
 
     # only publish npm package for master branch push
-    if: github.event_name  == 'push' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
 
     steps:
 
-    - name: download build
-      uses: actions/download-artifact@v2
+    - name: Use Node.js 12.x
+      uses: actions/setup-node@v1
       with:
-        name: build
+        node-version: 12.x
 
     - name: Publish package
       run: |
+        npm ci
+        npm run build
         .github/workflows/npm-publish.sh
       env:
         NODE_AUTH_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

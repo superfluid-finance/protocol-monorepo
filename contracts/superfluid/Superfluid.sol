@@ -289,7 +289,7 @@ contract Superfluid is
         ISuperApp app,
         bytes calldata data,
         bool isTermination,
-        bytes calldata /*ctx*/
+        bytes calldata /* ctx */
     )
         external override
         onlyAgreement

@@ -179,6 +179,7 @@ contract ConstantFlowAgreementV1 is
             );
         } else {
             _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate, true);
+            newCtx = ctx;
         }
     }
 

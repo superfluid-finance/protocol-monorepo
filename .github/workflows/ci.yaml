@@ -44,9 +44,9 @@ jobs:
         name: contracts-eth-gas-report
         path: build/contracts-eth-gas-report.txt
 
-    - name: archive build
+    - name: archive 12.x build
       # only archive for master branch push
-      if: github.event_name  == 'push'
+      if: github.event_name  == 'push' && ${{ matrix.node-version }} == '12.x'
       uses: actions/upload-artifact@v2
       with:
         name: build

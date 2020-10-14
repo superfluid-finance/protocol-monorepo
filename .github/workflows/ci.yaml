@@ -92,10 +92,13 @@ jobs:
         echo "::set-env name=RELEASE_VERSION::$RELEASE_VERSION"
         echo "Release version is $RELEASE_VERSION"
 
-    - name: Deploy to goerli
+    - name: Build package
       run: |
         npm ci
         npm run build
+
+    - name: Deploy to goerli
+      run: |
         npx truffle exec --network goerli scripts/deploy-framework.js
       env:
         GOERLI_GAS_PRICE: 100e9 # 100 GWEI!
@@ -120,10 +123,15 @@ jobs:
       with:
         node-version: 12.x
 
+    - name: Build package
+      run: |
+        npm ci
+        npm run build
+
     - name: Publish package
       run: |
         npm ci
         npm run build
         .github/workflows/npm-publish.sh
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

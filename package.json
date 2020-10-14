@@ -7,7 +7,8 @@
   "main": "js-sdk/index.js",
   "files": [
     "/contracts/**/*.sol",
-    "!/contracts/mocks/*.sol",
+    "/contracts/**/*.json",
+    "!/contracts/mocks/*",
     "/build/abi.js",
     "/build/contracts/*.json",
     "!/build/contracts/*Tester.json",

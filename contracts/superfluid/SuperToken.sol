@@ -451,8 +451,8 @@ contract SuperToken is
      * ERC20 wrapping
      *************************************************************************/
 
-    /// @dev ISuperfluidGovernance.getUnderlayingToken implementation
-    function getUnderlayingToken() external view override returns(address) {
+    /// @dev ISuperfluidGovernance.getUnderlyingToken implementation
+    function getUnderlyingToken() external view override returns(address) {
         return address(_underlyingToken);
     }
 

@@ -93,7 +93,6 @@ contract Superfluid is
     function initialize() external {
         Proxiable._initialize();
         _owner = msg.sender;
-        _initialized = true;
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -125,8 +124,11 @@ contract Superfluid is
             "SF: Agreement class already registered");
         require(_agreementClasses.length < 256,
             "SF: Support up to 256 agreement classes");
+        // initialize the proxy
         Proxy proxy = new Proxy();
         proxy.initializeProxy(address(agreementClass));
+        AgreementBase(address(proxy)).initialize();
+        // register the agreement proxy
         _agreementClasses.push(ISuperAgreement(address(proxy)));
         _agreementClassIndices[agreementType] = _agreementClasses.length;
     }
@@ -140,7 +142,7 @@ contract Superfluid is
 
     function isAgreementTypeListed(bytes32 agreementType)
         external view override
-        returns(bool yes)
+        returns (bool yes)
     {
         uint idx = _agreementClassIndices[agreementType];
         return idx != 0;
@@ -148,11 +150,12 @@ contract Superfluid is
 
     function isAgreementClassListed(ISuperAgreement agreementClass)
         public view override
-        returns(bool yes)
+        returns (bool yes)
     {
         bytes32 agreementType = agreementClass.agreementType();
         uint idx = _agreementClassIndices[agreementType];
-        return idx != 0;
+        // it should also be the same agreement class proxy address
+        return idx != 0 && _agreementClasses[idx - 1] == agreementClass;
     }
 
     function getAgreementClass(bytes32 agreementType)
@@ -182,21 +185,19 @@ contract Superfluid is
         assembly { mstore(agreementClasses, n) }
     }
 
-    function addToAgreementClassesBitmap(uint256 bitmap, ISuperAgreement agreementClass)
+    function addToAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
         external view override
         returns (uint256 newBitmap)
     {
-        bytes32 agreementType = agreementClass.agreementType();
         uint idx = _agreementClassIndices[agreementType];
         require(idx != 0, "SF: Agreement class not registered");
         return bitmap | (1 << (idx - 1));
     }
 
-    function removeFromAgreementClassesBitmap(uint256 bitmap, ISuperAgreement agreementClass)
+    function removeFromAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
         external view override
         returns (uint256 newBitmap)
     {
-        bytes32 agreementType = agreementClass.agreementType();
         uint idx = _agreementClassIndices[agreementType];
         require(idx != 0, "SF: Agreement class not registered");
         return bitmap & ~(1 << (idx - 1));

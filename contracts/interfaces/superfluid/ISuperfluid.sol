@@ -79,18 +79,16 @@ interface ISuperfluid {
     /**
     * @dev Create a new bitmask by adding a agreement class to it.
     * @param bitmap Agreement class bitmap
-    * @param agreementClass The agreement class
     */
-    function addToAgreementClassesBitmap(uint256 bitmap, ISuperAgreement agreementClass)
+    function addToAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
         external view
         returns (uint256 newBitmap);
 
     /**
     * @dev Create a new bitmask by removing a agreement class from it.
     * @param bitmap Agreement class bitmap
-    * @param agreementClass The agreement class
     */
-    function removeFromAgreementClassesBitmap(uint256 bitmap, ISuperAgreement agreementClass)
+    function removeFromAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
         external view
         returns (uint256 newBitmap);
 

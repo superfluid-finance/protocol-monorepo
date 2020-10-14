@@ -42,8 +42,8 @@ contract("deployment test", () => {
         assert.notEqual(gov1, "0x0000000000000000000000000000000000000000");
         assert.notEqual(cfa1, "0x0000000000000000000000000000000000000000");
         assert.notEqual(ida1, "0x0000000000000000000000000000000000000000");
-        assert.isTrue(await superfluid1.isAgreementClassListed.call(cfa1));
-        assert.isTrue(await superfluid1.isAgreementClassListed.call(ida1));
+        assert.isTrue(await superfluid1.isAgreementClassListed.call(await superfluid1.getAgreementClass(cfav1Type)));
+        assert.isTrue(await superfluid1.isAgreementClassListed.call(await superfluid1.getAgreementClass(idav1Type)));
         assert.isTrue(await superfluid1.isAgreementTypeListed.call(cfav1Type));
         assert.isTrue(await superfluid1.isAgreementTypeListed.call(idav1Type));
 

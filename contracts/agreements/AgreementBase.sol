@@ -15,7 +15,6 @@ abstract contract AgreementBase is
     function initialize() external {
         Proxiable._initialize();
         _owner = msg.sender;
-        _initialized = true;
     }
 
     function proxiableUUID() public view override returns (bytes32) {

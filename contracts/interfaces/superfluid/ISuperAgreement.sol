@@ -13,7 +13,7 @@ interface ISuperAgreement {
     /**
      * @dev Get the type of the agreement class.
      */
-    function agreementType() external pure returns (bytes32);
+    function agreementType() external view returns (bytes32);
 
     /**
      * @dev Calculate the real-time balance for the account of this agreement class.

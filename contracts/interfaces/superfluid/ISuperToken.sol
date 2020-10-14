@@ -265,7 +265,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @dev Return the underlaying token contract
      * @return tokenAddr Underlying token address
      */
-    function getUnderlayingToken() external view returns(address tokenAddr);
+    function getUnderlyingToken() external view returns(address tokenAddr);
 
     /**
      * @dev Upgrade ERC20 to SuperToken.

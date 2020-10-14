@@ -10,7 +10,6 @@
     "!/contracts/mocks/*.sol",
     "/build/abi.js",
     "/build/contracts/*.json",
-    "!/build/contracts/*Tester.json",
     "!/build/contracts/*Mock.json",
     "scripts/**/*.js",
     "js-sdk/**/*.js"

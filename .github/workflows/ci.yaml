@@ -50,7 +50,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: build
-        path: build
+        path: [node_modules, build]
         retention-days: 1
 
   coverage:
@@ -94,7 +94,6 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: build
-        path: build
 
     - name: Determine release version
       run: |
@@ -125,7 +124,6 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: build
-        path: build
 
     - name: Publish package
       run: |

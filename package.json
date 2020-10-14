@@ -17,7 +17,9 @@
     "js-sdk/**/*.js"
   ],
   "dependencies": {
-    "@openzeppelin/contracts": "3.2.1-solc-0.7"
+    "@openzeppelin/contracts": "3.2.1-solc-0.7",
+    "ethereumjs-tx": "2.1.2",
+    "ethereumjs-util": "7.0.6"
   },
   "peerDependencies": {
     "@truffle/contract": "^4.2.23"
@@ -29,8 +31,6 @@
     "dotenv": "8.2.0",
     "eslint": "7.10.0",
     "eth-gas-reporter": "0.2.17",
-    "ethereumjs-tx": "^2.1.2",
-    "ethereumjs-util": "^7.0.6",
     "ganache-time-traveler": "1.0.15",
     "husky": "4.3.0",
     "npm-run-all": "4.1.5",

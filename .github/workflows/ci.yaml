@@ -117,7 +117,7 @@ jobs:
 
   master-npm-publish:
 
-    needs: [build, coverage, deploy-goerli]
+    needs: [build, coverage, master-deploy-goerli]
 
     runs-on: ubuntu-latest
 

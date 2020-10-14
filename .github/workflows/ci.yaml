@@ -10,6 +10,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+
     strategy:
       matrix:
         node-version: [10.x, 12.x]
@@ -48,6 +51,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+
     steps:
 
     - uses: actions/checkout@v2
@@ -73,6 +79,9 @@ jobs:
     needs: [build, coverage]
 
     runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
     # only publish npm package for master branch push
     if: github.ref == 'refs/heads/master'
@@ -111,6 +120,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+
     # only publish npm package for master branch push
     if: github.ref == 'refs/heads/master'
 
@@ -133,5 +145,3 @@ jobs:
         npm ci
         npm run build
         .github/workflows/npm-publish.sh
-      env:
-        GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

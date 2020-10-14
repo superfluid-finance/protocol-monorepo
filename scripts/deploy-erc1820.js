@@ -32,11 +32,11 @@ module.exports = async function (callback) {
         const tx = new Transaction(rawTransaction);
         const res = {
             sender: ethUtils.toChecksumAddress(
-                tx.getSenderAddress().toString("hex")
+                "0x" + tx.getSenderAddress().toString("hex")
             ),
             rawTx: "0x" + tx.serialize().toString("hex"),
             contractAddr: ethUtils.toChecksumAddress(
-                ethUtils.generateAddress(tx.getSenderAddress(), ethUtils.toBuffer(0)).toString("hex")
+                "0x" + ethUtils.generateAddress(tx.getSenderAddress(), ethUtils.toBuffer(0)).toString("hex")
             ),
         };
         assert.equal("0xa990077c3205cbDf861e17Fa532eeB069cE9fF96", res.sender);

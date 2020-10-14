@@ -7,22 +7,26 @@ import { IResolver } from "../interfaces/misc/IResolver.sol";
 
 contract TestResolver is IResolver, AccessControl {
 
-    bytes32 public constant ADMIN_ROLE = keccak256("MY_ROLE");
+    bytes32 public constant RESOLVER_ADMIN_ROLE = keccak256("RESOLVER_ADMIN_ROLE");
 
     mapping(string => address) private _registry;
 
     constructor() {
-        _setupRole(ADMIN_ROLE, msg.sender);
+        _setupRole(RESOLVER_ADMIN_ROLE, msg.sender);
     }
 
-    function grantAdmin(address account) public virtual {
-        require(hasRole(ADMIN_ROLE, _msgSender()), "AccessControl: sender must be an admin to grant");
+    function isAdmin(address account) external view returns (bool) {
+        return hasRole(RESOLVER_ADMIN_ROLE, account);
+    }
 
-        grantRole(ADMIN_ROLE, account);
+    function grantAdmin(address account) external {
+        require(hasRole(RESOLVER_ADMIN_ROLE, _msgSender()), "AccessControl: sender must be an admin to grant");
+
+        _setupRole(RESOLVER_ADMIN_ROLE, account);
     }
 
     function set(string calldata name, address target) external {
-        require(hasRole(ADMIN_ROLE, _msgSender()), "Caller is not an admin");
+        require(hasRole(RESOLVER_ADMIN_ROLE, _msgSender()), "Caller is not an admin");
         _registry[name] = target;
     }
 

@@ -50,7 +50,9 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: build
-        path: [node_modules, build]
+        path: |
+          node_modules
+          build
         retention-days: 1
 
   coverage:

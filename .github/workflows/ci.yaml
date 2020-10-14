@@ -79,6 +79,8 @@ jobs:
 
     steps:
 
+    - uses: actions/checkout@v2
+
     - name: Use Node.js 12.x
       uses: actions/setup-node@v1
       with:
@@ -110,6 +112,8 @@ jobs:
     if: github.ref == 'refs/heads/master'
 
     steps:
+
+    - uses: actions/checkout@v2
 
     - name: Use Node.js 12.x
       uses: actions/setup-node@v1

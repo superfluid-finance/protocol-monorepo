@@ -7,6 +7,6 @@ const DEFAULT_CONFIG = {
 /// @dev Get the network configuration
 module.exports = function getConfig(chainId) {
     return  {
-        resolverAddress: process.env.TEST_RESOLVER_ADDRESS || DEFAULT_CONFIG[chainId]
+        resolverAddress: process.env.TEST_RESOLVER_ADDRESS || DEFAULT_CONFIG[chainId].resolverAddress
     };
 };

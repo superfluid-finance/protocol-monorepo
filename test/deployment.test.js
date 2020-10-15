@@ -76,6 +76,10 @@ contract("deployment test", () => {
         assert.notEqual(ida1, ida3);
     });
 
+    it("Deployment without resolver", async () => {
+        await deployFramework(errorHandler);
+    });
+
     it("Deploy/upgrade/reset Super Token", async () => {
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
         delete process.env.RESET;

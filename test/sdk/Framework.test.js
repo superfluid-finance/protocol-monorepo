@@ -48,13 +48,14 @@ contract("SuperfluidSDK JS SDK", () => {
         assert.isTrue(IInstantDistributionAgreementV1.abi.filter(i => i.name === "createIndex").length > 0);
     }
 
-    it("load framework without truffle framework", async () => {
+    before(async () => {
         const TestResolver = artifacts.require("TestResolver");
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        process.env.RESET = 1;
         await deployFramework(errorHandler);
+    });
 
+    it("load framework without truffle framework", async () => {
         const sf = new SuperfluidSDK.Framework({ web3Provider: web3.currentProvider });
         testLoadedContracts(sf);
 
@@ -62,12 +63,6 @@ contract("SuperfluidSDK JS SDK", () => {
     });
 
     it("load framework with truffle framework", async () => {
-        const TestResolver = artifacts.require("TestResolver");
-        const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
-        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        process.env.RESET = 1;
-        await deployFramework(errorHandler);
-
         const sf = new SuperfluidSDK.Framework({ isTruffle: true });
         testLoadedContracts(sf);
 

@@ -5,7 +5,6 @@
         "no-inline-assembly": "off",
         "mark-callable-contracts": "off",
         "max-line-length": ["error", 120],
-        "private-vars-leading-underscore": "error",
         "func-param-name-mixedcase": "error",
         "modifier-name-mixedcase": "error",
         "private-vars-leading-underscore": ["error", { "strict": true }],

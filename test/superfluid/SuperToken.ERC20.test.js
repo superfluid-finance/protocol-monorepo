@@ -10,6 +10,12 @@ const {
     toBN
 } = require("@decentral.ee/web3-helpers");
 
+const {
+    shouldBehaveLikeERC20,
+    shouldBehaveLikeERC20Transfer,
+    shouldBehaveLikeERC20Approve,
+} = require("./ERC20.behavior");
+
 const TestToken = artifacts.require("TestToken");
 const ISuperToken = artifacts.require("ISuperToken");
 
@@ -18,7 +24,7 @@ const Tester = require("./Tester");
 contract("SuperToken's ERC20 implementation", accounts => {
 
     const tester = new Tester(accounts.slice(0, 4));
-    const { alice, bob } = tester.aliases;
+    const { alice, bob, carol } = tester.aliases;
     const { INIT_BALANCE, MAX_UINT256 } = tester.constants;
     const { ZERO_ADDRESS } = tester.constants;
 
@@ -506,4 +512,54 @@ contract("SuperToken's ERC20 implementation", accounts => {
         });
 
     });
+
+      describe("#8 ERC20", () => {
+          beforeEach(async function () {
+              const token18D = await web3tx(TestToken.new, "TestToken.new")(
+                  "Test Token 18 Decimals", "TEST18D",
+                  {
+                      from: alice
+                  });
+              await web3tx(token18D.mint, "Mint token for alice")(
+                  alice,
+                  toDecimals("100", 18), {
+                      from: alice
+                  }
+              );
+              assert.equal(
+                  (await token18D.balanceOf.call(alice)).toString(),
+                  toDecimals("100", 18));
+
+              superfluid.createERC20Wrapper(
+                  token18D.address,
+                  18,
+                  "Super Test Token 18D",
+                  "TEST18Dx",
+              );
+              const superToken18D = await ISuperToken.at(
+                  (await superfluid.getERC20Wrapper.call(
+                      token18D.address,
+                      "TEST18Dx"
+                  )).wrapperAddress
+              );
+              await web3tx(token18D.approve, "TestToken.approve - from alice to SuperToken")(
+                  superToken18D.address,
+                  MAX_UINT256, {
+                      from: alice
+                  }
+              );
+
+              await web3tx(superToken18D.upgrade, "upgrade 1 from alice")(
+                  toWad(1), {
+                      from: alice
+                  }
+              );
+              this.token = superToken18D;
+              recipient = bob;
+          });
+
+          shouldBehaveLikeERC20("SuperToken", toWad(1), alice, bob, carol);
+
+    });
+
 });

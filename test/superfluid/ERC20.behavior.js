@@ -88,7 +88,7 @@ function shouldBehaveLikeERC20 (errorPrefix, initialSupply, initialHolder, recip
 
                         it("reverts", async function () {
                             await expectRevert(this.token.transferFrom(
-                                tokenOwner, to, amount, { from: spender }), "SuperfluidToken: move amount exceeds balance",
+                                tokenOwner, to, amount, {from:spender}), "SuperfluidToken: move amount exceeds balance",
                             );
                         });
                     });
@@ -104,7 +104,7 @@ function shouldBehaveLikeERC20 (errorPrefix, initialSupply, initialHolder, recip
 
                         it("reverts", async function () {
                             await expectRevert(this.token.transferFrom(
-                                tokenOwner, to, amount, { from: spender }), "${errorPrefix}: transfer amount exceeds allowance",
+                                tokenOwner, to, amount, {from:spender}),"SuperToken: transfer amount exceeds allowance",
                             );
                         });
                     });
@@ -114,7 +114,7 @@ function shouldBehaveLikeERC20 (errorPrefix, initialSupply, initialHolder, recip
 
                         it("reverts", async function () {
                             await expectRevert(this.token.transferFrom(
-                                tokenOwner, to, amount, { from: spender }), "SuperfluidToken: move amount exceeds balance",
+                                tokenOwner, to, amount, {from:spender}), "SuperfluidToken: move amount exceeds balance",
                             );
                         });
                     });
@@ -131,7 +131,7 @@ function shouldBehaveLikeERC20 (errorPrefix, initialSupply, initialHolder, recip
 
                 it("reverts", async function () {
                     await expectRevert(this.token.transferFrom(
-                        tokenOwner, to, amount, { from: spender }), "${errorPrefix}: transfer to zero address",
+                        tokenOwner, to, amount, { from: spender }), "SuperToken: transfer to zero address",
                     );
                 });
             });
@@ -144,7 +144,7 @@ function shouldBehaveLikeERC20 (errorPrefix, initialSupply, initialHolder, recip
 
             it("reverts", async function () {
                 await expectRevert(this.token.transferFrom(
-                    tokenOwner, to, amount, { from: spender }), "${errorPrefix}: transfer from zero address",
+                    tokenOwner, to, amount, { from: spender }), "SuperToken: transfer from zero address",
                 );
             });
         });
@@ -166,63 +166,63 @@ function shouldBehaveLikeERC20Transfer (errorPrefix, from, to, balance, transfer
 
             it("reverts", async function () {
                 await expectRevert(transfer.call(this, from, to, amount),
-                "SuperfluidToken: move amount exceeds balance",
+                    "SuperfluidToken: move amount exceeds balance",
+                );
+            });
+        });
+
+        describe("when the sender transfers all balance", function () {
+            const amount = balance;
+
+            it("transfers the requested amount", async function () {
+                await transfer.call(this, from, to, amount);
+
+                expect(await this.token.balanceOf(from)).to.be.bignumber.equal("0");
+
+                expect(await this.token.balanceOf(to)).to.be.bignumber.equal(amount);
+            });
+
+            it("emits a transfer event", async function () {
+                const { logs } = await transfer.call(this, from, to, amount);
+
+                expectEvent.inLogs(logs, "Transfer", {
+                    from,
+                    to,
+                    value: amount,
+                });
+            });
+        });
+
+        describe("when the sender transfers zero tokens", function () {
+            const amount = new BN("0");
+
+            it("transfers the requested amount", async function () {
+                await transfer.call(this, from, to, amount);
+
+                expect(await this.token.balanceOf(from)).to.be.bignumber.equal(balance);
+
+                expect(await this.token.balanceOf(to)).to.be.bignumber.equal("0");
+            });
+
+            it("emits a transfer event", async function () {
+                const { logs } = await transfer.call(this, from, to, amount);
+
+                expectEvent.inLogs(logs, "Transfer", {
+                    from,
+                    to,
+                    value: amount,
+                });
+            });
+        });
+    });
+
+    describe("when the recipient is the zero address", function () {
+        it("reverts", async function () {
+            await expectRevert(transfer.call(this, from, ZERO_ADDRESS, balance),
+                "SuperToken: transfer to zero address",
             );
         });
     });
-
-    describe("when the sender transfers all balance", function () {
-        const amount = balance;
-
-        it("transfers the requested amount", async function () {
-            await transfer.call(this, from, to, amount);
-
-            expect(await this.token.balanceOf(from)).to.be.bignumber.equal("0");
-
-            expect(await this.token.balanceOf(to)).to.be.bignumber.equal(amount);
-        });
-
-        it("emits a transfer event", async function () {
-            const { logs } = await transfer.call(this, from, to, amount);
-
-            expectEvent.inLogs(logs, "Transfer", {
-                from,
-                to,
-                value: amount,
-            });
-        });
-    });
-
-    describe("when the sender transfers zero tokens", function () {
-        const amount = new BN("0");
-
-        it("transfers the requested amount", async function () {
-            await transfer.call(this, from, to, amount);
-
-            expect(await this.token.balanceOf(from)).to.be.bignumber.equal(balance);
-
-            expect(await this.token.balanceOf(to)).to.be.bignumber.equal("0");
-        });
-
-        it("emits a transfer event", async function () {
-            const { logs } = await transfer.call(this, from, to, amount);
-
-            expectEvent.inLogs(logs, "Transfer", {
-                from,
-                to,
-                value: amount,
-            });
-        });
-    });
-});
-
-describe("when the recipient is the zero address", function () {
-    it("reverts", async function () {
-        await expectRevert(transfer.call(this, from, ZERO_ADDRESS, balance),
-        "${errorPrefix}: transfer to zero address",
-    );
-});
-});
 }
 
 function shouldBehaveLikeERC20Approve (errorPrefix, owner, spender, supply, approve) {
@@ -299,10 +299,10 @@ function shouldBehaveLikeERC20Approve (errorPrefix, owner, spender, supply, appr
     describe("when the spender is the zero address", function () {
         it("reverts", async function () {
             await expectRevert(approve.call(this, owner, ZERO_ADDRESS, supply),
-            "${errorPrefix}: approve to zero address",
-        );
+                "SuperToken: approve to zero address",
+            );
+        });
     });
-});
 }
 
 module.exports = {

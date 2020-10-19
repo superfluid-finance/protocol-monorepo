@@ -2,17 +2,22 @@ const { assert } = require("chai");
 const {
     expectRevert
 } = require("@openzeppelin/test-helpers");
-const deployTestEnvironment = require("../../scripts/deploy-test-environment");
+const TestEnvironment = require("../TestEnvironment");
 const deployTestToken = require("../../scripts/deploy-test-token");
+const deploySuperToken = require("../../scripts/deploy-super-token");
 const SuperfluidSDK = require("../..");
 
 
 contract("Framework class", () => {
 
-    const errorHandler = err => { if (err) throw err; };
+    const t = new TestEnvironment([]);
 
     before(async () => {
-        await deployTestEnvironment(errorHandler);
+        await t.reset();
+        await deployTestToken(t.errorHandler, [":", "fDAI"]);
+        await deployTestToken(t.errorHandler, [":", "fUSDC"]);
+        await deploySuperToken(t.errorHandler, [":", "fDAI"]);
+        await deploySuperToken(t.errorHandler, [":", "fUSDC"]);
     });
 
     describe("initialization", () => {
@@ -90,7 +95,7 @@ contract("Framework class", () => {
             });
 
             it("failed due to no super token wrapper", async () => {
-                await deployTestToken(errorHandler, [":", "SASHIMI"]);
+                await deployTestToken(t.errorHandler, [":", "SASHIMI"]);
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
                     tokens: ["SASHIMI"]
@@ -128,7 +133,7 @@ contract("Framework class", () => {
 
         describe("createERC20Wrapper", () => {
             it("over new underlying token", async () => {
-                await deployTestToken(errorHandler, [":", "MISO"]);
+                await deployTestToken(t.errorHandler, [":", "MISO"]);
                 const misoAddress = await sf.resolver.get("tokens.MISO");
                 const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
                 await sf.createERC20Wrapper(misoToken);

@@ -72,37 +72,41 @@ Framework.prototype.initialize = async function () {
     console.debug("Resolving contracts with version", this.version);
     const superfluidAddress = await this.resolver.get.call(`Superfluid.${this.version}`);
     this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
+    console.debug(`Superfluid host contract: TruffleContract .host @${superfluidAddress}`);
 
     // load agreements
     const cfav1Type = this.web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     const idav1Type = this.web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
     const cfaAddress = await this.host.getAgreementClass.call(cfav1Type);
     const idaAddress = await this.host.getAgreementClass.call(idav1Type);
-    console.debug("Superfluid", superfluidAddress);
-    console.debug("ConstantFlowAgreementV1", cfaAddress);
-    console.debug("InstantDistributionAgreementV1", idaAddress);
-
     this.agreements = {
         cfa : await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
         ida : await this.contracts.IInstantDistributionAgreementV1.at(idaAddress),
     };
+    this.cfa = new (require("./ConstantFlowAgreementV1"))(this);
+    this.ida = new (require("./InstantDistributionAgreementV1"))(this);
+    console.debug(`ConstantFlowAgreementV1: TruffleContract .agreements.cfa @${cfaAddress} | Helper .cfa`);
+    console.debug(`InstantDistributionAgreementV1: TruffleContract .agreements.ida @${idaAddress} | Helper .ida`);
 
     // load tokens
     this.tokens = {};
     if (this._tokens) {
         for (let i = 0; i < this._tokens.length; ++i) {
-            const tokenName = this._tokens[i];
-            const underlyingToken = await this.resolver.get(`tokens.${tokenName}`);
+            const tokenSymbol = this._tokens[i];
+            const underlyingToken = await this.resolver.get(`tokens.${tokenSymbol}`);
             if (underlyingToken === ZERO_ADDRESS) {
-                throw new Error(`Token ${tokenName} is not registered`);
+                throw new Error(`Token ${tokenSymbol} is not registered`);
             }
             const wrapper = await this.getERC20Wrapper(underlyingToken);
             if (!wrapper.created) {
-                throw new Error(`Token ${tokenName} doesn't have a super token wrapper`);
+                throw new Error(`Token ${tokenSymbol} doesn't have a super token wrapper`);
             }
             const superToken = await this.contracts.ISuperToken.at(wrapper.wrapperAddress);
-            this.tokens[tokenName] = await this.contracts.ERC20WithTokenInfo.at(underlyingToken);
-            this.tokens[await superToken.symbol()] = superToken;
+            const superTokenSymbol = await superToken.symbol();
+            this.tokens[tokenSymbol] = await this.contracts.ERC20WithTokenInfo.at(underlyingToken);
+            this.tokens[superTokenSymbol] = superToken;
+            console.debug(`${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${underlyingToken}`);
+            console.debug(`${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${underlyingToken}`);
         }
     }
 };

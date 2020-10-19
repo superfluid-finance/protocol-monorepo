@@ -1,4 +1,3 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
 const { assert } = require("chai");
 const {
     expectRevert
@@ -8,18 +7,15 @@ const deployTestToken = require("../../scripts/deploy-test-token");
 const SuperfluidSDK = require("../..");
 
 
-contract("SuperfluidSDK JS SDK", () => {
+contract("Framework class", () => {
 
     const errorHandler = err => { if (err) throw err; };
 
     before(async () => {
-        const TestResolver = artifacts.require("TestResolver");
-        const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
-        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         await deployTestEnvironment(errorHandler);
     });
 
-    describe("framework initialization", () => {
+    describe("initialization", () => {
         function testLoadedContracts(sf) {
             const {
                 IERC20,
@@ -62,16 +58,14 @@ contract("SuperfluidSDK JS SDK", () => {
 
         it("without truffle framework", async () => {
             const sf = new SuperfluidSDK.Framework({ web3Provider: web3.currentProvider });
-            testLoadedContracts(sf);
-
             await sf.initialize();
+            testLoadedContracts(sf);
         });
 
         it("with truffle framework", async () => {
             const sf = new SuperfluidSDK.Framework({ isTruffle: true });
-            testLoadedContracts(sf);
-
             await sf.initialize();
+            testLoadedContracts(sf);
         });
 
         describe("and load tokens", () => {

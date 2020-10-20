@@ -56,4 +56,12 @@ contract SuperTokenMock is SuperToken {
         require (slot == 8 && offset == 0, "_operators changed location");
     }
 
+    function approveInternal(address owner, address spender, uint256 value) public {
+        _approve(owner, spender, value);
+    }
+
+    function transferInternal(address from, address to, uint256 value) public {
+        _transferFrom(from, from, to, value);
+    }
+
 }

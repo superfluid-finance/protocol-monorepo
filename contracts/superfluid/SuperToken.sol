@@ -116,7 +116,7 @@ contract SuperToken is
      *************************************************************************/
 
     function _transferFrom(address spender, address holder, address recipient, uint amount)
-        private returns (bool)
+        internal returns (bool)
     {
         require(holder != address(0), "SuperToken: transfer from zero address");
         require(recipient != address(0), "SuperToken: transfer to zero address");
@@ -262,7 +262,7 @@ contract SuperToken is
      * - `spender` cannot be the zero address.
      */
     function _approve(address account, address spender, uint256 amount)
-        private
+        internal
     {
         require(account != address(0), "SuperToken: approve from zero address");
         require(spender != address(0), "SuperToken: approve to zero address");
@@ -377,6 +377,19 @@ contract SuperToken is
         public override returns (bool)
     {
         return _transferFrom(msg.sender, holder, recipient, amount);
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue)
+        public override returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue)
+        public override returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue,
+            "SuperToken: decreased allowance below zero"));
+        return true;
     }
 
     /**************************************************************************

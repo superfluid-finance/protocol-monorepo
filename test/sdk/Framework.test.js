@@ -1,4 +1,3 @@
-const { assert } = require("chai");
 const {
     expectRevert
 } = require("@openzeppelin/test-helpers");

@@ -5,13 +5,6 @@ function normalizeFlowRate(fr) {
     return (fr.toString() / 1e18 * 3600 * 24 * 30).toFixed(4) + " / mo";
 }
 
-function getLatestFlows(flows) {
-    return Object.values(flows.reduce((acc, i) => {
-        acc[i.args.sender + ":" + i.args.receiver] = i;
-        return acc;
-    }, {})).filter(i => i.args.flowRate.toString() != "0");
-}
-
 /**
  * @dev Inspect accounts and their agreements
  *
@@ -26,14 +19,15 @@ module.exports = async function (callback, argv) {
         if (args.length < 1) {
             throw new Error("Not enough arguments");
         }
+        const tokens = ["fDAI", "fUSDC", "fTUSD"];
         const sf = new SuperfluidSDK.Framework({
             chainId: 5,
             version:  process.env.RELEASE_VERSION || "test",
-            web3Provider: web3.currentProvider
+            web3Provider: web3.currentProvider,
+            tokens
         });
         await sf.initialize();
 
-        const tokens = ["fDAI", "fUSDC", "fTUSD"];
         while (args.length) {
             const account = args.shift();
             console.log("=".repeat(80));
@@ -41,10 +35,8 @@ module.exports = async function (callback, argv) {
             for (let i = 0; i < tokens.length; ++i) {
                 console.log("-".repeat(80));
                 const tokenName = tokens[i];
-                const tokenAddress = await sf.resolver.get(`tokens.${tokenName}`);
-                const token = await sf.contracts.ERC20WithTokenInfo.at(tokenAddress);
-                const tokenWrapper = await sf.getERC20Wrapper(token);
-                const superToken = await sf.contracts.ISuperToken.at(tokenWrapper.wrapperAddress);           
+                const token = sf.tokens[tokenName];
+                const superToken = sf.tokens[tokenName+"x"];
                 console.log(`${tokenName} balance`, (await token.balanceOf.call(account)).toString() / 1e18);
                 const realtimeBalance = await superToken.realtimeBalanceOf.call(account, parseInt(Date.now() / 1000));
                 console.log(`${tokenName}x balance`,
@@ -52,26 +44,19 @@ module.exports = async function (callback, argv) {
                     realtimeBalance.deposit.toString() / 1e18,
                     realtimeBalance.owedDeposit.toString() / 1e18,
                 );
-                const netFlowRate = await sf.agreements.cfa.getNetFlow.call(superToken.address, account);
-                console.log(`Net flowrate ${normalizeFlowRate(netFlowRate)}`);
+                const netFlowRate = await sf.cfa.getNetFlow({
+                    superToken: superToken.address,
+                    account
+                });
+                console.log(`Net flow rate ${normalizeFlowRate(netFlowRate)}`);
+                const flows = await sf.cfa.listFlows({
+                    superToken: superToken.address,
+                    account
+                });
                 console.log("In Flows:");
-                console.log(getLatestFlows(await sf.agreements.cfa.getPastEvents("FlowUpdated", {
-                    fromBlock: 0,
-                    toBlock: "latest",
-                    filter: {
-                        token: superToken.address,
-                        receiver: account
-                    }
-                })).map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));
+                console.log(flows.inFlows.map(f => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`));
                 console.log("Out Flows:");
-                console.log(getLatestFlows(await sf.agreements.cfa.getPastEvents("FlowUpdated", {
-                    fromBlock: 0,
-                    toBlock: "latest",
-                    filter: {
-                        token: superToken.address,
-                        sender: account
-                    }
-                })).map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));
+                console.log(flows.outFlows.map(f => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`));
             }
             console.log("=".repeat(80));
         }

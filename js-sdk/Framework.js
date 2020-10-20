@@ -7,18 +7,21 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 
 /**
- * @dev Load Superfluid framework object
- * @param {Web3.Provider} web3Provider web3 provider object
- * @param {boolean} isTruffle if the framework is used within truffle environment
- * @param {string} version protocol contract version
- * @param {string} chainId force chainId, instead relying on web3.eth.net.getId
- * @param {string[]} tokens the tokens to be loaded, each element is an alias for the underlying token
- * @return {Framework} SuperfluidSDK Framework object
- *
- * NOTE: You should call async function Framework.initialize to initialize the object.
+ * @dev Superfluid Framework class
  */
 module.exports = class Framework {
 
+    /**
+     * @dev Create new Superfluid framework object
+     * @param {Web3.Provider} web3Provider web3 provider object
+     * @param {boolean} isTruffle if the framework is used within truffle environment
+     * @param {string} version protocol contract version
+     * @param {string} chainId force chainId, instead relying on web3.eth.net.getId
+     * @param {string[]} tokens the tokens to be loaded, each element is an alias for the underlying token
+     * @return {Framework} The Framework object
+     *
+     * NOTE: You should call async function Framework.initialize to initialize the object.
+     */
     constructor({
         web3Provider,
         isTruffle,
@@ -113,12 +116,14 @@ module.exports = class Framework {
                 console.debug(`${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${underlyingToken}`);
             }
         }
+
+        this.utils = new (require("./Utils"))(this);
     }
 
     /**
      * @dev Get ERC20 wrapper from underlying token
      * @param {Any} tokenInfo Either a TokenInfo contract object, or address to the underlying token
-     * @return It returns the wrapper result with fields:
+     * @return {Promise<object>} It returns the wrapper result with fields:
      *         - result.created, is the wrapper created
      *         - and result.wrapperAddress, if created the address
      */
@@ -136,15 +141,13 @@ module.exports = class Framework {
     /**
      * @dev Create the ERC20 wrapper from underlying token
      * @param {Any} tokenInfo the TokenInfo contract object to the underlying token
-     * @return It returns the wrapper result with fields:
-     *         - result.created, is the wrapper created
-     *         - and result.wrapperAddress, if created the address
+     * @return {Promise<Transaction>} web3 transaction object
      */
     async createERC20Wrapper(tokenInfo) {
         const tokenInfoName = await tokenInfo.name.call();
         const tokenInfoSymbol = await tokenInfo.symbol.call();
         const tokenInfoDecimals = await tokenInfo.decimals.call();
-        await this.host.createERC20Wrapper(
+        return await this.host.createERC20Wrapper(
             tokenInfo.address,
             tokenInfoDecimals,
             `Super ${tokenInfoName}`,

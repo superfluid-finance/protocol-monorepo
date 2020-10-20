@@ -44,7 +44,8 @@
     "build": "run-s build:*",
     "build:contracts": "rm -f build/contracts/*;truffle compile",
     "build:abi": "scripts/build-abi-js.sh",
-    "test": "run-s lint:js lint:sol build:* test:*",
+    "pretest": "run-s lint build",
+    "test": "run-s test:*",
     "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
     "test:sdk": "truffle test test/sdk.test.js",
     "test:deployment": "truffle test test/deployment.test.js",
@@ -54,11 +55,13 @@
     "lint": "run-s lint:*",
     "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
     "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
-    "lint:tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }"
+    "pre-commit": "run-s pre-commit:*",
+    "pre-commit:lint": "npm run lint",
+    "pre-commit:focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run lint"
+      "pre-commit": "npm run pre-commit"
     }
   },
   "publishConfig": {

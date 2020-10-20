@@ -70,7 +70,7 @@ module.exports = class Tester {
         this.contracts.ida = await IInstantDistributionAgreementV1.at(idaAddress);
     }
 
-    async createNewToken({ doUpgrade }) {
+    async createNewToken({ doUpgrade } = {}) {
         // test token contract
         this.contracts.testToken = await web3tx(TestToken.new, "TestToken.new")(
             "Test Token", "TEST");

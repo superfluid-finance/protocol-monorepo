@@ -9,37 +9,40 @@ const {
 
 const traveler = require("ganache-time-traveler");
 
-const Tester = require("../superfluid/Tester");
+const TestEnvironment = require("../TestEnvironment");
 
 const ADV_TIME = 2;
-const FLOW_RATE = toWad(1);
-const FLOW_RATE2 = "385802469135802";
+const FLOW_RATE = toBN("10000000000000");
+const FLOW_RATE2 = "385802469135802"; // use a less nice number to test rounding
+
 
 contract("Constant Flow Agreement", accounts => {
 
-    const tester = new Tester(accounts.slice(0, 5));
-    const { admin, alice, bob, carol, dan } = tester.aliases;
-    const { INIT_BALANCE } = tester.constants;
+    const t = new TestEnvironment(accounts.slice(0, 5));
+    const { admin, alice, bob, carol, dan } = t.aliases;
+    const { INIT_BALANCE } = t.constants;
 
     let governance;
-    let token;
+    let testToken;
     let superToken;
     let cfa;
     let superfluid;
 
     before(async () => {
-        tester.printAliases();
+        await t.reset();
+        ({
+            governance,
+            cfa,
+            superfluid
+        } = t.contracts);
     });
 
     beforeEach(async function () {
-        await tester.resetContracts();
+        await t.createNewToken();
         ({
-            governance,
-            token,
+            testToken,
             superToken,
-            cfa,
-            superfluid
-        } = tester.contracts);
+        } = t.contracts);
     });
 
     describe("#1 FlowAgreement.createFlow", () => {
@@ -72,7 +75,7 @@ contract("Constant Flow Agreement", accounts => {
     describe("#1 FlowAgreement.updateFlow", () => {
         it("#1.1 should stream in correct flow rate with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
+            const deposit = toBN(t.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 
             const dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -125,12 +128,12 @@ contract("Constant Flow Agreement", accounts => {
                 "Bob final balance is wrong");
             assert.equal(aliceDeposit.deposit.toString(), deposit.toString(), "Alice deposit is wrong");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE);
+            const deposit = toBN(t.constants.LIQUIDATION_PERIOD * FLOW_RATE);
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -237,7 +240,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wring");
             assert.equal(aliceDeposit.deposit.toString(), (deposit * 2).toString(), "Alice deposit is wrong");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.3 update with negative flow rate should fail", async() => {
@@ -292,7 +295,7 @@ contract("Constant Flow Agreement", accounts => {
                     }
                 ), "FlowAgreement: negative flow rate not allowed");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         /*
@@ -377,7 +380,7 @@ contract("Constant Flow Agreement", accounts => {
                     }
                 ), "Flow doesn't exist");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.6 update with zero rate should fail", async() => {
@@ -413,11 +416,11 @@ contract("Constant Flow Agreement", accounts => {
                     }
                 ), "FlowAgreement: use delete flow");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
-            const deposit = toBN(tester.constants.LIQUIDATION_PERIOD * FLOW_RATE * 2);
+            const deposit = toBN(t.constants.LIQUIDATION_PERIOD * FLOW_RATE * 2);
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
             let dataAgreement = cfa.contract.methods.createFlow(
@@ -508,7 +511,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(danBalance.toString(), danBalanceExpected.toString());
             assert.equal(aliceDeposit.deposit.toString(), deposit.toString());
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.8 should update flow the second time to new flow rate", async() => {
@@ -574,7 +577,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(alice1Balance.add(aliceDeposit.deposit).toString(), aliceBalanceExpected.toString());
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.9 create self flow should fail", async() => {
@@ -595,7 +598,7 @@ contract("Constant Flow Agreement", accounts => {
                     }
                 ), "FlowAgreement: self flow not allowed");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
     });
 
@@ -622,9 +625,9 @@ contract("Constant Flow Agreement", accounts => {
             const interimSuperBalanceBob = await superToken.balanceOf.call(bob);
             const bobDowngradeTx = await web3tx(superToken.downgrade, "downgrade all interim balance from bob")(
                 interimSuperBalanceBob, {from: bob});
-            const tokenBalanceBob = await token.balanceOf.call(bob);
-            assert.ok(tokenBalanceBob.eq(INIT_BALANCE.add(interimSuperBalanceBob)),
-                "TestToken.balanceOf bob token balance is not correct");
+            const testTokenBalanceBob = await testToken.balanceOf.call(bob);
+            assert.ok(testTokenBalanceBob.eq(INIT_BALANCE.add(interimSuperBalanceBob)),
+                "TestToken.balanceOf bob testToken balance is not correct");
             const superTokenBalanceBob1 = await superToken.balanceOf.call(bob);
             await traveler.advanceTimeAndBlock(ADV_TIME);
             const endBlock = await web3.eth.getBlock("latest");
@@ -646,7 +649,7 @@ contract("Constant Flow Agreement", accounts => {
                 finalSuperBalanceBobExpected.toString(),
                 "SuperToken.balanceOf - not correct for bob");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#2.2 - should downgrade partial amount with single flow running", async() => {
@@ -676,11 +679,11 @@ contract("Constant Flow Agreement", accounts => {
             );
 
             const user2MidwayBalance2Est = INIT_BALANCE.add(user2DowngradeAmount);
-            const user2MidwayBalance2 = await token.balanceOf.call(bob);
+            const user2MidwayBalance2 = await testToken.balanceOf.call(bob);
             assert.equal(
                 user2MidwayBalance2.toString(),
                 user2MidwayBalance2Est.toString(),
-                "Call: TestToken.balanceOf - User 2 token balance is not correct");
+                "Call: TestToken.balanceOf - User 2 testToken balance is not correct");
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
             const endBlock = await web3.eth.getBlock("latest");
@@ -703,16 +706,16 @@ contract("Constant Flow Agreement", accounts => {
                 user2FinalBalanceEst.toString(),
                 "Call: SuperToken.balanceOf - not correct for bob");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
-        it("#2.3 downgrade small portion of tokens with multiple flows running", async() => {
+        it("#2.3 downgrade small portion of testTokens with multiple flows running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
 
             const smallPortion = new toBN(1000);
-            const userTokenBalance = await token.balanceOf.call(bob);
+            const userTokenBalance = await testToken.balanceOf.call(bob);
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -763,23 +766,23 @@ contract("Constant Flow Agreement", accounts => {
 
             await web3tx(superToken.downgrade, "SuperToken.downgrade: User 2 Downgrade")(
                 smallPortion, {from: bob});
-            const userTokenBalanceFinal = await token.balanceOf.call(bob);
+            const userTokenBalanceFinal = await testToken.balanceOf.call(bob);
 
             assert.equal(
                 userTokenBalanceFinal.toString(),
                 userTokenBalance.add(smallPortion).toString(),
-                "User2 downgrade call dont change the token balance");
+                "User2 downgrade call dont change the testToken balance");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
-        it("#2.2 downgrade 1/2 portion of tokens with multiple flows running", async() => {
+        it("#2.2 downgrade 1/2 portion of testTokens with multiple flows running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
 
             const halfPortion= new toBN(1000000000000000000);
-            const userTokenBalance = await token.balanceOf.call(bob);
+            const userTokenBalance = await testToken.balanceOf.call(bob);
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -832,22 +835,22 @@ contract("Constant Flow Agreement", accounts => {
             await web3tx(superToken.downgrade, "SuperToken.downgrade: User 2 Downgrade")(
                 halfPortion, {from: bob});
 
-            const userTokenBalanceFinal = await token.balanceOf.call(bob);
+            const userTokenBalanceFinal = await testToken.balanceOf.call(bob);
 
             assert.equal(
                 userTokenBalanceFinal.toString(),
                 userTokenBalance.add(halfPortion).toString(),
-                "User2 downgrade call dont change the token balance");
+                "User2 downgrade call dont change the testToken balance");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
-        it("#2.3 downgrade total balance of tokens with multiple flows running", async() => {
+        it("#2.3 downgrade total balance of testTokens with multiple flows running", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
 
-            const userTokenBalance = await token.balanceOf.call(bob);
+            const userTokenBalance = await testToken.balanceOf.call(bob);
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -901,14 +904,14 @@ contract("Constant Flow Agreement", accounts => {
                 superToken.downgrade,
                 "SuperToken.downgrade: User 2 Downgrade"
             )(userSuperBalance, {from: bob});
-            const userTokenBalanceFinal = await token.balanceOf.call(bob);
+            const userTokenBalanceFinal = await testToken.balanceOf.call(bob);
 
             assert.equal(
                 userTokenBalanceFinal.toString(),
                 userTokenBalance.add(userSuperBalance).toString(),
-                "User2 downgrade call dont change the token balance");
+                "User2 downgrade call dont change the testToken balance");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
     });
 
@@ -961,7 +964,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
             assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#3.2 should stop streaming after deletion with multiple flows", async() => {
@@ -1055,13 +1058,13 @@ contract("Constant Flow Agreement", accounts => {
             const bobDeposit = await superToken.realtimeBalanceOf.call(bob, endBlock.timestamp);
 
             let user1Round = ((user1Balance.add(aliceDeposit.deposit)).sub(toBN(finalUser1)));
-            const user1ToRound = user1Round.lte(tester.constants.DUST_AMOUNT);
+            const user1ToRound = user1Round.lte(t.constants.DUST_AMOUNT);
             if(!user1ToRound) {
                 user1Round = 0;
             }
 
             let user2Round = ((user2Balance.add(bobDeposit.deposit)).sub(toBN(finalUser2)));
-            const user2ToRound = user2Round.lte(tester.constants.DUST_AMOUNT);
+            const user2ToRound = user2Round.lte(t.constants.DUST_AMOUNT);
             if(!user2ToRound) {
                 user2Round = 0;
             }
@@ -1077,7 +1080,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
             assert.equal(user4Balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
     });
 
@@ -1132,7 +1135,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
             assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
     });
 
@@ -1283,7 +1286,7 @@ contract("Constant Flow Agreement", accounts => {
                 cfa.contract.methods.createFlow(
                     superToken.address,
                     bob,
-                    FLOW_RATE2.toString(), // use a less nice number to test rounding
+                    FLOW_RATE2.toString(),
                     "0x"
                 ).encodeABI(),
                 {
@@ -1353,7 +1356,7 @@ contract("Constant Flow Agreement", accounts => {
                 (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
                 "0");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#7.2 Liquidator should take the deposit but also pay for the deficit", async() => {
@@ -1434,7 +1437,7 @@ contract("Constant Flow Agreement", accounts => {
                 (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
                 "0");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#7.3 Liquidator should take the deposit, but reward address pays for the deficit", async() => {
@@ -1521,7 +1524,7 @@ contract("Constant Flow Agreement", accounts => {
                 (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
                 "0");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
     });

@@ -96,7 +96,7 @@ contract Superfluid is
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.SuperfluidRegistry.implementation");
+        return keccak256("org.superfluid-finance.contracts.Superfluid.implementation");
     }
 
     function updateCode(address newAddress) external onlyOwner {
@@ -235,13 +235,13 @@ contract Superfluid is
         external override
         returns (ISuperToken)
     {
-        require(address(underlyingToken) != address(0), "SuperfluidRegistry: ZERO_ADDRESS");
+        require(address(underlyingToken) != address(0), "SF: createERC20Wrapper zero address");
         bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);
         address wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
-        require(!Address.isContract(wrapperAddress), "SuperfluidRegistry: WRAPPER_EXIST");
+        require(!Address.isContract(wrapperAddress), "SF: createERC20Wrapper wrapper exist");
         Proxy proxy = new Proxy{salt: salt}();
         proxy.initializeProxy(address(_superTokenLogic));
-        require(wrapperAddress == address(proxy), "Superfluid: UNEXPECTED_WRAPPER_ADDRESS");
+        require(wrapperAddress == address(proxy), "SF: createERC20Wrapper unexpected address");
         // initialize the token
         SuperToken superToken = SuperToken(address(proxy));
         superToken.initialize(

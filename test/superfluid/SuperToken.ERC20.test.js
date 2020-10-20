@@ -3,50 +3,43 @@ const { constants, expectEvent, expectRevert } = require("@openzeppelin/test-hel
 const { expect } = require("chai");
 
 const {
+    web3tx,
     toBN,
 } = require("@decentral.ee/web3-helpers");
 
 const {
     shouldBehaveLikeERC20,
-    // shouldBehaveLikeERC20Transfer,
-    // shouldBehaveLikeERC20Approve,
+    shouldBehaveLikeERC20Transfer,
+    shouldBehaveLikeERC20Approve,
 } = require("./ERC20.behavior");
 
 const { ZERO_ADDRESS } = constants;
 
-const SuperTokenMock = artifacts.require("SuperTokenMock");
-const Tester = require("./Tester");
+const TestEnvironment = require("../TestEnvironment");
 
 contract("SuperToken's ERC20 compliance", accounts => {
 
-    const tester = new Tester(accounts.slice(0, 4));
-    const { alice, bob, carol } = tester.aliases;
+    const t = new TestEnvironment(accounts.slice(0, 4));
+    const { alice, bob, carol } = t.aliases;
     const initialSupply = toBN(100);
 
     before(async () => {
-        tester.printAliases();
+        await t.reset();
     });
 
     beforeEach(async function () {
-        let token;
-        let superToken;
-        let superTokenMock;
-        await tester.resetContracts();
-        ({
-            token,
-            superToken,
-        } = tester.contracts);
-
-        superTokenMock = await SuperTokenMock.at(superToken.address);
-
-        await token.approve(superToken.address, initialSupply, { from: alice });
-        await superTokenMock.upgrade(initialSupply, { from: alice });
-
-        this.token = superTokenMock;
+        await t.createNewToken({ doUpgrade: false });
+        this.token = t.contracts.superToken;
+        await web3tx(this.token.upgrade, `Upgrade initialSupply amount of token for ${alice}`)(
+            initialSupply, {
+                from: alice
+            }
+        );
     });
 
-    shouldBehaveLikeERC20("SuperToken", initialSupply, alice, bob, carol);
-
+    describe("ERC20 compliance", () => {
+        shouldBehaveLikeERC20("SuperToken", initialSupply, alice, bob, carol);
+    });
 
     describe("decrease allowance", function () {
         describe("when the spender is not the zero address", function () {
@@ -208,34 +201,32 @@ contract("SuperToken's ERC20 compliance", accounts => {
         });
     });
 
+    describe("_transfer", function () {
+        shouldBehaveLikeERC20Transfer("ERC20", alice, bob, initialSupply, function (from, to, amount) {
+            return this.token.transferInternal(from, to, amount);
+        });
 
-    // describe('_transfer', function () {
-    //   shouldBehaveLikeERC20Transfer('ERC20', alice, bob, initialSupply, function (from, to, amount) {
-    //     return this.token.transferInternal(from, to, amount);
-    //   });
-    //
-    //   describe('when the sender is the zero address', function () {
-    //     it('reverts', async function () {
-    //       await expectRevert(this.token.transferInternal(ZERO_ADDRESS, bob, initialSupply),
-    //         'SuperToken: transfer from zero address',
-    //       );
-    //     });
-    //   });
-    // });
-    //
-    //
-    // describe('_approve', function () {
-    //   shouldBehaveLikeERC20Approve('ERC20', alice, bob, initialSupply, function (owner, spender, amount) {
-    //     return this.token.approveInternal(owner, spender, amount);
-    //   });
-    //
-    //   describe('when the owner is the zero address', function () {
-    //     it('reverts', async function () {
-    //       await expectRevert(this.token.approveInternal(ZERO_ADDRESS, bob, initialSupply),
-    //         'SuperToken: approve from zero address',
-    //       );
-    //     });
-    //   });
-    // });
+        describe("when the sender is the zero address", function () {
+            it("reverts", async function () {
+                await expectRevert(this.token.transferInternal(ZERO_ADDRESS, bob, initialSupply),
+                    "SuperToken: transfer from zero address",
+                );
+            });
+        });
+    });
+
+    describe("_approve", function () {
+        shouldBehaveLikeERC20Approve("ERC20", alice, bob, initialSupply, function (owner, spender, amount) {
+            return this.token.approveInternal(owner, spender, amount);
+        });
+
+        describe("when the owner is the zero address", function () {
+            it("reverts", async function () {
+                await expectRevert(this.token.approveInternal(ZERO_ADDRESS, bob, initialSupply),
+                    "SuperToken: approve from zero address",
+                );
+            });
+        });
+    });
 
 });

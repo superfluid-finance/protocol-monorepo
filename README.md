@@ -120,13 +120,15 @@ to interact with the host contract (Superfluid.sol).
   - `ISuperToken` : The Super token contract interface.
   - `IConstantFlowAgreementV1` : The constant flow agreement (v1) contract interface.
   - `IInstantDistributionAgreementV1` : The instant distribution agreement (v1) contract interface.
-* Token wrapper convenient functions:
+* Token registry functions:
   - `sf.getERC20Wrapper`
   - `sf.createERC20Wrapper`
 * `sf.resolver`: The resolver used by the SDK.
   - In test nets, there are some test tokens can be located with the resolver:
     - `fDAI` : The fake DAI. `sf.resolver.get("tokens.fDAI")`.
     - `fUSDC` : The fake USDC. `sf.resolver.get("tokens.fUSDC")`.
-* `sf.agreements` :
+    - `fTUSD` : The fake TUSD. `sf.resolver.get("tokens.fTUSD")`.
+* `sf.agreements`:
   - `sf.agreements.cfa` : Constant flow agreement truffle contract instance.
   - `sf.agreements.ida` : Instant distribution agreement truffle contract instance.
+* `sf.cfa`: The constant flow agreement helper class instance.

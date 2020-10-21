@@ -4,6 +4,7 @@ const SuperfluidSDK = require("..");
 const TestResolver = artifacts.require("TestResolver");
 const Superfluid = artifacts.require("Superfluid");
 const SuperToken = artifacts.require("SuperToken");
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestGovernance = artifacts.require("TestGovernance");
 const Proxy = artifacts.require("Proxy");
 const Proxiable = artifacts.require("Proxiable");
@@ -34,6 +35,7 @@ module.exports = async function (callback) {
         console.log("reset: ", reset);
         console.log("network ID: ", chainId);
         console.log("release version:", version);
+        process.env.USE_MOCKS && console.log("**** !ATTN! USING MOCKS CONTRACTS ****");
 
         const config = SuperfluidSDK.getConfig(chainId);
 
@@ -174,8 +176,9 @@ module.exports = async function (callback) {
         {
             superTokenLogicAddress = await superfluid.getSuperTokenLogic.call();
             console.log("SuperTokenLogic address", superTokenLogicAddress);
-            if (reset || await codeChanged(SuperToken, superTokenLogicAddress)) {
-                const superTokenLogic = await web3tx(SuperToken.new, "SuperToken.new due to code change")();
+            const SuperTokenLogic = process.env.USE_MOCKS ? SuperTokenMock : SuperToken;
+            if (reset || await codeChanged(SuperTokenLogic, superTokenLogicAddress)) {
+                const superTokenLogic = await web3tx(SuperTokenLogic.new, "SuperToken.new due to code change")();
                 superTokenLogicAddress = superTokenLogic.address;
                 console.log("SuperTokenLogic address", superTokenLogicAddress);
                 await web3tx(superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(

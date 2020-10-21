@@ -1,6 +1,6 @@
 const deployFramework = require("../scripts/deploy-framework");
 const ISuperfluid = artifacts.require("ISuperfluid");
-const ISuperToken = artifacts.require("ISuperToken");
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestToken = artifacts.require("TestToken");
 const IConstantFlowAgreementV1 = artifacts.require("IConstantFlowAgreementV1");
 const IInstantDistributionAgreementV1 = artifacts.require("IInstantDistributionAgreementV1");
@@ -16,6 +16,7 @@ const {
 module.exports = class Tester {
 
     constructor(accounts) {
+        process.env.USE_MOCKS = 1;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -82,7 +83,7 @@ module.exports = class Tester {
             "Super Test Token",
             "TESTx");
 
-        this.contracts.superToken = await ISuperToken.at(
+        this.contracts.superToken = await SuperTokenMock.at(
             (await this.contracts.superfluid.getERC20Wrapper.call(
                 this.contracts.testToken.address,
                 "TESTx"

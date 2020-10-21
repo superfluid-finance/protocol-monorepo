@@ -5,23 +5,23 @@
 
 const {
     web3tx,
-    toWad,
+    toBN
     // toDecimals,
     // toBN
 } = require("@decentral.ee/web3-helpers");
 
 const traveler = require("ganache-time-traveler");
 
-const Tester = require("./Tester");
+const TestEnvironment = require("../TestEnvironment");
 
 const ADV_TIME = 2;
-const FLOW_RATE = toWad(1);
+const FLOW_RATE = toBN("10000000000000");
 
 contract("SuperToken's SuperfluidToken implementation", accounts => {
 
-    const tester = new Tester(accounts.slice(0, 4));
-    const { alice, bob, carol} = tester.aliases;
-    const { INIT_BALANCE } = tester.constants;
+    const t = new TestEnvironment(accounts.slice(0, 4));
+    const { alice, bob, carol} = t.aliases;
+    const { INIT_BALANCE } = t.constants;
 
     // let token;
     let superToken;
@@ -29,16 +29,18 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
     let superfluid;
 
     before(async () => {
-        tester.printAliases();
+        await t.reset();
+        ({
+            superfluid,
+            cfa,
+        } = t.contracts);
     });
 
     beforeEach(async function () {
-        await tester.resetContracts();
+        await t.createNewToken({ doUpgrade: false });
         ({
-            superfluid,
             superToken,
-            cfa,
-        } = tester.contracts);
+        } = t.contracts);
     });
 
     describe("#0 SuperToken misc", () => {
@@ -221,7 +223,7 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
             const superBalanceCarol = await superToken.balanceOf.call(carol);
             assert.equal(superBalanceCarol.toString(), superBalanceBob.toString());
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
     });
 });

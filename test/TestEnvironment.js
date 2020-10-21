@@ -1,7 +1,8 @@
 const deployFramework = require("../scripts/deploy-framework");
 const ISuperfluid = artifacts.require("ISuperfluid");
-const SuperTokenMock = artifacts.require("SuperTokenMock");
+const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 const IConstantFlowAgreementV1 = artifacts.require("IConstantFlowAgreementV1");
 const IInstantDistributionAgreementV1 = artifacts.require("IInstantDistributionAgreementV1");
 
@@ -13,10 +14,10 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 
-module.exports = class Tester {
+module.exports = class TestEnvironment {
 
-    constructor(accounts) {
-        process.env.USE_MOCKS = 1;
+    constructor(accounts, { useMocks } = { useMocks: false }) {
+        this.useMocks = useMocks;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -42,7 +43,6 @@ module.exports = class Tester {
             MAX_UINT256: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
             INIT_BALANCE: toWad(100),
             ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
-            LIQUIDATION_PERIOD: 2,
             DUST_AMOUNT: toBN(10000),
             AUM_DUST_AMOUNT: toBN(10000),
         };
@@ -57,7 +57,13 @@ module.exports = class Tester {
 
         // deploy framework
         delete process.env.TEST_RESOLVER_ADDRESS;
+        if (this.useMocks) {
+            process.env.USE_MOCKS = 1;
+        } else {
+            delete process.env.USE_MOCKS;
+        }
         await deployFramework(this.errorHandler);
+        delete process.env.USE_MOCKS;
 
         this.contracts = {};
         // load host contract
@@ -69,9 +75,11 @@ module.exports = class Tester {
         const idaAddress = await superfluid.getAgreementClass.call(idav1Type);
         this.contracts.cfa = await IConstantFlowAgreementV1.at(cfaAddress);
         this.contracts.ida = await IInstantDistributionAgreementV1.at(idaAddress);
+        // load governance contract
+        this.contracts.governance = await TestGovernance.at(await superfluid.getGovernance());
     }
 
-    async createNewToken({ doUpgrade }) {
+    async createNewToken({ doUpgrade } = {}) {
         // test token contract
         this.contracts.testToken = await web3tx(TestToken.new, "TestToken.new")(
             "Test Token", "TEST");

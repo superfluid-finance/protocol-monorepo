@@ -1,4 +1,4 @@
-const Tester = require("../superfluid/Tester");
+const TestEnvironment = require("../TestEnvironment");
 const DividendRightsToken = artifacts.require("DividendRightsToken");
 
 const {
@@ -8,22 +8,28 @@ const {
 
 contract("DividendRightsToken", accounts => {
 
-    const tester = new Tester(accounts);
+    const t = new TestEnvironment(accounts);
 
     let superToken;
     let ida;
     let superfluid;
 
-    const { MAX_UINT256, INIT_BALANCE } = tester.constants;
-    const { alice, bob, carol, dan } = tester.aliases;
+    const { MAX_UINT256, INIT_BALANCE } = t.constants;
+    const { alice, bob, carol, dan } = t.aliases;
+
+    before(async () => {
+        await t.reset();
+        ({
+            superfluid,
+            ida,
+        } = t.contracts);
+    });
 
     beforeEach(async function () {
-        await tester.resetContracts();
+        await t.createNewToken({ doUpgrade: false });
         ({
             superToken,
-            ida,
-            superfluid
-        } = tester.contracts);
+        } = t.contracts);
     });
 
     it("#1 end to end scenario", async () => {

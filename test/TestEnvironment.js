@@ -14,14 +14,10 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 
-module.exports = class Tester {
+module.exports = class TestEnvironment {
 
     constructor(accounts, { useMocks } = { useMocks: false }) {
-        if (useMocks) {
-            process.env.USE_MOCKS = 1;
-        } else {
-            delete process.env.USE_MOCKS;
-        }
+        this.useMocks = useMocks;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -61,7 +57,13 @@ module.exports = class Tester {
 
         // deploy framework
         delete process.env.TEST_RESOLVER_ADDRESS;
+        if (this.useMocks) {
+            process.env.USE_MOCKS = 1;
+        } else {
+            delete process.env.USE_MOCKS;
+        }
         await deployFramework(this.errorHandler);
+        delete process.env.USE_MOCKS;
 
         this.contracts = {};
         // load host contract

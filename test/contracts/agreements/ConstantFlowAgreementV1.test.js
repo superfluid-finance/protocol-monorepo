@@ -1264,7 +1264,7 @@ contract("Constant Flow Agreement", accounts => {
         });
 
         it("#6.2 Should fail if sender have small balance to pay deposit", async() => {
-            await superToken.upgrade(FLOW_RATE.mul(LIQUIDATION_PERIOD.sub(toBN(1))), {from : alice});
+            await superToken.upgrade(FLOW_RATE.mul(toBN(LIQUIDATION_PERIOD).sub(toBN(1))), {from : alice});
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,

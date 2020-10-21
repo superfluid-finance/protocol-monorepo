@@ -12,7 +12,7 @@ const {
 const TestToken = artifacts.require("TestToken");
 const ISuperToken = artifacts.require("ISuperToken");
 
-const TestEnvironment = require("../TestEnvironment");
+const TestEnvironment = require("../../TestEnvironment");
 
 contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 

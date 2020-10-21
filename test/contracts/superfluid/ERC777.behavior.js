@@ -1,10 +1,10 @@
-const { contract, web3 } = require("@openzeppelin/test-environment");
+// NOTE: copied and modified from https://github.com/OpenZeppelin/openzeppelin-contracts/
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { ZERO_ADDRESS } = constants;
 
 const { expect } = require("chai");
 
-const ERC777SenderRecipientMock = contract.fromArtifact("ERC777SenderRecipientMock");
+const ERC777SenderRecipientMock = artifacts.require("ERC777SenderRecipientMock");
 
 function shouldBehaveLikeERC777DirectSendBurn (holder, recipient, data) {
     shouldBehaveLikeERC777DirectSend(holder, recipient, data);

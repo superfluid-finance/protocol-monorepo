@@ -12,7 +12,7 @@ const {
 
 const traveler = require("ganache-time-traveler");
 
-const TestEnvironment = require("../TestEnvironment");
+const TestEnvironment = require("../../TestEnvironment");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toBN("10000000000000");

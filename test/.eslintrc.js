@@ -4,6 +4,7 @@ module.exports = {
         "artifacts": true,
         "describe": true,
         "contract": true,
+        "context": true,
         "before": true,
         "beforeEach": true,
         "afterEach": true,

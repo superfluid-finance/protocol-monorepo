@@ -15,7 +15,7 @@ const {
 
 const { ZERO_ADDRESS } = constants;
 
-const TestEnvironment = require("../TestEnvironment");
+const TestEnvironment = require("../../TestEnvironment");
 
 contract("SuperToken's ERC20 compliance", accounts => {
 

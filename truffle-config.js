@@ -158,14 +158,14 @@ module.exports = {
     },
 
     // Set default mocha options here, use special reporters etc.
-    mocha: {
-        // timeout: 100000
-        reporter: "eth-gas-reporter",
-        reporterOptions: {
-            noColors: true,
-            outputFile: "build/eth-gas-report.txt"
-        }
-    },
+    //mocha: {
+    //    // timeout: 100000
+    //    reporter: "eth-gas-reporter",
+    //    reporterOptions: {
+    //        noColors: true,
+    //        outputFile: "build/eth-gas-report.txt"
+    //    }
+    //},
 
     // Configure your compilers
     compilers: {

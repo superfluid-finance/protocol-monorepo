@@ -5,6 +5,7 @@ const TestToken = artifacts.require("TestToken");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const IConstantFlowAgreementV1 = artifacts.require("IConstantFlowAgreementV1");
 const IInstantDistributionAgreementV1 = artifacts.require("IInstantDistributionAgreementV1");
+const IERC1820Registry = artifacts.require("IERC1820Registry");
 
 const {
     web3tx,
@@ -66,6 +67,8 @@ module.exports = class TestEnvironment {
         delete process.env.USE_MOCKS;
 
         this.contracts = {};
+        // load singletons
+        this.contracts.erc1820 = await IERC1820Registry.at("0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24");
         // load host contract
         const superfluid = this.contracts.superfluid = await ISuperfluid.at(process.env.TEST_SUPERFLUID_ADDRESS);
         // load agreement contracts

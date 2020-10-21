@@ -64,4 +64,17 @@ contract SuperTokenMock is SuperToken {
         _transferFrom(from, from, to, value);
     }
 
+    function setupDefaultOperators(address[] memory operators) public {
+        _setupDefaultOperators(operators);
+    }
+
+    function mintInternal(
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData
+    ) public {
+        _mint(msg.sender, to, amount, userData, operatorData);
+    }
+
 }

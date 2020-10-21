@@ -1,33 +1,40 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
-const Tester = require("../superfluid/Tester");
+const TestEnvironment = require("../TestEnvironment");
 const MultiApp = artifacts.require("MultiFlowsApp");
 
 const {
     web3tx,
     toWad,
+    toBN,
 } = require("@decentral.ee/web3-helpers");
 
-const FLOW_RATE = toWad(1);
+const FLOW_RATE = toBN("10000000000000");
 
-contract("MultiFlowsApp", accounts => {
+contract("t", accounts => {
 
-    const tester = new Tester(accounts);
+    const t = new TestEnvironment(accounts);
 
     let superToken;
     let cfa;
     let superfluid;
 
-    const { INIT_BALANCE } = tester.constants;
-    const { alice, bob, carol } = tester.aliases;
+    const { INIT_BALANCE } = t.constants;
+    const { alice, bob, carol } = t.aliases;
+
+    before(async () => {
+        await t.reset();
+        ({
+            superfluid,
+            cfa,
+        } = t.contracts);
+    });
 
     beforeEach(async function () {
-        await tester.resetContracts();
+        await t.createNewToken({ doUpgrade: false });
         ({
             superToken,
-            cfa,
-            superfluid
-        } = tester.contracts);
+        } = t.contracts);
     });
 
     it("#1 MultiFlowsApp", async () => {
@@ -161,7 +168,7 @@ contract("MultiFlowsApp", accounts => {
                     cfa.address, cfa.contract.methods.createFlow(
                         superToken.address,
                         app.address,
-                        "1000000000000000000",
+                        FLOW_RATE.toString(),
                         "0x"
                     ).encodeABI()
                 ]

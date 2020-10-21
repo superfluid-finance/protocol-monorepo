@@ -3,7 +3,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestToken = artifacts.require("TestToken");
 const AgreementMock = artifacts.require("AgreementMock");
 
-const Tester = require("../superfluid/Tester");
+const TestEnvironment = require("../../TestEnvironment");
 
 const {
     web3tx,
@@ -11,27 +11,29 @@ const {
     toBN
 } = require("@decentral.ee/web3-helpers");
 
-contract("Superfluid", accounts => {
+contract("Superfluid Host Contract", accounts => {
 
-    const tester = new Tester(accounts.slice(0, 3));
-    const { admin, alice, bob } = tester.aliases;
-    const { MAX_UINT256 } = tester.constants;
+    const t = new TestEnvironment(accounts.slice(0, 3));
+    const { admin, alice, bob } = t.aliases;
+    const { MAX_UINT256 } = t.constants;
 
     let governance;
     let superfluid;
     let superToken;
 
     before(async () => {
-        tester.printAliases();
-    });
-
-    beforeEach(async function () {
-        await tester.resetContracts();
+        await t.reset();
         ({
             governance,
             superfluid,
+        } = t.contracts);
+    });
+
+    beforeEach(async function () {
+        await t.createNewToken({ doUpgrade: false });
+        ({
             superToken
-        } = tester.contracts);
+        } = t.contracts);
     });
 
     describe("#1 Agreement Whitelisting", async () => {
@@ -241,7 +243,7 @@ contract("Superfluid", accounts => {
                 (await superToken.balanceOf.call(bob)).toString(),
                 toWad("5").toString());
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
     });
 
@@ -256,7 +258,7 @@ contract("Superfluid", accounts => {
         it("#10.1 getGovernance", async () => {
             assert.equal(
                 await superfluid.getGovernance.call(),
-                tester.contracts.governance.address);
+                t.contracts.governance.address);
         });
     });
 

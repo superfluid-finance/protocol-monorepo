@@ -12,34 +12,36 @@ const {
 const TestToken = artifacts.require("TestToken");
 const ISuperToken = artifacts.require("ISuperToken");
 
-const Tester = require("./Tester");
+const TestEnvironment = require("../TestEnvironment");
 
 contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 
-    const tester = new Tester(accounts.slice(0, 4));
-    const { alice, bob } = tester.aliases;
-    const { MAX_UINT256 } = tester.constants;
+    const t = new TestEnvironment(accounts.slice(0, 4));
+    const { alice, bob } = t.aliases;
+    const { MAX_UINT256 } = t.constants;
 
-    let token;
+    let testToken;
     let superToken;
     let superfluid;
 
     before(async () => {
-        tester.printAliases();
+        await t.reset();
+        ({
+            superfluid,
+        } = t.contracts);
     });
 
     beforeEach(async function () {
-        await tester.resetContracts();
+        await t.createNewToken({ doUpgrade: false });
         ({
-            token,
-            superfluid,
+            testToken,
             superToken,
-        } = tester.contracts);
+        } = t.contracts);
     });
 
     describe("#1 SuperToken.upgrade/downgrade", () => {
         it("#1.1 - should upgrade if enough balance", async () => {
-            const initialBalance = await token.balanceOf.call(alice);
+            const initialBalance = await testToken.balanceOf.call(alice);
 
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2.0 tokens from alice") (
                 toWad(2), {
@@ -47,7 +49,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 });
             const { timestamp } = await web3.eth.getBlock("latest");
 
-            const finalBalance = await token.balanceOf.call(alice);
+            const finalBalance = await testToken.balanceOf.call(alice);
             const finalSuperTokenBalance = await superToken.balanceOf.call(alice);
             const finalRealBalance = await superToken.realtimeBalanceOf.call(alice, timestamp);
 
@@ -58,18 +60,18 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             assert.equal(finalRealBalance.availableBalance.toString(), finalSuperTokenBalance.toString(),
                 "balanceOf should equal realtimeBalanceOf");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.2 - should not upgrade without enough underlying balance", async() => {
-            const initialBalance = await token.balanceOf.call(alice);
+            const initialBalance = await testToken.balanceOf.call(alice);
             await expectRevert(web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
                 initialBalance.add(toBN(1)), {from: alice}), "ERC20: transfer amount exceeds balance");
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.3 - should downgrade by single account", async() => {
-            const initialBalance = await token.balanceOf.call(alice);
+            const initialBalance = await testToken.balanceOf.call(alice);
 
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice") (
                 toWad(2), {
@@ -81,7 +83,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                     from: alice
                 });
 
-            const finalBalance = await token.balanceOf.call(alice);
+            const finalBalance = await testToken.balanceOf.call(alice);
             const finalSuperTokenBalance = await superToken.balanceOf.call(alice);
 
             assert.isOk(initialBalance.sub(finalBalance).toString(), toWad(1),
@@ -89,11 +91,11 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             assert.equal(finalSuperTokenBalance.toString(), toWad("1"),
                 "SuperToken.balanceOf is wrong");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.4 - should downgrade by multiple accounts", async () => {
-            const initialBalanceAlice = await token.balanceOf.call(alice);
+            const initialBalanceAlice = await testToken.balanceOf.call(alice);
             const initialSuperBalanceAlice = await superToken.balanceOf.call(alice);
 
             await web3tx(superToken.upgrade, "upgrade 2 from alice")(toWad(2), {from: alice});
@@ -106,7 +108,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                     from: alice
                 });
 
-            const finalBalanceAlice = await token.balanceOf.call(alice);
+            const finalBalanceAlice = await testToken.balanceOf.call(alice);
             const finalSuperBalanceAlice = await superToken.balanceOf.call(alice);
             const finalSuperBalanceBob = await superToken.balanceOf.call(bob);
 
@@ -123,7 +125,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 finalSuperBalanceBob.toString(),
                 "SuperToken.balanceOf - not correct for user 2");
 
-            await tester.validateSystem();
+            await t.validateSystem();
         });
 
         it("#1.5 - should not downgrade if there is no balance", async () => {
@@ -139,7 +141,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 {
                     from: bob
                 });
-            await web3tx(token6D.mint, "Mint token for bob")(
+            await web3tx(token6D.mint, "Mint testToken for bob")(
                 bob,
                 toDecimals("100", 6), {
                     from: bob
@@ -232,7 +234,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 {
                     from: bob
                 });
-            await web3tx(token20D.mint, "Mint token for bob")(
+            await web3tx(token20D.mint, "Mint testToken for bob")(
                 bob,
                 toDecimals("100", 20), {
                     from: bob

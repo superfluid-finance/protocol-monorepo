@@ -417,6 +417,7 @@ contract SuperToken is
     }
 
     function revokeOperator(address operator) external override {
+        require(operator != msg.sender, "ERC777: revoking self as operator");
         address holder = msg.sender;
         _operators.revokeOperator(holder, operator);
         emit RevokedOperator(operator, holder);

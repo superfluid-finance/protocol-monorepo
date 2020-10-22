@@ -17,6 +17,7 @@ module.exports = class Framework {
      * @param {boolean} isTruffle if the framework is used within truffle environment
      * @param {string} version protocol contract version
      * @param {string} chainId force chainId, instead relying on web3.eth.net.getId
+     * @param {string} resolverAddress force resolver address
      * @param {string[]} tokens the tokens to be loaded, each element is an alias for the underlying token
      * @return {Framework} The Framework object
      *
@@ -27,12 +28,14 @@ module.exports = class Framework {
         isTruffle,
         version,
         chainId,
+        resolverAddress,
         tokens
     }) {
         const contractNames = Object.keys(SuperfluidABI);
 
         this.chainId = chainId;
         this.version = version || "test";
+        this.resolverAddress = resolverAddress;
 
         // load contracts
         this.contracts = {};
@@ -70,8 +73,9 @@ module.exports = class Framework {
 
         const config = getConfig(chainId);
 
-        console.debug("Resolver at", config.resolverAddress);
-        this.resolver = await this.contracts.IResolver.at(config.resolverAddress);
+        const resolverAddress = this.resolverAddress || config.resolverAddress;
+        console.debug("Resolver at", resolverAddress);
+        this.resolver = await this.contracts.IResolver.at(resolverAddress);
 
         // load superfluid host contract
         console.debug("Resolving contracts with version", this.version);

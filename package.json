@@ -46,6 +46,7 @@
     "pretest": "run-s lint build",
     "test": "run-s test:*",
     "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
+    "test:apps": "truffle test test test/apps.test.js",
     "test:sdk": "truffle test test/sdk.test.js",
     "test:deployment": "truffle test test/deployment.test.js",
     "test-coverage": "npm run build && truffle run coverage --file test/contracts.test.js",

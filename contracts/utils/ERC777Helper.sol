@@ -26,6 +26,11 @@ library ERC777Helper {
         mapping(address => mapping(address => bool)) revokedDefaultOperators;
     }
 
+    function register(address token) internal {
+        _ERC1820_REGISTRY.setInterfaceImplementer(token, keccak256("ERC777Token"), address(this));
+        _ERC1820_REGISTRY.setInterfaceImplementer(token, keccak256("ERC20Token"), address(this));
+    }
+
     function isOperatorFor(Operators storage self, address operator, address tokenHolder) internal view returns (bool) {
         return operator == tokenHolder ||
             (
@@ -36,7 +41,7 @@ library ERC777Helper {
     }
 
     function authorizeOperator(Operators storage self, address holder, address operator) internal {
-        require(holder != operator, "ERC777Operators: authorizing self");
+        require(holder != operator, "ERC777Operators: authorizing self as operator");
 
         if (self.defaultOperators[operator]) {
             delete self.revokedDefaultOperators[holder][operator];
@@ -46,6 +51,7 @@ library ERC777Helper {
     }
 
     function revokeOperator(Operators storage self, address holder, address operator) internal {
+        require(operator != msg.sender, "ERC777Operators: revoking self as operator");
         if (self.defaultOperators[operator]) {
             self.revokedDefaultOperators[holder][operator] = true;
         } else {
@@ -55,6 +61,13 @@ library ERC777Helper {
 
     function defaultOperators(Operators storage self) internal view returns (address[] memory) {
         return self.defaultOperatorsArray;
+    }
+
+    function setupDefaultOperators(Operators storage self, address[] memory operators) internal {
+        self.defaultOperatorsArray = operators;
+        for (uint i = 0; i < operators.length; ++i) {
+            self.defaultOperators[operators[i]] = true;
+        }
     }
 
 }

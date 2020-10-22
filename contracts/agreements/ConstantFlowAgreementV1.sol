@@ -518,36 +518,6 @@ contract ConstantFlowAgreementV1 is
         );
     }
 
-    function _decodeAgreementData
-    (
-        bytes32 word
-    )
-        private
-        pure
-        returns(FlowData memory data)
-    {
-        uint256 wordA = uint256(word);
-        data.timestamp = uint32(wordA >> 224);
-        data.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
-        data.deposit = uint64(wordA >> 64 & uint64(int64(-1)));
-        data.owedDeposit = uint64(wordA & uint64(int64(-1)));
-    }
-
-    function _decodeAccountState
-    (
-        bytes32 word
-    )
-        private
-        pure
-        returns(FlowData memory state)
-    {
-        uint256 wordA = uint256(word);
-        state.timestamp = uint32(wordA >> 224);
-        state.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
-        state.deposit = uint64(wordA >> 64 & uint64(int64(-1)));
-        state.owedDeposit = uint64(wordA & uint64(int64(-1)));
-    }
-
     function _getAccountState
     (
         ISuperfluidToken token,

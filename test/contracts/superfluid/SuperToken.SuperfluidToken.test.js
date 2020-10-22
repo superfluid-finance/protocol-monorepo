@@ -12,7 +12,7 @@ const {
 
 const traveler = require("ganache-time-traveler");
 
-const TestEnvironment = require("../TestEnvironment");
+const TestEnvironment = require("../../TestEnvironment");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toBN("10000000000000");
@@ -44,9 +44,11 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
     });
 
     describe("#0 SuperToken misc", () => {
-        it("#0.1 - test basic token info", async () => {
-            assert.equal(await superToken.name.call(), "Super Test Token");
-            assert.equal(await superToken.symbol.call(), "TESTx");
+        it("#0.1 - Superfluid Token standard basic information", async () => {
+            assert.equal(await superToken.proxiableUUID.call(),
+                web3.utils.sha3("org.superfluid-finance.contracts.SuperToken.implementation"));
+            assert.equal(await superToken.getUnderlyingToken.call(),
+                t.contracts.testToken.address);
             assert.equal(await superToken.decimals.call(), 18);
         });
 

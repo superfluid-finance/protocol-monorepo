@@ -254,12 +254,11 @@ contract("Superfluid Host Contract", accounts => {
         // chargeGasFee ?
     });
 
-    describe("#10 Governance", () => {
+    describe("#10 Governance and upgradability", () => {
         it("#10.1 getGovernance", async () => {
             assert.equal(
                 await superfluid.getGovernance.call(),
                 t.contracts.governance.address);
         });
     });
-
 });

@@ -85,6 +85,9 @@ contract SuperToken is
 
         _name = name;
         _symbol = symbol;
+
+        // register interfaces
+        ERC777Helper.register(address(this));
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -447,6 +450,10 @@ contract SuperToken is
         address operator = msg.sender;
         require(_operators.isOperatorFor(operator, account), "SuperToken: caller is not an operator for holder");
         _downgrade(operator, account, amount, data, operatorData);
+    }
+
+    function _setupDefaultOperators(address[] memory operators) internal {
+        _operators.setupDefaultOperators(operators);
     }
 
     /**************************************************************************

@@ -7,12 +7,14 @@ function Framework({
     web3Provider,
     isTruffle,
     version,
-    chainId
+    chainId,
+    resolverAddress
 }) {
     const contractNames = Object.keys(SuperfluidABI);
 
     this.chainId = chainId;
     this.version = version || "test";
+    this.resolverAddress = resolverAddress;
 
     // load contracts
     this.contracts = {};
@@ -43,8 +45,9 @@ Framework.prototype.initialize = async function () {
 
     const config = getConfig(chainId);
 
-    console.debug("Resolver at", config.resolverAddress);
-    this.resolver = await this.contracts.IResolver.at(config.resolverAddress);
+    const resolverAddress = this.resolverAddress || config.resolverAddress;
+    console.debug("Resolver at", resolverAddress);
+    this.resolver = await this.contracts.IResolver.at(resolverAddress);
 
     console.debug("Resolving contracts with version", this.version);
     const superfluidAddress = await this.resolver.get.call(`Superfluid.${this.version}`);

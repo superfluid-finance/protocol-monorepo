@@ -33,7 +33,7 @@ module.exports = async function (callback, argv) {
         });
         await sf.initialize();
 
-        const tokens = ["fDAI"];
+        const tokens = ["fDAI", "fUSDC", "fTUSD"];
         while (args.length) {
             const account = args.shift();
             console.log("=".repeat(80));

@@ -117,7 +117,7 @@ contract SuperToken is
     /**************************************************************************
      * (private) Token Logics
      *************************************************************************/
-
+// I'm really not sure what this is supposed to be doing, not much documented either
     function _transferFrom(address spender, address holder, address recipient, uint amount)
         internal returns (bool)
     {
@@ -217,6 +217,7 @@ contract SuperToken is
     {
         require(account != address(0), "SuperToken: mint to zero address");
 
+// This call doesn't increase total supply, neither does anything else in this function. Similar for _burn
         SuperfluidToken._mint(account, int256(amount));
 
         _callTokensReceived(operator, address(0), account, amount, userData, operatorData, true);
@@ -244,7 +245,7 @@ contract SuperToken is
         require(from != address(0), "SuperToken: burn from zero address");
 
         _callTokensToSend(operator, from, address(0), amount, data, operatorData);
-
+// What if I want to burn more than the maximum of uint128 tokens? (similar question valid for mint)
         SuperfluidToken._burn(from, int256(amount));
 
         emit Burned(operator, from, amount, data, operatorData);
@@ -269,7 +270,7 @@ contract SuperToken is
     {
         require(account != address(0), "SuperToken: approve from zero address");
         require(spender != address(0), "SuperToken: approve to zero address");
-
+// Check an attack vector here: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md#approve
         _allowances[account][spender] = amount;
         emit Approval(account, spender, amount);
     }
@@ -515,7 +516,9 @@ contract SuperToken is
         _underlyingToken.transfer(account, underlyingAmount);
         emit TokenDowngraded(account, amount);
     }
-
+// I'm not sure why this kind of calculation is needed. The amount of decimals shouldn't make any difference in the contracts 
+// All contract functionality always operates based on the smallest amount of unit for the token
+// If this conversion is done for "display purposes" (so the amounts wouldn't look strange in some UI) then I'd say it's the UI's fault
     function _toUnderlyingAmount(uint256 amount)
         private view
         returns (uint256 underlyingAmount, uint256 actualAmount)

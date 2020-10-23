@@ -124,6 +124,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         internal
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, block.timestamp);
+        // should be >
         require(availableBalance >= amount, "SuperfluidToken: burn amount exceeds balance");
         _balances[account] = _balances[account].sub(amount);
     }

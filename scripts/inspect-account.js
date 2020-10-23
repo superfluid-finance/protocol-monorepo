@@ -54,19 +54,31 @@ module.exports = async function (callback, argv) {
                 const netFlowRate = await sf.agreements.cfa.getNetFlow.call(superToken.address, account);
                 console.log(`Net flowrate ${normalizeFlowRate(netFlowRate)}`);
                 console.log("In Flows:");
-                console.log(getLatestFlows(await sf.agreements.cfa.getPastEvents("FlowUpdated", {
+                const rawInFlows = await sf.agreements.cfa.getPastEvents("FlowUpdated", {
                     fromBlock: 0,
                     filter: {
+                        token: superToken.address,
                         receiver: account
                     }
-                })).map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));
-                console.log("Out Flows:");
-                console.log(getLatestFlows(await sf.agreements.cfa.getPastEvents("FlowUpdated", {
+                });
+                //console.log("!!!! rawInFlows",
+                //rawInFlows.map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));
+                console.log(getLatestFlows(rawInFlows).map(
+                    f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`)
+                );
+                const rawOutFlows = await sf.agreements.cfa.getPastEvents("FlowUpdated", {
                     fromBlock: 0,
                     filter: {
+                        token: superToken.address,
                         sender: account
                     }
-                })).map(f => `${f.args.sender} -> ${normalizeFlowRate(f.args.flowRate)}`));
+                });
+                //console.log("!!!! rawOutFlows",
+                //rawOutFlows.map(f => `-> ${f.args.receiver} ${normalizeFlowRate(f.args.flowRate)}`));
+                console.log("Out Flows:");
+                console.log(getLatestFlows(rawOutFlows).map(
+                    f => `-> ${f.args.receiver} ${normalizeFlowRate(f.args.flowRate)}`)
+                );
             }
             console.log("=".repeat(80));
         }

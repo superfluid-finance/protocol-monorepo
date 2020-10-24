@@ -88,13 +88,17 @@ contract InstantDistributionAgreementV1 is
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             account,
+            // Magic number: 1 (consider adding as a constant with a describing name)
+            // The same applies to many places in this file
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
         for (uint32 subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
+            // Throughout this file there are many similar magic tricks - consider documenting them
             if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
             bytes32 iId = token.getAgreementStateSlot(
                 address(this),
                 account,
                 _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
+            // Move this line 2 rows down for gas savings in case of index not existing
             bytes32 sId = _getSubscriptionId(account, iId);
             (exist, idata) = _getIndexData(token, iId);
             require(exist, "IDAv1: index does not exist");
@@ -114,7 +118,9 @@ contract InstantDistributionAgreementV1 is
     /// @dev IInstantDistributionAgreementV1.createIndex implementation
     function createIndex(
         ISuperfluidToken token,
-        uint32 indexId,
+         // Does this mean that the UI/backend/some place has to keep track of index IDs and provide the next one? 
+         // Would it be possible to just get the next available ID inside this functions and use that?
+        uint32 indexId,        
         bytes calldata ctx
     )
         external override
@@ -169,12 +175,15 @@ contract InstantDistributionAgreementV1 is
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDAv1: index does not exist");
+        // Why can't the value go down? Anyway, probably > is more suitable - there's no point in updating an index with the same value, hmm?
         require(indexValue >= idata.indexValue, "IDAv1: index value should grow");
 
         _updateIndex(token, publisher, indexId, iId, idata, indexValue);
 
         // nothing to be recorded so far
         newCtx = ctx;
+
+        // Can an account become insolvent due to this?
     }
 
     function distribute(
@@ -195,6 +204,7 @@ contract InstantDistributionAgreementV1 is
             amount /
             uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
         );
+        // Should we revert if delta is 0?
         _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta);
 
         // nothing to be recorded so far
@@ -244,7 +254,10 @@ contract InstantDistributionAgreementV1 is
         require(exist, "IDAv1: index does not exist");
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
+        // I'm not quite following what this does. If I want to distribute 100 tokens and there are 1+1+1 units (3 subscribers),
+        // then this delta is 33. But if I use tenfold units the delta is 3. Why does the delta depend on the multiplies of the units.
         uint128 indexDelta = UInt128SafeMath.downcast(amount / totalUnits);
+        // What happens to excess tokens? For example 100 tokens divided evenly to three subscribers
         newIndexValue = idata.indexValue.add(indexDelta);
         actualAmount = uint256(indexDelta).mul(totalUnits);
     }
@@ -267,6 +280,7 @@ contract InstantDistributionAgreementV1 is
         (exist, sd.idata) = _getIndexData(token, sd.iId);
         require(exist, "IDAv1: index does not exist");
         (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
+        // A bit funny control flow in the next ~50 lines: if (exists) {} if (!exists) {} else {}. Maybe combine?
         if (exist) {
             // sanity check
             require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
@@ -301,8 +315,8 @@ contract InstantDistributionAgreementV1 is
                 ISuperfluid(msg.sender), token, ctx,
                 address(this), publisher, sd.sId
             );
-
-            int balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
+// Is this possible to go negative? SHould it be checked?
+            int256 balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
 
             // update publisher data and adjust publisher's deposits
             sd.idata.totalUnitsApproved += sd.sdata.units;
@@ -725,6 +739,7 @@ contract InstantDistributionAgreementV1 is
         returns (bool exist, IndexData memory idata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
+        // Variable names could be more descriptive
         uint256 a = uint256(adata[0]);
         uint256 b = uint256(adata[1]);
         exist = a > 0;

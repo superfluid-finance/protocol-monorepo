@@ -117,7 +117,7 @@ contract SuperToken is
     /**************************************************************************
      * (private) Token Logics
      *************************************************************************/
-// I'm really not sure what this is supposed to be doing, not much documented either
+// I'm really not sure what this is doing, not much documented either
     function _transferFrom(address spender, address holder, address recipient, uint amount)
         internal returns (bool)
     {
@@ -329,6 +329,8 @@ contract SuperToken is
             IERC777Recipient(implementer).tokensReceived(operator, from, to, amount, userData, operatorData);
         } else if (requireReceptionAck) {
             require(
+// Unsure what this is used for, but from OpenZeppelin function documentation: "It is unsafe to assume that an address for which this function returns
+//      false is an externally-owned account (EOA) and not a contract"
                 !to.isContract(),
                 "SuperToken: not an ERC777TokensRecipient");
         }
@@ -385,6 +387,7 @@ contract SuperToken is
 
     function increaseAllowance(address spender, uint256 addedValue)
         public override returns (bool) {
+        // It would be nice to have an error message in all 'sub' and 'add' calls, and not just in some of them
         _approve(msg.sender, spender, _allowances[msg.sender][spender].add(addedValue));
         return true;
     }
@@ -396,6 +399,7 @@ contract SuperToken is
         return true;
     }
 
+// Wouldn't it be safer to inherit these from for example OpenZeppelin? And override to add custom logic (Supertoken checks)
     /**************************************************************************
      * ERC-777 functions
      *************************************************************************/

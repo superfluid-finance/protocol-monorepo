@@ -137,6 +137,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         internal
     {
         (int256 availableBalance,,) = realtimeBalanceOf(from, block.timestamp);
+        // Should be >
         require(availableBalance >= amount, "SuperfluidToken: move amount exceeds balance");
         _balances[from] = _balances[from].sub(amount);
         _balances[to] = _balances[to].add(amount);
@@ -214,6 +215,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address rewardAccount = gov.getRewardAddress(this);
 
         // reward go to liquidator if reward address is null
+        // Unsure how this works; shouldn't the reward always go to the liquidator? Can he be left without reward?
         if (rewardAccount == address(0)) {
             rewardAccount = liquidator;
         }

@@ -366,7 +366,7 @@ contract InstantDistributionAgreementV1 is
             require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
             require(sd.sdata.indexId == indexId, "IDAv1: incorrect indexId");
         }
-
+// These two blocks are the same?
         // before-hook callback
         if (exist) {
             (sd.cbdata, newCtx) = AgreementLibrary.beforeAgreementUpdated(
@@ -438,7 +438,7 @@ contract InstantDistributionAgreementV1 is
 
         // check account solvency
         require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance");
-
+// These two blocks are the same?
         // after-hook callback
         if (exist) {
             newCtx = AgreementLibrary.afterAgreementUpdated(
@@ -528,6 +528,7 @@ contract InstantDistributionAgreementV1 is
         returns(
             address[] memory publishers,
             uint32[] memory indexIds,
+// In general, why not rename the concept of "unit" into "share" or something more descriptive? "proportion"?
             uint128[] memory unitsList)
     {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
@@ -661,12 +662,14 @@ contract InstantDistributionAgreementV1 is
             );
 
             // adjust publisher's deposits
+            // overflow?
             _adjustPublisherDeposit(token, publisher, -int256(pendingDistribution));
             token.settleBalance(publisher, -int256(pendingDistribution));
 
             // update subscription data and adjust subscriber's balance
             sd.sdata.indexValue = sd.idata.indexValue;
             token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
+            // overflow?
             token.settleBalance(subscriber, int256(pendingDistribution));
 
             newCtx = AgreementLibrary.afterAgreementUpdated(

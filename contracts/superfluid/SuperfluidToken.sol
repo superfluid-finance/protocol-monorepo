@@ -183,6 +183,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        // I guess this reverts if there is no slot found?
+        // I guess in valid cases msg.sender is the agreement so it finds data based on that
+        // If an arbitrary external EOA calls this then there is simply no data found, I guess
         FixedSizeData.storeData(slot, data);
         emit AgreementUpdated(msg.sender, id, data);
     }

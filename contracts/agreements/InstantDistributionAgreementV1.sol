@@ -118,8 +118,6 @@ contract InstantDistributionAgreementV1 is
     /// @dev IInstantDistributionAgreementV1.createIndex implementation
     function createIndex(
         ISuperfluidToken token,
-         // Does this mean that the UI/backend/some place has to keep track of index IDs and provide the next one? 
-         // Would it be possible to just get the next available ID inside this functions and use that?
         uint32 indexId,        
         bytes calldata ctx
     )
@@ -175,15 +173,13 @@ contract InstantDistributionAgreementV1 is
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDAv1: index does not exist");
-        // Why can't the value go down? Anyway, probably > is more suitable - there's no point in updating an index with the same value, hmm?
+        // Probably > is more suitable - there's no point in updating an index with the same value, hmm?
         require(indexValue >= idata.indexValue, "IDAv1: index value should grow");
 
         _updateIndex(token, publisher, indexId, iId, idata, indexValue);
 
         // nothing to be recorded so far
         newCtx = ctx;
-
-        // Can an account become insolvent due to this?
     }
 
     function distribute(
@@ -254,8 +250,6 @@ contract InstantDistributionAgreementV1 is
         require(exist, "IDAv1: index does not exist");
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
-        // I'm not quite following what this does. If I want to distribute 100 tokens and there are 1+1+1 units (3 subscribers),
-        // then this delta is 33. But if I use tenfold units the delta is 3. Why does the delta depend on the multiplies of the units.
         uint128 indexDelta = UInt128SafeMath.downcast(amount / totalUnits);
         // What happens to excess tokens? For example 100 tokens divided evenly to three subscribers
         newIndexValue = idata.indexValue.add(indexDelta);
@@ -315,7 +309,6 @@ contract InstantDistributionAgreementV1 is
                 ISuperfluid(msg.sender), token, ctx,
                 address(this), publisher, sd.sId
             );
-// Is this possible to go negative? SHould it be checked?
             int256 balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
 
             // update publisher data and adjust publisher's deposits
@@ -366,7 +359,6 @@ contract InstantDistributionAgreementV1 is
             require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
             require(sd.sdata.indexId == indexId, "IDAv1: incorrect indexId");
         }
-// These two blocks are the same?
         // before-hook callback
         if (exist) {
             (sd.cbdata, newCtx) = AgreementLibrary.beforeAgreementUpdated(
@@ -438,7 +430,6 @@ contract InstantDistributionAgreementV1 is
 
         // check account solvency
         require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance");
-// These two blocks are the same?
         // after-hook callback
         if (exist) {
             newCtx = AgreementLibrary.afterAgreementUpdated(
@@ -470,6 +461,8 @@ contract InstantDistributionAgreementV1 is
             uint256 pendingDistribution
         )
     {
+        // This function and the next function have almost the same functionality, partially in different order
+        // Could consider combining part of it
         bool exist;
         IndexData memory idata;
         SubscriptionData memory sdata;
@@ -826,6 +819,7 @@ contract InstantDistributionAgreementV1 is
         returns (bool exist, SubscriptionData memory sdata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), sId, 2);
+        // variable names
         uint256 a = uint256(adata[0]);
         uint256 b = uint256(adata[1]);
         exist = a > 0;

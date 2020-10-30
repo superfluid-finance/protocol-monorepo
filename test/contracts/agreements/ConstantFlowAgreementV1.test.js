@@ -1445,8 +1445,7 @@ contract("Constant Flow Agreement", accounts => {
                 wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
             const danBalance = await superToken.realtimeBalanceOfNow.call(dan);
             console.log("Dan balance: ", wad4human(danBalance.availableBalance));
-            // FIXME broken logic
-            //assert.isTrue(toBN(danBalance.availableBalance).lt(toWad(0)));
+            assert.isTrue(toBN(danBalance.availableBalance).lt(toWad(0)));
 
             await t.validateSystem();
         });
@@ -1532,8 +1531,8 @@ contract("Constant Flow Agreement", accounts => {
                 (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
                 "0");
             // FIXME fix the damn logic
-            //assert.isTrue(toBN(adminBalance.availableBalance).lt(toWad(0)));
-            //assert.isTrue(toBN(danBalance.availableBalance).gt(toWad(0)));
+            assert.isTrue(toBN(adminBalance.availableBalance).lt(toWad(0)));
+            assert.isTrue(toBN(danBalance.availableBalance).gt(toWad(0)));
 
             await t.validateSystem();
         });

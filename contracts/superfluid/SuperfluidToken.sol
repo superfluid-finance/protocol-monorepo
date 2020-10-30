@@ -7,10 +7,11 @@ import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
-import { FixedSizeData } from "../utils/FixedSizeData.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { FixedSizeData } from "../utils/FixedSizeData.sol";
+import { SafeMathExtra } from "../utils/SafeMathExtra.sol";
 
 
 /**
@@ -22,6 +23,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
 {
 
     using SafeMath for uint256;
+    using SafeMathExtra for uint256;
     using SignedSafeMath for int256;
 
     /// @dev Superfluid contract
@@ -81,10 +83,10 @@ abstract contract SuperfluidToken is ISuperfluidToken
             deposit = deposit.add(agreementDeposit);
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
         }
-        //availableBalance = realtimeBalance;
-        availableBalance = realtimeBalance
-            .sub(int256(deposit))
-            .add(int256(Math.min(deposit, owedDeposit)));
+        // Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
+        availableBalance = realtimeBalance.sub(
+            deposit > owedDeposit ?
+            (deposit - owedDeposit).downcastINT256() : 0);
     }
 
     /// @dev ISuperfluidToken.realtimeBalanceOfNow implementation
@@ -246,26 +248,27 @@ abstract contract SuperfluidToken is ISuperfluidToken
             rewardAccount = liquidator;
         }
 
-        (int256 availableBalance, , ) = realtimeBalanceOf(account, block.timestamp);
-
-        int256 remain = availableBalance.add(int256(deposit));
+        int256 signedDeposit = deposit.downcastINT256();
+        (int256 availableBalance, uint256 totalDepsit, ) = realtimeBalanceOf(account, block.timestamp);
 
         // Liquidation rules:
         // #1 Can the agreement deposit can still cover the available balance deficit?
-        if (remain > 0) {
-            // #1.1 yes: then the reward address takes the deposit
-            _balances[rewardAccount] = _balances[rewardAccount].add(int256(deposit));
-            // #2.1 the account pays for the deposit
-            _balances[account] = _balances[account].sub(int256(deposit));
-            emit AgreementLiquidated(msg.sender, id, account, rewardAccount, deposit);
+        if (availableBalance.add(totalDepsit.downcastINT256()) > 0) {
+            // FIXME reward should be proportional to totalDeposit
+            // #1.a.1 yes: then the reward address takes the deposit (minus account deficit refund)
+            int256 reward = signedDeposit;
+            _balances[rewardAccount] = _balances[rewardAccount].add(reward);
+            // #1.a.2 the account pays for the reward
+            _balances[account] = 0;
+            emit AgreementLiquidated(msg.sender, id, account, rewardAccount, uint256(reward));
         } else {
-            // #1.2 no: then the liquidator takes the deposit
-            _balances[liquidator] = _balances[liquidator].add(int256(deposit));
-            // #2.2 the account still pays for the deposit, but also refunded with the deficit
+            // #1.b.1 no: then the liquidator takes the deposit
+            _balances[liquidator] = _balances[liquidator].add(signedDeposit);
+            // #1.b.2 the account still pays for the deposit, but also refunded with the deficit
             _balances[account] = _balances[account]
                 .sub(availableBalance)
-                .sub(int256(deposit));
-            // #2.3 and the reward address pay the deficit
+                .sub(signedDeposit);
+            // #1.b.3 and the reward address pay the deficit
             _balances[rewardAccount] = _balances[rewardAccount].add(availableBalance);
             emit AgreementLiquidated(msg.sender, id, account, liquidator, deposit);
         }

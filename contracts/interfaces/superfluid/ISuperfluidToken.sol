@@ -208,14 +208,14 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param penaltyAccount Account of the agreement
      * @param rewardAccount Account that collect the reward
-     * @param deposit Amount of liquidation fee collected
+     * @param reward Amount of liquidation reward collected
      */
     event AgreementLiquidated(
         address indexed agreementClass,
         bytes32 id,
         address indexed penaltyAccount,
         address indexed rewardAccount,
-        uint256 deposit
+        uint256 reward
     );
 
     /**

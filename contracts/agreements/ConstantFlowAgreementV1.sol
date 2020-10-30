@@ -357,8 +357,7 @@ contract ConstantFlowAgreementV1 is
             0
         );
 
-
-        token.createAgreement(flowId, _encodeAgreementData(newData));
+        token.updateAgreementData(flowId, _encodeAgreementData(newData));
 
         int96 totalSenderFlowRate = _updateAccountState(
             token,

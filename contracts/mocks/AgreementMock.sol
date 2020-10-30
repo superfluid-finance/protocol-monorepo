@@ -44,4 +44,41 @@ contract AgreementMock is AgreementBase {
         );
     }
 
+    /**
+     * Agreement client mockings
+     */
+
+    function createAgreementFor(
+        ISuperfluidToken token,
+        bytes32 id,
+        bytes32[] calldata data
+        ) external {
+        token.createAgreement(id, data);
+    }
+
+    function updateAgreementDataFor(
+        ISuperfluidToken token,
+        bytes32 id,
+        bytes32[] calldata data
+        ) external {
+        token.updateAgreementData(id, data);
+    }
+
+    function terminateAgreementFor(
+        ISuperfluidToken token,
+        bytes32 id,
+        uint dataLength
+        ) external {
+        token.terminateAgreement(id, dataLength);
+    }
+
+    function updateAgreementStateSlotFor(
+        ISuperfluidToken token,
+        address account,
+        uint256 slotId,
+        bytes32[] calldata slotData
+        ) external {
+        token.updateAgreementStateSlot(account, slotId, slotData);
+    }
+
 }

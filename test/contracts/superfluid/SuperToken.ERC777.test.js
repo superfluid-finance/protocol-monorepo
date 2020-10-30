@@ -52,6 +52,54 @@ contract("SuperToken's ERC777 implementation", accounts => {
         );
     });
 
+    describe("basic information", function () {
+        it("returns the name", async function () {
+            expect(await this.token.name()).to.equal("Super Test Token");
+        });
+
+        it("returns the symbol", async function () {
+            expect(await this.token.symbol()).to.equal("TESTx");
+        });
+
+        it("returns decimals (non-ERC777 standard)", async function () {
+            assert.equal(await this.token.decimals.call(), 18);
+        });
+
+        it("returns a granularity of 1", async function () {
+            expect(await this.token.granularity(), 1);
+        });
+
+        it("returns the default operators", async function () {
+            expect(await this.token.defaultOperators()).to.deep.equal(defaultOperators);
+        });
+
+        it("default operators are operators for all accounts", async function () {
+            for (const operator of defaultOperators) {
+                expect(await this.token.isOperatorFor(operator, anyone)).to.equal(true);
+            }
+        });
+
+        it("returns the total supply", async function () {
+            expect(await this.token.totalSupply(), toWad(100));
+        });
+
+        it("returns 18 when decimals is called", async function () {
+            expect(await this.token.decimals(), 18);
+        });
+
+        it("the ERC777Token interface is registered in the registry", async function () {
+            expect(await erc1820.getInterfaceImplementer(
+                this.token.address, web3.utils.soliditySha3("ERC777Token"))
+            ).to.equal(this.token.address);
+        });
+
+        it("the ERC20Token interface is registered in the registry", async function () {
+            expect(await erc1820.getInterfaceImplementer(
+                this.token.address, web3.utils.soliditySha3("ERC20Token"))
+            ).to.equal(this.token.address);
+        });
+
+    });
 
     context("with default operators", async () => {
         beforeEach(async function () {
@@ -61,51 +109,6 @@ contract("SuperToken's ERC777 implementation", accounts => {
         // it("does not emit AuthorizedOperator events for default operators", async function () {
         //     await expectEvent.notEmitted.inConstruction(this.token, "AuthorizedOperator");
         // });
-
-        describe("basic information", function () {
-            it("returns the name", async function () {
-                expect(await this.token.name()).to.equal("Super Test Token");
-            });
-
-            it("returns the symbol", async function () {
-                expect(await this.token.symbol()).to.equal("TESTx");
-            });
-
-            it("returns a granularity of 1", async function () {
-                expect(await this.token.granularity(), 1);
-            });
-
-            it("returns the default operators", async function () {
-                expect(await this.token.defaultOperators()).to.deep.equal(defaultOperators);
-            });
-
-            it("default operators are operators for all accounts", async function () {
-                for (const operator of defaultOperators) {
-                    expect(await this.token.isOperatorFor(operator, anyone)).to.equal(true);
-                }
-            });
-
-            it("returns the total supply", async function () {
-                expect(await this.token.totalSupply(), toWad(100));
-            });
-
-            it("returns 18 when decimals is called", async function () {
-                expect(await this.token.decimals(), 18);
-            });
-
-            it("the ERC777Token interface is registered in the registry", async function () {
-                expect(await erc1820.getInterfaceImplementer(
-                    this.token.address, web3.utils.soliditySha3("ERC777Token"))
-                ).to.equal(this.token.address);
-            });
-
-            it("the ERC20Token interface is registered in the registry", async function () {
-                expect(await erc1820.getInterfaceImplementer(
-                    this.token.address, web3.utils.soliditySha3("ERC20Token"))
-                ).to.equal(this.token.address);
-            });
-
-        });
 
         context("with no ERC777TokensSender and no ERC777TokensRecipient implementers", function () {
             describe("send/burn", function () {

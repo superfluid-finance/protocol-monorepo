@@ -11,6 +11,10 @@ import { ISuperAgreement } from "./ISuperAgreement.sol";
  */
 interface ISuperfluidToken {
 
+    /**************************************************************************
+     * Basic information
+     *************************************************************************/
+
     /**
      * @dev Get superfluid host contract address
      */
@@ -157,25 +161,6 @@ interface ISuperfluidToken {
     );
 
     /**
-     * @dev Liquidate the Aagreement
-     * @param liquidator Address of the executer of liquidation
-     * @param id Agreement ID
-     * @param account Account of the agrement
-     * @param deposit Deposit from the account that is going to taken as penalty
-     *
-     * Modifiers:
-     *  - onlyAgreement
-     */
-    function liquidateAgreement
-    (
-        address liquidator,
-        bytes32 id,
-        address account,
-        uint256 deposit
-    )
-        external;
-
-    /**
      * @dev Update agreement state slot
      * @param account Account to be updated
      *
@@ -244,6 +229,25 @@ interface ISuperfluidToken {
         address indexed account,
         bytes state
     );
+
+    /**
+     * @dev Liquidate the Aagreement
+     * @param liquidator Address of the executer of liquidation
+     * @param id Agreement ID
+     * @param account Account of the agrement
+     * @param deposit Deposit from the account that is going to taken as penalty
+     *
+     * Modifiers:
+     *  - onlyAgreement
+     */
+    function liquidateAgreement
+    (
+        address liquidator,
+        bytes32 id,
+        address account,
+        uint256 deposit
+    )
+        external;
 
     /**
      * @dev Settle balance from an account by the agreement.

@@ -26,6 +26,15 @@ library FixedSizeData {
         }
     }
 
+    function hasData(bytes32 slot, uint dataLength) internal view returns (bool) {
+        for (uint j = 0; j < dataLength; ++j) {
+            bytes32 d;
+            assembly { d := sload(add(slot, j)) }
+            if (uint256(d) > 0) return true;
+        }
+        return false;
+    }
+
     /**
      * @dev Load data of size `dataLength` from the slot at `slot`
      */

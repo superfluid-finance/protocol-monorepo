@@ -2,10 +2,17 @@
 /* solhint-disable */
 pragma solidity 0.7.3;
 
-import {SuperToken} from "../superfluid/SuperToken.sol";
+import {
+    ISuperAgreement,
+    SuperToken
+} from "../superfluid/SuperToken.sol";
 
 
 contract SuperTokenMock is SuperToken {
+
+    /**
+     * Upgradability
+     */
 
     function validateStorageLayout() external pure {
         uint256 slot;
@@ -56,6 +63,9 @@ contract SuperTokenMock is SuperToken {
         require (slot == 8 && offset == 0, "_operators changed location");
     }
 
+    /**
+     * ERC-20 mockings
+     */
     function approveInternal(address owner, address spender, uint256 value) public {
         _approve(owner, spender, value);
     }
@@ -64,6 +74,9 @@ contract SuperTokenMock is SuperToken {
         _transferFrom(from, from, to, value);
     }
 
+    /**
+     * ERC-777 mockings
+     */
     function setupDefaultOperators(address[] memory operators) public {
         _setupDefaultOperators(operators);
     }

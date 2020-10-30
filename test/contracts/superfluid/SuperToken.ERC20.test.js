@@ -37,6 +37,14 @@ contract("SuperToken's ERC20 compliance", accounts => {
         );
     });
 
+    describe("okay", () => {
+        describe("let's try", () => {
+            it("hehehe", () => {
+                console.log("yea");
+            });
+        });
+    });
+
     describe("ERC20 compliance", () => {
         shouldBehaveLikeERC20("SuperToken", initialSupply, alice, bob, carol);
     });

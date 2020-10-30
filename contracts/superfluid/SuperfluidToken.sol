@@ -152,9 +152,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
     )
         external override
     {
-        // TODO check data existence??
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        require(!FixedSizeData.hasData(slot, data.length), "SuperfluidToken: agreement already created");
         FixedSizeData.storeData(slot, data);
         emit AgreementCreated(agreementClass, id, data);
     }
@@ -194,8 +194,37 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
+        require(FixedSizeData.hasData(slot,dataLength), "SuperfluidToken: agreement does not exist");
         FixedSizeData.eraseData(slot, dataLength);
         emit AgreementTerminated(msg.sender, id);
+    }
+
+    /// @dev ISuperfluidToken.updateAgreementState implementation
+    function updateAgreementStateSlot(
+        address account,
+        uint256 slotId,
+        bytes32[] calldata slotData
+    )
+        external override
+    {
+        bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
+        FixedSizeData.storeData(slot, slotData);
+        // FIXME change how this is done
+        //_addAgreementClass(msg.sender, account);
+        emit AgreementStateUpdated(msg.sender, account, slotId);
+    }
+
+    /// @dev ISuperfluidToken.getAgreementState implementation
+    function getAgreementStateSlot(
+        address agreementClass,
+        address account,
+        uint256 slotId,
+        uint dataLength
+    )
+        external override view
+        returns (bytes32[] memory slotData) {
+        bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
+        slotData = FixedSizeData.loadData(slot, dataLength);
     }
 
     /// @dev ISuperfluidToken.liquidateAgreement implementation
@@ -240,34 +269,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
             _balances[rewardAccount] = _balances[rewardAccount].add(availableBalance);
             emit AgreementLiquidated(msg.sender, id, account, liquidator, deposit);
         }
-    }
-
-    /// @dev ISuperfluidToken.updateAgreementState implementation
-    function updateAgreementStateSlot(
-        address account,
-        uint256 slotId,
-        bytes32[] calldata slotData
-    )
-        external override
-    {
-        bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
-        FixedSizeData.storeData(slot, slotData);
-        // FIXME change how this is done
-        //_addAgreementClass(msg.sender, account);
-        emit AgreementStateUpdated(msg.sender, account, slotId);
-    }
-
-    /// @dev ISuperfluidToken.getAgreementState implementation
-    function getAgreementStateSlot(
-        address agreementClass,
-        address account,
-        uint256 slotId,
-        uint dataLength
-    )
-        external override view
-        returns (bytes32[] memory slotData) {
-        bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
-        slotData = FixedSizeData.loadData(slot, dataLength);
     }
 
     function settleBalance(

@@ -1,7 +1,7 @@
-// const {
-//     expectRevert
-//     // expectEvent
-// } = require("@openzeppelin/test-helpers");
+const {
+    expectRevert
+    // expectEvent
+} = require("@openzeppelin/test-helpers");
 
 const {
     web3tx,
@@ -13,15 +13,16 @@ const {
 const traveler = require("ganache-time-traveler");
 
 const TestEnvironment = require("../../TestEnvironment");
+const AgreementMock = artifacts.require("AgreementMock");
 
 const ADV_TIME = 2;
 const FLOW_RATE = toBN("10000000000000");
 
-contract("SuperToken's SuperfluidToken implementation", accounts => {
+contract("SuperfluidToken implementation", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 4));
     const { alice, bob, carol} = t.aliases;
-    const { INIT_BALANCE } = t.constants;
+    const { INIT_BALANCE, ZERO_BYTES32 } = t.constants;
 
     // let token;
     let superToken;
@@ -43,26 +44,148 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
         } = t.contracts);
     });
 
-    describe("#0 SuperToken misc", () => {
-        it("#0.1 - Superfluid Token standard basic information", async () => {
-            assert.equal(await superToken.proxiableUUID.call(),
-                web3.utils.sha3("org.superfluid-finance.contracts.SuperToken.implementation"));
-            assert.equal(await superToken.getUnderlyingToken.call(),
-                t.contracts.testToken.address);
-            assert.equal(await superToken.decimals.call(), 18);
-        });
-
-        it("#0.2 validate immutable storage layout", async () => {
-            const SuperTokenMock = artifacts.require("SuperTokenMock");
-            const tester = await SuperTokenMock.new();
-            await tester.validateStorageLayout.call();
+    describe("#1 basic information", function () {
+        it("#1.1 should return host", async () => {
+            assert.equal(await superToken.getHost.call(), superfluid.address);
         });
     });
 
-    // describe("#3 SuperToken ISuperAgreementStorage(TBD) operations", () => {
+    describe("#2 agreement data and state storages", function () {
+        let acA; // agreement class A
+        const testData = [
+            "0xdead000000000000000000000000000000000000000000000000000000000000",
+            "0x000000000000000000000000000000000000000000000000000000000000beaf",
+        ];
+        const testData2 = [
+            "0x771c362cd8f0f3f5c1ef27d2a79641f3d14131fcfefd59ccac42c13a52831384",
+            "0x3887e65223d48ea8470b791ed887db139f831bb98e66a607531b3a7be4977cfb",
+        ];
+
+        beforeEach(async () => {
+            acA = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
+        });
+
+        it("#2.1 should create new agreement", async function () {
+            await acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            );
+            assert.deepEqual(
+                await superToken.getAgreementData(acA.address, "0x42", 2),
+                testData);
+            assert.deepEqual(
+                await superToken.getAgreementData(acA.address, "0x42", 1),
+                [testData[0]]);
+            assert.deepEqual(
+                await superToken.getAgreementData(acA.address, "0x42", 3),
+                [...testData, ZERO_BYTES32]);
+        });
+
+        it("#2.2 should not create the same agreement twice", async () => {
+            await acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            );
+            await expectRevert(acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            ), "SuperfluidToken: agreement already created");
+            // try overlapping data
+            await expectRevert(acA.createAgreementFor(
+                superToken.address, "0x42", [testData[0]]
+            ), "SuperfluidToken: agreement already created");
+            await expectRevert(acA.createAgreementFor(
+                superToken.address, "0x42", [...testData, ...testData]
+            ), "SuperfluidToken: agreement already created");
+        });
+
+        it("#2.3 should not overlap data", async () => {
+            await acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            );
+            assert.deepEqual(
+                await superToken.getAgreementData(acA.address, "0x43", 1),
+                [ZERO_BYTES32]);
+        });
+
+        it("#2.4 should update data", async () => {
+            await acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            );
+            await acA.updateAgreementDataFor(
+                superToken.address, "0x42", testData2
+            );
+            assert.deepEqual(
+                await superToken.getAgreementData(acA.address, "0x42", 2),
+                testData2);
+        });
+
+        it("#2.5 should terminate agreement", async () => {
+            await acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            );
+            await acA.terminateAgreementFor(
+                superToken.address, "0x42", 2
+            );
+            assert.deepEqual(
+                await superToken.getAgreementData(acA.address, "0x42", 2),
+                [ZERO_BYTES32, ZERO_BYTES32]);
+        });
+
+        it("#2.6 should not terminate agreement twice", async () => {
+            await acA.createAgreementFor(
+                superToken.address, "0x42", testData
+            );
+            await acA.terminateAgreementFor(
+                superToken.address, "0x42", 2
+            );
+            await expectRevert(acA.terminateAgreementFor(
+                superToken.address, "0x42", 2
+            ), "SuperfluidToken: agreement does not exist");
+        });
+
+        it("#2.7 should update agreement state", async () => {
+            await acA.updateAgreementStateSlotFor(
+                superToken.address, bob, 42, testData
+            );
+            assert.deepEqual(
+                await superToken.getAgreementStateSlot(acA.address, bob, 42, 2),
+                testData);
+            assert.deepEqual(
+                await superToken.getAgreementStateSlot(acA.address, bob, 42, 1),
+                [testData[0]]);
+            assert.deepEqual(
+                await superToken.getAgreementStateSlot(acA.address, bob, 42, 3),
+                [...testData, ZERO_BYTES32]);
+            await acA.updateAgreementStateSlotFor(
+                superToken.address, bob, 42, testData2
+            );
+            assert.deepEqual(
+                await superToken.getAgreementStateSlot(acA.address, bob, 42, 2),
+                testData2);
+        });
+
+        it("#2.8 should overlap agreement state data", async () => {
+            await acA.updateAgreementStateSlotFor(
+                superToken.address, bob, 42, testData
+            );
+            await acA.updateAgreementStateSlotFor(
+                superToken.address, bob, 43, testData2
+            );
+            assert.deepEqual(
+                await superToken.getAgreementStateSlot(acA.address, bob, 42, 2),
+                testData);
+            assert.deepEqual(
+                await superToken.getAgreementStateSlot(acA.address, bob, 43, 2),
+                testData2);
+        });
+
+    });
+
+    describe("#3 real-time balance", function () {
+    });
+
+    // describe("#2 SuperToken ISuperAgreementStorage(TBD) operations", () => {
     //     // TODO To be improved with a mock agreement class
     //
-    //     it("#3.1 - should track active agreement classes", async() => {
+    //     it("#2.1 - should track active agreement classes", async() => {
     //
     //         await superToken.upgrade(INIT_BALANCE, {from: alice});
     //         await superToken.upgrade(INIT_BALANCE, {from: bob});
@@ -165,7 +288,7 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
     //
     //     //TODO Implement this check on solidity
     //     /*
-    //     it("#3.2 - should only be updated by authorized agreement", async () => {
+    //     it("#2.2 - should only be updated by authorized agreement", async () => {
     //         await expectRevert(
     //             web3tx(superToken.updateAgreementAccountState,
     //                 "SuperToken.updateAgreementAccountState by alice directly")(
@@ -195,7 +318,7 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
     // });
 
 
-    describe("#1 SuperToken.transfer", () => {
+    describe("#1 SuperToken.transfer", function () {
 
         it("#1.3 - should be able to transfer flow balance", async() => {
             await web3tx(superToken.upgrade, "upgrade all from alice")(
@@ -228,4 +351,5 @@ contract("SuperToken's SuperfluidToken implementation", accounts => {
             await t.validateSystem();
         });
     });
+
 });

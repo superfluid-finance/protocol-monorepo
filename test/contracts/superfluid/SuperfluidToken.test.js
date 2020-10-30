@@ -3,37 +3,30 @@ const {
     // expectEvent
 } = require("@openzeppelin/test-helpers");
 
-const {
-    web3tx,
-    toBN
-    // toDecimals,
-    // toBN
-} = require("@decentral.ee/web3-helpers");
-
-const traveler = require("ganache-time-traveler");
+// const {
+//     //web3tx,
+//     toBN
+//     // toDecimals,
+//     // toBN
+// } = require("@decentral.ee/web3-helpers");
 
 const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
 
-const ADV_TIME = 2;
-const FLOW_RATE = toBN("10000000000000");
-
 contract("SuperfluidToken implementation", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 4));
-    const { alice, bob, carol} = t.aliases;
-    const { INIT_BALANCE, ZERO_BYTES32 } = t.constants;
+    const { bob} = t.aliases;
+    const { ZERO_BYTES32 } = t.constants;
 
     // let token;
     let superToken;
-    let cfa;
     let superfluid;
 
     before(async () => {
         await t.reset();
         ({
             superfluid,
-            cfa,
         } = t.contracts);
     });
 
@@ -316,40 +309,5 @@ contract("SuperfluidToken implementation", accounts => {
     //         );
     //     });
     // });
-
-
-    describe("#1 SuperToken.transfer", function () {
-
-        it("#1.3 - should be able to transfer flow balance", async() => {
-            await web3tx(superToken.upgrade, "upgrade all from alice")(
-                INIT_BALANCE, {from: alice});
-
-            const dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            const superBalanceBob = await superToken.balanceOf.call(bob);
-            await web3tx(superToken.transfer, "downgrade all interim balance from bob to carol")(
-                carol, superBalanceBob, {from: bob});
-
-            const superBalanceCarol = await superToken.balanceOf.call(carol);
-            assert.equal(superBalanceCarol.toString(), superBalanceBob.toString());
-
-            await t.validateSystem();
-        });
-    });
 
 });

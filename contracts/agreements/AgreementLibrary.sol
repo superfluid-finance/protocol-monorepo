@@ -46,6 +46,8 @@ library AgreementLibrary {
 
     function _beforeAgreement(
         bytes4 selector,
+        // A bit misleading name: if I understand correctly, this is the bitmask for the used callback and 
+        // is used for checking whether the app supports this callback type
         uint256 noopBit,
         ISuperfluid host,
         ISuperfluidToken token,
@@ -63,6 +65,8 @@ library AgreementLibrary {
             host.getAppManifest(ISuperApp(account));
 
         if (isSuperApp &&
+        // I was wondering what happens if the app claims it supports some callback which it doesn't actually support.
+        // I guess the call just reverts and that's fine
             ((configWord & noopBit) == 0)) {
             bytes memory data = abi.encodeWithSelector(
                 selector,

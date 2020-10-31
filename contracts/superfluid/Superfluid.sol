@@ -316,6 +316,7 @@ contract Superfluid is
         public view override
         returns(bool)
     {
+        // Whose responsibility is it to jail apps? Who has such power?
         return (_appManifests[app].configWord & SuperAppDefinitions.JAIL) > 0;
     }
 
@@ -392,6 +393,9 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
         if(success) {
             newCtx = abi.decode(returnedData, (bytes));
+// I was trying to search where the _ctxStamp is updated (where _updateContext is called) when 
+// for example an agreement is accepted but couldn't find it.
+// Probably I just didn't dig deep enough, but as I understand it should be updated always
             if(!_isCtxValid(newCtx)) {
                 // TODO: JAIL if callback changes ctx
                 //Change return context
@@ -674,14 +678,21 @@ contract Superfluid is
         //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
         (success, returnedData) = isStaticall ?
             /* solhint-disable-next-line avoid-low-level-calls*/
+            // I don't quite understand why only staticcall for "before*" callbacks, why not a real call. 
+            // What could a staticcall achieve?
+            // What if I want to set some internal state in my app's before-callback
             address(app).staticcall(data) : address(app).call(data);
+            //Furthermore, what if this is a termination call (or staticcall) but the call always uses all of the gas? 
+            // It can't be jailed as there is not enough gas to do it
          if (!success) {
+             // Unsure what we want to do with 5000 gas and why that limit is set
              if (gasleft() < _GAS_RESERVATION) {
                  // this is out of gas, but the call may still fail if more gas is provied
                  // and this is okay, because there can be incentive to jail the app by providing
                  // more gas
                  revert("SF: Send more gas");
              } else {
+                 // I wonder if this gives any readable outcome or would it be better to just use some static revert reason
                 revert(string(returnedData));
                  //_appManifests[app].configWord |= SuperAppDefinitions.JAIL;
              }

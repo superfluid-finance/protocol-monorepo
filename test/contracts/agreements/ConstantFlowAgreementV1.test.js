@@ -1499,7 +1499,7 @@ contract("Constant Flow Agreement", accounts => {
             assert.isTrue(!await superToken.isAccountInsolvent(alice));
 
             // alice become insolvent
-            await traveler.advanceTimeAndBlock(10);
+            await traveler.advanceTimeAndBlock(5000);
             aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
             console.log("Alice balance: ",
                 wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
@@ -1530,7 +1530,6 @@ contract("Constant Flow Agreement", accounts => {
             assert.equal(
                 (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
                 "0");
-            // FIXME fix the damn logic
             assert.isTrue(toBN(adminBalance.availableBalance).lt(toWad(0)));
             assert.isTrue(toBN(danBalance.availableBalance).gt(toWad(0)));
 

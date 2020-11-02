@@ -299,7 +299,6 @@ contract ConstantFlowAgreementV1 is
     /*
      * Internal Functions
      */
-
     function _updateAccountState(
         ISuperfluidToken token,
         address account,
@@ -309,7 +308,7 @@ contract ConstantFlowAgreementV1 is
         bool settlement
     )
         private
-        returns(int96 newFlowRate)
+        returns (int96 newNetFlowRate)
     {
         (bool exist, FlowData memory state) = _getAccountState(token, account);
         if(exist && settlement) {
@@ -394,10 +393,23 @@ contract ConstantFlowAgreementV1 is
         private
     {
         bytes32 flowId = _generateId(sender, receiver);
+        (,FlowData memory senderAccountState) = _getAccountState(token, sender);
         (bool exist, FlowData memory data) = _getAgreementData(token, flowId);
         require(exist, "FlowAgreement: flow does not exist");
 
-        int256 totalSenderFlowRate = _updateAccountState(
+        if (liquidation) {
+            // adjust account balances according to the liquidation rules
+            // this must be called before agreement data and state changes!
+            token.liquidateAgreement(
+                caller,
+                flowId,
+                sender,
+                data.deposit,
+                senderAccountState.deposit
+            );
+        }
+
+        int96 totalSenderFlowRate = _updateAccountState(
             token,
             sender,
             data.flowRate,
@@ -405,7 +417,7 @@ contract ConstantFlowAgreementV1 is
             -data.owedDeposit,
             true
         );
-        int256 totalReceiverFlowRate = _updateAccountState(
+        int96 totalReceiverFlowRate = _updateAccountState(
             token,
             receiver,
             -data.flowRate,
@@ -415,16 +427,6 @@ contract ConstantFlowAgreementV1 is
         );
 
         token.terminateAgreement(flowId, 1);
-
-        // Close this Agreement Data
-        if (liquidation) {
-            token.liquidateAgreement(
-                caller,
-                flowId,
-                sender,
-                data.deposit
-            );
-        }
 
         emit FlowUpdated(
             token,

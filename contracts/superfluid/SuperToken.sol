@@ -17,8 +17,9 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../utils/ERC777Helper.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
@@ -35,8 +36,9 @@ contract SuperToken is
     ISuperToken
 {
 
-    using SignedSafeMath for int256;
     using SafeMath for uint256;
+    using SafeCast for uint256;
+    using SignedSafeMath for int256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
 
@@ -183,7 +185,7 @@ contract SuperToken is
     )
         private
     {
-        SuperfluidToken._move(from, to, int256(amount)); // FIXME safe downcasting
+        SuperfluidToken._move(from, to, amount.toInt256());
 
         emit Sent(operator, from, to, amount, userData, operatorData);
         emit Transfer(from, to, amount);
@@ -217,7 +219,7 @@ contract SuperToken is
     {
         require(account != address(0), "SuperToken: mint to zero address");
 
-        SuperfluidToken._mint(account, int256(amount));
+        SuperfluidToken._mint(account, amount.toInt256());
 
         _callTokensReceived(operator, address(0), account, amount, userData, operatorData, true);
 
@@ -245,7 +247,7 @@ contract SuperToken is
 
         _callTokensToSend(operator, from, address(0), amount, data, operatorData);
 
-        SuperfluidToken._burn(from, int256(amount));
+        SuperfluidToken._burn(from, amount.toInt256());
 
         emit Burned(operator, from, amount, data, operatorData);
         emit Transfer(from, address(0), amount);

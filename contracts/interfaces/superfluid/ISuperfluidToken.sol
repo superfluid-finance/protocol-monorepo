@@ -208,14 +208,19 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param penaltyAccount Account of the agreement
      * @param rewardAccount Account that collect the reward
-     * @param reward Amount of liquidation reward collected
+     * @param amount Amount of liquidation reward collected
      */
     event AgreementLiquidated(
         address indexed agreementClass,
         bytes32 id,
         address indexed penaltyAccount,
         address indexed rewardAccount,
-        uint256 reward
+        uint256 amount
+    );
+
+    event Bailout(
+        address indexed bailoutAccount,
+        uint256 amount
     );
 
     /**
@@ -235,7 +240,8 @@ interface ISuperfluidToken {
      * @param liquidator Address of the executer of liquidation
      * @param id Agreement ID
      * @param account Account of the agrement
-     * @param deposit Deposit from the account that is going to taken as penalty
+     * @param singleDeposit Single deposit for liquidating this agreement
+     * @param totalDeposit Total deposit for this entire agreement class
      *
      * Modifiers:
      *  - onlyAgreement
@@ -245,7 +251,8 @@ interface ISuperfluidToken {
         address liquidator,
         bytes32 id,
         address account,
-        uint256 deposit
+        uint256 singleDeposit,
+        uint256 totalDeposit
     )
         external;
 

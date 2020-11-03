@@ -36,6 +36,7 @@
     "solhint": "^3.2.2",
     "solidity-coverage": "^0.7.11",
     "truffle": "^5.1.49",
+    "@truffle/contract": "^4.2.26",
     "truffle-flattener": "^1.5.0",
     "truffle-plugin-verify": "^0.4.0"
   },

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable */
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 import {
     ISuperAgreement,

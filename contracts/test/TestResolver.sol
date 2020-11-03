@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { IResolver } from "../interfaces/misc/IResolver.sol";

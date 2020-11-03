@@ -48,17 +48,6 @@ abstract contract SuperfluidToken is ISuperfluidToken
      * Real-time balance functions
      *************************************************************************/
 
-    /// @dev ISuperfluidToken.isAccountInsolvent implementation
-    function isAccountInsolvent(
-       address account
-    )
-       external view override
-       returns(bool)
-    {
-       (int256 amount, ,) = realtimeBalanceOf(account, block.timestamp);
-       return amount < 0;
-    }
-
     /// @dev ISuperfluidToken.realtimeBalanceOf implementation
     function realtimeBalanceOf(
        address account,
@@ -93,9 +82,20 @@ abstract contract SuperfluidToken is ISuperfluidToken
     function realtimeBalanceOfNow(
        address account
     )
-       external view override
-       returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit) {
-       return realtimeBalanceOf(account, block.timestamp);
+        external view override
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit) {
+        return realtimeBalanceOf(account, block.timestamp);
+    }
+
+    /// @dev ISuperfluidToken.isAccountInsolvent implementation
+    function isAccountInsolvent(
+      address account
+    )
+      external view override
+      returns(bool)
+    {
+        (int256 amount, ,) = realtimeBalanceOf(account, block.timestamp);
+        return amount < 0;
     }
 
     /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
@@ -243,57 +243,61 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev ISuperfluidToken.liquidateAgreement implementation
     function liquidateAgreement
     (
-        address liquidator,
         bytes32 id,
-        address account,
-        uint256 singleDeposit,
-        uint256 totalDeposit
+        address liquidator,
+        address penaltyAccount,
+        uint256 rewardAmount,
+        uint256 bailoutAmount
     )
         external override
         onlyAgreement
     {
-        require(totalDeposit >= singleDeposit, "SuperfluidToken: invalid single deposit");
-
         ISuperfluidGovernance gov = _host.getGovernance();
         address rewardAccount = gov.getRewardAddress(this);
-
         // reward go to liquidator if reward address is null
         if (rewardAccount == address(0)) {
             rewardAccount = liquidator;
         }
 
-        int256 signedSingleDeposit = singleDeposit.toInt256();
-        int256 signedTotalDeposit = totalDeposit.toInt256();
+        int256 signedRewardAmount = rewardAmount.toInt256();
 
-        (int256 availableBalance, , ) = realtimeBalanceOf(account, block.timestamp);
-
-        // Liquidation rules:
-        //    - let Available Balance = AB (is negative)
-        //    -     Agreement Single Deposit = SD
-        //    -     Agreement Total Deposit = TD
-        //    -     Total Reward Left = RL = AB + TD
-        // #1 Can the total account deposit can still cover the available balance deficit?
-        int256 totalRewardLeft = availableBalance.add(signedTotalDeposit);
-        if (totalRewardLeft > 0) {
-            // #1.a.1 yes: then reward = (SD / TD) * RL
-            int256 reward = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
-            // #1.a.2 reward go to reward account
-            _balances[rewardAccount] = _balances[rewardAccount].add(reward);
-            _balances[account] = _balances[account].sub(reward);
-            emit AgreementLiquidated(msg.sender, id, account, rewardAccount, uint256(reward));
-        } else {
-            // #1.b.1 no: then the liquidator takes full amount of the single deposit
-            _balances[liquidator] = _balances[liquidator].add(signedSingleDeposit);
-            // #1.b.2 account is refunded with the rest of the defict (-RL)
-            _balances[account] = _balances[account]
-                .sub(totalRewardLeft /* <= 0 */);
-            // #1.b.3 the reward address pay the deficit
-            //        and the account pays for the full amount of the single deposit
+        if (bailoutAmount == 0) {
+            // if account is in critical state
+            // - reward account takes the reward
             _balances[rewardAccount] = _balances[rewardAccount]
-                .add(totalRewardLeft /* <= 0 */)
-                .sub(signedSingleDeposit /* > 0 */);
-            emit AgreementLiquidated(msg.sender, id, account, liquidator, uint256(signedSingleDeposit));
-            emit Bailout(rewardAccount, uint256(totalRewardLeft));
+                .add(signedRewardAmount);
+            // - penalty applies
+            _balances[penaltyAccount] = _balances[penaltyAccount]
+                .sub(signedRewardAmount);
+            emit AgreementLiquidated(
+                msg.sender, id,
+                penaltyAccount,
+                rewardAccount /* rewardAccount */,
+                rewardAmount
+            );
+        } else {
+            int256 signedBailoutAmount = bailoutAmount.toInt256();
+            // if account is in insolvent state
+            // - liquidator takes the reward
+            _balances[liquidator] = _balances[liquidator]
+                .add(signedRewardAmount);
+            // - reward account becomes bailout account
+            _balances[rewardAccount] = _balances[rewardAccount]
+                .sub(signedRewardAmount)
+                .sub(signedBailoutAmount);
+            // - penalty applies (excluding the bailout)
+            _balances[penaltyAccount] = _balances[penaltyAccount]
+                .add(signedBailoutAmount);
+            emit AgreementLiquidated(
+                msg.sender, id,
+                penaltyAccount,
+                liquidator /* rewardAccount */,
+                bailoutAmount
+            );
+            emit Bailout(
+                rewardAccount,
+                bailoutAmount
+            );
         }
     }
 

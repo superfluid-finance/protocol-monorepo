@@ -17,6 +17,7 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
@@ -25,8 +26,10 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
-    using SignedSafeMath for int256;
     using SafeMath for uint256;
+    using SafeCast for uint256;
+    using SignedSafeMath for int256;
+    using SafeCast for int256;
     using AgreementLibrary for AgreementLibrary.Context;
 
     struct FlowData {
@@ -82,7 +85,7 @@ contract ConstantFlowAgreementV1 is
                 AgreementLibrary.beforeAgreementCreated(
                     ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
             );
-            (uint256 depositSpend, , FlowData memory newData) =
+            (uint256 depositSpend, FlowData memory newData) =
                 _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate, false);
 
             newCtx = _ctxUpdateDeposit(
@@ -144,7 +147,7 @@ contract ConstantFlowAgreementV1 is
                 ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
             );
 
-            (uint256 depositSpend, , FlowData memory newData) =
+            (uint256 depositSpend, FlowData memory newData) =
                 _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate, false);
             newCtx = _ctxUpdateDeposit(
                 ISuperfluid(msg.sender),
@@ -194,10 +197,13 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        // TODO: Decode return cbdata before calling the next step
-        address msgSender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 flowId = _generateId(sender, receiver);
+        (bool exist, FlowData memory flowData) = _getAgreementData(token, flowId);
+        require(exist, "FlowAgreement: flow does not exist");
+
+        address msgSender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bool isLiquidator = (msgSender != sender && msgSender != receiver);
+
         if (isLiquidator) {
             require(token.isAccountInsolvent(sender),
                     "FlowAgreement: account is solvent");
@@ -208,7 +214,13 @@ contract ConstantFlowAgreementV1 is
             AgreementLibrary.beforeAgreementTerminated(
                 ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
         );
-        _terminateAgreementData(token, msgSender, sender, receiver, isLiquidator);
+        // TODO: Decode return cbdata before calling the next step
+
+        if (isLiquidator) {
+            _liquidateAgreement(token, flowId, flowData, sender, msgSender);
+        }
+        _terminateAgreement(token, flowId, flowData, sender, receiver);
+
         newCtx = _ctxUpdateDeposit(
             ISuperfluid(msg.sender),
             newCtx,
@@ -334,7 +346,7 @@ contract ConstantFlowAgreementV1 is
         bool chargeDeposit
     )
         private
-        returns(uint256 allowanceUsed, uint256 /*oldDeposit*/, FlowData memory newData)
+        returns(uint256 allowanceUsed, FlowData memory newData)
     {
         require(sender != receiver, "FlowAgreement: self flow not allowed");
         require(flowRate != 0, "FlowAgreement: use delete flow");
@@ -383,51 +395,78 @@ contract ConstantFlowAgreementV1 is
             totalReceiverFlowRate);
     }
 
-    function _terminateAgreementData(
+    function _liquidateAgreement(
         ISuperfluidToken token,
-        address caller,
+        bytes32 flowId,
+        FlowData memory flowData,
         address sender,
-        address receiver,
-        bool liquidation
+        address liquidator
     )
         private
     {
-        bytes32 flowId = _generateId(sender, receiver);
         (,FlowData memory senderAccountState) = _getAccountState(token, sender);
-        (bool exist, FlowData memory data) = _getAgreementData(token, flowId);
-        require(exist, "FlowAgreement: flow does not exist");
 
-        if (liquidation) {
-            // adjust account balances according to the liquidation rules
-            // this must be called before agreement data and state changes!
+        int256 signedSingleDeposit = flowData.deposit.toInt256();
+        int256 signedTotalDeposit = senderAccountState.deposit.toInt256();
+
+        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, block.timestamp);
+
+        // Liquidation rules:
+        //    - let Available Balance = AB (is negative)
+        //    -     Agreement Single Deposit = SD
+        //    -     Agreement Total Deposit = TD
+        //    -     Total Reward Left = RL = AB + TD
+        // #1 Can the total account deposit can still cover the available balance deficit?
+        int256 totalRewardLeft = availableBalance.add(signedTotalDeposit);
+        if (totalRewardLeft >= 0) {
+            // #1.a.1 yes: then reward = (SD / TD) * RL
+            int256 rewardAmount = signedSingleDeposit.mul(totalRewardLeft).div(signedTotalDeposit);
             token.liquidateAgreement(
-                caller,
                 flowId,
+                liquidator,
                 sender,
-                data.deposit,
-                senderAccountState.deposit
+                rewardAmount.toUint256(),
+                0
+            );
+        } else {
+            // #1.b.1 no: then the liquidator takes full amount of the single deposit
+            int256 rewardAmount = signedSingleDeposit;
+            token.liquidateAgreement(
+                flowId,
+                liquidator,
+                sender,
+                rewardAmount.toUint256() /* rewardAmount */,
+                totalRewardLeft.mul(-1).toUint256() /* bailoutAmount */
             );
         }
+    }
 
+    function _terminateAgreement(
+        ISuperfluidToken token,
+        bytes32 flowId,
+        FlowData memory flowData,
+        address sender,
+        address receiver
+    )
+        private
+    {
         int96 totalSenderFlowRate = _updateAccountState(
             token,
             sender,
-            data.flowRate,
-            -data.deposit,
-            -data.owedDeposit,
+            flowData.flowRate,
+            -flowData.deposit,
+            -flowData.owedDeposit,
             true
         );
         int96 totalReceiverFlowRate = _updateAccountState(
             token,
             receiver,
-            -data.flowRate,
+            -flowData.flowRate,
             0,
             0,
             true
         );
-
         token.terminateAgreement(flowId, 1);
-
         emit FlowUpdated(
             token,
             sender,

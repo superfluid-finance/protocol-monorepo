@@ -76,7 +76,7 @@ contract InstantDistributionAgreementV1 is
         returns (
             int256 dynamicBalance,
             uint256 deposit,
-            uint256 /*owedDeposit*/
+            uint256 owedDeposit
         )
     {
         bool exist;
@@ -109,6 +109,7 @@ contract InstantDistributionAgreementV1 is
         // as a publisher
         // calculate the deposits due to pending subscriptions
         deposit = _getPublisherDeposit(token, account);
+        owedDeposit = 0;
     }
 
     /// @dev IInstantDistributionAgreementV1.createIndex implementation

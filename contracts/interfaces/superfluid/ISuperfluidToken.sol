@@ -25,18 +25,6 @@ interface ISuperfluidToken {
      *************************************************************************/
 
     /**
-    * @dev Check if one account is insolvent
-    * @param account Account check if is insolvent
-    * @return isInsolvent Is the account insolvent?
-    */
-    function isAccountInsolvent(
-       address account
-    )
-       external
-       view
-       returns(bool isInsolvent);
-
-    /**
     * @dev Calculate the real balance of a user, taking in consideration all agreements of the account
     * @param account for the query
     * @param timestamp Time of balance
@@ -62,6 +50,18 @@ interface ISuperfluidToken {
 
        view
        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+
+      /**
+      * @dev Check if one account is insolvent
+      * @param account Account check if is insolvent
+      * @return isInsolvent Is the account insolvent?
+      */
+      function isAccountInsolvent(
+         address account
+      )
+         external
+         view
+         returns(bool isInsolvent);
 
     /**
     * @dev Get a list of agreements that is active for the account
@@ -203,27 +203,6 @@ interface ISuperfluidToken {
         returns (bytes32[] memory slotData);
 
     /**
-     * @dev Agreement liquidation event
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     * @param penaltyAccount Account of the agreement
-     * @param rewardAccount Account that collect the reward
-     * @param amount Amount of liquidation reward collected
-     */
-    event AgreementLiquidated(
-        address indexed agreementClass,
-        bytes32 id,
-        address indexed penaltyAccount,
-        address indexed rewardAccount,
-        uint256 amount
-    );
-
-    event Bailout(
-        address indexed bailoutAccount,
-        uint256 amount
-    );
-
-    /**
      * @dev Agreement account state updated event
      * @param agreementClass Contract address of the agreement
      * @param account Account of the agrement
@@ -251,23 +230,56 @@ interface ISuperfluidToken {
         external;
 
     /**
-     * @dev Liquidate the Aagreement
-     * @param liquidator Address of the executer of liquidation
+     * @dev Agreement liquidation event
+     * @param agreementClass Contract address of the agreement
      * @param id Agreement ID
-     * @param account Account of the agrement
-     * @param singleDeposit Single deposit for liquidating this agreement
-     * @param totalDeposit Total deposit for this entire agreement class
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param rewardAccount Account that collect the reward
+     * @param rewardAmount Amount of liquidation reward
+     */
+    event AgreementLiquidated(
+        address indexed agreementClass,
+        bytes32 id,
+        address indexed penaltyAccount,
+        address indexed rewardAccount,
+        uint256 rewardAmount
+    );
+
+    /**
+     * @dev System bailout occurred
+     * @param bailoutAccount Account that bailout the penalty account
+     * @param bailoutAmount Amount of account bailout
+     */
+    event Bailout(
+        address indexed bailoutAccount,
+        uint256 bailoutAmount
+    );
+
+    /**
+     * @dev Liquidate the Aagreement
+     * @param id Agreement ID
+     * @param liquidator Address of the executer of liquidation
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param rewardAmount Amount of liquidation reward
+     * @param bailoutAmount Amount of account bailout needed
+     *
+     * NOTE:
+     * Liquidation rules:
+     *  - If a bailout is required (bailoutAmount > 0)
+     *     - the actual reward goes to the liquidator,
+     *     - while the reward account becomes the bailout account
+     *     - total bailout include: bailout amount + reward amount
      *
      * Modifiers:
      *  - onlyAgreement
      */
     function liquidateAgreement
     (
-        address liquidator,
         bytes32 id,
-        address account,
-        uint256 singleDeposit,
-        uint256 totalDeposit
+        address liquidator,
+        address penaltyAccount,
+        uint256 rewardAmount,
+        uint256 bailoutAmount
     )
         external;
 

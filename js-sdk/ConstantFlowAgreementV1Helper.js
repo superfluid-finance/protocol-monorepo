@@ -102,7 +102,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const receiverNorm = await this._sf.utils.normalizeAddressParam(receiver);
         const byNorm = (by && await this._sf.utils.normalizeAddressParam(by)) || senderNorm;
-        console.debug(`Delete flow from ${sender} to ${receiver} ...`);
+        console.debug(`Delete flow from ${sender} to ${receiver} by ${by} ...`);
         const tx = await this._sf.host.callAgreement(
             this._cfa.address,
             this._cfa.contract.methods.deleteFlow(
@@ -115,7 +115,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 from: byNorm,
             }
         );
-        console.debug("Flow updated.");
+        console.debug("Flow deleted.");
         return tx;
     }
 

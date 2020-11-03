@@ -69,10 +69,11 @@ contract DividendRightsToken is
         bytes32 /* agreementId */
     )
         external view override
-        returns (bytes memory /* data */)
+        returns (bytes memory data)
     {
         require(superToken == _cashToken, "DRT: Unsupported cash token");
         require(agreementClass == address(_ida), "DRT: Unsupported agreement");
+        return new bytes(0);
     }
 
     function afterAgreementCreated(
@@ -96,10 +97,11 @@ contract DividendRightsToken is
         bytes32 /* agreementId */
     )
         external view override
-        returns (bytes memory /* data */)
+        returns (bytes memory data)
     {
         require(superToken == _cashToken, "DRT: Unsupported cash token");
         require(agreementClass == address(_ida), "DRT: Unsupported agreement");
+        return new bytes(0);
     }
 
     function afterAgreementUpdated(

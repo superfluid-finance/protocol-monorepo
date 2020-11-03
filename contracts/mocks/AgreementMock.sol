@@ -91,13 +91,13 @@ contract AgreementMock is AgreementBase {
 
     function liquidateAgreementFor(
         ISuperfluidToken token,
-        address liquidator,
         bytes32 id,
-        address account,
-        uint256 singleDeposit,
-        uint256 totalDeposit
+        address liquidator,
+        address penaltyAccount,
+        uint256 rewardAmount,
+        uint256 bailoutAmount
     ) external {
-        token.liquidateAgreement(liquidator, id, account, singleDeposit, totalDeposit);
+        token.liquidateAgreement(id, liquidator, penaltyAccount, rewardAmount, bailoutAmount);
     }
 
 }

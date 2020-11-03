@@ -210,7 +210,7 @@ contract("SuperfluidToken implementation", accounts => {
             it("#2.d.1 should only be called by listed agreement", async () => {
                 const acBad = await AgreementMock.new(web3.utils.sha3("typeBad"), 1);
                 await expectRevert(
-                    acBad.liquidateAgreementFor(superToken.address, bob, "0x42", alice, 0, 0),
+                    acBad.liquidateAgreementFor(superToken.address, "0x42", bob, alice, 0, 0),
                     "SuperfluidToken: only listed agreeement");
             });
         });

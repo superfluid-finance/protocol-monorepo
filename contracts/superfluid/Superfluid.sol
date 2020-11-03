@@ -457,7 +457,7 @@ contract Superfluid is
         if (success) {
             _ctxStamp = 0;
         } else {
-            revert("SF: call agreement failed");
+            revert(string(returnedData));
         }
     }
 
@@ -563,7 +563,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert("SF: call agreement failed");
+            revert(string(returnedData));
         }
     }
 
@@ -582,9 +582,13 @@ contract Superfluid is
         require(_checkAppCallDepth(ISuperApp(msg.sender), context.appLevel), "SF: App Call Stack too deep");
         newCtx = _updateContext(context);
 
-        _callExternal(address(app), data, newCtx);
-        context.appLevel--;
-        newCtx = _updateContext(context);
+        (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
+        if (success) {
+            context.appLevel--;
+            newCtx = _updateContext(context);
+        } else {
+            revert(string(returnedData));
+        }
     }
 
     function chargeGasFee(
@@ -654,12 +658,9 @@ contract Superfluid is
         );
 
         // STEP 2: Call external with replaced context
+        // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
         (success, returnedData) = target.call(ctx);
-
-        if(!success) {
-            revert(string(returnedData));
-        }
     }
 
     function _callCallback(

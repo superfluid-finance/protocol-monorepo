@@ -347,9 +347,9 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlyHost
     */
     function operationApprove(
-    address account,
-    address spender,
-    uint256 amount
+        address account,
+        address spender,
+        uint256 amount
     ) external;
 
     /**
@@ -363,10 +363,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlyHost
     */
     function operationTransferFrom(
-    address account,
-    address sender,
-    address recipient,
-    uint256 amount
+        address account,
+        address sender,
+        address recipient,
+        uint256 amount
     ) external;
 
     /**

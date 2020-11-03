@@ -56,7 +56,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
        public view override
        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
     {
-        int256 realtimeBalance = _balances[account];
+        availableBalance = _balances[account];
         ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
         for (uint256 i = 0; i < activeAgreements.length; i++) {
             (
@@ -68,14 +68,17 @@ abstract contract SuperfluidToken is ISuperfluidToken
                          account,
                          timestamp
                      );
-            realtimeBalance = realtimeBalance.add(agreementDynamicBalance);
             deposit = deposit.add(agreementDeposit);
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
+            // 1. Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
+            // 2. Deposit should not be shared between agreements
+            availableBalance = availableBalance
+                .add(agreementDynamicBalance)
+                .sub(
+                    agreementDeposit > agreementOwedDeposit ?
+                    (agreementDeposit - agreementOwedDeposit).toInt256() : 0
+                );
         }
-        // Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
-        availableBalance = realtimeBalance.sub(
-            deposit > owedDeposit ?
-            (deposit - owedDeposit).toInt256() : 0);
     }
 
     /// @dev ISuperfluidToken.realtimeBalanceOfNow implementation

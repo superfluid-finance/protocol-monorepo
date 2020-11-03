@@ -7,6 +7,8 @@ import { AgreementBase } from "../agreements/AgreementBase.sol";
 
 contract AgreementMock is AgreementBase {
 
+    uint256 constant private _REAL_TIME_BALANCE_SLOT_ID = 65552025;
+
     // using immutable, otherweise the proxy contract would see zero instead
     bytes32 immutable private _type;
     uint immutable private _version;
@@ -36,12 +38,31 @@ contract AgreementMock is AgreementBase {
            uint256 owedDeposit
        )
     {
-        bytes32[] memory slotData = token.getAgreementStateSlot(address(this), account, 0, 3);
+        bytes32[] memory slotData = token.getAgreementStateSlot(
+            address(this), account, _REAL_TIME_BALANCE_SLOT_ID, 3);
         return (
             int256(slotData[0]),
             uint256(slotData[1]),
             uint256(slotData[2])
         );
+    }
+
+    /**
+     * Real-time balance mockings
+     */
+
+    function setRealtimeBalanceFor(
+        ISuperfluidToken token,
+        address account,
+        int256 dynamicBalance,
+        uint256 deposit,
+        uint256 owedDeposit
+    ) external {
+        bytes32[] memory slotData = new bytes32[](3);
+        slotData[0] = bytes32(uint256(dynamicBalance));
+        slotData[1] = bytes32(uint256(deposit));
+        slotData[2] = bytes32(uint256(owedDeposit));
+        token.updateAgreementStateSlot(account, _REAL_TIME_BALANCE_SLOT_ID, slotData);
     }
 
     /**

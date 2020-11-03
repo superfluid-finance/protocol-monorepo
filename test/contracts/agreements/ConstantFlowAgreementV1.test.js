@@ -1285,6 +1285,7 @@ contract("Constant Flow Agreement", accounts => {
     describe("#7 FlowAgreement Liquidation Test", () => {
 
         it("#7.1 Liquidator should take the deposit", async() => {
+            await governance.setRewardAddress(admin);
             await superToken.upgrade(INIT_BALANCE, {from : alice});
 
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(

@@ -16,13 +16,15 @@ const AgreementMock = artifacts.require("AgreementMock");
 contract("SuperfluidToken implementation", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 3));
-    const { alice, bob } = t.aliases;
-    const { ZERO_BYTES32 } = t.constants;
+    const { admin, alice, bob } = t.aliases;
+    const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
 
     // let token;
     let superToken;
     let superfluid;
     let governance;
+    let acA;
+    let acB;
 
     before(async () => {
         await t.reset();
@@ -30,6 +32,23 @@ contract("SuperfluidToken implementation", accounts => {
             superfluid,
             governance
         } = t.contracts);
+
+        const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
+        await web3tx(governance.registerAgreementClass, "register agreement class typeA")(
+            superfluid.address,
+            acALogic.address
+        );
+        acA = await AgreementMock.at(
+            await superfluid.getAgreementClass(web3.utils.sha3("typeA"))
+        );
+        const acBLogic = await AgreementMock.new(web3.utils.sha3("typeB"), 1);
+        await web3tx(governance.registerAgreementClass, "register agreement class typeB")(
+            superfluid.address,
+            acBLogic.address
+        );
+        acB = await AgreementMock.at(
+            await superfluid.getAgreementClass(web3.utils.sha3("typeB"))
+        );
     });
 
     beforeEach(async function () {
@@ -37,7 +56,22 @@ contract("SuperfluidToken implementation", accounts => {
         ({
             superToken,
         } = t.contracts);
+        assert.equal(await availableBalanceOf(admin), "0");
+        assert.equal(await availableBalanceOf(bob), "0");
+        assert.equal(await availableBalanceOf(alice), "0");
     });
+
+    async function expectRealtimeBalance(person, expectedBalance) {
+        const balance = await superToken.realtimeBalanceOfNow(person);
+        assert.deepEqual(
+            [balance[0].toString(), balance[1].toString(), balance[2].toString()],
+            expectedBalance);
+    }
+
+
+    async function availableBalanceOf(person) {
+        return (await superToken.realtimeBalanceOfNow(person)).availableBalance.toString();
+    }
 
     describe("#1 basic information", () => {
         it("#1.1 should return host", async () => {
@@ -45,8 +79,110 @@ contract("SuperfluidToken implementation", accounts => {
         });
     });
 
-    describe("#2 agreement hosting functions", () => {
-        let acA; // agreement class A
+    describe("#2 real-time balance", () => {
+        it("#2.1 default real-time balance is zeros", async () => {
+            await expectRealtimeBalance(alice, ["0", "0", "0"]);
+            await expectRealtimeBalance(bob, ["0", "0", "0"]);
+        });
+
+        context("#2.a single agreement real-time balance", () => {
+            it("#2.a.1 without deposit", async () => {
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "0", "0");
+                await expectRealtimeBalance(bob, ["10", "0", "0"]);
+            });
+
+            it("#2.a.2 with deposit", async () => {
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "2", "0");
+                await expectRealtimeBalance(bob, ["8", "2", "0"]);
+            });
+
+            it("#2.a.3 with deposit and small owedDeposit", async () => {
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "2", "1");
+                await expectRealtimeBalance(bob, ["9", "2", "1"]);
+            });
+
+            it("#2.a.4 with deposit and equal owedDeposit", async () => {
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "2", "2");
+                await expectRealtimeBalance(bob, ["10", "2", "2"]);
+            });
+
+            it("#2.a.5 with deposit and large owedDeposit", async () => {
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "2", "4");
+                await expectRealtimeBalance(bob, ["10", "2", "4"]);
+            });
+        });
+
+        context("#2.b double agreement real-time balances", () => {
+            it("#2.b.1 without deposit", async () => {
+                await expectRealtimeBalance(alice, ["0", "0", "0"]);
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "0", "0");
+                await acB.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "5", "0", "0");
+                await expectRealtimeBalance(bob, ["15", "0", "0"]);
+            });
+
+            it("#2.b.2 with deposit", async () => {
+                await expectRealtimeBalance(alice, ["0", "0", "0"]);
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "2", "0");
+                await acB.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "5", "1", "0");
+                await expectRealtimeBalance(bob, ["12", "3", "0"]);
+            });
+
+            it("#2.b.3 with deposit and owed deposit case 1", async () => {
+                await expectRealtimeBalance(alice, ["0", "0", "0"]);
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "2", "2"); // full deposit refund
+                await acB.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "5", "1", "5"); // deposit refund up to 1
+                await expectRealtimeBalance(bob, ["15", "3", "7"]);
+            });
+
+            it("#2.b.4 with deposit and owed deposit case 2", async () => {
+                await expectRealtimeBalance(alice, ["0", "0", "0"]);
+                await acA.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "10", "0", "5"); // deposit owed but without deposit
+                await acB.setRealtimeBalanceFor(
+                    superToken.address,
+                    bob,
+                    "5", "5", "0"); // deposit without refund from `acA`
+                await expectRealtimeBalance(bob, ["10", "5", "5"]);
+            });
+        });
+    });
+
+    describe("#3 agreement hosting functions", () => {
         const testData = [
             "0xdead000000000000000000000000000000000000000000000000000000000000",
             "0x000000000000000000000000000000000000000000000000000000000000beaf",
@@ -56,19 +192,8 @@ contract("SuperfluidToken implementation", accounts => {
             "0x3887e65223d48ea8470b791ed887db139f831bb98e66a607531b3a7be4977cfb",
         ];
 
-        before(async () => {
-            const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
-            await web3tx(governance.registerAgreementClass, "register agreement class typeA")(
-                superfluid.address,
-                acALogic.address
-            );
-            acA = await AgreementMock.at(
-                await superfluid.getAgreementClass(web3.utils.sha3("typeA"))
-            );
-        });
-
-        context("#2.a agreement data", () => {
-            it("#2.a.1 should create new agreement", async function () {
+        context("#3.a agreement data", () => {
+            it("#3.a.1 should create new agreement", async function () {
                 await acA.createAgreementFor(
                     superToken.address, "0x42", testData
                 );
@@ -83,7 +208,7 @@ contract("SuperfluidToken implementation", accounts => {
                     [...testData, ZERO_BYTES32]);
             });
 
-            it("#2.a.2 should not create the same agreement twice", async () => {
+            it("#3.a.2 should not create the same agreement twice", async () => {
                 await acA.createAgreementFor(
                     superToken.address, "0x42", testData
                 );
@@ -99,7 +224,7 @@ contract("SuperfluidToken implementation", accounts => {
                 ), "SuperfluidToken: agreement already created");
             });
 
-            it("#2.a.3 should not overlap data", async () => {
+            it("#3.a.3 should not overlap data", async () => {
                 await acA.createAgreementFor(
                     superToken.address, "0x42", testData
                 );
@@ -108,7 +233,7 @@ contract("SuperfluidToken implementation", accounts => {
                     [ZERO_BYTES32]);
             });
 
-            it("#2.a.4 should update data", async () => {
+            it("#3.a.4 should update data", async () => {
                 await acA.createAgreementFor(
                     superToken.address, "0x42", testData
                 );
@@ -120,7 +245,7 @@ contract("SuperfluidToken implementation", accounts => {
                     testData2);
             });
 
-            it("#2.a.5 should terminate agreement", async () => {
+            it("#3.a.5 should terminate agreement", async () => {
                 await acA.createAgreementFor(
                     superToken.address, "0x42", testData
                 );
@@ -132,7 +257,7 @@ contract("SuperfluidToken implementation", accounts => {
                     [ZERO_BYTES32, ZERO_BYTES32]);
             });
 
-            it("#2.a.6 should not terminate agreement twice", async () => {
+            it("#3.a.6 should not terminate agreement twice", async () => {
                 await acA.createAgreementFor(
                     superToken.address, "0x42", testData
                 );
@@ -145,8 +270,8 @@ contract("SuperfluidToken implementation", accounts => {
             });
         });
 
-        context("#2.b agreement account state", () => {
-            it("#2.b.1 should update agreement state", async () => {
+        context("#3.b agreement account state", () => {
+            it("#3.b.1 should update agreement state", async () => {
                 await acA.updateAgreementStateSlotFor(
                     superToken.address, bob, 42, testData
                 );
@@ -167,7 +292,7 @@ contract("SuperfluidToken implementation", accounts => {
                     testData2);
             });
 
-            it("#2.b.2 should overlap agreement state data", async () => {
+            it("#3.b.2 should overlap agreement state data", async () => {
                 await acA.updateAgreementStateSlotFor(
                     superToken.address, bob, 42, testData
                 );
@@ -183,41 +308,117 @@ contract("SuperfluidToken implementation", accounts => {
             });
         });
 
-        context("#2.c static balance", () => {
-            it("#2.c.1 should only be called by listed agreement", async () => {
+        context("#3.c static balance", () => {
+            it("#3.c.1 should only be called by listed agreement", async () => {
                 const acBad = await AgreementMock.new(web3.utils.sha3("typeBad"), 1);
                 await expectRevert(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     "SuperfluidToken: only listed agreeement");
             });
 
-            it("#2.c.1 should adjust static balance", async () => {
-                const availableBalanceOf = async n => {
-                    return (await superToken.realtimeBalanceOfNow(n)).availableBalance;
-                };
+            it("#3.c.1 should adjust static balance", async () => {
                 assert.equal(await availableBalanceOf(bob), "0");
                 await acA.settleBalanceFor(superToken.address, bob, "5");
                 assert.equal(await availableBalanceOf(bob), "5");
                 await acA.settleBalanceFor(superToken.address, bob, "-10");
                 assert.equal(await availableBalanceOf(bob), "-5");
+
                 assert.equal(await availableBalanceOf(alice), "0");
                 await acA.settleBalanceFor(superToken.address, alice, "42");
+                assert.equal(await availableBalanceOf(bob), "-5");
                 assert.equal(await availableBalanceOf(alice), "42");
-            });
-        });
-
-        context("#2.d liquidation rules", () => {
-            it("#2.d.1 should only be called by listed agreement", async () => {
-                const acBad = await AgreementMock.new(web3.utils.sha3("typeBad"), 1);
-                await expectRevert(
-                    acBad.liquidateAgreementFor(superToken.address, "0x42", bob, alice, 0, 0),
-                    "SuperfluidToken: only listed agreeement");
             });
         });
 
     });
 
-    describe("#3 real-time balance", () => {
+    describe("#4 liquidation rules", () => {
+        it("#4.1 should only be called by listed agreement", async () => {
+            const acBad = await AgreementMock.new(web3.utils.sha3("typeBad"), 1);
+            await expectRevert(
+                acBad.liquidateAgreementFor(superToken.address, "0x42", bob, alice, 0, 0),
+                "SuperfluidToken: only listed agreeement");
+        });
+
+        context("#4.a default reward account (admin)", () => {
+            before(async () => {
+                await governance.setRewardAddress(admin);
+            });
+
+            it("#4.a.1 liquidation without bailout by alice (liquidator)", async () => {
+                await acA.liquidateAgreementFor(
+                    superToken.address,
+                    "0x42",
+                    alice,
+                    bob,
+                    "10",
+                    "0"
+                );
+                assert.equal(await availableBalanceOf(admin), "10");
+                assert.equal(await availableBalanceOf(bob), "-10");
+                assert.equal(await availableBalanceOf(alice), "0");
+            });
+
+            it("#4.a.2 liquidation without bailout by admin (reward address) directly", async () => {
+                await acA.liquidateAgreementFor(
+                    superToken.address,
+                    "0x42",
+                    admin,
+                    bob,
+                    "10",
+                    "0"
+                );
+                assert.equal(await availableBalanceOf(admin), "10");
+                assert.equal(await availableBalanceOf(bob), "-10");
+                assert.equal(await availableBalanceOf(alice), "0");
+            });
+
+            it("#4.a.3 liquidation with bailout by alice (liquidator)", async () => {
+                await acA.liquidateAgreementFor(
+                    superToken.address,
+                    "0x42",
+                    alice,
+                    bob,
+                    "10",
+                    "5"
+                );
+                assert.equal(await availableBalanceOf(admin), "-15");
+                assert.equal(await availableBalanceOf(bob), "5");
+                assert.equal(await availableBalanceOf(alice), "10");
+            });
+        });
+
+        context("#4.b zero reward account", () => {
+            before(async () => {
+                await governance.setRewardAddress(ZERO_ADDRESS);
+            });
+
+            it("#4.b.1 liquidation without bailout by alice (liquidator)", async () => {
+                await acA.liquidateAgreementFor(
+                    superToken.address,
+                    "0x42",
+                    alice,
+                    bob,
+                    "10",
+                    "0"
+                );
+                assert.equal(await availableBalanceOf(bob), "-10");
+                assert.equal(await availableBalanceOf(alice), "10");
+            });
+
+            it("#4.b.2 liquidation with bailout by alice (liquidator and bailout account)", async () => {
+                await acA.liquidateAgreementFor(
+                    superToken.address,
+                    "0x42",
+                    alice,
+                    bob,
+                    "10",
+                    "5"
+                );
+                assert.equal(await availableBalanceOf(bob), "5");
+                assert.equal(await availableBalanceOf(alice), "-5");
+            });
+        });
     });
 
 });

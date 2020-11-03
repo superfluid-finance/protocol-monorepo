@@ -229,6 +229,17 @@ abstract contract SuperfluidToken is ISuperfluidToken
         slotData = FixedSizeData.loadData(slot, dataLength);
     }
 
+    /// @dev ISuperfluidToken.settleBalance implementation
+    function settleBalance(
+        address account,
+        int256 delta
+    )
+        external override
+        onlyAgreement
+    {
+        _balances[account] = _balances[account].add(delta);
+    }
+
     /// @dev ISuperfluidToken.liquidateAgreement implementation
     function liquidateAgreement
     (
@@ -286,27 +297,14 @@ abstract contract SuperfluidToken is ISuperfluidToken
         }
     }
 
-    function settleBalance(
-        address account,
-        int256 delta
-    )
-        external override
-        onlyAgreement
-    {
-        _balances[account] = _balances[account].add(delta);
-    }
-
     /**************************************************************************
     * Modifiers
     *************************************************************************/
 
-    modifier onlyHost() {
-        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
-        _;
-    }
-
     modifier onlyAgreement() {
-        require(_host.isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: Only listed agreeement allowed");
+        require(
+            _host.isAgreementClassListed(ISuperAgreement(msg.sender)),
+            "SuperfluidToken: only listed agreeement");
         _;
     }
 

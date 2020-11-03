@@ -81,4 +81,23 @@ contract AgreementMock is AgreementBase {
         token.updateAgreementStateSlot(account, slotId, slotData);
     }
 
+    function settleBalanceFor(
+        ISuperfluidToken token,
+        address account,
+        int256 delta
+        ) external {
+        token.settleBalance(account, delta);
+    }
+
+    function liquidateAgreementFor(
+        ISuperfluidToken token,
+        address liquidator,
+        bytes32 id,
+        address account,
+        uint256 singleDeposit,
+        uint256 totalDeposit
+    ) external {
+        token.liquidateAgreement(liquidator, id, account, singleDeposit, totalDeposit);
+    }
+
 }

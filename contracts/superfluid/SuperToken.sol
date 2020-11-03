@@ -506,16 +506,12 @@ contract SuperToken is
         uint256 amount,
         bytes memory data,
         bytes memory operatorData) private {
-        // - even though _burn will check the (actual) amount availability again
-        // we need to first check it here
-        // - in case of downcasting of decimals, actual amount can be smaller than
-        // requested amount
-        require(balanceOf(account) >= amount, "SuperToken: downgrade amount exceeds balance");
-        uint256 underlyingAmount;
-        (underlyingAmount, amount) = _toUnderlyingAmount(amount);
-        _burn(operator, account, amount, data, operatorData);
+        // - in case of downcasting of decimals, actual amount can be smaller than requested amount
+        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
+         // _burn will check the (actual) amount availability again
+        _burn(operator, account, actualAmount, data, operatorData);
         _underlyingToken.transfer(account, underlyingAmount);
-        emit TokenDowngraded(account, amount);
+        emit TokenDowngraded(account, actualAmount);
     }
 
     function _toUnderlyingAmount(uint256 amount)
@@ -580,6 +576,15 @@ contract SuperToken is
     {
         // FIXME correct operator
         _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
+    }
+
+    /**************************************************************************
+    * Modifiers
+    *************************************************************************/
+
+    modifier onlyHost() {
+        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
+        _;
     }
 
 }

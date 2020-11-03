@@ -389,4 +389,17 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     */
     function operationDowngrade(address account, uint256 amount) external;
 
+
+    /**************************************************************************
+    * Function modifiers for access control and parameter validations
+    *
+    * While they cannot be explicitly stated in function definitions, they are
+    * listed in function definition comments instead for clarity.
+    *
+    * NOTE: solidity-coverage not supporting it
+    *************************************************************************/
+
+    /// @dev The msg.sender must be host contract
+    //modifier onlyHost() virtual;
+
 }

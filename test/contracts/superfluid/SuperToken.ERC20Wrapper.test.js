@@ -150,7 +150,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             await expectRevert(web3tx(superToken.downgrade, "SuperToken.downgrade - bad balance")(
                 toBN(1), {
                     from: alice
-                }), "SuperToken: downgrade amount exceeds balance");
+                }), "SuperfluidToken: burn amount exceeds balance");
         });
 
         it("#2.6 - should convert from smaller underlying decimals", async () => {
@@ -232,7 +232,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 toWad("0.1234561"), {
                     from: bob
                 }
-            ), "SuperToken: downgrade amount exceeds balance");
+            ), "SuperfluidToken: burn amount exceeds balance");
             await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
                 toWad("0.123456"), {
                     from: bob

@@ -236,6 +236,21 @@ interface ISuperfluidToken {
     );
 
     /**
+     * @dev Settle balance from an account by the agreement.
+     *      The agreement needs to make sure that the balance delta is balanced afterwards
+     * @param account Account to query.
+     * @param delta Amount of balance delta to be settled
+     *
+     * Modifiers:
+     *  - onlyAgreement
+     */
+    function settleBalance(
+        address account,
+        int256 delta
+    )
+        external;
+
+    /**
      * @dev Liquidate the Aagreement
      * @param liquidator Address of the executer of liquidation
      * @param id Agreement ID
@@ -256,21 +271,6 @@ interface ISuperfluidToken {
     )
         external;
 
-    /**
-     * @dev Settle balance from an account by the agreement.
-     *      The agreement needs to make sure that the balance delta is balanced afterwards
-     * @param account Account to query.
-     * @param delta Amount of balance delta to be settled
-     *
-     * Modifiers:
-     *  - onlyAgreement
-     */
-    function settleBalance(
-        address account,
-        int256 delta
-    )
-        external;
-
     /**************************************************************************
      * Function modifiers for access control and parameter validations
      *
@@ -279,9 +279,6 @@ interface ISuperfluidToken {
      *
      * NOTE: solidity-coverage not supporting it
      *************************************************************************/
-
-    /// @dev The msg.sender must be host contract
-    //modifier onlyHost() virtual;
 
     /// @dev The msg.sender must be a listed agreement.
     //modifier onlyAgreement() virtual;

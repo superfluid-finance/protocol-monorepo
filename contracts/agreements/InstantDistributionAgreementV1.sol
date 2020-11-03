@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.4;
+pragma solidity 0.7.3;
 
 import {
     IInstantDistributionAgreementV1,

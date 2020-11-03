@@ -117,8 +117,7 @@ interface ISuperfluid {
         string calldata name,
         string calldata symbol
     )
-        external
-        returns (ISuperToken superToken);
+        external;
 
     /**************************************************************************
      * App Registry

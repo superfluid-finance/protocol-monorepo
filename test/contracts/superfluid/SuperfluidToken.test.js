@@ -3,12 +3,12 @@ const {
     // expectEvent
 } = require("@openzeppelin/test-helpers");
 
-// const {
-//     //web3tx,
-//     toBN
-//     // toDecimals,
-//     // toBN
-// } = require("@decentral.ee/web3-helpers");
+const {
+    web3tx,
+    //toBN
+    // toDecimals,
+    // toBN
+} = require("@decentral.ee/web3-helpers");
 
 const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
@@ -22,11 +22,13 @@ contract("SuperfluidToken implementation", accounts => {
     // let token;
     let superToken;
     let superfluid;
+    let governance;
 
     before(async () => {
         await t.reset();
         ({
             superfluid,
+            governance
         } = t.contracts);
     });
 
@@ -54,8 +56,15 @@ contract("SuperfluidToken implementation", accounts => {
             "0x3887e65223d48ea8470b791ed887db139f831bb98e66a607531b3a7be4977cfb",
         ];
 
-        beforeEach(async () => {
-            acA = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
+        before(async () => {
+            const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
+            await web3tx(governance.registerAgreementClass, "register agreement class typeA")(
+                superfluid.address,
+                acALogic.address
+            );
+            acA = await AgreementMock.at(
+                await superfluid.getAgreementClass(web3.utils.sha3("typeA"))
+            );
         });
 
         context("#2.a agreement data", () => {
@@ -181,6 +190,20 @@ contract("SuperfluidToken implementation", accounts => {
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     "SuperfluidToken: only listed agreeement");
             });
+
+            it("#2.c.1 should adjust static balance", async () => {
+                const availableBalanceOf = async n => {
+                    return (await superToken.realtimeBalanceOfNow(n)).availableBalance;
+                };
+                assert.equal(await availableBalanceOf(bob), "0");
+                await acA.settleBalanceFor(superToken.address, bob, "5");
+                assert.equal(await availableBalanceOf(bob), "5");
+                await acA.settleBalanceFor(superToken.address, bob, "-10");
+                assert.equal(await availableBalanceOf(bob), "-5");
+                assert.equal(await availableBalanceOf(alice), "0");
+                await acA.settleBalanceFor(superToken.address, alice, "42");
+                assert.equal(await availableBalanceOf(alice), "42");
+            });
         });
 
         context("#2.d liquidation rules", () => {
@@ -191,6 +214,7 @@ contract("SuperfluidToken implementation", accounts => {
                     "SuperfluidToken: only listed agreeement");
             });
         });
+
     });
 
     describe("#3 real-time balance", () => {

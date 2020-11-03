@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "@openzeppelin/contracts": "3.2.2-solc-0.7",
+    "@truffle/contract": "4.2.28",
     "ethereumjs-tx": "2.1.2",
     "ethereumjs-util": "7.0.7"
   },

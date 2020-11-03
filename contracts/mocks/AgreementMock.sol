@@ -8,19 +8,19 @@ import { AgreementBase } from "../agreements/AgreementBase.sol";
 contract AgreementMock is AgreementBase {
 
     // using immutable, otherweise the proxy contract would see zero instead
-    bytes32 immutable private _agreementType;
+    bytes32 immutable private _type;
     uint immutable private _version;
 
-    constructor(bytes32 agreementType, uint version) {
-        _agreementType = agreementType;
-        _version = version;
+    constructor(bytes32 t, uint v) {
+        _type = t;
+        _version = v;
     }
 
     function version() external view returns (uint) { return _version; }
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override view returns (bytes32) {
-        return _agreementType;
+        return _type;
     }
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation

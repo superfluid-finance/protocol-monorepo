@@ -70,8 +70,8 @@ contract SuperToken is
     function initialize(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
-        string calldata name,
-        string calldata symbol,
+        string calldata n,
+        string calldata s,
         ISuperfluid host
     )
         external
@@ -85,8 +85,8 @@ contract SuperToken is
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
 
-        _name = name;
-        _symbol = symbol;
+        _name = n;
+        _symbol = s;
 
         // register interfaces
         ERC777Helper.register(address(this));
@@ -493,11 +493,10 @@ contract SuperToken is
         address account,
         uint256 amount
     ) private {
-        uint256 underlyingAmount;
-        (underlyingAmount, amount) = _toUnderlyingAmount(amount);
+        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
         _underlyingToken.transferFrom(account, address(this), underlyingAmount);
-        _mint(operator, account, amount, "", "");
-        emit TokenUpgraded(account, amount);
+        _mint(operator, account, actualAmount, "", "");
+        emit TokenUpgraded(account, actualAmount);
     }
 
     function _downgrade(

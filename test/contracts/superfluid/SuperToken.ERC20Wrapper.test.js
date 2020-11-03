@@ -216,7 +216,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 toWad("1.123456").toString());
 
-            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
+            await web3tx(superToken6D.downgrade, "downgrade from bob")(
                 toWad(1), {
                     from: bob
                 }
@@ -228,13 +228,22 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 toWad("0.123456").toString());
 
-            await expectRevert(superToken6D.downgrade(
-                toWad("0.1234561"), {
+            // extra decimals should be discarded due to precision issue
+            await web3tx(superToken6D.downgrade, "downgrade extra decimals from bob")(
+                toWad("0.10000012345"), {
                     from: bob
                 }
-            ), "SuperfluidToken: burn amount exceeds balance");
-            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
-                toWad("0.123456"), {
+            );
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("99.976544", 6));
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad("0.023456").toString());
+
+            // downgrade the rest
+            await web3tx(superToken6D.downgrade, "downgrade the rest from bob")(
+                toWad("0.023456"), {
                     from: bob
                 }
             );

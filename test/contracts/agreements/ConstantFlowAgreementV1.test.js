@@ -252,7 +252,7 @@ contract("Constant Flow Agreement", accounts => {
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
-                "-100000000000",
+                toBN("-100000000000"),
                 "0x"
             ).encodeABI();
 
@@ -285,7 +285,7 @@ contract("Constant Flow Agreement", accounts => {
             dataAgreement = cfa.contract.methods.updateFlow(
                 superToken.address,
                 bob,
-                "-2000000000000000000",
+                toBN("-2000000000000000000"),
                 "0x"
             ).encodeABI();
 
@@ -369,7 +369,7 @@ contract("Constant Flow Agreement", accounts => {
             dataAgreement = cfa.contract.methods.updateFlow(
                 superToken.address,
                 bob,
-                "-2000000000000000000",
+                toBN("-2000000000000000000"),
                 "0x"
             ).encodeABI();
 

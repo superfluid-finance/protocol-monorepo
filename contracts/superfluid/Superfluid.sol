@@ -233,7 +233,6 @@ contract Superfluid is
         string calldata symbol
     )
         external override
-        returns (ISuperToken)
     {
         require(address(underlyingToken) != address(0), "SF: createERC20Wrapper zero address");
         bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);

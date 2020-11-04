@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 
 /**
@@ -24,6 +24,15 @@ library FixedSizeData {
             bytes32 d = data[j];
             assembly { sstore(add(slot, j), d) }
         }
+    }
+
+    function hasData(bytes32 slot, uint dataLength) internal view returns (bool) {
+        for (uint j = 0; j < dataLength; ++j) {
+            bytes32 d;
+            assembly { d := sload(add(slot, j)) }
+            if (uint256(d) > 0) return true;
+        }
+        return false;
     }
 
     /**

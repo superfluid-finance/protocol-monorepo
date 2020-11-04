@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 import {
     IInstantDistributionAgreementV1,
@@ -76,7 +76,7 @@ contract InstantDistributionAgreementV1 is
         returns (
             int256 dynamicBalance,
             uint256 deposit,
-            uint256 /*owedDeposit*/
+            uint256 owedDeposit
         )
     {
         bool exist;
@@ -100,7 +100,7 @@ contract InstantDistributionAgreementV1 is
             require(exist, "IDAv1: index does not exist");
             (exist, sdata) = _getSubscriptionData(token, sId);
             require(exist, "IDAv1: subscription does not exist");
-            require(sdata.subId == subId, "IDAv1: incorrect slot id");
+            assert(sdata.subId == subId);
             dynamicBalance = dynamicBalance.add(
                 int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
             );
@@ -109,6 +109,7 @@ contract InstantDistributionAgreementV1 is
         // as a publisher
         // calculate the deposits due to pending subscriptions
         deposit = _getPublisherDeposit(token, account);
+        owedDeposit = 0;
     }
 
     /// @dev IInstantDistributionAgreementV1.createIndex implementation
@@ -269,8 +270,8 @@ contract InstantDistributionAgreementV1 is
         (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
         if (exist) {
             // sanity check
-            require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
-            require(sd.sdata.indexId == indexId, "IDAv1: incorrect indexId");
+            assert(sd.sdata.publisher == publisher);
+            assert(sd.sdata.indexId == indexId);
             // required condition check
             require(sd.sdata.subId == _UNALLOCATED_SUB_ID, "IDAv1: subscription already approved");
         }
@@ -349,8 +350,8 @@ contract InstantDistributionAgreementV1 is
         (exist, sd.sdata) = _getSubscriptionData(token, sId);
         if (exist) {
             // sanity check
-            require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
-            require(sd.sdata.indexId == indexId, "IDAv1: incorrect indexId");
+            assert(sd.sdata.publisher == publisher);
+            assert(sd.sdata.indexId == indexId);
         }
 
         // before-hook callback
@@ -465,8 +466,8 @@ contract InstantDistributionAgreementV1 is
         bytes32 sId = _getSubscriptionId(subscriber, iId);
         (exist, sdata) = _getSubscriptionData(token, sId);
         require(exist, "IDAv1: subscription does not exist");
-        require(sdata.publisher == publisher, "IDAv1: incorrect publisher");
-        require(sdata.indexId == indexId, "IDAv1: incorrect indexId");
+        assert(sdata.publisher == publisher);
+        assert(sdata.indexId == indexId);
         approved = sdata.subId != _UNALLOCATED_SUB_ID;
         units = sdata.units;
         pendingDistribution = approved ? 0 :
@@ -536,7 +537,7 @@ contract InstantDistributionAgreementV1 is
             bytes32 sId = _getSubscriptionId(subscriber, iId);
             (exist, sdata) = _getSubscriptionData(token, sId);
             require(exist, "IDAv1: subscription does not exist");
-            require(sdata.subId == subId, "IDAv1: incorrect slot id");
+            assert(sdata.subId == subId);
             publishers[nSlots] = sdata.publisher;
             indexIds[nSlots] = sdata.indexId;
             unitsList[nSlots] = sdata.units;
@@ -571,8 +572,8 @@ contract InstantDistributionAgreementV1 is
         require(exist, "IDAv1: index does not exist");
         (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
         require(exist, "IDAv1: subscription does not exist");
-        require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
-        require(sd.sdata.indexId == indexId, "IDAv1: incorrect indexId");
+        assert(sd.sdata.publisher == publisher);
+        assert(sd.sdata.indexId == indexId);
 
         (sd.cbdata, newCtx) = AgreementLibrary.beforeAgreementTerminated(
             ISuperfluid(msg.sender), token, ctx,
@@ -633,8 +634,8 @@ contract InstantDistributionAgreementV1 is
         (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
         require(exist, "IDAv1: subscription does not exist");
          // sanity check
-        require(sd.sdata.publisher == publisher, "IDAv1: incorrect publisher");
-        require(sd.sdata.indexId == indexId, "IDAv1: incorrect indexId");
+        assert(sd.sdata.publisher == publisher);
+        assert(sd.sdata.indexId == indexId);
         // required condition check
         require(sd.sdata.subId == _UNALLOCATED_SUB_ID, "IDAv1: subscription already approved");
 

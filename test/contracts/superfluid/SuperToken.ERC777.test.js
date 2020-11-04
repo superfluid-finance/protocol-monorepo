@@ -52,15 +52,10 @@ contract("SuperToken's ERC777 implementation", accounts => {
         );
     });
 
-
     context("with default operators", async () => {
         beforeEach(async function () {
             await this.token.setupDefaultOperators(defaultOperators);
         });
-
-        // it("does not emit AuthorizedOperator events for default operators", async function () {
-        //     await expectEvent.notEmitted.inConstruction(this.token, "AuthorizedOperator");
-        // });
 
         describe("basic information", function () {
             it("returns the name", async function () {
@@ -69,6 +64,10 @@ contract("SuperToken's ERC777 implementation", accounts => {
 
             it("returns the symbol", async function () {
                 expect(await this.token.symbol()).to.equal("TESTx");
+            });
+
+            it("returns decimals (non-ERC777 standard)", async function () {
+                assert.equal(await this.token.decimals.call(), 18);
             });
 
             it("returns a granularity of 1", async function () {
@@ -104,8 +103,11 @@ contract("SuperToken's ERC777 implementation", accounts => {
                     this.token.address, web3.utils.soliditySha3("ERC20Token"))
                 ).to.equal(this.token.address);
             });
-
         });
+
+        // it("does not emit AuthorizedOperator events for default operators", async function () {
+        //     await expectEvent.notEmitted.inConstruction(this.token, "AuthorizedOperator");
+        // });
 
         context("with no ERC777TokensSender and no ERC777TokensRecipient implementers", function () {
             describe("send/burn", function () {

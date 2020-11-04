@@ -40,6 +40,7 @@ module.exports = class Framework {
         // load contracts
         this.contracts = {};
         if (!isTruffle) {
+            console.debug("Using Superfluid SDK outside of the truffle environment");
             if (!web3Provider) throw new Error("web3Provider is required");
             // load contracts from ABI
             contractNames.forEach(i => {
@@ -51,6 +52,7 @@ module.exports = class Framework {
             });
             this.web3 = new Web3(web3Provider);
         } else {
+            console.debug("Using Superfluid SDK within the truffle environment");
             // load contracts from truffle artifacts
             contractNames.forEach(i => {
                 this.contracts[i] = global.artifacts.require(i);
@@ -145,9 +147,10 @@ module.exports = class Framework {
     /**
      * @dev Create the ERC20 wrapper from underlying token
      * @param {Any} tokenInfo the TokenInfo contract object to the underlying token
+     * @param {address} from (optional) send transaction from
      * @return {Promise<Transaction>} web3 transaction object
      */
-    async createERC20Wrapper(tokenInfo) {
+    async createERC20Wrapper(tokenInfo, from) {
         const tokenInfoName = await tokenInfo.name.call();
         const tokenInfoSymbol = await tokenInfo.symbol.call();
         const tokenInfoDecimals = await tokenInfo.decimals.call();
@@ -156,6 +159,7 @@ module.exports = class Framework {
             tokenInfoDecimals,
             `Super ${tokenInfoName}`,
             `${tokenInfoSymbol}x`,
+            ...(from && [{ from }] || []) // don't mind this silly js stuff, thanks to web3.js
         );
     }
 

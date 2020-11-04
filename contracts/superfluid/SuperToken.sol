@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.3;
+pragma solidity 0.7.4;
 
 import { Proxiable } from "../upgradability/Proxiable.sol";
 import { Ownable } from "../access/Ownable.sol";
@@ -17,8 +17,9 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../utils/ERC777Helper.sol";
 
-import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
@@ -35,8 +36,9 @@ contract SuperToken is
     ISuperToken
 {
 
-    using SignedSafeMath for int256;
     using SafeMath for uint256;
+    using SafeCast for uint256;
+    using SignedSafeMath for int256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
 
@@ -68,8 +70,8 @@ contract SuperToken is
     function initialize(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
-        string calldata name,
-        string calldata symbol,
+        string calldata n,
+        string calldata s,
         ISuperfluid host
     )
         external
@@ -83,8 +85,8 @@ contract SuperToken is
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
 
-        _name = name;
-        _symbol = symbol;
+        _name = n;
+        _symbol = s;
 
         // register interfaces
         ERC777Helper.register(address(this));
@@ -183,7 +185,7 @@ contract SuperToken is
     )
         private
     {
-        SuperfluidToken._move(from, to, int256(amount)); // FIXME safe downcasting
+        SuperfluidToken._move(from, to, amount.toInt256());
 
         emit Sent(operator, from, to, amount, userData, operatorData);
         emit Transfer(from, to, amount);
@@ -217,7 +219,7 @@ contract SuperToken is
     {
         require(account != address(0), "SuperToken: mint to zero address");
 
-        SuperfluidToken._mint(account, int256(amount));
+        SuperfluidToken._mint(account, amount.toInt256());
 
         _callTokensReceived(operator, address(0), account, amount, userData, operatorData, true);
 
@@ -245,7 +247,7 @@ contract SuperToken is
 
         _callTokensToSend(operator, from, address(0), amount, data, operatorData);
 
-        SuperfluidToken._burn(from, int256(amount));
+        SuperfluidToken._burn(from, amount.toInt256());
 
         emit Burned(operator, from, amount, data, operatorData);
         emit Transfer(from, address(0), amount);
@@ -491,11 +493,10 @@ contract SuperToken is
         address account,
         uint256 amount
     ) private {
-        uint256 underlyingAmount;
-        (underlyingAmount, amount) = _toUnderlyingAmount(amount);
+        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
         _underlyingToken.transferFrom(account, address(this), underlyingAmount);
-        _mint(operator, account, amount, "", "");
-        emit TokenUpgraded(account, amount);
+        _mint(operator, account, actualAmount, "", "");
+        emit TokenUpgraded(account, actualAmount);
     }
 
     function _downgrade(
@@ -504,16 +505,12 @@ contract SuperToken is
         uint256 amount,
         bytes memory data,
         bytes memory operatorData) private {
-        // - even though _burn will check the (actual) amount availability again
-        // we need to first check it here
-        // - in case of downcasting of decimals, actual amount can be smaller than
-        // requested amount
-        require(balanceOf(account) >= amount, "SuperToken: downgrade amount exceeds balance");
-        uint256 underlyingAmount;
-        (underlyingAmount, amount) = _toUnderlyingAmount(amount);
-        _burn(operator, account, amount, data, operatorData);
+        // - in case of downcasting of decimals, actual amount can be smaller than requested amount
+        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
+         // _burn will check the (actual) amount availability again
+        _burn(operator, account, actualAmount, data, operatorData);
         _underlyingToken.transfer(account, underlyingAmount);
-        emit TokenDowngraded(account, amount);
+        emit TokenDowngraded(account, actualAmount);
     }
 
     function _toUnderlyingAmount(uint256 amount)
@@ -547,7 +544,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _approve(account, spender, amount);
     }
 
@@ -560,7 +556,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _transferFrom(account, sender, recipient, amount);
     }
 
@@ -568,7 +563,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _upgrade(msg.sender, account, amount);
     }
 
@@ -576,8 +570,16 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
+    }
+
+    /**************************************************************************
+    * Modifiers
+    *************************************************************************/
+
+    modifier onlyHost() {
+        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
+        _;
     }
 
 }

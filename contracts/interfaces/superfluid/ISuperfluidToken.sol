@@ -11,6 +11,10 @@ import { ISuperAgreement } from "./ISuperAgreement.sol";
  */
 interface ISuperfluidToken {
 
+    /**************************************************************************
+     * Basic information
+     *************************************************************************/
+
     /**
      * @dev Get superfluid host contract address
      */
@@ -19,18 +23,6 @@ interface ISuperfluidToken {
     /**************************************************************************
      * Real-time balance functions
      *************************************************************************/
-
-    /**
-    * @dev Check if one account is insolvent
-    * @param account Account check if is insolvent
-    * @return isInsolvent Is the account insolvent?
-    */
-    function isAccountInsolvent(
-       address account
-    )
-       external
-       view
-       returns(bool isInsolvent);
 
     /**
     * @dev Calculate the real balance of a user, taking in consideration all agreements of the account
@@ -58,6 +50,18 @@ interface ISuperfluidToken {
 
        view
        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+
+      /**
+      * @dev Check if one account is insolvent
+      * @param account Account check if is insolvent
+      * @return isInsolvent Is the account insolvent?
+      */
+      function isAccountInsolvent(
+         address account
+      )
+         external
+         view
+         returns(bool isInsolvent);
 
     /**
     * @dev Get a list of agreements that is active for the account
@@ -157,25 +161,6 @@ interface ISuperfluidToken {
     );
 
     /**
-     * @dev Liquidate the Aagreement
-     * @param liquidator Address of the executer of liquidation
-     * @param id Agreement ID
-     * @param account Account of the agrement
-     * @param deposit Deposit from the account that is going to taken as penalty
-     *
-     * Modifiers:
-     *  - onlyAgreement
-     */
-    function liquidateAgreement
-    (
-        address liquidator,
-        bytes32 id,
-        address account,
-        uint256 deposit
-    )
-        external;
-
-    /**
      * @dev Update agreement state slot
      * @param account Account to be updated
      *
@@ -218,22 +203,6 @@ interface ISuperfluidToken {
         returns (bytes32[] memory slotData);
 
     /**
-     * @dev Agreement liquidation event
-     * @param agreementClass Contract address of the agreement
-     * @param id Agreement ID
-     * @param penaltyAccount Account of the agreement
-     * @param rewardAccount Account that collect the reward
-     * @param deposit Amount of liquidation fee collected
-     */
-    event AgreementLiquidated(
-        address indexed agreementClass,
-        bytes32 id,
-        address indexed penaltyAccount,
-        address indexed rewardAccount,
-        uint256 deposit
-    );
-
-    /**
      * @dev Agreement account state updated event
      * @param agreementClass Contract address of the agreement
      * @param account Account of the agrement
@@ -260,6 +229,60 @@ interface ISuperfluidToken {
     )
         external;
 
+    /**
+     * @dev Agreement liquidation event
+     * @param agreementClass Contract address of the agreement
+     * @param id Agreement ID
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param rewardAccount Account that collect the reward
+     * @param rewardAmount Amount of liquidation reward
+     */
+    event AgreementLiquidated(
+        address indexed agreementClass,
+        bytes32 id,
+        address indexed penaltyAccount,
+        address indexed rewardAccount,
+        uint256 rewardAmount
+    );
+
+    /**
+     * @dev System bailout occurred
+     * @param bailoutAccount Account that bailout the penalty account
+     * @param bailoutAmount Amount of account bailout
+     */
+    event Bailout(
+        address indexed bailoutAccount,
+        uint256 bailoutAmount
+    );
+
+    /**
+     * @dev Liquidate the Aagreement
+     * @param id Agreement ID
+     * @param liquidator Address of the executer of liquidation
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param rewardAmount Amount of liquidation reward
+     * @param bailoutAmount Amount of account bailout needed
+     *
+     * NOTE:
+     * Liquidation rules:
+     *  - If a bailout is required (bailoutAmount > 0)
+     *     - the actual reward goes to the liquidator,
+     *     - while the reward account becomes the bailout account
+     *     - total bailout include: bailout amount + reward amount
+     *
+     * Modifiers:
+     *  - onlyAgreement
+     */
+    function liquidateAgreement
+    (
+        bytes32 id,
+        address liquidator,
+        address penaltyAccount,
+        uint256 rewardAmount,
+        uint256 bailoutAmount
+    )
+        external;
+
     /**************************************************************************
      * Function modifiers for access control and parameter validations
      *
@@ -268,9 +291,6 @@ interface ISuperfluidToken {
      *
      * NOTE: solidity-coverage not supporting it
      *************************************************************************/
-
-    /// @dev The msg.sender must be host contract
-    //modifier onlyHost() virtual;
 
     /// @dev The msg.sender must be a listed agreement.
     //modifier onlyAgreement() virtual;

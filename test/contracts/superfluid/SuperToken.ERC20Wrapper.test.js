@@ -39,8 +39,26 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
         } = t.contracts);
     });
 
-    describe("#1 SuperToken.upgrade/downgrade", () => {
-        it("#1.1 - should upgrade if enough balance", async () => {
+    describe("#1 SuperToken wrapper basics", () => {
+        it("#1.1 - should support upgradability", async () => {
+            assert.equal(await superToken.proxiableUUID.call(),
+                web3.utils.sha3("org.superfluid-finance.contracts.SuperToken.implementation"));
+        });
+
+        it("#1.2 should have immutable storage layout", async () => {
+            const SuperTokenMock = artifacts.require("SuperTokenMock");
+            const tester = await SuperTokenMock.new();
+            await tester.validateStorageLayout.call();
+        });
+
+        it("#1.3 should return underlying token", async () => {
+            assert.equal(await superToken.getUnderlyingToken.call(),
+                t.contracts.testToken.address);
+        });
+    });
+
+    describe("#2 SuperToken.upgrade/downgrade", () => {
+        it("#2.1 - should upgrade if enough balance", async () => {
             const initialBalance = await testToken.balanceOf.call(alice);
 
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2.0 tokens from alice") (
@@ -63,14 +81,14 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             await t.validateSystem();
         });
 
-        it("#1.2 - should not upgrade without enough underlying balance", async() => {
+        it("#2.2 - should not upgrade without enough underlying balance", async() => {
             const initialBalance = await testToken.balanceOf.call(alice);
             await expectRevert(web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
                 initialBalance.add(toBN(1)), {from: alice}), "ERC20: transfer amount exceeds balance");
             await t.validateSystem();
         });
 
-        it("#1.3 - should downgrade by single account", async() => {
+        it("#2.3 - should downgrade by single account", async() => {
             const initialBalance = await testToken.balanceOf.call(alice);
 
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice") (
@@ -94,7 +112,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             await t.validateSystem();
         });
 
-        it("#1.4 - should downgrade by multiple accounts", async () => {
+        it("#2.4 - should downgrade by multiple accounts", async () => {
             const initialBalanceAlice = await testToken.balanceOf.call(alice);
             const initialSuperBalanceAlice = await superToken.balanceOf.call(alice);
 
@@ -128,14 +146,14 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             await t.validateSystem();
         });
 
-        it("#1.5 - should not downgrade if there is no balance", async () => {
+        it("#2.5 - should not downgrade if there is no balance", async () => {
             await expectRevert(web3tx(superToken.downgrade, "SuperToken.downgrade - bad balance")(
                 toBN(1), {
                     from: alice
-                }), "SuperToken: downgrade amount exceeds balance");
+                }), "SuperfluidToken: burn amount exceeds balance");
         });
 
-        it("#1.6 - should convert from smaller underlying decimals", async () => {
+        it("#2.6 - should convert from smaller underlying decimals", async () => {
             const token6D = await web3tx(TestToken.new, "TestToken.new")(
                 "Test Token 6 Decimals", "TEST6D",
                 {
@@ -198,7 +216,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 toWad("1.123456").toString());
 
-            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
+            await web3tx(superToken6D.downgrade, "downgrade from bob")(
                 toWad(1), {
                     from: bob
                 }
@@ -210,13 +228,22 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 toWad("0.123456").toString());
 
-            await expectRevert(superToken6D.downgrade(
-                toWad("0.1234561"), {
+            // extra decimals should be discarded due to precision issue
+            await web3tx(superToken6D.downgrade, "downgrade extra decimals from bob")(
+                toWad("0.10000012345"), {
                     from: bob
                 }
-            ), "SuperToken: downgrade amount exceeds balance");
-            await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
-                toWad("0.123456"), {
+            );
+            assert.equal(
+                (await token6D.balanceOf.call(bob)).toString(),
+                toDecimals("99.976544", 6));
+            assert.equal(
+                (await superToken6D.balanceOf.call(bob)).toString(),
+                toWad("0.023456").toString());
+
+            // downgrade the rest
+            await web3tx(superToken6D.downgrade, "downgrade the rest from bob")(
+                toWad("0.023456"), {
                     from: bob
                 }
             );
@@ -228,7 +255,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 toWad("0").toString());
         });
 
-        it("#1.7 - should convert from larger underlying decimals", async () => {
+        it("#2.7 - should convert from larger underlying decimals", async () => {
             const token20D = await web3tx(TestToken.new, "TestToken.new")(
                 "Test Token 20 Decimals", "TEST20D",
                 {

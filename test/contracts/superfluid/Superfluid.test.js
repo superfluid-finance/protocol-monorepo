@@ -168,82 +168,86 @@ contract("Superfluid Host Contract", accounts => {
 
     describe("#5 Non-app Call Proxy", async () => {
         // TODO
-        // 5.1 callAgreement
-        // 5.2 callAppAction
-        it("#5.30 batchCall upgrade/approve/transfer/downgrade in 1", async () => {
-            await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
-                toWad("10"), {
-                    from: alice
-                }
-            );
+        // 5.a callAgreement
+        // 5.b callAppAction
 
-            await web3tx(superToken.approve, "SuperToken.approve - from alice to admin")(
-                admin,
-                toWad("3"), {
-                    from: alice
-                }
-            );
-            assert.equal(
-                (await superToken.allowance.call(alice, admin)).toString(),
-                toWad("3").toString());
+        // 5.c
+        context("#5.a batchCall", () => {
+            it("#5.a.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
+                await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
+                    toWad("10"), {
+                        from: alice
+                    }
+                );
 
-            await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
-                [
-                    [
-                        2, // upgrade
-                        superToken.address,
-                        web3.eth.abi.encodeParameters(
-                            ["uint256"],
-                            [toWad("10").toString()])
-                    ],
-                    [
-                        0, // approve
-                        superToken.address,
-                        web3.eth.abi.encodeParameters(
-                            ["address", "uint256"],
-                            [bob, toWad("1").toString()])
-                    ],
-                    [
-                        1, // transferFrom own funds
-                        superToken.address,
-                        web3.eth.abi.encodeParameters(
-                            ["address", "address", "uint256"],
-                            [admin, bob, toWad("2").toString()])
-                    ],
-                    [
-                        1, // transferFrom other's funds
-                        superToken.address,
-                        web3.eth.abi.encodeParameters(
-                            ["address", "address", "uint256"],
-                            [alice, bob, toWad("3").toString()])
-                    ],
-                    [
-                        3, // downgrade
-                        superToken.address,
-                        web3.eth.abi.encodeParameters(["uint256"], [toWad("5").toString()])
-                    ]
-                ],
-                {
-                    from: admin
-                }
-            );
-            assert.equal(
-                (await superToken.balanceOf.call(admin)).toString(),
-                toWad("3").toString());
-            assert.equal(
-                (await superToken.allowance.call(alice, admin)).toString(),
-                toWad("0").toString());
-            assert.equal(
-                (await superToken.balanceOf.call(alice)).toString(),
-                toWad("7").toString());
-            assert.equal(
-                (await superToken.allowance.call(admin, bob)).toString(),
-                toWad("1").toString());
-            assert.equal(
-                (await superToken.balanceOf.call(bob)).toString(),
-                toWad("5").toString());
+                await web3tx(superToken.approve, "SuperToken.approve - from alice to admin")(
+                    admin,
+                    toWad("3"), {
+                        from: alice
+                    }
+                );
+                assert.equal(
+                    (await superToken.allowance.call(alice, admin)).toString(),
+                    toWad("3").toString());
 
-            await t.validateSystem();
+                await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                    [
+                        [
+                            2, // upgrade
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["uint256"],
+                                [toWad("10").toString()])
+                        ],
+                        [
+                            0, // approve
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["address", "uint256"],
+                                [bob, toWad("1").toString()])
+                        ],
+                        [
+                            1, // transferFrom own funds
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["address", "address", "uint256"],
+                                [admin, bob, toWad("2").toString()])
+                        ],
+                        [
+                            1, // transferFrom other's funds
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["address", "address", "uint256"],
+                                [alice, bob, toWad("3").toString()])
+                        ],
+                        [
+                            3, // downgrade
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(["uint256"], [toWad("5").toString()])
+                        ]
+                    ],
+                    {
+                        from: admin
+                    }
+                );
+                assert.equal(
+                    (await superToken.balanceOf.call(admin)).toString(),
+                    toWad("3").toString());
+                assert.equal(
+                    (await superToken.allowance.call(alice, admin)).toString(),
+                    toWad("0").toString());
+                assert.equal(
+                    (await superToken.balanceOf.call(alice)).toString(),
+                    toWad("7").toString());
+                assert.equal(
+                    (await superToken.allowance.call(admin, bob)).toString(),
+                    toWad("1").toString());
+                assert.equal(
+                    (await superToken.balanceOf.call(bob)).toString(),
+                    toWad("5").toString());
+
+                await t.validateSystem();
+            });
         });
     });
 

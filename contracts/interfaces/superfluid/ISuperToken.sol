@@ -347,9 +347,9 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlyHost
     */
     function operationApprove(
-    address account,
-    address spender,
-    uint256 amount
+        address account,
+        address spender,
+        uint256 amount
     ) external;
 
     /**
@@ -363,10 +363,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlyHost
     */
     function operationTransferFrom(
-    address account,
-    address sender,
-    address recipient,
-    uint256 amount
+        address account,
+        address sender,
+        address recipient,
+        uint256 amount
     ) external;
 
     /**
@@ -388,5 +388,18 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlyHost
     */
     function operationDowngrade(address account, uint256 amount) external;
+
+
+    /**************************************************************************
+    * Function modifiers for access control and parameter validations
+    *
+    * While they cannot be explicitly stated in function definitions, they are
+    * listed in function definition comments instead for clarity.
+    *
+    * NOTE: solidity-coverage not supporting it
+    *************************************************************************/
+
+    /// @dev The msg.sender must be host contract
+    //modifier onlyHost() virtual;
 
 }

@@ -7,9 +7,10 @@ const deploySuperToken = require("../../scripts/deploy-super-token");
 const SuperfluidSDK = require("../..");
 
 
-contract("Framework class", () => {
+contract("Framework class", accounts => {
 
-    const t = new TestEnvironment([]);
+    const t = new TestEnvironment(accounts.slice(0, 1));
+    const { admin } = t.aliases;
 
     before(async () => {
         await t.reset();
@@ -75,7 +76,7 @@ contract("Framework class", () => {
         describe("and load tokens", () => {
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
-                    isTruffle: true,
+                    web3Provider: web3.currentProvider,
                     tokens: ["fUSDC", "fDAI"]
                 });
                 await sf.initialize();
@@ -87,7 +88,7 @@ contract("Framework class", () => {
 
             it("failed due to unregistered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
-                    isTruffle: true,
+                    web3Provider: web3.currentProvider,
                     tokens: ["fML"]
                 });
                 await expectRevert(sf.initialize(), "Token fML is not registered");
@@ -96,7 +97,7 @@ contract("Framework class", () => {
             it("failed due to no super token wrapper", async () => {
                 await deployTestToken(t.errorHandler, [":", "SASHIMI"]);
                 const sf = new SuperfluidSDK.Framework({
-                    isTruffle: true,
+                    web3Provider: web3.currentProvider,
                     tokens: ["SASHIMI"]
                 });
                 await expectRevert(sf.initialize(), "Token SASHIMI doesn't have a super token wrapper");
@@ -109,7 +110,7 @@ contract("Framework class", () => {
 
         beforeEach(async () => {
             sf = new SuperfluidSDK.Framework({
-                isTruffle: true,
+                web3Provider: web3.currentProvider,
                 tokens: ["fUSDC"]
             });
             await sf.initialize();
@@ -135,14 +136,14 @@ contract("Framework class", () => {
                 await deployTestToken(t.errorHandler, [":", "MISO"]);
                 const misoAddress = await sf.resolver.get("tokens.MISO");
                 const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
-                await sf.createERC20Wrapper(misoToken);
+                await sf.createERC20Wrapper(misoToken, admin);
                 const wrapper = await sf.getERC20Wrapper(misoToken);
                 assert.isTrue(wrapper.created);
             });
 
             it("failed on existing token", async () => {
                 await expectRevert(
-                    sf.createERC20Wrapper(sf.tokens.fUSDC),
+                    sf.createERC20Wrapper(sf.tokens.fUSDC, admin),
                     "SF: createERC20Wrapper wrapper exist");
             });
         });

@@ -22,7 +22,7 @@
     "ethereumjs-util": "7.0.7"
   },
   "devDependencies": {
-    "@decentral.ee/web3-helpers": "^0.3.2",
+    "@decentral.ee/web3-helpers": "^0.3.3",
     "@openzeppelin/test-helpers": "^0.5.9",
     "@truffle/hdwallet-provider": "^1.1.1",
     "dotenv": "^8.2.0",

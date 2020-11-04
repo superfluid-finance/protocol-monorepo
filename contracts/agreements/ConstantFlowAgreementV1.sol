@@ -18,6 +18,7 @@ import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+import { Int96SafeMath } from "../utils/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
@@ -30,6 +31,7 @@ contract ConstantFlowAgreementV1 is
     using SafeCast for uint256;
     using SignedSafeMath for int256;
     using SafeCast for int256;
+    using Int96SafeMath for int96;
     using AgreementLibrary for AgreementLibrary.Context;
 
     struct FlowData {
@@ -219,6 +221,7 @@ contract ConstantFlowAgreementV1 is
         if (isLiquidator) {
             _liquidateAgreement(token, flowId, flowData, sender, msgSender);
         }
+
         _terminateAgreement(token, flowId, flowData, sender, receiver);
 
         newCtx = _ctxUpdateDeposit(
@@ -333,7 +336,7 @@ contract ConstantFlowAgreementV1 is
         state.deposit += deposit;
         state.owedDeposit += owedDeposit;
 
-        token.updateAgreementStateSlot(account, 0, _encodeAccountState(state));
+        token.updateAgreementStateSlot(account, 0, _encodeFlowData(state));
         return state.flowRate;
     }
 
@@ -353,7 +356,7 @@ contract ConstantFlowAgreementV1 is
 
         //bytes32 flowId = _generateId(sender, receiver);
         (, FlowData memory data) = _getAgreementData(token, flowId);
-        allowanceUsed = _minimalDeposit(token, uint256(flowRate));
+        allowanceUsed = _minimalDeposit(token, flowRate);
         if(chargeDeposit) {
             (int256 availabelBalance, ,) = token.realtimeBalanceOf(sender, block.timestamp);
             require(availabelBalance > int256(allowanceUsed), "CFA: not enough available balance");
@@ -366,7 +369,7 @@ contract ConstantFlowAgreementV1 is
             0
         );
 
-        token.updateAgreementData(flowId, _encodeAgreementData(newData));
+        token.updateAgreementData(flowId, _encodeFlowData(newData));
 
         int96 totalSenderFlowRate = _updateAccountState(
             token,
@@ -493,10 +496,11 @@ contract ConstantFlowAgreementV1 is
         return !exist;
     }
 
-    function _minimalDeposit(ISuperfluidToken token, uint256 flowRate) internal view returns(uint256 deposit) {
+    function _minimalDeposit(ISuperfluidToken token, int96 flowRate) internal view returns(uint256 deposit) {
         ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
         uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
-        deposit = flowRate * liquidationPeriod;
+        assert(liquidationPeriod <= uint256(type(int96).max));
+        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod))));
     }
 
     function _updateDeposits(
@@ -508,7 +512,7 @@ contract ConstantFlowAgreementV1 is
         internal
     {
         //update data deposit and save it
-        token.updateAgreementData(flowId, _encodeAgreementData(data));
+        token.updateAgreementData(flowId, _encodeFlowData(data));
         (int256 availabelBalance, ,) = token.realtimeBalanceOf(account, block.timestamp);
         require(availabelBalance >= int256(data.owedDeposit - data.deposit), "CFA: not enough available balance");
         //update state
@@ -522,38 +526,50 @@ contract ConstantFlowAgreementV1 is
         );
     }
 
-    function _encodeAccountState
-    (
-        FlowData memory astate
-    )
-        private
-        pure
-        returns(bytes32[] memory state)
-    {
-        state = new bytes32[](1);
-        state[0] = bytes32(
-            (uint256(astate.timestamp)) << 224 |
-            (uint256(uint96(astate.flowRate)) << 128) |
-            (uint256(astate.deposit)) <<  64 |
-            (uint256(astate.owedDeposit))
-        );
-    }
 
-    function _encodeAgreementData
+    // # Flow data operations
+    //
+    // Data packing:
+    //
+    // WORD A: | timestamp  | flowRate | deposit | owedDeposit |
+    //         | 32b        | 96b      | 64      | 64          |
+    //
+    // NOTE:
+    // - flowRate has 96 bits length
+    // - deposit has 96 bits length too, but 32 bits are clipped-off when storing
+
+    function _encodeFlowData
     (
-        FlowData memory adata
+        FlowData memory flowData
     )
         private
         pure
-        returns (bytes32[] memory data)
+        returns(bytes32[] memory data)
     {
         data = new bytes32[](1);
         data[0] = bytes32(
-            (uint256(adata.timestamp) << 224) |
-            (uint256(uint96(adata.flowRate)) << 128) |
-            (uint256(adata.deposit) <<  64) |
-            (uint256(adata.owedDeposit))
+            ((uint256(flowData.timestamp)) << 224) |
+            ((uint256(uint96(flowData.flowRate)) << 128)) |
+            ((uint256(flowData.deposit)) >> 32 /* clipping off data */ << 64) |
+            ((uint256(flowData.owedDeposit)) >> 32 /* clipping off data */)
         );
+    }
+
+    function _decodeFlowData
+    (
+        uint256 wordA
+    )
+        private
+        pure
+        returns(bool exist, FlowData memory flowData)
+    {
+        exist = wordA > 0;
+        if (exist) {
+            flowData.timestamp = uint32(wordA >> 224);
+            flowData.flowRate = int96((wordA >> 128) & uint256(type(uint96).max));
+            flowData.deposit = ((wordA >> 64) & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
+            flowData.owedDeposit = (wordA & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
+        }
     }
 
     function _getAccountState
@@ -566,14 +582,7 @@ contract ConstantFlowAgreementV1 is
         returns(bool exist, FlowData memory state)
     {
         bytes32[] memory data = token.getAgreementStateSlot(address(this), account, 0, 1);
-        uint256 wordA = uint256(data[0]);
-        exist = wordA > 0;
-        if (exist) {
-            state.timestamp = uint32(wordA >> 224);
-            state.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
-            state.deposit = uint64((wordA >> 64) & uint64(int64(-1)));
-            state.owedDeposit = uint64(wordA & uint64(int64(-1)));
-        }
+        return _decodeFlowData(uint256(data[0]));
     }
 
     function _getAgreementData
@@ -586,14 +595,7 @@ contract ConstantFlowAgreementV1 is
         returns (bool exist, FlowData memory adata)
     {
         bytes32[] memory data = token.getAgreementData(address(this), dId, 1);
-        uint256 wordA = uint256(data[0]);
-        exist = wordA > 0;
-        if (exist) {
-            adata.timestamp = uint32(wordA >> 224);
-            adata.flowRate = int96((wordA >> 128) & uint96(int96(-1)));
-            adata.deposit = uint64(wordA >> 64 & uint64(-1));
-            adata.owedDeposit = uint64(wordA & uint64(-1));
-        }
+        return _decodeFlowData(uint256(data[0]));
     }
 
     function _ctxUpdateDeposit(

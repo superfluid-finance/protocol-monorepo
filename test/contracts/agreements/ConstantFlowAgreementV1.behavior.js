@@ -8,8 +8,14 @@ const {
 
 //const traveler = require("ganache-time-traveler");
 
-const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
 
+const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
+const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
+
+function clipDepositNumber(deposit) {
+    // last 32 bites of the deposit (96 bites) is clipped off
+    return deposit.shrn(32).shln(32);
+}
 
 async function _shouldChangeFlow({
     fn,
@@ -20,12 +26,11 @@ async function _shouldChangeFlow({
     expectedOwedDepositRatio
 }) {
     const { superToken, governance } = testenv.contracts;
-    const LIQUIDATION_PERIOD = (await governance.getLiquidationPeriod(superToken.address)).toNumber();
-    const expectedDeposit = toBN(flowRate)
-        .mul(toBN(LIQUIDATION_PERIOD));
-    const expectedOwedDeposit = toBN(expectedDeposit)
-        .mul(toBN(expectedOwedDepositRatio || 0))
-        .toString();
+    const LIQUIDATION_PERIOD = toBN(await governance.getLiquidationPeriod(superToken.address));
+    const expectedDeposit = clipDepositNumber(toBN(flowRate)
+        .mul(LIQUIDATION_PERIOD)).toString();
+    const expectedOwedDeposit = clipDepositNumber(toBN(expectedDeposit)
+        .mul(toBN(expectedOwedDepositRatio || 0))).toString();
     const flowId = {
         superToken: superToken.address,
         sender: testenv.aliases[sender],
@@ -61,7 +66,7 @@ async function _shouldChangeFlow({
         "wrong flowrate of the flow");
     assert.equal(
         flowInfo.deposit,
-        expectedDeposit.toString(),
+        expectedDeposit,
         "wrong deposit amount of the flow");
     assert.equal(
         flowInfo.owedDeposit,
@@ -70,7 +75,7 @@ async function _shouldChangeFlow({
 
     assert.equal(
         toBN(senderBalance2.deposit).sub(toBN(senderBalance1.deposit)).toString(),
-        expectedDeposit.toString(),
+        expectedDeposit,
         "wrong deposit amount of sender");
 
     assert.equal(
@@ -230,12 +235,18 @@ async function shouldDeleteFlow({
 //
 function shouldBehaveLikeCFAv1({prefix, testenv}) {
 
+    let testToken;
     let superToken;
+    let LIQUIDATION_PERIOD;
 
     beforeEach(async function () {
+        let governance;
         ({
+            governance,
+            testToken,
             superToken,
         } = testenv.contracts);
+        LIQUIDATION_PERIOD = toBN(await governance.getLiquidationPeriod(superToken.address));
     });
 
     describe(`${prefix}.1 createFlow`, () => {
@@ -299,6 +310,15 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                 receiver: testenv.aliases.bob,
                 flowRate: FLOW_RATE1.toString()
             }), "CFA: flow already exist");
+        });
+
+        it(`${prefix}.1.7 should reject when overflow flow rate`, async () => {
+            await expectRevert(testenv.sf.cfa.createFlow({
+                superToken: superToken.address,
+                sender: testenv.aliases.alice,
+                receiver: testenv.aliases.bob,
+                flowRate: MAXIMUM_FLOW_RATE.toString(),
+            }), "Int96SafeMath: multiplication overflow");
         });
     });
 
@@ -419,6 +439,42 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         });
     });
 
+    describe(`${prefix}.4 should support different flow rates`, () => {
+        [
+            ["small", toBN(2)],
+            ["typical", FLOW_RATE1],
+            ["large", toWad(42).div(toBN(3600))]
+        ].forEach(([label, flowRate], i) => {
+            it(`${prefix}.4.${i} should support ${label} flow rate (${flowRate})`, async () => {
+                // sufficient liquidity for the test case
+                // - it needs 1x liquidation period
+                // - it adds an additional 60 seconds as extra safe margin
+                const sufficientLiquidity = flowRate
+                    .mul(LIQUIDATION_PERIOD).mul(toBN(2)) // FIXME remove x2
+                    .add(toBN(60));
+                await testToken.mint(testenv.aliases.alice, sufficientLiquidity, {
+                    from: testenv.aliases.alice
+                });
+                await superToken.upgrade(sufficientLiquidity, {
+                    from: testenv.aliases.alice
+                });
+
+                await shouldCreateFlow({
+                    testenv,
+                    sender: "alice",
+                    receiver: "bob",
+                    flowRate: flowRate.div(toBN(2)),
+                });
+
+                await shouldUpdateFlow({
+                    testenv,
+                    sender: "alice",
+                    receiver: "bob",
+                    flowRate: flowRate,
+                });
+            });
+        });
+    });
 }
 
 module.exports = {

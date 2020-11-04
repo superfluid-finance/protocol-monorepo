@@ -19,7 +19,7 @@ contract("t", accounts => {
     let cfa;
     let superfluid;
 
-    const { INIT_BALANCE } = t.constants;
+    const { INIT_BALANCE } = t.configs;
     const { alice, bob, carol } = t.aliases;
 
     before(async () => {

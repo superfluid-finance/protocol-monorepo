@@ -109,7 +109,7 @@ module.exports = class TestEnvironment {
             const userAddress = this.aliases[alias];
             await web3tx(this.contracts.testToken.mint, `Mint token for ${alias}`)(
                 userAddress,
-                this.constants.INIT_BALANCE, {
+                this.configs.INIT_BALANCE, {
                     from: userAddress
                 }
             );
@@ -121,7 +121,7 @@ module.exports = class TestEnvironment {
             );
             if (doUpgrade) {
                 await web3tx(this.contracts.superToken.upgrade, `Upgrade token for ${alias}`)(
-                    this.constants.INIT_BALANCE, {
+                    this.configs.INIT_BALANCE, {
                         from: userAddress
                     }
                 );

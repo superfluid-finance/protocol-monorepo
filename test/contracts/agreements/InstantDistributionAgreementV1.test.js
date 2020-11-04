@@ -14,7 +14,7 @@ contract("Instance Distribution Agreement v1", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
     const { alice, bob, carol, dan } = t.aliases;
-    const { INIT_BALANCE } = t.constants;
+    const { INIT_BALANCE } = t.configs;
 
     let superToken;
     let ida;

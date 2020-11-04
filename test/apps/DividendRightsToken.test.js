@@ -14,7 +14,8 @@ contract("DividendRightsToken", accounts => {
     let ida;
     let superfluid;
 
-    const { MAX_UINT256, INIT_BALANCE } = t.constants;
+    const { INIT_BALANCE } = t.configs;
+    const { MAX_UINT256 } = t.constants;
     const { alice, bob, carol, dan } = t.aliases;
 
     before(async () => {

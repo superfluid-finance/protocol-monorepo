@@ -20,7 +20,8 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
     const { admin, alice, bob, carol, dan } = t.aliases;
-    const { INIT_BALANCE, ZERO_ADDRESS } = t.constants;
+    const { INIT_BALANCE } = t.configs;
+    const { ZERO_ADDRESS } = t.constants;
 
     let LIQUIDATION_PERIOD;
 

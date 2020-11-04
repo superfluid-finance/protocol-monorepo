@@ -16,7 +16,7 @@ const FLOW_RATE = toBN("10000000000000");
 const FLOW_RATE2 = "385802469135802"; // use a less nice number to test rounding
 
 
-contract("Constant Flow Agreement", accounts => {
+contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
     const { admin, alice, bob, carol, dan } = t.aliases;
@@ -971,6 +971,7 @@ contract("Constant Flow Agreement", accounts => {
         });
 
         it("#3.2 should stop streaming after deletion with multiple flows", async() => {
+            const ROUNDING_ERROR_AMOUNT = toBN(10000);
 
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: bob});
@@ -1062,13 +1063,13 @@ contract("Constant Flow Agreement", accounts => {
             const bobDeposit = await superToken.realtimeBalanceOf.call(bob, endBlock.timestamp);
 
             let user1Round = ((user1Balance.add(aliceDeposit.deposit)).sub(toBN(finalUser1)));
-            const user1ToRound = user1Round.lte(t.constants.DUST_AMOUNT);
+            const user1ToRound = user1Round.lte(ROUNDING_ERROR_AMOUNT);
             if(!user1ToRound) {
                 user1Round = 0;
             }
 
             let user2Round = ((user2Balance.add(bobDeposit.deposit)).sub(toBN(finalUser2)));
-            const user2ToRound = user2Round.lte(t.constants.DUST_AMOUNT);
+            const user2ToRound = user2Round.lte(ROUNDING_ERROR_AMOUNT);
             if(!user2ToRound) {
                 user2Round = toBN(0);
             }

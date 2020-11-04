@@ -42,14 +42,13 @@ module.exports = class TestEnvironment {
             return acc;
         }, {});
 
-        this.constants = {
-            MAX_UINT256: "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+        this.configs = {
             INIT_BALANCE: toWad(100),
-            ZERO_ADDRESS: "0x0000000000000000000000000000000000000000",
-            ZERO_BYTES32: "0x0000000000000000000000000000000000000000000000000000000000000000",
-            DUST_AMOUNT: toBN(10000),
             AUM_DUST_AMOUNT: toBN(10000),
         };
+
+        this.constants = Object.assign({
+        }, require("@openzeppelin/test-helpers").constants);
     }
 
     errorHandler(err) {
@@ -164,9 +163,9 @@ module.exports = class TestEnvironment {
         console.log(`Total supply of super tokens: ${wad4human(totalSupply)}`);
         console.log("======== System Validation Report End ========");
 
-        assert.isTrue(aum.add(this.constants.AUM_DUST_AMOUNT).gte(rtBalanceSum),
+        assert.isTrue(aum.add(this.configs.AUM_DUST_AMOUNT).gte(rtBalanceSum),
             "AUM should be equal or more than the real-time balance sum");
-        assert.isTrue(aum.sub(rtBalanceSum).lte(this.constants.AUM_DUST_AMOUNT),
+        assert.isTrue(aum.sub(rtBalanceSum).lte(this.configs.AUM_DUST_AMOUNT),
             "AUM minus the real-time balance sum should only be a dust amount");
         assert.equal(wad4human(aum, 8), wad4human(rtBalanceSum, 8),
             "AUM should match the real-time balance sum to at least 8 decimals during testing");

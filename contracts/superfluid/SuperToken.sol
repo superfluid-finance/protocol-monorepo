@@ -544,7 +544,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _approve(account, spender, amount);
     }
 
@@ -557,7 +556,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _transferFrom(account, sender, recipient, amount);
     }
 
@@ -565,7 +563,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _upgrade(msg.sender, account, amount);
     }
 
@@ -573,7 +570,6 @@ contract SuperToken is
         external override
         onlyHost
     {
-        // FIXME correct operator
         _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
     }
 

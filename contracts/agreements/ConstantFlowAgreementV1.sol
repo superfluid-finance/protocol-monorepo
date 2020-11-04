@@ -74,7 +74,7 @@ contract ConstantFlowAgreementV1 is
     {
         AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
-        require(_isNewFlow(token, flowId), "Flow already exist");
+        require(_isNewFlow(token, flowId), "CFA: flow already exist");
 
         if(ISuperfluid(msg.sender).isApp(ISuperApp(receiver)) ||
            ISuperfluid(msg.sender).isApp(ISuperApp(stcCtx.msgSender)))
@@ -138,7 +138,7 @@ contract ConstantFlowAgreementV1 is
         // TODO: Decode return cbdata before calling the next step
         AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
-        require(!_isNewFlow(token, flowId), "Flow doesn't exist");
+        require(!_isNewFlow(token, flowId), "CFA: flow doesn't exist");
         //require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
             bytes memory cbdata;
@@ -199,7 +199,7 @@ contract ConstantFlowAgreementV1 is
     {
         bytes32 flowId = _generateId(sender, receiver);
         (bool exist, FlowData memory flowData) = _getAgreementData(token, flowId);
-        require(exist, "FlowAgreement: flow does not exist");
+        require(exist, "CFA: flow doesn't exist");
 
         address msgSender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bool isLiquidator = (msgSender != sender && msgSender != receiver);
@@ -348,10 +348,8 @@ contract ConstantFlowAgreementV1 is
         private
         returns(uint256 allowanceUsed, FlowData memory newData)
     {
-        require(sender != receiver, "FlowAgreement: self flow not allowed");
-        require(flowRate != 0, "FlowAgreement: use delete flow");
-        require(flowRate > 0, "FlowAgreement: negative flow rate not allowed");
-
+        require(sender != receiver, "CFA: no self flow");
+        require(flowRate > 0, "CFA: invalid flow rate");
 
         //bytes32 flowId = _generateId(sender, receiver);
         (, FlowData memory data) = _getAgreementData(token, flowId);

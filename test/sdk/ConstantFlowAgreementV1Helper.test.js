@@ -5,7 +5,6 @@ const {
     expectRevert
 } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
-const SuperfluidSDK = require("../..");
 
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
@@ -18,13 +17,10 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
 
     before(async () => {
         await t.reset();
+        sf = t.sf;
     });
 
     beforeEach(async () => {
-        sf = new SuperfluidSDK.Framework({
-            web3Provider: web3.currentProvider
-        });
-        await sf.initialize();
         await t.createNewToken({ doUpgrade: true });
         ({ superToken } = t.contracts);
     });

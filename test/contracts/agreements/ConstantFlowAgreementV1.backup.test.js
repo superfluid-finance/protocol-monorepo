@@ -264,7 +264,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: alice,
                     }
-                ),"FlowAgreement: negative flow rate not allowed" );
+                ),"CFA: invalid flow rate");
         });
 
         it("#1.4 update active flow to negative flow rate should also fail", async() => {
@@ -297,7 +297,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: alice,
                     }
-                ), "FlowAgreement: negative flow rate not allowed");
+                ), "CFA: invalid flow rate");
 
             await t.validateSystem();
         });
@@ -382,7 +382,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: admin,
                     }
-                ), "Flow doesn't exist");
+                ), "CFA: flow doesn't exist");
 
             await t.validateSystem();
         });
@@ -418,7 +418,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: alice,
                     }
-                ), "FlowAgreement: use delete flow");
+                ), "CFA: invalid flow rate");
 
             await t.validateSystem();
         });
@@ -600,7 +600,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: alice,
                     }
-                ), "FlowAgreement: self flow not allowed");
+                ), "CFA: no self flow");
 
             await t.validateSystem();
         });
@@ -1241,7 +1241,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: alice,
                     }
-                ), "FlowAgreement: flow does not exist");
+                ), "CFA: flow doesn't exist");
         });
 
     });

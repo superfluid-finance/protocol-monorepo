@@ -74,6 +74,7 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
+        require(receiver != address(0), "CFA: receiver is zero");
         AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
         bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(stcCtx.msgSender != receiver, "CFA: no self flow");
@@ -140,12 +141,11 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        // TODO meta-tx support
-        // TODO: Decode return cbdata before calling the next step
+        require(receiver != address(0), "CFA: receiver is zero");
         AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(stcCtx.msgSender != receiver, "CFA: no self flow");
         require(flowRate > 0, "CFA: invalid flow rate");
-        bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
         require(_flowExists(token, flowId), "CFA: flow does not exist");
 
         //require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
@@ -208,6 +208,8 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
+        require(sender != address(0), "CFA: sender is zero");
+        require(receiver != address(0), "CFA: receiver is zero");
         bytes32 flowId = _generateId(sender, receiver);
         (bool exist, FlowData memory flowData) = _getAgreementData(token, flowId);
         require(exist, "CFA: flow does not exist");
@@ -358,7 +360,6 @@ contract ConstantFlowAgreementV1 is
         private
         returns(uint256 depositAllowanceUsed, FlowData memory newFlowData)
     {
-        //bytes32 flowId = _generateId(sender, receiver);
         (, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
         uint256 newDeposit = _calculateDeposit(token, flowRate);
 
@@ -482,9 +483,6 @@ contract ConstantFlowAgreementV1 is
     }
 
     function _generateId(address sender, address receiver) private pure returns(bytes32 id) {
-        require(sender != address(0), "Sender is zero");
-        require(receiver != address(0), "Receiver is zero");
-
         return keccak256(abi.encodePacked(sender, receiver));
     }
 

@@ -12,6 +12,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
     });
 
     beforeEach(async function () {
+        await t.resetData();
         await t.createNewToken();
     });
 

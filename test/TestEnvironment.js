@@ -45,6 +45,7 @@ module.exports = class TestEnvironment {
         this.configs = {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(10000),
+            LIQUIDATION_PERIOD: 3600,
         };
 
         this.constants = Object.assign({
@@ -83,6 +84,13 @@ module.exports = class TestEnvironment {
         this.contracts.ida = await IInstantDistributionAgreementV1.at(this.sf.agreements.ida.address);
         // load governance contract
         this.contracts.governance = await TestGovernance.at(await this.sf.host.getGovernance());
+
+        this.contracts.governance.setLiquidationPeriod(this.configs.LIQUIDATION_PERIOD);
+    }
+
+    async resetData() {
+        // test data can be persisted here
+        this.data = {};
     }
 
     async createNewToken({ doUpgrade } = {}) {

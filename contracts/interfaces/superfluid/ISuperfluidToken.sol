@@ -37,31 +37,71 @@ interface ISuperfluidToken {
        address account,
        uint256 timestamp
     )
-       external
+        external
 
-       view
-       returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+        view
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
 
     /// @dev realtimeBalanceOf with timestamp equals to block.timestamp
     function realtimeBalanceOfNow(
        address account
     )
-       external
+        external
 
-       view
-       returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+        view
+        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
 
-      /**
-      * @dev Check if one account is insolvent
-      * @param account Account check if is insolvent
-      * @return isInsolvent Is the account insolvent?
-      */
-      function isAccountInsolvent(
-         address account
-      )
-         external
-         view
-         returns(bool isInsolvent);
+    /**
+    * @dev Check if one account is critical
+    * @param account Account check if is critical by a future time
+    * @param timestamp Time of balance
+    * @return isCritical
+    */
+    function isAccountCritical(
+        address account,
+        uint256 timestamp
+    )
+        external
+        view
+        returns(bool isCritical);
+
+    /**
+    * @dev Check if one account is critical now
+    * @param account Account check if is critical by a future time
+    * @return isCritical
+    */
+    function isAccountCriticalNow(
+        address account
+    )
+        external
+        view
+        returns(bool isCritical);
+
+    /**
+     * @dev Check if one account is solvent
+     * @param account Account check if is solvent by a future time
+     * @param timestamp Time of balance
+     * @return isSolvent
+     */
+    function isAccountSolvent(
+        address account,
+        uint256 timestamp
+    )
+        external
+        view
+        returns(bool isSolvent);
+
+    /**
+     * @dev Check if one account is solvent now
+     * @param account Account check if is solvent now
+     * @return isSolvent
+     */
+    function isAccountSolventNow(
+        address account
+    )
+        external
+        view
+        returns(bool isSolvent);
 
     /**
     * @dev Get a list of agreements that is active for the account

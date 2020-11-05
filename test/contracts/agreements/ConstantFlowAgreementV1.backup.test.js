@@ -1,4 +1,4 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 
 const {
     web3tx,
@@ -15,6 +15,11 @@ const ADV_TIME = 2;
 const FLOW_RATE = toBN("10000000000000");
 const FLOW_RATE2 = "385802469135802"; // use a less nice number to test rounding
 
+
+function clipDepositNumber(deposit) {
+    // last 32 bites of the deposit (96 bites) is clipped off
+    return BN.max(toBN(1), deposit.shrn(32)).shln(32);
+}
 
 contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
 
@@ -79,7 +84,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
     describe("#1 FlowAgreement.updateFlow", () => {
         it("#1.1 should stream in correct flow rate with single flow", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(LIQUIDATION_PERIOD * FLOW_RATE);
+            const expectedDeposit = clipDepositNumber(toBN(LIQUIDATION_PERIOD * FLOW_RATE));
 
             const dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
@@ -130,25 +135,25 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 "Alice final balance is wrong");
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString(),
                 "Bob final balance is wrong");
-            assert.equal(aliceDeposit.deposit.toString(), deposit.toString(), "Alice deposit is wrong");
+            assert.equal(
+                aliceDeposit.deposit.toString(),
+                expectedDeposit.toString(), "Alice deposit is wrong");
 
             await t.validateSystem();
         });
 
         it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
             await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(LIQUIDATION_PERIOD * FLOW_RATE);
-
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+            const expectedDeposit = clipDepositNumber(toBN(LIQUIDATION_PERIOD * FLOW_RATE).mul(toBN(2)));
 
             const tx = await web3tx(superfluid.callAgreement, "CreateFlow alice -> bob")(
                 cfa.address,
-                dataAgreement,
+                cfa.contract.methods.createFlow(
+                    superToken.address,
+                    bob,
+                    FLOW_RATE.toString(),
+                    "0x"
+                ).encodeABI(),
                 {
                     from: alice,
                 }
@@ -170,16 +175,14 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
 
             await traveler.advanceTimeAndBlock(ADV_TIME);
 
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
             const tx2 = await web3tx(superfluid.callAgreement, "CreateFlow alice -> carol")(
                 cfa.address,
-                dataAgreement,
+                cfa.contract.methods.createFlow(
+                    superToken.address,
+                    carol,
+                    FLOW_RATE.toString(),
+                    "0x"
+                ).encodeABI(),
                 {
                     from: alice,
                 }
@@ -238,11 +241,15 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             const finalUser1 = INIT_BALANCE - finalUser2 - finalUser3;
             const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
 
-            assert.equal(user1Balance.add(aliceDeposit.deposit).toString(),
-                finalUser1.toString(), "User 1 Final balance is wrong");
+            assert.equal(
+                user1Balance.add(aliceDeposit.deposit).toString().slice(-5),
+                finalUser1.toString().slice(-5),
+                "User 1 Final balance is wrong");
             assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
             assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wring");
-            assert.equal(aliceDeposit.deposit.toString(), (deposit * 2).toString(), "Alice deposit is wrong");
+            assert.equal(
+                aliceDeposit.deposit.toString(),
+                expectedDeposit.toString(), "Alice deposit is wrong");
 
             await t.validateSystem();
         });
@@ -370,7 +377,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             dataAgreement = cfa.contract.methods.updateFlow(
                 superToken.address,
                 bob,
-                "-2000000000000000000",
+                "2000000000000000000",
                 "0x"
             ).encodeABI();
 
@@ -382,7 +389,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: admin,
                     }
-                ), "CFA: flow doesn't exist");
+                ), "CFA: flow does not exist");
 
             await t.validateSystem();
         });
@@ -424,7 +431,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
         });
 
         it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
-            const deposit = toBN(LIQUIDATION_PERIOD * FLOW_RATE * 2);
+            const expectedDeposit = clipDepositNumber(toBN(LIQUIDATION_PERIOD * FLOW_RATE * 2));
             await superToken.upgrade(INIT_BALANCE, {from: alice});
             await superToken.upgrade(INIT_BALANCE, {from: carol});
             let dataAgreement = cfa.contract.methods.createFlow(
@@ -513,7 +520,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
             assert.equal(carolBalance.add(carolDeposit.deposit).toString(), carolBalanceExpected.toString());
             assert.equal(danBalance.toString(), danBalanceExpected.toString());
-            assert.equal(aliceDeposit.deposit.toString(), deposit.toString());
+            assert.equal(aliceDeposit.deposit.toString(), expectedDeposit.toString());
 
             await t.validateSystem();
         });
@@ -1148,14 +1155,22 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
     describe("#5 FlowAgreement.deleteFlow by liquidator", () => {
         it("#5.1 liquidation of insolvent account should succeed", async() => {
 
-            const SMALL_FLOW_RATE = "10000";
-            // having just 100 seconds of more liquidity than liquidation period
-            await superToken.upgrade(toBN(SMALL_FLOW_RATE * LIQUIDATION_PERIOD + 100), {from : alice});
+            const SMALL_FLOW_RATE = toBN(10000);
+            // minimal deposit applied
+            const MINIMAL_DEPOSIT = toBN(1).shln(32)
+                .add(SMALL_FLOW_RATE.mul(toBN(60)));
+            await superToken.upgrade(MINIMAL_DEPOSIT.toString(), {from : alice});
+
+            const aliceBalance1 = await superToken.realtimeBalanceOfNow(alice);
+            console.log(
+                "Alice available balance before creating flow:",
+                aliceBalance1.availableBalance.toString(),
+                aliceBalance1.deposit.toString());
 
             let dataAgreement = cfa.contract.methods.createFlow(
                 superToken.address,
                 bob,
-                SMALL_FLOW_RATE,
+                SMALL_FLOW_RATE.toString(),
                 "0x"
             ).encodeABI();
             await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
@@ -1166,7 +1181,21 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 }
             );
 
-            await traveler.advanceTimeAndBlock(101);
+            const aliceBalance2 = await superToken.realtimeBalanceOfNow(alice);
+            console.log(
+                "Alice available balance before time advance:",
+                aliceBalance2.availableBalance.toString(),
+                aliceBalance2.deposit.toString(),
+                aliceBalance2.owedDeposit.toString(),
+                await superToken.isAccountCriticalNow(alice));
+            await traveler.advanceTimeAndBlock(61);
+            const aliceBalance3 = await superToken.realtimeBalanceOfNow(alice);
+            console.log(
+                "Alice available balance after time advance:",
+                aliceBalance3.availableBalance.toString(),
+                aliceBalance3.deposit.toString(),
+                aliceBalance2.owedDeposit.toString(),
+                await superToken.isAccountCriticalNow(alice));
 
             dataAgreement = cfa.contract.methods.deleteFlow(
                 superToken.address,
@@ -1221,7 +1250,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: admin,
                     }
-                ), "FlowAgreement: account is solvent");
+                ), "CFA: account is not critical");
         });
 
         it("#5.3 liquidation of non existing flow should fail", async () => {
@@ -1241,7 +1270,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     {
                         from: alice,
                     }
-                ), "CFA: flow doesn't exist");
+                ), "CFA: flow does not exist");
         });
 
     });
@@ -1320,7 +1349,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 ).encodeABI(), {
                     from: dan,
                 }
-            ), "FlowAgreement: account is solvent");
+            ), "CFA: account is not critical");
 
             // drain alice account
             let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
@@ -1331,14 +1360,14 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     from: alice
                 }
             );
-            assert.isTrue(!await superToken.isAccountInsolvent(alice));
+            assert.isTrue(!await superToken.isAccountCriticalNow(alice));
 
             // alice become insolvent
             await traveler.advanceTimeAndBlock(1);
             aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
             console.log("Alice balance: ",
                 wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            assert.isTrue(await superToken.isAccountInsolvent(alice));
+            assert.isTrue(await superToken.isAccountCriticalNow(alice));
 
             // dan liquidates alice
             await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
@@ -1402,7 +1431,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 ).encodeABI(), {
                     from: dan,
                 }
-            ), "FlowAgreement: account is solvent");
+            ), "CFA: account is not critical");
 
             // drain alice account
             let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
@@ -1413,7 +1442,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     from: alice
                 }
             );
-            assert.isTrue(!await superToken.isAccountInsolvent(alice));
+            assert.isTrue(!await superToken.isAccountCriticalNow(alice));
 
             // alice become insolvent
             aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
@@ -1423,7 +1452,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
             console.log("Alice balance 3: ",
                 wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            assert.isTrue(await superToken.isAccountInsolvent(alice));
+            assert.isTrue(await superToken.isAccountCriticalNow(alice));
 
             // dan liquidates alice
             await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
@@ -1488,7 +1517,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 ).encodeABI(), {
                     from: dan,
                 }
-            ), "FlowAgreement: account is solvent");
+            ), "CFA: account is not critical");
 
             // drain alice account
             let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
@@ -1499,14 +1528,14 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     from: alice
                 }
             );
-            assert.isTrue(!await superToken.isAccountInsolvent(alice));
+            assert.isTrue(!await superToken.isAccountCriticalNow(alice));
 
             // alice become insolvent
             await traveler.advanceTimeAndBlock(5000);
             aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
             console.log("Alice balance: ",
                 wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            assert.isTrue(await superToken.isAccountInsolvent(alice));
+            assert.isTrue(await superToken.isAccountCriticalNow(alice));
 
             // dan liquidates alice
             await web3tx(superfluid.callAgreement, "Dan liquidates alice")(

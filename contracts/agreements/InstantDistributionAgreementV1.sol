@@ -226,7 +226,7 @@ contract InstantDistributionAgreementV1 is
         emit IndexUpdated(token, publisher, indexId, indexValue, idata.totalUnitsPending, idata.totalUnitsApproved);
 
         // check account solvency
-        require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance");
+        require(!token.isAccountCriticalNow(publisher), "IDAv1: insufficient balance");
     }
 
     function calculateDistribution(
@@ -424,7 +424,7 @@ contract InstantDistributionAgreementV1 is
         }
 
         // check account solvency
-        require(!token.isAccountInsolvent(publisher), "IDAv1: insufficient balance");
+        require(!token.isAccountCriticalNow(publisher), "IDAv1: insufficient balance");
 
         // after-hook callback
         if (exist) {

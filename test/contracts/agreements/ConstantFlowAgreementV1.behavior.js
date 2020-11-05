@@ -1,4 +1,4 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const {
     web3tx,
     //wad4human,
@@ -11,8 +11,14 @@ const {
 
 const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
 const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
+const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
 function clipDepositNumber(deposit) {
+    // last 32 bites of the deposit (96 bites) is clipped off
+    // and minimal deposit is (1<<32)
+    return BN.max(toBN(1), deposit.shrn(32)).shln(32);
+}
+function clipOwedDepositNumber(deposit) {
     // last 32 bites of the deposit (96 bites) is clipped off
     return deposit.shrn(32).shln(32);
 }
@@ -27,17 +33,33 @@ async function _shouldChangeFlow({
 }) {
     const { superToken, governance } = testenv.contracts;
     const LIQUIDATION_PERIOD = toBN(await governance.getLiquidationPeriod(superToken.address));
-    const expectedDeposit = clipDepositNumber(toBN(flowRate)
-        .mul(LIQUIDATION_PERIOD)).toString();
-    const expectedOwedDeposit = clipDepositNumber(toBN(expectedDeposit)
-        .mul(toBN(expectedOwedDepositRatio || 0))).toString();
     const flowId = {
         superToken: superToken.address,
         sender: testenv.aliases[sender],
         receiver: testenv.aliases[receiver],
     };
+    const oldFlowInfo = await testenv.sf.cfa.getFlow(flowId);
+    let expectedNewDeposit, expectedNewOwedDeposit;
+    if (fn !== "deleteFlow") {
+        expectedNewDeposit = clipDepositNumber(toBN(flowRate)
+            .mul(LIQUIDATION_PERIOD));
+        expectedNewOwedDeposit = clipOwedDepositNumber(toBN(expectedNewDeposit)
+            .mul(toBN(expectedOwedDepositRatio || 0)));
+    } else {
+        expectedNewDeposit = toBN(0);
+        expectedNewOwedDeposit = toBN(0);
+    }
 
     const senderBalance1 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
+    const receiverBalance1 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
+    console.log("sender balance before",
+        senderBalance1.availableBalance.toString(),
+        senderBalance1.deposit.toString(),
+        senderBalance1.owedDeposit.toString());
+    console.log("receiver balance before",
+        receiverBalance1.availableBalance.toString(),
+        receiverBalance1.deposit.toString(),
+        receiverBalance1.owedDeposit.toString());
 
     const tx = await web3tx(
         testenv.sf.cfa[fn].bind(testenv.sf.cfa),
@@ -48,10 +70,17 @@ async function _shouldChangeFlow({
     });
 
     const senderBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
+    const receiverBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
+    console.log("sender balance after",
+        senderBalance2.availableBalance.toString(),
+        senderBalance2.deposit.toString(),
+        senderBalance2.owedDeposit.toString());
+    console.log("receiver balance after",
+        receiverBalance2.availableBalance.toString(),
+        receiverBalance2.deposit.toString(),
+        receiverBalance2.owedDeposit.toString());
 
-    const flowInfo = await testenv.sf.cfa.getFlow({
-        ...flowId
-    });
+    const flowInfo = await testenv.sf.cfa.getFlow(flowId);
     if (fn !== "deleteFlow") {
         assert.equal(
             flowInfo.timestamp.getTime()/1000,
@@ -66,22 +95,30 @@ async function _shouldChangeFlow({
         "wrong flowrate of the flow");
     assert.equal(
         flowInfo.deposit,
-        expectedDeposit,
+        expectedNewDeposit.toString(),
         "wrong deposit amount of the flow");
     assert.equal(
         flowInfo.owedDeposit,
-        expectedOwedDeposit,
+        expectedNewOwedDeposit.toString(),
         "wrong owed deposit aount of the flow");
 
     assert.equal(
         toBN(senderBalance2.deposit).sub(toBN(senderBalance1.deposit)).toString(),
-        expectedDeposit,
+        expectedNewDeposit.sub(toBN(oldFlowInfo.deposit)).toString(),
         "wrong deposit amount of sender");
-
     assert.equal(
         toBN(senderBalance2.owedDeposit).sub(toBN(senderBalance1.owedDeposit)).toString(),
-        expectedOwedDeposit,
-        "wrong deposit amount of sender");
+        expectedNewOwedDeposit.sub(toBN(oldFlowInfo.owedDeposit)).toString(),
+        "wrong owed deposit amount of sender");
+
+    assert.equal(
+        toBN(receiverBalance2.deposit).sub(toBN(receiverBalance1.deposit)).toString(),
+        "0",
+        "wrong deposit amount of receiver");
+    assert.equal(
+        toBN(receiverBalance2.owedDeposit).sub(toBN(receiverBalance1.owedDeposit)).toString(),
+        "0",
+        "wrong owed deposit amount of receiver");
 }
 
 async function shouldCreateFlow({
@@ -384,7 +421,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                 sender: testenv.aliases.alice,
                 receiver: testenv.aliases.dan,
                 flowRate: FLOW_RATE1.toString(),
-            }), "CFA: flow doesn't exist");
+            }), "CFA: flow does not exist");
         });
 
         it(`${prefix}.2.7 should not update non existing flow (self flow)`, async () => {
@@ -393,7 +430,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                 sender: testenv.aliases.alice,
                 receiver: testenv.aliases.alice,
                 flowRate: FLOW_RATE1.toString(),
-            }), "CFA: flow doesn't exist");
+            }), "CFA: no self flow");
         });
     });
 
@@ -430,12 +467,12 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
             });
         });
 
-        it(`${prefix}.3.3 should note delete non-existing flow`, async () => {
+        it(`${prefix}.3.3 should not delete non-existing flow`, async () => {
             await expectRevert(testenv.sf.cfa.deleteFlow({
                 superToken: superToken.address,
                 sender: testenv.aliases.alice,
                 receiver: testenv.aliases.dan,
-            }), "CFA: flow doesn't exist");
+            }), "CFA: flow does not exist");
         });
     });
 
@@ -449,9 +486,11 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                 // sufficient liquidity for the test case
                 // - it needs 1x liquidation period
                 // - it adds an additional 60 seconds as extra safe margin
-                const sufficientLiquidity = flowRate
-                    .mul(LIQUIDATION_PERIOD).mul(toBN(2)) // FIXME remove x2
-                    .add(toBN(60));
+                const marginalLiquidity = flowRate.mul(toBN(60));
+                const sufficientLiquidity = BN.max(
+                    MINIMAL_DEPOSIT.add(marginalLiquidity),
+                    flowRate.mul(LIQUIDATION_PERIOD).add(marginalLiquidity)
+                );
                 await testToken.mint(testenv.aliases.alice, sufficientLiquidity, {
                     from: testenv.aliases.alice
                 });
@@ -480,5 +519,6 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
 module.exports = {
     shouldCreateFlow,
     shouldUpdateFlow,
+    shouldDeleteFlow,
     shouldBehaveLikeCFAv1
 };

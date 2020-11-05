@@ -17,7 +17,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
     context("#1 without callbacks", () => {
         shouldBehaveLikeCFAv1({
-            prefix: "#1",
+            prefix: "#1.1",
             testenv: t
         });
     });

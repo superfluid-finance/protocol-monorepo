@@ -90,15 +90,49 @@ abstract contract SuperfluidToken is ISuperfluidToken
         return realtimeBalanceOf(account, block.timestamp);
     }
 
-    /// @dev ISuperfluidToken.isAccountInsolvent implementation
-    function isAccountInsolvent(
-      address account
+    function isAccountCritical(
+        address account,
+        uint256 timestamp
     )
-      external view override
-      returns(bool)
+        public view override
+        returns(bool isCritical)
     {
-        (int256 amount, ,) = realtimeBalanceOf(account, block.timestamp);
-        return amount < 0;
+        (int256 availableBalance,,) = realtimeBalanceOf(account, timestamp);
+        return availableBalance < 0;
+    }
+
+    function isAccountCriticalNow(
+       address account
+    )
+        external view override
+       returns(bool isCritical)
+    {
+        return isAccountCritical(account, block.timestamp);
+    }
+
+    function isAccountSolvent(
+        address account,
+        uint256 timestamp
+    )
+        public view override
+        returns(bool isSolvent)
+    {
+        (int256 availableBalance, uint256 deposit, uint256 owedDeposit) =
+            realtimeBalanceOf(account, timestamp);
+        // Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
+        int realtimeBalance = availableBalance.add(
+            (deposit > owedDeposit ? (deposit - owedDeposit).toInt256() : 0)
+        );
+        return realtimeBalance >= 0;
+    }
+
+    function isAccountSolventNow(
+       address account
+    )
+       external view override
+       returns(bool isSolvent)
+    {
+        return isAccountSolvent(account, block.timestamp);
     }
 
     /// @dev ISuperfluidToken.getAccountActiveAgreements implementation

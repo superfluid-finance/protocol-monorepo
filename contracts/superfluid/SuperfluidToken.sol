@@ -54,7 +54,10 @@ abstract contract SuperfluidToken is ISuperfluidToken
        uint256 timestamp
     )
        public view override
-       returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
+       returns (
+           int256 availableBalance,
+           uint256 deposit,
+           uint256 owedDeposit)
     {
         availableBalance = _balances[account];
         ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
@@ -86,8 +89,18 @@ abstract contract SuperfluidToken is ISuperfluidToken
        address account
     )
         external view override
-        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit) {
-        return realtimeBalanceOf(account, block.timestamp);
+        returns (
+            int256 availableBalance,
+            uint256 deposit,
+            uint256 owedDeposit,
+            uint256 timestamp)
+    {
+        timestamp = block.timestamp;
+        (
+            availableBalance,
+            deposit,
+            owedDeposit
+        ) = realtimeBalanceOf(account, timestamp);
     }
 
     function isAccountCritical(

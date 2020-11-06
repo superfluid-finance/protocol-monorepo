@@ -40,7 +40,10 @@ interface ISuperfluidToken {
         external
 
         view
-        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+        returns (
+            int256 availableBalance,
+            uint256 deposit,
+            uint256 owedDeposit);
 
     /// @dev realtimeBalanceOf with timestamp equals to block.timestamp
     function realtimeBalanceOfNow(
@@ -49,7 +52,11 @@ interface ISuperfluidToken {
         external
 
         view
-        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit);
+        returns (
+            int256 availableBalance,
+            uint256 deposit,
+            uint256 owedDeposit,
+            uint256 timestamp);
 
     /**
     * @dev Check if one account is critical

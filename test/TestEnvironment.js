@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const deployFramework = require("../scripts/deploy-framework");
 const SuperfluidSDK = require("..");
 
@@ -137,8 +138,54 @@ module.exports = class TestEnvironment {
         }));
     }
 
+    updateAccountBalanceSnapshot({
+        superToken,
+        account,
+        balanceSnapshot
+    }) {
+        _.merge(this.data, {
+            tokens: {
+                [superToken]: {
+                    accounts: {
+                        [account]: {
+                            balanceSnapshot: {
+                                availableBalance: balanceSnapshot.availableBalance,
+                                deposit: balanceSnapshot.deposit,
+                                owedDeposit: balanceSnapshot.owedDeposit,
+                                timestamp: balanceSnapshot.timestamp
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    getAccountBalanceSnapshot({
+        superToken,
+        account
+    }) {
+        _.defaultsDeep(this.data, {
+            tokens: {
+                [superToken]: {
+                    accounts: {
+                        [account]: {
+                            balanceSnapshot: {
+                                availableBalance: 0,
+                                deposit: 0,
+                                owedDeposit: 0,
+                                timestamp: 0
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        return _.clone(this.data.tokens[superToken].accounts[account].balanceSnapshot);
+    }
+
     async validateSystemInvariance() {
-        console.log("======== System validation report Begin ========");
+        console.log("======== System validation report begins ========");
 
         const currentBlock = await web3.eth.getBlock("latest");
 
@@ -169,7 +216,7 @@ module.exports = class TestEnvironment {
         console.log(`Total real-time blances of super tokens: ${wad4human(rtBalanceSum)}`);
 
         console.log(`Total supply of super tokens: ${wad4human(totalSupply)}`);
-        console.log("======== System Validation Report End ========");
+        console.log("======== System validation report ends ========");
 
         assert.isTrue(aum.add(this.configs.AUM_DUST_AMOUNT).gte(rtBalanceSum),
             "AUM should be equal or more than the real-time balance sum");

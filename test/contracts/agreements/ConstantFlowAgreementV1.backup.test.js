@@ -139,7 +139,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 aliceDeposit.deposit.toString(),
                 expectedDeposit.toString(), "Alice deposit is wrong");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
@@ -251,7 +251,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 aliceDeposit.deposit.toString(),
                 expectedDeposit.toString(), "Alice deposit is wrong");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.3 update with negative flow rate should fail", async() => {
@@ -306,7 +306,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     }
                 ), "CFA: invalid flow rate");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         /*
@@ -391,7 +391,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     }
                 ), "CFA: flow does not exist");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.6 update with zero rate should fail", async() => {
@@ -427,7 +427,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     }
                 ), "CFA: invalid flow rate");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
@@ -522,7 +522,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.equal(danBalance.toString(), danBalanceExpected.toString());
             assert.equal(aliceDeposit.deposit.toString(), expectedDeposit.toString());
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.8 should update flow the second time to new flow rate", async() => {
@@ -588,7 +588,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.equal(alice1Balance.add(aliceDeposit.deposit).toString(), aliceBalanceExpected.toString());
             assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.9 create self flow should fail", async() => {
@@ -609,7 +609,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                     }
                 ), "CFA: no self flow");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
     });
 
@@ -660,7 +660,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 finalSuperBalanceBobExpected.toString(),
                 "SuperToken.balanceOf - not correct for bob");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.2 - should downgrade partial amount with single flow running", async() => {
@@ -717,7 +717,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 user2FinalBalanceEst.toString(),
                 "Call: SuperToken.balanceOf - not correct for bob");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.3 downgrade small portion of testTokens with multiple flows running", async() => {
@@ -784,7 +784,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 userTokenBalance.add(smallPortion).toString(),
                 "User2 downgrade call dont change the testToken balance");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.2 downgrade 1/2 portion of testTokens with multiple flows running", async() => {
@@ -853,7 +853,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 userTokenBalance.add(halfPortion).toString(),
                 "User2 downgrade call dont change the testToken balance");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.3 downgrade total balance of testTokens with multiple flows running", async() => {
@@ -922,7 +922,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 userTokenBalance.add(userSuperBalance).toString(),
                 "User2 downgrade call dont change the testToken balance");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
     });
 
@@ -975,7 +975,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
             assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.2 should stop streaming after deletion with multiple flows", async() => {
@@ -1093,7 +1093,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
             assert.equal(user4Balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
     });
 
@@ -1148,7 +1148,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
             assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
     });
 
@@ -1394,7 +1394,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
                 (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
                 "0");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#7.2 Liquidator should take the deposit but also pay for the deficit", async() => {
@@ -1479,7 +1479,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             console.log("Dan balance: ", wad4human(danBalance.availableBalance));
             assert.isTrue(toBN(danBalance.availableBalance).lt(toWad(0)));
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#7.3 Liquidator should take the deposit, but reward address pays for the deficit", async() => {
@@ -1565,7 +1565,7 @@ contract("Using ConstantFlowAgreement v1 without callbacks", accounts => {
             assert.isTrue(toBN(adminBalance.availableBalance).lt(toWad(0)));
             assert.isTrue(toBN(danBalance.availableBalance).gt(toWad(0)));
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
     });

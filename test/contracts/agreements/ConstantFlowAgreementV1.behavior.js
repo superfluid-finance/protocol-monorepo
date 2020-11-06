@@ -24,55 +24,106 @@ function clipOwedDepositNumber(deposit) {
     return deposit.shrn(32).shln(32);
 }
 
-function _updateFlowInfo(root, sender, receiver, flowInfo) {
-    _.merge(root, {
-        cfa: {
-            flows: {
-                [`${sender}:${receiver}`]: flowInfo
-            }
-        }
-    });
-}
-
-function getFlowInfo(root, sender, receiver) {
-    _.defaultsDeep(root, {
-        cfa: {
-            flows: {
-                [`${sender}:${receiver}`]: {
-                    timestamp: 0,
-                    flowRate: 0,
-                    deposit: 0,
-                    owedDeposit: 0
-                }
-            }
-        }
-    });
-    return _.clone(root.cfa.flows[`${sender}:${receiver}`]);
-}
-
-function _updateAccountNetFlow(root, account, netFlow) {
-    _.merge(root, {
-        accounts: {
-            [account]: {
+function _updateFlowInfo({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    flowInfo
+}) {
+    _.merge(testenv.data, {
+        tokens: {
+            [superToken]: {
                 cfa: {
-                    netFlow
+                    flows: {
+                        [`${sender}:${receiver}`]: {
+                            timestamp: flowInfo.timestamp,
+                            flowRate: flowInfo.flowRate,
+                            deposit: flowInfo.deposit,
+                            owedDeposit: flowInfo.owedDeposit
+                        }
+                    }
                 }
             }
         }
     });
 }
 
-function getAccountNetFlow(root, account) {
-    _.defaultsDeep(root, {
-        accounts: {
-            [account]: {
+function getFlowInfo({
+    testenv,
+    superToken,
+    sender,
+    receiver
+}) {
+    _.defaultsDeep(testenv.data, {
+        tokens: {
+            [superToken]: {
                 cfa: {
-                    netFlow: 0
+                    flows: {
+                        [`${sender}:${receiver}`]: {
+                            timestamp: 0,
+                            flowRate: 0,
+                            deposit: 0,
+                            owedDeposit: 0
+                        }
+                    }
                 }
             }
         }
     });
-    return root.accounts[account].cfa.netFlow;
+    return _.clone(testenv.data.tokens[superToken].cfa.flows[`${sender}:${receiver}`]);
+}
+
+function _updateAccountFlowInfo({
+    testenv,
+    superToken,
+    account,
+    flowInfo
+}) {
+    _.merge(testenv.data, {
+        tokens: {
+            [superToken]: {
+                accounts: {
+                    [account]: {
+                        cfa: {
+                            flowInfo: {
+                                timestamp: flowInfo.timestamp,
+                                flowRate: flowInfo.flowRate,
+                                deposit: flowInfo.deposit,
+                                owedDeposit: flowInfo.owedDeposit
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function getAccountFlowInfo({
+    testenv,
+    superToken,
+    account
+}) {
+    _.defaultsDeep(testenv.data, {
+        tokens: {
+            [superToken]: {
+                accounts: {
+                    [account]: {
+                        cfa: {
+                            flowInfo: {
+                                timestamp: 0,
+                                flowRate: 0,
+                                deposit: 0,
+                                owedDeposit: 0
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+    return _.clone(testenv.data.tokens[superToken].accounts[account].cfa.flowInfo);
 }
 
 async function _shouldChangeFlow({
@@ -172,27 +223,31 @@ async function _shouldChangeFlow({
         "wrong owed deposit amount of receiver");
 
     // store test data
-    _updateAccountNetFlow(
-        testenv.data,
-        testenv.aliases[sender],
-        await testenv.sf.cfa.getNetFlow({
+    _updateFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        sender: testenv.aliases[sender],
+        receiver: testenv.aliases[receiver],
+        flowInfo
+    });
+    _updateAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender],
+        flowInfo: await testenv.sf.cfa.getAccountFlowInfo({
             superToken: superToken.address,
             account: testenv.aliases[sender],
         })
-    );
-    _updateAccountNetFlow(
-        testenv.data,
-        testenv.aliases[receiver],
-        await testenv.sf.cfa.getNetFlow({
+    });
+    _updateAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver],
+        flowInfo: await testenv.sf.cfa.getAccountFlowInfo({
             superToken: superToken.address,
             account: testenv.aliases[receiver],
         })
-    );
-    _updateFlowInfo(
-        testenv.data,
-        testenv.aliases[sender],
-        testenv.aliases[receiver],
-        flowInfo);
+    });
 }
 
 async function shouldCreateFlow({
@@ -202,9 +257,19 @@ async function shouldCreateFlow({
     flowRate,
     expectedOwedDepositRatio
 }) {
-    const senderNetFlow1 = getAccountNetFlow(testenv.data, testenv.aliases[sender]);
-    const receiverNetFlow1 = getAccountNetFlow(testenv.data, testenv.aliases[receiver]);
+    const { superToken } = testenv.contracts;
+    const senderAccountFlow1 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender]
+    });
+    const receiverAccountFlow1 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver]
+    });
 
+    //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
     await _shouldChangeFlow({
         fn: "createFlow",
         testenv,
@@ -213,16 +278,25 @@ async function shouldCreateFlow({
         flowRate,
         expectedOwedDepositRatio
     });
+    //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));
 
-    const senderNetFlow2 = getAccountNetFlow(testenv.data, testenv.aliases[sender]);
-    const receiverNetFlow2 = getAccountNetFlow(testenv.data, testenv.aliases[receiver]);
+    const senderAccountFlow2 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender]
+    });
+    const receiverAccountFlow2 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver]
+    });
 
     assert.equal(
-        toBN(senderNetFlow1).sub(toBN(senderNetFlow2)).toString(),
+        toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
         flowRate.toString()
     );
     assert.equal(
-        toBN(receiverNetFlow2).sub(toBN(receiverNetFlow1)).toString(),
+        toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
         flowRate.toString()
     );
 }
@@ -234,12 +308,23 @@ async function shouldUpdateFlow({
     flowRate,
     expectedOwedDepositRatio
 }) {
-    const senderNetFlow1 = getAccountNetFlow(testenv.data, testenv.aliases[sender]);
-    const receiverNetFlow1 = getAccountNetFlow(testenv.data, testenv.aliases[receiver]);
-    const oldFlowInfo = getFlowInfo(
-        testenv.data,
-        testenv.aliases[sender],
-        testenv.aliases[receiver]);
+    const { superToken } = testenv.contracts;
+    const senderAccountFlow1 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender]
+    });
+    const receiverAccountFlow1 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver]
+    });
+    const oldFlowInfo = getFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        sender: testenv.aliases[sender],
+        receiver: testenv.aliases[receiver]
+    });
     const flowRateDelta = toBN(flowRate).sub(toBN(oldFlowInfo.flowRate)).toString();
 
     await _shouldChangeFlow({
@@ -251,15 +336,23 @@ async function shouldUpdateFlow({
         expectedOwedDepositRatio
     });
 
-    const senderNetFlow2 = getAccountNetFlow(testenv.data, testenv.aliases[sender]);
-    const receiverNetFlow2 = getAccountNetFlow(testenv.data, testenv.aliases[receiver]);
+    const senderAccountFlow2 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender]
+    });
+    const receiverAccountFlow2 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver]
+    });
 
     assert.equal(
-        toBN(senderNetFlow1).sub(toBN(senderNetFlow2)).toString(),
+        toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
         flowRateDelta
     );
     assert.equal(
-        toBN(receiverNetFlow2).sub(toBN(receiverNetFlow1)).toString(),
+        toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
         flowRateDelta
     );
 }
@@ -269,12 +362,23 @@ async function shouldDeleteFlow({
     sender,
     receiver
 }) {
-    const senderNetFlow1 = getAccountNetFlow(testenv.data, testenv.aliases[sender]);
-    const receiverNetFlow1 = getAccountNetFlow(testenv.data, testenv.aliases[receiver]);
-    const oldFlowInfo = getFlowInfo(
-        testenv.data,
-        testenv.aliases[sender],
-        testenv.aliases[receiver]);
+    const { superToken } = testenv.contracts;
+    const senderAccountFlow1 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender]
+    });
+    const receiverAccountFlow1 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver]
+    });
+    const oldFlowInfo = getFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        sender: testenv.aliases[sender],
+        receiver: testenv.aliases[receiver]
+    });
 
     await _shouldChangeFlow({
         fn: "deleteFlow",
@@ -284,16 +388,24 @@ async function shouldDeleteFlow({
         flowRate: "0",
     });
 
-    const senderNetFlow2 = getAccountNetFlow(testenv.data, testenv.aliases[sender]);
-    const receiverNetFlow2 = getAccountNetFlow(testenv.data, testenv.aliases[receiver]);
+    const senderAccountFlow2 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[sender]
+    });
+    const receiverAccountFlow2 = getAccountFlowInfo({
+        testenv,
+        superToken: superToken.address,
+        account: testenv.aliases[receiver]
+    });
 
     const flowRateDelta = toBN(0).sub(toBN(oldFlowInfo.flowRate)).toString();
     assert.equal(
-        toBN(senderNetFlow1).sub(toBN(senderNetFlow2)).toString(),
+        toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
         flowRateDelta
     );
     assert.equal(
-        toBN(receiverNetFlow2).sub(toBN(receiverNetFlow1)).toString(),
+        toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
         flowRateDelta
     );
 }
@@ -303,7 +415,7 @@ async function shouldDeleteFlow({
 // NOTE:
 //   - assuming all accounts start with super token balance of zero
 //
-function shouldBehaveLikeCFAv1({prefix, testenv}) {
+function shouldBehaveLikeCFAv1({prefix, testenv, sender, receiver}) {
 
     let testToken;
     let superToken;
@@ -317,20 +429,22 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
 
     describe(`${prefix}.1 createFlow`, () => {
         it(`${prefix}.1.1 should create when there is enough balance`, async () => {
-            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases.alice });
+            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases[sender] });
             await shouldCreateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1,
             });
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.1.2 should reject when there is not enough balance`, async () => {
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: FLOW_RATE1.toString()
             }), "CFA: not enough available balance");
         });
@@ -338,8 +452,8 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.1.3 should reject when zero flow rate`, async () => {
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: "0"
             }), "CFA: invalid flow rate");
         });
@@ -347,8 +461,8 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.1.4 should reject when negative flow rate`, async () => {
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: "-1"
             }), "CFA: invalid flow rate");
         });
@@ -356,33 +470,35 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.1.5 should reject when self flow`, async () => {
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[sender],
                 flowRate: FLOW_RATE1.toString()
             }), "CFA: no self flow");
         });
 
         it(`${prefix}.1.6 should not create same flow`, async () => {
-            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases.alice });
+            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases[sender] });
             await shouldCreateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1,
             });
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: FLOW_RATE1.toString()
             }), "CFA: flow already exist");
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.1.7 should reject when overflow flow rate`, async () => {
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: MAXIMUM_FLOW_RATE.toString(),
             }), "Int96SafeMath: multiplication overflow");
         });
@@ -390,7 +506,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.1.8 should reject when receiver is zero address`, async () => {
             await expectRevert(testenv.sf.cfa.createFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
                 receiver: testenv.constants.ZERO_ADDRESS,
                 flowRate: FLOW_RATE1.toString(),
             }), "CFA: receiver is zero");
@@ -399,11 +515,11 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
 
     describe(`${prefix}.2 updateFlow`, () => {
         beforeEach(async () => {
-            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases.alice });
+            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases[sender] });
             await shouldCreateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1,
             });
         });
@@ -411,35 +527,41 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.1 can maintain existing flowrate`, async () => {
             await shouldUpdateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1,
             });
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.2.2 can increase (+10%) existing flowrate`, async () => {
             await shouldUpdateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
             });
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.2.3 can decrease (-10%) existing flowrate`, async () => {
             await shouldUpdateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             });
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.2.4 should not update with zero flowrate`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: "0"
             }), "CFA: invalid flow rate");
         });
@@ -447,8 +569,8 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.5 should not update with negative flowrate`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: "-1"
             }), "CFA: invalid flow rate");
         });
@@ -456,7 +578,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.6 should not update non existing flow`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
                 receiver: testenv.aliases.dan,
                 flowRate: FLOW_RATE1.toString(),
             }), "CFA: flow does not exist");
@@ -465,8 +587,8 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.7 should not update non existing flow (self flow)`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[sender],
                 flowRate: FLOW_RATE1.toString(),
             }), "CFA: no self flow");
         });
@@ -474,8 +596,8 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.8 should reject when there is not enough balance`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: toBN(testenv.configs.INIT_BALANCE)
                     .div(toBN(testenv.configs.LIQUIDATION_PERIOD).sub(toBN(60)))
                     .toString()
@@ -485,8 +607,8 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.9 should reject when overflow flow rate`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
-                receiver: testenv.aliases.bob,
+                sender: testenv.aliases[sender],
+                receiver: testenv.aliases[receiver],
                 flowRate: MAXIMUM_FLOW_RATE.toString(),
             }), "Int96SafeMath: multiplication overflow");
         });
@@ -494,7 +616,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.2.10 should reject when receiver is zero address`, async () => {
             await expectRevert(testenv.sf.cfa.updateFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
                 receiver: testenv.constants.ZERO_ADDRESS,
                 flowRate: FLOW_RATE1.toString(),
             }), "CFA: receiver is zero");
@@ -503,11 +625,11 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
 
     describe(`${prefix}.3 deleteFlow (non liquidation)`, () => {
         beforeEach(async () => {
-            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases.alice });
+            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases[sender] });
             await shouldCreateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1,
             });
         });
@@ -515,29 +637,33 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.3.1 can delete existing flow`, async () => {
             await shouldDeleteFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
             });
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.3.2 can delete an updated flow`, async () => {
             await shouldUpdateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
             });
             await shouldDeleteFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
             });
+
+            testenv.validateSystemInvariance();
         });
 
         it(`${prefix}.3.3 should not delete non-existing flow`, async () => {
             await expectRevert(testenv.sf.cfa.deleteFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
                 receiver: testenv.aliases.dan,
             }), "CFA: flow does not exist");
         });
@@ -545,7 +671,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
         it(`${prefix}.3.4 should reject when receiver is zero address`, async () => {
             await expectRevert(testenv.sf.cfa.deleteFlow({
                 superToken: superToken.address,
-                sender: testenv.aliases.alice,
+                sender: testenv.aliases[sender],
                 receiver: testenv.constants.ZERO_ADDRESS,
             }), "CFA: receiver is zero");
         });
@@ -555,18 +681,18 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                 superToken: superToken.address,
                 sender: testenv.constants.ZERO_ADDRESS,
                 receiver: testenv.aliases.dan,
-                by: testenv.aliases.alice
+                by: testenv.aliases[sender]
             }), "CFA: sender is zero");
         });
     });
 
     describe(`${prefix}.4 deleteFlow (liquidations)`, () => {
         beforeEach(async () => {
-            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases.alice });
+            await superToken.upgrade(testenv.configs.INIT_BALANCE, { from: testenv.aliases[sender] });
             await shouldCreateFlow({
                 testenv,
-                sender: "alice",
-                receiver: "bob",
+                sender,
+                receiver,
                 flowRate: FLOW_RATE1,
             });
         });
@@ -576,7 +702,7 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                 superToken: superToken.address,
                 sender: testenv.constants.ZERO_ADDRESS,
                 receiver: testenv.aliases.dan,
-                by: testenv.aliases.alice
+                by: testenv.aliases[sender]
             }), "CFA: sender is zero");
         });
     });
@@ -599,24 +725,24 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
                         .mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
                         .add(marginalLiquidity)
                 );
-                await testToken.mint(testenv.aliases.alice, sufficientLiquidity, {
-                    from: testenv.aliases.alice
+                await testToken.mint(testenv.aliases[sender], sufficientLiquidity, {
+                    from: testenv.aliases[sender]
                 });
                 await superToken.upgrade(sufficientLiquidity, {
-                    from: testenv.aliases.alice
+                    from: testenv.aliases[sender]
                 });
 
                 await shouldCreateFlow({
                     testenv,
-                    sender: "alice",
-                    receiver: "bob",
+                    sender,
+                    receiver,
                     flowRate: flowRate.div(toBN(2)),
                 });
 
                 await shouldUpdateFlow({
                     testenv,
-                    sender: "alice",
-                    receiver: "bob",
+                    sender,
+                    receiver,
                     flowRate: flowRate,
                 });
             });
@@ -625,8 +751,10 @@ function shouldBehaveLikeCFAv1({prefix, testenv}) {
 }
 
 module.exports = {
+    clipDepositNumber,
+    clipOwedDepositNumber,
     getFlowInfo,
-    getAccountNetFlow,
+    getAccountFlowInfo,
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,

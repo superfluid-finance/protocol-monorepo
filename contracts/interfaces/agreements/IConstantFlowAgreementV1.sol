@@ -110,18 +110,37 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         );
 
     /**
+     * @dev Get the aggregated flow info of the account
+     * @param token Super token address.
+    * @param account Account for the query.
+    */
+    function getAccountFlowInfo(
+        ISuperfluidToken token,
+        address account
+    )
+        external
+        view
+        virtual
+        returns (
+            uint256 timestamp,
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit);
+
+    /**
      * @dev Get the net flow rate of the account
      * @param token Super token address.
      * @param account Account for the query.
      * @return flowRate Flow rate.
      */
     function getNetFlow(
-       ISuperfluidToken token,
-       address account)
-       external
-       view
-       virtual
-       returns (int96 flowRate);
+        ISuperfluidToken token,
+        address account
+    )
+        external
+        view
+        virtual
+        returns (int96 flowRate);
 
     /**
      * @dev Delete the flow between sender and receiver

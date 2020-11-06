@@ -168,7 +168,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [alice, toWad("99.82")],
             ]);
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#1.2 2to1 distribution scenario", async() => {
@@ -347,7 +347,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [dan,   toWad("0.08")],
             ]);
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
     });
 
@@ -370,7 +370,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsApproved, "0");
             assert.equal(idata.totalUnitsPending, "0");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.2 should fail to create the same index", async() => {
@@ -434,7 +434,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsApproved, "0");
             assert.equal(idata.totalUnitsPending, "0");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.5 should fail to update non-existent index", async() => {
@@ -632,7 +632,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0.1")],
             ]);
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.2 distribute to a pending subcription then approve", async() => {
@@ -740,7 +740,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            await t.validateSystem();
+            await t.validateSystemInvariance();
 
             await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
                 ida.address,
@@ -784,7 +784,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
             assert.equal(subs.unitsList[0].toString(), toWad("0.003").toString());
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.3 approve a pending subcription before distribution", async() => {
@@ -906,7 +906,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
             assert.equal(subs.unitsList[0].toString(), toWad("0.001").toString());
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.4 distribute to a pending subcription, update it, distribute again and approve", async() => {
@@ -986,7 +986,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            await t.validateSystem();
+            await t.validateSystemInvariance();
 
             await web3tx(superfluid.callAgreement, "Alice update the subscription again")(
                 ida.address,
@@ -1015,7 +1015,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), "0");
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            await t.validateSystem();
+            await t.validateSystemInvariance();
 
             await web3tx(superfluid.callAgreement, "Alice update the index again")(
                 ida.address,
@@ -1043,7 +1043,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.5").toString());
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
-            await t.validateSystem();
+            await t.validateSystemInvariance();
 
             await web3tx(superfluid.callAgreement, "Bob approve the subscription finally")(
                 ida.address,
@@ -1067,7 +1067,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
             assert.equal(subs.unitsList[0].toString(), toWad("0.005").toString());
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.5 subscriber delete its approved subscription", async() => {
@@ -1178,7 +1178,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.6 subscriber delete its pending subscription", async() => {
@@ -1249,7 +1249,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.7 publisher delete a subscription", async() => {
@@ -1320,7 +1320,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#3.8 subscriber delete then resubscribe a subscription", async() => {
@@ -1456,7 +1456,7 @@ contract("Instance Distribution Agreement v1", accounts => {
         assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
         subs = await ida.listSubscriptions.call(superToken.address, bob);
         assert.equal(subs.publishers.length, 0);
-        await t.validateSystem();
+        await t.validateSystemInvariance();
 
         await web3tx(superfluid.callAgreement, "Bob claims his pending distribution")(
             ida.address,
@@ -1528,7 +1528,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             }
         ), "IDAv1: subscription already approved");
 
-        await t.validateSystem();
+        await t.validateSystemInvariance();
     });
 
 });

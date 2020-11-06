@@ -78,14 +78,14 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             assert.equal(finalRealBalance.availableBalance.toString(), finalSuperTokenBalance.toString(),
                 "balanceOf should equal realtimeBalanceOf");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.2 - should not upgrade without enough underlying balance", async() => {
             const initialBalance = await testToken.balanceOf.call(alice);
             await expectRevert(web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
                 initialBalance.add(toBN(1)), {from: alice}), "ERC20: transfer amount exceeds balance");
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.3 - should downgrade by single account", async() => {
@@ -109,7 +109,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             assert.equal(finalSuperTokenBalance.toString(), toWad("1"),
                 "SuperToken.balanceOf is wrong");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.4 - should downgrade by multiple accounts", async () => {
@@ -143,7 +143,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 finalSuperBalanceBob.toString(),
                 "SuperToken.balanceOf - not correct for user 2");
 
-            await t.validateSystem();
+            await t.validateSystemInvariance();
         });
 
         it("#2.5 - should not downgrade if there is no balance", async () => {

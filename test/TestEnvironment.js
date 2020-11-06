@@ -137,7 +137,7 @@ module.exports = class TestEnvironment {
         }));
     }
 
-    async validateSystem() {
+    async validateSystemInvariance() {
         console.log("======== System validation report Begin ========");
 
         const currentBlock = await web3.eth.getBlock("latest");

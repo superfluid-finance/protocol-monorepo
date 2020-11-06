@@ -299,11 +299,32 @@ contract ConstantFlowAgreementV1 is
             flowId
         );
 
-        return(
+        return (
             data.timestamp,
             data.flowRate,
             data.deposit,
             data.owedDeposit
+        );
+    }
+
+    /// @dev IFlowAgreement.getAccountFlowInfo implementation
+    function getAccountFlowInfo(
+        ISuperfluidToken token,
+        address account
+    )
+        external view override
+        returns (
+            uint256 timestamp,
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit)
+    {
+        (, FlowData memory state) = _getAccountState(token, account);
+        return (
+            state.timestamp,
+            state.flowRate,
+            state.deposit,
+            state.owedDeposit
         );
     }
 
@@ -312,9 +333,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluidToken token,
         address account
     )
-        external
-        view
-        override
+        external view override
         returns (int96 flowRate)
     {
         (, FlowData memory state) = _getAccountState(token, account);

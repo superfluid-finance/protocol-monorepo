@@ -392,54 +392,54 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }), "CFA: sender is zero");
             });
         });
+    });
 
-        describe("#1.5 should support different flow rates", () => {
-            [
-                ["small", toBN(2)],
-                ["typical", FLOW_RATE1],
-                ["large", toWad(42).div(toBN(3600))],
-                ["maximum", MAXIMUM_FLOW_RATE.div(toBN(t.configs.LIQUIDATION_PERIOD))]
-            ].forEach(([label, flowRate], i) => {
-                it(`#1.5.${i} should support ${label} flow rate (${flowRate})`, async () => {
-                    // sufficient liquidity for the test case
-                    // - it needs 1x liquidation period
-                    // - it adds an additional 60 seconds as extra safe margin
-                    const marginalLiquidity = flowRate.mul(toBN(60));
-                    const sufficientLiquidity = BN.max(
-                        MINIMAL_DEPOSIT.add(marginalLiquidity),
-                        flowRate
-                            .mul(toBN(t.configs.LIQUIDATION_PERIOD))
-                            .add(marginalLiquidity)
-                    );
-                    await testToken.mint(t.aliases[sender], sufficientLiquidity, {
-                        from: t.aliases[sender]
-                    });
-                    await upgradeBalance(sender, sufficientLiquidity);
-
-                    await shouldCreateFlow({
-                        testenv: t,
-                        sender,
-                        receiver,
-                        flowRate: flowRate.div(toBN(2)),
-                    });
-
-                    await shouldUpdateFlow({
-                        testenv: t,
-                        sender,
-                        receiver,
-                        flowRate: flowRate,
-                    });
-
-                    await timeTravelOnce();
-
-                    await shouldVerifyFlow({
-                        testenv: t,
-                        sender,
-                        receiver,
-                    });
-
-                    await t.validateSystemInvariance();
+    describe("#2 should support different flow rates", () => {
+        [
+            ["small", toBN(2)],
+            ["typical", FLOW_RATE1],
+            ["large", toWad(42).div(toBN(3600))],
+            ["maximum", MAXIMUM_FLOW_RATE.div(toBN(t.configs.LIQUIDATION_PERIOD))]
+        ].forEach(([label, flowRate], i) => {
+            it(`#2.${i} should support ${label} flow rate (${flowRate})`, async () => {
+                // sufficient liquidity for the test case
+                // - it needs 1x liquidation period
+                // - it adds an additional 60 seconds as extra safe margin
+                const marginalLiquidity = flowRate.mul(toBN(60));
+                const sufficientLiquidity = BN.max(
+                    MINIMAL_DEPOSIT.add(marginalLiquidity),
+                    flowRate
+                        .mul(toBN(t.configs.LIQUIDATION_PERIOD))
+                        .add(marginalLiquidity)
+                );
+                await testToken.mint(t.aliases.alice, sufficientLiquidity, {
+                    from: t.aliases.alice
                 });
+                await upgradeBalance("alice", sufficientLiquidity);
+
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender: "alice",
+                    receiver: "bob",
+                    flowRate: flowRate.div(toBN(2)),
+                });
+
+                await shouldUpdateFlow({
+                    testenv: t,
+                    sender: "alice",
+                    receiver: "bob",
+                    flowRate: flowRate,
+                });
+
+                await timeTravelOnce();
+
+                await shouldVerifyFlow({
+                    testenv: t,
+                    sender: "alice",
+                    receiver: "bob",
+                });
+
+                await t.validateSystemInvariance();
             });
         });
     });

@@ -108,7 +108,7 @@ function getAccountFlowInfo({
                     [account]: {
                         cfa: {
                             flowInfo: {
-                                timestamp: 0,
+                                timestamp: new Date(),
                                 flowRate: 0,
                                 deposit: 0,
                                 owedDeposit: 0,
@@ -122,6 +122,21 @@ function getAccountFlowInfo({
     return _.clone(testenv.data.tokens[superToken].accounts[account].cfa.flowInfo);
 }
 
+function _printFlowInfo(title, flowInfo) {
+    console.log(title,
+        flowInfo.timestamp.getTime(),
+        flowInfo.flowRate.toString(),
+        flowInfo.deposit.toString(),
+        flowInfo.owedDeposit.toString());
+}
+
+function _printBalance(title, balance) {
+    console.log(title,
+        balance.availableBalance.toString(),
+        balance.deposit.toString(),
+        balance.owedDeposit.toString());
+}
+
 async function _shouldChangeFlow({
     fn,
     testenv,
@@ -130,6 +145,8 @@ async function _shouldChangeFlow({
     flowRate,
     expectedOwedDepositRatio
 }) {
+    console.log(`======== ${fn} begins ========`);
+    //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
     const { superToken } = testenv.contracts;
     const flowId = {
         superToken: superToken.address,
@@ -143,11 +160,13 @@ async function _shouldChangeFlow({
         superToken: superToken.address,
         account: testenv.aliases[sender]
     });
+    _printFlowInfo("sender account flow info snapshot before", senderAccountFlow1);
     const receiverAccountFlow1 = getAccountFlowInfo({
         testenv,
         superToken: superToken.address,
         account: testenv.aliases[receiver]
     });
+    _printFlowInfo("receiver account flow info snapshot before", receiverAccountFlow1);
 
     const senderBalanceSnapshot1 = testenv.getAccountBalanceSnapshot({
         superToken: superToken.address,
@@ -157,19 +176,12 @@ async function _shouldChangeFlow({
         superToken: superToken.address,
         account: testenv.aliases[receiver]
     });
-    console.log("sender balance snapshot before",
-        senderBalanceSnapshot1.availableBalance.toString(),
-        senderBalanceSnapshot1.deposit.toString(),
-        senderBalanceSnapshot1.owedDeposit.toString());
-    console.log("receiver balance snapshot before",
-        receiverBalanceSnapshot1.availableBalance.toString(),
-        receiverBalanceSnapshot1.deposit.toString(),
-        receiverBalanceSnapshot1.owedDeposit.toString());
+    _printBalance("sender balance snapshot before", senderBalanceSnapshot1);
+    _printBalance("receiver balance snapshot before", receiverBalanceSnapshot1);
 
-    let flowInfo;
     let senderBalance2;
     let receiverBalance2;
-    if (fn !== "noop") {
+    if (fn !== "verifyFlow") {
         let expectedNewDeposit, expectedNewOwedDeposit;
         if (fn !== "deleteFlow") {
             expectedNewDeposit = clipDepositNumber(toBN(flowRate)
@@ -183,14 +195,8 @@ async function _shouldChangeFlow({
 
         const senderBalance1 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
         const receiverBalance1 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
-        console.log("sender balance before",
-            senderBalance1.availableBalance.toString(),
-            senderBalance1.deposit.toString(),
-            senderBalance1.owedDeposit.toString());
-        console.log("receiver balance before",
-            receiverBalance1.availableBalance.toString(),
-            receiverBalance1.deposit.toString(),
-            receiverBalance1.owedDeposit.toString());
+        _printBalance("sender balance before", senderBalance1);
+        _printBalance("receiver balance before", receiverBalance1);
 
         const tx = await web3tx(
             testenv.sf.cfa[fn].bind(testenv.sf.cfa),
@@ -203,17 +209,12 @@ async function _shouldChangeFlow({
 
         senderBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
         receiverBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
-        console.log("sender balance after",
-            senderBalance2.availableBalance.toString(),
-            senderBalance2.deposit.toString(),
-            senderBalance2.owedDeposit.toString());
-        console.log("receiver balance after",
-            receiverBalance2.availableBalance.toString(),
-            receiverBalance2.deposit.toString(),
-            receiverBalance2.owedDeposit.toString());
+        _printBalance("sender balance after", senderBalance2);
+        _printBalance("receiver balance after", receiverBalance2);
 
         // validate flow info changes
-        flowInfo = await testenv.sf.cfa.getFlow(flowId);
+        const flowInfo = await testenv.sf.cfa.getFlow(flowId);
+        _printFlowInfo("updated flow info", flowInfo);
         if (fn !== "deleteFlow") {
             assert.equal(
                 flowInfo.timestamp.getTime()/1000,
@@ -234,6 +235,17 @@ async function _shouldChangeFlow({
             flowInfo.owedDeposit,
             expectedNewOwedDeposit.toString(),
             "wrong owed deposit aount of the flow");
+
+        const senderAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: testenv.aliases[sender],
+        });
+        _printFlowInfo("sender account flow info after", senderAccountFlow2);
+        const receiverAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: testenv.aliases[receiver],
+        });
+        _printFlowInfo("receiver account flow info after", receiverAccountFlow2);
 
         // validate sender deposit changes and account flow info change
         const senderDepositDelta = toBN(senderBalance2.deposit)
@@ -262,17 +274,43 @@ async function _shouldChangeFlow({
             receiverOwedDepositDelta.toString(),
             "0",
             "wrong owed deposit amount of receiver");
+
+        const flowRateDelta = toBN(flowInfo.flowRate).sub(toBN(oldFlowInfo.flowRate)).toString();
+        assert.equal(
+            toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
+            flowRateDelta.toString()
+        );
+        assert.equal(
+            toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
+            flowRateDelta.toString()
+        );
+
+        // update flow info
+        _updateFlowInfo({
+            testenv,
+            superToken: superToken.address,
+            sender: testenv.aliases[sender],
+            receiver: testenv.aliases[receiver],
+            flowInfo
+        });
+        // update account flow info
+        _updateAccountFlowInfo({
+            testenv,
+            superToken: superToken.address,
+            account: testenv.aliases[sender],
+            flowInfo: senderAccountFlow2
+        });
+        _updateAccountFlowInfo({
+            testenv,
+            superToken: superToken.address,
+            account: testenv.aliases[receiver],
+            flowInfo: receiverAccountFlow2
+        });
     } else {
         senderBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
         receiverBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
-        console.log("sender balance snapshot after",
-            senderBalance2.availableBalance.toString(),
-            senderBalance2.deposit.toString(),
-            senderBalance2.owedDeposit.toString());
-        console.log("receiver balance snapshot after",
-            receiverBalance2.availableBalance.toString(),
-            receiverBalance2.deposit.toString(),
-            receiverBalance2.owedDeposit.toString());
+        _printBalance("sender balance after", senderBalance2);
+        _printBalance("receiver balance after", receiverBalance2);
     }
 
     // validate sender balance snapshot changes
@@ -285,6 +323,7 @@ async function _shouldChangeFlow({
         senderBalanceSnapshot1.deposit,
         senderBalanceSnapshot1.owedDeposit
     ));
+    console.log("sender real-time balance delta", senderRealtimeBalanceDelta.toString());
     assert.equal(
         senderRealtimeBalanceDelta.toString(),
         toBN(senderAccountFlow1.flowRate)
@@ -305,6 +344,7 @@ async function _shouldChangeFlow({
         receiverBalanceSnapshot1.deposit,
         receiverBalanceSnapshot1.owedDeposit
     ));
+    console.log("receiver real-time balance delta", receiverRealtimeBalanceDelta.toString());
     assert.equal(
         receiverRealtimeBalanceDelta.toString(),
         toBN(receiverAccountFlow1.flowRate)
@@ -326,34 +366,8 @@ async function _shouldChangeFlow({
         account: testenv.aliases[receiver],
         balanceSnapshot: receiverBalance2
     });
-
-    if (fn !== "noop") {
-        _updateFlowInfo({
-            testenv,
-            superToken: superToken.address,
-            sender: testenv.aliases[sender],
-            receiver: testenv.aliases[receiver],
-            flowInfo
-        });
-        _updateAccountFlowInfo({
-            testenv,
-            superToken: superToken.address,
-            account: testenv.aliases[sender],
-            flowInfo: await testenv.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: testenv.aliases[sender],
-            })
-        });
-        _updateAccountFlowInfo({
-            testenv,
-            superToken: superToken.address,
-            account: testenv.aliases[receiver],
-            flowInfo: await testenv.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: testenv.aliases[receiver],
-            })
-        });
-    }
+    //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));
+    console.log(`======== ${fn} ends ========`);
 }
 
 async function shouldCreateFlow({
@@ -363,20 +377,6 @@ async function shouldCreateFlow({
     flowRate,
     expectedOwedDepositRatio
 }) {
-    console.log("======== shouldCreateFlow begins ========");
-    const { superToken } = testenv.contracts;
-    const senderAccountFlow1 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[sender]
-    });
-    const receiverAccountFlow1 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[receiver]
-    });
-
-    //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
     await _shouldChangeFlow({
         fn: "createFlow",
         testenv,
@@ -385,28 +385,6 @@ async function shouldCreateFlow({
         flowRate,
         expectedOwedDepositRatio
     });
-    //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));
-
-    const senderAccountFlow2 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[sender]
-    });
-    const receiverAccountFlow2 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[receiver]
-    });
-
-    assert.equal(
-        toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
-        flowRate.toString()
-    );
-    assert.equal(
-        toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
-        flowRate.toString()
-    );
-    console.log("======== shouldCreateFlow ends ========");
 }
 
 async function shouldUpdateFlow({
@@ -416,26 +394,6 @@ async function shouldUpdateFlow({
     flowRate,
     expectedOwedDepositRatio
 }) {
-    console.log("======== shouldUpdateFlow begins ========");
-    const { superToken } = testenv.contracts;
-    const senderAccountFlow1 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[sender]
-    });
-    const receiverAccountFlow1 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[receiver]
-    });
-    const oldFlowInfo = getFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        sender: testenv.aliases[sender],
-        receiver: testenv.aliases[receiver]
-    });
-    const flowRateDelta = toBN(flowRate).sub(toBN(oldFlowInfo.flowRate)).toString();
-
     await _shouldChangeFlow({
         fn: "updateFlow",
         testenv,
@@ -444,27 +402,6 @@ async function shouldUpdateFlow({
         flowRate,
         expectedOwedDepositRatio
     });
-
-    const senderAccountFlow2 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[sender]
-    });
-    const receiverAccountFlow2 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[receiver]
-    });
-
-    assert.equal(
-        toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
-        flowRateDelta
-    );
-    assert.equal(
-        toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
-        flowRateDelta
-    );
-    console.log("======== shouldUpdateFlow ends ========");
 }
 
 async function shouldDeleteFlow({
@@ -472,25 +409,6 @@ async function shouldDeleteFlow({
     sender,
     receiver
 }) {
-    console.log("======== shouldDeleteFlow begins ========");
-    const { superToken } = testenv.contracts;
-    const senderAccountFlow1 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[sender]
-    });
-    const receiverAccountFlow1 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[receiver]
-    });
-    const oldFlowInfo = getFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        sender: testenv.aliases[sender],
-        receiver: testenv.aliases[receiver]
-    });
-
     await _shouldChangeFlow({
         fn: "deleteFlow",
         testenv,
@@ -498,28 +416,6 @@ async function shouldDeleteFlow({
         receiver,
         flowRate: "0",
     });
-
-    const senderAccountFlow2 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[sender]
-    });
-    const receiverAccountFlow2 = getAccountFlowInfo({
-        testenv,
-        superToken: superToken.address,
-        account: testenv.aliases[receiver]
-    });
-
-    const flowRateDelta = toBN(0).sub(toBN(oldFlowInfo.flowRate)).toString();
-    assert.equal(
-        toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
-        flowRateDelta
-    );
-    assert.equal(
-        toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
-        flowRateDelta
-    );
-    console.log("======== shouldDeleteFlow ends ========");
 }
 
 async function shouldVerifyFlow({
@@ -527,15 +423,13 @@ async function shouldVerifyFlow({
     sender,
     receiver
 }) {
-    console.log("======== shouldVerifyFlow begins ========");
     await _shouldChangeFlow({
-        fn: "noop",
+        fn: "verifyFlow",
         testenv,
         sender,
         receiver,
         flowRate: "0",
     });
-    console.log("======== shouldVerifyFlow ends ========");
 }
 
 module.exports = {

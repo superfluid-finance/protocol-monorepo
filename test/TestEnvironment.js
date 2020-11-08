@@ -184,42 +184,53 @@ module.exports = class TestEnvironment {
         return _.clone(this.data.tokens[superToken].accounts[account].balanceSnapshot);
     }
 
+    printSingleBalance(title, balance) {
+        console.log(`${title}:`, `${wad4human(balance)} (${balance.toString()})`);
+    }
+
+    printRealtimeBalance(title, balance) {
+        console.log(`${title}: `,
+            `${wad4human(balance.availableBalance)} (${balance.availableBalance.toString()})`,
+            `${wad4human(balance.deposit)} (${balance.deposit.toString()})`,
+            `${wad4human(balance.owedDeposit)} (${balance.owedDeposit.toString()})`);
+    }
+
     async validateSystemInvariance() {
         console.log("======== System validation report begins ========");
 
         const currentBlock = await web3.eth.getBlock("latest");
 
         let rtBalanceSum = toBN(0);
+
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];
             const tokenBalance = await this.contracts.testToken.balanceOf.call(userAddress);
-            const balances = await this.contracts.superToken.realtimeBalanceOf.call(
+            const superTokenBalance = await this.contracts.superToken.realtimeBalanceOf.call(
                 userAddress,
                 currentBlock.timestamp);
             // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
-            const realtimeBalance = balances.availableBalance
-                .add(balances.deposit)
-                .sub(web3.utils.BN.min(balances.owedDeposit, balances.deposit));
+            const realtimeBalance = superTokenBalance.availableBalance
+                .add(superTokenBalance.deposit)
+                .sub(web3.utils.BN.min(superTokenBalance.owedDeposit, superTokenBalance.deposit));
 
-            console.log(`${alias} underlying token balance: ${wad4human(tokenBalance)}`);
-            console.log(`${alias} super token available balance: ${wad4human(balances.availableBalance)}`);
-            console.log(`${alias} super token deposit: ${wad4human(balances.deposit)}`);
-            console.log(`${alias} super token real-time balance: ${wad4human(realtimeBalance)}`);
+            this.printSingleBalance(`${alias} underlying token balance`, tokenBalance);
+            this.printRealtimeBalance(`${alias} super token balance`, superTokenBalance);
 
             rtBalanceSum = rtBalanceSum.add(realtimeBalance);
         }));
 
+        this.printSingleBalance("Total real-time blances of super tokens", rtBalanceSum);
+
         const aum = await this.contracts.testToken.balanceOf.call(this.contracts.superToken.address);
-        console.log(`AUM of super tokens: ${wad4human(aum)}`);
+        this.printSingleBalance("AUM of super tokens", wad4human(aum));
 
         const totalSupply = await this.contracts.superToken.totalSupply.call();
-        console.log(`Total real-time blances of super tokens: ${wad4human(rtBalanceSum)}`);
+        this.printSingleBalance("Total supply of super tokens", totalSupply);
 
-        console.log(`Total supply of super tokens: ${wad4human(totalSupply)}`);
         console.log("======== System validation report ends ========");
 
-        assert.isTrue(aum.add(this.configs.AUM_DUST_AMOUNT).gte(rtBalanceSum),
-            "AUM should be equal or more than the real-time balance sum");
+        assert.isTrue(aum.gte(rtBalanceSum),
+            "AUM should be equal or more than real-time balance");
         assert.isTrue(aum.sub(rtBalanceSum).lte(this.configs.AUM_DUST_AMOUNT),
             "AUM minus the real-time balance sum should only be a dust amount");
         assert.equal(wad4human(aum, 8), wad4human(rtBalanceSum, 8),

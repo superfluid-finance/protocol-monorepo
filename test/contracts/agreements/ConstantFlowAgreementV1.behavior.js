@@ -15,9 +15,9 @@ function clipOwedDepositNumber(deposit) {
     return deposit.shrn(32).shln(32);
 }
 
-function _realtimeBalance(availableBalance, deposit, owedDeposit) {
-    return toBN(availableBalance)
-        .add(BN.max(toBN(0), toBN(deposit).sub(toBN(owedDeposit))));
+function _realtimeBalance(balance) {
+    return toBN(balance.availableBalance)
+        .add(BN.max(toBN(0), toBN(balance.deposit).sub(toBN(balance.owedDeposit))));
 }
 
 function _updateFlowInfo({
@@ -130,57 +130,80 @@ function _printFlowInfo(title, flowInfo) {
         flowInfo.owedDeposit.toString());
 }
 
-function _printBalance(title, balance) {
-    console.log(title,
-        balance.availableBalance.toString(),
-        balance.deposit.toString(),
-        balance.owedDeposit.toString());
-}
-
 async function _shouldChangeFlow({
     fn,
     testenv,
     sender,
     receiver,
+    by,
     flowRate,
     expectedOwedDepositRatio
 }) {
     console.log(`======== ${fn} begins ========`);
     //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
-    const { superToken } = testenv.contracts;
+    const { superToken, governance } = testenv.contracts;
+    const senderAddress = testenv.aliases[sender];
+    const receiverAddress = testenv.aliases[receiver];
+    let byAddress;
+    let rewardAddress = await governance.getRewardAddress(superToken.address);
+    if (fn === "deleteFlow") {
+        assert.isDefined(by);
+        byAddress = testenv.aliases[by];
+        if (rewardAddress === testenv.constants.ZERO_ADDRESS) {
+            rewardAddress = byAddress;
+        }
+        console.log("agent address", byAddress);
+        console.log("reward address", rewardAddress);
+    }
     const flowId = {
         superToken: superToken.address,
-        sender: testenv.aliases[sender],
-        receiver: testenv.aliases[receiver],
+        sender: senderAddress,
+        receiver: receiverAddress,
     };
     const oldFlowInfo = await testenv.sf.cfa.getFlow(flowId);
+    _printFlowInfo("current flow info", oldFlowInfo);
 
     const senderAccountFlow1 = getAccountFlowInfo({
         testenv,
         superToken: superToken.address,
-        account: testenv.aliases[sender]
+        account: senderAddress
     });
     _printFlowInfo("sender account flow info snapshot before", senderAccountFlow1);
     const receiverAccountFlow1 = getAccountFlowInfo({
         testenv,
         superToken: superToken.address,
-        account: testenv.aliases[receiver]
+        account: receiverAddress
     });
     _printFlowInfo("receiver account flow info snapshot before", receiverAccountFlow1);
 
     const senderBalanceSnapshot1 = testenv.getAccountBalanceSnapshot({
         superToken: superToken.address,
-        account: testenv.aliases[sender]
+        account: senderAddress
     });
+    testenv.printRealtimeBalance("sender balance snapshot before", senderBalanceSnapshot1);
     const receiverBalanceSnapshot1 = testenv.getAccountBalanceSnapshot({
         superToken: superToken.address,
-        account: testenv.aliases[receiver]
+        account: receiverAddress
     });
-    _printBalance("sender balance snapshot before", senderBalanceSnapshot1);
-    _printBalance("receiver balance snapshot before", receiverBalanceSnapshot1);
+    testenv.printRealtimeBalance("receiver balance snapshot before", receiverBalanceSnapshot1);
+    let agentBalance1;
+    let rewardBalance1;
+    if (fn === "deleteFlow") {
+        agentBalance1 = await superToken.realtimeBalanceOfNow(byAddress);
+        testenv.printRealtimeBalance("agent balance before", agentBalance1);
+        rewardBalance1 = await superToken.realtimeBalanceOfNow(rewardAddress);
+        testenv.printRealtimeBalance("reward balance before", rewardBalance1);
+    }
 
     let senderBalance2;
     let receiverBalance2;
+    let agentBalance2;
+    let rewardBalance2;
+    let expectedRealtimeBalanceDeltas = {}; // some address can be the same one in some test cases
+    expectedRealtimeBalanceDeltas[senderAddress] = toBN(0);
+    expectedRealtimeBalanceDeltas[receiverAddress] = toBN(0);
+    expectedRealtimeBalanceDeltas[byAddress] = toBN(0);
+    expectedRealtimeBalanceDeltas[rewardAddress] = toBN(0);
     if (fn !== "verifyFlow") {
         let expectedNewDeposit, expectedNewOwedDeposit;
         if (fn !== "deleteFlow") {
@@ -193,24 +216,72 @@ async function _shouldChangeFlow({
             expectedNewOwedDeposit = toBN(0);
         }
 
-        const senderBalance1 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
-        const receiverBalance1 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
-        _printBalance("sender balance before", senderBalance1);
-        _printBalance("receiver balance before", receiverBalance1);
+        const senderBalance1 = await superToken.realtimeBalanceOfNow(senderAddress);
+        testenv.printRealtimeBalance("sender balance before", senderBalance1);
+        const isSenderCritical = await superToken.isAccountCriticalNow(senderAddress);
+        const isSenderSolvent = await superToken.isAccountSolventNow(senderAddress);
+        console.log("Is sender critical before: ", isSenderCritical);
+        console.log("Is sender solvent before: ", isSenderSolvent);
 
-        const tx = await web3tx(
-            testenv.sf.cfa[fn].bind(testenv.sf.cfa),
-            `${fn} from ${sender} to ${receiver}`
-        )({
-            ...flowId,
-            flowRate: flowRate.toString(),
+        const receiverBalance1 = await superToken.realtimeBalanceOfNow(receiverAddress);
+        testenv.printRealtimeBalance("receiver balance before", receiverBalance1);
+
+        let agentBalance1;
+        let rewardBalance1;
+        if (fn === "deleteFlow") {
+            agentBalance1 = await superToken.realtimeBalanceOfNow(byAddress);
+            testenv.printRealtimeBalance("agent balance before", agentBalance1);
+            rewardBalance1 = await superToken.realtimeBalanceOfNow(rewardAddress);
+            testenv.printRealtimeBalance("reward balance before", rewardBalance1);
+        }
+
+        let tx;
+        switch (fn) {
+        case "createFlow":
+        case "updateFlow":
+            tx = await web3tx(
+                testenv.sf.cfa[fn].bind(testenv.sf.cfa),
+                `${fn} from ${sender} to ${receiver}`
+            )({
+                ...flowId,
+                flowRate: flowRate.toString(),
+            });
+            break;
+        case "deleteFlow":
+            tx = await web3tx(
+                testenv.sf.cfa[fn].bind(testenv.sf.cfa),
+                `${fn} from ${sender} to ${receiver}`
+            )({
+                ...flowId,
+                by: byAddress,
+            });
+            break;
+        default:
+            assert(false);
+        }
+        const txBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
+
+        // update data
+        senderBalance2 = await superToken.realtimeBalanceOfNow(senderAddress);
+        testenv.printRealtimeBalance("sender balance after", senderBalance2);
+        receiverBalance2 = await superToken.realtimeBalanceOfNow(receiverAddress);
+        testenv.printRealtimeBalance("receiver balance after", receiverBalance2);
+        if (fn === "deleteFlow") {
+            agentBalance2 = await superToken.realtimeBalanceOfNow(byAddress);
+            testenv.printRealtimeBalance("agent balance after", agentBalance2);
+            rewardBalance2 = await superToken.realtimeBalanceOfNow(rewardAddress);
+            testenv.printRealtimeBalance("reward balance after", rewardBalance2);
+        }
+        const senderAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: senderAddress,
         });
-        //const txBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
-
-        senderBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
-        receiverBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
-        _printBalance("sender balance after", senderBalance2);
-        _printBalance("receiver balance after", receiverBalance2);
+        _printFlowInfo("sender account flow info after", senderAccountFlow2);
+        const receiverAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: receiverAddress,
+        });
+        _printFlowInfo("receiver account flow info after", receiverAccountFlow2);
 
         // validate flow info changes
         const flowInfo = await testenv.sf.cfa.getFlow(flowId);
@@ -236,16 +307,16 @@ async function _shouldChangeFlow({
             expectedNewOwedDeposit.toString(),
             "wrong owed deposit aount of the flow");
 
-        const senderAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: testenv.aliases[sender],
-        });
-        _printFlowInfo("sender account flow info after", senderAccountFlow2);
-        const receiverAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: testenv.aliases[receiver],
-        });
-        _printFlowInfo("receiver account flow info after", receiverAccountFlow2);
+        // validate account flow info changes
+        const flowRateDelta = toBN(flowInfo.flowRate).sub(toBN(oldFlowInfo.flowRate)).toString();
+        assert.equal(
+            toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
+            flowRateDelta.toString()
+        );
+        assert.equal(
+            toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
+            flowRateDelta.toString()
+        );
 
         // validate sender deposit changes and account flow info change
         const senderDepositDelta = toBN(senderBalance2.deposit)
@@ -275,97 +346,140 @@ async function _shouldChangeFlow({
             "0",
             "wrong owed deposit amount of receiver");
 
-        const flowRateDelta = toBN(flowInfo.flowRate).sub(toBN(oldFlowInfo.flowRate)).toString();
-        assert.equal(
-            toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
-            flowRateDelta.toString()
-        );
-        assert.equal(
-            toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
-            flowRateDelta.toString()
-        );
+        // caculate expected balance changes per liquidation rules
+        if (fn === "deleteFlow") {
+            // the tx itself may move the balance more
+            const adjustedRewardAmount = toBN(oldFlowInfo.flowRate)
+                .mul(toBN(txBlock.timestamp).sub(toBN(senderBalance1.timestamp)));
+            if (isSenderCritical && isSenderSolvent) {
+                const expectedRewardAmount = toBN(oldFlowInfo.deposit)
+                    .add(toBN(senderBalance1.availableBalance /* is negative */))
+                    .sub(adjustedRewardAmount);
+                expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
+                    .add(expectedRewardAmount);
+                testenv.printSingleBalance("expected reward amount (to reward account)", expectedRewardAmount);
+            } else if (isSenderCritical /* && !isSenderSolvent */) {
+                const expectedRewardAmount = toBN(oldFlowInfo.deposit);
+                const expectedBailoutAmount = toBN(senderBalance1.availableBalance)
+                    .add(toBN(oldFlowInfo.deposit))
+                    .mul(toBN(-1))
+                    .sub(adjustedRewardAmount);
+                expectedRealtimeBalanceDeltas[byAddress] = expectedRealtimeBalanceDeltas[byAddress]
+                    .add(expectedRewardAmount);
+                expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
+                    .add(expectedBailoutAmount);
+                testenv.printSingleBalance("expected reward amount (to agent)", expectedRewardAmount);
+                testenv.printSingleBalance("expected bailout amount (from reward account)", expectedBailoutAmount);
+            }
+            expectedRealtimeBalanceDeltas[senderAddress] = expectedRealtimeBalanceDeltas[senderAddress]
+                .sub(toBN(oldFlowInfo.deposit));
+        }
 
         // update flow info
         _updateFlowInfo({
             testenv,
             superToken: superToken.address,
-            sender: testenv.aliases[sender],
-            receiver: testenv.aliases[receiver],
+            sender: senderAddress,
+            receiver: receiverAddress,
             flowInfo
         });
         // update account flow info
         _updateAccountFlowInfo({
             testenv,
             superToken: superToken.address,
-            account: testenv.aliases[sender],
+            account: senderAddress,
             flowInfo: senderAccountFlow2
         });
         _updateAccountFlowInfo({
             testenv,
             superToken: superToken.address,
-            account: testenv.aliases[receiver],
+            account: receiverAddress,
             flowInfo: receiverAccountFlow2
         });
     } else {
-        senderBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[sender]);
-        receiverBalance2 = await superToken.realtimeBalanceOfNow(testenv.aliases[receiver]);
-        _printBalance("sender balance after", senderBalance2);
-        _printBalance("receiver balance after", receiverBalance2);
+        senderBalance2 = await superToken.realtimeBalanceOfNow(senderAddress);
+        receiverBalance2 = await superToken.realtimeBalanceOfNow(receiverAddress);
+        testenv.printRealtimeBalance("sender balance after", senderBalance2);
+        testenv.printRealtimeBalance("receiver balance after", receiverBalance2);
     }
 
     // validate sender balance snapshot changes
-    const senderRealtimeBalanceDelta = _realtimeBalance(
-        senderBalance2.availableBalance,
-        senderBalance2.deposit,
-        senderBalance2.owedDeposit
-    ).sub(_realtimeBalance(
-        senderBalanceSnapshot1.availableBalance,
-        senderBalanceSnapshot1.deposit,
-        senderBalanceSnapshot1.owedDeposit
-    ));
+    const senderRealtimeBalanceDelta = _realtimeBalance(senderBalance2)
+        .sub(_realtimeBalance(senderBalanceSnapshot1));
     console.log("sender real-time balance delta", senderRealtimeBalanceDelta.toString());
+    expectedRealtimeBalanceDeltas[senderAddress] = expectedRealtimeBalanceDeltas[senderAddress]
+        .add(
+            toBN(senderAccountFlow1.flowRate)
+                .mul(
+                    toBN(senderBalance2.timestamp.toString())
+                        .sub(toBN(senderBalanceSnapshot1.timestamp.toString()))
+                )
+        );
     assert.equal(
         senderRealtimeBalanceDelta.toString(),
-        toBN(senderAccountFlow1.flowRate)
-            .mul(
-                toBN(senderBalance2.timestamp.toString())
-                    .sub(toBN(senderBalanceSnapshot1.timestamp.toString()))
-            )
-            .toString(),
+        expectedRealtimeBalanceDeltas[senderAddress].toString(),
         "wrong available balance changes of sender");
 
     // validate receiver balance snapshot changes
-    const receiverRealtimeBalanceDelta = _realtimeBalance(
-        receiverBalance2.availableBalance,
-        receiverBalance2.deposit,
-        receiverBalance2.owedDeposit
-    ).sub(_realtimeBalance(
-        receiverBalanceSnapshot1.availableBalance,
-        receiverBalanceSnapshot1.deposit,
-        receiverBalanceSnapshot1.owedDeposit
-    ));
+    const receiverRealtimeBalanceDelta = _realtimeBalance(receiverBalance2)
+        .sub(_realtimeBalance(receiverBalanceSnapshot1));
     console.log("receiver real-time balance delta", receiverRealtimeBalanceDelta.toString());
+    expectedRealtimeBalanceDeltas[receiverAddress] = expectedRealtimeBalanceDeltas[receiverAddress]
+        .add(
+            toBN(receiverAccountFlow1.flowRate)
+                .mul(
+                    toBN(receiverBalance2.timestamp.toString())
+                        .sub(toBN(receiverBalanceSnapshot1.timestamp.toString()))
+                )
+        );
     assert.equal(
         receiverRealtimeBalanceDelta.toString(),
-        toBN(receiverAccountFlow1.flowRate)
-            .mul(
-                toBN(receiverBalance2.timestamp.toString())
-                    .sub(toBN(receiverBalanceSnapshot1.timestamp.toString()))
-            )
-            .toString(),
+        expectedRealtimeBalanceDeltas[receiverAddress].toString(),
         "wrong available balance changes of receiver");
+
+    if (fn === "deleteFlow") {
+        // validate agent balance
+        const agentRealtimeBalanceDelta = _realtimeBalance(agentBalance2)
+            .sub(_realtimeBalance(agentBalance1));
+        console.log("agent real-time balance delta", agentRealtimeBalanceDelta.toString());
+        assert.equal(
+            agentRealtimeBalanceDelta.toString(),
+            expectedRealtimeBalanceDeltas[byAddress].toString(),
+            "wrong available balance changes of agent");
+
+        // validate reward account balance changes
+        const rewardRealtimeBalanceDelta = _realtimeBalance(rewardBalance2)
+            .sub(_realtimeBalance(rewardBalance1));
+        console.log("reward real-time balance delta", rewardRealtimeBalanceDelta.toString());
+        assert.equal(
+            rewardRealtimeBalanceDelta.toString(),
+            expectedRealtimeBalanceDeltas[rewardAddress].toString(),
+            "wrong available balance changes of reward account");
+    }
 
     // update balance snapshots
     testenv.updateAccountBalanceSnapshot({
         superToken: superToken.address,
-        account: testenv.aliases[sender],
+        account: senderAddress,
         balanceSnapshot: senderBalance2
     });
     testenv.updateAccountBalanceSnapshot({
         superToken: superToken.address,
-        account: testenv.aliases[receiver],
+        account: receiverAddress,
         balanceSnapshot: receiverBalance2
     });
+    if (fn === "deleteFlow") {
+        testenv.updateAccountBalanceSnapshot({
+            superToken: superToken.address,
+            account: rewardAddress,
+            balanceSnapshot: rewardBalance2
+        });
+        testenv.updateAccountBalanceSnapshot({
+            superToken: superToken.address,
+            account: byAddress,
+            balanceSnapshot: agentBalance2
+        });
+    }
     //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));
     console.log(`======== ${fn} ends ========`);
 }
@@ -407,14 +521,16 @@ async function shouldUpdateFlow({
 async function shouldDeleteFlow({
     testenv,
     sender,
-    receiver
+    receiver,
+    by
 }) {
     await _shouldChangeFlow({
         fn: "deleteFlow",
         testenv,
         sender,
         receiver,
-        flowRate: "0",
+        by,
+        flowRate: "0"
     });
 }
 

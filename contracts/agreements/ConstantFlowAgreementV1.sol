@@ -213,12 +213,14 @@ contract ConstantFlowAgreementV1 is
         bytes32 flowId = _generateId(sender, receiver);
         (bool exist, FlowData memory flowData) = _getAgreementData(token, flowId);
         require(exist, "CFA: flow does not exist");
+        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, block.timestamp);
 
         address msgSender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
-        bool isLiquidator = (msgSender != sender && msgSender != receiver);
 
-        if (isLiquidator) {
-            require(token.isAccountCriticalNow(sender), "CFA: account is not critical");
+        // delete should only be called by sender or receiver
+        // unless it is a liquidation (availale balance < 0)
+        if (msgSender != sender && msgSender != receiver) {
+            require(availableBalance < 0, "CFA: account is not critical");
         }
 
         bytes memory cbdata;
@@ -228,8 +230,8 @@ contract ConstantFlowAgreementV1 is
         );
         // TODO: Decode return cbdata before calling the next step
 
-        if (isLiquidator) {
-            _liquidateAgreement(token, flowId, flowData, sender, msgSender);
+        if (availableBalance < 0) {
+            _liquidateAgreement(token, availableBalance, flowId, flowData, sender, msgSender);
         }
 
         _terminateAgreement(token, flowId, flowData, sender, receiver);
@@ -422,6 +424,7 @@ contract ConstantFlowAgreementV1 is
 
     function _liquidateAgreement(
         ISuperfluidToken token,
+        int256 availableBalance,
         bytes32 flowId,
         FlowData memory flowData,
         address sender,
@@ -433,8 +436,6 @@ contract ConstantFlowAgreementV1 is
 
         int256 signedSingleDeposit = flowData.deposit.toInt256();
         int256 signedTotalDeposit = senderAccountState.deposit.toInt256();
-
-        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, block.timestamp);
 
         // Liquidation rules:
         //    - let Available Balance = AB (is negative)

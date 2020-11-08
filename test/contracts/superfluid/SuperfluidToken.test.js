@@ -349,9 +349,9 @@ contract("SuperfluidToken implementation", accounts => {
                 await acA.liquidateAgreementFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
-                    "10",
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
+                    "10", /* reward */
                     "0"
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
@@ -363,10 +363,10 @@ contract("SuperfluidToken implementation", accounts => {
                 await acA.liquidateAgreementFor(
                     superToken.address,
                     "0x42",
-                    admin,
-                    bob,
-                    "10",
-                    "0"
+                    admin, /* liquidator account */
+                    bob, /* panelty account */
+                    "10", /* reward */
+                    "0" /* bailout */
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
                 assert.equal(await availableBalanceOf(bob), "-10");
@@ -377,10 +377,10 @@ contract("SuperfluidToken implementation", accounts => {
                 await acA.liquidateAgreementFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
-                    "10",
-                    "5"
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
+                    "10", /* reward */
+                    "5" /* bailout */
                 );
                 assert.equal(await availableBalanceOf(admin), "-15");
                 assert.equal(await availableBalanceOf(bob), "5");
@@ -397,8 +397,8 @@ contract("SuperfluidToken implementation", accounts => {
                 await acA.liquidateAgreementFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
                     "10",
                     "0"
                 );
@@ -410,8 +410,8 @@ contract("SuperfluidToken implementation", accounts => {
                 await acA.liquidateAgreementFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
                     "10",
                     "5"
                 );

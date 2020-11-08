@@ -88,7 +88,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await t.validateSystemInvariance();
         });
 
-        it.skip(`${titlePrefix}.2 should ${liquidationType} when insolvent`, async () => {
+        it(`${titlePrefix}.2 should ${liquidationType} when insolvent`, async () => {
             assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
             // drain the balance until insolvent (60sec extra)

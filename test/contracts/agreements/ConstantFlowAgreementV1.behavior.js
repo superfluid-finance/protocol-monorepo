@@ -189,10 +189,16 @@ async function _shouldChangeFlow({
     let agentBalance1;
     let rewardBalance1;
     if (fn === "deleteFlow") {
-        agentBalance1 = await superToken.realtimeBalanceOfNow(byAddress);
-        testenv.printRealtimeBalance("agent balance before", agentBalance1);
-        rewardBalance1 = await superToken.realtimeBalanceOfNow(rewardAddress);
-        testenv.printRealtimeBalance("reward balance before", rewardBalance1);
+        agentBalance1 = await testenv.getAccountBalanceSnapshot({
+            superToken: superToken.address,
+            account: byAddress
+        });
+        testenv.printRealtimeBalance("agent balance snapshot before", agentBalance1);
+        rewardBalance1 = await testenv.getAccountBalanceSnapshot({
+            superToken: superToken.address,
+            account: rewardAddress
+        });
+        testenv.printRealtimeBalance("reward balance snapshot before", rewardBalance1);
     }
 
     let senderBalance2;
@@ -351,28 +357,37 @@ async function _shouldChangeFlow({
             // the tx itself may move the balance more
             const adjustedRewardAmount = toBN(oldFlowInfo.flowRate)
                 .mul(toBN(txBlock.timestamp).sub(toBN(senderBalance1.timestamp)));
-            if (isSenderCritical && isSenderSolvent) {
-                const expectedRewardAmount = toBN(oldFlowInfo.deposit)
-                    .add(toBN(senderBalance1.availableBalance /* is negative */))
-                    .sub(adjustedRewardAmount);
-                expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
-                    .add(expectedRewardAmount);
-                testenv.printSingleBalance("expected reward amount (to reward account)", expectedRewardAmount);
-            } else if (isSenderCritical /* && !isSenderSolvent */) {
-                const expectedRewardAmount = toBN(oldFlowInfo.deposit);
-                const expectedBailoutAmount = toBN(senderBalance1.availableBalance)
-                    .add(toBN(oldFlowInfo.deposit))
-                    .mul(toBN(-1))
-                    .sub(adjustedRewardAmount);
-                expectedRealtimeBalanceDeltas[byAddress] = expectedRealtimeBalanceDeltas[byAddress]
-                    .add(expectedRewardAmount);
-                expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
-                    .add(expectedBailoutAmount);
-                testenv.printSingleBalance("expected reward amount (to agent)", expectedRewardAmount);
-                testenv.printSingleBalance("expected bailout amount (from reward account)", expectedBailoutAmount);
+            console.log("!!!!",
+                senderBalance1.timestamp.toString(),
+                txBlock.timestamp,
+                senderBalance2.timestamp.toString());
+            if (isSenderCritical) {
+                if (isSenderSolvent) {
+                    const expectedRewardAmount = toBN(oldFlowInfo.deposit)
+                        .add(toBN(senderBalance1.availableBalance /* is negative */))
+                        .sub(adjustedRewardAmount);
+                    expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
+                        .add(expectedRewardAmount);
+                    testenv.printSingleBalance("expected reward amount (to reward account)", expectedRewardAmount);
+                    expectedRealtimeBalanceDeltas[senderAddress] = expectedRealtimeBalanceDeltas[senderAddress]
+                        .sub(expectedRewardAmount);
+                } else {
+                    const expectedRewardAmount = toBN(oldFlowInfo.deposit);
+                    const expectedBailoutAmount = toBN(senderBalance1.availableBalance /* is negative */)
+                        .add(toBN(oldFlowInfo.deposit))
+                        .mul(toBN(-1))
+                        .sub(adjustedRewardAmount);
+                    expectedRealtimeBalanceDeltas[byAddress] = expectedRealtimeBalanceDeltas[byAddress]
+                        .add(expectedRewardAmount);
+                    testenv.printSingleBalance("expected reward amount (to agent)", expectedRewardAmount);
+                    expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
+                        .sub(expectedBailoutAmount);
+                    testenv.printSingleBalance("expected bailout amount (from reward account)", expectedBailoutAmount);
+                    expectedRealtimeBalanceDeltas[senderAddress] = expectedRealtimeBalanceDeltas[senderAddress]
+                        .sub(expectedRewardAmount)
+                        .add(expectedBailoutAmount);
+                }
             }
-            expectedRealtimeBalanceDeltas[senderAddress] = expectedRealtimeBalanceDeltas[senderAddress]
-                .sub(toBN(oldFlowInfo.deposit));
         }
 
         // update flow info
@@ -418,7 +433,7 @@ async function _shouldChangeFlow({
     assert.equal(
         senderRealtimeBalanceDelta.toString(),
         expectedRealtimeBalanceDeltas[senderAddress].toString(),
-        "wrong available balance changes of sender");
+        "wrong real-time balance changes of sender");
 
     // validate receiver balance snapshot changes
     const receiverRealtimeBalanceDelta = _realtimeBalance(receiverBalance2)
@@ -435,7 +450,7 @@ async function _shouldChangeFlow({
     assert.equal(
         receiverRealtimeBalanceDelta.toString(),
         expectedRealtimeBalanceDeltas[receiverAddress].toString(),
-        "wrong available balance changes of receiver");
+        "wrong real-time balance changes of receiver");
 
     if (fn === "deleteFlow") {
         // validate agent balance
@@ -445,7 +460,7 @@ async function _shouldChangeFlow({
         assert.equal(
             agentRealtimeBalanceDelta.toString(),
             expectedRealtimeBalanceDeltas[byAddress].toString(),
-            "wrong available balance changes of agent");
+            "wrong real-time balance changes of agent");
 
         // validate reward account balance changes
         const rewardRealtimeBalanceDelta = _realtimeBalance(rewardBalance2)
@@ -454,7 +469,7 @@ async function _shouldChangeFlow({
         assert.equal(
             rewardRealtimeBalanceDelta.toString(),
             expectedRealtimeBalanceDeltas[rewardAddress].toString(),
-            "wrong available balance changes of reward account");
+            "wrong real-time balance changes of reward account");
     }
 
     // update balance snapshots

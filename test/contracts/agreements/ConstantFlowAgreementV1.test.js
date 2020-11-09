@@ -491,7 +491,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }), "CFA: account is not critical");
             });
 
-            context("#1.4.4 liquidate with reward address as admin", () => {
+            context("#1.4.4 with reward address as admin", () => {
                 beforeEach(async () => {
                     await web3tx(governance.setRewardAddress, "set reward address to admin")(admin);
                 });
@@ -503,7 +503,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 });
             });
 
-            context("#1.4.5 liquidate with zero reward address", () => {
+            context("#1.4.5 with zero reward address", () => {
                 beforeEach(async () => {
                     await web3tx(governance.setRewardAddress, "set reward address to zero")(ZERO_ADDRESS);
                 });
@@ -573,15 +573,15 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
     });
 
-    describe("#2 multi accounts scenarios", () => {
+    describe("#2 flow proxy super app scenarios", () => {
+    });
+
+    describe("#10 multi accounts scenarios", () => {
         // always downgrade balances in the end
 
         // #2.1 net zero
         // #2.2 loop
         // #2.3 complex map
-    });
-
-    describe("#3 flow proxy super app scenarios", () => {
     });
 
 });

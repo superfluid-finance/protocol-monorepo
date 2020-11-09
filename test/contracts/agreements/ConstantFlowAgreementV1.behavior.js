@@ -270,8 +270,10 @@ async function _shouldChangeFlow({
         // update data
         senderBalance2 = await superToken.realtimeBalanceOfNow(senderAddress);
         testenv.printRealtimeBalance("sender balance after", senderBalance2);
+        assert.equal(txBlock.timestamp, senderBalance2.timestamp);
         receiverBalance2 = await superToken.realtimeBalanceOfNow(receiverAddress);
         testenv.printRealtimeBalance("receiver balance after", receiverBalance2);
+        assert.equal(txBlock.timestamp, receiverBalance2.timestamp);
         if (fn === "deleteFlow") {
             agentBalance2 = await superToken.realtimeBalanceOfNow(byAddress);
             testenv.printRealtimeBalance("agent balance after", agentBalance2);
@@ -295,7 +297,7 @@ async function _shouldChangeFlow({
         if (fn !== "deleteFlow") {
             assert.equal(
                 flowInfo.timestamp.getTime()/1000,
-                (await web3.eth.getBlock(tx.receipt.blockNumber)).timestamp,
+                txBlock.timestamp,
                 "wrong flow timestamp of the flow");
         } else {
             assert.equal(flowInfo.timestamp.getTime(), 0);
@@ -357,10 +359,10 @@ async function _shouldChangeFlow({
             // the tx itself may move the balance more
             const adjustedRewardAmount = toBN(oldFlowInfo.flowRate)
                 .mul(toBN(txBlock.timestamp).sub(toBN(senderBalance1.timestamp)));
-            console.log("!!!!",
-                senderBalance1.timestamp.toString(),
-                txBlock.timestamp,
-                senderBalance2.timestamp.toString());
+            // console.log("!!!!",
+            //     senderBalance1.timestamp.toString(),
+            //     txBlock.timestamp,
+            //     senderBalance2.timestamp.toString());
             if (isSenderCritical) {
                 if (isSenderSolvent) {
                     const expectedRewardAmount = toBN(oldFlowInfo.deposit)
@@ -376,15 +378,15 @@ async function _shouldChangeFlow({
                     const expectedBailoutAmount = toBN(senderBalance1.availableBalance /* is negative */)
                         .add(toBN(oldFlowInfo.deposit))
                         .mul(toBN(-1))
-                        .sub(adjustedRewardAmount);
+                        .add(adjustedRewardAmount);
                     expectedRealtimeBalanceDeltas[byAddress] = expectedRealtimeBalanceDeltas[byAddress]
                         .add(expectedRewardAmount);
                     testenv.printSingleBalance("expected reward amount (to agent)", expectedRewardAmount);
                     expectedRealtimeBalanceDeltas[rewardAddress] = expectedRealtimeBalanceDeltas[rewardAddress]
+                        .sub(expectedRewardAmount)
                         .sub(expectedBailoutAmount);
                     testenv.printSingleBalance("expected bailout amount (from reward account)", expectedBailoutAmount);
                     expectedRealtimeBalanceDeltas[senderAddress] = expectedRealtimeBalanceDeltas[senderAddress]
-                        .sub(expectedRewardAmount)
                         .add(expectedBailoutAmount);
                 }
             }

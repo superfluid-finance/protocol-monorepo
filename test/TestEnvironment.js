@@ -86,12 +86,19 @@ module.exports = class TestEnvironment {
         // load governance contract
         this.contracts.governance = await TestGovernance.at(await this.sf.host.getGovernance());
 
-        this.contracts.governance.setLiquidationPeriod(this.configs.LIQUIDATION_PERIOD);
+        await this.resetData();
     }
 
     async resetData() {
         // test data can be persisted here
         this.data = {};
+
+        await web3tx(this.contracts.governance.setLiquidationPeriod, "reset liquidation period")(
+            this.configs.LIQUIDATION_PERIOD
+        );
+        await web3tx(this.contracts.governance.setRewardAddress, "reset reward address to admin")(
+            this.aliases.admin
+        );
     }
 
     async createNewToken({ doUpgrade } = {}) {

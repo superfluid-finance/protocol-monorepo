@@ -75,60 +75,24 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
-        bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
-        require(stcCtx.msgSender != receiver, "CFA: no self flow");
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        bytes32 flowId = _generateId(currentContext.msgSender, receiver);
+        require(currentContext.msgSender != receiver, "CFA: no self flow");
         require(flowRate > 0, "CFA: invalid flow rate");
         require(!_flowExists(token, flowId), "CFA: flow already exist");
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)) ||
-            ISuperfluid(msg.sender).isApp(ISuperApp(stcCtx.msgSender)))
+        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)))
         {
-            // TODO: Decode return cbdata before calling the next step
-            bytes memory cbdata;
-            (cbdata, newCtx) =
-                AgreementLibrary.beforeAgreementCreated(
-                    ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
-            );
-            (uint256 depositSpend, FlowData memory newData) =
-                _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate);
-
-            newCtx = _ctxUpdateDeposit(
-                ISuperfluid(msg.sender),
-                newCtx,
-                receiver,
-                depositSpend);
-            newCtx = AgreementLibrary.afterAgreementCreated(
-                ISuperfluid(msg.sender),
-                token,
-                newCtx,
-                address(this),
-                receiver,
-                flowId,
-                cbdata
-            );
-
-            AgreementLibrary.Context memory stcNewCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), newCtx);
-            if (stcCtx.allowance == 0 && stcCtx.allowanceUsed == 0) {
-                newData.deposit = stcNewCtx.allowanceUsed;
-                newData.owedDeposit = 0;
-            } else {
-                newData.deposit = depositSpend;
-                newData.owedDeposit = (stcCtx.allowance > depositSpend
-                    ? depositSpend : depositSpend - stcCtx.allowance);
-            }
-            _updateDeposits(token, newData, stcNewCtx.msgSender, flowId);
-            newCtx = AgreementLibrary.updateCtx(
-                ISuperfluid(msg.sender),
-                newCtx,
-                stcNewCtx
-            );
+            newCtx = _updateFlowToApp(
+                token, flowId, currentContext.msgSender, receiver, flowRate,
+                ctx, currentContext, true);
         } else {
-            _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate);
+            _updateFlowToNonApp(token, flowId, currentContext.msgSender, receiver, flowRate,
+                ctx, currentContext);
             newCtx = ctx;
         }
 
-        require(!token.isAccountCriticalNow(stcCtx.msgSender), "CFA: not enough available balance");
+        require(!token.isAccountCriticalNow(currentContext.msgSender), "CFA: not enough available balance");
     }
 
     function updateFlow(
@@ -142,59 +106,23 @@ contract ConstantFlowAgreementV1 is
         returns(bytes memory newCtx)
     {
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory stcCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
-        bytes32 flowId = _generateId(stcCtx.msgSender, receiver);
-        require(stcCtx.msgSender != receiver, "CFA: no self flow");
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        bytes32 flowId = _generateId(currentContext.msgSender, receiver);
+        require(currentContext.msgSender != receiver, "CFA: no self flow");
         require(flowRate > 0, "CFA: invalid flow rate");
         require(_flowExists(token, flowId), "CFA: flow does not exist");
 
-        //require(sender == msg.sender, "FlowAgreement: only sender can update its own flow");
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-            bytes memory cbdata;
-            (cbdata, newCtx) =
-                AgreementLibrary.beforeAgreementUpdated(
-                ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
-            );
-
-            (uint256 depositSpend, FlowData memory newData) =
-                _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate);
-            newCtx = _ctxUpdateDeposit(
-                ISuperfluid(msg.sender),
-                newCtx,
-                receiver,
-                depositSpend);
-            newCtx = AgreementLibrary.afterAgreementUpdated(
-                ISuperfluid(msg.sender),
-                token,
-                newCtx,
-                address(this),
-                receiver,
-                flowId,
-                cbdata
-            );
-
-            AgreementLibrary.Context memory stcNewCtx = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), newCtx);
-            if(stcCtx.allowance == 0 && stcCtx.allowanceUsed == 0) {
-                newData.deposit = stcNewCtx.allowanceUsed;
-                newData.owedDeposit = 0;
-            } else {
-                newData.deposit = depositSpend;
-                newData.owedDeposit = (stcCtx.allowance > depositSpend
-                    ? depositSpend : depositSpend - stcCtx.allowance);
-            }
-
-            _updateDeposits(token, newData, stcNewCtx.msgSender, flowId);
-            newCtx = AgreementLibrary.updateCtx(
-                ISuperfluid(msg.sender),
-                newCtx,
-                stcNewCtx
-            );
+            newCtx = _updateFlowToApp(
+                token, flowId, currentContext.msgSender, receiver, flowRate,
+                ctx, currentContext, false);
         } else {
-            _updateFlow(token, flowId, stcCtx.msgSender, receiver, flowRate);
+            _updateFlowToNonApp(token, flowId, currentContext.msgSender, receiver, flowRate,
+                ctx, currentContext);
             newCtx = ctx;
         }
 
-        require(!token.isAccountCriticalNow(stcCtx.msgSender), "CFA: not enough available balance");
+        require(!token.isAccountCriticalNow(currentContext.msgSender), "CFA: not enough available balance");
     }
 
     /// @dev IFlowAgreement.deleteFlow implementation
@@ -224,9 +152,13 @@ contract ConstantFlowAgreementV1 is
         }
 
         bytes memory cbdata;
-        (cbdata, newCtx) =
-            AgreementLibrary.beforeAgreementTerminated(
-                ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
+        (cbdata, newCtx) = AgreementLibrary.beforeAgreementTerminated(
+            ISuperfluid(msg.sender),
+            token,
+            ctx, // FIXME calculate allowance
+            address(this),
+            receiver,
+            flowId
         );
         // TODO: Decode return cbdata before calling the next step
 
@@ -236,11 +168,6 @@ contract ConstantFlowAgreementV1 is
 
         _terminateAgreement(token, flowId, flowData, sender, receiver);
 
-        newCtx = _ctxUpdateDeposit(
-            ISuperfluid(msg.sender),
-            newCtx,
-            receiver,
-            0);
         newCtx = AgreementLibrary.afterAgreementTerminated(
             ISuperfluid(msg.sender),
             token,
@@ -345,6 +272,124 @@ contract ConstantFlowAgreementV1 is
     /*
      * Internal Functions
      */
+    // solhint-disable-next-line contract-name-camelcase
+    struct _States_updateAccountState {
+        bytes cbdata;
+        int256 depositDelta;
+        int256 owedDepositDelta;
+        FlowData newFlowData;
+        int256 appAllowance;
+        AgreementLibrary.Context appContext;
+    }
+
+    // solhint-disable-next-line contract-name-camelcase
+    struct _States_updateFlows {
+        uint256 newDeposit;
+        uint256 newOwedDeposit;
+        FlowData oldFlowData;
+    }
+
+    function _calculateOwedDeposit(
+        int256 currentAllowance,
+        int256 allowanceWanted)
+        private
+        returns (uint256 owedDeposit)
+    {
+        // allowance wanted could be negative due to refund
+        if (allowanceWanted < 0) return 0;
+        // current allowance negative means refund is demanded instead
+        if (currentAllowance < 0) return 0;
+        if (currentAllowance > allowanceWanted) {
+            // pay the entire allowance wanted with current allowance
+            return allowanceWanted.toUint256();
+        } else {
+            // use up to current allowance as owed deposit
+            return currentAllowance.toUint256();
+        }
+    }
+
+    // Apppy "allowance used" to "current allowance left" value to get:
+    // - account allowance used delta,
+    // - and account balance delta
+    //
+    // NOTES:
+    // - currentAllowanceLeft can be nagative - as allowance refunds requested
+    // - allowanceUsed can be negative - as allowance refunds
+    function _applyAllowanceUsed(
+        int256 currentAllowance,
+        int256 currentAllowanceUsed,
+        int256 allowanceUsed
+    )
+        internal pure
+        returns (
+            int256 accountAllowanceUsedDelta,
+            int256 accountBalanceDelta
+        )
+    {
+        int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
+        if (currentAllowanceLeft > 0) {
+            // use the allowance
+            if (allowanceUsed > 0) {
+                // use up to the current context allowance amount
+                if (currentAllowanceLeft > allowanceUsed) {
+                    // use up to what app used,
+                    accountAllowanceUsedDelta = allowanceUsed;
+                } else {
+                    // free up to the current context allowance amount
+                    accountAllowanceUsedDelta = currentAllowanceLeft;
+                    // rest paid by sender
+                    accountBalanceDelta = allowanceUsed.sub(currentAllowanceLeft);
+                }
+            }
+        } else if (currentAllowanceLeft < 0) {
+            // refund the allowance
+            if (allowanceUsed < 0) {
+                // always refund everything
+                accountAllowanceUsedDelta = currentAllowanceLeft;
+                if (currentAllowanceLeft < allowanceUsed) {
+                    // take into account refund paid by the app
+                    accountBalanceDelta = accountAllowanceUsedDelta.sub(allowanceUsed);
+                } // else app refund more than needed
+            }
+        }
+    }
+
+    function _applyAllowanceUsedAndUpdate(
+        ISuperfluidToken token,
+        address account,
+        int256 currentAllowance,
+        int256 currentAllowanceUsed,
+        int256 allowanceUsed,
+        bytes memory ctx,
+        bool doUpdateAccountState
+    )
+        private returns (bytes memory newCtx)
+    {
+        (int accountAllowanceUsedDelta, int accountBalanceDelta) = _applyAllowanceUsed(
+            currentAllowance,
+            currentAllowanceUsed,
+            allowanceUsed
+        );
+        if (accountAllowanceUsedDelta != 0) {
+            newCtx = ISuperfluid(msg.sender).ctxUpdateAllowanceUsed(ctx, accountAllowanceUsedDelta);
+        } else {
+            newCtx = ctx;
+        }
+        if (doUpdateAccountState && (allowanceUsed != 0 || accountAllowanceUsedDelta != 0)) {
+            _updateAccountState(
+                token,
+                account,
+                0, // flow rate delta
+                allowanceUsed,
+                accountAllowanceUsedDelta,
+                false
+            );
+        }
+        if (accountBalanceDelta != 0) {
+            token.settleBalance(account, accountBalanceDelta);
+        }
+    }
+
     function _updateAccountState(
         ISuperfluidToken token,
         address account,
@@ -371,44 +416,180 @@ contract ConstantFlowAgreementV1 is
         return state.flowRate;
     }
 
+    function _updateFlowToNonApp(
+        ISuperfluidToken token,
+        bytes32 flowId,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes memory ctx,
+        AgreementLibrary.Context memory currentContext
+    )
+        private
+        returns (bytes memory newCtx)
+    {
+        (,int256 owedDepositDelta,) = _updateFlow(
+            token, flowId, sender, receiver, flowRate,
+            currentContext.allowance, true /* doApplyOwedDeposit */);
+        newCtx = _applyAllowanceUsedAndUpdate(
+            token,
+            sender,
+            currentContext.allowance,
+            currentContext.allowanceUsed,
+            owedDepositDelta,
+            ctx,
+            false /* doUpdateAccountState */
+        );
+    }
+
+    function _updateFlowToApp(
+        ISuperfluidToken token,
+        bytes32 flowId,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes memory ctx,
+        AgreementLibrary.Context memory currentContext,
+        bool toCreate
+    )
+        private
+        returns (bytes memory newCtx)
+    {
+        // apply callbacks
+        _States_updateAccountState memory states;
+        {
+            if (toCreate) {
+                (states.cbdata, newCtx) = AgreementLibrary.beforeAgreementCreated(
+                    ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
+                );
+            } else {
+                (states.cbdata, newCtx) = AgreementLibrary.beforeAgreementUpdated(
+                    ISuperfluid(msg.sender), token, ctx, address(this), receiver, flowId
+                );
+            }
+
+            (states.depositDelta, states.owedDepositDelta, states.newFlowData) =
+                _updateFlow(token, flowId, sender, receiver, flowRate,
+                    currentContext.allowance, false /* doApplyOwedDeposit */);
+
+            // set allowance for the next callback
+            states.appAllowance = int256(currentContext.appLevel).mul(states.depositDelta);
+            if (toCreate) {
+                newCtx = AgreementLibrary.afterAgreementCreated(
+                    ISuperfluid(msg.sender),
+                    token,
+                    ISuperfluid(msg.sender).ctxUpdateAllowance(newCtx, states.appAllowance),
+                    address(this),
+                    receiver,
+                    flowId,
+                    states.cbdata
+                );
+            } else {
+                newCtx = AgreementLibrary.afterAgreementUpdated(
+                    ISuperfluid(msg.sender),
+                    token,
+                    ISuperfluid(msg.sender).ctxUpdateAllowance(newCtx, states.appAllowance),
+                    address(this),
+                    receiver,
+                    flowId,
+                    states.cbdata
+                );
+            }
+
+            // the callback will signal allowance used/refunded through the allowanceUsed transaction context
+            // TODO move to the library code
+            states.appContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), newCtx);
+            // sanity check of appContext.allowanceUsed return value
+            if (states.appAllowance > 0) {
+                // app allowance can be used by the app
+                // agreement must not refund allowance if not requested (allowance < 0)
+                assert(states.appContext.allowanceUsed >= 0);
+                // agreement must only use up to allowance given
+                assert(states.appContext.allowanceUsed <= states.appAllowance);
+                // pay for app allowance
+            } else if (states.appAllowance < 0) {
+                // app allowance must be refunded
+                assert(states.appContext.allowanceUsed == states.appAllowance);
+            } // trivial casae no action
+        }
+
+        // update owed deposit of current flow
+        {
+            // _updateFlow doApplyOwedDeposit is set to false,
+            // hence owed deposit was reset to zero, allowing a new calculation here
+            int256 depositAllowanceWanted = states.newFlowData.deposit.toInt256()
+                .add(states.appContext.allowanceUsed);
+            states.newFlowData.owedDeposit = _calculateOwedDeposit(
+                currentContext.allowance, depositAllowanceWanted);
+            token.updateAgreementData(flowId, _encodeFlowData(states.newFlowData));
+        }
+
+        newCtx = _applyAllowanceUsedAndUpdate(
+            token,
+            sender,
+            currentContext.allowance,
+            currentContext.allowanceUsed,
+            states.appContext.allowanceUsed,
+            newCtx,
+            true /* doUpdateAccountState */);
+    }
+
     function _updateFlow(
         ISuperfluidToken token,
         bytes32 flowId,
         address sender,
         address receiver,
-        int96 flowRate
+        int96 flowRate,
+        int256 currentAllowance,
+        bool doApplyOwedDeposit
     )
         private
-        returns(uint256 depositAllowanceUsed, FlowData memory newFlowData)
+        returns (
+            int256 depositDelta,
+            int256 owedDepositDelta,
+            FlowData memory newFlowData
+        )
     {
-        (, FlowData memory oldFlowData) = _getAgreementData(token, flowId);
-        uint256 newDeposit = _calculateDeposit(token, flowRate);
+        _States_updateFlows memory states;
+
+        (, states.oldFlowData) = _getAgreementData(token, flowId);
+        states.newDeposit = _calculateDeposit(token, flowRate);
+
+        if (doApplyOwedDeposit) {
+            states.newOwedDeposit = _calculateOwedDeposit(
+                currentAllowance, states.newDeposit.toInt256());
+        }
+
+        // calculate deposit and owed deposit deltas
+        /* require(flowRate == 277777777777777, "flowRate");
+        require(states.oldFlowData.deposit == 0, "states.oldFlowData.deposit == 0");
+        require(states.newDeposit == 999999997191651328, "states.newDeposit == 999999997191651328"); */
+        depositDelta = states.newDeposit.toInt256()
+            .sub(states.oldFlowData.deposit.toInt256());
+        owedDepositDelta = states.newOwedDeposit.toInt256()
+            .sub(states.oldFlowData.owedDeposit.toInt256());
 
         newFlowData = FlowData(
             block.timestamp,
             flowRate,
-            newDeposit,
-            0
+            states.newDeposit,
+            doApplyOwedDeposit ? states.newOwedDeposit : 0
         );
-        token.updateAgreementData(flowId, _encodeFlowData(newFlowData));
 
-        int256 depositDelta = newDeposit.toInt256().sub(oldFlowData.deposit.toInt256());
-        if (depositDelta > 0) {
-            depositAllowanceUsed = uint256(depositDelta);
-        }
+        token.updateAgreementData(flowId, _encodeFlowData(newFlowData));
 
         int96 totalSenderFlowRate = _updateAccountState(
             token,
             sender,
-            oldFlowData.flowRate.sub(flowRate),
+            states.oldFlowData.flowRate.sub(flowRate),
             depositDelta,
-            0,
+            owedDepositDelta,
             true
         );
         int96 totalReceiverFlowRate = _updateAccountState(
             token,
             receiver,
-            flowRate.sub(oldFlowData.flowRate),
+            flowRate.sub(states.oldFlowData.flowRate),
             0,
             0,
             true
@@ -510,15 +691,17 @@ contract ConstantFlowAgreementV1 is
         ISuperfluidToken token,
         bytes32 flowId
     )
-        internal
-        view
+        internal view
         returns(bool isNewFlow)
     {
         (bool exist,) = _getAgreementData(token, flowId);
         return exist;
     }
 
-    function _calculateDeposit(ISuperfluidToken token, int96 flowRate) internal view returns(uint256 deposit) {
+    function _calculateDeposit(ISuperfluidToken token, int96 flowRate)
+        internal view
+        returns(uint256 deposit)
+    {
         ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
         uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
         assert(liquidationPeriod <= uint256(type(int96).max));
@@ -527,29 +710,6 @@ contract ConstantFlowAgreementV1 is
         deposit = deposit >> 32;
         if (deposit == 0) return 1 << 32;
         else return deposit << 32;
-    }
-
-    function _updateDeposits(
-        ISuperfluidToken token,
-        FlowData memory data,
-        address account,
-        bytes32 flowId
-    )
-        internal
-    {
-        //update data deposit and save it
-        token.updateAgreementData(flowId, _encodeFlowData(data));
-        (int256 availabelBalance, ,) = token.realtimeBalanceOf(account, block.timestamp);
-        require(availabelBalance >= int256(data.owedDeposit - data.deposit), "CFA: not enough available balance");
-        //update state
-        _updateAccountState(
-            token,
-            account,
-            0,
-            data.deposit.toInt256(),
-            data.owedDeposit.toInt256(),
-            false
-        );
     }
 
 
@@ -622,27 +782,5 @@ contract ConstantFlowAgreementV1 is
     {
         bytes32[] memory data = token.getAgreementData(address(this), dId, 1);
         return _decodeFlowData(uint256(data[0]));
-    }
-
-    function _ctxUpdateDeposit(
-        ISuperfluid host,
-        bytes memory ctx,
-        address receiver,
-        uint256 unitOfAllowance
-    )
-        private
-        returns(bytes memory newCtx)
-    {
-        if (unitOfAllowance == 0) return ctx;
-        AgreementLibrary.Context memory context = AgreementLibrary.decodeCtx(host, ctx);
-        // TODO review this rule
-        uint256 level = uint256(host.getAppLevel(ISuperApp(receiver)));
-        context.allowanceUsed +=
-            (unitOfAllowance > context.allowance ?
-             unitOfAllowance - context.allowance :
-             unitOfAllowance);
-
-        context.allowance = (level * unitOfAllowance);
-        newCtx = AgreementLibrary.updateCtx(host, ctx, context);
     }
 }

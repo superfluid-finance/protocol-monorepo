@@ -207,11 +207,17 @@ interface ISuperfluid {
         // isAppActive(app)
         returns(bytes memory newCtx);
 
-    function ctxUpdate(
+    function ctxUpdateAllowance(
         bytes calldata ctx,
-        uint8 appLevel,
-        uint256 allowance,
-        uint256 allowanceUsed
+        int256 allowance
+    )
+        external
+        // onlyAgreement
+        returns (bytes memory newCtx);
+
+    function ctxUpdateAllowanceUsed(
+        bytes calldata ctx,
+        int256 allowanceUsed
     )
         external
         // onlyAgreement
@@ -330,12 +336,27 @@ interface ISuperfluid {
     function decodeCtx(bytes calldata ctx)
         external pure
         returns (
+            address msgSender,
             bytes4 agreementSelector,
             uint8 appLevel,
+            int256 allowance,
+            int256 allowanceUsed
+        );
+
+    /* function decodeCallContext(bytes calldata ctx)
+        external pure
+        returns (
             address msgSender,
+            bytes4 agreementSelector
+        );
+
+    function decodeTransactionContext(bytes calldata ctx)
+        external pure
+        returns (
+            uint8 appLevel,
             uint256 allowance,
             uint256 allowanceUsed
-        );
+        ); */
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

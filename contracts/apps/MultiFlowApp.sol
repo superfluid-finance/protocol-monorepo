@@ -9,10 +9,14 @@ import {
 } from "./SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-// FIXME Create and use a SuperAppBase abstract contract,
-//       which implements all the callbacks as reverts.
-//       - Revert(callback not implemented constant string)
-//FIXME - MsgSender can be different from flowSender
+
+/**
+ * @dev Multi Flows Super APPEND
+ *
+ * A super app that can split incoming flows to multiple outgoing flows.
+ *
+ * This is used for testing CFA callbacks logic.
+ */
 contract MultiFlowsApp is SuperAppBase {
 
     struct ReceiverData {
@@ -33,7 +37,6 @@ contract MultiFlowsApp is SuperAppBase {
 
         uint256 configWord =
             SuperAppDefinitions.TYPE_APP_FINAL |
-            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerApp(configWord);
@@ -50,7 +53,7 @@ contract MultiFlowsApp is SuperAppBase {
     {
         require(msg.sender == address(_host), "MFA: Only official superfluid host is supported by the app");
         require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
-        (,,address sender,,) = _host.decodeCtx(ctx);
+        (address sender,,,,) = _host.decodeCtx(ctx);
         require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
 
         newCtx = _host.chargeGasFee(ctx, 30000);
@@ -98,6 +101,22 @@ contract MultiFlowsApp is SuperAppBase {
         }
     }
 
+    function beforeAgreementCreated(
+        ISuperToken superToken,
+        bytes calldata /*ctx*/,
+        address agreementClass,
+        bytes32 agreementId
+    )
+        external
+        view
+        override
+        returns (bytes memory cbdata)
+    {
+        require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
+        (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
+        return abi.encode(oldFlowRate);
+    }
+
     function afterAgreementCreated(
         ISuperToken superToken,
         bytes calldata ctx,
@@ -109,7 +128,7 @@ contract MultiFlowsApp is SuperAppBase {
     override
     returns(bytes memory newCtx)
     {
-        (,,address sender,,) = _host.decodeCtx(ctx);
+        (address sender,,,,) = _host.decodeCtx(ctx);
         require(_userFlows[sender].length > 0 , "MFA: Create Multi Flow first or go away");
         (, int96 receivingFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
 
@@ -144,7 +163,7 @@ contract MultiFlowsApp is SuperAppBase {
         external override
         returns (bytes memory newCtx)
     {
-        (,,address sender,,) = _host.decodeCtx(ctx);
+        (address sender,,,,) = _host.decodeCtx(ctx);
         (, int96 newFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
 
         int96 oldFlowRate = abi.decode(cbdata, (int96));
@@ -165,7 +184,7 @@ contract MultiFlowsApp is SuperAppBase {
         override
         returns (bytes memory newCtx)
     {
-        (,,address sender,,) = _host.decodeCtx(ctx);
+        (address sender,,,,) = _host.decodeCtx(ctx);
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(

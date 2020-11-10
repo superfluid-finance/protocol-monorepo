@@ -142,8 +142,8 @@ async function _shouldChangeFlow({
     console.log(`======== ${fn} begins ========`);
     //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
     const { superToken, governance } = testenv.contracts;
-    const senderAddress = testenv.aliases[sender];
-    const receiverAddress = testenv.aliases[receiver];
+    const senderAddress = web3.utils.isAddress(sender) ? sender : testenv.aliases[sender];
+    const receiverAddress = web3.utils.isAddress(receiver) ? receiver : testenv.aliases[receiver];
     let byAddress;
     let rewardAddress = await governance.getRewardAddress(superToken.address);
     if (fn === "deleteFlow") {
@@ -198,7 +198,7 @@ async function _shouldChangeFlow({
             superToken: superToken.address,
             account: rewardAddress
         });
-        testenv.printRealtimeBalance("reward balance snapshot before", rewardBalance1);
+        testenv.printRealtimeBalance("reward account balance snapshot before", rewardBalance1);
     }
 
     let senderBalance2;
@@ -238,7 +238,7 @@ async function _shouldChangeFlow({
             agentBalance1 = await superToken.realtimeBalanceOfNow(byAddress);
             testenv.printRealtimeBalance("agent balance before", agentBalance1);
             rewardBalance1 = await superToken.realtimeBalanceOfNow(rewardAddress);
-            testenv.printRealtimeBalance("reward balance before", rewardBalance1);
+            testenv.printRealtimeBalance("reward account balance before", rewardBalance1);
         }
 
         let tx;
@@ -278,7 +278,7 @@ async function _shouldChangeFlow({
             agentBalance2 = await superToken.realtimeBalanceOfNow(byAddress);
             testenv.printRealtimeBalance("agent balance after", agentBalance2);
             rewardBalance2 = await superToken.realtimeBalanceOfNow(rewardAddress);
-            testenv.printRealtimeBalance("reward balance after", rewardBalance2);
+            testenv.printRealtimeBalance("reward account balance after", rewardBalance2);
         }
         const senderAccountFlow2 = await testenv.sf.cfa.getAccountFlowInfo({
             superToken: superToken.address,
@@ -319,11 +319,13 @@ async function _shouldChangeFlow({
         const flowRateDelta = toBN(flowInfo.flowRate).sub(toBN(oldFlowInfo.flowRate)).toString();
         assert.equal(
             toBN(senderAccountFlow1.flowRate).sub(toBN(senderAccountFlow2.flowRate)).toString(),
-            flowRateDelta.toString()
+            flowRateDelta.toString(),
+            "wrong sender flow rate delta"
         );
         assert.equal(
             toBN(receiverAccountFlow2.flowRate).sub(toBN(receiverAccountFlow1.flowRate)).toString(),
-            flowRateDelta.toString()
+            flowRateDelta.toString(),
+            "wrong receiver flow rate delta"
         );
 
         // validate sender deposit changes and account flow info change

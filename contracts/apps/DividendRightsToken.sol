@@ -125,7 +125,7 @@ contract DividendRightsToken is
     )
         private
     {
-        (bytes4 agreementSelector,,address subscriber,,) = _host.decodeCtx(ctx);
+        (address subscriber, bytes4 agreementSelector,,,) = _host.decodeCtx(ctx);
         // only interested in the subscription approval callbacks
         if (agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
             address publisher;

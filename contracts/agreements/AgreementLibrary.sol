@@ -13,21 +13,10 @@ import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol"
 library AgreementLibrary {
 
     struct Context {
-        uint8 appLevel;
         address msgSender;
-        uint256 allowance;
-        uint256 allowanceUsed;
-    }
-
-    function updateCtx(ISuperfluid host, bytes memory ctx, Context memory context)
-        internal
-        returns (bytes memory newCtx)
-    {
-        newCtx = host.ctxUpdate(
-            ctx,
-            context.appLevel,
-            context.allowance,
-            context.allowanceUsed);
+        uint8 appLevel;
+        int256 allowance;
+        int256 allowanceUsed;
     }
 
     function decodeCtx(ISuperfluid host, bytes memory ctx)
@@ -36,9 +25,9 @@ library AgreementLibrary {
         returns (Context memory context)
     {
         (
+            context.msgSender,
             ,
             context.appLevel,
-            context.msgSender,
             context.allowance,
             context.allowanceUsed
         ) = host.decodeCtx(ctx);

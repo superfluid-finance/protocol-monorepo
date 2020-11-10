@@ -14,6 +14,7 @@ const {
 const TestEnvironment = require("../../TestEnvironment");
 
 const traveler = require("ganache-time-traveler");
+const MultiFlowsApp = artifacts.require("MultiFlowsApp");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
@@ -25,16 +26,23 @@ const MINIMAL_DEPOSIT = toBN(1).shln(32);
 contract("Using ConstantFlowAgreement v1", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
-    const { admin, alice, dan } = t.aliases;
+    const { admin, /* carol, */ } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
     const { LIQUIDATION_PERIOD } = t.configs;
 
-    let testToken;
+    let superfluid;
     let governance;
+    let cfa;
+    let testToken;
     let superToken;
 
     before(async () => {
         await t.reset();
+        ({
+            superfluid,
+            governance,
+            cfa,
+        } = t.contracts);
     });
 
     beforeEach(async function () {
@@ -42,7 +50,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         await t.createNewToken();
         ({
             testToken,
-            governance,
             superToken,
         } = t.contracts);
     });
@@ -304,7 +311,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(t.sf.cfa.updateFlow({
                     superToken: superToken.address,
                     sender: t.aliases[sender],
-                    receiver: dan,
+                    receiver: t.aliases[agent],
                     flowRate: FLOW_RATE1.toString(),
                 }), "CFA: flow does not exist");
             });
@@ -407,7 +414,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(t.sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: t.aliases[sender],
-                    receiver: dan,
+                    receiver: t.aliases[agent],
                 }), "CFA: flow does not exist");
             });
 
@@ -423,7 +430,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(t.sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: ZERO_ADDRESS,
-                    receiver: dan,
+                    receiver: t.aliases[agent],
                     by: t.aliases[sender]
                 }), "CFA: sender is zero");
             });
@@ -469,7 +476,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     superToken: superToken.address,
                     sender: t.aliases[sender],
                     receiver: t.aliases[receiver],
-                    by: dan
+                    by: t.aliases[agent]
                 }), "CFA: account is not critical");
             });
 
@@ -478,7 +485,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     superToken: superToken.address,
                     sender: ZERO_ADDRESS,
                     receiver: t.aliases[receiver],
-                    by: dan
+                    by: t.aliases[agent]
                 }), "CFA: sender is zero");
             });
 
@@ -487,7 +494,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     superToken: superToken.address,
                     sender: t.aliases[sender],
                     receiver: t.aliases[receiver],
-                    by: dan
+                    by: t.aliases[agent]
                 }), "CFA: account is not critical");
             });
 
@@ -534,8 +541,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                             .mul(toBN(LIQUIDATION_PERIOD))
                             .add(marginalLiquidity)
                     );
-                    await testToken.mint(alice, sufficientLiquidity, {
-                        from: alice
+                    await testToken.mint(t.aliases.alice, sufficientLiquidity, {
+                        from: t.aliases.alice
                     });
                     await upgradeBalance("alice", sufficientLiquidity);
 
@@ -573,7 +580,54 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
     });
 
-    describe("#2 flow proxy super app scenarios", () => {
+    describe("#2 multi flows super app scenarios", () => {
+        const sender = "alice";
+        const receiver1 = "bob";
+        //const receiver2 = "carol";
+        //const agent = "dan";
+        let app;
+
+        beforeEach(async () => {
+            app = await web3tx(MultiFlowsApp.new, "MultiApp.new")(
+                cfa.address,
+                superfluid.address
+            );
+        });
+
+        it("#2.1 should work for 1to1 multi flows", async () => {
+            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            // TODO use call context user data to configure the multi flows
+            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
+                app.address,
+                app.contract.methods.createMultiFlows(
+                    superToken.address,
+                    [t.aliases[receiver1]],
+                    [1],
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: t.aliases[sender]
+                }
+            );
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                flowRate: FLOW_RATE1,
+            });
+
+            await timeTravelOnce();
+
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: receiver1,
+            });
+
+            await t.validateSystemInvariance();
+        });
     });
 
     describe("#10 multi accounts scenarios", () => {

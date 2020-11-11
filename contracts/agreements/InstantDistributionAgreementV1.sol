@@ -293,9 +293,9 @@ contract InstantDistributionAgreementV1 is
             sd.sdata.subId = _findAndFillSubsBitmap(token, subscriber, sd.iId);
             token.createAgreement(sd.sId, _encodeSubscriptionData(sd.sdata));
 
-            newCtx = AgreementLibrary.afterAgreementCreated(
+            (, newCtx) = AgreementLibrary.afterAgreementCreated(
                 ISuperfluid(msg.sender), token, newCtx,
-                address(this), publisher, sd.sId, sd.cbdata
+                address(this), publisher, sd.sId, sd.cbdata, 0
             );
         } else {
             (sd.cbdata, newCtx) = AgreementLibrary.beforeAgreementUpdated(
@@ -318,9 +318,9 @@ contract InstantDistributionAgreementV1 is
             sd.sdata.subId = _findAndFillSubsBitmap(token, subscriber, sd.iId);
             token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
 
-            newCtx = AgreementLibrary.afterAgreementUpdated(
+            (, newCtx) = AgreementLibrary.afterAgreementUpdated(
                 ISuperfluid(msg.sender), token, newCtx,
-                address(this), publisher, sd.sId, sd.cbdata
+                address(this), publisher, sd.sId, sd.cbdata, 0
             );
         }
 
@@ -428,14 +428,14 @@ contract InstantDistributionAgreementV1 is
 
         // after-hook callback
         if (exist) {
-            newCtx = AgreementLibrary.afterAgreementUpdated(
+            (, newCtx) = AgreementLibrary.afterAgreementUpdated(
                 ISuperfluid(msg.sender), token, newCtx,
-                address(this), subscriber, sId, sd.cbdata
+                address(this), subscriber, sId, sd.cbdata, 0
             );
         } else {
-            newCtx = AgreementLibrary.afterAgreementCreated(
+            (, newCtx) = AgreementLibrary.afterAgreementCreated(
                 ISuperfluid(msg.sender), token, newCtx,
-                address(this), subscriber, sId, sd.cbdata
+                address(this), subscriber, sId, sd.cbdata, 0
             );
         }
 
@@ -606,9 +606,9 @@ contract InstantDistributionAgreementV1 is
         // settle subscriber static balance
         token.settleBalance(subscriber, balanceDelta);
 
-        newCtx = AgreementLibrary.afterAgreementTerminated(
+        (, newCtx) = AgreementLibrary.afterAgreementTerminated(
             ISuperfluid(msg.sender), token, newCtx,
-            address(this), sender == subscriber ? publisher : subscriber, sd.sId, sd.cbdata
+            address(this), sender == subscriber ? publisher : subscriber, sd.sId, sd.cbdata, 0
         );
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber);
@@ -656,9 +656,9 @@ contract InstantDistributionAgreementV1 is
             token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
             token.settleBalance(subscriber, int256(pendingDistribution));
 
-            newCtx = AgreementLibrary.afterAgreementUpdated(
+            (, newCtx) = AgreementLibrary.afterAgreementUpdated(
                 ISuperfluid(msg.sender), token, newCtx,
-                address(this), publisher, sd.sId, sd.cbdata
+                address(this), publisher, sd.sId, sd.cbdata, 0
             );
         } else {
             // nothing to be recorded in this case

@@ -33,6 +33,15 @@ library AgreementLibrary {
         ) = host.decodeCtx(ctx);
     }
 
+    function _needCallback(
+        ISuperfluid host,
+        address account,
+        uint256 noopBit
+    ) private returns (bool) {
+        (bool isSuperApp, uint256 configWord) = host.getAppManifest(ISuperApp(account));
+        return isSuperApp && ((configWord & noopBit) == 0);
+    }
+
     function _beforeAgreement(
         bytes4 selector,
         uint256 noopBit,
@@ -47,12 +56,7 @@ library AgreementLibrary {
         private
         returns(bytes memory cbdata, bytes memory newCtx)
     {
-        newCtx = ctx;
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(ISuperApp(account));
-
-        if (isSuperApp &&
-            ((configWord & noopBit) == 0)) {
+        if (_needCallback(host, account, noopBit)) {
             bytes memory data = abi.encodeWithSelector(
                 selector,
                 token,
@@ -61,6 +65,8 @@ library AgreementLibrary {
                 agreementId
             );
             (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, isTermination, ctx);
+        } else {
+            newCtx = ctx;
         }
     }
 
@@ -74,29 +80,41 @@ library AgreementLibrary {
         address account,
         bytes32 agreementId,
         bytes memory cbdata,
+        int256 appAllowance,
         bool isTermination
     )
         private
-        returns(bytes memory newCtx)
+        returns(Context memory context, bytes memory newCtx)
     {
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(ISuperApp(account));
+        if (_needCallback(host, account, noopBit)) {
+            newCtx = ISuperfluid(msg.sender).ctxUpdateAllowance(ctx, appAllowance);
 
-
-        if (isSuperApp &&
-            ((configWord & noopBit) == 0)) {
             bytes memory data = abi.encodeWithSelector(
                 selector,
                 token,
-                ctx,
+                newCtx,
                 agreementClass,
                 agreementId,
                 cbdata
             );
-            return host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
-        }
+            newCtx = host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
+            context = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), newCtx);
 
-        return ctx;
+            // sanity check of allowanceUsed return value
+            if (appAllowance > 0) {
+                // app allowance can be used by the app
+                // agreement must not refund allowance if not requested (allowance < 0)
+                assert(context.allowanceUsed >= 0);
+                // agreement must only use up to allowance given
+                assert(context.allowanceUsed <= appAllowance);
+                // pay for app allowance
+            } else if (appAllowance < 0) {
+                // app allowance must be refunded
+                assert(context.allowanceUsed == appAllowance);
+            } // trivial casae no action
+        } else {
+            newCtx = ctx;
+        }
     }
 
     function beforeAgreementCreated(
@@ -130,10 +148,11 @@ library AgreementLibrary {
         address agreementClass,
         address account,
         bytes32 agreementId,
-        bytes memory cbdata
+        bytes memory cbdata,
+        int256 appAllowance
     )
         internal
-        returns(bytes memory newCtx)
+        returns(Context memory context, bytes memory newCtx)
     {
 
         return _afterAgreement(
@@ -146,6 +165,7 @@ library AgreementLibrary {
             account,
             agreementId,
             cbdata,
+            appAllowance,
             false
         );
     }
@@ -181,10 +201,11 @@ library AgreementLibrary {
         address agreementClass,
         address account,
         bytes32 agreementId,
-        bytes memory cbdata
+        bytes memory cbdata,
+        int256 appAllowance
     )
         internal
-        returns(bytes memory newCtx)
+        returns(Context memory context, bytes memory newCtx)
     {
         return _afterAgreement(
             ISuperApp.afterAgreementUpdated.selector,
@@ -196,6 +217,7 @@ library AgreementLibrary {
             account,
             agreementId,
             cbdata,
+            appAllowance,
             false
         );
     }
@@ -231,10 +253,11 @@ library AgreementLibrary {
         address agreementClass,
         address account,
         bytes32 agreementId,
-        bytes memory cbdata
+        bytes memory cbdata,
+        int256 appAllowance
     )
         internal
-        returns(bytes memory newCtx)
+        returns(Context memory context, bytes memory newCtx)
     {
         return _afterAgreement(
             ISuperApp.afterAgreementTerminated.selector,
@@ -246,6 +269,7 @@ library AgreementLibrary {
             account,
             agreementId,
             cbdata,
+            appAllowance,
             true
         );
     }

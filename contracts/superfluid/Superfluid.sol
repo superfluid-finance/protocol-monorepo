@@ -396,12 +396,16 @@ contract Superfluid is
         require(!isAppJailed(app), "SF: App already jailed");
 
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
-        if(success) {
+        if (success) {
             newCtx = abi.decode(returnedData, (bytes));
             if(!_isCtxValid(newCtx)) {
                 // TODO: JAIL if callback changes ctx
                 //Change return context
-                emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
+                if (!isTermination) {
+                    revert("Superfluid: B_1_READONLY_CONTEXT");
+                } else {
+                    emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
+                }
             }
         } else {
             if (!isTermination) {
@@ -423,6 +427,7 @@ contract Superfluid is
     {
         FullContext memory context = _decodeFullContext(ctx);
         context.allowance = allowance;
+        context.allowanceUsed = 0;
         newCtx = _updateContext(context);
     }
 

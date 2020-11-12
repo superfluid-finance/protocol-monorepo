@@ -133,7 +133,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 sender: alice,
                 receiver: bob,
                 by: admin
-            }), "FlowAgreement: account is solvent");
+            }), "CFA: account is not critical");
         });
     });
 

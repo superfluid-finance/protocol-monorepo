@@ -30,7 +30,6 @@ contract ConstantFlowAgreementV1 is
     using SignedSafeMath for int256;
     using SafeCast for int256;
     using Int96SafeMath for int96;
-    using AgreementLibrary for AgreementLibrary.Context;
 
     struct FlowData {
         uint256 timestamp;
@@ -49,6 +48,7 @@ contract ConstantFlowAgreementV1 is
     /*
      * ISuperAgreement interface
      */
+
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
         ISuperfluidToken token,
@@ -308,12 +308,9 @@ contract ConstantFlowAgreementV1 is
     struct _StackVars_updateFlowToApp {
         bytes cbdata;
         int256 depositDelta;
-        int256 owedDepositDelta;
         FlowData newFlowData;
         int256 appAllowance;
         AgreementLibrary.Context appContext;
-        int accountAllowanceUsedDelta;
-        int accountBalanceDelta;
     }
 
     function _getAccountFlowState
@@ -460,6 +457,7 @@ contract ConstantFlowAgreementV1 is
     {
         // apply callbacks
         _StackVars_updateFlowToApp memory vars;
+
         {
             if (toCreate) {
                 (vars.cbdata, newCtx) = AgreementLibrary.beforeAgreementCreated(
@@ -471,7 +469,7 @@ contract ConstantFlowAgreementV1 is
                 );
             }
 
-            (vars.depositDelta, vars.owedDepositDelta, vars.newFlowData) = _updateFlow(
+            (vars.depositDelta, ,vars.newFlowData) = _updateFlow(
                     currentTimestamp,
                     token, flowParams, oldFlowData);
 
@@ -511,6 +509,7 @@ contract ConstantFlowAgreementV1 is
             vars.newFlowData.owedDeposit = vars.appContext.allowanceUsed > 0 ?
                 vars.appContext.allowanceUsed.toUint256() : 0;
             owedDepositDelta = vars.newFlowData.owedDeposit.toInt256().sub(owedDepositDelta);
+
             // update sender and receiver deposit (for sender) and owed deposit (for receiver)
             if (owedDepositDelta != 0) {
                 _updateAccountFlowState(
@@ -713,12 +712,18 @@ contract ConstantFlowAgreementV1 is
     }
 
     // Apppy "allowance used" to "current allowance left" value to get:
-    // - account allowance used delta,
-    // - and account balance delta
     //
-    // NOTES:
-    // - currentAllowanceLeft can be nagative - as allowance refunds requested
-    // - allowanceUsed can be negative - as allowance refunds
+    /**
+     * @dev Calculate deltas required to satisfy the allowance used
+     *
+     * The deltas are:
+     * - account allowance (provided through current context by allowance provider) used delta,
+     * - and account balance delta (self funded)
+     *
+     * NOTE:
+     * - currentAllowanceLeft can be nagative - as refunds requested by the allowance provider
+     * - allowanceUsed can be negative - as refunds to the allowance provider
+     */
     function _applyAllowanceUsed(
         int256 currentAllowance,
         int256 currentAllowanceUsed,

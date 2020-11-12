@@ -597,13 +597,20 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         it("#2.1 should work for 1to1 multi flows", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
 
+            const mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [t.aliases[receiver1]] : 1
+                }
+            };
+
             // TODO use call context user data to configure the multi flows
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
                     superToken.address,
-                    [t.aliases[receiver1]],
-                    [1],
+                    Object.keys(mfa.receivers),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i]),
                     "0x"
                 ).encodeABI(),
                 {
@@ -615,6 +622,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender,
                 receiver: app.address,
+                mfa,
                 flowRate: FLOW_RATE1,
             });
 
@@ -623,8 +631,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await shouldVerifyFlow({
                 testenv: t,
                 sender,
-                receiver: receiver1,
+                receiver: app.address,
             });
+            // await shouldVerifyFlow({
+            //     testenv: t,
+            //     sender: app.address,
+            //     receiver: receiver1,
+            // });
 
             await t.validateSystemInvariance();
         });

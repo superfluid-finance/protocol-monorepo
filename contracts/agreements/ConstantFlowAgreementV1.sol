@@ -515,6 +515,9 @@ contract ConstantFlowAgreementV1 is
         {
             // update owed deposit of the flow
             int owedDepositDelta = states.newFlowData.owedDeposit.toInt256();
+            states.newFlowData.deposit = states.newFlowData.deposit.toInt256()
+                    .add(states.appContext.allowanceUsed)
+                    .toUint256();
             states.newFlowData.owedDeposit = states.appContext.allowanceUsed > 0 ?
                 states.appContext.allowanceUsed.toUint256() : 0;
             owedDepositDelta = states.newFlowData.owedDeposit.toInt256().sub(owedDepositDelta);

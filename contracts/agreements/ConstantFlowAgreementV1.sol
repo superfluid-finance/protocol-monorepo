@@ -408,7 +408,9 @@ contract ConstantFlowAgreementV1 is
         }
         state.flowRate = state.flowRate.add(flowRateDelta);
         state.timestamp = currentTimestamp;
+        require(state.deposit.toInt256().add(depositDelta) >= 0, "XXOO 1");
         state.deposit = state.deposit.toInt256().add(depositDelta).toUint256();
+        require(state.owedDeposit.toInt256().add(owedDepositDelta) >= 0, "XXOO 2");
         state.owedDeposit = state.owedDeposit.toInt256().add(owedDepositDelta).toUint256();
 
         newNetFlowRate = state.flowRate;
@@ -528,9 +530,12 @@ contract ConstantFlowAgreementV1 is
         {
             // update owed deposit of the flow
             int owedDepositDelta = vars.newFlowData.owedDeposit.toInt256();
+            require(vars.newFlowData.deposit.toInt256()
+                    .add(vars.appContext.allowanceUsed) >= 0, "XXOO 3");
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
+            require(vars.newFlowData.deposit.toInt256() >= 0, "XXOO 4");
             vars.newFlowData.owedDeposit = vars.appContext.allowanceUsed > 0 ?
                 vars.appContext.allowanceUsed.toUint256() : 0;
             owedDepositDelta = vars.newFlowData.owedDeposit.toInt256().sub(owedDepositDelta);
@@ -614,7 +619,7 @@ contract ConstantFlowAgreementV1 is
             flowParams.sender,
             oldFlowData.flowRate.sub(flowParams.flowRate),
             depositDelta,
-            owedDepositDelta,
+            0,
             currentTimestamp
         );
         int96 totalReceiverFlowRate = _updateAccountFlowState(
@@ -622,7 +627,7 @@ contract ConstantFlowAgreementV1 is
             flowParams.receiver,
             flowParams.flowRate.sub(oldFlowData.flowRate),
             0,
-            0,
+            owedDepositDelta,
             currentTimestamp
         );
 

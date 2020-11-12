@@ -158,7 +158,7 @@ contract MultiFlowsApp is SuperAppBase {
         bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 agreementId,
-        bytes calldata cbdata
+        bytes calldata /* cbdata */
     )
         external override
         returns (bytes memory newCtx)
@@ -166,8 +166,8 @@ contract MultiFlowsApp is SuperAppBase {
         (address sender,,,,) = _host.decodeCtx(ctx);
         (, int96 newFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
 
-        int96 oldFlowRate = abi.decode(cbdata, (int96));
-        require(newFlowRate > oldFlowRate, "MFA: only increasing flow rate"); // Funcky logic for testing purpose
+        //int96 oldFlowRate = abi.decode(cbdata, (int96));
+        //require(newFlowRate > oldFlowRate, "MFA: only increasing flow rate"); // Funcky logic for testing purpose
 
         newCtx = _updateMultiFlow(superToken, sender, _constantFlow.updateFlow.selector, newFlowRate, ctx);
     }

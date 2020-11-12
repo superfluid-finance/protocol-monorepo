@@ -594,13 +594,16 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             );
         });
 
-        it("#2.1 should work for 1to1 multi flows", async () => {
+        it.skip("#2.1 mfa-1to1_100pc_create-full_update-full_delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
                 ratioPct: 100,
                 receivers: {
-                    [t.aliases[receiver1]] : 1
+                    [receiver1]: {
+                        address: t.aliases[receiver1],
+                        proportion: 1
+                    }
                 }
             };
 
@@ -609,8 +612,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 app.address,
                 app.contract.methods.createMultiFlows(
                     superToken.address,
-                    Object.keys(mfa.receivers),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i]),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].address),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
                 ).encodeABI(),
                 {
@@ -618,6 +621,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }
             );
 
+            // create 1to1 100% through
             await shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -625,19 +629,36 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-
             await timeTravelOnce();
-
             await shouldVerifyFlow({
                 testenv: t,
                 sender,
                 receiver: app.address,
             });
-            // await shouldVerifyFlow({
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
+
+            // update 1to1 with 110% flow rate
+            // await shouldUpdateFlow({
             //     testenv: t,
-            //     sender: app.address,
-            //     receiver: receiver1,
+            //     sender,
+            //     receiver: app.address,
+            //     mfa,
+            //     flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             // });
+
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                by: sender
+            });
+
+            assert.isFalse(await superfluid.isAppJailed(app.address));
 
             await t.validateSystemInvariance();
         });

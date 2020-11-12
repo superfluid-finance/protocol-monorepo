@@ -20,8 +20,7 @@ library AgreementLibrary {
     }
 
     function decodeCtx(ISuperfluid host, bytes memory ctx)
-        internal
-        pure
+        internal pure
         returns (Context memory context)
     {
         (
@@ -37,7 +36,10 @@ library AgreementLibrary {
         ISuperfluid host,
         address account,
         uint256 noopBit
-    ) private returns (bool) {
+    )
+        private view
+        returns (bool)
+    {
         (bool isSuperApp, uint256 configWord) = host.getAppManifest(ISuperApp(account));
         return isSuperApp && ((configWord & noopBit) == 0);
     }

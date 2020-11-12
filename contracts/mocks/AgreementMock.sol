@@ -110,7 +110,7 @@ contract AgreementMock is AgreementBase {
         token.settleBalance(account, delta);
     }
 
-    function liquidateAgreementFor(
+    function makeLiquidationPayoutsFor(
         ISuperfluidToken token,
         bytes32 id,
         address liquidator,
@@ -118,7 +118,7 @@ contract AgreementMock is AgreementBase {
         uint256 rewardAmount,
         uint256 bailoutAmount
     ) external {
-        token.liquidateAgreement(id, liquidator, penaltyAccount, rewardAmount, bailoutAmount);
+        token.makeLiquidationPayouts(id, liquidator, penaltyAccount, rewardAmount, bailoutAmount);
     }
 
 }

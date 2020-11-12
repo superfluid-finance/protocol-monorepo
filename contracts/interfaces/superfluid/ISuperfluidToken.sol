@@ -303,7 +303,7 @@ interface ISuperfluidToken {
     );
 
     /**
-     * @dev Liquidate the Aagreement
+     * @dev Make liquidation payouts
      * @param id Agreement ID
      * @param liquidator Address of the executer of liquidation
      * @param penaltyAccount Account of the agreement to be penalized
@@ -320,7 +320,7 @@ interface ISuperfluidToken {
      * Modifiers:
      *  - onlyAgreement
      */
-    function liquidateAgreement
+    function makeLiquidationPayouts
     (
         bytes32 id,
         address liquidator,

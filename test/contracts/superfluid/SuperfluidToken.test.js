@@ -336,7 +336,7 @@ contract("SuperfluidToken implementation", accounts => {
         it("#4.1 should only be called by listed agreement", async () => {
             const acBad = await AgreementMock.new(web3.utils.sha3("typeBad"), 1);
             await expectRevert(
-                acBad.liquidateAgreementFor(superToken.address, "0x42", bob, alice, 0, 0),
+                acBad.makeLiquidationPayoutsFor(superToken.address, "0x42", bob, alice, 0, 0),
                 "SuperfluidToken: only listed agreeement");
         });
 
@@ -346,7 +346,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.a.1 liquidation without bailout by alice (liquidator)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
                     alice, /* liquidator account */
@@ -360,7 +360,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.a.2 liquidation without bailout by admin (reward address) directly", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
                     admin, /* liquidator account */
@@ -374,7 +374,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.a.3 liquidation with bailout by alice (liquidator)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
                     alice, /* liquidator account */
@@ -394,7 +394,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.b.1 liquidation without bailout by alice (liquidator)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
                     alice, /* liquidator account */
@@ -407,7 +407,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.b.2 liquidation with bailout by alice (liquidator and bailout account)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
                     alice, /* liquidator account */

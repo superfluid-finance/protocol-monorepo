@@ -290,8 +290,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[account] = _balances[account].add(delta);
     }
 
-    /// @dev ISuperfluidToken.liquidateAgreement implementation
-    function liquidateAgreement
+    /// @dev ISuperfluidToken.makeLiquidationPayouts implementation
+    function makeLiquidationPayouts
     (
         bytes32 id,
         address liquidator,

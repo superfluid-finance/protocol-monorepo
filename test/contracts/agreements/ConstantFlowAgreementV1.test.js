@@ -719,7 +719,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
         });
 
-        it("#2.2 mfa-1to0_100pc_create-updates-delete", async () => {
+        it("#2.2 mfa-1to0_create-updates-delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {

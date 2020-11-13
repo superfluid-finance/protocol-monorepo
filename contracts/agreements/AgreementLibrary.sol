@@ -119,7 +119,7 @@ library AgreementLibrary {
                 //       |-- BD ->|<- AUD -|
 
                 // not more than the current allowance used
-                accountAllowanceUsedDelta = _max(newAllowanceUsed, currentAllowanceUsed.mul(-1));
+                accountAllowanceUsedDelta = max(newAllowanceUsed, currentAllowanceUsed.mul(-1));
                 // refund account balance
                 accountBalanceDelta =  newAllowanceUsed.sub(accountAllowanceUsedDelta);
             }
@@ -441,6 +441,7 @@ library AgreementLibrary {
         return ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
     }
 
-    function _max(int256 a, int256 b) private pure returns (int256) { return a > b ? a : b; }
-    function _min(int256 a, int256 b) private pure returns (int256) { return a > b ? b : a; }
+    function max(int256 a, int256 b) internal pure returns (int256) { return a > b ? a : b; }
+
+    function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
 }

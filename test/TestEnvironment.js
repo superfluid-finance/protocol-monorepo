@@ -202,15 +202,19 @@ module.exports = class TestEnvironment {
             `${wad4human(balance.owedDeposit)} (${balance.owedDeposit.toString()})`);
     }
 
-    async validateSystemInvariance() {
+    async validateSystemInvariance({
+        moreAddresses
+    } = {}) {
         console.log("======== System validation report begins ========");
 
         const currentBlock = await web3.eth.getBlock("latest");
 
-        let rtBalanceSum = toBN(0);
+        let addresses = _.clone(this.aliases);
+        addresses = _.merge(addresses, moreAddresses);
 
-        await Promise.all(Object.keys(this.aliases).map(async alias => {
-            const userAddress = this.aliases[alias];
+        let rtBalanceSum = toBN(0);
+        await Promise.all(Object.keys(addresses).map(async alias => {
+            const userAddress = addresses[alias];
             const tokenBalance = await this.contracts.testToken.balanceOf.call(userAddress);
             const superTokenBalance = await this.contracts.superToken.realtimeBalanceOf.call(
                 userAddress,

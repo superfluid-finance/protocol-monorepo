@@ -81,7 +81,6 @@ contract MultiFlowsApp is SuperAppBase {
         returns (bytes memory newCtx)
     {
         uint256 sum = _sumProportions(_userFlows[sender]);
-        require(sum != 0 , "MFA: Sum is zero");
 
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
@@ -129,11 +128,7 @@ contract MultiFlowsApp is SuperAppBase {
     returns(bytes memory newCtx)
     {
         (address sender,,,,) = _host.decodeCtx(ctx);
-        require(_userFlows[sender].length > 0 , "MFA: Create Multi Flow first or go away");
         (, int96 receivingFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
-
-        require(receivingFlowRate != 0, "MFA: not zero pls");
-
         newCtx = _updateMultiFlow(superToken, sender, _constantFlow.createFlow.selector, receivingFlowRate, ctx);
     }
 

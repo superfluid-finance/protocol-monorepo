@@ -463,7 +463,21 @@ contract ConstantFlowAgreementV1 is
                     token, flowParams, oldFlowData);
 
             // set allowance for the next callback
-            vars.appAllowance = int256(currentContext.appLevel).mul(vars.depositDelta);
+            // multiplied the allowance with app level
+            if (vars.depositDelta > 0) {
+                // give app full allowance
+                vars.appAllowance = vars.depositDelta
+                    .mul(int256(currentContext.appLevel));
+            } else if (vars.depositDelta < 0 && oldFlowData.owedDeposit > 0) {
+                // ask for refund up to amount of owed deposit given prio
+                vars.appAllowance = AgreementLibrary.max(
+                        vars.depositDelta,
+                        oldFlowData.owedDeposit.toInt256().mul(-1)
+                    ).mul(int256(currentContext.appLevel));
+            }
+
+            vars.appAllowance = vars.appAllowance;
+
             if (optype == FlowChangeType.CREATE_FLOW) {
                 (vars.appContext, newCtx) = AgreementLibrary.afterAgreementCreated(
                     ISuperfluid(msg.sender),

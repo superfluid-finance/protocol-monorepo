@@ -18,6 +18,10 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
     let superToken;
     let testToken;
+    
+    before(async () => {
+        await t.reset();
+    });
 
     beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });

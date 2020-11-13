@@ -156,6 +156,7 @@ async function _shouldChangeFlow({
     const accountFlowInfo1 = {};
     const accountFlowInfo2 = {};
     const balanceSnapshots1 = {};
+    const balances1 = {};
     const balances2 = {};
     const expectedRealtimeBalanceDeltas = {}; // some address can be the same one in some test cases
 
@@ -177,6 +178,12 @@ async function _shouldChangeFlow({
         testenv.printRealtimeBalance(`${name} balance snapshot before`, balanceSnapshots1[name]);
     };
 
+    const addToBalances1 = async (name) => {
+        balances1[name] = await superToken.realtimeBalanceOfNow(addresses[name]);
+        balances1[name].address = addresses[name];
+        testenv.printRealtimeBalance(`${name} balance before`, balances1[name]);
+    };
+
     const addToBalances2 = async (name) => {
         balances2[name] = await superToken.realtimeBalanceOfNow(addresses[name]);
         balances2[name].address = addresses[name];
@@ -194,7 +201,7 @@ async function _shouldChangeFlow({
             senderName: flowParams.senderName,
             receiverName: flowParams.receiverName,
             flowId,
-            flowInfo1: flowInfo,
+            flowInfo1: flowInfo
         };
         _printFlowInfo(`${flowName} flow info before`, flowInfo);
     };
@@ -271,29 +278,39 @@ async function _shouldChangeFlow({
         );
     };
 
-    const validateDepositChange = ({
+    const validateNetFlowAndDepositChange = ({
         name,
         accountBalance1,
         inFlowNames,
         outFlowNames
     }) => {
-        console.log(`validating ${name} account deposit change...`);
+        console.log(`validating ${name} account net flow and deposit change...`);
 
+        let expectedNetFlow = toBN(0);
         let expectedDepositDelta = toBN(0);
         let expectedOwedDepositDelta = toBN(0);
 
         inFlowNames.forEach(flowName => {
             const flowData = flows[flowName];
+            expectedNetFlow = expectedNetFlow
+                .add(toBN(flowData.flowInfo2.flowRate));
             expectedOwedDepositDelta = expectedOwedDepositDelta
                 .add(toBN(flowData.flowInfo2.owedDeposit))
                 .sub(toBN(flowData.flowInfo1.owedDeposit));
         });
         outFlowNames.forEach(flowName => {
             const flowData = flows[flowName];
+            expectedNetFlow = expectedNetFlow
+                .sub(toBN(flowData.flowInfo2.flowRate));
             expectedDepositDelta = expectedDepositDelta
                 .add(toBN(flowData.flowInfo2.deposit))
                 .sub(toBN(flowData.flowInfo1.deposit));
         });
+
+        assert.equal(
+            accountFlowInfo2[name].flowRate.toString(),
+            expectedNetFlow.toString(),
+            `wrong netflow of ${name}`);
 
         const depositDelta = toBN(balances2[name].deposit)
             .sub(toBN(accountBalance1.deposit));
@@ -421,17 +438,14 @@ async function _shouldChangeFlow({
         }
 
         // load balance before flow change
-        const senderBalance1 = await superToken.realtimeBalanceOfNow(addresses.sender);
-        testenv.printRealtimeBalance("sender balance before", senderBalance1);
-        const receiverBalance1 = await superToken.realtimeBalanceOfNow(addresses.receiver);
-        testenv.printRealtimeBalance("receiver balance before", receiverBalance1);
-        let agentBalance1;
-        let rewardBalance1;
+        await addToBalances1("sender");
+        await addToBalances1("receiver");
         if (fn === "deleteFlow") {
-            agentBalance1 = await superToken.realtimeBalanceOfNow(addresses.agent);
-            testenv.printRealtimeBalance("agent balance before", agentBalance1);
-            rewardBalance1 = await superToken.realtimeBalanceOfNow(addresses.reward);
-            testenv.printRealtimeBalance("reward account balance before", rewardBalance1);
+            await addToBalances1("agent");
+            await addToBalances1("reward");
+        }
+        for (let i = 0; i < mfaReceivers.length; ++i) {
+            await addToBalances1(mfaReceivers[i]);
         }
 
         // check sender solvency
@@ -475,10 +489,10 @@ async function _shouldChangeFlow({
         // load updated data
         await addAccountFlowInfo2("sender");
         await addAccountFlowInfo2("receiver");
-        await addFlowInfo2("main");
         for (let i = 0; i < mfaReceivers.length; ++i) {
             await addAccountFlowInfo2(mfaReceivers[i]);
         }
+        await addFlowInfo2("main");
         for (let i = 0; i < mfaFlows.length; ++i) {
             await addFlowInfo2(mfaFlows[i]);
         }
@@ -496,18 +510,30 @@ async function _shouldChangeFlow({
             expectedFlowDeposit: expectedMainFlowDeposit,
             expectedFlowOwedDeposit: expectedMainFlowOwedDeposit
         });
-        validateDepositChange({
+        console.log("--------");
+
+        // validate deposit changes
+        validateNetFlowAndDepositChange({
             name: "sender",
-            accountBalance1: senderBalance1,
+            accountBalance1: balances1.sender,
             inFlowNames: [],
             outFlowNames: ["main"]
         });
-        validateDepositChange({
+        validateNetFlowAndDepositChange({
             name: "receiver",
-            accountBalance1: receiverBalance1,
+            accountBalance1: balances1.receiver,
             inFlowNames: ["main"],
             outFlowNames: mfaFlows
         });
+        for (let i = 0; i < mfaReceivers.length; ++i) {
+            const mfaReceiver = mfaReceivers[i];
+            validateNetFlowAndDepositChange({
+                name: mfaReceiver,
+                accountBalance1: balances1[mfaReceiver],
+                inFlowNames: ["mfa." + mfaReceiver],
+                outFlowNames: []
+            });
+        }
         console.log("--------");
 
         // caculate expected balance changes per liquidation rules
@@ -520,10 +546,10 @@ async function _shouldChangeFlow({
                 console.log("validating liquidation rules...");
                 // the tx itself may move the balance more
                 const adjustedRewardAmount = toBN(flows.main.flowInfo1.flowRate)
-                    .mul(toBN(txBlock.timestamp).sub(toBN(senderBalance1.timestamp)));
+                    .mul(toBN(txBlock.timestamp).sub(toBN(balances1.sender.timestamp)));
                 if (isSenderSolvent) {
                     const expectedRewardAmount = toBN(flows.main.flowInfo1.deposit)
-                        .add(toBN(senderBalance1.availableBalance /* is negative */))
+                        .add(toBN(balances1.sender.availableBalance /* is negative */))
                         .sub(adjustedRewardAmount);
                     expectedRealtimeBalanceDeltas[addresses.reward] =
                         expectedRealtimeBalanceDeltas[addresses.reward]
@@ -534,7 +560,7 @@ async function _shouldChangeFlow({
                             .sub(expectedRewardAmount);
                 } else {
                     const expectedRewardAmount = toBN(flows.main.flowInfo1.deposit);
-                    const expectedBailoutAmount = toBN(senderBalance1.availableBalance /* is negative */)
+                    const expectedBailoutAmount = toBN(balances1.sender.availableBalance /* is negative */)
                         .add(toBN(flows.main.flowInfo1.deposit))
                         .mul(toBN(-1))
                         .add(adjustedRewardAmount);

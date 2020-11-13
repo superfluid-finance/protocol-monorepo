@@ -523,6 +523,44 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
         });
 
+        describe("#1.7 real-time balance", () => {
+            // #1.7.1 TODO should be able to downgrade full balance
+
+            // #1.7.2 TODO should be able to downgrade full balance
+        });
+
+        describe("#1.8 misc", () => {
+            it("#1.8.1 getNetflow should return net flow rate", async () => {
+                await upgradeBalance("alice", t.configs.INIT_BALANCE);
+                await upgradeBalance("bob", t.configs.INIT_BALANCE);
+
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender: "alice",
+                    receiver: "bob",
+                    flowRate: FLOW_RATE1,
+                });
+                assert.equal(
+                    (await cfa.getNetFlow(superToken.address, t.aliases.bob)).toString(),
+                    FLOW_RATE1.toString());
+                assert.equal(
+                    (await cfa.getNetFlow(superToken.address, t.aliases.alice)).toString(),
+                    "-" + FLOW_RATE1.toString());
+                // await shouldCreateFlow({
+                //     testenv: t,
+                //     sender: "bob",
+                //     receiver: "alice",
+                //     flowRate: FLOW_RATE1,
+                // });
+                // assert.equal(
+                //     (await cfa.getNetFlow(superToken.address, t.aliases.bob)).toString(),
+                //     "0");
+                // assert.equal(
+                //     (await cfa.getNetFlow(superToken.address, t.aliases.alice)).toString(),
+                //     "0");
+            });
+        });
+
         describe("#1.10 should support different flow rates", () => {
             [
                 ["small", toBN(2)],
@@ -572,17 +610,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 });
             });
         });
-
-        describe("#1.6 real-time balance", () => {
-            // #1.6.1 TODO should be able to downgrade full balance
-
-            // #1.6.2 TODO should be able to downgrade full balance
-        });
     });
 
     describe("#2 multi flows super app scenarios", () => {
         const sender = "alice";
         const receiver1 = "bob";
+        const receiver2 = "carol";
         //const receiver2 = "carol";
         //const agent = "dan";
         let app;
@@ -663,6 +696,146 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receiver: receiver1,
             });
 
+            // update 1to1 with 110% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+            });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
+
+            // fully delete everything
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                by: sender
+            });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
+
+            await t.validateSystemInvariance();
+        });
+
+        it.skip("#2.2 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
+            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            const mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        address: t.aliases[receiver1],
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        address: t.aliases[receiver2],
+                        proportion: 1
+                    }
+                }
+            };
+
+            // TODO use call context user data to configure the multi flows
+            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
+                app.address,
+                app.contract.methods.createMultiFlows(
+                    superToken.address,
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].address),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: t.aliases[sender]
+                }
+            );
+
+            // create 1to1 100% through
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
+
+            // update 1to1 with 90% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+            });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
+
+            // update 1to1 with 110% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+            });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
+
+            // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,

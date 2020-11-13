@@ -354,9 +354,13 @@ contract ConstantFlowAgreementV1 is
         private view
     {
         (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentTimestamp);
-        require(availableBalance
-            .add(currentContext.allowance)
-            .sub(currentContext.allowanceUsed)
+        require(
+            availableBalance
+                .add(currentContext.allowance > 0 ?
+                    // allowance (positive value) is given to the sender only after callback finishes
+                    currentContext.allowance
+                    // but allowance refund (negative value) is taken away from the sender immediately
+                    : 0)
             >= 0,
             "CFA: not enough available balance");
     }
@@ -380,9 +384,7 @@ contract ConstantFlowAgreementV1 is
         }
         state.flowRate = state.flowRate.add(flowRateDelta);
         state.timestamp = currentTimestamp;
-        require(state.deposit.toInt256().add(depositDelta) >= 0, "XXOO 10");
         state.deposit = state.deposit.toInt256().add(depositDelta).toUint256();
-        require(state.owedDeposit.toInt256().add(owedDepositDelta) >= 0, "XXOO 11");
         state.owedDeposit = state.owedDeposit.toInt256().add(owedDepositDelta).toUint256();
 
         token.updateAgreementStateSlot(account, 0 /* slot id */, _encodeFlowData(state));
@@ -500,10 +502,16 @@ contract ConstantFlowAgreementV1 is
 
         if (vars.appContext.allowanceUsed != 0) {
             // update owed deposit of the flow
+            require(vars.newFlowData.deposit.toInt256()
+                    .add(vars.appContext.allowanceUsed)
+                    >= 0, "XXOO 1");
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
-            vars.newFlowData.owedDeposit = oldFlowData.owedDeposit.toInt256()
+            require(vars.newFlowData.owedDeposit.toInt256()
+                    .add(vars.appContext.allowanceUsed)
+                    >= 0, "XXOO 2");
+            vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
@@ -522,18 +530,7 @@ contract ConstantFlowAgreementV1 is
                 flowParams.receiver,
                 0, // flow rate delta
                 0, // deposit delta
-                vars.appContext.allowanceUsed // owed deposit delta
-                    .add(oldFlowData.owedDeposit.toInt256()), // it was reset to zero
-                currentTimestamp
-            );
-        } else {
-            // recover owed deposit for receiver
-            _updateAccountFlowState(
-                token,
-                flowParams.receiver,
-                0, // flow rate delta
-                0, // deposit delta
-                oldFlowData.owedDeposit.toInt256(), // owed deposit delta
+                vars.appContext.allowanceUsed, // owed deposit delta
                 currentTimestamp
             );
         }
@@ -552,7 +549,7 @@ contract ConstantFlowAgreementV1 is
      * @dev change flow between sender and receiver with new flow rate
      *
      * NOTE:
-     * - owed deposit of the new flow data is reset to 0
+     * - leaving owed deposit unchanged for later adjustment
      */
     function _changeFlow(
         uint256 currentTimestamp,
@@ -573,22 +570,18 @@ contract ConstantFlowAgreementV1 is
             // STEP 1: calculate old and new deposit required for the flow
             ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
             uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
-            if (oldFlowData.flowRate > 0) {
-                oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod);
-            }
-            if (flowParams.flowRate > 0) {
-                newDeposit = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
-            }
+            oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod);
+            newDeposit = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
 
             // STEP 2: calculate deposit delta
             depositDelta = newDeposit.toInt256().sub(oldDeposit.toInt256());
 
-            // STEP 3: update current flow info with owed deposit reset to 0
+            // STEP 3: update current flow info
             newFlowData = FlowData(
                 flowParams.flowRate > 0 ? currentTimestamp : 0,
                 flowParams.flowRate,
-                newDeposit,
-                0
+                oldFlowData.deposit.toInt256().add(depositDelta).toUint256(),
+                oldFlowData.owedDeposit // leaving it unchanged for later adjustment
             );
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));
         }
@@ -607,8 +600,7 @@ contract ConstantFlowAgreementV1 is
             flowParams.receiver,
             flowParams.flowRate.sub(oldFlowData.flowRate),
             0,
-            // reset owed deposit to zero for later recalculation
-            oldFlowData.owedDeposit.toInt256().mul(-1),
+            0, // leaving owed deposit unchanged for later adjustment
             currentTimestamp
         );
 
@@ -677,6 +669,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(uint256 deposit)
     {
+        if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
         deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod))));
         // clipping the value, and make sure the minimal deposit is not ZERO after clipping

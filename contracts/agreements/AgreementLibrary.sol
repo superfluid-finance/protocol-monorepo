@@ -73,7 +73,7 @@ library AgreementLibrary {
             assert(currentAllowanceUsed >= 0 && currentAllowanceUsed <= currentAllowance);
             // 0 -> positive
             // |--------- CA --------->|
-            // |--- CAL -->|--- CAU -->|accountBalanceDelta
+            // |--- CAL -->|--- CAU -->|
             int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
 
             if (newAllowanceUsed > 0) {

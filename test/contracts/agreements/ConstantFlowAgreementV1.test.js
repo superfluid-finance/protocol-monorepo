@@ -651,14 +651,37 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
 
-            // await shouldDeleteFlow({
-            //     testenv: t,
-            //     sender,
-            //     receiver: app.address,
-            //     mfa,
-            //     by: sender
-            // });
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+                mfa,
+                by: sender
+            });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
+            await timeTravelOnce();
+            await shouldVerifyFlow({
+                testenv: t,
+                sender,
+                receiver: app.address,
+            });
+            await shouldVerifyFlow({
+                testenv: t,
+                sender: app.address,
+                receiver: receiver1,
+            });
 
             await t.validateSystemInvariance();
         });

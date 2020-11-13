@@ -108,8 +108,7 @@ contract ConstantFlowAgreementV1 is
         _requireAvailableBalance(
             token,
             currentTimestamp,
-            currentContext.msgSender,
-            currentContext.allowance);
+            currentContext);
     }
 
     function updateFlow(
@@ -150,8 +149,7 @@ contract ConstantFlowAgreementV1 is
         _requireAvailableBalance(
             token,
             currentTimestamp,
-            currentContext.msgSender,
-            currentContext.allowance);
+            currentContext);
     }
 
     /// @dev IFlowAgreement.deleteFlow implementation
@@ -206,6 +204,7 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
+        // FIXME should only revert for an app
         /* _requireAvailableBalance(
             token,
             currentTimestamp,
@@ -350,43 +349,16 @@ contract ConstantFlowAgreementV1 is
     function _requireAvailableBalance(
         ISuperfluidToken token,
         uint256 currentTimestamp,
-        address account,
-        int256 currentAllowance
+        AgreementLibrary.Context memory currentContext
     )
         private view
     {
-        (int256 availableBalance,,) = token.realtimeBalanceOf(account, currentTimestamp);
-        require(availableBalance.add(currentAllowance) >= 0, "CFA: not enough available balance");
-    }
-
-    function _applyAllowanceUsedAndUpdate(
-        ISuperfluidToken token,
-        address account,
-        int256 currentAllowance,
-        int256 currentAllowanceUsed,
-        int256 allowanceUsed,
-        bytes memory ctx
-    )
-        private
-        returns (bytes memory newCtx)
-    {
-        (int accountAllowanceUsedDelta, int accountBalanceDelta) = _applyAllowanceUsed(
-            currentAllowance,
-            currentAllowanceUsed,
-            allowanceUsed
-        );
-
-        if (accountAllowanceUsedDelta != 0) {
-            newCtx = ISuperfluid(msg.sender).ctxUpdateAllowanceUsed(
-                ctx,
-                currentAllowanceUsed.add(accountAllowanceUsedDelta));
-        } else {
-            newCtx = ctx;
-        }
-
-        if (accountBalanceDelta != 0) {
-            token.settleBalance(account, accountBalanceDelta);
-        }
+        (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentTimestamp);
+        require(availableBalance
+            .add(currentContext.allowance)
+            .sub(currentContext.allowanceUsed)
+            >= 0,
+            "CFA: not enough available balance");
     }
 
     function _updateAccountFlowState(
@@ -408,12 +380,10 @@ contract ConstantFlowAgreementV1 is
         }
         state.flowRate = state.flowRate.add(flowRateDelta);
         state.timestamp = currentTimestamp;
-        require(state.deposit.toInt256().add(depositDelta) >= 0, "XXOO 1");
+        require(state.deposit.toInt256().add(depositDelta) >= 0, "XXOO 10");
         state.deposit = state.deposit.toInt256().add(depositDelta).toUint256();
-        require(state.owedDeposit.toInt256().add(owedDepositDelta) >= 0, "XXOO 2");
+        require(state.owedDeposit.toInt256().add(owedDepositDelta) >= 0, "XXOO 11");
         state.owedDeposit = state.owedDeposit.toInt256().add(owedDepositDelta).toUint256();
-
-        newNetFlowRate = state.flowRate;
 
         token.updateAgreementStateSlot(account, 0 /* slot id */, _encodeFlowData(state));
 
@@ -434,15 +404,16 @@ contract ConstantFlowAgreementV1 is
         private
         returns (bytes memory newCtx)
     {
+        // owed deposit should have been always zero, since an app should never become a non app
+        assert(oldFlowData.owedDeposit == 0);
+
         // STEP 1: update the flow
-        (int256 depositDelta, int256 owedDepositDelta,) = _changeFlow(
+        (int256 depositDelta,) = _changeFlow(
             currentTimestamp,
             token, flowParams, oldFlowData);
-        // owed deposit should have been always zero, since an app should never become a non app
-        assert(owedDepositDelta == 0);
 
         // STEP 2: calculate allowance used delta, and account balance delta
-        newCtx = _applyAllowanceUsedAndUpdate(
+        newCtx = AgreementLibrary.applyAllowanceUsedAndUpdate(
             token,
             flowParams.sender,
             currentContext.allowance,
@@ -485,7 +456,7 @@ contract ConstantFlowAgreementV1 is
                 );
             }
 
-            (vars.depositDelta, ,vars.newFlowData) = _changeFlow(
+            (vars.depositDelta, vars.newFlowData) = _changeFlow(
                     currentTimestamp,
                     token, flowParams, oldFlowData);
 
@@ -527,42 +498,47 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        {
+        if (vars.appContext.allowanceUsed != 0) {
             // update owed deposit of the flow
-            int owedDepositDelta = vars.newFlowData.owedDeposit.toInt256();
-            require(vars.newFlowData.deposit.toInt256()
-                    .add(vars.appContext.allowanceUsed) >= 0, "XXOO 3");
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
-            require(vars.newFlowData.deposit.toInt256() >= 0, "XXOO 4");
-            vars.newFlowData.owedDeposit = vars.appContext.allowanceUsed > 0 ?
-                vars.appContext.allowanceUsed.toUint256() : 0;
-            owedDepositDelta = vars.newFlowData.owedDeposit.toInt256().sub(owedDepositDelta);
+            vars.newFlowData.owedDeposit = oldFlowData.owedDeposit.toInt256()
+                    .add(vars.appContext.allowanceUsed)
+                    .toUint256();
+            token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
 
             // update sender and receiver deposit (for sender) and owed deposit (for receiver)
-            if (owedDepositDelta != 0) {
-                _updateAccountFlowState(
-                    token,
-                    flowParams.sender,
-                    0, // flow rate delta
-                    owedDepositDelta, // deposit delta
-                    0, // owed deposit delta
-                    currentTimestamp
-                );
-                _updateAccountFlowState(
-                    token,
-                    flowParams.receiver,
-                    0, // flow rate delta
-                    0, // deposit delta
-                    owedDepositDelta, // owed deposit delta
-                    currentTimestamp
-                );
-            }
-            token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
+            _updateAccountFlowState(
+                token,
+                flowParams.sender,
+                0, // flow rate delta
+                vars.appContext.allowanceUsed, // deposit delta
+                0, // owed deposit delta
+                currentTimestamp
+            );
+            _updateAccountFlowState(
+                token,
+                flowParams.receiver,
+                0, // flow rate delta
+                0, // deposit delta
+                vars.appContext.allowanceUsed // owed deposit delta
+                    .add(oldFlowData.owedDeposit.toInt256()), // it was reset to zero
+                currentTimestamp
+            );
+        } else {
+            // recover owed deposit for receiver
+            _updateAccountFlowState(
+                token,
+                flowParams.receiver,
+                0, // flow rate delta
+                0, // deposit delta
+                oldFlowData.owedDeposit.toInt256(), // owed deposit delta
+                currentTimestamp
+            );
         }
 
-        newCtx = _applyAllowanceUsedAndUpdate(
+        newCtx = AgreementLibrary.applyAllowanceUsedAndUpdate(
             token,
             flowParams.sender,
             currentContext.allowance,
@@ -587,31 +563,35 @@ contract ConstantFlowAgreementV1 is
         private
         returns (
             int256 depositDelta,
-            int256 owedDepositDelta,
             FlowData memory newFlowData
         )
     {
-        uint256 newDeposit;
+        { // ecnlosed block to avoid stack too deep error
+            uint256 oldDeposit;
+            uint256 newDeposit;
 
-        // STEP 1: calculate new deposit required for the flow
-        if (flowParams.flowRate > 0) {
+            // STEP 1: calculate old and new deposit required for the flow
             ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
             uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
-            newDeposit = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+            if (oldFlowData.flowRate > 0) {
+                oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod);
+            }
+            if (flowParams.flowRate > 0) {
+                newDeposit = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+            }
+
+            // STEP 2: calculate deposit delta
+            depositDelta = newDeposit.toInt256().sub(oldDeposit.toInt256());
+
+            // STEP 3: update current flow info with owed deposit reset to 0
+            newFlowData = FlowData(
+                flowParams.flowRate > 0 ? currentTimestamp : 0,
+                flowParams.flowRate,
+                newDeposit,
+                0
+            );
+            token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));
         }
-
-        // STEP 2: calculate deposit and owewd deposit deltas
-        depositDelta = newDeposit.toInt256().sub(oldFlowData.deposit.toInt256());
-        owedDepositDelta = oldFlowData.owedDeposit.toInt256().mul(-1);
-
-        // STEP 3: update current flow info with owed deposit reset to 0
-        newFlowData = FlowData(
-            flowParams.flowRate > 0 ? currentTimestamp : 0,
-            flowParams.flowRate,
-            newDeposit,
-            0
-        );
-        token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));
 
         // STEP 4: update sender and receiver account flow state with the deltas
         int96 totalSenderFlowRate = _updateAccountFlowState(
@@ -627,7 +607,8 @@ contract ConstantFlowAgreementV1 is
             flowParams.receiver,
             flowParams.flowRate.sub(oldFlowData.flowRate),
             0,
-            owedDepositDelta,
+            // reset owed deposit to zero for later recalculation
+            oldFlowData.owedDeposit.toInt256().mul(-1),
             currentTimestamp
         );
 
@@ -704,58 +685,6 @@ contract ConstantFlowAgreementV1 is
         else return deposit << 32;
     }
 
-    // Apppy "allowance used" to "current allowance left" value to get:
-    //
-    /**
-     * @dev Calculate deltas required to satisfy the allowance used
-     *
-     * The deltas are:
-     * - account allowance (provided through current context by allowance provider) used delta,
-     * - and account balance delta (self funded)
-     *
-     * NOTE:
-     * - currentAllowanceLeft can be nagative - as refunds requested by the allowance provider
-     * - allowanceUsed can be negative - as refunds to the allowance provider
-     */
-    function _applyAllowanceUsed(
-        int256 currentAllowance,
-        int256 currentAllowanceUsed,
-        int256 allowanceUsed
-    )
-        internal pure
-        returns (
-            int256 accountAllowanceUsedDelta,
-            int256 accountBalanceDelta
-        )
-    {
-        int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
-        if (currentAllowanceLeft > 0) {
-            // use the allowance
-            if (allowanceUsed > 0) {
-                // use up to the current context allowance amount
-                if (currentAllowanceLeft > allowanceUsed) {
-                    // use up to what app used,
-                    accountAllowanceUsedDelta = allowanceUsed;
-                } else {
-                    // free up to the current context allowance amount
-                    accountAllowanceUsedDelta = currentAllowanceLeft;
-                    // rest paid by sender
-                    accountBalanceDelta = allowanceUsed.sub(currentAllowanceLeft);
-                }
-            }
-        } else if (currentAllowanceLeft < 0) {
-            // refund the allowance
-            if (allowanceUsed < 0) {
-                // always refund everything
-                accountAllowanceUsedDelta = currentAllowanceLeft;
-                if (currentAllowanceLeft < allowanceUsed) {
-                    // take into account refund paid by the app
-                    accountBalanceDelta = accountAllowanceUsedDelta.sub(allowanceUsed);
-                } // else app refund more than needed
-            }
-        }
-    }
-
     /**************************************************************************
      * Flow Data Pure Functions
      *************************************************************************/
@@ -805,4 +734,5 @@ contract ConstantFlowAgreementV1 is
             flowData.owedDeposit = (wordA & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
         }
     }
+
 }

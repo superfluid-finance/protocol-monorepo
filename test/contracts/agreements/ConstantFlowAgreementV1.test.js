@@ -594,7 +594,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             );
         });
 
-        it.skip("#2.1 mfa-1to1_100pc_create-full_update-full_delete", async () => {
+        it("#2.1 mfa-1to1_100pc_create-full_updates-full_delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
@@ -629,6 +629,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            assert.isFalse(await superfluid.isAppJailed(app.address));
             await timeTravelOnce();
             await shouldVerifyFlow({
                 testenv: t,
@@ -641,24 +642,23 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receiver: receiver1,
             });
 
-            // update 1to1 with 110% flow rate
-            // await shouldUpdateFlow({
-            //     testenv: t,
-            //     sender,
-            //     receiver: app.address,
-            //     mfa,
-            //     flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
-            // });
-
-            await shouldDeleteFlow({
+            // update 1to1 with 90% flow rate
+            await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: app.address,
                 mfa,
-                by: sender
+                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             });
-
             assert.isFalse(await superfluid.isAppJailed(app.address));
+
+            // await shouldDeleteFlow({
+            //     testenv: t,
+            //     sender,
+            //     receiver: app.address,
+            //     mfa,
+            //     by: sender
+            // });
 
             await t.validateSystemInvariance();
         });

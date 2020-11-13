@@ -2,15 +2,27 @@
 pragma solidity 0.7.4;
 
 import {
-    ISuperfluid,
     ISuperfluidGovernance,
+    ISuperfluid,
+    ISuperfluidToken,
     ISuperApp,
     SuperAppDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 
+
+/**
+ * @dev Helper library for building super agreement
+ */
 library AgreementLibrary {
+
+    using SignedSafeMath for int256;
+
+    /**************************************************************************
+     * Context helpers
+     *************************************************************************/
 
     struct Context {
         address msgSender;
@@ -32,6 +44,147 @@ library AgreementLibrary {
         ) = host.decodeCtx(ctx);
     }
 
+    /**
+     * @dev Calculate deltas required to satisfy the allowance used
+     * @param currentAllowance allowance given to the app through the context by the allowance provider
+     * @param currentAllowanceUsed allowance used so far by the app
+     * @param newAllowanceUsed new allowance used during this call
+     * @return accountAllowanceUsedDelta account allowance used delta to pay for the `newAllowanceUsed`
+     * @return accountBalanceDelta account balance delta to self fund the missing amount in `newAllowanceUsed`
+     *
+     * NOTE:
+     * - when `currentAllowance` is positive, the call can use up to that amount without self funding
+     * - when `currentAllowance` is negative, the call need to refund the exact absolute amount
+     */
+    function applyAllowanceUsed(
+        int256 currentAllowance,
+        int256 currentAllowanceUsed,
+        int256 newAllowanceUsed
+    )
+        internal pure
+        returns (
+            int256 accountAllowanceUsedDelta,
+            int256 accountBalanceDelta
+        )
+    {
+        if (currentAllowance > 0) {
+            // up to this amount can be used as allowance
+
+            assert(currentAllowanceUsed >= 0 && currentAllowanceUsed <= currentAllowance);
+            // 0 -> positive
+            // |--------- CA --------->|
+            // |--- CAL -->|--- CAU -->|accountBalanceDelta
+            int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
+
+            if (newAllowanceUsed > 0) {
+                // allowance being used
+
+                // use up to the current context allowance amount
+                if (currentAllowanceLeft < newAllowanceUsed) {
+                    // 0 -> positive
+                    // |--------- CA --------->|
+                    // |--- CAL --->|-- CAU -->|
+                    // |------- NAU ------>|
+                    // |-- AUD -->|<- BD --|
+
+                    // free up to the current context allowance amount
+                    accountAllowanceUsedDelta = currentAllowanceLeft;
+                    // rest paid by sender
+                    accountBalanceDelta = currentAllowanceLeft.sub(newAllowanceUsed);
+                } else {
+                    // 0 -> positive
+                    // |--------- CA --------->|
+                    // |--- CAL --->|-- CAU -->|
+                    // |- NAU ->|
+                    // |- AUD ->|
+
+                    // use up to what app used,
+                    accountAllowanceUsedDelta = newAllowanceUsed;
+                }
+            } else {
+                // allowance being given back
+
+                // 0 -> positive
+                // |--------- CA --------->|
+                // |--- CAL --->|-- CAU -->|
+                //                |<- NAU -|
+                //                |<- AUD -|
+                //
+                // OR
+                //
+                // 0 -> positive
+                // |--------- CA --------->|
+                // |---- CAL ---->|- CAU ->|
+                //       |<----- NAU ------|
+                //       |-- BD ->|<- AUD -|
+
+                // not more than the current allowance used
+                accountAllowanceUsedDelta = _max(newAllowanceUsed, currentAllowanceUsed.mul(-1));
+                // refund account balance
+                accountBalanceDelta =  newAllowanceUsed.sub(accountAllowanceUsedDelta);
+            }
+        } else if (currentAllowance < 0) {
+            // always repay the allowance loan in full
+
+            assert(currentAllowanceUsed == 0 || currentAllowanceUsed == currentAllowance);
+            //             negative <- 0
+            // |<-------- CA ----------|
+            // |<-------- CAU ---------|
+
+            if (currentAllowanceUsed == 0) {
+                //             negative <- 0
+                // |<-------- CA ----------|
+
+                // repay the allowance loan in full immediately
+                accountAllowanceUsedDelta = currentAllowance;
+                // refund to the account balance the rest
+                accountBalanceDelta = currentAllowance.sub(newAllowanceUsed);
+            } else /* currentAllowanceUsed == currentAllowance */ {
+                //             negative <- 0
+                // |<-------- CA ----------|
+                // |<-------- CAU ---------|
+
+                // allowance loan has been paid back, refund to account balance
+                accountBalanceDelta = newAllowanceUsed.mul(-1);
+            }
+        }
+    }
+
+    function applyAllowanceUsedAndUpdate(
+        ISuperfluidToken token,
+        address account,
+        int256 currentAllowance,
+        int256 currentAllowanceUsed,
+        int256 newAllowanceUsed,
+        bytes memory ctx
+    )
+        internal
+        returns (bytes memory newCtx)
+    {
+        (int accountAllowanceUsedDelta, int accountBalanceDelta) = applyAllowanceUsed(
+            currentAllowance,
+            currentAllowanceUsed,
+            newAllowanceUsed
+        );
+
+        if (accountAllowanceUsedDelta != 0) {
+            newCtx = ISuperfluid(msg.sender).ctxUpdateAllowanceUsed(
+                ctx,
+                currentAllowanceUsed.add(accountAllowanceUsedDelta));
+        } else {
+            newCtx = ctx;
+        }
+
+        if (accountBalanceDelta != 0) {
+            token.settleBalance(account, accountBalanceDelta);
+        }
+    }
+
+    /**************************************************************************
+     * Agreement callback helpers
+     *************************************************************************/
+
+    // TODO optimize this out
     function _needCallback(
         ISuperfluid host,
         address account,
@@ -89,6 +242,7 @@ library AgreementLibrary {
         returns(Context memory context, bytes memory newCtx)
     {
         if (_needCallback(host, account, noopBit)) {
+            // pass app allowance for the app (positive as loans, negative as refund request)
             newCtx = ISuperfluid(msg.sender).ctxUpdateAllowance(ctx, appAllowance);
 
             bytes memory data = abi.encodeWithSelector(
@@ -102,7 +256,7 @@ library AgreementLibrary {
             newCtx = host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
             context = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), newCtx);
 
-            // sanity check of allowanceUsed return value
+            // sanity checks of allowanceUsed returned, agreement implemntation shal never fail these asserts
             if (appAllowance > 0) {
                 // app allowance can be used by the app
                 // agreement must not refund allowance if not requested (allowance < 0)
@@ -110,7 +264,7 @@ library AgreementLibrary {
                 // agreement must only use up to allowance given
                 assert(context.allowanceUsed <= appAllowance);
                 // pay for app allowance
-            } else if (appAllowance < 0) {
+            } else if (appAllowance <= 0) {
                 // app allowance must be refunded
                 assert(context.allowanceUsed == appAllowance);
             } // trivial casae no action
@@ -276,11 +430,17 @@ library AgreementLibrary {
         );
     }
 
+    /**************************************************************************
+     * Misc
+     *************************************************************************/
+
     function getGovernance()
-        internal
-        view
+        internal view
         returns(ISuperfluidGovernance gov)
     {
         return ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
     }
+
+    function _max(int256 a, int256 b) private pure returns (int256) { return a > b ? a : b; }
+    function _min(int256 a, int256 b) private pure returns (int256) { return a > b ? b : a; }
 }

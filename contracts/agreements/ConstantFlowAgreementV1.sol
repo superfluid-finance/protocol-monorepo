@@ -516,15 +516,9 @@ contract ConstantFlowAgreementV1 is
 
         if (vars.appContext.allowanceUsed != 0) {
             // update owed deposit of the flow
-            require(vars.newFlowData.deposit.toInt256()
-                    .add(vars.appContext.allowanceUsed)
-                    >= 0, "XXOO 1");
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
-            require(vars.newFlowData.owedDeposit.toInt256()
-                    .add(vars.appContext.allowanceUsed)
-                    >= 0, "XXOO 2");
             vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();

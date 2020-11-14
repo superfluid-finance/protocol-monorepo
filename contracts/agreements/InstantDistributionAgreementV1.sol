@@ -17,6 +17,7 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { UInt128SafeMath } from "../utils/UInt128SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 
@@ -26,6 +27,7 @@ contract InstantDistributionAgreementV1 is
 {
 
     using SafeMath for uint256;
+    using SafeCast for uint256;
     using UInt128SafeMath for uint128;
     using SignedSafeMath for int256;
 
@@ -192,10 +194,10 @@ contract InstantDistributionAgreementV1 is
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDAv1: index does not exist");
 
-        uint128 indexDelta = UInt128SafeMath.downcast(
+        uint128 indexDelta = (
             amount /
             uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
-        );
+        ).toUint128();
         _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta);
 
         // nothing to be recorded so far
@@ -245,7 +247,7 @@ contract InstantDistributionAgreementV1 is
         require(exist, "IDAv1: index does not exist");
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
-        uint128 indexDelta = UInt128SafeMath.downcast(amount / totalUnits);
+        uint128 indexDelta = (amount / totalUnits).toUint128();
         newIndexValue = idata.indexValue.add(indexDelta);
         actualAmount = uint256(indexDelta).mul(totalUnits);
     }
@@ -372,21 +374,21 @@ contract InstantDistributionAgreementV1 is
             // if the subscription exist and not approved, update the approved units amount
 
             // update total units
-            sd.idata.totalUnitsApproved = UInt128SafeMath.downcast(
+            sd.idata.totalUnitsApproved = (
                 uint256(sd.idata.totalUnitsApproved) +
                 uint256(units) -
                 uint256(sd.sdata.units)
-            );
+            ).toUint128();
             token.updateAgreementData(iId, _encodeIndexData(sd.idata));
         } else if (exist) {
             // if the subscription exists and approved, update the pending units amount
 
             // update pending subscription units of the publisher
-            sd.idata.totalUnitsPending = UInt128SafeMath.downcast(
+            sd.idata.totalUnitsPending = (
                 uint256(sd.idata.totalUnitsPending) +
                 uint256(units) -
                 uint256(sd.sdata.units)
-            );
+            ).toUint128();
             token.updateAgreementData(iId, _encodeIndexData(sd.idata));
         } else {
             // if the subscription does not exist, create it and then update the pending units amount

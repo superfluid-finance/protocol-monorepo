@@ -452,7 +452,7 @@ contract ConstantFlowAgreementV1 is
                 (vars.cbdata, newCtx) = AgreementLibrary.beforeAgreementUpdated(
                     ISuperfluid(msg.sender), token, ctx, address(this), flowParams.receiver, flowParams.flowId
                 );
-            } else if (optype == FlowChangeType.DELETE_FLOW) {
+            } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 (vars.cbdata, newCtx) = AgreementLibrary.beforeAgreementTerminated(
                     ISuperfluid(msg.sender), token, ctx, address(this), flowParams.receiver, flowParams.flowId
                 );
@@ -500,7 +500,7 @@ contract ConstantFlowAgreementV1 is
                     vars.cbdata,
                     vars.appAllowance
                 );
-            } else if (optype == FlowChangeType.DELETE_FLOW) {
+            } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 (vars.appContext, newCtx) = AgreementLibrary.afterAgreementTerminated(
                     ISuperfluid(msg.sender),
                     token,

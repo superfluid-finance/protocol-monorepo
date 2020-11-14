@@ -157,12 +157,4 @@ library UInt128SafeMath {
         return a % b;
     }
 
-    /**
-     * @dev Downcast from uint256
-     */
-    function downcast(uint256 a) internal pure returns (uint128) {
-        require(a <= type(uint128).max, "UInt128SafeMath: downcast overflow");
-        return uint128(a);
-    }
-
 }

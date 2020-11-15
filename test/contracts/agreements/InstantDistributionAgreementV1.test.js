@@ -41,7 +41,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             const expectedBalance = expectedBalances[i][1];
             //const expectedDeposit = expectedBalances[i][2] || "0";
             const balance = await superToken.balanceOf.call(account);
-            console.log(`${t.toAliases[account]}'s current balance: `, wad4human(balance));
+            console.log(`${t.toAlias(account)}'s current balance: `, wad4human(balance));
             assert.equal(balance.toString(), expectedBalance.toString());
         }
     }
@@ -77,7 +77,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             for (let i = 0; i < subscribers.length; ++i) {
                 const subscriberAddr = subscribers[i][0];
                 const subscriptionUnits = subscribers[i][1];
-                const subscriberName = t.toAliases[subscriberAddr];
+                const subscriberName = t.toAlias(subscriberAddr);
                 await web3tx(superfluid.callAgreement, `${subscriberName} approves subscription to Alice`)(
                     ida.address,
                     ida.contract.methods.approveSubscription(
@@ -185,7 +185,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             for (let i = 0; i < publishers.length; ++i) {
                 let publisherAddr = publishers[i][0];
                 let subscriptionUnits = publishers[i][1];
-                const publisherName = t.toAliases[publisherAddr];
+                const publisherName = t.toAlias(publisherAddr);
                 await web3tx(superfluid.callAgreement, `${publisherName} create default index`)(
                     ida.address,
                     ida.contract.methods.createIndex(

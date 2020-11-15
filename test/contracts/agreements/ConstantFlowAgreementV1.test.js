@@ -8,7 +8,7 @@ const {
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
-    shouldVerifyFlow
+    syncAccountExpectedBalanceDeltas,
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -46,7 +46,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
     });
 
     beforeEach(async function () {
-        await t.resetData();
+        await t.resetForTestCase();
         await t.createNewToken();
         ({
             testToken,
@@ -54,22 +54,41 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         } = t.contracts);
     });
 
-    async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
-        console.log("current block time", (await web3.eth.getBlock("latest")).timestamp);
+    async function _timeTravelOnce(time = TEST_TRAVEL_TIME) {
+        const block1 = await web3.eth.getBlock("latest");
+        console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);
         await traveler.advanceTimeAndBlock(time);
-        console.log("new block time", (await web3.eth.getBlock("latest")).timestamp);
+        const block2 = await web3.eth.getBlock("latest");
+        console.log("new block time", block2.timestamp);
+    }
+
+    async function verifyAll() {
+        const block2 = await web3.eth.getBlock("latest");
+        await t.validateExpectedBalances(() => {
+            syncAccountExpectedBalanceDeltas({
+                testenv: t,
+                superToken: superToken.address,
+                timestamp: block2.timestamp
+            });
+        });
+        await t.validateSystemInvariance();
+    }
+
+    async function timeTravelOnceAndVerifyAll(time = TEST_TRAVEL_TIME) {
+        await _timeTravelOnce(time);
+        await verifyAll();
     }
 
     async function upgradeBalance(account, amount) {
         await web3tx(superToken.upgrade, `Upgrade ${amount.toString()} for account ${account}`)(
             amount, { from: t.aliases[account] }
         );
-        await t.updateAccountBalanceSnapshot({
-            superToken: superToken.address,
-            account: t.aliases[account],
-            balanceSnapshot: await superToken.realtimeBalanceOfNow(t.aliases[account])
-        });
+        await t.updateAccountBalanceSnapshot(
+            superToken.address,
+            t.aliases[account],
+            await superToken.realtimeBalanceOfNow(t.aliases[account])
+        );
     }
 
     async function shouldTestLiquidations({ titlePrefix, sender, receiver, by }) {
@@ -79,7 +98,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
             // drain the balance until critical (60sec extra)
-            await timeTravelOnce(
+            await timeTravelOnceAndVerifyAll(
                 t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() - LIQUIDATION_PERIOD + 60
             );
             assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
@@ -92,14 +111,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 by
             });
 
-            await t.validateSystemInvariance();
+            await verifyAll();
         });
 
         it(`${titlePrefix}.2 should ${liquidationType} when insolvent`, async () => {
             assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
             // drain the balance until insolvent (60sec extra)
-            await timeTravelOnce(
+            await timeTravelOnceAndVerifyAll(
                 t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60
             );
             assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
@@ -112,7 +131,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 by
             });
 
-            await t.validateSystemInvariance();
+            await verifyAll();
         });
     }
 
@@ -137,15 +156,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     flowRate: FLOW_RATE1,
                 });
 
-                await timeTravelOnce();
-
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender,
-                    receiver,
-                });
-
-                await t.validateSystemInvariance();
+                await timeTravelOnceAndVerifyAll();
             });
 
             it("#1.1.2 should reject when there is not enough balance", async () => {
@@ -240,15 +251,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     flowRate: FLOW_RATE1,
                 });
 
-                await timeTravelOnce();
-
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender,
-                    receiver,
-                });
-
-                await t.validateSystemInvariance();
+                await timeTravelOnceAndVerifyAll();
             });
 
             it("#1.2.2 can increase (+10%) existing flow rate", async () => {
@@ -259,15 +262,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
                 });
 
-                await timeTravelOnce();
-
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender,
-                    receiver,
-                });
-
-                await t.validateSystemInvariance();
+                await timeTravelOnceAndVerifyAll();
             });
 
             it("#1.2.3 can decrease (-10%) existing flow rate", async () => {
@@ -278,15 +273,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
                 });
 
-                await timeTravelOnce();
-
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender,
-                    receiver,
-                });
-
-                await t.validateSystemInvariance();
+                await timeTravelOnceAndVerifyAll();
             });
 
             it("#1.2.4 should not update with zero flow rate", async () => {
@@ -374,15 +361,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     by: sender
                 });
 
-                await timeTravelOnce();
-
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender,
-                    receiver,
-                });
-
-                await t.validateSystemInvariance();
+                await timeTravelOnceAndVerifyAll();
             });
 
             it("#1.3.2 can delete an updated flow", async () => {
@@ -399,15 +378,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     by: sender
                 });
 
-                await timeTravelOnce();
-
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender,
-                    receiver,
-                });
-
-                await t.validateSystemInvariance();
+                await timeTravelOnceAndVerifyAll();
             });
 
             it("#1.3.3 should not delete non-existing flow", async () => {
@@ -598,15 +569,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         flowRate: flowRate,
                     });
 
-                    await timeTravelOnce();
-
-                    await shouldVerifyFlow({
-                        testenv: t,
-                        sender: "alice",
-                        receiver: "bob",
-                    });
-
-                    await t.validateSystemInvariance();
+                    await timeTravelOnceAndVerifyAll();
                 });
             });
         });
@@ -625,25 +588,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 cfa.address,
                 superfluid.address
             );
+            t.addAlias("mfa", app.address);
         });
-
-        async function timeTravelOnceAndVerifyMultiFlows(app, mfa) {
-            assert.isFalse(await superfluid.isAppJailed(app.address));
-            await timeTravelOnce();
-            await shouldVerifyFlow({
-                testenv: t,
-                sender,
-                receiver: app.address,
-            });
-            const mfaReceivers = Object.keys(mfa.receivers);
-            for (let i = 0; i < mfaReceivers.length; ++i) {
-                await shouldVerifyFlow({
-                    testenv: t,
-                    sender: app.address,
-                    receiver: mfaReceivers[i],
-                });
-            }
-        }
 
         it("#2.1 mfa-1to1_100pc_create-full_updates-full_delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
@@ -676,47 +622,41 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await shouldCreateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 by: sender
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
-
-            await t.validateSystemInvariance({
-                moreAddresses: {
-                    mfa: app.address
-                }
-            });
+            await timeTravelOnceAndVerifyAll();
         });
 
         it("#2.2 mfa-1to0_create-updates-delete", async () => {
@@ -745,47 +685,41 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await shouldCreateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 by: sender
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
-
-            await t.validateSystemInvariance({
-                moreAddresses: {
-                    mfa: app.address
-                }
-            });
+            await timeTravelOnceAndVerifyAll();
         });
 
         it.skip("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
@@ -823,47 +757,41 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await shouldCreateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1,
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
+            await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
-                receiver: app.address,
+                receiver: "mfa",
                 mfa,
                 by: sender
             });
-            await timeTravelOnceAndVerifyMultiFlows(app, mfa);
-
-            await t.validateSystemInvariance({
-                moreAddresses: {
-                    mfa: app.address
-                }
-            });
+            await timeTravelOnceAndVerifyAll();
         });
     });
 

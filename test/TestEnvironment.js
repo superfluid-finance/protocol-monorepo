@@ -10,6 +10,7 @@ const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
+const { BN } = require("@openzeppelin/test-helpers");
 const {
     web3tx,
     toWad,
@@ -38,10 +39,6 @@ module.exports = class TestEnvironment {
         Object.keys(this.aliases).forEach(alias => {
             if (!this.aliases[alias]) delete this.aliases[alias];
         });
-        this.toAliases = Object.keys(this.aliases).reduce((acc, alias) => {
-            acc[this.aliases[alias]] = alias;
-            return acc;
-        }, {});
 
         this.configs = {
             INIT_BALANCE: toWad(100),
@@ -57,6 +54,11 @@ module.exports = class TestEnvironment {
         if (err) throw err;
     }
 
+    /**************************************************************************
+     * Test case setup functions
+     *************************************************************************/
+
+    /// reset the system
     async reset() {
         console.log("Aliases", this.aliases);
 
@@ -86,10 +88,11 @@ module.exports = class TestEnvironment {
         // load governance contract
         this.contracts.governance = await TestGovernance.at(await this.sf.host.getGovernance());
 
-        await this.resetData();
+        await this.resetForTestCase();
     }
 
-    async resetData() {
+    /// reset function for each test case
+    async resetForTestCase() {
         // test data can be persisted here
         this.data = {};
 
@@ -101,6 +104,7 @@ module.exports = class TestEnvironment {
         );
     }
 
+    /// create a new test token
     async createNewToken({ doUpgrade } = {}) {
         // test token contract
         this.contracts.testToken = await web3tx(TestToken.new, "TestToken.new")(
@@ -145,11 +149,44 @@ module.exports = class TestEnvironment {
         }));
     }
 
-    updateAccountBalanceSnapshot({
-        superToken,
-        account,
-        balanceSnapshot
-    }) {
+    /**************************************************************************
+     * Alias functions
+     *************************************************************************/
+
+    listAliases() {
+        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
+        return Object.keys(this.aliases).concat(Object.keys(this.data.moreAliases));
+    }
+
+    listAddresses() {
+        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
+        return Object.values(this.aliases).concat(Object.values(this.data.moreAliases));
+    }
+
+    addAlias(alias, address) {
+        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
+        this.data.moreAliases = _.merge(this.data.moreAliases, {
+            [alias]: address
+        });
+    }
+
+    toAlias(address) {
+        return this.listAliases().find(i => this.getAddress(i).toLowerCase() === address.toLowerCase());
+    }
+
+    getAddress(alias) {
+        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
+        return this.aliases[alias] || this.data.moreAliases[alias];
+    }
+
+    /**************************************************************************
+     * Test data functions
+     *************************************************************************/
+
+    updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
+        assert.isDefined(account);
+        assert.isDefined(balanceSnapshot);
+        assert.isDefined(balanceSnapshot.timestamp);
         _.merge(this.data, {
             tokens: {
                 [superToken]: {
@@ -168,10 +205,7 @@ module.exports = class TestEnvironment {
         });
     }
 
-    getAccountBalanceSnapshot({
-        superToken,
-        account
-    }) {
+    getAccountBalanceSnapshot(superToken, account) {
         _.defaultsDeep(this.data, {
             tokens: {
                 [superToken]: {
@@ -191,6 +225,46 @@ module.exports = class TestEnvironment {
         return _.clone(this.data.tokens[superToken].accounts[account].balanceSnapshot);
     }
 
+    updateAccountExpectedBalanceDelta(superToken, account, expectedBalanceDelta) {
+        assert.isDefined(account);
+        assert.isDefined(expectedBalanceDelta);
+        _.merge(this.data, {
+            tokens: {
+                [superToken]: {
+                    accounts: {
+                        [account]: {
+                            expectedBalanceDelta: expectedBalanceDelta.toString()
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    getAccountExpectedBalanceDelta(superToken, account) {
+        _.defaultsDeep(this.data, {
+            tokens: {
+                [superToken]: {
+                    accounts: {
+                        [account]: {
+                            expectedBalanceDelta: "0"
+                        }
+                    }
+                }
+            }
+        });
+        return toBN(this.data.tokens[superToken].accounts[account].expectedBalanceDelta);
+    }
+
+    /**************************************************************************
+     * Logging utilities
+     *************************************************************************/
+
+    realtimeBalance(balance) {
+        return toBN(balance.availableBalance)
+            .add(BN.max(toBN(0), toBN(balance.deposit).sub(toBN(balance.owedDeposit))));
+    }
+
     printSingleBalance(title, balance) {
         console.log(`${title}:`, `${wad4human(balance)} (${balance.toString()})`);
     }
@@ -199,26 +273,77 @@ module.exports = class TestEnvironment {
         console.log(`${title}: `,
             `${wad4human(balance.availableBalance)} (${balance.availableBalance.toString()})`,
             `${wad4human(balance.deposit)} (${balance.deposit.toString()})`,
-            `${wad4human(balance.owedDeposit)} (${balance.owedDeposit.toString()})`);
+            `${wad4human(balance.owedDeposit)} (${balance.owedDeposit.toString()})`,
+            balance.timestamp.toString());
     }
 
-    async validateSystemInvariance({
-        moreAddresses
-    } = {}) {
-        console.log("======== System validation report begins ========");
+    /**************************************************************************
+     * Invariance tests
+     *************************************************************************/
+
+    async validateExpectedBalances(syncExpectedBalancesFn) {
+        console.log("======== validateExpectedBalances begins ========");
+
+        //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
+        const { superToken } = this.contracts;
+
+        const txBlock = await web3.eth.getBlock("latest");
+        const balances2 = {};
+
+        // update balance snapshot
+        await Promise.all(this.listAddresses().map(async address => {
+            balances2[address] = await superToken.realtimeBalanceOf(address, txBlock.timestamp);
+            balances2[address].timestamp = txBlock.timestamp;
+        }));
+
+        console.log("syncing expected balances...");
+        await syncExpectedBalancesFn();
+
+        await Promise.all(this.listAddresses().map(async address => {
+            const alias = this.toAlias(address);
+
+            const balanceSnapshot1 = this.getAccountBalanceSnapshot(superToken.address, address);
+            const realtimeBalanceDelta = this.realtimeBalance(balances2[address])
+                .sub(this.realtimeBalance(balanceSnapshot1));
+            console.log(`${alias} real-time balance delta`, realtimeBalanceDelta.toString());
+
+            const expectedBalanceDelta = this.getAccountExpectedBalanceDelta(
+                superToken.address,
+                address);
+
+            assert.equal(
+                realtimeBalanceDelta.toString(),
+                expectedBalanceDelta.toString(),
+                `wrong real-time balance changes of ${alias}`);
+
+            this.updateAccountBalanceSnapshot(
+                superToken.address,
+                address,
+                balances2[address]
+            );
+
+            this.updateAccountExpectedBalanceDelta(superToken.address, address, 0);
+        }));
+
+        console.log("======== validateExpectedBalances ends ========");
+    }
+
+    async validateSystemInvariance() {
+        console.log("======== validateSystemInvariance begins ========");
 
         const currentBlock = await web3.eth.getBlock("latest");
 
-        let addresses = _.clone(this.aliases);
-        addresses = _.merge(addresses, moreAddresses);
-
         let rtBalanceSum = toBN(0);
-        await Promise.all(Object.keys(addresses).map(async alias => {
-            const userAddress = addresses[alias];
-            const tokenBalance = await this.contracts.testToken.balanceOf.call(userAddress);
+        await Promise.all(this.listAliases().map(async alias => {
+            const userAddress = this.getAddress(alias);
+            const tokenBalance = await this.contracts.testToken.balanceOf.call(
+                userAddress,
+            /* TODO query old block currentBlock.timestamp*/);
             const superTokenBalance = await this.contracts.superToken.realtimeBalanceOf.call(
                 userAddress,
-                currentBlock.timestamp);
+                currentBlock.timestamp.toString());
+            superTokenBalance.timestamp = currentBlock.timestamp;
+
             // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
             const realtimeBalance = superTokenBalance.availableBalance
                 .add(superTokenBalance.deposit)
@@ -238,8 +363,6 @@ module.exports = class TestEnvironment {
         const totalSupply = await this.contracts.superToken.totalSupply.call();
         this.printSingleBalance("Total supply of super tokens", totalSupply);
 
-        console.log("======== System validation report ends ========");
-
         assert.isTrue(aum.gte(rtBalanceSum),
             "AUM should be equal or more than real-time balance");
         assert.isTrue(aum.sub(rtBalanceSum).lte(this.configs.AUM_DUST_AMOUNT),
@@ -248,6 +371,8 @@ module.exports = class TestEnvironment {
             "AUM should match the real-time balance sum to at least 8 decimals during testing");
         assert.equal(aum.toString(), totalSupply.toString(),
             "Total supply should be equal to the AUM");
+
+        console.log("======== validateSystemInvariance ends ========");
     }
 
 };

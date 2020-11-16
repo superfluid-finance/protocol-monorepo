@@ -67,6 +67,10 @@ library AgreementLibrary {
             int256 accountBalanceDelta
         )
     {
+        // in fairness, the code for currentAllowance < 0 and > 0 are exactly same apart from the min/max logic
+        // which can be merged into one usinb abs() probably, but keeping them separated in the code in order
+        // to keep the nice comments and diagrams visible for this heavy logic
+
         if (currentAllowance > 0) {
             // up to this amount can be used as allowance
 
@@ -102,6 +106,7 @@ library AgreementLibrary {
                     accountAllowanceUsedDelta = newAllowanceUsed;
                 }
             } else {
+                // newAllowanceUsed < 0
                 // allowance being given back
 
                 // 0 -> positive
@@ -116,7 +121,7 @@ library AgreementLibrary {
                 // |--------- CA --------->|
                 // |---- CAL ---->|- CAU ->|
                 //       |<----- NAU ------|
-                //       |-- BD ->|<- AUD -|
+                //       |<- BD --|<- AUD -|
 
                 // not more than the current allowance used
                 accountAllowanceUsedDelta = max(newAllowanceUsed, currentAllowanceUsed.mul(-1));
@@ -124,28 +129,64 @@ library AgreementLibrary {
                 accountBalanceDelta =  newAllowanceUsed.sub(accountAllowanceUsedDelta);
             }
         } else if (currentAllowance < 0) {
-            // always repay the allowance loan in full
+            // allowance being refunded
 
-            assert(currentAllowanceUsed == 0 || currentAllowanceUsed == currentAllowance);
+            assert(currentAllowanceUsed <= 0 && currentAllowanceUsed >= currentAllowance);
             //             negative <- 0
             // |<-------- CA ----------|
-            // |<-------- CAU ---------|
+            // |<-- CAL ---|<-- CAU ---|
+            int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
 
-            if (currentAllowanceUsed == 0) {
-                //             negative <- 0
-                // |<-------- CA ----------|
+            if (newAllowanceUsed < 0) {
+                // allowance being given back
 
-                // repay the allowance loan in full immediately
-                accountAllowanceUsedDelta = currentAllowance;
-                // refund to the account balance the rest
-                accountBalanceDelta = currentAllowance.sub(newAllowanceUsed);
-            } else /* currentAllowanceUsed == currentAllowance */ {
+                // use up to the current context allowance amount
+                if (currentAllowanceLeft > newAllowanceUsed) {
+                    //             negative <- 0
+                    // |<-------- CA ----------|
+                    // |<-------- CAU ---------|
+                    // |<-- CAL ---|<-- CAU ---|
+                    // |<------ NAU --------|
+                    // |<-- AUD ---|-- BD ->|
+
+                    // free up to the current context allowance amount
+                    accountAllowanceUsedDelta = currentAllowanceLeft;
+                    // rest refund to sender
+                    accountBalanceDelta = currentAllowanceLeft.sub(newAllowanceUsed);
+                } else {
+                    //             negative <- 0
+                    // |<-------- CA ----------|
+                    // |<-------- CAU ---------|
+                    // |<-- CAL ---|<-- CAU ---|
+                    // |<- NAU --|
+                    // |<- AUD --|
+
+                    // refund to what is requested
+                    accountAllowanceUsedDelta = newAllowanceUsed;
+                }
+            } else {
+                // more allowance wanted
+                // newAllowanceUsed > 0
+
                 //             negative <- 0
                 // |<-------- CA ----------|
                 // |<-------- CAU ---------|
+                // |<-- CAL ---|<-- CAU ---|
+                //                |- NAU ->|
+                //                |-- AUD >|
+                //
+                // OR
+                //             negative <- 0
+                // |<-------- CA ----------|
+                // |<-------- CAU ---------|
+                // |<-- CAL ---|<-- CAU ---|
+                //      |------ NAU ------>|
+                //      |- BD >|--- AUD -->|
 
-                // allowance loan has been paid back, refund to account balance
-                accountBalanceDelta = newAllowanceUsed.mul(-1);
+                // not more than the current refund requested
+                accountAllowanceUsedDelta = min(newAllowanceUsed, currentAllowanceUsed.mul(-1));
+                // refund account balance
+                accountBalanceDelta =  newAllowanceUsed.sub(accountAllowanceUsedDelta);
             }
         }
     }
@@ -259,14 +300,22 @@ library AgreementLibrary {
             // sanity checks of allowanceUsed returned, agreement implemntation shal never fail these asserts
             if (appAllowance > 0) {
                 // app allowance can be used by the app
-                // agreement must not refund allowance if not requested (allowance < 0)
+                // agreement must not refund allowance if not requested
                 assert(context.allowanceUsed >= 0);
                 // agreement must only use up to allowance given
                 assert(context.allowanceUsed <= appAllowance);
                 // pay for app allowance
             } else if (appAllowance <= 0) {
                 // app allowance must be refunded
-                assert(context.allowanceUsed == appAllowance);
+                // agreement must not use allowance if not given ()
+                assert(context.allowanceUsed <= 0);
+                // agreement must only refund up to allowance amount
+                assert(context.allowanceUsed >= appAllowance);
+                // app must pay for the discrepency
+                if (context.allowanceUsed > appAllowance) {
+                    token.settleBalance(account, appAllowance - context.allowanceUsed);
+                    require(token.isAccountSolventNow(account), "SF: Account become insolvent after callback");
+                }
             } // trivial casae no action
         } else {
             newCtx = ctx;

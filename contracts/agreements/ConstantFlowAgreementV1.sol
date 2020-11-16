@@ -476,8 +476,6 @@ contract ConstantFlowAgreementV1 is
                     ).mul(int256(currentContext.appLevel));
             }
 
-            vars.appAllowance = vars.appAllowance;
-
             if (optype == FlowChangeType.CREATE_FLOW) {
                 (vars.appContext, newCtx) = AgreementLibrary.afterAgreementCreated(
                     ISuperfluid(msg.sender),

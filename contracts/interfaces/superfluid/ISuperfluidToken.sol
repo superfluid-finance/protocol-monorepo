@@ -37,9 +37,7 @@ interface ISuperfluidToken {
        address account,
        uint256 timestamp
     )
-        external
-
-        view
+        external view
         returns (
             int256 availableBalance,
             uint256 deposit,
@@ -49,9 +47,7 @@ interface ISuperfluidToken {
     function realtimeBalanceOfNow(
        address account
     )
-        external
-
-        view
+        external view
         returns (
             int256 availableBalance,
             uint256 deposit,
@@ -68,8 +64,7 @@ interface ISuperfluidToken {
         address account,
         uint256 timestamp
     )
-        external
-        view
+        external view
         returns(bool isCritical);
 
     /**
@@ -80,8 +75,7 @@ interface ISuperfluidToken {
     function isAccountCriticalNow(
         address account
     )
-        external
-        view
+        external view
         returns(bool isCritical);
 
     /**
@@ -94,8 +88,7 @@ interface ISuperfluidToken {
         address account,
         uint256 timestamp
     )
-        external
-        view
+        external view
         returns(bool isSolvent);
 
     /**
@@ -106,8 +99,7 @@ interface ISuperfluidToken {
     function isAccountSolventNow(
         address account
     )
-        external
-        view
+        external view
         returns(bool isSolvent);
 
     /**
@@ -117,9 +109,7 @@ interface ISuperfluidToken {
     * @return activeAgreements List of accounts that have non-zero states for the account
     */
     function getAccountActiveAgreements(address account)
-       external
-
-       view
+       external view
        returns(ISuperAgreement[] memory activeAgreements);
 
 

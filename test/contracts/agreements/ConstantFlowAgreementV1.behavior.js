@@ -180,7 +180,9 @@ async function _shouldChangeFlow({
     const _balances2 = {};
     const flows = {};
     const expectedFlowInfo = {};
+    const expectedNetFlowDeltas = {};
     let txBlock;
+    let mfaDeposits = toBN(0);
 
     const addRole = (role, alias) => {
         roles[role] = testenv.getAddress(alias);
@@ -261,7 +263,7 @@ async function _shouldChangeFlow({
         flowData.flowInfo2 = flowInfo;
     };
 
-    const validateFlowChange = (flowName) => {
+    const validateFlowInfoChange = (flowName) => {
         console.log(`validating ${flowName} flow change...`);
         const flowData = flows[flowName];
 
@@ -286,27 +288,9 @@ async function _shouldChangeFlow({
             flowData.flowInfo2.owedDeposit,
             expectedFlowInfo[flowName].owedDeposit.toString(),
             "wrong owed deposit aount of the flow");
-
-        // validate account flow info changes
-        const flowRateDelta = toBN(flowData.flowInfo2.flowRate)
-            .sub(toBN(flowData.flowInfo1.flowRate));
-        assert.equal(
-            toBN(getAccountFlowInfo1(flowData.senderName).flowRate)
-                .sub(toBN(getAccountFlowInfo2(flowData.senderName).flowRate)).toString(),
-            flowRateDelta.toString(),
-            "wrong sender flow rate delta"
-        );
-        assert.equal(
-            toBN(getAccountFlowInfo2(flowData.receiverName).flowRate)
-                .sub(toBN(getAccountFlowInfo1(flowData.receiverName).flowRate)).toString(),
-            flowRateDelta
-                .mul(toBN(expectedReceiverRatioPct))
-                .div(toBN(100)).toString(),
-            "wrong receiver flow rate delta"
-        );
     };
 
-    const validateNetFlowAndDepositChange = (role) => {
+    const validateAccountFlowInfoChange = (role) => {
         console.log(`validating ${role} account net flow and deposit change...`);
 
         const inFlowNames = Object.keys(flows).filter(i => flows[i].flowId.receiver === roles[role]);
@@ -314,13 +298,13 @@ async function _shouldChangeFlow({
         console.log("in flows", inFlowNames);
         console.log("out flows", outFlowNames);
 
-        let expectedNetFlow = toBN(0);
+        let actualNetFlow = toBN(0);
         let expectedDepositDelta = toBN(0);
         let expectedOwedDepositDelta = toBN(0);
 
         inFlowNames.forEach(flowName => {
             const flowData = flows[flowName];
-            expectedNetFlow = expectedNetFlow
+            actualNetFlow = actualNetFlow
                 .add(toBN(flowData.flowInfo2.flowRate));
             expectedOwedDepositDelta = expectedOwedDepositDelta
                 .add(toBN(flowData.flowInfo2.owedDeposit))
@@ -328,7 +312,7 @@ async function _shouldChangeFlow({
         });
         outFlowNames.forEach(flowName => {
             const flowData = flows[flowName];
-            expectedNetFlow = expectedNetFlow
+            actualNetFlow = actualNetFlow
                 .sub(toBN(flowData.flowInfo2.flowRate));
             expectedDepositDelta = expectedDepositDelta
                 .add(toBN(flowData.flowInfo2.deposit))
@@ -337,24 +321,32 @@ async function _shouldChangeFlow({
 
         assert.equal(
             getAccountFlowInfo2(role).flowRate.toString(),
-            expectedNetFlow.toString(),
-            `wrong netflow of ${role}`);
+            actualNetFlow.toString(),
+            `unexpected netflow of ${role}`);
+
+        const flowRateDelta = toBN(getAccountFlowInfo2(role).flowRate)
+            .sub(toBN(getAccountFlowInfo1(role).flowRate));
+        assert.equal(
+            flowRateDelta.toString(),
+            expectedNetFlowDeltas[roles[role]].toString(),
+            `wrong netflow delta of ${role}`);
 
         const depositDelta = toBN(getBalances2(role).deposit)
             .sub(toBN(getBalances1(role).deposit));
         assert.equal(
             depositDelta.toString(),
             expectedDepositDelta.toString(),
-            `wrong deposit amount of ${role}`);
+            `wrong deposit delta amount of ${role}`);
 
         const owedDepositDelta = toBN(getBalances2(role).owedDeposit)
             .sub(toBN(getBalances1(role).owedDeposit));
         assert.equal(
             owedDepositDelta.toString(),
             expectedOwedDepositDelta.toString(),
-            `wrong owed deposit amount of ${role}`);
+            `wrong owed deposit delta amount of ${role}`);
     };
 
+    // add all roles
     addRole("sender", sender);
     addRole("receiver", receiver);
     if (fn === "deleteFlow") {
@@ -366,6 +358,12 @@ async function _shouldChangeFlow({
         }
         addRole("agent", by);
         addRole("reward", testenv.toAlias(rewardAddress));
+    }
+    if (mfa) {
+        Object.keys(mfa.receivers).forEach(async receiverAlias => {
+            const mfaReceiverName = "mfa.receiver." + receiverAlias;
+            addRole(mfaReceiverName, receiverAlias);
+        });
     }
 
     // load current balance snapshot
@@ -385,23 +383,29 @@ async function _shouldChangeFlow({
     });
 
     // mfa support
-    let calculateOwedDeposit = () => toBN(0);
-    let expectedReceiverRatioPct = 100;
+    expectedNetFlowDeltas[roles.sender] =  toBN(flowRate)
+        .mul(toBN(-1))
+        .sub(toBN(getAccountFlowInfo1("sender").flowRate));
+    expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.sender]
+        .mul(toBN(-1));
+    if (fn === "deleteFlow") {
+        if (!(roles.agent in expectedNetFlowDeltas)) {
+            expectedNetFlowDeltas[roles.agent] = toBN(0);
+        }
+        if (!(roles.reward in expectedNetFlowDeltas)) {
+            expectedNetFlowDeltas[roles.reward] = toBN(0);
+        }
+    }
     if (mfa) {
         console.log("mfa enabled with", JSON.stringify(mfa));
 
-        if (mfa.ratioPct !== 0) {
-            calculateOwedDeposit = deposit => toBN(deposit)
-                .mul(toBN(100))
-                .div(toBN(mfa.ratioPct));
-        }
-        expectedReceiverRatioPct = toBN(100).sub(toBN(mfa.ratioPct));
+        let totalProportions = Object.values(mfa.receivers)
+            .map(i => i.proportion)
+            .reduce((acc,cur) => acc + cur, 0);
 
         await Promise.all(Object.keys(mfa.receivers).map(async receiverAlias => {
             const mfaReceiverName = "mfa.receiver." + receiverAlias;
             const mfaFlowName = "mfa.flow." + receiverAlias;
-
-            addRole(mfaReceiverName, receiverAlias);
 
             await addFlowInfo1(mfaFlowName, {
                 senderName: "receiver",
@@ -409,25 +413,41 @@ async function _shouldChangeFlow({
                 sender: roles.receiver,
                 receiver: roles[mfaReceiverName],
             });
+
+            const mfaFlowRate = toBN(flowRate)
+                .mul(toBN(mfa.receivers[receiverAlias].proportion))
+                .div(toBN(totalProportions));
+            const mfaFlowRateDelta = toBN(mfaFlowRate)
+                .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
+            mfaDeposits = clipDepositNumber(mfaDeposits.add(
+                toBN(mfaFlowRate)
+                    .mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
+            ));
+            expectedNetFlowDeltas[roles[mfaReceiverName]] = mfaFlowRateDelta;
+            expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.receiver]
+                .sub(mfaFlowRateDelta);
         }));
     }
+    // console.log("!!!", flowRate.toString(),
+    //     expectedNetFlowDeltas[roles.sender].toString(),
+    //     expectedNetFlowDeltas[roles.receiver].toString());
 
     // calculate main flow expectations
-    if (fn !== "deleteFlow") {
-        const deposit = toBN(flowRate)
-            .mul(toBN(testenv.configs.LIQUIDATION_PERIOD));
-        const owedDeposit = calculateOwedDeposit(deposit);
-        expectedFlowInfo.main = {
-            flowRate: toBN(flowRate),
-            // clipping twice due to implementation
-            deposit: clipDepositNumber(clipDepositNumber(deposit).add(owedDeposit)),
-            owedDeposit: clipOwedDepositNumber(owedDeposit)
-        };
-    } else {
+    if (fn === "deleteFlow") {
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
             deposit: toBN(0),
             owedDeposit: toBN(0)
+        };
+    } else {
+        const deposit = toBN(flowRate)
+            .mul(toBN(testenv.configs.LIQUIDATION_PERIOD));
+        expectedFlowInfo.main = {
+            flowRate: toBN(flowRate),
+            // clipping twice due to implementation
+            deposit: clipDepositNumber(clipDepositNumber(deposit)
+                .add(clipOwedDepositNumber(mfaDeposits))),
+            owedDeposit: clipOwedDepositNumber(mfaDeposits)
         };
     }
 
@@ -485,12 +505,12 @@ async function _shouldChangeFlow({
     console.log("--------");
 
     // validate flow info changes
-    validateFlowChange("main");
+    validateFlowInfoChange("main");
     // TODO mfa flow changes
     console.log("--------");
 
-    // validate net flow and deposit changes
-    Object.keys(roles).forEach(validateNetFlowAndDepositChange);
+    // validate account flow info changes
+    Object.keys(roles).forEach(validateAccountFlowInfoChange);
     console.log("--------");
 
     // caculate expected balance changes per liquidation rules
@@ -584,6 +604,11 @@ async function _shouldChangeFlow({
         }
     });
     //console.log("--------");
+
+    // make sure app is not jailed
+    if (mfa) {
+        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.receiver));
+    }
 
     //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));
     console.log(`======== ${fn} ends ========`);

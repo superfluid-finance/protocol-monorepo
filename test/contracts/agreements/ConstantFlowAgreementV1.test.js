@@ -598,7 +598,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 ratioPct: 100,
                 receivers: {
                     [receiver1]: {
-                        address: t.aliases[receiver1],
                         proportion: 1
                     }
                 }
@@ -609,7 +608,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 app.address,
                 app.contract.methods.createMultiFlows(
                     superToken.address,
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].address),
+                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
                 ).encodeABI(),
@@ -672,7 +671,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 app.address,
                 app.contract.methods.createMultiFlows(
                     superToken.address,
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].address),
+                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
                 ).encodeABI(),
@@ -722,18 +721,27 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await timeTravelOnceAndVerifyAll();
         });
 
-        it.skip("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
+        it("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
+            // await superToken.transfer(app.address, toWad(1), { from: t.aliases[sender] });
+            // await t.updateAccountBalanceSnapshot(
+            //     superToken.address,
+            //     app.address,
+            //     await superToken.realtimeBalanceOfNow(app.address)
+            // );
+            // await t.updateAccountBalanceSnapshot(
+            //     superToken.address,
+            //     t.aliases[sender],
+            //     await superToken.realtimeBalanceOfNow(t.aliases[sender])
+            // );
 
             const mfa = {
                 ratioPct: 100,
                 receivers: {
                     [receiver1]: {
-                        address: t.aliases[receiver1],
                         proportion: 1
                     },
                     [receiver2]: {
-                        address: t.aliases[receiver2],
                         proportion: 1
                     }
                 }
@@ -744,7 +752,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 app.address,
                 app.contract.methods.createMultiFlows(
                     superToken.address,
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].address),
+                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
                 ).encodeABI(),
@@ -773,15 +781,15 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 110% flow rate
-            await shouldUpdateFlow({
-                testenv: t,
-                sender,
-                receiver: "mfa",
-                mfa,
-                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
-            });
-            await timeTravelOnceAndVerifyAll();
+            // // update 1to1 with 110% flow rate
+            // await shouldUpdateFlow({
+            //     testenv: t,
+            //     sender,
+            //     receiver: "mfa",
+            //     mfa,
+            //     flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+            // });
+            // await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
             await shouldDeleteFlow({

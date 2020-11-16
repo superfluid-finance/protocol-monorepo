@@ -358,7 +358,7 @@ module.exports = class TestEnvironment {
         this.printSingleBalance("Total real-time blances of super tokens", rtBalanceSum);
 
         const aum = await this.contracts.testToken.balanceOf.call(this.contracts.superToken.address);
-        this.printSingleBalance("AUM of super tokens", wad4human(aum));
+        this.printSingleBalance("AUM of super tokens", aum);
 
         const totalSupply = await this.contracts.superToken.totalSupply.call();
         this.printSingleBalance("Total supply of super tokens", totalSupply);

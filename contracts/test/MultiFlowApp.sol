@@ -6,7 +6,7 @@ import {
     ISuperToken,
     SuperAppBase,
     SuperAppDefinitions
-} from "./SuperAppBase.sol";
+} from "../apps/SuperAppBase.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 
@@ -195,10 +195,6 @@ contract MultiFlowsApp is SuperAppBase {
             );
         }
         delete _userFlows[sender];
-    }
-
-    function _unpackData(bytes memory data) internal pure returns(bytes32, int256) {
-        return abi.decode(data, (bytes32, int256));
     }
 
     function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256 sum) {

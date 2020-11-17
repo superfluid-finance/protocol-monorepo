@@ -42,7 +42,7 @@ module.exports = class TestEnvironment {
 
         this.configs = {
             INIT_BALANCE: toWad(100),
-            AUM_DUST_AMOUNT: toBN(10000),
+            AUM_DUST_AMOUNT: toBN(0),
             LIQUIDATION_PERIOD: 3600,
         };
 

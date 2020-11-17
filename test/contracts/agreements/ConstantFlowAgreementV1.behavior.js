@@ -7,12 +7,8 @@ const {
 
 function clipDepositNumber(deposit) {
     // last 32 bites of the deposit (96 bites) is clipped off
-    // and minimal deposit is (1<<32)
-    return BN.max(toBN(1), deposit.shrn(32)).shln(32);
-}
-function clipOwedDepositNumber(deposit) {
-    // last 32 bites of the deposit (96 bites) is clipped off
-    return deposit.shrn(32).shln(32);
+    const rounding = deposit.and(toBN(0xFFFFFFFF)).isZero() ? 0 : 1;
+    return deposit.shrn(32).addn(rounding).shln(32);
 }
 
 //
@@ -182,7 +178,7 @@ async function _shouldChangeFlow({
     const expectedFlowInfo = {};
     const expectedNetFlowDeltas = {};
     let txBlock;
-    let mfaDeposits = toBN(0);
+    let mfaDeposit = toBN(0);
 
     const addRole = (role, alias) => {
         roles[role] = testenv.getAddress(alias);
@@ -365,6 +361,7 @@ async function _shouldChangeFlow({
             addRole(mfaReceiverName, receiverAlias);
         });
     }
+    console.log("--------");
 
     // load current balance snapshot
     Object.keys(roles).forEach(role => addToBalanceSnapshots1(role));
@@ -381,6 +378,7 @@ async function _shouldChangeFlow({
         sender: roles.sender,
         receiver: roles.receiver,
     });
+    console.log("--------");
 
     // mfa support
     expectedNetFlowDeltas[roles.sender] =  toBN(flowRate)
@@ -413,20 +411,23 @@ async function _shouldChangeFlow({
                 sender: roles.receiver,
                 receiver: roles[mfaReceiverName],
             });
-
             const mfaFlowRate = toBN(flowRate)
                 .mul(toBN(mfa.receivers[receiverAlias].proportion))
                 .div(toBN(totalProportions));
-            const mfaFlowRateDelta = toBN(mfaFlowRate)
-                .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
-            mfaDeposits = clipDepositNumber(mfaDeposits.add(
+            const mfaFlowDeposit = clipDepositNumber(
                 toBN(mfaFlowRate)
                     .mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
-            ));
+            );
+            //console.log("!!!! mfaFlowDeposit", receiverAlias, mfaFlowDeposit.toString());
+            const mfaFlowRateDelta = toBN(mfaFlowRate)
+                .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
+            mfaDeposit = mfaDeposit.add(mfaFlowDeposit);
             expectedNetFlowDeltas[roles[mfaReceiverName]] = mfaFlowRateDelta;
             expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.receiver]
                 .sub(mfaFlowRateDelta);
         }));
+        //console.log("!!!! mfaDeposit", mfaDeposit.toString());
+        console.log("--------");
     }
     // console.log("!!!", flowRate.toString(),
     //     expectedNetFlowDeltas[roles.sender].toString(),
@@ -440,19 +441,20 @@ async function _shouldChangeFlow({
             owedDeposit: toBN(0)
         };
     } else {
-        const deposit = toBN(flowRate)
-            .mul(toBN(testenv.configs.LIQUIDATION_PERIOD));
+        const deposit = clipDepositNumber(toBN(flowRate)
+            .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)));
+        // take into account deposit allowance
+        const owedDeposit = BN.min(deposit, mfaDeposit);
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
-            // clipping twice due to implementation
-            deposit: clipDepositNumber(clipDepositNumber(deposit)
-                .add(clipOwedDepositNumber(mfaDeposits))),
-            owedDeposit: clipOwedDepositNumber(mfaDeposits)
+            deposit: deposit.add(owedDeposit),
+            owedDeposit: owedDeposit
         };
     }
 
     // load balance before flow change
     await Promise.all(Object.keys(roles).map(addToBalances1));
+    console.log("--------");
 
     // check sender solvency
     const isSenderCritical = await superToken.isAccountCriticalNow(roles.sender);
@@ -668,7 +670,6 @@ async function shouldDeleteFlow({
 
 module.exports = {
     clipDepositNumber,
-    clipOwedDepositNumber,
     getFlowInfo,
     getAccountFlowInfo,
     shouldCreateFlow,

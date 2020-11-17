@@ -30,43 +30,42 @@ contract MultiFlowsApp is SuperAppBase {
     mapping(address => ReceiverData[]) internal _userFlows;
 
     constructor(IConstantFlowAgreementV1 constantFlow, ISuperfluid superfluid) {
-        require(address(constantFlow) != address(0), "MFA: can't set zero address as constant Flow");
-        require(address(superfluid) != address(0), "MFA: can't set zero address as Superfluid");
+        assert(address(constantFlow) != address(0));
+        assert(address(superfluid) != address(0));
         _constantFlow = constantFlow;
         _host = superfluid;
 
         uint256 configWord =
             SuperAppDefinitions.TYPE_APP_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerApp(configWord);
     }
 
     function createMultiFlows(
-        ISuperToken superToken,
         address[] calldata receivers,
         uint256[] calldata proportions,
         bytes calldata ctx
     )
         external
+        onlyHost
         returns(bytes memory newCtx)
     {
-        require(msg.sender == address(_host), "MFA: Only official superfluid host is supported by the app");
-        require(receivers.length == proportions.length, "MFA: number receivers not equal flowRates");
+        assert(receivers.length == proportions.length);
         (address sender,,,,) = _host.decodeCtx(ctx);
-        require(_userFlows[sender].length == 0, "MFA: Multiflow alread created");
 
         newCtx = _host.chargeGasFee(ctx, 30000);
 
-        (, int256 receivingFlowRate, ,) = _constantFlow.getFlow(
-            superToken,
-            sender,
-            address(this)
-        );
-        require(receivingFlowRate == 0, "MFA: Updates are not supported, go to YAM");
-
+        delete _userFlows[sender];
         for(uint256 i = 0; i < receivers.length; i++) {
             _userFlows[sender].push(ReceiverData(receivers[i], proportions[i]));
+        }
+    }
+
+    function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256 sum) {
+        for(uint256 i = 0; i < receivers.length; i++) {
+            sum += receivers[i].proportion;
         }
     }
 
@@ -84,7 +83,7 @@ contract MultiFlowsApp is SuperAppBase {
 
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-            require(_userFlows[sender][i].proportion > 0, "Proportion > 0");
+            assert(_userFlows[sender][i].proportion > 0);
             int96 targetFlowrate = (int96(_userFlows[sender][i].proportion) * receivingFlowRate) / int96(sum);
             (newCtx, ) = _host.callAgreementWithContext(
                 _constantFlow,
@@ -106,12 +105,11 @@ contract MultiFlowsApp is SuperAppBase {
         address agreementClass,
         bytes32 agreementId
     )
-        external
-        view
-        override
+        external view override
+        onlyHost
         returns (bytes memory cbdata)
     {
-        require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
+        assert(agreementClass == address(_constantFlow));
         (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
         return abi.encode(oldFlowRate);
     }
@@ -119,14 +117,15 @@ contract MultiFlowsApp is SuperAppBase {
     function afterAgreementCreated(
         ISuperToken superToken,
         bytes calldata ctx,
-        address /*agreementClass*/,
+        address agreementClass,
         bytes32 agreementId,
         bytes calldata /*cbdata*/
     )
-    external
-    override
-    returns(bytes memory newCtx)
+        external override
+        onlyHost
+        returns(bytes memory newCtx)
     {
+        assert(agreementClass == address(_constantFlow));
         (address sender,,,,) = _host.decodeCtx(ctx);
         (, int96 receivingFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
         newCtx = _updateMultiFlow(superToken, sender, _constantFlow.createFlow.selector, receivingFlowRate, ctx);
@@ -138,12 +137,11 @@ contract MultiFlowsApp is SuperAppBase {
         address agreementClass,
         bytes32 agreementId
     )
-        external
-        view
-        override
+        external view override
+        onlyHost
         returns (bytes memory cbdata)
     {
-        require(agreementClass == address(_constantFlow), "MFA: Unsupported agreement");
+        assert(agreementClass == address(_constantFlow));
         (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
         return abi.encode(oldFlowRate);
     }
@@ -151,13 +149,15 @@ contract MultiFlowsApp is SuperAppBase {
     function afterAgreementUpdated(
         ISuperToken superToken,
         bytes calldata ctx,
-        address /*agreementClass*/,
+        address agreementClass,
         bytes32 agreementId,
         bytes calldata /* cbdata */
     )
         external override
+        onlyHost
         returns (bytes memory newCtx)
     {
+        assert(agreementClass == address(_constantFlow));
         (address sender,,,,) = _host.decodeCtx(ctx);
         (, int96 newFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
 
@@ -170,15 +170,16 @@ contract MultiFlowsApp is SuperAppBase {
     function afterAgreementTerminated(
         ISuperToken superToken,
         bytes calldata ctx,
-        address /*agreementClass*/,
+        address agreementClass,
         bytes32 /*agreementId*/,
         bytes memory /*cbdata*/
     )
 
-        external
-        override
+        external override
+        onlyHost
         returns (bytes memory newCtx)
     {
+        assert(agreementClass == address(_constantFlow));
         (address sender,,,,) = _host.decodeCtx(ctx);
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
@@ -197,9 +198,8 @@ contract MultiFlowsApp is SuperAppBase {
         delete _userFlows[sender];
     }
 
-    function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256 sum) {
-        for(uint256 i = 0; i < receivers.length; i++) {
-            sum += receivers[i].proportion;
-        }
+    modifier onlyHost() {
+        assert(msg.sender == address(_host));
+        _;
     }
 }

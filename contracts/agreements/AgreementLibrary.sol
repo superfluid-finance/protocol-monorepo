@@ -45,12 +45,11 @@ library AgreementLibrary {
     }
 
     /**
-     * @dev Calculate deltas required to satisfy the allowance used
+     * @dev Calculate the delta required to satisfy the allowance used
      * @param currentAllowance allowance given to the app through the context by the allowance provider
      * @param currentAllowanceUsed allowance used so far by the app
      * @param newAllowanceUsed new allowance used during this call
      * @return accountAllowanceUsedDelta account allowance used delta to pay for the `newAllowanceUsed`
-     * @return accountBalanceDelta account balance delta to self fund the missing amount in `newAllowanceUsed`
      *
      * NOTE:
      * - when `currentAllowance` is positive, the call can use up to that amount without self funding
@@ -63,8 +62,7 @@ library AgreementLibrary {
     )
         internal pure
         returns (
-            int256 accountAllowanceUsedDelta,
-            int256 accountBalanceDelta
+            int256 accountAllowanceUsedDelta
         )
     {
         // in fairness, the code for currentAllowance < 0 and > 0 are exactly same apart from the min/max logic
@@ -93,8 +91,6 @@ library AgreementLibrary {
 
                     // free up to the current context allowance amount
                     accountAllowanceUsedDelta = currentAllowanceLeft;
-                    // rest paid by sender
-                    accountBalanceDelta = currentAllowanceLeft.sub(newAllowanceUsed);
                 } else {
                     // 0 -> positive
                     // |--------- CA --------->|
@@ -125,8 +121,6 @@ library AgreementLibrary {
 
                 // not more than the current allowance used
                 accountAllowanceUsedDelta = max(newAllowanceUsed, currentAllowanceUsed.mul(-1));
-                // refund account balance
-                accountBalanceDelta =  newAllowanceUsed.sub(accountAllowanceUsedDelta);
             }
         } else if (currentAllowance < 0) {
             // allowance being refunded
@@ -151,8 +145,6 @@ library AgreementLibrary {
 
                     // free up to the current context allowance amount
                     accountAllowanceUsedDelta = currentAllowanceLeft;
-                    // rest refund to sender
-                    accountBalanceDelta = currentAllowanceLeft.sub(newAllowanceUsed);
                 } else {
                     //             negative <- 0
                     // |<-------- CA ----------|
@@ -185,15 +177,11 @@ library AgreementLibrary {
 
                 // not more than the current refund requested
                 accountAllowanceUsedDelta = min(newAllowanceUsed, currentAllowanceUsed.mul(-1));
-                // refund account balance
-                accountBalanceDelta =  newAllowanceUsed.sub(accountAllowanceUsedDelta);
             }
         }
     }
 
     function applyAllowanceUsedAndUpdate(
-        ISuperfluidToken token,
-        address account,
         int256 currentAllowance,
         int256 currentAllowanceUsed,
         int256 newAllowanceUsed,
@@ -202,7 +190,7 @@ library AgreementLibrary {
         internal
         returns (bytes memory newCtx)
     {
-        (int accountAllowanceUsedDelta, int accountBalanceDelta) = applyAllowanceUsed(
+        (int accountAllowanceUsedDelta) = applyAllowanceUsed(
             currentAllowance,
             currentAllowanceUsed,
             newAllowanceUsed
@@ -214,10 +202,6 @@ library AgreementLibrary {
                 currentAllowanceUsed.add(accountAllowanceUsedDelta));
         } else {
             newCtx = ctx;
-        }
-
-        if (accountBalanceDelta != 0) {
-            token.settleBalance(account, accountBalanceDelta);
         }
     }
 

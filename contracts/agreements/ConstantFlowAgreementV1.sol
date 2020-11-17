@@ -416,8 +416,6 @@ contract ConstantFlowAgreementV1 is
 
         // STEP 2: calculate allowance used delta, and account balance delta
         newCtx = AgreementLibrary.applyAllowanceUsedAndUpdate(
-            token,
-            flowParams.sender,
             currentContext.allowance,
             currentContext.allowanceUsed,
             depositDelta,
@@ -475,6 +473,12 @@ contract ConstantFlowAgreementV1 is
                         oldFlowData.owedDeposit.toInt256().mul(-1)
                     ).mul(int256(currentContext.appLevel));
             }
+            // clipping the allowance used amount before storing
+            vars.appContext.allowanceUsed = (
+                vars.appContext.allowanceUsed > 0 ?
+                _clipDepositNumber(uint256(vars.appContext.allowanceUsed)) :
+                _clipDepositNumber(uint256(vars.appContext.allowanceUsed.mul(-1)))
+            ).toInt256();
 
             if (optype == FlowChangeType.CREATE_FLOW) {
                 (vars.appContext, newCtx) = AgreementLibrary.afterAgreementCreated(
@@ -513,7 +517,6 @@ contract ConstantFlowAgreementV1 is
         }
 
         if (vars.appContext.allowanceUsed != 0) {
-            // update owed deposit of the flow
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
@@ -542,8 +545,6 @@ contract ConstantFlowAgreementV1 is
         }
 
         newCtx = AgreementLibrary.applyAllowanceUsedAndUpdate(
-            token,
-            flowParams.sender,
             currentContext.allowance,
             currentContext.allowanceUsed,
             vars.appContext.allowanceUsed,
@@ -556,6 +557,7 @@ contract ConstantFlowAgreementV1 is
      *
      * NOTE:
      * - leaving owed deposit unchanged for later adjustment
+     * - depositDelta output is always clipped (see _clipDepositNumber)
      */
     function _changeFlow(
         uint256 currentTimestamp,
@@ -668,6 +670,15 @@ contract ConstantFlowAgreementV1 is
      * Deposit Calculation Pure Functions
      *************************************************************************/
 
+    function _clipDepositNumber(uint256 deposit)
+        internal pure
+        returns(uint256)
+    {
+        // clipping the value, rounding up
+        uint256 rounding = (deposit & type(uint32).max) > 0 ? 1 : 0;
+        return ((deposit >> 32) + rounding) << 32;
+    }
+
     function _calculateDeposit(
         int96 flowRate,
         uint256 liquidationPeriod
@@ -677,11 +688,9 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
-        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod))));
-        // clipping the value, and make sure the minimal deposit is not ZERO after clipping
-        deposit = deposit >> 32;
-        if (deposit == 0) return 1 << 32;
-        else return deposit << 32;
+        deposit = _clipDepositNumber(
+            uint256(flowRate.mul(int96(uint96(liquidationPeriod))))
+        );
     }
 
     /**************************************************************************
@@ -709,6 +718,9 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bytes32[] memory data)
     {
+        // enable these for debugging
+        // assert(flowData.deposit & type(uint32).max == 0);
+        // assert(flowData.owedDeposit & type(uint32).max == 0);
         data = new bytes32[](1);
         data[0] = bytes32(
             ((uint256(flowData.timestamp)) << 224) |

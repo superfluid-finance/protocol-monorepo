@@ -80,14 +80,31 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         await verifyAll();
     }
 
-    async function upgradeBalance(account, amount) {
-        await web3tx(superToken.upgrade, `Upgrade ${amount.toString()} for account ${account}`)(
-            amount, { from: t.aliases[account] }
+    async function upgradeBalance(alias, amount) {
+        const account = t.getAddress(alias);
+        await web3tx(superToken.upgrade, `Upgrade ${amount.toString()} for account ${alias}`)(
+            amount, { from: account }
         );
-        await t.updateAccountBalanceSnapshot(
+        t.updateAccountBalanceSnapshot(
             superToken.address,
-            t.aliases[account],
-            await superToken.realtimeBalanceOfNow(t.aliases[account])
+            account,
+            await superToken.realtimeBalanceOfNow(account)
+        );
+    }
+
+    async function transferBalance(from, to, amount) {
+        const fromAccount = t.getAddress(from);
+        const toAccount = t.getAddress(to);
+        await superToken.transfer(toAccount, amount, { from: fromAccount });
+        t.updateAccountBalanceSnapshot(
+            superToken.address,
+            toAccount,
+            await superToken.realtimeBalanceOfNow(toAccount)
+        );
+        t.updateAccountBalanceSnapshot(
+            superToken.address,
+            fromAccount,
+            await superToken.realtimeBalanceOfNow(fromAccount)
         );
     }
 
@@ -607,7 +624,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
-                    superToken.address,
                     Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
@@ -670,7 +686,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
-                    superToken.address,
                     Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
@@ -723,17 +738,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
         it("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
-            // await superToken.transfer(app.address, toWad(1), { from: t.aliases[sender] });
-            // await t.updateAccountBalanceSnapshot(
-            //     superToken.address,
-            //     app.address,
-            //     await superToken.realtimeBalanceOfNow(app.address)
-            // );
-            // await t.updateAccountBalanceSnapshot(
-            //     superToken.address,
-            //     t.aliases[sender],
-            //     await superToken.realtimeBalanceOfNow(t.aliases[sender])
-            // );
+            await transferBalance(sender, "mfa", toWad(1));
 
             const mfa = {
                 ratioPct: 100,
@@ -751,7 +756,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
-                    superToken.address,
                     Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
@@ -781,15 +785,15 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
             await timeTravelOnceAndVerifyAll();
 
-            // // update 1to1 with 110% flow rate
-            // await shouldUpdateFlow({
-            //     testenv: t,
-            //     sender,
-            //     receiver: "mfa",
-            //     mfa,
-            //     flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
-            // });
-            // await timeTravelOnceAndVerifyAll();
+            // update 1to1 with 110% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+            });
+            await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
             await shouldDeleteFlow({

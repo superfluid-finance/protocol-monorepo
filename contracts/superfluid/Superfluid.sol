@@ -269,9 +269,10 @@ contract Superfluid is
     )
         external override
         onlyAgreement
-        isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata, bytes memory newCtx)
     {
+        if (isAppJailed(app)) return (new bytes(0), ctx);
+
         //TODO: _callCallback
         (bool success, bytes memory returnedData) = _callCallback(app, data, true);
         if (success) {
@@ -291,14 +292,13 @@ contract Superfluid is
         ISuperApp app,
         bytes calldata data,
         bool isTermination,
-        bytes calldata /* ctx */
+        bytes calldata ctx
     )
         external override
         onlyAgreement
-        isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        require(!isAppJailed(app), "SF: App already jailed");
+        if (isAppJailed(app)) return ctx;
 
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
         if(success) {
@@ -313,6 +313,7 @@ contract Superfluid is
                 revert("Superfluid: after callback failed");
             } else {
                 emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
+                _appManifests[app].configWord |= SuperAppDefinitions.JAIL;
             }
         }
     }
@@ -592,9 +593,6 @@ contract Superfluid is
                  // and this is okay, because there can be incentive to jail the app by providing
                  // more gas
                  revert("SF: Send more gas");
-             } else {
-                revert(string(returnedData));
-                 //_appManifests[app].configWord |= SuperAppDefinitions.JAIL;
              }
          }
     }
@@ -658,4 +656,5 @@ contract Superfluid is
         require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "Superfluid: not an active app");
         _;
     }
+
 }

@@ -61,10 +61,10 @@ contract Superfluid is
         //
         // The level of the app
         uint8 appLevel;
-        // deposit allowance given (recall)
-        int256 allowance;
-        // deposit allowance used (return)
-        int256 allowanceUsed;
+        // app allowance given
+        uint256 appAllowance;
+        // app allowance used, allowing negative values over a callback session
+        int256 appAllowanceUsed;
     }
 
     struct AppManifest {
@@ -416,9 +416,10 @@ contract Superfluid is
         }
     }
 
-    function ctxUpdateAllowance(
+    function ctxUpdateAppAllowance(
         bytes calldata ctx,
-        int256 allowance
+        uint256 appAllowance,
+        int256 appAllowanceUsed
 
     )
         external override
@@ -426,22 +427,8 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         FullContext memory context = _decodeFullContext(ctx);
-        context.allowance = allowance;
-        context.allowanceUsed = 0;
-        newCtx = _updateContext(context);
-    }
-
-    function ctxUpdateAllowanceUsed(
-        bytes calldata ctx,
-        int256 allowanceUsed
-
-    )
-        external override
-        onlyAgreement
-        returns (bytes memory newCtx)
-    {
-        FullContext memory context = _decodeFullContext(ctx);
-        context.allowanceUsed = allowanceUsed;
+        context.appAllowance = appAllowance;
+        context.appAllowanceUsed = appAllowanceUsed;
         newCtx = _updateContext(context);
     }
 
@@ -470,8 +457,8 @@ contract Superfluid is
             msgSender: msg.sender,
             agreementSelector: agreementSelector,
             appLevel: 1,
-            allowance: 0,
-            allowanceUsed: 0
+            appAllowance: 0,
+            appAllowanceUsed: 0
         }));
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
@@ -502,8 +489,8 @@ contract Superfluid is
             msgSender: msg.sender,
             agreementSelector: 0,
             appLevel: 1,
-            allowance: 0,
-            allowanceUsed: 0
+            appAllowance: 0,
+            appAllowanceUsed: 0
         }));
         (success, returnedData) = _callExternal(address(app), data, ctx);
         if(!success) {
@@ -632,16 +619,16 @@ contract Superfluid is
             address msgSender,
             bytes4 agreementSelector,
             uint8 appLevel,
-            int256 allowance,
-            int256 allowanceUsed
+            uint256 appAllowance,
+            int256 appAllowanceUsed
         )
     {
         FullContext memory context = _decodeFullContext(ctx);
         msgSender = context.msgSender;
         agreementSelector = context.agreementSelector;
         appLevel = context.appLevel;
-        allowance = context.allowance;
-        allowanceUsed = context.allowanceUsed;
+        appAllowance = context.appAllowance;
+        appAllowanceUsed = context.appAllowanceUsed;
     }
 
     /* Basic Law Rules */
@@ -716,9 +703,9 @@ contract Superfluid is
             context.msgSender,
             context.agreementSelector,
             context.appLevel,
-            context.allowance,
-            context.allowanceUsed
-        ) = abi.decode(ctx, (address, bytes4, uint8, int256, int256));
+            context.appAllowance,
+            context.appAllowanceUsed
+        ) = abi.decode(ctx, (address, bytes4, uint8, uint256, int256));
     }
 
     function _updateContext(FullContext memory context)
@@ -729,8 +716,8 @@ contract Superfluid is
             context.msgSender,
             context.agreementSelector,
             context.appLevel,
-            context.allowance,
-            context.allowanceUsed);
+            context.appAllowance,
+            context.appAllowanceUsed);
         _ctxStamp = keccak256(ctx);
     }
 

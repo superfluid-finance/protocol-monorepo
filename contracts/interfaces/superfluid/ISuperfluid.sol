@@ -207,17 +207,10 @@ interface ISuperfluid {
         // isAppActive(app)
         returns(bytes memory newCtx);
 
-    function ctxUpdateAllowance(
+    function ctxUpdateAppAllowance(
         bytes calldata ctx,
-        int256 allowance
-    )
-        external
-        // onlyAgreement
-        returns (bytes memory newCtx);
-
-    function ctxUpdateAllowanceUsed(
-        bytes calldata ctx,
-        int256 allowanceUsed
+        uint256 appAllowance,
+        int256 appAllowanceUsed
     )
         external
         // onlyAgreement
@@ -339,8 +332,8 @@ interface ISuperfluid {
             address msgSender,
             bytes4 agreementSelector,
             uint8 appLevel,
-            int256 allowance,
-            int256 allowanceUsed
+            uint256 appAllowance,
+            int256 appAllowanceUsed
         );
 
     /* function decodeCallContext(bytes calldata ctx)

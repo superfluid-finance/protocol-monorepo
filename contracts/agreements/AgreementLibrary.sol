@@ -11,6 +11,7 @@ import {
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 
 
 /**
@@ -19,6 +20,8 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 library AgreementLibrary {
 
     using SignedSafeMath for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
 
     /**************************************************************************
      * Context helpers
@@ -27,8 +30,8 @@ library AgreementLibrary {
     struct Context {
         address msgSender;
         uint8 appLevel;
-        int256 allowance;
-        int256 allowanceUsed;
+        uint256 appAllowance;
+        int256 appAllowanceUsed;
     }
 
     function decodeCtx(ISuperfluid host, bytes memory ctx)
@@ -39,183 +42,16 @@ library AgreementLibrary {
             context.msgSender,
             ,
             context.appLevel,
-            context.allowance,
-            context.allowanceUsed
+            context.appAllowance,
+            context.appAllowanceUsed
         ) = host.decodeCtx(ctx);
-    }
-
-    /**
-     * @dev Calculate the delta required to satisfy the allowance used
-     * @param currentAllowance allowance given to the app through the context by the allowance provider
-     * @param currentAllowanceUsed allowance used so far by the app
-     * @param newAllowanceUsed new allowance used during this call
-     * @return accountAllowanceUsedDelta account allowance used delta to pay for the `newAllowanceUsed`
-     *
-     * NOTE:
-     * - when `currentAllowance` is positive, the call can use up to that amount without self funding
-     * - when `currentAllowance` is negative, the call need to refund the exact absolute amount
-     */
-    function applyAllowanceUsed(
-        int256 currentAllowance,
-        int256 currentAllowanceUsed,
-        int256 newAllowanceUsed
-    )
-        internal pure
-        returns (
-            int256 accountAllowanceUsedDelta
-        )
-    {
-        // In fairness, the code for currentAllowance < 0 and > 0 are exactly same apart from the equality test.
-        // They can be merged into one usinb abs(). Also the leaf part can also be rewritten using simple min/max.
-        //
-        // But eeping them separated in the code in order to keep the nice comments and diagrams visible for
-        // this heavy logic, also to allow code coverage to highlight all the code paths separately.
-
-        if (currentAllowance > 0) {
-            // up to this amount can be used as allowance
-
-            assert(currentAllowanceUsed >= 0 && currentAllowanceUsed <= currentAllowance);
-            // 0 -> positive
-            // |--------- CA --------->|
-            // |--- CAL -->|--- CAU -->|
-            int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
-
-            if (newAllowanceUsed > 0) {
-                // allowance being used
-
-                // use up to the current context allowance amount
-                if (currentAllowanceLeft < newAllowanceUsed) {
-                    // 0 -> positive
-                    // |--------- CA --------->|
-                    // |-- CAL -->|--- CAU --->|
-                    // |------- NAU ------>|
-                    // |-- AUD -->|<- BD --|
-
-                    // free up to the current context allowance amount
-                    accountAllowanceUsedDelta = currentAllowanceLeft;
-                } else {
-                    // 0 -> positive
-                    // |--------- CA --------->|
-                    // |--- CAL --->|-- CAU -->|
-                    // |- NAU ->|
-                    // |- AUD ->|
-
-                    // use up to what app used,
-                    accountAllowanceUsedDelta = newAllowanceUsed;
-                }
-            } else {
-                // newAllowanceUsed < 0
-                // allowance being given back
-
-                if (newAllowanceUsed.mul(-1) < currentAllowanceUsed) {
-                    // 0 -> positive
-                    // |--------- CA --------->|
-                    // |--- CAL --->|-- CAU -->|
-                    //                |<- NAU -|
-                    //                |<- AUD -|
-
-                    accountAllowanceUsedDelta = newAllowanceUsed;
-                } else {
-                    // 0 -> positive
-                    // |--------- CA --------->|
-                    // |---- CAL ---->|- CAU ->|
-                    //       |<----- NAU ------|
-                    //       |<- BD --|<- AUD -|
-
-                    // not more than the current allowance used
-                    accountAllowanceUsedDelta = currentAllowanceUsed.mul(-1);
-                }
-            }
-        } else if (currentAllowance < 0) {
-            // allowance being refunded
-
-            assert(currentAllowanceUsed <= 0 && currentAllowanceUsed >= currentAllowance);
-            //             negative <- 0
-            // |<-------- CA ----------|
-            // |<-- CAL ---|<-- CAU ---|
-            int256 currentAllowanceLeft = currentAllowance.sub(currentAllowanceUsed);
-
-            if (newAllowanceUsed < 0) {
-                // allowance being given back
-
-                // refund up to the requested amount
-                if (currentAllowanceLeft > newAllowanceUsed) {
-                    //             negative <- 0
-                    // |<-------- CA ----------|
-                    // |<-------- CAU ---------|
-                    // |<-- CAL ---|<-- CAU ---|
-                    // |<------ NAU --------|
-                    // |<-- AUD ---|-- BD ->|
-
-                    // free up to the current context allowance amount
-                    accountAllowanceUsedDelta = currentAllowanceLeft;
-                } else {
-                    //             negative <- 0
-                    // |<-------- CA ----------|
-                    // |<-------- CAU ---------|
-                    // |<-- CAL ---|<-- CAU ---|
-                    // |<- NAU --|
-                    // |<- AUD --|
-
-                    // refund to what is requested
-                    accountAllowanceUsedDelta = newAllowanceUsed;
-                }
-            } else {
-                // more allowance wanted
-                // newAllowanceUsed > 0
-
-                if (newAllowanceUsed < currentAllowanceUsed.mul(-1)) {
-                    //             negative <- 0
-                    // |<-------- CA ----------|
-                    // |<-------- CAU ---------|
-                    // |<-- CAL ---|<-- CAU ---|
-                    //                |- NAU ->|
-                    //                |-- AUD >|
-                    accountAllowanceUsedDelta = newAllowanceUsed;
-                } else {
-                    //
-                    // OR
-                    //             negative <- 0
-                    // |<-------- CA ----------|
-                    // |<-------- CAU ---------|
-                    // |<-- CAL ---|<-- CAU ---|
-                    //      |------ NAU ------>|
-                    //      |- BD >|--- AUD -->|
-                    accountAllowanceUsedDelta = currentAllowanceUsed.mul(-1);
-                }
-            }
-        }
-    }
-
-    function applyAllowanceUsedAndUpdate(
-        int256 currentAllowance,
-        int256 currentAllowanceUsed,
-        int256 newAllowanceUsed,
-        bytes memory ctx
-    )
-        internal
-        returns (bytes memory newCtx)
-    {
-        (int accountAllowanceUsedDelta) = applyAllowanceUsed(
-            currentAllowance,
-            currentAllowanceUsed,
-            newAllowanceUsed
-        );
-
-        if (accountAllowanceUsedDelta != 0) {
-            newCtx = ISuperfluid(msg.sender).ctxUpdateAllowanceUsed(
-                ctx,
-                currentAllowanceUsed.add(accountAllowanceUsedDelta));
-        } else {
-            newCtx = ctx;
-        }
     }
 
     /**************************************************************************
      * Agreement callback helpers
      *************************************************************************/
 
-    // TODO optimize this out
+    // TODO let user call it instead
     function _needCallback(
         ISuperfluid host,
         address account,
@@ -228,255 +64,147 @@ library AgreementLibrary {
         return isSuperApp && ((configWord & noopBit) == 0);
     }
 
-    function _beforeAgreement(
-        bytes4 selector,
-        uint256 noopBit,
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bool isTermination
+    struct CallbackInputs {
+        ISuperfluid host;
+        ISuperfluidToken token;
+        uint256 noopBit;
+        address agreementClass;
+        address account;
+        bytes32 agreementId;
+        uint256 appAllowance;
+        int256 appAllowanceUsed;
+    }
+
+    function _adjustAppAllowanceUsed(
+        uint256 currentAppAllowance,
+        int256 newAppAllowanceUsed,
+        bytes memory ctx
     )
         private
-        returns(bytes memory cbdata, bytes memory newCtx)
+        returns (bool adjusted, bytes memory newCtx)
     {
-        if (_needCallback(host, account, noopBit)) {
-            bytes memory data = abi.encodeWithSelector(
-                selector,
-                token,
+        int256 signedCurrentAppAllowance = currentAppAllowance.toInt256();
+        // app allowance used range: [0, currentAppAllowance]
+        int256 adjustedNewAppAllowanceUsed = newAppAllowanceUsed > 0 ? (
+            newAppAllowanceUsed > signedCurrentAppAllowance ?
+            currentAppAllowance.toInt256() : newAppAllowanceUsed
+        ) : 0;
+
+        if (adjustedNewAppAllowanceUsed != newAppAllowanceUsed) {
+            return (true, ISuperfluid(msg.sender).ctxUpdateAppAllowance(
                 ctx,
-                agreementClass,
-                agreementId
-            );
-            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, isTermination, ctx);
+                currentAppAllowance,
+                adjustedNewAppAllowanceUsed
+            ));
+        } else {
+            return (false, ctx);
+        }
+    }
+
+    function callAppBeforeCallback(
+        CallbackInputs memory inputs,
+        bytes memory ctx
+    )
+        internal
+        returns(bytes memory cbdata, bytes memory newCtx)
+    {
+        bytes4 selector;
+        if (inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP) {
+            selector = ISuperApp.beforeAgreementCreated.selector;
+        } else if (inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP) {
+            selector = ISuperApp.beforeAgreementUpdated.selector;
+        } else {
+            assert(inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP);
+            selector = ISuperApp.beforeAgreementTerminated.selector;
+        }
+
+        if (_needCallback(inputs.host, inputs.account, inputs.noopBit)) {
+            (cbdata, newCtx) = inputs.host.callAppBeforeCallback(
+                ISuperApp(inputs.account),
+                abi.encodeWithSelector(
+                    selector,
+                    inputs.token,
+                    ctx,
+                    inputs.agreementClass,
+                    inputs.agreementId
+                ),
+                inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
+                ctx);
         } else {
             newCtx = ctx;
         }
     }
 
-    function _afterAgreement(
-        bytes4 selector,
-        uint256 noopBit,
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
+    function callAppAfterCallback(
+        CallbackInputs memory inputs,
         bytes memory cbdata,
-        int256 appAllowance,
-        bool isTermination
+        bytes memory ctx
     )
-        private
-        returns(Context memory context, bytes memory newCtx)
+        internal
+        returns(Context memory appContext, bytes memory newCtx)
     {
-        if (_needCallback(host, account, noopBit)) {
+        bytes4 selector;
+        if (inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP) {
+            selector = ISuperApp.afterAgreementCreated.selector;
+        } else if (inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP) {
+            selector = ISuperApp.afterAgreementUpdated.selector;
+        } else {
+            assert(inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP);
+            selector = ISuperApp.afterAgreementTerminated.selector;
+        }
+
+        if (_needCallback(inputs.host, inputs.account, inputs.noopBit)) {
+            Context memory currentContext = decodeCtx(ISuperfluid(msg.sender), ctx);
+
+            // app allowance params stack PUSH
             // pass app allowance for the app (positive as loans, negative as refund request)
-            newCtx = ISuperfluid(msg.sender).ctxUpdateAllowance(ctx, appAllowance);
-
-            bytes memory data = abi.encodeWithSelector(
-                selector,
-                token,
-                newCtx,
-                agreementClass,
-                agreementId,
-                cbdata
+            newCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
+                ctx,
+                inputs.appAllowance,
+                inputs.appAllowanceUsed
             );
-            newCtx = host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
-            context = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), newCtx);
 
-            // sanity checks of allowanceUsed returned, agreement implemntation shal never fail these asserts
-            if (appAllowance > 0) {
-                // app allowance can be used by the app
-                // agreement must not refund allowance if not requested
-                assert(context.allowanceUsed >= 0);
-                // agreement must only use up to allowance given
-                assert(context.allowanceUsed <= appAllowance);
-                // pay for app allowance
-            } else if (appAllowance <= 0) {
-                // app allowance must be refunded
-                // agreement must not use allowance if not given ()
-                assert(context.allowanceUsed <= 0);
-                // agreement must only refund up to allowance amount
-                assert(context.allowanceUsed >= appAllowance);
-            } // trivial casae no action
+            newCtx = inputs.host.callAppAfterCallback(
+                ISuperApp(inputs.account),
+                abi.encodeWithSelector(
+                    selector,
+                    inputs.token,
+                    newCtx,
+                    inputs.agreementClass,
+                    inputs.agreementId,
+                    cbdata
+                ),
+                inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
+                newCtx);
+
+            appContext = decodeCtx(ISuperfluid(msg.sender), newCtx);
+            bool adjusted;
+            (adjusted, newCtx) = _adjustAppAllowanceUsed(
+                inputs.appAllowance,
+                appContext.appAllowanceUsed,
+                newCtx
+            );
+            if (adjusted) {
+                appContext = decodeCtx(ISuperfluid(msg.sender), newCtx);
+            }
+
+            // app allowance params stack POP
+            newCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
+                ctx,
+                currentContext.appAllowance,
+                appContext.appAllowanceUsed
+            );
         } else {
             newCtx = ctx;
         }
-    }
-
-    function beforeAgreementCreated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId
-    )
-        internal
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        return _beforeAgreement(
-            ISuperApp.beforeAgreementCreated.selector,
-            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            false
-        );
-    }
-
-    function afterAgreementCreated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bytes memory cbdata,
-        int256 appAllowance
-    )
-        internal
-        returns(Context memory context, bytes memory newCtx)
-    {
-
-        return _afterAgreement(
-            ISuperApp.afterAgreementCreated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            cbdata,
-            appAllowance,
-            false
-        );
-    }
-
-    function beforeAgreementUpdated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId
-    )
-        internal
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        return _beforeAgreement(
-            ISuperApp.beforeAgreementUpdated.selector,
-            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            false
-        );
-    }
-
-    function afterAgreementUpdated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bytes memory cbdata,
-        int256 appAllowance
-    )
-        internal
-        returns(Context memory context, bytes memory newCtx)
-    {
-        return _afterAgreement(
-            ISuperApp.afterAgreementUpdated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            cbdata,
-            appAllowance,
-            false
-        );
-    }
-
-    function beforeAgreementTerminated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId
-    )
-        internal
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        return _beforeAgreement(
-            ISuperApp.beforeAgreementTerminated.selector,
-            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            true
-        );
-    }
-
-    function afterAgreementTerminated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bytes memory cbdata,
-        int256 appAllowance
-    )
-        internal
-        returns(Context memory context, bytes memory newCtx)
-    {
-        return _afterAgreement(
-            ISuperApp.afterAgreementTerminated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            cbdata,
-            appAllowance,
-            true
-        );
     }
 
     /**************************************************************************
      * Misc
      *************************************************************************/
 
-    function getGovernance()
-        internal view
-        returns(ISuperfluidGovernance gov)
-    {
-        return ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
-    }
-
     // TODO move to signed math utils
-    function max(int256 a, int256 b) internal pure returns (int256) { return a > b ? a : b; }
+    //function max(int256 a, int256 b) internal pure returns (int256) { return a > b ? a : b; }
 
-    //function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
+    // function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
 }

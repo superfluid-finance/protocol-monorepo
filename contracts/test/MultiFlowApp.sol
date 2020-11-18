@@ -74,7 +74,7 @@ contract MultiFlowsApp is SuperAppBase {
         bytes4 selector,
         address sender,
         int96 flowRate,
-        uint256 depositAllowance,
+        uint256 appAllowance,
         bytes calldata ctx
     )
         private
@@ -83,48 +83,28 @@ contract MultiFlowsApp is SuperAppBase {
         uint256 sum = _sumProportions(_userFlows[sender]);
 
         newCtx = ctx;
-        if (depositAllowance > 0) {
-            // scaling up flow rate using deposit allowance
-            for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-                assert(_userFlows[sender][i].proportion > 0);
-                int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
+
+        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+            assert(_userFlows[sender][i].proportion > 0);
+            int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
+                superToken,
+                // taget deposit
+                _userFlows[sender][i].proportion * appAllowance / sum
+            );
+            flowRate -= targetFlowRate;
+            (newCtx, ) = _host.callAgreementWithContext(
+                _cfa,
+                abi.encodeWithSelector(
+                    selector,
                     superToken,
-                    // taget deposit
-                    _userFlows[sender][i].proportion * depositAllowance / sum
-                );
-                flowRate -= targetFlowRate;
-                (newCtx, ) = _host.callAgreementWithContext(
-                    _cfa,
-                    abi.encodeWithSelector(
-                        selector,
-                        superToken,
-                        _userFlows[sender][i].to,
-                        targetFlowRate,
-                        new bytes(0)
-                    ),
-                    newCtx
-                );
-            }
-            assert(flowRate >= 0);
-        } else {
-            // scaling down flow rate using new flow rate
-            for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-                assert(_userFlows[sender][i].proportion > 0);
-                int96 targetFlowRate = int96(uint256(flowRate) *
-                    _userFlows[sender][i].proportion * depositAllowance / sum);
-                (newCtx, ) = _host.callAgreementWithContext(
-                    _cfa,
-                    abi.encodeWithSelector(
-                        selector,
-                        superToken,
-                        _userFlows[sender][i].to,
-                        targetFlowRate,
-                        new bytes(0)
-                    ),
-                    newCtx
-                );
-            }
+                    _userFlows[sender][i].to,
+                    targetFlowRate,
+                    new bytes(0)
+                ),
+                newCtx
+            );
         }
+        assert(flowRate >= 0);
     }
 
     function beforeAgreementCreated(
@@ -156,21 +136,16 @@ contract MultiFlowsApp is SuperAppBase {
         assert(agreementClass == address(_cfa));
         address sender;
         int96 flowRate;
-        int256 depositAllowance;
-        {
-            int256 allowance;
-            int256 allowanceUsed;
-            uint256 owedDeposit;
-            (sender,,,allowance, allowanceUsed) = _host.decodeCtx(ctx);
-            (,flowRate,,owedDeposit) = _cfa.getFlowByID(superToken, agreementId);
-            depositAllowance = int256(owedDeposit) + allowance - allowanceUsed;
-        }
+        uint256 appAllowance;
+        (sender,,,appAllowance,) = _host.decodeCtx(ctx);
+        (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
+        assert(appAllowance > 0);
         newCtx = _updateMultiFlow(
             superToken,
             _cfa.createFlow.selector,
             sender,
             flowRate,
-            uint256(depositAllowance),
+            uint256(appAllowance),
             ctx);
     }
 
@@ -203,22 +178,16 @@ contract MultiFlowsApp is SuperAppBase {
         assert(agreementClass == address(_cfa));
         address sender;
         int96 flowRate;
-        int256 depositAllowance;
-        {
-            int256 allowance;
-            int256 allowanceUsed;
-            uint256 owedDeposit;
-            (sender,,,allowance, allowanceUsed) = _host.decodeCtx(ctx);
-            (,flowRate,,owedDeposit) = _cfa.getFlowByID(superToken, agreementId);
-            depositAllowance = int256(owedDeposit) + allowance - allowanceUsed;
-            require (depositAllowance > 0, "afterAgreementUpdated");
-        }
+        uint256 appAllowance;
+        (sender,,,appAllowance,) = _host.decodeCtx(ctx);
+        (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
+        assert(appAllowance > 0);
         newCtx = _updateMultiFlow(
             superToken,
             _cfa.updateFlow.selector,
             sender,
             flowRate,
-            uint256(depositAllowance),
+            uint256(appAllowance),
             ctx);
     }
 

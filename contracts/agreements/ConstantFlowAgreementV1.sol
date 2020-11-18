@@ -112,7 +112,6 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        uint256 currentTimestamp = block.timestamp;
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
         AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
@@ -128,20 +127,15 @@ contract ConstantFlowAgreementV1 is
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)))
         {
             newCtx = _changeFlowToApp(
-                currentTimestamp,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.CREATE_FLOW);
         } else {
             newCtx = _changeFlowToNonApp(
-                currentTimestamp,
                 token, flowParams, oldFlowData,
                 ctx, currentContext);
         }
 
-        _requireAvailableBalance(
-            token,
-            currentTimestamp,
-            currentContext);
+        _requireAvailableBalance(token, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlow implementation
@@ -155,7 +149,6 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        uint256 currentTimestamp = block.timestamp;
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
         AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
@@ -170,20 +163,15 @@ contract ConstantFlowAgreementV1 is
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
             newCtx = _changeFlowToApp(
-                currentTimestamp,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.UPDATE_FLOW);
         } else {
             newCtx = _changeFlowToNonApp(
-                currentTimestamp,
                 token, flowParams, oldFlowData,
                 ctx, currentContext);
         }
 
-        _requireAvailableBalance(
-            token,
-            currentTimestamp,
-            currentContext);
+        _requireAvailableBalance(token, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.deleteFlow implementation
@@ -197,7 +185,6 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        uint256 currentTimestamp = block.timestamp;
         FlowParams memory flowParams;
         require(sender != address(0), "CFA: sender is zero");
         require(receiver != address(0), "CFA: receiver is zero");
@@ -209,7 +196,7 @@ contract ConstantFlowAgreementV1 is
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
         require(exist, "CFA: flow does not exist");
 
-        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, currentTimestamp);
+        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
 
         // delete should only be called by sender or receiver
         // unless it is a liquidation (availale balance < 0)
@@ -228,12 +215,10 @@ contract ConstantFlowAgreementV1 is
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
             newCtx = _changeFlowToApp(
-                currentTimestamp,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.DELETE_FLOW);
         } else {
             newCtx = _changeFlowToNonApp(
-                currentTimestamp,
                 token, flowParams, oldFlowData,
                 ctx, currentContext);
         }
@@ -373,12 +358,11 @@ contract ConstantFlowAgreementV1 is
 
     function _requireAvailableBalance(
         ISuperfluidToken token,
-        uint256 currentTimestamp,
         AgreementLibrary.Context memory currentContext
     )
         private view
     {
-        (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentTimestamp);
+        (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
         require(
             availableBalance.add(currentContext.appAllowance.toInt256()) >= 0,
             "CFA: not enough available balance");
@@ -415,7 +399,6 @@ contract ConstantFlowAgreementV1 is
      * @dev update a flow to a non-app receiver
      */
     function _changeFlowToNonApp(
-        uint256 currentTimestamp,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
@@ -430,7 +413,7 @@ contract ConstantFlowAgreementV1 is
 
         // STEP 1: update the flow
         (int256 depositDelta,,) = _changeFlow(
-            currentTimestamp,
+            currentContext.timestamp,
             token, flowParams, oldFlowData);
 
         // STEP 2: update app allowance used
@@ -447,7 +430,6 @@ contract ConstantFlowAgreementV1 is
      * @dev change a flow to a app receiver
      */
     function _changeFlowToApp(
-        uint256 currentTimestamp,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
@@ -484,7 +466,7 @@ contract ConstantFlowAgreementV1 is
             (vars.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
             (,vars.appAllowance, vars.newFlowData) = _changeFlow(
-                    currentTimestamp,
+                    currentContext.timestamp,
                     token, flowParams, oldFlowData);
 
             // each app level get a same amount of allowance
@@ -531,7 +513,7 @@ contract ConstantFlowAgreementV1 is
                 0, // flow rate delta
                 appAllowanceDelta, // deposit delta
                 0, // owed deposit delta
-                currentTimestamp
+                currentContext.timestamp
             );
             _updateAccountFlowState(
                 token,
@@ -539,7 +521,7 @@ contract ConstantFlowAgreementV1 is
                 0, // flow rate delta
                 0, // deposit delta
                 appAllowanceDelta, // owed deposit delta
-                currentTimestamp
+                currentContext.timestamp
             );
 
             newCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(

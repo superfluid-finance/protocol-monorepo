@@ -47,24 +47,33 @@ contract Superfluid is
     // ????? TODO
     uint64 constant private _GAS_RESERVATION = 5000;
 
-    struct FullContext {
-        //
-        // the context that only needed for the next external call
-        //
+    //
+    // the context that only needed for the next external call
+    //
+    struct CallContext {
+        // the system timestsamp
+        uint256 timestamp;
         // The intended message sender for the call
         address msgSender;
         // For callbacks it is used to know which agreement function selector is called
         bytes4 agreementSelector;
+    }
 
-        //
-        // the context that needed across more than one external call
-        //
+    //
+    // the context that needed by the app
+    //
+    struct AppContext {
         // The level of the app
-        uint8 appLevel;
+        uint8 level;
         // app allowance given
-        uint256 appAllowance;
+        uint256 allowance;
         // app allowance used, allowing negative values over a callback session
-        int256 appAllowanceUsed;
+        int256 allowanceUsed;
+    }
+
+    struct FullContext {
+        CallContext callContext;
+        AppContext appContext;
     }
 
     struct AppManifest {
@@ -427,8 +436,8 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         FullContext memory context = _decodeFullContext(ctx);
-        context.appAllowance = appAllowance;
-        context.appAllowanceUsed = appAllowanceUsed;
+        context.appContext.allowance = appAllowance;
+        context.appContext.allowanceUsed = appAllowanceUsed;
         newCtx = _updateContext(context);
     }
 
@@ -454,11 +463,17 @@ contract Superfluid is
             (uint32(uint8(data[1])) << 16) |
             (uint32(uint8(data[0])) << 24));
         ctx = _updateContext(FullContext({
-            msgSender: msg.sender,
-            agreementSelector: agreementSelector,
-            appLevel: 1,
-            appAllowance: 0,
-            appAllowanceUsed: 0
+            callContext: CallContext({
+                /* solhint-disable-next-line not-rely-on-time */
+                timestamp: block.timestamp,
+                msgSender: msg.sender,
+                agreementSelector: agreementSelector
+            }),
+            appContext: AppContext({
+                level: 1,
+                allowance: 0,
+                allowanceUsed: 0
+            })
         }));
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
@@ -486,11 +501,17 @@ contract Superfluid is
 
         bytes memory ctx;
         ctx = _updateContext(FullContext({
-            msgSender: msg.sender,
-            agreementSelector: 0,
-            appLevel: 1,
-            appAllowance: 0,
-            appAllowanceUsed: 0
+            callContext: CallContext({
+                /* solhint-disable-next-line not-rely-on-time */
+                timestamp: block.timestamp,
+                msgSender: msg.sender,
+                agreementSelector: 0
+            }),
+            appContext: AppContext({
+                level: 1,
+                allowance: 0,
+                allowanceUsed: 0
+            })
         }));
         (success, returnedData) = _callExternal(address(app), data, ctx);
         if(!success) {
@@ -558,8 +579,8 @@ contract Superfluid is
         returns(bytes memory newCtx, bytes memory returnedData)
     {
         FullContext memory context = _decodeFullContext(ctx);
-        address oldSender = context.msgSender;
-        context.msgSender = msg.sender;
+        address oldSender = context.callContext.msgSender;
+        context.callContext.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
         //Call app
@@ -568,7 +589,7 @@ contract Superfluid is
         if(success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             context = _decodeFullContext(newCtx);
-            context.msgSender = oldSender;
+            context.callContext.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
             revert(_getRevertMsg(returnedData));
@@ -586,13 +607,13 @@ contract Superfluid is
     {
         FullContext memory context = _decodeFullContext(ctx);
 
-        context.appLevel++;
-        require(_checkAppCallDepth(ISuperApp(msg.sender), context.appLevel), "SF: App Call Stack too deep");
+        context.appContext.level++;
+        require(_checkAppCallDepth(ISuperApp(msg.sender), context.appContext.level), "SF: call stack too deep");
         newCtx = _updateContext(context);
 
         (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
         if (success) {
-            context.appLevel--;
+            context.appContext.level--;
             newCtx = _updateContext(context);
         } else {
             revert(_getRevertMsg(returnedData));
@@ -616,6 +637,7 @@ contract Superfluid is
     function decodeCtx(bytes calldata ctx)
         external pure override
         returns (
+            uint256 timestamp,
             address msgSender,
             bytes4 agreementSelector,
             uint8 appLevel,
@@ -624,11 +646,12 @@ contract Superfluid is
         )
     {
         FullContext memory context = _decodeFullContext(ctx);
-        msgSender = context.msgSender;
-        agreementSelector = context.agreementSelector;
-        appLevel = context.appLevel;
-        appAllowance = context.appAllowance;
-        appAllowanceUsed = context.appAllowanceUsed;
+        timestamp = context.callContext.timestamp;
+        msgSender = context.callContext.msgSender;
+        agreementSelector = context.callContext.agreementSelector;
+        appLevel = context.appContext.level;
+        appAllowance = context.appContext.allowance;
+        appAllowanceUsed = context.appContext.allowanceUsed;
     }
 
     /* Basic Law Rules */
@@ -700,12 +723,13 @@ contract Superfluid is
         private pure
         returns (FullContext memory context) {
         (
-            context.msgSender,
-            context.agreementSelector,
-            context.appLevel,
-            context.appAllowance,
-            context.appAllowanceUsed
-        ) = abi.decode(ctx, (address, bytes4, uint8, uint256, int256));
+            context.callContext.timestamp,
+            context.callContext.msgSender,
+            context.callContext.agreementSelector,
+            context.appContext.level,
+            context.appContext.allowance,
+            context.appContext.allowanceUsed
+        ) = abi.decode(ctx, (uint256, address, bytes4, uint8, uint256, int256));
     }
 
     function _updateContext(FullContext memory context)
@@ -713,16 +737,18 @@ contract Superfluid is
         returns (bytes memory ctx)
     {
         ctx = abi.encode(
-            context.msgSender,
-            context.agreementSelector,
-            context.appLevel,
-            context.appAllowance,
-            context.appAllowanceUsed);
+            context.callContext.timestamp,
+            context.callContext.msgSender,
+            context.callContext.agreementSelector,
+            context.appContext.level,
+            context.appContext.allowance,
+            context.appContext.allowanceUsed
+        );
         _ctxStamp = keccak256(ctx);
     }
 
     function _isCtxValid(bytes memory ctx) private view returns (bool) {
-        return ctx.length > 0 && keccak256(ctx) == _ctxStamp;
+        return ctx.length != 0 && keccak256(ctx) == _ctxStamp;
     }
 
     /// @dev Get the revert message from a call

@@ -28,6 +28,7 @@ library AgreementLibrary {
      *************************************************************************/
 
     struct Context {
+        uint256 timestamp;
         address msgSender;
         uint8 appLevel;
         uint256 appAllowance;
@@ -39,6 +40,7 @@ library AgreementLibrary {
         returns (Context memory context)
     {
         (
+            context.timestamp,
             context.msgSender,
             ,
             context.appLevel,

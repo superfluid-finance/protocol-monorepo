@@ -43,7 +43,7 @@ interface ISuperfluidToken {
             uint256 deposit,
             uint256 owedDeposit);
 
-    /// @dev realtimeBalanceOf with timestamp equals to block.timestamp
+    /// @dev realtimeBalanceOf with timestamp equals to block timestamp
     function realtimeBalanceOfNow(
        address account
     )

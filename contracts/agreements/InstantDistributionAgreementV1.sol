@@ -99,22 +99,18 @@ contract InstantDistributionAgreementV1 is
 
         // as a subscriber
         // read all subs and calculate the real-time balance
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
-            account,
-            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
-        for (uint32 subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
-            if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
+        bytes32[] memory sidList = _listSubscriptionIds(token, account);
+        for (uint32 subId = 0; subId < sidList.length; ++subId) {
+            bytes32 sId = sidList[subId];
+            (exist, sdata) = _getSubscriptionData(token, sId);
+            //require(exist, "IDA: E_NO_SUBS");
             bytes32 iId = token.getAgreementStateSlot(
                 address(this),
                 account,
                 _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
-            bytes32 sId = _getSubscriptionId(account, iId);
             (exist, idata) = _getIndexData(token, iId);
-            require(exist, "IDA: E_NO_INDEX");
-            (exist, sdata) = _getSubscriptionData(token, sId);
-            require(exist, "IDA: E_NO_SUBS");
-            assert(sdata.subId == subId);
+            //require(exist, "IDA: E_NO_INDEX");
+            //assert(sdata.subId == subId);
             dynamicBalance = dynamicBalance.add(
                 int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
             );
@@ -537,37 +533,49 @@ contract InstantDistributionAgreementV1 is
             uint32[] memory indexIds,
             uint128[] memory unitsList)
     {
+        bytes32[] memory sidList = _listSubscriptionIds(token, subscriber);
+        bool exist;
+        SubscriptionData memory sdata;
+        publishers = new address[](sidList.length);
+        indexIds = new uint32[](sidList.length);
+        unitsList = new uint128[](sidList.length);
+        for (uint32 subId = 0; subId < sidList.length; ++subId) {
+            bytes32 sId = sidList[subId];
+            (exist, sdata) = _getSubscriptionData(token, sId);
+            require(exist, "IDA: E_NO_SUBS");
+            assert(sdata.subId == subId);
+            publishers[subId] = sdata.publisher;
+            indexIds[subId] = sdata.indexId;
+            unitsList[subId] = sdata.units;
+        }
+    }
+
+    function _listSubscriptionIds(
+        ISuperfluidToken token,
+        address subscriber
+    )
+        private view
+        returns (bytes32[] memory sidList)
+    {
         uint256 subsBitmap = uint256(token.getAgreementStateSlot(
             address(this),
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
-        bool exist;
-        SubscriptionData memory sdata;
+
+        sidList = new bytes32[](_MAX_NUM_SUBS);
         // read all slots
         uint nSlots;
-        publishers = new address[](_MAX_NUM_SUBS);
-        indexIds = new uint32[](_MAX_NUM_SUBS);
-        unitsList = new uint128[](_MAX_NUM_SUBS);
         for (uint32 subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
             if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
             bytes32 iId = token.getAgreementStateSlot(
                 address(this),
                 subscriber,
                 _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
-            bytes32 sId = _getSubscriptionId(subscriber, iId);
-            (exist, sdata) = _getSubscriptionData(token, sId);
-            require(exist, "IDA: E_NO_SUBS");
-            assert(sdata.subId == subId);
-            publishers[nSlots] = sdata.publisher;
-            indexIds[nSlots] = sdata.indexId;
-            unitsList[nSlots] = sdata.units;
-            ++nSlots;
+            sidList[nSlots++] = _getSubscriptionId(subscriber, iId);
         }
         // resize memory arrays
         assembly {
-            mstore(publishers, nSlots)
-            mstore(indexIds, nSlots)
-            mstore(unitsList, nSlots)
+            mstore(sidList, nSlots)
         }
     }
 

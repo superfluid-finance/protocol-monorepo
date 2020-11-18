@@ -17,6 +17,18 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     }
 
+    function getMaximumFlowRateFromDeposit(
+        ISuperfluidToken token,
+        uint256 deposit)
+        external view virtual
+        returns (int96 flowRate);
+
+    function getDepositRequiredForFlowRate(
+        ISuperfluidToken token,
+        int96 flowRate)
+        external view virtual
+        returns (uint256 deposit);
+
     /**
      * @dev Create a flow betwen sender and receiver.
      * @param token Super token address.
@@ -33,8 +45,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         int96 flowRate,
         bytes calldata ctx
     )
-        external
-        virtual
+        external virtual
         returns(bytes memory newCtx);
 
     /**
@@ -56,8 +67,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         int96 flowRate,
         bytes calldata ctx
     )
-        external
-        virtual
+        external virtual
         returns(bytes memory newCtx);
 
 
@@ -76,9 +86,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address receiver
     )
-        external
-        view
-        virtual
+        external view virtual
         returns (
             uint256 timestamp,
             int96 flowRate,
@@ -99,9 +107,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
        ISuperfluidToken token,
        bytes32 agreementId
     )
-        external
-        view
-        virtual
+        external view virtual
         returns (
             uint256 timestamp,
             int96 flowRate,
@@ -118,9 +124,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address account
     )
-        external
-        view
-        virtual
+        external view virtual
         returns (
             uint256 timestamp,
             int96 flowRate,
@@ -137,9 +141,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address account
     )
-        external
-        view
-        virtual
+        external view virtual
         returns (int96 flowRate);
 
     /**
@@ -160,8 +162,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address receiver,
         bytes calldata ctx
     )
-        external
-        virtual
+        external virtual
         returns(bytes memory newCtx);
 
      /**

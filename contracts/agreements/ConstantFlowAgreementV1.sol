@@ -45,9 +45,9 @@ contract ConstantFlowAgreementV1 is
         int96 flowRate;
     }
 
-    /*
+    /**************************************************************************
      * ISuperAgreement interface
-     */
+     *************************************************************************/
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
@@ -68,7 +68,39 @@ contract ConstantFlowAgreementV1 is
         }
     }
 
-    /// @dev IFlowAgreement.createFlow implementation
+    /**************************************************************************
+     * IConstantFlowAgreementV1 interface
+     *************************************************************************/
+
+    /// @dev IConstantFlowAgreementV1.createFlow implementation
+    function getMaximumFlowRateFromDeposit(
+        ISuperfluidToken token,
+        uint256 deposit)
+        external view override
+        returns (int96 flowRate)
+    {
+        deposit = _clipDepositNumberRoundingDown(deposit);
+        ISuperfluid host = ISuperfluid(token.getHost());
+        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
+        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        uint256 flowrate1 = deposit.div(liquidationPeriod);
+        require(flowrate1 < 2**95, "CFA: deposit number too big");
+        return int96(flowrate1);
+    }
+
+    function getDepositRequiredForFlowRate(
+        ISuperfluidToken token,
+        int96 flowRate)
+        external view override
+        returns (uint256 deposit)
+    {
+        ISuperfluid host = ISuperfluid(token.getHost());
+        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
+        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        return _calculateDeposit(flowRate, liquidationPeriod, false);
+    }
+
+    /// @dev IConstantFlowAgreementV1.createFlow implementation
     function createFlow(
         ISuperfluidToken token,
         address receiver,
@@ -111,6 +143,7 @@ contract ConstantFlowAgreementV1 is
             currentContext);
     }
 
+    /// @dev IConstantFlowAgreementV1.updateFlow implementation
     function updateFlow(
         ISuperfluidToken token,
         address receiver,
@@ -152,7 +185,7 @@ contract ConstantFlowAgreementV1 is
             currentContext);
     }
 
-    /// @dev IFlowAgreement.deleteFlow implementation
+    /// @dev IConstantFlowAgreementV1.deleteFlow implementation
     function deleteFlow(
         ISuperfluidToken token,
         address sender,
@@ -203,16 +236,9 @@ contract ConstantFlowAgreementV1 is
                 token, flowParams, oldFlowData,
                 ctx, currentContext);
         }
-
-        // FIXME should only revert for an app
-        /* _requireAvailableBalance(
-            token,
-            currentTimestamp,
-            currentContext.msgSender,
-            currentContext.allowance); */
     }
 
-    /// @dev IFlowAgreement.getFlow implementation
+    /// @dev IConstantFlowAgreementV1.getFlow implementation
     function getFlow(
         ISuperfluidToken token,
         address sender,
@@ -230,8 +256,7 @@ contract ConstantFlowAgreementV1 is
     {
         (, FlowData memory data) = _getAgreementData(
             token,
-            keccak256(abi.encodePacked(sender, receiver))
-        );
+            _generateFlowId(sender, receiver));
 
         return(
             data.timestamp,
@@ -241,7 +266,7 @@ contract ConstantFlowAgreementV1 is
         );
     }
 
-    /// @dev IFlowAgreement.getFlow implementation
+    /// @dev IConstantFlowAgreementV1.getFlow implementation
     function getFlowByID(
         ISuperfluidToken token,
         bytes32 flowId
@@ -269,7 +294,7 @@ contract ConstantFlowAgreementV1 is
         );
     }
 
-    /// @dev IFlowAgreement.getAccountFlowInfo implementation
+    /// @dev IConstantFlowAgreementV1.getAccountFlowInfo implementation
     function getAccountFlowInfo(
         ISuperfluidToken token,
         address account
@@ -290,7 +315,7 @@ contract ConstantFlowAgreementV1 is
         );
     }
 
-    /// @dev IFlowAgreement.getNetFlow implementation
+    /// @dev IConstantFlowAgreementV1.getNetFlow implementation
     function getNetFlow(
         ISuperfluidToken token,
         address account
@@ -302,15 +327,14 @@ contract ConstantFlowAgreementV1 is
         return state.flowRate;
     }
 
-    /*
+    /**************************************************************************
      * Internal State Functions
-     */
+     *************************************************************************/
 
     // Stack variables for updateFlowApp function, to avoid stack too deep issue
     // solhint-disable-next-line contract-name-camelcase
     struct _StackVars_updateFlowToApp {
         bytes cbdata;
-        int256 depositDelta;
         FlowData newFlowData;
         int256 appAllowance;
         AgreementLibrary.Context appContext;
@@ -410,7 +434,7 @@ contract ConstantFlowAgreementV1 is
         assert(oldFlowData.owedDeposit == 0);
 
         // STEP 1: update the flow
-        (int256 depositDelta,) = _changeFlow(
+        (int256 depositDelta,,) = _changeFlow(
             currentTimestamp,
             token, flowParams, oldFlowData);
 
@@ -456,29 +480,12 @@ contract ConstantFlowAgreementV1 is
                 );
             }
 
-            (vars.depositDelta, vars.newFlowData) = _changeFlow(
+            (,vars.appAllowance, vars.newFlowData) = _changeFlow(
                     currentTimestamp,
                     token, flowParams, oldFlowData);
 
-            // set allowance for the next callback
-            // multiplied the allowance with app level
-            if (vars.depositDelta > 0) {
-                // give app full allowance
-                vars.appAllowance = vars.depositDelta
-                    .mul(int256(currentContext.appLevel));
-            } else if (vars.depositDelta < 0 && oldFlowData.owedDeposit > 0) {
-                // ask for refund up to amount of owed deposit given prio
-                vars.appAllowance = AgreementLibrary.max(
-                        vars.depositDelta,
-                        oldFlowData.owedDeposit.toInt256().mul(-1)
-                    ).mul(int256(currentContext.appLevel));
-            }
-            // clipping the allowance used amount before storing
-            vars.appContext.allowanceUsed = (
-                vars.appContext.allowanceUsed > 0 ?
-                _clipDepositNumber(uint256(vars.appContext.allowanceUsed)) :
-                _clipDepositNumber(uint256(vars.appContext.allowanceUsed.mul(-1)))
-            ).toInt256();
+            // TODO app level?
+            // vars.appAllowance =
 
             if (optype == FlowChangeType.CREATE_FLOW) {
                 (vars.appContext, newCtx) = AgreementLibrary.afterAgreementCreated(
@@ -517,6 +524,17 @@ contract ConstantFlowAgreementV1 is
         }
 
         if (vars.appContext.allowanceUsed != 0) {
+            // clipping the allowance used amount before storing
+            if (vars.appContext.allowanceUsed > 0) {
+                // give more to the app
+                vars.appContext.allowanceUsed =
+                    _clipDepositNumber(uint256(vars.appContext.allowanceUsed)).toInt256();
+            } else if (vars.appContext.allowanceUsed < 0) {
+                // refund less from the app
+                vars.appContext.allowanceUsed = - // invert again
+                    _clipDepositNumberRoundingDown(uint256(vars.appContext.allowanceUsed.mul(-1))).toInt256();
+            } // else stay 0
+
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(vars.appContext.allowanceUsed)
                     .toUint256();
@@ -568,21 +586,35 @@ contract ConstantFlowAgreementV1 is
         private
         returns (
             int256 depositDelta,
+            int256 appAllowance,
             FlowData memory newFlowData
         )
     {
         { // ecnlosed block to avoid stack too deep error
-            uint256 oldDeposit;
-            uint256 newDeposit;
+            //int256 oldDeposit;
 
             // STEP 1: calculate old and new deposit required for the flow
             ISuperfluidGovernance gov = AgreementLibrary.getGovernance();
             uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
-            oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod);
-            newDeposit = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+
+            //oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod, false).toInt256();
+            depositDelta = _calculateDeposit(flowParams.flowRate, liquidationPeriod, false).toInt256();
+
+            // for app allowance, rounding down the number instead,
+            // in order not to give the downstream app chance to create larger flow rate
+            appAllowance = _calculateDeposit(flowParams.flowRate, liquidationPeriod, true).toInt256();
 
             // STEP 2: calculate deposit delta
-            depositDelta = newDeposit.toInt256().sub(oldDeposit.toInt256());
+            depositDelta = depositDelta
+                .sub(oldFlowData.deposit.toInt256())
+                .add(oldFlowData.owedDeposit.toInt256());
+            if (uint256(appAllowance) /* it's safe */ > oldFlowData.owedDeposit) {
+                // app has more allowance to use
+                appAllowance = appAllowance - oldFlowData.owedDeposit.toInt256();
+            } else {
+                // else app can refund all owed deposit
+                appAllowance = -appAllowance;
+            }
 
             // STEP 3: update current flow info
             newFlowData = FlowData(
@@ -670,6 +702,13 @@ contract ConstantFlowAgreementV1 is
      * Deposit Calculation Pure Functions
      *************************************************************************/
 
+     function _clipDepositNumberRoundingDown(uint256 deposit)
+         internal pure
+         returns(uint256)
+     {
+         return ((deposit >> 32)) << 32;
+     }
+
     function _clipDepositNumber(uint256 deposit)
         internal pure
         returns(uint256)
@@ -681,16 +720,17 @@ contract ConstantFlowAgreementV1 is
 
     function _calculateDeposit(
         int96 flowRate,
-        uint256 liquidationPeriod
+        uint256 liquidationPeriod,
+        bool roundingDown
     )
         internal pure
         returns(uint256 deposit)
     {
         if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
-        deposit = _clipDepositNumber(
-            uint256(flowRate.mul(int96(uint96(liquidationPeriod))))
-        );
+        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod))));
+        if (roundingDown) return _clipDepositNumberRoundingDown(deposit);
+        return _clipDepositNumber(deposit);
     }
 
     /**************************************************************************
@@ -698,7 +738,7 @@ contract ConstantFlowAgreementV1 is
      *************************************************************************/
 
     function _generateFlowId(address sender, address receiver) private pure returns(bytes32 id) {
-        return keccak256(abi.encodePacked(sender, receiver));
+        return keccak256(abi.encode(sender, receiver));
     }
 
     //

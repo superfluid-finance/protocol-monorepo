@@ -65,9 +65,11 @@ library AgreementLibrary {
             int256 accountAllowanceUsedDelta
         )
     {
-        // in fairness, the code for currentAllowance < 0 and > 0 are exactly same apart from the min/max logic
-        // which can be merged into one usinb abs() probably, but keeping them separated in the code in order
-        // to keep the nice comments and diagrams visible for this heavy logic
+        // In fairness, the code for currentAllowance < 0 and > 0 are exactly same apart from the equality test.
+        // They can be merged into one usinb abs(). Also the leaf part can also be rewritten using simple min/max.
+        //
+        // But eeping them separated in the code in order to keep the nice comments and diagrams visible for
+        // this heavy logic, also to allow code coverage to highlight all the code paths separately.
 
         if (currentAllowance > 0) {
             // up to this amount can be used as allowance
@@ -85,7 +87,7 @@ library AgreementLibrary {
                 if (currentAllowanceLeft < newAllowanceUsed) {
                     // 0 -> positive
                     // |--------- CA --------->|
-                    // |--- CAL --->|-- CAU -->|
+                    // |-- CAL -->|--- CAU --->|
                     // |------- NAU ------>|
                     // |-- AUD -->|<- BD --|
 
@@ -105,22 +107,24 @@ library AgreementLibrary {
                 // newAllowanceUsed < 0
                 // allowance being given back
 
-                // 0 -> positive
-                // |--------- CA --------->|
-                // |--- CAL --->|-- CAU -->|
-                //                |<- NAU -|
-                //                |<- AUD -|
-                //
-                // OR
-                //
-                // 0 -> positive
-                // |--------- CA --------->|
-                // |---- CAL ---->|- CAU ->|
-                //       |<----- NAU ------|
-                //       |<- BD --|<- AUD -|
+                if (newAllowanceUsed.mul(-1) < currentAllowanceUsed) {
+                    // 0 -> positive
+                    // |--------- CA --------->|
+                    // |--- CAL --->|-- CAU -->|
+                    //                |<- NAU -|
+                    //                |<- AUD -|
 
-                // not more than the current allowance used
-                accountAllowanceUsedDelta = max(newAllowanceUsed, currentAllowanceUsed.mul(-1));
+                    accountAllowanceUsedDelta = newAllowanceUsed;
+                } else {
+                    // 0 -> positive
+                    // |--------- CA --------->|
+                    // |---- CAL ---->|- CAU ->|
+                    //       |<----- NAU ------|
+                    //       |<- BD --|<- AUD -|
+
+                    // not more than the current allowance used
+                    accountAllowanceUsedDelta = currentAllowanceUsed.mul(-1);
+                }
             }
         } else if (currentAllowance < 0) {
             // allowance being refunded
@@ -134,7 +138,7 @@ library AgreementLibrary {
             if (newAllowanceUsed < 0) {
                 // allowance being given back
 
-                // use up to the current context allowance amount
+                // refund up to the requested amount
                 if (currentAllowanceLeft > newAllowanceUsed) {
                     //             negative <- 0
                     // |<-------- CA ----------|
@@ -160,23 +164,25 @@ library AgreementLibrary {
                 // more allowance wanted
                 // newAllowanceUsed > 0
 
-                //             negative <- 0
-                // |<-------- CA ----------|
-                // |<-------- CAU ---------|
-                // |<-- CAL ---|<-- CAU ---|
-                //                |- NAU ->|
-                //                |-- AUD >|
-                //
-                // OR
-                //             negative <- 0
-                // |<-------- CA ----------|
-                // |<-------- CAU ---------|
-                // |<-- CAL ---|<-- CAU ---|
-                //      |------ NAU ------>|
-                //      |- BD >|--- AUD -->|
-
-                // not more than the current refund requested
-                accountAllowanceUsedDelta = min(newAllowanceUsed, currentAllowanceUsed.mul(-1));
+                if (newAllowanceUsed < currentAllowanceUsed.mul(-1)) {
+                    //             negative <- 0
+                    // |<-------- CA ----------|
+                    // |<-------- CAU ---------|
+                    // |<-- CAL ---|<-- CAU ---|
+                    //                |- NAU ->|
+                    //                |-- AUD >|
+                    accountAllowanceUsedDelta = newAllowanceUsed;
+                } else {
+                    //
+                    // OR
+                    //             negative <- 0
+                    // |<-------- CA ----------|
+                    // |<-------- CAU ---------|
+                    // |<-- CAL ---|<-- CAU ---|
+                    //      |------ NAU ------>|
+                    //      |- BD >|--- AUD -->|
+                    accountAllowanceUsedDelta = currentAllowanceUsed.mul(-1);
+                }
             }
         }
     }
@@ -295,11 +301,6 @@ library AgreementLibrary {
                 assert(context.allowanceUsed <= 0);
                 // agreement must only refund up to allowance amount
                 assert(context.allowanceUsed >= appAllowance);
-                // app must pay for the discrepency
-                if (context.allowanceUsed > appAllowance) {
-                    token.settleBalance(account, appAllowance - context.allowanceUsed);
-                    require(token.isAccountSolventNow(account), "SF: Account become insolvent after callback");
-                }
             } // trivial casae no action
         } else {
             newCtx = ctx;
@@ -474,7 +475,8 @@ library AgreementLibrary {
         return ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
     }
 
+    // TODO move to signed math utils
     function max(int256 a, int256 b) internal pure returns (int256) { return a > b ? a : b; }
 
-    function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
+    //function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
 }

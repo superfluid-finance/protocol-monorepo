@@ -92,21 +92,21 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         );
     }
 
-    async function transferBalance(from, to, amount) {
-        const fromAccount = t.getAddress(from);
-        const toAccount = t.getAddress(to);
-        await superToken.transfer(toAccount, amount, { from: fromAccount });
-        t.updateAccountBalanceSnapshot(
-            superToken.address,
-            toAccount,
-            await superToken.realtimeBalanceOfNow(toAccount)
-        );
-        t.updateAccountBalanceSnapshot(
-            superToken.address,
-            fromAccount,
-            await superToken.realtimeBalanceOfNow(fromAccount)
-        );
-    }
+    // async function transferBalance(from, to, amount) {
+    //     const fromAccount = t.getAddress(from);
+    //     const toAccount = t.getAddress(to);
+    //     await superToken.transfer(toAccount, amount, { from: fromAccount });
+    //     t.updateAccountBalanceSnapshot(
+    //         superToken.address,
+    //         toAccount,
+    //         await superToken.realtimeBalanceOfNow(toAccount)
+    //     );
+    //     t.updateAccountBalanceSnapshot(
+    //         superToken.address,
+    //         fromAccount,
+    //         await superToken.realtimeBalanceOfNow(fromAccount)
+    //     );
+    // }
 
     async function shouldTestLiquidations({ titlePrefix, sender, receiver, by }) {
         const liquidationType = by === sender ? "liquidate by agent" : "self liquidate";
@@ -738,7 +738,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
         it("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
             await upgradeBalance(sender, t.configs.INIT_BALANCE);
-            await transferBalance(sender, "mfa", toWad(1));
 
             const mfa = {
                 ratioPct: 100,

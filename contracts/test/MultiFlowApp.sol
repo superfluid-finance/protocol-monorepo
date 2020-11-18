@@ -24,15 +24,15 @@ contract MultiFlowsApp is SuperAppBase {
         uint256 proportion;
     }
 
-    IConstantFlowAgreementV1 internal _constantFlow;
+    IConstantFlowAgreementV1 internal _cfa;
     ISuperfluid internal _host;
     //Sender => To / Proportion
     mapping(address => ReceiverData[]) internal _userFlows;
 
-    constructor(IConstantFlowAgreementV1 constantFlow, ISuperfluid superfluid) {
-        assert(address(constantFlow) != address(0));
+    constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
+        assert(address(cfa) != address(0));
         assert(address(superfluid) != address(0));
-        _constantFlow = constantFlow;
+        _cfa = cfa;
         _host = superfluid;
 
         uint256 configWord =
@@ -71,9 +71,10 @@ contract MultiFlowsApp is SuperAppBase {
 
     function _updateMultiFlow(
         ISuperToken superToken,
-        address sender,
         bytes4 selector,
-        int96 receivingFlowRate,
+        address sender,
+        int96 flowRate,
+        uint256 depositAllowance,
         bytes calldata ctx
     )
         private
@@ -82,20 +83,47 @@ contract MultiFlowsApp is SuperAppBase {
         uint256 sum = _sumProportions(_userFlows[sender]);
 
         newCtx = ctx;
-        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-            assert(_userFlows[sender][i].proportion > 0);
-            int96 targetFlowrate = (int96(_userFlows[sender][i].proportion) * receivingFlowRate) / int96(sum);
-            (newCtx, ) = _host.callAgreementWithContext(
-                _constantFlow,
-                abi.encodeWithSelector(
-                    selector,
+        if (depositAllowance > 0) {
+            // scaling up flow rate using deposit allowance
+            for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+                assert(_userFlows[sender][i].proportion > 0);
+                int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
                     superToken,
-                    _userFlows[sender][i].to,
-                    targetFlowrate,
-                    new bytes(0)
-                ),
-                newCtx
-            );
+                    // taget deposit
+                    _userFlows[sender][i].proportion * depositAllowance / sum
+                );
+                flowRate -= targetFlowRate;
+                (newCtx, ) = _host.callAgreementWithContext(
+                    _cfa,
+                    abi.encodeWithSelector(
+                        selector,
+                        superToken,
+                        _userFlows[sender][i].to,
+                        targetFlowRate,
+                        new bytes(0)
+                    ),
+                    newCtx
+                );
+            }
+            assert(flowRate >= 0);
+        } else {
+            // scaling down flow rate using new flow rate
+            for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+                assert(_userFlows[sender][i].proportion > 0);
+                int96 targetFlowRate = int96(uint256(flowRate) *
+                    _userFlows[sender][i].proportion * depositAllowance / sum);
+                (newCtx, ) = _host.callAgreementWithContext(
+                    _cfa,
+                    abi.encodeWithSelector(
+                        selector,
+                        superToken,
+                        _userFlows[sender][i].to,
+                        targetFlowRate,
+                        new bytes(0)
+                    ),
+                    newCtx
+                );
+            }
         }
     }
 
@@ -109,8 +137,8 @@ contract MultiFlowsApp is SuperAppBase {
         onlyHost
         returns (bytes memory cbdata)
     {
-        assert(agreementClass == address(_constantFlow));
-        (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
+        assert(agreementClass == address(_cfa));
+        (, int256 oldFlowRate, ,) = _cfa.getFlowByID(superToken, agreementId);
         return abi.encode(oldFlowRate);
     }
 
@@ -125,10 +153,25 @@ contract MultiFlowsApp is SuperAppBase {
         onlyHost
         returns(bytes memory newCtx)
     {
-        assert(agreementClass == address(_constantFlow));
-        (address sender,,,,) = _host.decodeCtx(ctx);
-        (, int96 receivingFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
-        newCtx = _updateMultiFlow(superToken, sender, _constantFlow.createFlow.selector, receivingFlowRate, ctx);
+        assert(agreementClass == address(_cfa));
+        address sender;
+        int96 flowRate;
+        int256 depositAllowance;
+        {
+            int256 allowance;
+            int256 allowanceUsed;
+            uint256 owedDeposit;
+            (sender,,,allowance, allowanceUsed) = _host.decodeCtx(ctx);
+            (,flowRate,,owedDeposit) = _cfa.getFlowByID(superToken, agreementId);
+            depositAllowance = int256(owedDeposit) + allowance - allowanceUsed;
+        }
+        newCtx = _updateMultiFlow(
+            superToken,
+            _cfa.createFlow.selector,
+            sender,
+            flowRate,
+            uint256(depositAllowance),
+            ctx);
     }
 
     function beforeAgreementUpdated(
@@ -141,8 +184,8 @@ contract MultiFlowsApp is SuperAppBase {
         onlyHost
         returns (bytes memory cbdata)
     {
-        assert(agreementClass == address(_constantFlow));
-        (, int256 oldFlowRate, ,) = _constantFlow.getFlowByID(superToken, agreementId);
+        assert(agreementClass == address(_cfa));
+        (, int256 oldFlowRate, ,) = _cfa.getFlowByID(superToken, agreementId);
         return abi.encode(oldFlowRate);
     }
 
@@ -157,14 +200,26 @@ contract MultiFlowsApp is SuperAppBase {
         onlyHost
         returns (bytes memory newCtx)
     {
-        assert(agreementClass == address(_constantFlow));
-        (address sender,,,,) = _host.decodeCtx(ctx);
-        (, int96 newFlowRate, , ) = _constantFlow.getFlowByID(superToken, agreementId);
-
-        //int96 oldFlowRate = abi.decode(cbdata, (int96));
-        //require(newFlowRate > oldFlowRate, "MFA: only increasing flow rate"); // Funcky logic for testing purpose
-
-        newCtx = _updateMultiFlow(superToken, sender, _constantFlow.updateFlow.selector, newFlowRate, ctx);
+        assert(agreementClass == address(_cfa));
+        address sender;
+        int96 flowRate;
+        int256 depositAllowance;
+        {
+            int256 allowance;
+            int256 allowanceUsed;
+            uint256 owedDeposit;
+            (sender,,,allowance, allowanceUsed) = _host.decodeCtx(ctx);
+            (,flowRate,,owedDeposit) = _cfa.getFlowByID(superToken, agreementId);
+            depositAllowance = int256(owedDeposit) + allowance - allowanceUsed;
+            require (depositAllowance > 0, "afterAgreementUpdated");
+        }
+        newCtx = _updateMultiFlow(
+            superToken,
+            _cfa.updateFlow.selector,
+            sender,
+            flowRate,
+            uint256(depositAllowance),
+            ctx);
     }
 
     function afterAgreementTerminated(
@@ -179,14 +234,14 @@ contract MultiFlowsApp is SuperAppBase {
         onlyHost
         returns (bytes memory newCtx)
     {
-        assert(agreementClass == address(_constantFlow));
+        assert(agreementClass == address(_cfa));
         (address sender,,,,) = _host.decodeCtx(ctx);
         newCtx = ctx;
         for(uint256 i = 0; i < _userFlows[sender].length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(
-                _constantFlow,
+                _cfa,
                 abi.encodeWithSelector(
-                    _constantFlow.deleteFlow.selector,
+                    _cfa.deleteFlow.selector,
                     superToken,
                     address(this),
                     _userFlows[sender][i].to,

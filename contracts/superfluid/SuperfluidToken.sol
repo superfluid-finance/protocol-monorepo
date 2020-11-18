@@ -73,14 +73,12 @@ abstract contract SuperfluidToken is ISuperfluidToken
                      );
             deposit = deposit.add(agreementDeposit);
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
-            // 1. Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
+            // 1. Available Balance = Realtime Balance - Deposit + OwedDeposit
             // 2. Deposit should not be shared between agreements
             availableBalance = availableBalance
                 .add(agreementDynamicBalance)
-                .sub(
-                    agreementDeposit > agreementOwedDeposit ?
-                    (agreementDeposit - agreementOwedDeposit).toInt256() : 0
-                );
+                .sub(agreementDeposit.toInt256())
+                .add(agreementOwedDeposit.toInt256());
         }
     }
 

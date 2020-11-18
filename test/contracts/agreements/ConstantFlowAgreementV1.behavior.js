@@ -5,9 +5,9 @@ const {
     toBN
 } = require("@decentral.ee/web3-helpers");
 
-function clipDepositNumber(deposit) {
+function clipDepositNumber(deposit, roundingDown = false) {
     // last 32 bites of the deposit (96 bites) is clipped off
-    const rounding = deposit.and(toBN(0xFFFFFFFF)).isZero() ? 0 : 1;
+    const rounding = roundingDown ? 0 : (deposit.and(toBN(0xFFFFFFFF)).isZero() ? 0 : 1);
     return deposit.shrn(32).addn(rounding).shln(32);
 }
 
@@ -165,6 +165,7 @@ async function _shouldChangeFlow({
     by
 }) {
     console.log(`======== ${fn} begins ========`);
+    console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
     //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
     const { superToken, governance } = testenv.contracts;
 
@@ -178,7 +179,7 @@ async function _shouldChangeFlow({
     const expectedFlowInfo = {};
     const expectedNetFlowDeltas = {};
     let txBlock;
-    let mfaDeposit = toBN(0);
+    let mfaAllowanceUsed = toBN(0);
 
     const addRole = (role, alias) => {
         roles[role] = testenv.getAddress(alias);
@@ -401,6 +402,11 @@ async function _shouldChangeFlow({
             .map(i => i.proportion)
             .reduce((acc,cur) => acc + cur, 0);
 
+        const depositAllowance = clipDepositNumber(
+            toBN(flowRate)
+                .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
+            true /* rounding down */);
+
         await Promise.all(Object.keys(mfa.receivers).map(async receiverAlias => {
             const mfaReceiverName = "mfa.receiver." + receiverAlias;
             const mfaFlowName = "mfa.flow." + receiverAlias;
@@ -411,17 +417,24 @@ async function _shouldChangeFlow({
                 sender: roles.receiver,
                 receiver: roles[mfaReceiverName],
             });
-            const mfaFlowRate = toBN(flowRate)
-                .mul(toBN(mfa.receivers[receiverAlias].proportion))
-                .div(toBN(totalProportions));
-            const mfaFlowDeposit = clipDepositNumber(
-                toBN(mfaFlowRate)
-                    .mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
-            );
-            //console.log("!!!! mfaFlowDeposit", receiverAlias, mfaFlowDeposit.toString());
+
+            const mfaFlowDepositAllowance = clipDepositNumber(
+                toBN(depositAllowance)
+                    .mul(toBN(mfa.receivers[receiverAlias].proportion))
+                    .div(toBN(totalProportions)),
+                true /* rounding down */);
+
+            const mfaFlowRate = toBN(mfaFlowDepositAllowance)
+                .div(toBN(testenv.configs.LIQUIDATION_PERIOD));
+
+            // console.log("!!!! mfaFlowDepositAllowance",
+            //     receiverAlias,
+            //     mfaFlowDepositAllowance.toString());
+
             const mfaFlowRateDelta = toBN(mfaFlowRate)
                 .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
-            mfaDeposit = mfaDeposit.add(mfaFlowDeposit);
+            mfaAllowanceUsed = mfaAllowanceUsed
+                .add(mfaFlowDepositAllowance);
             expectedNetFlowDeltas[roles[mfaReceiverName]] = mfaFlowRateDelta;
             expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.receiver]
                 .sub(mfaFlowRateDelta);
@@ -443,8 +456,45 @@ async function _shouldChangeFlow({
     } else {
         const deposit = clipDepositNumber(toBN(flowRate)
             .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)));
+        let owedDeposit = toBN(flows.main.flowInfo1.owedDeposit);
+
+        const depositAllowanceDelta = clipDepositNumber(
+            toBN(flowRate)
+                .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
+            true /* rounding down */
+        ).sub(owedDeposit);
+
+        const mfaAllowanceUsedDelta = mfaAllowanceUsed.sub(owedDeposit);
+
+        // adjust deposit allowance refunds to refund less
+        // if (mfaAllowanceUsedDelta.ltn(0)) {
+        //     mfaAllowanceUsedAdjusted = mfaAllowanceUsedAdjusted.add(
+        //         clipDepositNumber(mfaAllowanceUsedDelta.mul(toBN(-1)), true /* rounding down */)
+        //             .add(mfaAllowanceUsedDelta)
+        //     );
+        // }
+
         // take into account deposit allowance
-        const owedDeposit = BN.min(deposit, mfaDeposit);
+        if (depositAllowanceDelta.gtn(0)) {
+            // use allowance
+            owedDeposit = owedDeposit.add(BN.min(depositAllowanceDelta, mfaAllowanceUsedDelta));
+        } else {
+            // repay allowance
+            owedDeposit = owedDeposit.add(BN.max(depositAllowanceDelta, mfaAllowanceUsedDelta));
+            // the difference goes to the receiver balance
+            updateAccountExpectedBalanceDelta(
+                "receiver",
+                depositAllowanceDelta.sub(mfaAllowanceUsedDelta)
+            );
+        }
+
+        // console.log("!!!! main",
+        //     deposit.toString(),
+        //     owedDeposit.toString(),
+        //     mfaAllowanceUsed.toString(),
+        //     depositAllowanceDelta.toString(),
+        //     mfaAllowanceUsedDelta.toString());
+
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
             deposit: deposit.add(owedDeposit),

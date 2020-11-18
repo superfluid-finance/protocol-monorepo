@@ -285,8 +285,8 @@ contract Superfluid is
     )
         external override
     {
-        require(configWord > 0, "Superfluid: invalid config word");
-        require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "Superfluid: app already registered");
+        require(configWord > 0, "SF: invalid config word");
+        require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "SF: app already registered");
         _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
     }
 
@@ -334,8 +334,8 @@ contract Superfluid is
     )
         external override
     {
-        require(isApp(ISuperApp(msg.sender)), "Superfluid: msg.sender is not an app");
-        require(isApp(targetApp), "Superfluid: target is not an app");
+        require(isApp(ISuperApp(msg.sender)), "SF: msg.sender is not an app");
+        require(isApp(targetApp), "SF: target is not an app");
         _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }
 
@@ -375,7 +375,7 @@ contract Superfluid is
             newCtx = ctx;
         } else {
             if (!isTermination) {
-                revert("Superfluid: before callback failed");
+                revert("SF: before callback failed");
             } else {
                 emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
             }
@@ -402,14 +402,14 @@ contract Superfluid is
                 // TODO: JAIL if callback changes ctx
                 //Change return context
                 if (!isTermination) {
-                    revert("Superfluid: B_1_READONLY_CONTEXT");
+                    revert("SF: B_1_READONLY_CONTEXT");
                 } else {
                     emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
                 }
             }
         } else {
             if (!isTermination) {
-                revert("Superfluid: after callback failed");
+                revert("SF: after callback failed");
             } else {
                 emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
             }
@@ -465,7 +465,7 @@ contract Superfluid is
         if (success) {
             _ctxStamp = 0;
         } else {
-            revert(string(returnedData));
+            revert(_getRevertMsg(returnedData));
         }
     }
 
@@ -494,7 +494,7 @@ contract Superfluid is
         }));
         (success, returnedData) = _callExternal(address(app), data, ctx);
         if(!success) {
-            revert(string(returnedData));
+            revert(_getRevertMsg(returnedData));
         }
         _ctxStamp = 0;
     }
@@ -539,7 +539,7 @@ contract Superfluid is
                    ISuperApp(operations[i].target),
                    operations[i].data);
             } else {
-               revert("SF: Unknown operation type");
+               revert("SF: unknown operation type");
             }
         }
     }
@@ -571,7 +571,7 @@ contract Superfluid is
             context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(string(returnedData));
+            revert(_getRevertMsg(returnedData));
         }
     }
 
@@ -595,7 +595,7 @@ contract Superfluid is
             context.appLevel--;
             newCtx = _updateContext(context);
         } else {
-            revert(string(returnedData));
+            revert(_getRevertMsg(returnedData));
         }
     }
 
@@ -688,9 +688,9 @@ contract Superfluid is
                  // this is out of gas, but the call may still fail if more gas is provied
                  // and this is okay, because there can be incentive to jail the app by providing
                  // more gas
-                 revert("SF: Send more gas");
+                 revert("SF: try more gas");
              } else {
-                revert(string(returnedData));
+                revert(_getRevertMsg(returnedData));
                  //_appManifests[app].configWord |= SuperAppDefinitions.JAIL;
              }
          }
@@ -725,8 +725,22 @@ contract Superfluid is
         return ctx.length > 0 && keccak256(ctx) == _ctxStamp;
     }
 
+    /// @dev Get the revert message from a call
+    /// @notice This is needed in order to get the human-readable revert message from a call
+    /// @param res Response of the call
+    /// @return Revert message string
+    function _getRevertMsg(bytes memory res) internal pure returns (string memory) {
+        // If the _res length is less than 68, then the transaction failed silently (without a revert message)
+        if (res.length < 68) return "SF: target reverted";
+        assembly {
+            // Slice the sighash.
+            res := add(res, 0x04)
+        }
+        return abi.decode(res, (string)); // All that remains is the revert string
+    }
+
     modifier cleanCtx() {
-        require(_ctxStamp == 0, "Superfluid: Ctx is not clean");
+        require(_ctxStamp == 0, "SF: Ctx is not clean");
         _;
     }
 
@@ -756,7 +770,7 @@ contract Superfluid is
 
     modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
-        require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "Superfluid: not an active app");
+        require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "SF: not an active app");
         _;
     }
 }

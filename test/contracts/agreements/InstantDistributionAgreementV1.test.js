@@ -396,7 +396,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from: alice,
                 }
-            ), "IDAv1: index already exists");
+            ), "IDA: E_INDEX_EXISTS");
         });
 
         it("#2.3 should fail to query non-existant index", async() => {
@@ -449,7 +449,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from: alice,
                 }
-            ), "IDAv1: index does not exist");
+            ), "IDA: E_NO_INDEX");
         });
 
         it("#2.5 should fail to update index with smaller value", async() => {
@@ -505,7 +505,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from: alice,
                 }
-            ), "IDAv1: index value should grow");
+            ), "IDA: E_INDEX_GROW");
             idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
             assert.isTrue(idata.exist);
             assert.equal(idata.indexValue, "1984");
@@ -569,7 +569,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from:bob,
                 }
-            ), "IDAv1: subscription already approved");
+            ), "IDA: E_SUBS_APPROVED");
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), "0");
@@ -765,7 +765,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from:bob,
                 }
-            ), "IDAv1: subscription already approved");
+            ), "IDA: E_SUBS_APPROVED");
             idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
             assert.equal(idata.indexValue, "100");
             assert.equal(idata.totalUnitsApproved.toString(), toWad("0.003").toString());
@@ -861,7 +861,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from: bob,
                 }
-            ), "IDAv1: subscription already approved");
+            ), "IDA: E_SUBS_APPROVED");
             idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
             assert.equal(idata.indexValue, "0");
             assert.equal(idata.totalUnitsApproved.toString(), toWad("0.001").toString());
@@ -1137,7 +1137,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from: dan,
                 }
-            ), "IDAv1: operation not allowed");
+            ), "IDA: E_NOT_ALLOWED");
             await web3tx(superfluid.callAgreement, "Bob delete the subscription")(
                 ida.address,
                 ida.contract.methods.deleteSubscription(
@@ -1163,7 +1163,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 {
                     from: bob,
                 }
-            ), "IDAv1: subscription does not exist");
+            ), "IDA: E_NO_SUBS");
             await testExpectedBalances([
                 [alice, toWad("99.8")], // FIXME check deposit
                 [bob,   toWad("0.2")],
@@ -1174,7 +1174,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending.toString(), "0");
             await expectRevert(
                 ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
-                "IDAv1: subscription does not exist");
+                "IDA: E_NO_SUBS");
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
@@ -1245,7 +1245,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending.toString(), "0");
             await expectRevert(
                 ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
-                "IDAv1: subscription does not exist");
+                "IDA: E_NO_SUBS");
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
@@ -1316,7 +1316,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending.toString(), "0");
             await expectRevert(
                 ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
-                "IDAv1: subscription does not exist");
+                "IDA: E_NO_SUBS");
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
@@ -1414,7 +1414,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             {
                 from:bob,
             }
-        ), "IDAv1: subscription does not exist");
+        ), "IDA: E_NO_SUBS");
 
         await web3tx(superfluid.callAgreement, "Alice update the subscription")(
             ida.address,
@@ -1526,7 +1526,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             {
                 from:bob,
             }
-        ), "IDAv1: subscription already approved");
+        ), "IDA: E_SUBS_APPROVED");
 
         await t.validateSystemInvariance();
     });

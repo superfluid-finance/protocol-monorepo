@@ -503,26 +503,24 @@ contract ConstantFlowAgreementV1 is
             (vars.appContext, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
+        // NOTE: vars.appContext.appAllowanceUsed will be adjusted by callAppAfterCallback
+        // and its range will be [0, currentContext.appAllowance]
         if (vars.appContext.appAllowanceUsed != oldFlowData.owedDeposit.toInt256()) {
             // clipping the allowance used amount before storing
             if (vars.appContext.appAllowanceUsed > 0) {
                 // give more to the app
                 vars.appContext.appAllowanceUsed =
                     _clipDepositNumber(vars.appContext.appAllowanceUsed.toUint256()).toInt256();
-            } else if (vars.appContext.appAllowanceUsed < 0) {
-                // refund less from the app
-                vars.appContext.appAllowanceUsed = - // invert again
-                    _clipDepositNumberRoundingDown(vars.appContext.appAllowanceUsed.mul(-1).toUint256()).toInt256();
-            } // else stay 0
+            }
 
-            int256 allowanceDelta = vars.appContext.appAllowanceUsed
+            int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
                 .sub(oldFlowData.owedDeposit.toInt256());
 
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
-                    .add(allowanceDelta)
+                    .add(appAllowanceDelta)
                     .toUint256();
             vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
-                    .add(allowanceDelta)
+                    .add(appAllowanceDelta)
                     .toUint256();
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
 
@@ -531,7 +529,7 @@ contract ConstantFlowAgreementV1 is
                 token,
                 flowParams.sender,
                 0, // flow rate delta
-                allowanceDelta, // deposit delta
+                appAllowanceDelta, // deposit delta
                 0, // owed deposit delta
                 currentTimestamp
             );
@@ -540,16 +538,14 @@ contract ConstantFlowAgreementV1 is
                 flowParams.receiver,
                 0, // flow rate delta
                 0, // deposit delta
-                allowanceDelta, // owed deposit delta
+                appAllowanceDelta, // owed deposit delta
                 currentTimestamp
             );
-        }
 
-        if (currentContext.appAllowanceUsed != vars.appContext.appAllowanceUsed) {
             newCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
                 newCtx,
                 currentContext.appAllowance,
-                vars.appContext.appAllowanceUsed
+                currentContext.appAllowanceUsed.add(appAllowanceDelta)
             );
         }
     }

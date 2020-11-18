@@ -14,7 +14,7 @@ const {
 const TestEnvironment = require("../../TestEnvironment");
 
 const traveler = require("ganache-time-traveler");
-const MultiFlowsApp = artifacts.require("MultiFlowsApp");
+const MultiFlowApp = artifacts.require("MultiFlowApp");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
@@ -601,7 +601,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         let app;
 
         beforeEach(async () => {
-            app = await web3tx(MultiFlowsApp.new, "MultiApp.new")(
+            app = await web3tx(MultiFlowApp.new, "MultiApp.new")(
                 cfa.address,
                 superfluid.address
             );
@@ -624,6 +624,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
+                    mfa.ratioPct,
                     Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
@@ -686,6 +687,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
+                    mfa.ratioPct,
                     Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"
@@ -755,6 +757,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
                 app.address,
                 app.contract.methods.createMultiFlows(
+                    mfa.ratioPct,
                     Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
                     Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
                     "0x"

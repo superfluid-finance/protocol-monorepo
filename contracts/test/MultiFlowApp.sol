@@ -11,23 +11,28 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
 
 
 /**
- * @dev Multi Flows Super APPEND
+ * @dev Multi Flow (Super) App
  *
  * A super app that can split incoming flows to multiple outgoing flows.
  *
  * This is used for testing CFA callbacks logic.
  */
-contract MultiFlowsApp is SuperAppBase {
+contract MultiFlowApp is SuperAppBase {
 
     struct ReceiverData {
         address to;
         uint256 proportion;
     }
 
+    struct Configuration {
+        uint8 ratioPct;
+        ReceiverData[] receivers;
+    }
+
     IConstantFlowAgreementV1 internal _cfa;
     ISuperfluid internal _host;
     //Sender => To / Proportion
-    mapping(address => ReceiverData[]) internal _userFlows;
+    mapping(address => Configuration) internal _userConfigs;
 
     constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
         assert(address(cfa) != address(0));
@@ -44,6 +49,7 @@ contract MultiFlowsApp is SuperAppBase {
     }
 
     function createMultiFlows(
+        uint8 ratioPct,
         address[] calldata receivers,
         uint256[] calldata proportions,
         bytes calldata ctx
@@ -57,9 +63,11 @@ contract MultiFlowsApp is SuperAppBase {
 
         newCtx = _host.chargeGasFee(ctx, 30000);
 
-        delete _userFlows[sender];
+        _userConfigs[sender].ratioPct = ratioPct;
+        delete _userConfigs[sender].receivers;
         for(uint256 i = 0; i < receivers.length; i++) {
-            _userFlows[sender].push(ReceiverData(receivers[i], proportions[i]));
+            assert(proportions[i] > 0);
+            _userConfigs[sender].receivers.push(ReceiverData(receivers[i], proportions[i]));
         }
     }
 
@@ -80,24 +88,24 @@ contract MultiFlowsApp is SuperAppBase {
         private
         returns (bytes memory newCtx)
     {
-        uint256 sum = _sumProportions(_userFlows[sender]);
+        uint256 sum = _sumProportions(_userConfigs[sender].receivers);
 
         newCtx = ctx;
 
-        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
-            assert(_userFlows[sender][i].proportion > 0);
+        for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
+            ReceiverData memory receiverData = _userConfigs[sender].receivers[i];
             int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
                 superToken,
                 // taget deposit
-                _userFlows[sender][i].proportion * appAllowance / sum
-            );
+                receiverData.proportion * appAllowance / sum
+            ) * int96(_userConfigs[sender].ratioPct) / int96(100);
             flowRate -= targetFlowRate;
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
                 abi.encodeWithSelector(
                     selector,
                     superToken,
-                    _userFlows[sender][i].to,
+                    receiverData.to,
                     targetFlowRate,
                     new bytes(0)
                 ),
@@ -105,21 +113,6 @@ contract MultiFlowsApp is SuperAppBase {
             );
         }
         assert(flowRate >= 0);
-    }
-
-    function beforeAgreementCreated(
-        ISuperToken superToken,
-        bytes calldata /*ctx*/,
-        address agreementClass,
-        bytes32 agreementId
-    )
-        external view override
-        onlyHost
-        returns (bytes memory cbdata)
-    {
-        assert(agreementClass == address(_cfa));
-        (, int256 oldFlowRate, ,) = _cfa.getFlowByID(superToken, agreementId);
-        return abi.encode(oldFlowRate);
     }
 
     function afterAgreementCreated(
@@ -206,20 +199,20 @@ contract MultiFlowsApp is SuperAppBase {
         assert(agreementClass == address(_cfa));
         (address sender,,,,) = _host.decodeCtx(ctx);
         newCtx = ctx;
-        for(uint256 i = 0; i < _userFlows[sender].length; i++) {
+        for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
                 abi.encodeWithSelector(
                     _cfa.deleteFlow.selector,
                     superToken,
                     address(this),
-                    _userFlows[sender][i].to,
+                    _userConfigs[sender].receivers[i].to,
                     new bytes(0)
                 ),
                 newCtx
             );
         }
-        delete _userFlows[sender];
+        delete _userConfigs[sender];
     }
 
     modifier onlyHost() {

@@ -438,10 +438,10 @@ async function _shouldChangeFlow({
                 owedDeposit: toBN(0)
             };
 
-            console.log("!!!! mfa flow",
-                mfaFlowName,
-                mfaFlowRate.toString(),
-                mfaFlowDepositAllowance.toString());
+            // console.log("!!!! mfa flow",
+            //     mfaFlowName,
+            //     mfaFlowRate.toString(),
+            //     mfaFlowDepositAllowance.toString());
         }));
         //console.log("!!!! mfaDeposit", mfaDeposit.toString());
         console.log("--------");
@@ -473,9 +473,9 @@ async function _shouldChangeFlow({
         //     );
         // }
 
-        console.log("!!!! main",
-            flowDeposit.toString(),
-            mfaAllowanceUsed.toString(),);
+        // console.log("!!!! main",
+        //     flowDeposit.toString(),
+        //     mfaAllowanceUsed.toString(),);
 
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),

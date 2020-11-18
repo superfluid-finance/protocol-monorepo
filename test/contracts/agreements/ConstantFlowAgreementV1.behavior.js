@@ -420,6 +420,8 @@ async function _shouldChangeFlow({
             const mfaFlowDepositAllowance = clipDepositNumber(
                 toBN(depositAllowance)
                     .mul(toBN(mfa.receivers[receiverAlias].proportion))
+                    .mul(toBN(mfa.ratioPct))
+                    .divn(100)
                     .div(toBN(totalProportions)),
                 true /* rounding down */);
 
@@ -539,7 +541,7 @@ async function _shouldChangeFlow({
     console.log("--------");
 
     // validate flow info changes
-    validateFlowInfoChange("main");
+    Object.keys(expectedFlowInfo).forEach(validateFlowInfoChange);
     // TODO mfa flow changes
     console.log("--------");
 

@@ -92,23 +92,33 @@ contract MultiFlowApp is SuperAppBase {
 
         newCtx = ctx;
 
+        flowRate = flowRate * _userConfigs[sender].ratioPct / 100;
+
         for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
-            ReceiverData memory receiverData = _userConfigs[sender].receivers[i];
-            int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
-                superToken,
-                // taget deposit
-                receiverData.proportion * appAllowance / sum
-            ) * int96(_userConfigs[sender].ratioPct) / int96(100);
-            flowRate -= targetFlowRate;
-            (newCtx, ) = _host.callAgreementWithContext(
-                _cfa,
-                abi.encodeWithSelector(
+            bytes memory callData;
+            {
+                ReceiverData memory receiverData = _userConfigs[sender].receivers[i];
+                uint256 targetAllowance = appAllowance
+                    * receiverData.proportion
+                    * _userConfigs[sender].ratioPct
+                    / 100
+                    / sum;
+                int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
+                    superToken,
+                    targetAllowance
+                );
+                flowRate -= targetFlowRate;
+                callData = abi.encodeWithSelector(
                     selector,
                     superToken,
                     receiverData.to,
                     targetFlowRate,
                     new bytes(0)
-                ),
+                );
+            }
+            (newCtx, ) = _host.callAgreementWithContext(
+                _cfa,
+                callData,
                 newCtx
             );
         }

@@ -92,21 +92,21 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         );
     }
 
-    // async function transferBalance(from, to, amount) {
-    //     const fromAccount = t.getAddress(from);
-    //     const toAccount = t.getAddress(to);
-    //     await superToken.transfer(toAccount, amount, { from: fromAccount });
-    //     t.updateAccountBalanceSnapshot(
-    //         superToken.address,
-    //         toAccount,
-    //         await superToken.realtimeBalanceOfNow(toAccount)
-    //     );
-    //     t.updateAccountBalanceSnapshot(
-    //         superToken.address,
-    //         fromAccount,
-    //         await superToken.realtimeBalanceOfNow(fromAccount)
-    //     );
-    // }
+    async function transferBalance(from, to, amount) {
+        const fromAccount = t.getAddress(from);
+        const toAccount = t.getAddress(to);
+        await superToken.transfer(toAccount, amount, { from: fromAccount });
+        t.updateAccountBalanceSnapshot(
+            superToken.address,
+            toAccount,
+            await superToken.realtimeBalanceOfNow(toAccount)
+        );
+        t.updateAccountBalanceSnapshot(
+            superToken.address,
+            fromAccount,
+            await superToken.realtimeBalanceOfNow(fromAccount)
+        );
+    }
 
     async function shouldTestLiquidations({ titlePrefix, sender, receiver, by }) {
         const liquidationType = by === sender ? "liquidate by agent" : "self liquidate";
@@ -743,6 +743,147 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            // TODO use call context user data to configure the multi flows
+            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
+                app.address,
+                app.contract.methods.createMultiFlows(
+                    mfa.ratioPct,
+                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: t.aliases[sender]
+                }
+            );
+
+            // create 1to1 100% through
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await timeTravelOnceAndVerifyAll();
+
+            // update 1to1 with 90% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+            });
+            await timeTravelOnceAndVerifyAll();
+
+            // update 1to1 with 110% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+            });
+            await timeTravelOnceAndVerifyAll();
+
+            // fully delete everything
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.4 mfa-1to2[50,50]_50pc_create-full_updates-full_delete", async () => {
+            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            const mfa = {
+                ratioPct: 50,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            // TODO use call context user data to configure the multi flows
+            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
+                app.address,
+                app.contract.methods.createMultiFlows(
+                    mfa.ratioPct,
+                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: t.aliases[sender]
+                }
+            );
+
+            // create 1to1 100% through
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await timeTravelOnceAndVerifyAll();
+
+            // update 1to1 with 90% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+            });
+            await timeTravelOnceAndVerifyAll();
+
+            // update 1to1 with 110% flow rate
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+            });
+            await timeTravelOnceAndVerifyAll();
+
+            // fully delete everything
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it.skip("#2.5 mfa-1to2[50,50]_150pc_create-full_updates-full_delete", async () => {
+            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+            await transferBalance(sender, "mfa", toWad(30));
+
+            const mfa = {
+                ratioPct: 150,
                 receivers: {
                     [receiver1]: {
                         proportion: 1

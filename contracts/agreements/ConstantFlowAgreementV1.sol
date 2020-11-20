@@ -173,7 +173,6 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-
         if (currentContext.appLevel == 0) {
             (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
             require(availableBalance >= 0, "CFA: not enough available balance");
@@ -435,6 +434,7 @@ contract ConstantFlowAgreementV1 is
         private
         returns (bytes memory newCtx)
     {
+        newCtx = ctx;
         // apply callbacks
         _StackVars_changeFlowToApp memory vars;
 

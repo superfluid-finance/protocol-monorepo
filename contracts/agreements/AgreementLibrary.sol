@@ -115,19 +115,12 @@ library AgreementLibrary {
         returns(bytes memory cbdata)
     {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
-            Context memory currentContext = decodeCtx(ISuperfluid(msg.sender), ctx);
-            Context memory appContext;
+            Context memory currentContext;
+            bytes memory appCtx;
 
-            // app allowance params stack PUSH
-            // pass app allowance and current allowance used to the app,
-            bytes memory appCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
-                ctx,
-                currentContext.appLevel + 1,
-                inputs.appAllowance.toInt256(),
-                inputs.appAllowanceUsed
-            );
+            (currentContext, appCtx) = _pushCallbackStack(ctx, inputs);
 
-            (cbdata, appCtx) = ISuperfluid(msg.sender).callAppBeforeCallback(
+            (cbdata,) = ISuperfluid(msg.sender).callAppBeforeCallback(
                 ISuperApp(inputs.account),
                 abi.encodeWithSelector(
                     inputs.selector,
@@ -139,9 +132,7 @@ library AgreementLibrary {
                 inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
-            appContext = adjustNewAppAllowanceUsed(
-                inputs.appAllowance,
-                appCtx);
+            _popCallbackStatck(ctx, currentContext, currentContext.appAllowanceUsed);
         }
     }
 
@@ -154,16 +145,10 @@ library AgreementLibrary {
         returns(Context memory appContext)
     {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
-            Context memory currentContext = decodeCtx(ISuperfluid(msg.sender), ctx);
+            Context memory currentContext;
+            bytes memory appCtx;
 
-            // app allowance params stack PUSH
-            // pass app allowance and current allowance used to the app,
-            bytes memory appCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
-                ctx,
-                currentContext.appLevel + 1,
-                inputs.appAllowance.toInt256(),
-                inputs.appAllowanceUsed
-            );
+            (currentContext, appCtx) = _pushCallbackStack(ctx, inputs);
 
             appCtx = ISuperfluid(msg.sender).callAppAfterCallback(
                 ISuperApp(inputs.account),
@@ -178,21 +163,15 @@ library AgreementLibrary {
                 inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
-            appContext = adjustNewAppAllowanceUsed(
+            appContext = _adjustNewAppAllowanceUsed(
                 inputs.appAllowance,
                 appCtx);
 
-            // app allowance params stack POP
-            ISuperfluid(msg.sender).ctxUpdateAppAllowance(
-                ctx,
-                currentContext.appLevel,
-                currentContext.appAllowanceIO,
-                appContext.appAllowanceUsed
-            );
+            _popCallbackStatck(ctx, currentContext, appContext.appAllowanceUsed);
         }
     }
 
-    function adjustNewAppAllowanceUsed(
+    function calculateAdjustedNewAppAllowanceUsed(
         uint256 appAllowance,
         int256 appAllowanceWanted,
         int256 newAppAllowanceUsed
@@ -211,16 +190,52 @@ library AgreementLibrary {
         return max(0, min(appAllowance.toInt256(), max(appAllowanceWanted, newAppAllowanceUsed)));
     }
 
-    function adjustNewAppAllowanceUsed(
+    function _pushCallbackStack(
+        bytes memory ctx,
+        CallbackInputs memory inputs
+    )
+        private
+        returns (
+            Context memory currentContext,
+            bytes memory appCtx
+        )
+    {
+        currentContext = decodeCtx(ISuperfluid(msg.sender), ctx);
+
+        // app allowance params stack PUSH
+        // pass app allowance and current allowance used to the app,
+        appCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
+            ctx,
+            currentContext.appLevel + 1,
+            inputs.appAllowance.toInt256(),
+            inputs.appAllowanceUsed);
+    }
+
+    function _popCallbackStatck(
+        bytes memory ctx,
+        Context memory currentContext,
+        int256 appAllowanceUsed
+    )
+        private
+    {
+        // app allowance params stack POP
+        ISuperfluid(msg.sender).ctxUpdateAppAllowance(
+            ctx,
+            currentContext.appLevel,
+            currentContext.appAllowanceIO,
+            appAllowanceUsed);
+    }
+
+    function _adjustNewAppAllowanceUsed(
         uint256 appAllowance,
         bytes memory appCtx
     )
-        internal view
+        private view
         returns (Context memory appContext)
     {
         appContext = decodeCtx(ISuperfluid(msg.sender), appCtx);
 
-        appContext.appAllowanceUsed = adjustNewAppAllowanceUsed(
+        appContext.appAllowanceUsed = calculateAdjustedNewAppAllowanceUsed(
             appAllowance,
             appContext.appAllowanceIO,
             appContext.appAllowanceUsed);

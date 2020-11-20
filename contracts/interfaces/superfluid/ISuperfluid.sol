@@ -150,8 +150,9 @@ interface ISuperfluid {
     )
         external view
         returns (
-            bool exist,
-            uint256 configWord
+            bool isSuperApp,
+            bool isJailed,
+            uint256 noopMask
         );
 
     /**
@@ -209,7 +210,8 @@ interface ISuperfluid {
 
     function ctxUpdateAppAllowance(
         bytes calldata ctx,
-        uint256 appAllowance,
+        uint8 appLevel,
+        int256 appAllowanceIO,
         int256 appAllowanceUsed
     )
         external
@@ -333,24 +335,9 @@ interface ISuperfluid {
             address msgSender,
             bytes4 agreementSelector,
             uint8 appLevel,
-            uint256 appAllowance,
+            int256 appAllowanceIO,
             int256 appAllowanceUsed
         );
-
-    /* function decodeCallContext(bytes calldata ctx)
-        external pure
-        returns (
-            address msgSender,
-            bytes4 agreementSelector
-        );
-
-    function decodeTransactionContext(bytes calldata ctx)
-        external pure
-        returns (
-            uint8 appLevel,
-            uint256 allowance,
-            uint256 allowanceUsed
-        ); */
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

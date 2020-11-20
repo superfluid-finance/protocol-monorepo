@@ -92,17 +92,15 @@ contract MultiFlowApp is SuperAppBase {
 
         newCtx = ctx;
 
+        // scale the flow rate and app allowance numbers
         flowRate = flowRate * _userConfigs[sender].ratioPct / 100;
+        appAllowance = appAllowance * _userConfigs[sender].ratioPct / 100;
 
         for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
             bytes memory callData;
             {
                 ReceiverData memory receiverData = _userConfigs[sender].receivers[i];
-                uint256 targetAllowance = appAllowance
-                    * receiverData.proportion
-                    * _userConfigs[sender].ratioPct
-                    / 100
-                    / sum;
+                uint256 targetAllowance = appAllowance * receiverData.proportion / sum;
                 int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
                     superToken,
                     targetAllowance
@@ -139,7 +137,7 @@ contract MultiFlowApp is SuperAppBase {
         assert(agreementClass == address(_cfa));
         address sender;
         int96 flowRate;
-        uint256 appAllowance;
+        int256 appAllowance;
         (,sender,,,appAllowance,) = _host.decodeCtx(ctx);
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
         assert(appAllowance > 0);
@@ -181,7 +179,7 @@ contract MultiFlowApp is SuperAppBase {
         assert(agreementClass == address(_cfa));
         address sender;
         int96 flowRate;
-        uint256 appAllowance;
+        int256 appAllowance;
         (,sender,,,appAllowance,) = _host.decodeCtx(ctx);
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
         assert(appAllowance > 0);

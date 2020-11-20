@@ -134,7 +134,10 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-        _requireAvailableBalance(token, currentContext);
+        if (currentContext.appLevel == 0) {
+            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
+            require(availableBalance >= 0, "CFA: not enough available balance");
+        }
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlow implementation
@@ -170,7 +173,11 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-        _requireAvailableBalance(token, currentContext);
+
+        if (currentContext.appLevel == 0) {
+            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
+            require(availableBalance >= 0, "CFA: not enough available balance");
+        }
     }
 
     /// @dev IConstantFlowAgreementV1.deleteFlow implementation
@@ -316,15 +323,6 @@ contract ConstantFlowAgreementV1 is
      * Internal State Functions
      *************************************************************************/
 
-    // Stack variables for updateFlowApp function, to avoid stack too deep issue
-    // solhint-disable-next-line contract-name-camelcase
-    struct _StackVars_updateFlowToApp {
-        bytes cbdata;
-        FlowData newFlowData;
-        uint256 appAllowance;
-        AgreementLibrary.Context appContext;
-    }
-
     enum FlowChangeType {
         CREATE_FLOW,
         UPDATE_FLOW,
@@ -353,18 +351,6 @@ contract ConstantFlowAgreementV1 is
     {
         bytes32[] memory data = token.getAgreementData(address(this), dId, 1);
         return _decodeFlowData(uint256(data[0]));
-    }
-
-    function _requireAvailableBalance(
-        ISuperfluidToken token,
-        AgreementLibrary.Context memory currentContext
-    )
-        private view
-    {
-        (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
-        require(
-            availableBalance.add(currentContext.appAllowance.toInt256()) >= 0,
-            "CFA: not enough available balance");
     }
 
     function _updateAccountFlowState(
@@ -411,23 +397,33 @@ contract ConstantFlowAgreementV1 is
         assert(oldFlowData.owedDeposit == 0);
 
         // STEP 1: update the flow
-        (int256 depositDelta,,) = _changeFlow(
+        int256 depositDelta;
+        FlowData memory newFlowData;
+        (depositDelta,,newFlowData) = _changeFlow(
             currentContext.timestamp,
             token, flowParams, oldFlowData);
 
         // STEP 2: update app allowance used
-        if (depositDelta != 0) {
-            newCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
-                ctx,
-                currentContext.appAllowance,
-                currentContext.appAllowanceUsed.add(depositDelta)
-            );
-        }
+        newCtx = AgreementLibrary.ctxUpdateAppAllowance(
+            ctx,
+            currentContext,
+            newFlowData.deposit.toInt256(), // appAllowanceWantedDelta
+            depositDelta
+        );
     }
 
     /**
      * @dev change a flow to a app receiver
      */
+
+    // Stack variables for updateFlowApp function, to avoid stack too deep issue
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars_changeFlowToApp {
+        bytes cbdata;
+        FlowData newFlowData;
+        uint256 appAllowance;
+        AgreementLibrary.Context appContext;
+    }
     function _changeFlowToApp(
         ISuperfluidToken token,
         FlowParams memory flowParams,
@@ -440,53 +436,55 @@ contract ConstantFlowAgreementV1 is
         returns (bytes memory newCtx)
     {
         // apply callbacks
-        _StackVars_updateFlowToApp memory vars;
+        _StackVars_changeFlowToApp memory vars;
 
         {
-            AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.CallbackInputs({
-                host: ISuperfluid(msg.sender),
-                token: token,
-                noopBit: 0,
-                agreementClass: address(this),
-                account: flowParams.receiver,
-                agreementId: flowParams.flowId,
-                appAllowance: 0,
-                appAllowanceUsed: 0
-            });
+            AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+                address(this),
+                token,
+                flowParams.receiver,
+                flowParams.flowId
+            );
 
             // call the before callback
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
+                cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
             } else if (optype == FlowChangeType.UPDATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
+                cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
             } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
+                cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
             }
-            (vars.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
             (,vars.appAllowance, vars.newFlowData) = _changeFlow(
                     currentContext.timestamp,
                     token, flowParams, oldFlowData);
 
             // each app level get a same amount of allowance
-            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel));
+            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel + 1));
 
             // call the after callback
             cbStates.appAllowance = vars.appAllowance;
             cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+                cbStates.selector = ISuperApp.afterAgreementCreated.selector;
             } else if (optype == FlowChangeType.UPDATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
+                cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
             } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+                cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
             }
-            (vars.appContext, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            vars.appContext = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
         // NOTE: vars.appContext.appAllowanceUsed will be adjusted by callAppAfterCallback
         // and its range will be [0, currentContext.appAllowance]
-        if (vars.appContext.appAllowanceUsed != oldFlowData.owedDeposit.toInt256()) {
+        {
             // clipping the allowance used amount before storing
             if (vars.appContext.appAllowanceUsed > 0) {
                 // give more to the app
@@ -523,10 +521,11 @@ contract ConstantFlowAgreementV1 is
                 currentContext.timestamp
             );
 
-            newCtx = ISuperfluid(msg.sender).ctxUpdateAppAllowance(
-                newCtx,
-                currentContext.appAllowance,
-                currentContext.appAllowanceUsed.add(appAllowanceDelta)
+            newCtx = AgreementLibrary.ctxUpdateAppAllowance(
+                ctx,
+                currentContext,
+                vars.newFlowData.deposit.toInt256(),
+                appAllowanceDelta
             );
         }
     }

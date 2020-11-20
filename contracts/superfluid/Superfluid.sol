@@ -65,8 +65,8 @@ contract Superfluid is
     struct AppContext {
         // The level of the app
         uint8 level;
-        // app allowance given
-        uint256 allowance;
+        // app allowance given (input in positive) / wanted (output in negative)
+        int256 allowanceIO;
         // app allowance used, allowing negative values over a callback session
         int256 allowanceUsed;
     }
@@ -317,12 +317,17 @@ contract Superfluid is
     )
         external view override
     returns (
-        bool exist,
-        uint256 configWord
+        bool isSuperApp,
+        bool isJailed,
+        uint256 noopMask
     )
     {
         AppManifest memory manifest = _appManifests[app];
-        return ((manifest.configWord > 0), manifest.configWord);
+        isSuperApp = (manifest.configWord > 0);
+        if (isSuperApp) {
+            isJailed = manifest.configWord & SuperAppDefinitions.JAIL > 0;
+            noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
+        }
     }
 
     function isAppJailed(
@@ -427,7 +432,8 @@ contract Superfluid is
 
     function ctxUpdateAppAllowance(
         bytes calldata ctx,
-        uint256 appAllowance,
+        uint8 appLevel,
+        int256 appAllowanceIO,
         int256 appAllowanceUsed
 
     )
@@ -436,7 +442,8 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         FullContext memory context = _decodeFullContext(ctx);
-        context.appContext.allowance = appAllowance;
+        context.appContext.level = appLevel;
+        context.appContext.allowanceIO = appAllowanceIO;
         context.appContext.allowanceUsed = appAllowanceUsed;
         newCtx = _updateContext(context);
     }
@@ -470,8 +477,8 @@ contract Superfluid is
                 agreementSelector: agreementSelector
             }),
             appContext: AppContext({
-                level: 1,
-                allowance: 0,
+                level: 0,
+                allowanceIO: 0,
                 allowanceUsed: 0
             })
         }));
@@ -508,8 +515,8 @@ contract Superfluid is
                 agreementSelector: 0
             }),
             appContext: AppContext({
-                level: 1,
-                allowance: 0,
+                level: 0,
+                allowanceIO: 0,
                 allowanceUsed: 0
             })
         }));
@@ -586,8 +593,9 @@ contract Superfluid is
         //Call app
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
-        if(success) {
+        if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
+            assert(_isCtxValid(newCtx));
             context = _decodeFullContext(newCtx);
             context.callContext.msgSender = oldSender;
             newCtx = _updateContext(context);
@@ -607,12 +615,13 @@ contract Superfluid is
     {
         FullContext memory context = _decodeFullContext(ctx);
 
+        // FIXME app level check
         context.appContext.level++;
-        require(_checkAppCallDepth(ISuperApp(msg.sender), context.appContext.level), "SF: call stack too deep");
         newCtx = _updateContext(context);
 
         (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
         if (success) {
+            require(_isCtxValid(newCtx), "SF: app altering the ctx");
             context.appContext.level--;
             newCtx = _updateContext(context);
         } else {
@@ -641,7 +650,7 @@ contract Superfluid is
             address msgSender,
             bytes4 agreementSelector,
             uint8 appLevel,
-            uint256 appAllowance,
+            int256 appAllowanceIO,
             int256 appAllowanceUsed
         )
     {
@@ -650,20 +659,8 @@ contract Superfluid is
         msgSender = context.callContext.msgSender;
         agreementSelector = context.callContext.agreementSelector;
         appLevel = context.appContext.level;
-        appAllowance = context.appContext.allowance;
+        appAllowanceIO = context.appContext.allowanceIO;
         appAllowanceUsed = context.appContext.allowanceUsed;
-    }
-
-    /* Basic Law Rules */
-    function _checkAppCallDepth(ISuperApp appAddr, uint8 currentAppLevel) internal view returns(bool) {
-        uint8 appLevel = getAppLevel(appAddr);
-        if(appLevel == 1 && currentAppLevel > 1) {
-            return false;
-        }
-        if(appLevel == 2 && currentAppLevel > 2) {
-            return false;
-        }
-        return true;
     }
 
     function _callExternal(
@@ -706,12 +703,13 @@ contract Superfluid is
         (success, returnedData) = isStaticall ?
             /* solhint-disable-next-line avoid-low-level-calls*/
             address(app).staticcall(data) : address(app).call(data);
+
          if (!success) {
              if (gasleft() < _GAS_RESERVATION) {
-                 // this is out of gas, but the call may still fail if more gas is provied
+                 // this is out of gas, but the call may still fail if m_callCallbackore gas is provied
                  // and this is okay, because there can be incentive to jail the app by providing
                  // more gas
-                 revert("SF: try more gas");
+                 revert("SF: try with more gas");
              } else {
                 revert(_getRevertMsg(returnedData));
                  //_appManifests[app].configWord |= SuperAppDefinitions.JAIL;
@@ -727,9 +725,9 @@ contract Superfluid is
             context.callContext.msgSender,
             context.callContext.agreementSelector,
             context.appContext.level,
-            context.appContext.allowance,
+            context.appContext.allowanceIO,
             context.appContext.allowanceUsed
-        ) = abi.decode(ctx, (uint256, address, bytes4, uint8, uint256, int256));
+        ) = abi.decode(ctx, (uint256, address, bytes4, uint8, int256, int256));
     }
 
     function _updateContext(FullContext memory context)
@@ -741,7 +739,7 @@ contract Superfluid is
             context.callContext.msgSender,
             context.callContext.agreementSelector,
             context.appContext.level,
-            context.appContext.allowance,
+            context.appContext.allowanceIO,
             context.appContext.allowanceUsed
         );
         _ctxStamp = keccak256(ctx);

@@ -127,15 +127,15 @@ module.exports = class TestEnvironment {
         // mint test tokens to test accounts
         await Promise.all(Object.keys(this.aliases).map(async alias => {
             const userAddress = this.aliases[alias];
-            await web3tx(this.contracts.testToken.mint, `Mint token for ${alias}`)(
-                userAddress,
-                this.configs.INIT_BALANCE, {
-                    from: userAddress
-                }
-            );
             await web3tx(this.contracts.testToken.approve, `TestToken.approve by ${alias} to SuperToken`)(
                 this.contracts.superToken.address,
                 this.constants.MAX_UINT256, {
+                    from: userAddress
+                }
+            );
+            await web3tx(this.contracts.testToken.mint, `Mint token for ${alias}`)(
+                userAddress,
+                this.configs.INIT_BALANCE, {
                     from: userAddress
                 }
             );
@@ -177,6 +177,44 @@ module.exports = class TestEnvironment {
     getAddress(alias) {
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return this.aliases[alias] || this.data.moreAliases[alias];
+    }
+
+    /**************************************************************************
+     * Test data functions
+     *************************************************************************/
+
+    async upgradeBalance(alias, amount) {
+        const account = this.getAddress(alias);
+        await web3tx(this.contracts.testToken.mint, `Mint token for ${alias}`)(
+            account,
+            this.configs.INIT_BALANCE, {
+                from: account
+            }
+        );
+        await web3tx(this.contracts.superToken.upgrade, `Upgrade ${amount.toString()} for account ${alias}`)(
+            amount, { from: account }
+        );
+        this.updateAccountBalanceSnapshot(
+            this.contracts.superToken.address,
+            account,
+            await this.contracts.superToken.realtimeBalanceOfNow(account)
+        );
+    }
+
+    async transferBalance(from, to, amount) {
+        const fromAccount = this.getAddress(from);
+        const toAccount = this.getAddress(to);
+        await this.contracts.superToken.transfer(toAccount, amount, { from: fromAccount });
+        this.updateAccountBalanceSnapshot(
+            this.contracts.superToken.address,
+            toAccount,
+            await this.contracts.superToken.realtimeBalanceOfNow(toAccount)
+        );
+        this.updateAccountBalanceSnapshot(
+            this.contracts.superToken.address,
+            fromAccount,
+            await this.contracts.superToken.realtimeBalanceOfNow(fromAccount)
+        );
     }
 
     /**************************************************************************
@@ -328,7 +366,9 @@ module.exports = class TestEnvironment {
         console.log("======== validateExpectedBalances ends ========");
     }
 
-    async validateSystemInvariance() {
+    async validateSystemInvariance({
+        allowCriticalAccount
+    } = {}) {
         console.log("======== validateSystemInvariance begins ========");
 
         const currentBlock = await web3.eth.getBlock("latest");
@@ -343,7 +383,6 @@ module.exports = class TestEnvironment {
                 userAddress,
                 currentBlock.timestamp.toString());
             superTokenBalance.timestamp = currentBlock.timestamp;
-
             // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
             const realtimeBalance = superTokenBalance.availableBalance
                 .add(superTokenBalance.deposit)
@@ -351,6 +390,10 @@ module.exports = class TestEnvironment {
 
             this.printSingleBalance(`${alias} underlying token balance`, tokenBalance);
             this.printRealtimeBalance(`${alias} super token balance`, superTokenBalance);
+
+            if (!allowCriticalAccount) {
+                assert.isTrue(superTokenBalance.availableBalance.gte(toBN(0)), `${alias} account is critical`);
+            }
 
             rtBalanceSum = rtBalanceSum.add(realtimeBalance);
         }));

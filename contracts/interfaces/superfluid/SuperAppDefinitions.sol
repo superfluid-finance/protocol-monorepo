@@ -16,6 +16,7 @@ library SuperAppDefinitions {
     //
     // Callback implementation bit masks
     //
+    uint constant public AGREEMENT_CALLBACK_NOOP_BITMASKS = 0xFF << 32;
     uint constant public BEFORE_AGREEMENT_CREATED_NOOP = 1 << (32 + 0);
     uint constant public AFTER_AGREEMENT_CREATED_NOOP = 1 << (32 + 1);
     uint constant public BEFORE_AGREEMENT_UPDATED_NOOP = 1 << (32 + 2);

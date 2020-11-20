@@ -70,8 +70,10 @@ contract InstantDistributionAgreementV1 is
         uint128 units;
     }
 
-    // Stack data helper to avoid stack too deep errors in some functions
-    struct StackData {
+    // Stack variables to avoid stack too deep errors in some functions
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars {
+        bool exist;
         bytes32 iId;
         bytes32 sId;
         IndexData idata;
@@ -79,6 +81,10 @@ contract InstantDistributionAgreementV1 is
         AgreementLibrary.CallbackInputs cbStates;
         bytes cbdata;
     }
+
+    /**************************************************************************
+     * ISuperAgreement interface
+     *************************************************************************/
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
@@ -121,6 +127,10 @@ contract InstantDistributionAgreementV1 is
         deposit = _getPublisherDeposit(token, account);
         owedDeposit = 0;
     }
+
+    /**************************************************************************
+     * Index operations
+     *************************************************************************/
 
     /// @dev IInstantDistributionAgreementV1.createIndex implementation
     function createIndex(
@@ -260,6 +270,10 @@ contract InstantDistributionAgreementV1 is
         actualAmount = uint256(indexDelta).mul(totalUnits);
     }
 
+    /**************************************************************************
+     * Subscription operations
+     *************************************************************************/
+
     /// @dev IInstantDistributionAgreementV1.approveSubscription implementation
     function approveSubscription(
         ISuperfluidToken token,
@@ -270,71 +284,70 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        bool exist;
-        StackData memory sd;
+        _StackVars memory vars;
         address subscriber = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
-        sd.iId = _getPublisherId(publisher, indexId);
-        sd.sId = _getSubscriptionId(subscriber, sd.iId);
-        (exist, sd.idata) = _getIndexData(token, sd.iId);
-        require(exist, "IDA: E_NO_INDEX");
-        (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
-        if (exist) {
+        vars.iId = _getPublisherId(publisher, indexId);
+        vars.sId = _getSubscriptionId(subscriber, vars.iId);
+        (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
+        require(vars.exist, "IDA: E_NO_INDEX");
+        (vars.exist, vars.sdata) = _getSubscriptionData(token, vars.sId);
+        if (vars.exist) {
             // sanity check
-            assert(sd.sdata.publisher == publisher);
-            assert(sd.sdata.indexId == indexId);
+            assert(vars.sdata.publisher == publisher);
+            assert(vars.sdata.indexId == indexId);
             // required condition check
-            require(sd.sdata.subId == _UNALLOCATED_SUB_ID, "IDA: E_SUBS_APPROVED");
+            require(vars.sdata.subId == _UNALLOCATED_SUB_ID, "IDA: E_SUBS_APPROVED");
         }
 
-        sd.cbStates = AgreementLibrary.CallbackInputs({
-            host: ISuperfluid(msg.sender),
-            token: token,
-            noopBit: 0,
-            agreementClass: address(this),
-            account: publisher,
-            agreementId: sd.sId,
-            appAllowance: 0,
-            appAllowanceUsed: 0
-        });
+        newCtx = ctx;
+        vars.cbStates = AgreementLibrary.createCallbackInputs(
+            address(this),
+            token,
+            publisher,
+            vars.sId);
 
-        if (!exist) {
-            sd.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-            (sd.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(sd.cbStates, ctx);
+        if (!vars.exist) {
+            vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
+            vars.cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
-            sd.sdata = SubscriptionData({
+            vars.sdata = SubscriptionData({
                 publisher: publisher,
                 indexId: indexId,
                 subId: 0,
                 units: 0,
-                indexValue: sd.idata.indexValue
+                indexValue: vars.idata.indexValue
             });
             // add to subscription list of the subscriber
-            sd.sdata.subId = _findAndFillSubsBitmap(token, subscriber, sd.iId);
-            token.createAgreement(sd.sId, _encodeSubscriptionData(sd.sdata));
+            vars.sdata.subId = _findAndFillSubsBitmap(token, subscriber, vars.iId);
+            token.createAgreement(vars.sId, _encodeSubscriptionData(vars.sdata));
 
-            sd.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(sd.cbStates, sd.cbdata, newCtx);
+            vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+            vars.cbStates.selector = ISuperApp.afterAgreementCreated.selector;
+            AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         } else {
-            sd.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            (sd.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(sd.cbStates, ctx);
+            vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
+            vars.cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
-            int balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
+            int balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
 
             // update publisher data and adjust publisher's deposits
-            sd.idata.totalUnitsApproved += sd.sdata.units;
-            sd.idata.totalUnitsPending -= sd.sdata.units;
-            token.updateAgreementData(sd.iId, _encodeIndexData(sd.idata));
+            vars.idata.totalUnitsApproved += vars.sdata.units;
+            vars.idata.totalUnitsPending -= vars.sdata.units;
+            token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
             _adjustPublisherDeposit(token, publisher, -balanceDelta);
             token.settleBalance(publisher, -balanceDelta);
 
             // update subscription data and adjust subscriber's balance
             token.settleBalance(subscriber, balanceDelta);
-            sd.sdata.indexValue = sd.idata.indexValue;
-            sd.sdata.subId = _findAndFillSubsBitmap(token, subscriber, sd.iId);
-            token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
+            vars.sdata.indexValue = vars.idata.indexValue;
+            vars.sdata.subId = _findAndFillSubsBitmap(token, subscriber, vars.iId);
+            token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
 
-            sd.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(sd.cbStates, sd.cbdata, newCtx);
+            vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
+            vars.cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
+            AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         }
 
         // can index up to three words, hence splitting into two events from publisher or subscriber's view.
@@ -353,82 +366,79 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        bool exist;
-        StackData memory sd;
+        _StackVars memory vars;
         address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         bytes32 sId = _getSubscriptionId(subscriber, iId);
-        (exist, sd.idata) = _getIndexData(token, iId);
-        require(exist, "IDA: E_NO_INDEX");
-        (exist, sd.sdata) = _getSubscriptionData(token, sId);
-        if (exist) {
+        (vars.exist, vars.idata) = _getIndexData(token, iId);
+        require(vars.exist, "IDA: E_NO_INDEX");
+        (vars.exist, vars.sdata) = _getSubscriptionData(token, sId);
+        if (vars.exist) {
             // sanity check
-            assert(sd.sdata.publisher == publisher);
-            assert(sd.sdata.indexId == indexId);
+            assert(vars.sdata.publisher == publisher);
+            assert(vars.sdata.indexId == indexId);
         }
 
-        sd.cbStates = AgreementLibrary.CallbackInputs({
-                    host: ISuperfluid(msg.sender),
-                    token: token,
-                    noopBit: 0,
-                    agreementClass: address(this),
-                    account: subscriber,
-                    agreementId: sId,
-                    appAllowance: 0,
-                    appAllowanceUsed: 0
-                });
+        vars.cbStates = AgreementLibrary.createCallbackInputs(
+            address(this),
+            token,
+            subscriber,
+            sId);
+        newCtx = ctx;
 
         // before-hook callback
-        if (exist) {
-            sd.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            (sd.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(sd.cbStates, ctx);
+        if (vars.exist) {
+            vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
+            vars.cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
         } else {
-            sd.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-            (sd.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(sd.cbStates, ctx);
+            vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
+            vars.cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
         }
 
         // update publisher data
-        if (exist && sd.sdata.subId != _UNALLOCATED_SUB_ID) {
+        if (vars.exist && vars.sdata.subId != _UNALLOCATED_SUB_ID) {
             // if the subscription exist and not approved, update the approved units amount
 
             // update total units
-            sd.idata.totalUnitsApproved = (
-                uint256(sd.idata.totalUnitsApproved) +
+            vars.idata.totalUnitsApproved = (
+                uint256(vars.idata.totalUnitsApproved) +
                 uint256(units) -
-                uint256(sd.sdata.units)
+                uint256(vars.sdata.units)
             ).toUint128();
-            token.updateAgreementData(iId, _encodeIndexData(sd.idata));
-        } else if (exist) {
+            token.updateAgreementData(iId, _encodeIndexData(vars.idata));
+        } else if (vars.exist) {
             // if the subscription exists and approved, update the pending units amount
 
             // update pending subscription units of the publisher
-            sd.idata.totalUnitsPending = (
-                uint256(sd.idata.totalUnitsPending) +
+            vars.idata.totalUnitsPending = (
+                uint256(vars.idata.totalUnitsPending) +
                 uint256(units) -
-                uint256(sd.sdata.units)
+                uint256(vars.sdata.units)
             ).toUint128();
-            token.updateAgreementData(iId, _encodeIndexData(sd.idata));
+            token.updateAgreementData(iId, _encodeIndexData(vars.idata));
         } else {
             // if the E_NO_SUBS, create it and then update the pending units amount
 
             // create unallocated subscription
-            sd.sdata = SubscriptionData({
+            vars.sdata = SubscriptionData({
                 publisher: publisher,
                 indexId: indexId,
                 subId: _UNALLOCATED_SUB_ID,
                 units: units,
-                indexValue: sd.idata.indexValue
+                indexValue: vars.idata.indexValue
             });
-            token.createAgreement(sId, _encodeSubscriptionData(sd.sdata));
+            token.createAgreement(sId, _encodeSubscriptionData(vars.sdata));
 
-            sd.idata.totalUnitsPending = sd.idata.totalUnitsPending.add(units);
-            token.updateAgreementData(iId, _encodeIndexData(sd.idata));
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units);
+            token.updateAgreementData(iId, _encodeIndexData(vars.idata));
         }
 
-        int256 balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
+        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
 
         // adjust publisher's deposit and balances if subscription is pending
-        if (sd.sdata.subId == _UNALLOCATED_SUB_ID) {
+        if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
             _adjustPublisherDeposit(token, publisher, -balanceDelta);
             token.settleBalance(publisher, -balanceDelta);
         }
@@ -437,22 +447,24 @@ contract InstantDistributionAgreementV1 is
         token.settleBalance(subscriber, balanceDelta);
 
         // update subscription data if necessary
-        if (exist) {
-            sd.sdata.indexValue = sd.idata.indexValue;
-            sd.sdata.units = units;
-            token.updateAgreementData(sId, _encodeSubscriptionData(sd.sdata));
+        if (vars.exist) {
+            vars.sdata.indexValue = vars.idata.indexValue;
+            vars.sdata.units = units;
+            token.updateAgreementData(sId, _encodeSubscriptionData(vars.sdata));
         }
 
         // check account solvency
         require(!token.isAccountCriticalNow(publisher), "IDA: E_LOW_BALANCE");
 
         // after-hook callback
-        if (exist) {
-            sd.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(sd.cbStates, sd.cbdata, newCtx);
+        if (vars.exist) {
+            vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
+            vars.cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
+            AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         } else {
-            sd.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(sd.cbStates, sd.cbdata, newCtx);
+            vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+            vars.cbStates.selector = ISuperApp.afterAgreementCreated.selector;
+            AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         }
 
         emit IndexUnitsUpdated(token, publisher, indexId, subscriber, units);
@@ -473,21 +485,19 @@ contract InstantDistributionAgreementV1 is
             uint256 pendingDistribution
         )
     {
-        bool exist;
-        IndexData memory idata;
-        SubscriptionData memory sdata;
-        bytes32 iId = _getPublisherId(publisher, indexId);
-        (exist, idata) = _getIndexData(token, iId);
-        require(exist, "IDA: E_NO_INDEX");
-        bytes32 sId = _getSubscriptionId(subscriber, iId);
-        (exist, sdata) = _getSubscriptionData(token, sId);
-        require(exist, "IDA: E_NO_SUBS");
-        assert(sdata.publisher == publisher);
-        assert(sdata.indexId == indexId);
-        approved = sdata.subId != _UNALLOCATED_SUB_ID;
-        units = sdata.units;
+        _StackVars memory vars;
+        vars.iId = _getPublisherId(publisher, indexId);
+        (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
+        require(vars.exist, "IDA: E_NO_INDEX");
+        vars.sId = _getSubscriptionId(subscriber, vars.iId);
+        (vars.exist, vars.sdata) = _getSubscriptionData(token, vars.sId);
+        require(vars.exist, "IDA: E_NO_SUBS");
+        assert(vars.sdata.publisher == publisher);
+        assert(vars.sdata.indexId == indexId);
+        approved = vars.sdata.subId != _UNALLOCATED_SUB_ID;
+        units = vars.sdata.units;
         pendingDistribution = approved ? 0 :
-            uint256(idata.indexValue - sdata.indexValue) * uint256(sdata.units);
+            uint256(vars.idata.indexValue - vars.sdata.indexValue) * uint256(vars.sdata.units);
     }
 
     /// @dev IInstantDistributionAgreementV1.getSubscriptionByID implementation
@@ -504,22 +514,20 @@ contract InstantDistributionAgreementV1 is
            uint256 pendingDistribution
        )
     {
-        bool exist;
-        IndexData memory idata;
-        SubscriptionData memory sdata;
-        (exist, sdata) = _getSubscriptionData(token, agreementId);
-        require(exist, "IDA: E_NO_SUBS");
+        _StackVars memory vars;
+        (vars.exist, vars.sdata) = _getSubscriptionData(token, agreementId);
+        require(vars.exist, "IDA: E_NO_SUBS");
 
-        publisher = sdata.publisher;
-        indexId = sdata.indexId;
-        bytes32 iId = _getPublisherId(publisher, indexId);
-        (exist, idata) = _getIndexData(token, iId);
-        require(exist, "IDA: E_NO_INDEX");
+        publisher = vars.sdata.publisher;
+        indexId = vars.sdata.indexId;
+        vars.iId = _getPublisherId(publisher, indexId);
+        (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
+        require(vars.exist, "IDA: E_NO_INDEX");
 
-        approved = sdata.subId != _UNALLOCATED_SUB_ID;
-        units = sdata.units;
+        approved = vars.sdata.subId != _UNALLOCATED_SUB_ID;
+        units = vars.sdata.units;
         pendingDistribution = approved ? 0 :
-            uint256(idata.indexValue - sdata.indexValue) * uint256(sdata.units);
+            uint256(vars.idata.indexValue - vars.sdata.indexValue) * uint256(vars.sdata.units);
     }
 
     /// @dev IInstantDistributionAgreementV1.listSubscriptions implementation
@@ -550,35 +558,6 @@ contract InstantDistributionAgreementV1 is
         }
     }
 
-    function _listSubscriptionIds(
-        ISuperfluidToken token,
-        address subscriber
-    )
-        private view
-        returns (bytes32[] memory sidList)
-    {
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
-            subscriber,
-            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
-
-        sidList = new bytes32[](_MAX_NUM_SUBS);
-        // read all slots
-        uint nSlots;
-        for (uint32 subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
-            if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
-            bytes32 iId = token.getAgreementStateSlot(
-                address(this),
-                subscriber,
-                _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
-            sidList[nSlots++] = _getSubscriptionId(subscriber, iId);
-        }
-        // resize memory arrays
-        assembly {
-            mstore(sidList, nSlots)
-        }
-    }
-
     /// @dev IInstantDistributionAgreementV1.deleteSubscription implementation
     function deleteSubscription(
         ISuperfluidToken token,
@@ -590,52 +569,48 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        bool exist;
-        StackData memory sd;
+        _StackVars memory vars;
         address sender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
         require(sender == publisher || sender == subscriber, "IDA: E_NOT_ALLOWED");
-        sd.iId = _getPublisherId(publisher, indexId);
-        sd.sId = _getSubscriptionId(subscriber, sd.iId);
-        (exist, sd.idata) = _getIndexData(token, sd.iId);
-        require(exist, "IDA: E_NO_INDEX");
-        (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
-        require(exist, "IDA: E_NO_SUBS");
-        assert(sd.sdata.publisher == publisher);
-        assert(sd.sdata.indexId == indexId);
+        vars.iId = _getPublisherId(publisher, indexId);
+        vars.sId = _getSubscriptionId(subscriber, vars.iId);
+        (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
+        require(vars.exist, "IDA: E_NO_INDEX");
+        (vars.exist, vars.sdata) = _getSubscriptionData(token, vars.sId);
+        require(vars.exist, "IDA: E_NO_SUBS");
+        assert(vars.sdata.publisher == publisher);
+        assert(vars.sdata.indexId == indexId);
 
-        sd.cbStates = AgreementLibrary.CallbackInputs({
-            host: ISuperfluid(msg.sender),
-            token: token,
-            noopBit: 0,
-            agreementClass: address(this),
-            account: sender == subscriber ? publisher : subscriber,
-            agreementId: sd.sId,
-            appAllowance: 0,
-            appAllowanceUsed: 0
-        });
+        vars.cbStates = AgreementLibrary.createCallbackInputs(
+            address(this),
+            token,
+            sender == subscriber ? publisher : subscriber,
+            vars.sId);
+        newCtx = ctx;
 
-        sd.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
-        (sd.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(sd.cbStates, ctx);
+        vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
+        vars.cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
+        vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
-        int256 balanceDelta = int256(sd.idata.indexValue - sd.sdata.indexValue) * int256(sd.sdata.units);
+        int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
 
         // update publisher index agreement data
-        if (sd.sdata.subId != _UNALLOCATED_SUB_ID) {
-            sd.idata.totalUnitsApproved = sd.idata.totalUnitsApproved.sub(sd.sdata.units);
+        if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
+            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units);
         } else {
-            sd.idata.totalUnitsPending = sd.idata.totalUnitsPending.sub(sd.sdata.units);
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.sub(vars.sdata.units);
         }
-        token.updateAgreementData(sd.iId, _encodeIndexData(sd.idata));
+        token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 
         // terminate subscription agreement data
-        token.terminateAgreement(sd.sId, 2);
+        token.terminateAgreement(vars.sId, 2);
         // remove subscription from subscriber's bitmap
-        if (sd.sdata.subId != _UNALLOCATED_SUB_ID) {
-            _clearSubsBitmap(token, subscriber, sd.sdata);
+        if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
+            _clearSubsBitmap(token, subscriber, vars.sdata);
         }
 
         // move from publisher's deposit to static balance
-        if (sd.sdata.subId == _UNALLOCATED_SUB_ID) {
+        if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
             _adjustPublisherDeposit(token, publisher, -balanceDelta);
             token.settleBalance(publisher, -balanceDelta);
         }
@@ -643,8 +618,9 @@ contract InstantDistributionAgreementV1 is
         // settle subscriber static balance
         token.settleBalance(subscriber, balanceDelta);
 
-        sd.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        (, newCtx) = AgreementLibrary.callAppAfterCallback(sd.cbStates, sd.cbdata, newCtx);
+        vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+        vars.cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
+        AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber);
         emit SubscriptionDeleted(token, subscriber, publisher, indexId);
@@ -660,53 +636,55 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        bool exist;
-        StackData memory sd;
-        sd.iId = _getPublisherId(publisher, indexId);
-        sd.sId = _getSubscriptionId(subscriber, sd.iId);
-        (exist, sd.idata) = _getIndexData(token, sd.iId);
-        require(exist, "IDA: E_NO_INDEX");
-        (exist, sd.sdata) = _getSubscriptionData(token, sd.sId);
-        require(exist, "IDA: E_NO_SUBS");
+        _StackVars memory vars;
+        vars.iId = _getPublisherId(publisher, indexId);
+        vars.sId = _getSubscriptionId(subscriber, vars.iId);
+        (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
+        require(vars.exist, "IDA: E_NO_INDEX");
+        (vars.exist, vars.sdata) = _getSubscriptionData(token, vars.sId);
+        require(vars.exist, "IDA: E_NO_SUBS");
          // sanity check
-        assert(sd.sdata.publisher == publisher);
-        assert(sd.sdata.indexId == indexId);
+        assert(vars.sdata.publisher == publisher);
+        assert(vars.sdata.indexId == indexId);
         // required condition check
-        require(sd.sdata.subId == _UNALLOCATED_SUB_ID, "IDA: E_SUBS_APPROVED");
+        require(vars.sdata.subId == _UNALLOCATED_SUB_ID, "IDA: E_SUBS_APPROVED");
 
-        uint256 pendingDistribution = uint256(sd.idata.indexValue - sd.sdata.indexValue) * uint256(sd.sdata.units);
+        uint256 pendingDistribution = uint256(vars.idata.indexValue - vars.sdata.indexValue)
+            * uint256(vars.sdata.units);
 
-        sd.cbStates = AgreementLibrary.CallbackInputs({
-            host: ISuperfluid(msg.sender),
-            token: token,
-            noopBit: 0,
-            agreementClass: address(this),
-            account: publisher,
-            agreementId: sd.sId,
-            appAllowance: 0,
-            appAllowanceUsed: 0
-        });
+        vars.cbStates = AgreementLibrary.createCallbackInputs(
+            address(this),
+            token,
+            publisher,
+            vars.sId);
+        newCtx = ctx;
 
         if (pendingDistribution > 0) {
-            sd.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            (sd.cbdata, newCtx) = AgreementLibrary.callAppBeforeCallback(sd.cbStates, ctx);
+            vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
+            vars.cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
             // adjust publisher's deposits
             _adjustPublisherDeposit(token, publisher, -int256(pendingDistribution));
             token.settleBalance(publisher, -int256(pendingDistribution));
 
             // update subscription data and adjust subscriber's balance
-            sd.sdata.indexValue = sd.idata.indexValue;
-            token.updateAgreementData(sd.sId, _encodeSubscriptionData(sd.sdata));
+            vars.sdata.indexValue = vars.idata.indexValue;
+            token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
             token.settleBalance(subscriber, int256(pendingDistribution));
 
-            sd.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(sd.cbStates, sd.cbdata, newCtx);
+            vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
+            vars.cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
+            AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         } else {
             // nothing to be recorded in this case
             newCtx = ctx;
         }
     }
+
+    /**************************************************************************
+     * internal
+     *************************************************************************/
 
     function _getPublisherId(
         address publisher,
@@ -931,4 +909,34 @@ contract InstantDistributionAgreementV1 is
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
             slotData);
     }
+
+    function _listSubscriptionIds(
+       ISuperfluidToken token,
+       address subscriber
+    )
+       private view
+       returns (bytes32[] memory sidList)
+    {
+       uint256 subsBitmap = uint256(token.getAgreementStateSlot(
+           address(this),
+           subscriber,
+           _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
+
+       sidList = new bytes32[](_MAX_NUM_SUBS);
+       // read all slots
+       uint nSlots;
+       for (uint32 subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
+           if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
+           bytes32 iId = token.getAgreementStateSlot(
+               address(this),
+               subscriber,
+               _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
+           sidList[nSlots++] = _getSubscriptionId(subscriber, iId);
+       }
+       // resize memory arrays
+       assembly {
+           mstore(sidList, nSlots)
+       }
+    }
+
 }

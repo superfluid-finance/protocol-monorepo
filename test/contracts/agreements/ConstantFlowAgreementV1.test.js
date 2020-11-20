@@ -63,7 +63,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         console.log("new block time", block2.timestamp);
     }
 
-    async function verifyAll() {
+    async function verifyAll(opts) {
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
             syncAccountExpectedBalanceDeltas({
@@ -72,52 +72,26 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 timestamp: block2.timestamp
             });
         });
-        await t.validateSystemInvariance();
+        await t.validateSystemInvariance(opts);
     }
 
-    async function timeTravelOnceAndVerifyAll(time = TEST_TRAVEL_TIME) {
+    async function timeTravelOnceAndVerifyAll(opts = {}) {
+        const time = opts.time || TEST_TRAVEL_TIME;
         await _timeTravelOnce(time);
-        await verifyAll();
+        await verifyAll(opts);
     }
 
-    async function upgradeBalance(alias, amount) {
-        const account = t.getAddress(alias);
-        await web3tx(superToken.upgrade, `Upgrade ${amount.toString()} for account ${alias}`)(
-            amount, { from: account }
-        );
-        t.updateAccountBalanceSnapshot(
-            superToken.address,
-            account,
-            await superToken.realtimeBalanceOfNow(account)
-        );
-    }
-
-    async function transferBalance(from, to, amount) {
-        const fromAccount = t.getAddress(from);
-        const toAccount = t.getAddress(to);
-        await superToken.transfer(toAccount, amount, { from: fromAccount });
-        t.updateAccountBalanceSnapshot(
-            superToken.address,
-            toAccount,
-            await superToken.realtimeBalanceOfNow(toAccount)
-        );
-        t.updateAccountBalanceSnapshot(
-            superToken.address,
-            fromAccount,
-            await superToken.realtimeBalanceOfNow(fromAccount)
-        );
-    }
-
-    async function shouldTestLiquidations({ titlePrefix, sender, receiver, by }) {
+    async function shouldTestLiquidations({ titlePrefix, sender, receiver, by, allowCriticalAccount }) {
         const liquidationType = by === sender ? "liquidate by agent" : "self liquidate";
 
         it(`${titlePrefix}.1 should ${liquidationType} when critical but solvent`, async () => {
             assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
             // drain the balance until critical (60sec extra)
-            await timeTravelOnceAndVerifyAll(
-                t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() - LIQUIDATION_PERIOD + 60
-            );
+            await timeTravelOnceAndVerifyAll({
+                time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() - LIQUIDATION_PERIOD + 60,
+                allowCriticalAccount: true
+            });
             assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
 
@@ -135,9 +109,10 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
             // drain the balance until insolvent (60sec extra)
-            await timeTravelOnceAndVerifyAll(
-                t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60
-            );
+            await timeTravelOnceAndVerifyAll({
+                time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60,
+                allowCriticalAccount: true
+            });
             assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
             assert.isFalse(await superToken.isAccountSolventNow(t.aliases[sender]));
 
@@ -148,7 +123,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 by
             });
 
-            await verifyAll();
+            await verifyAll({ allowCriticalAccount });
         });
     }
 
@@ -164,7 +139,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
         describe("#1.1 createFlow", () => {
             it("#1.1.1 should create when there is enough balance", async () => {
-                await upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
                 await shouldCreateFlow({
                     testenv: t,
@@ -213,7 +188,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
 
             it("#1.1.6 should not create same flow", async () => {
-                await upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
                 await shouldCreateFlow({
                     testenv: t,
@@ -250,7 +225,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
         describe("#1.2 updateFlow", () => {
             beforeEach(async () => {
-                await upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
                 await shouldCreateFlow({
                     testenv: t,
@@ -361,7 +336,10 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
         describe("#1.3 deleteFlow (non liquidation)", () => {
             beforeEach(async () => {
-                await upgradeBalance(sender, t.configs.INIT_BALANCE);
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
                 await shouldCreateFlow({
                     testenv: t,
                     sender,
@@ -443,14 +421,18 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     titlePrefix: "#1.3.7",
                     sender,
                     receiver,
-                    by: sender
+                    by: sender,
+                    // no one will bail you out, alice :(
+                    allowCriticalAccount: true
                 });
             });
         });
 
         describe("#1.4 deleteFlow (liquidations)", () => {
             beforeEach(async () => {
-                await upgradeBalance(sender, t.configs.INIT_BALANCE);
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
                 await shouldCreateFlow({
                     testenv: t,
                     sender,
@@ -506,7 +488,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     titlePrefix: "#1.4.5",
                     sender,
                     receiver,
-                    by: agent
+                    by: agent,
+                    // thanks for bailing every one out, dan :)
+                    allowCriticalAccount: true
                 });
             });
         });
@@ -519,8 +503,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
         describe("#1.8 misc", () => {
             it("#1.8.1 getNetflow should return net flow rate", async () => {
-                await upgradeBalance("alice", t.configs.INIT_BALANCE);
-                await upgradeBalance("bob", t.configs.INIT_BALANCE);
+                await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+                await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
                 await shouldCreateFlow({
                     testenv: t,
@@ -556,7 +540,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 ["large", toWad(42).div(toBN(3600))],
                 ["maximum", MAXIMUM_FLOW_RATE.div(toBN(LIQUIDATION_PERIOD))]
             ].forEach(([label, flowRate], i) => {
-                it(`#1.5.${i} should support ${label} flow rate (${flowRate})`, async () => {
+                it(`#1.10.${i} should support ${label} flow rate (${flowRate})`, async () => {
                     // sufficient liquidity for the test case
                     // - it needs 1x liquidation period
                     // - it adds an additional 60 seconds as extra safe margin
@@ -570,7 +554,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     await testToken.mint(t.aliases.alice, sufficientLiquidity, {
                         from: t.aliases.alice
                     });
-                    await upgradeBalance("alice", sufficientLiquidity);
+                    await t.upgradeBalance("alice", sufficientLiquidity);
 
                     await shouldCreateFlow({
                         testenv: t,
@@ -586,7 +570,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         flowRate: flowRate,
                     });
 
-                    await timeTravelOnceAndVerifyAll();
+                    await timeTravelOnceAndVerifyAll({ allowCriticalAccount: true });
                 });
             });
         });
@@ -609,7 +593,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
 
         it("#2.1 mfa-1to1_100pc_create-full_updates-full_delete", async () => {
-            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
                 ratioPct: 100,
@@ -676,7 +660,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
 
         it("#2.2 mfa-1to0_create-updates-delete", async () => {
-            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
                 ratioPct: 0,
@@ -739,7 +723,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
 
         it("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
-            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
                 ratioPct: 100,
@@ -809,7 +793,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
 
         it("#2.4 mfa-1to2[50,50]_50pc_create-full_updates-full_delete", async () => {
-            await upgradeBalance(sender, t.configs.INIT_BALANCE);
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
                 ratioPct: 50,
@@ -878,9 +862,10 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await timeTravelOnceAndVerifyAll();
         });
 
-        it.skip("#2.5 mfa-1to2[50,50]_150pc_create-full_updates-full_delete", async () => {
-            await upgradeBalance(sender, t.configs.INIT_BALANCE);
-            await transferBalance(sender, "mfa", toWad(30));
+        it("#2.5 mfa-1to2[50,50]_150pc_create-full_updates-full_delete", async () => {
+            // double the amount since it's a "bigger" flow
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE.muln(2));
+            await t.transferBalance(sender, "mfa", toWad(50));
 
             const mfa = {
                 ratioPct: 150,

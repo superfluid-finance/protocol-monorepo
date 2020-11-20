@@ -1,5 +1,5 @@
 const _ = require("lodash");
-//const { BN } = require("@openzeppelin/test-helpers");
+const { BN } = require("@openzeppelin/test-helpers");
 const {
     web3tx,
     toBN
@@ -9,6 +9,11 @@ function clipDepositNumber(deposit, roundingDown = false) {
     // last 32 bites of the deposit (96 bites) is clipped off
     const rounding = roundingDown ? 0 : (deposit.and(toBN(0xFFFFFFFF)).isZero() ? 0 : 1);
     return deposit.shrn(32).addn(rounding).shln(32);
+}
+
+function adjustNewAppAllowanceUsed(appAllowance, appAllowanceWanted, newAppAllowanceUsed) {
+    //return BN.max(toBN(0), BN.min(appAllowance, BN.max(newAppAllowanceUsed, appAllowanceUsed)));
+    return BN.max(toBN(0), BN.min(appAllowance, newAppAllowanceUsed));
 }
 
 //
@@ -268,22 +273,22 @@ async function _shouldChangeFlow({
             assert.equal(
                 flowData.flowInfo2.timestamp.getTime()/1000,
                 txBlock.timestamp,
-                "wrong flow timestamp of the flow");
+                `wrong flow timestamp of the ${flowName} flow`);
         } else {
             assert.equal(flowData.flowInfo2.timestamp.getTime(), 0);
         }
         assert.equal(
             flowData.flowInfo2.flowRate,
             expectedFlowInfo[flowName].flowRate.toString(),
-            "wrong flowrate of the flow");
-        assert.equal(
-            flowData.flowInfo2.deposit,
-            expectedFlowInfo[flowName].deposit.toString(),
-            "wrong deposit amount of the flow");
+            `wrong flowrate of the ${flowName} flow`);
         assert.equal(
             flowData.flowInfo2.owedDeposit,
             expectedFlowInfo[flowName].owedDeposit.toString(),
-            "wrong owed deposit aount of the flow");
+            `wrong owed deposit amount of the ${flowName} flow`);
+        assert.equal(
+            flowData.flowInfo2.deposit,
+            expectedFlowInfo[flowName].deposit.toString(),
+            `wrong deposit amount of the ${flowName} flow`);
     };
 
     const validateAccountFlowInfoChange = (role) => {
@@ -460,12 +465,18 @@ async function _shouldChangeFlow({
             owedDeposit: toBN(0)
         };
     } else {
-        const flowDeposit = clipDepositNumber(toBN(flowRate)
-            .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)));
-
-        const mfaAllowanceUsed = Object.values(expectedFlowInfo).map(i=>i.deposit).reduce((acc, cur) => {
+        const flowDepositUnclipped = toBN(flowRate).mul(toBN(testenv.configs.LIQUIDATION_PERIOD));
+        const flowDeposit = clipDepositNumber(flowDepositUnclipped);
+        const appAllowance = clipDepositNumber(flowDepositUnclipped, true /* rounding down */);
+        const newAppAllowanceUsed = Object.values(expectedFlowInfo).map(i=>i.deposit).reduce((acc, cur) => {
             return acc.add(cur);
         }, toBN(0));
+
+        const mfaAllowanceUsed = adjustNewAppAllowanceUsed(
+            appAllowance,
+            flowDeposit, // appAllowanceUsed
+            newAppAllowanceUsed
+        );
 
         // adjust deposit allowance refunds to refund less
         // if (mfaAllowanceUsedDelta.ltn(0)) {
@@ -476,8 +487,11 @@ async function _shouldChangeFlow({
         // }
 
         // console.log("!!!! main",
+        //     flowRate.toString(),
         //     flowDeposit.toString(),
-        //     mfaAllowanceUsed.toString(),);
+        //     appAllowance.toString(),
+        //     newAppAllowanceUsed.toString(),
+        //     mfaAllowanceUsed.toString());
 
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
@@ -704,6 +718,7 @@ async function shouldDeleteFlow({
 
 module.exports = {
     clipDepositNumber,
+    adjustNewAppAllowanceUsed,
     getFlowInfo,
     getAccountFlowInfo,
     shouldCreateFlow,

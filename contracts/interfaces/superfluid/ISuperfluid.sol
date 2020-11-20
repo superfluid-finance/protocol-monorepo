@@ -7,7 +7,10 @@ import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
-import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
+import {
+    ContextDefinitions,
+    SuperAppDefinitions
+} from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
@@ -186,6 +189,7 @@ interface ISuperfluid {
      *
      * These functions can only be called by registered agreements.
      *************************************************************************/
+
     function callAppBeforeCallback(
         ISuperApp app,
         bytes calldata data,
@@ -210,7 +214,7 @@ interface ISuperfluid {
 
     function ctxUpdateAppAllowance(
         bytes calldata ctx,
-        uint8 appLevel,
+        uint8 cbLevel,
         int256 appAllowanceIO,
         int256 appAllowanceUsed
     )
@@ -331,10 +335,10 @@ interface ISuperfluid {
     function decodeCtx(bytes calldata ctx)
         external pure
         returns (
+            uint256 callInfo,
             uint256 timestamp,
             address msgSender,
             bytes4 agreementSelector,
-            uint8 appLevel,
             int256 appAllowanceIO,
             int256 appAllowanceUsed
         );

@@ -933,6 +933,41 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
             await timeTravelOnceAndVerifyAll();
         });
+
+        it("#2.6 mfa-1to1-101pc_create-should-fail-without-extra-funds", async () => {
+            const mfa = {
+                ratioPct: 101,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    }
+                }
+            };
+            // TODO use call context user data to configure the multi flows
+            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
+                app.address,
+                app.contract.methods.createMultiFlows(
+                    mfa.ratioPct,
+                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
+                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
+                    "0x"
+                ).encodeABI(),
+                {
+                    from: t.aliases[sender]
+                }
+            );
+
+            // create 1to1 100% through
+            await expectRevert(shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            }), "CFA: not enough available balance");
+            await timeTravelOnceAndVerifyAll();
+        });
+
     });
 
     describe("#10 multi accounts scenarios", () => {

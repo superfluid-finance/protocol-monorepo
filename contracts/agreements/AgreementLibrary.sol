@@ -6,7 +6,8 @@ import {
     ISuperfluid,
     ISuperfluidToken,
     ISuperApp,
-    SuperAppDefinitions
+    SuperAppDefinitions,
+    ContextDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
@@ -31,6 +32,7 @@ library AgreementLibrary {
         uint256 timestamp;
         address msgSender;
         uint8 appLevel;
+        uint8 callType;
         int256 appAllowanceIO;
         int256 appAllowanceUsed;
     }
@@ -39,14 +41,16 @@ library AgreementLibrary {
         internal pure
         returns (Context memory context)
     {
+        uint256 callInfo;
         (
+            callInfo,
             context.timestamp,
             context.msgSender,
             ,
-            context.appLevel,
             context.appAllowanceIO,
             context.appAllowanceUsed
         ) = host.decodeCtx(ctx);
+        (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
     }
 
     function ctxUpdateAppAllowance(

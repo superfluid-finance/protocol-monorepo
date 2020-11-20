@@ -59,7 +59,7 @@ contract MultiFlowApp is SuperAppBase {
         returns(bytes memory newCtx)
     {
         assert(receivers.length == proportions.length);
-        (,address sender,,,,) = _host.decodeCtx(ctx);
+        (,,address sender,,,) = _host.decodeCtx(ctx);
 
         newCtx = _host.chargeGasFee(ctx, 30000);
 
@@ -138,7 +138,7 @@ contract MultiFlowApp is SuperAppBase {
         address sender;
         int96 flowRate;
         int256 appAllowance;
-        (,sender,,,appAllowance,) = _host.decodeCtx(ctx);
+        (,,sender,,appAllowance,) = _host.decodeCtx(ctx);
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
         assert(appAllowance > 0);
         newCtx = _updateMultiFlow(
@@ -180,7 +180,7 @@ contract MultiFlowApp is SuperAppBase {
         address sender;
         int96 flowRate;
         int256 appAllowance;
-        (,sender,,,appAllowance,) = _host.decodeCtx(ctx);
+        (,,sender,,appAllowance,) = _host.decodeCtx(ctx);
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
         assert(appAllowance > 0);
         newCtx = _updateMultiFlow(
@@ -205,7 +205,7 @@ contract MultiFlowApp is SuperAppBase {
         returns (bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        (,address sender,,,,) = _host.decodeCtx(ctx);
+        (,,address sender,,,) = _host.decodeCtx(ctx);
         newCtx = ctx;
         for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
             (newCtx, ) = _host.callAgreementWithContext(

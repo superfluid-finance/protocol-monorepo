@@ -482,6 +482,10 @@ contract ConstantFlowAgreementV1 is
             vars.appContext = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
+        // FIXME
+        // !!REVISIT the re-entrace assumptions from this point on
+        //
+
         // NOTE: vars.appContext.appAllowanceUsed will be adjusted by callAppAfterCallback
         // and its range will be [0, currentContext.appAllowance]
         {

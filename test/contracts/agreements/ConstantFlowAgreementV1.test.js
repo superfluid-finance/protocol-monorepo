@@ -5,6 +5,7 @@ const {
     toBN
 } = require("@decentral.ee/web3-helpers");
 const {
+    clipDepositNumber,
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
@@ -518,19 +519,49 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 assert.equal(
                     (await cfa.getNetFlow(superToken.address, t.aliases.alice)).toString(),
                     "-" + FLOW_RATE1.toString());
-                // await shouldCreateFlow({
-                //     testenv: t,
-                //     sender: "bob",
-                //     receiver: "alice",
-                //     flowRate: FLOW_RATE1,
-                // });
-                // assert.equal(
-                //     (await cfa.getNetFlow(superToken.address, t.aliases.bob)).toString(),
-                //     "0");
-                // assert.equal(
-                //     (await cfa.getNetFlow(superToken.address, t.aliases.alice)).toString(),
-                //     "0");
             });
+
+            it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
+                const test = async (deposit) => {
+                    const flowRate = await cfa.getMaximumFlowRateFromDeposit.call(
+                        superToken.address,
+                        deposit.toString()
+                    );
+                    const expectedFlowRate = clipDepositNumber(toBN(deposit), true /* rounding down */)
+                        .div(toBN(LIQUIDATION_PERIOD));
+                    console.log(`f(${deposit.toString()}) = ${expectedFlowRate.toString()} ?`);
+                    assert.equal(flowRate.toString(), expectedFlowRate.toString(),
+                        `getMaximumFlowRateFromDeposit(${deposit.toString()})`);
+                };
+                await test(0);
+                await test(1);
+                await test("10000000000000");
+                const maxDeposit = toBN(1).shln(95).subn(1);
+                await test(maxDeposit);
+                expectRevert(test(maxDeposit.addn(1)), "CFA: deposit number too big");
+            });
+
+            it("#1.8.3 getDepositRequiredForFlowRate", async () => {
+                const test = async (flowRate) => {
+                    const deposit = await cfa.getDepositRequiredForFlowRate.call(
+                        superToken.address,
+                        flowRate.toString()
+                    );
+                    const expectedDeposit = clipDepositNumber(toBN(flowRate)
+                        .mul(toBN(LIQUIDATION_PERIOD)));
+                    console.log(`f(${flowRate.toString()}) = ${expectedDeposit.toString()} ?`);
+                    assert.equal(deposit.toString(), expectedDeposit.toString(),
+                        `getDepositRequiredForFlowRate(${flowRate.toString()})`);
+                };
+                await test(0);
+                await test(1);
+                await test("10000000000000");
+                await expectRevert(test("-100000000000000"), "CFA: not for negative flow rate");
+                const maxFlowRate = toBN(1).shln(95).div(toBN(LIQUIDATION_PERIOD));
+                await test(maxFlowRate);
+                await expectRevert(test(maxFlowRate.addn(1)), "CFA: flow rate too big");
+            });
+
         });
 
         describe("#1.10 should support different flow rates", () => {

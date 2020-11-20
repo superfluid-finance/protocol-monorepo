@@ -17,12 +17,20 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     }
 
+    /**
+     * @dev Get the maximum flow rate allowed with the deposit
+     * @param deposit Deposit amount used for creating the flow
+     */
     function getMaximumFlowRateFromDeposit(
         ISuperfluidToken token,
         uint256 deposit)
         external view virtual
         returns (int96 flowRate);
 
+    /**
+     * @dev Get the deposit required for creating the flow
+     * @param flowRate Flow rate to be tested
+     */
     function getDepositRequiredForFlowRate(
         ISuperfluidToken token,
         int96 flowRate)

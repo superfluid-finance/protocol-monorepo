@@ -79,12 +79,12 @@ contract ConstantFlowAgreementV1 is
         external view override
         returns (int96 flowRate)
     {
+        require(deposit < 2**95, "CFA: deposit number too big");
         deposit = _clipDepositNumberRoundingDown(deposit);
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
         uint256 flowrate1 = deposit.div(liquidationPeriod);
-        require(flowrate1 < 2**95, "CFA: deposit number too big");
         return int96(flowrate1);
     }
 
@@ -94,9 +94,11 @@ contract ConstantFlowAgreementV1 is
         external view override
         returns (uint256 deposit)
     {
+        require(flowRate >= 0, "CFA: not for negative flow rate");
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         return _calculateDeposit(flowRate, liquidationPeriod, false);
     }
 

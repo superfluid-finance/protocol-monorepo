@@ -32,6 +32,8 @@ function _updateFlowInfo({
                 cfa: {
                     flows: {
                         [`${sender}:${receiver}`]: {
+                            sender,
+                            receiver,
                             timestamp: flowInfo.timestamp,
                             flowRate: flowInfo.flowRate,
                             deposit: flowInfo.deposit,
@@ -56,6 +58,8 @@ function getFlowInfo({
                 cfa: {
                     flows: {
                         [`${sender}:${receiver}`]: {
+                            sender,
+                            receiver,
                             timestamp: 0,
                             flowRate: 0,
                             deposit: 0,
@@ -132,11 +136,50 @@ function getAccountFlowInfo({
     return _.clone(testenv.data.tokens[superToken].accounts[account].cfa.flowInfo);
 }
 
+function validateAccountNetFlow({
+    testenv,
+    superToken,
+    account
+}) {
+    const alias = testenv.toAlias(account);
+    console.log(`validating ${alias} account net flow ...`);
+
+    // ${sender}:${receiver} => flowInfo
+    const flows = testenv.data.tokens[superToken].cfa.flows;
+
+    const inFlows = Object.keys(flows)
+        .filter(i => i.endsWith(`:${account}`))
+        .map(i=>flows[i]);
+    const outFlows = Object.keys(flows)
+        .filter(i => i.startsWith(`${account}:`))
+        .map(i=>flows[i]);
+    console.log("in flows", inFlows.map(i=>testenv.toAlias(i.sender)));
+    console.log("out flows", outFlows.map(i=>testenv.toAlias(i.receiver)));
+
+    let actualNetFlow = toBN(0);
+
+    inFlows.forEach(flowInfo => {
+        actualNetFlow.iadd(toBN(flowInfo.flowRate));
+    });
+    outFlows.forEach(flowInfo => {
+        actualNetFlow.isub(toBN(flowInfo.flowRate));
+    });
+
+    const accountFlowInfo = getAccountFlowInfo({ testenv, superToken, account });
+
+    assert.equal(
+        accountFlowInfo.flowRate.toString(),
+        actualNetFlow.toString(),
+        `unexpected netflow of ${alias}`);
+}
+
 function syncAccountExpectedBalanceDeltas({
     testenv,
     superToken,
     timestamp
 }) {
+    console.log("syncing accounting expected balance deltas due to flows...");
+
     testenv.listAddresses().forEach(account => {
         const accuntFlowInfo = getAccountFlowInfo({ testenv, superToken, account });
         const balanceSnapshot = testenv.getAccountBalanceSnapshot(superToken, account);
@@ -155,6 +198,80 @@ function syncAccountExpectedBalanceDeltas({
             account,
             expectedBalanceDelta2);
     });
+}
+
+class MFASupport {
+    static addRoles({ testenv, mfa, roles }) {
+        Object.keys(mfa.receivers).forEach(async receiverAlias => {
+            const mfaReceiverName = "mfa.receiver." + receiverAlias;
+            roles[mfaReceiverName] = testenv.getAddress(receiverAlias);
+            console.log(`${receiverAlias} account address ${roles[mfaReceiverName]} (${receiverAlias})`);
+        });
+    }
+
+    static async setupFlowExpectations({
+        testenv,
+        mfa,
+        flowRate,
+        roles,
+        addFlowInfo1,
+        getAccountFlowInfo1,
+        expectedNetFlowDeltas,
+        expectedFlowInfo
+    }) {
+        console.log("mfa enabled with", JSON.stringify(mfa));
+
+        let totalProportions = Object.values(mfa.receivers)
+            .map(i => i.proportion)
+            .reduce((acc,cur) => acc + cur, 0);
+
+        const depositAllowance = clipDepositNumber(
+            toBN(flowRate)
+                .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
+            true /* rounding down */);
+
+        await Promise.all(Object.keys(mfa.receivers).map(async receiverAlias => {
+            const mfaReceiverName = "mfa.receiver." + receiverAlias;
+            const mfaFlowName = "mfa.flow." + receiverAlias;
+
+            await addFlowInfo1(mfaFlowName, {
+                sender: roles.receiver,
+                receiver: roles[mfaReceiverName],
+            });
+
+            const mfaFlowDepositAllowance = clipDepositNumber(
+                toBN(depositAllowance)
+                    .mul(toBN(mfa.receivers[receiverAlias].proportion))
+                    .mul(toBN(mfa.ratioPct))
+                    .divn(100)
+                    .div(toBN(totalProportions)),
+                true /* rounding down */);
+
+            const mfaFlowRate = toBN(mfaFlowDepositAllowance)
+                .div(toBN(testenv.configs.LIQUIDATION_PERIOD));
+
+            const mfaFlowRateDelta = toBN(mfaFlowRate)
+                .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
+            expectedNetFlowDeltas[roles[mfaReceiverName]] = mfaFlowRateDelta;
+            expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.receiver]
+                .sub(mfaFlowRateDelta);
+
+            expectedFlowInfo[mfaFlowName] = {
+                flowRate: mfaFlowRate,
+                deposit: mfaFlowDepositAllowance,
+                owedDeposit: toBN(0)
+            };
+
+            // console.log("!!!! mfa flow",
+            //     mfaFlowName,
+            //     mfaFlowRate.toString(),
+            //     mfaFlowDepositAllowance.toString());
+        }));
+    }
+
+    static async postCheck({ testenv, roles }) {
+        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.receiver));
+    }
 }
 
 //
@@ -249,8 +366,6 @@ async function _shouldChangeFlow({
         };
         const flowInfo = await testenv.sf.cfa.getFlow(flowId);
         flows[flowName] =  {
-            senderName: flowParams.senderName,
-            receiverName: flowParams.receiverName,
             flowId,
             flowInfo1: flowInfo
         };
@@ -292,38 +407,28 @@ async function _shouldChangeFlow({
     };
 
     const validateAccountFlowInfoChange = (role) => {
-        console.log(`validating ${role} account net flow and deposit change...`);
+        console.log(`validating ${role} account deposit changes...`);
 
         const inFlowNames = Object.keys(flows).filter(i => flows[i].flowId.receiver === roles[role]);
         const outFlowNames = Object.keys(flows).filter(i => flows[i].flowId.sender === roles[role]);
         console.log("in flows", inFlowNames);
         console.log("out flows", outFlowNames);
 
-        let actualNetFlow = toBN(0);
         let expectedDepositDelta = toBN(0);
         let expectedOwedDepositDelta = toBN(0);
 
         inFlowNames.forEach(flowName => {
             const flowData = flows[flowName];
-            actualNetFlow = actualNetFlow
-                .add(toBN(flowData.flowInfo2.flowRate));
             expectedOwedDepositDelta = expectedOwedDepositDelta
                 .add(toBN(flowData.flowInfo2.owedDeposit))
                 .sub(toBN(flowData.flowInfo1.owedDeposit));
         });
         outFlowNames.forEach(flowName => {
             const flowData = flows[flowName];
-            actualNetFlow = actualNetFlow
-                .sub(toBN(flowData.flowInfo2.flowRate));
             expectedDepositDelta = expectedDepositDelta
                 .add(toBN(flowData.flowInfo2.deposit))
                 .sub(toBN(flowData.flowInfo1.deposit));
         });
-
-        assert.equal(
-            getAccountFlowInfo2(role).flowRate.toString(),
-            actualNetFlow.toString(),
-            `unexpected netflow of ${role}`);
 
         const flowRateDelta = toBN(getAccountFlowInfo2(role).flowRate)
             .sub(toBN(getAccountFlowInfo1(role).flowRate));
@@ -347,6 +452,10 @@ async function _shouldChangeFlow({
             `wrong owed deposit delta amount of ${role}`);
     };
 
+    /**************************************************************************
+    * Load current state and calculate expectations
+    **************************************************************************/
+
     // add all roles
     addRole("sender", sender);
     addRole("receiver", receiver);
@@ -360,12 +469,7 @@ async function _shouldChangeFlow({
         addRole("agent", by);
         addRole("reward", testenv.toAlias(rewardAddress));
     }
-    if (mfa) {
-        Object.keys(mfa.receivers).forEach(async receiverAlias => {
-            const mfaReceiverName = "mfa.receiver." + receiverAlias;
-            addRole(mfaReceiverName, receiverAlias);
-        });
-    }
+    if (mfa) MFASupport.addRoles({ testenv, mfa, roles });
     console.log("--------");
 
     // load current balance snapshot
@@ -378,19 +482,16 @@ async function _shouldChangeFlow({
 
     // load flow info before
     await addFlowInfo1("main", {
-        senderName: "sender",
-        receiverName: "receiver",
         sender: roles.sender,
         receiver: roles.receiver,
     });
     console.log("--------");
 
-    // mfa support
-    expectedNetFlowDeltas[roles.sender] =  toBN(flowRate)
-        .mul(toBN(-1))
-        .sub(toBN(getAccountFlowInfo1("sender").flowRate));
-    expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.sender]
-        .mul(toBN(-1));
+    // calculate expected net flow changes
+    expectedNetFlowDeltas[roles.sender] = toBN(flows.main.flowInfo1.flowRate)
+        .sub(toBN(flowRate));
+    expectedNetFlowDeltas[roles.receiver] = toBN(flowRate)
+        .sub(toBN(flows.main.flowInfo1.flowRate));
     if (fn === "deleteFlow") {
         if (!(roles.agent in expectedNetFlowDeltas)) {
             expectedNetFlowDeltas[roles.agent] = toBN(0);
@@ -399,85 +500,35 @@ async function _shouldChangeFlow({
             expectedNetFlowDeltas[roles.reward] = toBN(0);
         }
     }
+
+    // mfa support
     if (mfa) {
-        console.log("mfa enabled with", JSON.stringify(mfa));
-
-        let totalProportions = Object.values(mfa.receivers)
-            .map(i => i.proportion)
-            .reduce((acc,cur) => acc + cur, 0);
-
-        const depositAllowance = clipDepositNumber(
-            toBN(flowRate)
-                .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
-            true /* rounding down */);
-
-        await Promise.all(Object.keys(mfa.receivers).map(async receiverAlias => {
-            const mfaReceiverName = "mfa.receiver." + receiverAlias;
-            const mfaFlowName = "mfa.flow." + receiverAlias;
-
-            await addFlowInfo1(mfaFlowName, {
-                senderName: "receiver",
-                receiverName: mfaReceiverName,
-                sender: roles.receiver,
-                receiver: roles[mfaReceiverName],
-            });
-
-            const mfaFlowDepositAllowance = clipDepositNumber(
-                toBN(depositAllowance)
-                    .mul(toBN(mfa.receivers[receiverAlias].proportion))
-                    .mul(toBN(mfa.ratioPct))
-                    .divn(100)
-                    .div(toBN(totalProportions)),
-                true /* rounding down */);
-
-            const mfaFlowRate = toBN(mfaFlowDepositAllowance)
-                .div(toBN(testenv.configs.LIQUIDATION_PERIOD));
-
-            const mfaFlowRateDelta = toBN(mfaFlowRate)
-                .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
-            expectedNetFlowDeltas[roles[mfaReceiverName]] = mfaFlowRateDelta;
-            expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.receiver]
-                .sub(mfaFlowRateDelta);
-
-            expectedFlowInfo[mfaFlowName] = {
-                flowRate: mfaFlowRate,
-                deposit: mfaFlowDepositAllowance,
-                owedDeposit: toBN(0)
-            };
-
-            // console.log("!!!! mfa flow",
-            //     mfaFlowName,
-            //     mfaFlowRate.toString(),
-            //     mfaFlowDepositAllowance.toString());
-        }));
-        //console.log("!!!! mfaDeposit", mfaDeposit.toString());
+        await MFASupport.setupFlowExpectations({
+            testenv,
+            mfa,
+            flowRate,
+            roles,
+            getAccountFlowInfo1,
+            addFlowInfo1,
+            expectedNetFlowDeltas,
+            expectedFlowInfo
+        });
         console.log("--------");
     }
-    // console.log("!!!", flowRate.toString(),
-    //     expectedNetFlowDeltas[roles.sender].toString(),
-    //     expectedNetFlowDeltas[roles.receiver].toString());
 
     // calculate main flow expectations
-    if (fn === "deleteFlow") {
-        expectedFlowInfo.main = {
-            flowRate: toBN(flowRate),
-            deposit: toBN(0),
-            owedDeposit: toBN(0)
-        };
-    } else {
-        const flowDepositUnclipped = toBN(flowRate).mul(toBN(testenv.configs.LIQUIDATION_PERIOD));
-        const flowDeposit = clipDepositNumber(flowDepositUnclipped);
-        const appAllowance = clipDepositNumber(flowDepositUnclipped, true /* rounding down */);
+    {
+        const mainFlowDepositUnclipped = toBN(flowRate).mul(toBN(testenv.configs.LIQUIDATION_PERIOD));
+        const mainFlowDeposit = clipDepositNumber(mainFlowDepositUnclipped);
+        const mainFlowAppAllowance = clipDepositNumber(mainFlowDepositUnclipped, true /* rounding down */);
         const newAppAllowanceUsed = Object.values(expectedFlowInfo).map(i=>i.deposit).reduce((acc, cur) => {
             return acc.add(cur);
         }, toBN(0));
-
-        const mfaAllowanceUsed = adjustNewAppAllowanceUsed(
-            appAllowance,
-            flowDeposit, // appAllowanceUsed
+        const mainFlowAllowanceUsed = adjustNewAppAllowanceUsed(
+            mainFlowAppAllowance,
+            mainFlowDeposit, // appAllowanceUsed
             newAppAllowanceUsed
         );
-
         // adjust deposit allowance refunds to refund less
         // if (mfaAllowanceUsedDelta.ltn(0)) {
         //     mfaAllowanceUsedAdjusted = mfaAllowanceUsedAdjusted.add(
@@ -485,31 +536,30 @@ async function _shouldChangeFlow({
         //             .add(mfaAllowanceUsedDelta)
         //     );
         // }
-
-        // console.log("!!!! main",
-        //     flowRate.toString(),
-        //     flowDeposit.toString(),
-        //     appAllowance.toString(),
-        //     newAppAllowanceUsed.toString(),
-        //     mfaAllowanceUsed.toString());
-
         expectedFlowInfo.main = {
             flowRate: toBN(flowRate),
-            deposit: flowDeposit.add(mfaAllowanceUsed),
-            owedDeposit: mfaAllowanceUsed
+            deposit: mainFlowDeposit.add(mainFlowAllowanceUsed),
+            owedDeposit: mainFlowAllowanceUsed
         };
+        // console.log("!!!! main",
+        //     flowRate.toString(),
+        //     mainFlowDeposit.toString(),
+        //     mainFlowAppAllowance.toString(),
+        //     newAppAllowanceUsed.toString(),
+        //     mainFlowAllowanceUsed.toString());
     }
 
     // load balance before flow change
     await Promise.all(Object.keys(roles).map(addToBalances1));
-    console.log("--------");
-
-    // check sender solvency
     const isSenderCritical = await superToken.isAccountCriticalNow(roles.sender);
     const isSenderSolvent = await superToken.isAccountSolventNow(roles.sender);
     console.log("Is sender critical before: ", isSenderCritical);
     console.log("Is sender solvent before: ", isSenderSolvent);
     console.log("--------");
+
+    /**************************************************************************
+    * apply change
+    **************************************************************************/
 
     // change flow
     let tx;
@@ -539,31 +589,11 @@ async function _shouldChangeFlow({
     txBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
     console.log("--------");
 
-    // load new balances
-    await Promise.all(Object.keys(roles).map(async role => {
-        await addToBalances2(role);
-        assert.equal(getBalances2(role).timestamp, txBlock.timestamp);
-    }));
-    console.log("--------");
+    /**************************************************************************
+    * load results and test expectations
+    **************************************************************************/
 
-    // load new account flow info
-    await Promise.all(Object.keys(roles).map(addAccountFlowInfo2));
-    console.log("--------");
-
-    // load new flow info
-    await Promise.all(Object.keys(flows).map(addFlowInfo2));
-    console.log("--------");
-
-    // validate flow info changes
-    Object.keys(expectedFlowInfo).forEach(validateFlowInfoChange);
-    // TODO mfa flow changes
-    console.log("--------");
-
-    // validate account flow info changes
-    Object.keys(roles).forEach(validateAccountFlowInfoChange);
-    console.log("--------");
-
-    // caculate expected balance changes per liquidation rules
+    // caculate additional expected balance changes per liquidation rules
     if (fn === "deleteFlow") {
         // console.log("!!!!",
         //     senderBalance1.timestamp.toString(),
@@ -615,6 +645,24 @@ async function _shouldChangeFlow({
         }
     }
 
+    await Promise.all(Object.keys(roles).map(async role => {
+        await addToBalances2(role);
+        assert.equal(getBalances2(role).timestamp, txBlock.timestamp);
+    }));
+    console.log("--------");
+
+    await Promise.all(Object.keys(roles).map(addAccountFlowInfo2));
+    console.log("--------");
+
+    await Promise.all(Object.keys(flows).map(addFlowInfo2));
+    console.log("--------");
+
+    Object.keys(expectedFlowInfo).forEach(validateFlowInfoChange);
+    console.log("--------");
+
+    Object.keys(roles).forEach(validateAccountFlowInfoChange);
+    console.log("--------");
+
     await testenv.validateExpectedBalances(() => {
         syncAccountExpectedBalanceDeltas({
             testenv,
@@ -622,6 +670,7 @@ async function _shouldChangeFlow({
             timestamp: txBlock.timestamp
         });
     });
+    console.log("--------");
 
     // update flow info
     Object.keys(flows).forEach(flowName => {
@@ -638,13 +687,11 @@ async function _shouldChangeFlow({
             });
         }
     });
-    //console.log("--------");
 
     // update account flow info
     Object.keys(roles).forEach(role => {
-        //console.log("!!!", role, accountFlowInfo2[role]);
+        //console.log(`saving ${role} account flow info...`);
         if (getAccountFlowInfo2(role)) {
-            //console.log(`saving ${role} account flow info...`);
             _updateAccountFlowInfo({
                 testenv,
                 superToken: superToken.address,
@@ -653,11 +700,17 @@ async function _shouldChangeFlow({
             });
         }
     });
-    //console.log("--------");
+
+    Object.keys(roles).forEach(role => validateAccountNetFlow({
+        testenv,
+        superToken: superToken.address,
+        account: roles[role]
+    }));
+    console.log("--------");
 
     // make sure app is not jailed
     if (mfa) {
-        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.receiver));
+        await MFASupport.postCheck({ testenv, roles });
     }
 
     //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));

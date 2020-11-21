@@ -320,8 +320,6 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     async validateExpectedBalances(syncExpectedBalancesFn) {
-        console.log("======== validateExpectedBalances begins ========");
-
         //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
         const { superToken } = this.contracts;
 
@@ -334,7 +332,6 @@ module.exports = class TestEnvironment {
             balances2[address].timestamp = txBlock.timestamp;
         }));
 
-        console.log("syncing expected balances...");
         await syncExpectedBalancesFn();
 
         await Promise.all(this.listAddresses().map(async address => {
@@ -362,8 +359,6 @@ module.exports = class TestEnvironment {
 
             this.updateAccountExpectedBalanceDelta(superToken.address, address, 0);
         }));
-
-        console.log("======== validateExpectedBalances ends ========");
     }
 
     async validateSystemInvariance({

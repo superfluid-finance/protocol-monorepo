@@ -82,6 +82,15 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         await verifyAll(opts);
     }
 
+    async function expectNetFlow(alias, expectedNetFlowRate) {
+        const actualNetFlowRate = (await cfa.getNetFlow(superToken.address, t.getAddress(alias)));
+        console.log(`expected net flow for ${alias}: ${actualNetFlowRate.toString()}`);
+        assert.equal(
+            actualNetFlowRate.toString(),
+            expectedNetFlowRate.toString(),
+            `Unexpected net flow for ${alias}`);
+    }
+
     async function shouldTestLiquidations({ titlePrefix, sender, receiver, by, allowCriticalAccount }) {
         const liquidationType = by === sender ? "liquidate by agent" : "self liquidate";
 
@@ -513,12 +522,18 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     receiver: "bob",
                     flowRate: FLOW_RATE1,
                 });
-                assert.equal(
-                    (await cfa.getNetFlow(superToken.address, t.aliases.bob)).toString(),
-                    FLOW_RATE1.toString());
-                assert.equal(
-                    (await cfa.getNetFlow(superToken.address, t.aliases.alice)).toString(),
-                    "-" + FLOW_RATE1.toString());
+                await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
+                await expectNetFlow("bob", FLOW_RATE1);
+
+                const flowRate2 = FLOW_RATE1.divn(3);
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender: "bob",
+                    receiver: "alice",
+                    flowRate: flowRate2,
+                });
+                await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)).add(flowRate2));
+                await expectNetFlow("bob", FLOW_RATE1.sub(flowRate2));
             });
 
             it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
@@ -1002,11 +1017,121 @@ contract("Using ConstantFlowAgreement v1", accounts => {
     });
 
     describe("#10 multi accounts scenarios", () => {
-        // always downgrade balances in the end
+        it("#10.1 two accounts sending to each other with the same flow rate", async () => {
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-        // #2.1 net zero
-        // #2.2 loop
-        // #2.3 complex map
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
+            await expectNetFlow("bob", FLOW_RATE1);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "bob",
+                receiver: "alice",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", "0");
+            await expectNetFlow("bob", "0");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#10.2 three accounts forming a flow loop", async () => {
+            // alice -> bob -> carol
+            //   ^---------------|
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+
+            const flowRateBC = FLOW_RATE1.muln(2).divn(3);
+            const flowRateCA = FLOW_RATE1.divn(3);
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("bob", FLOW_RATE1);
+            await expectNetFlow("carol", "0");
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "bob",
+                receiver: "carol",
+                flowRate: flowRateBC,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
+            await expectNetFlow("carol", flowRateBC);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "carol",
+                receiver: "alice",
+                flowRate: flowRateCA,
+            });
+            await expectNetFlow("alice", toBN(flowRateCA).sub(FLOW_RATE1));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
+            await expectNetFlow("carol", flowRateBC.sub(flowRateCA));
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#10.3 a slight complex flow map", async () => {
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.muln(2));
+
+            const flowRateBD = FLOW_RATE1.muln(2).divn(3);
+            const flowRateDC = FLOW_RATE1.divn(3);
+            //const flowRate;
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "carol",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
+            await expectNetFlow("bob", FLOW_RATE1);
+            await expectNetFlow("carol", FLOW_RATE1);
+            await expectNetFlow("dan", "0");
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "bob",
+                receiver: "dan",
+                flowRate: flowRateBD,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
+            await expectNetFlow("carol", FLOW_RATE1);
+            await expectNetFlow("dan", flowRateBD);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "dan",
+                receiver: "carol",
+                flowRate: flowRateDC,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
+            await expectNetFlow("carol", FLOW_RATE1.add(flowRateDC));
+            await expectNetFlow("dan", flowRateBD.sub(flowRateDC));
+            await timeTravelOnceAndVerifyAll();
+        });
     });
 
 });

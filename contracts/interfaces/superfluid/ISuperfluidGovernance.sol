@@ -12,6 +12,10 @@ import { ISuperfluidToken } from "./ISuperToken.sol";
  */
 interface ISuperfluidGovernance {
 
+    function replaceGovernance(address host, ISuperfluidGovernance newGov) external;
+
+    function setSuperTokenLogic(address host, address logic) external;
+
     function registerAgreementClass(address host, ISuperAgreement agreementClass) external;
 
     function updateAgreementClass(address host, ISuperAgreement agreementClass) external;

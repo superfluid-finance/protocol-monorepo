@@ -362,4 +362,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _;
     }
 
+    modifier onlyHost() {
+        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
+        _;
+    }
+
 }

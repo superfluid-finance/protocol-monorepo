@@ -34,6 +34,8 @@ interface ISuperfluid {
      *************************************************************************/
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
+    function replaceGovernance(ISuperfluidGovernance newGov) external;
+
     /**************************************************************************
      * Agreement Whitelisting
      *************************************************************************/
@@ -99,6 +101,8 @@ interface ISuperfluid {
      * Token Registry
      *************************************************************************/
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
+
+    function setSuperTokenLogic(ISuperToken logic) external;
 
     /**
      * @dev Query the token wrapper.

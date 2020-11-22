@@ -2,7 +2,6 @@
 pragma solidity 0.7.4;
 
 import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Ownable } from "../access/Ownable.sol";
 
 import {
     ISuperfluid,
@@ -31,7 +30,6 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
  */
 contract SuperToken is
     Proxiable,
-    Ownable,
     SuperfluidToken,
     ISuperToken
 {
@@ -71,16 +69,13 @@ contract SuperToken is
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
-        string calldata s,
-        ISuperfluid host
+        string calldata s
     )
         external
     {
         Proxiable._initialize();
 
-        _owner = msg.sender;
-
-        _host = host;
+        _host = ISuperfluid(msg.sender);
 
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
@@ -96,8 +91,8 @@ contract SuperToken is
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external onlyOwner {
-        return _updateCodeAddress(newAddress);
+    function updateCode(address newAddress) external onlyHost {
+        return Proxiable._updateCodeAddress(newAddress);
     }
 
     /**************************************************************************
@@ -571,15 +566,6 @@ contract SuperToken is
         onlyHost
     {
         _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
-    }
-
-    /**************************************************************************
-    * Modifiers
-    *************************************************************************/
-
-    modifier onlyHost() {
-        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
-        _;
     }
 
 }

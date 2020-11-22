@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Ownable } from "../access/Ownable.sol";
 import {
     ISuperfluid,
     ISuperAgreement,
     ISuperfluidToken,
+    ISuperToken,
     ISuperfluidGovernance
 } from "../interfaces/superfluid/ISuperfluid.sol";
+
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 contract TestGovernance is
@@ -22,9 +24,10 @@ contract TestGovernance is
         uint256 liquidationPeriod
     )
     {
-        _owner = msg.sender;
         _rewardAddress = rewardAddress;
         _liquidationPeriod = liquidationPeriod;
+
+        transferOwnership(msg.sender);
     }
 
     function setRewardAddress(
@@ -36,18 +39,49 @@ contract TestGovernance is
         _rewardAddress = rewardAddress;
     }
 
-    function setLiquidationPeriod(uint256 liquidationPeriod) external {
+    function setLiquidationPeriod(uint256 liquidationPeriod)
+        external
+        onlyOwner
+    {
         _liquidationPeriod = liquidationPeriod;
     }
 
-    function registerAgreementClass(address host, ISuperAgreement agreementClass)
+    function registerAgreementClass(
+        address host,
+        ISuperAgreement agreementClass
+    )
         external override
+        onlyOwner
     {
         ISuperfluid(host).registerAgreementClass(agreementClass);
     }
 
-    function updateAgreementClass(address host, ISuperAgreement agreementClass)
+    function replaceGovernance(
+        address host,
+        ISuperfluidGovernance newGov
+    )
         external override
+        onlyOwner
+    {
+        ISuperfluid(host).replaceGovernance(newGov);
+    }
+
+    function setSuperTokenLogic(
+        address host,
+        address logic
+    )
+        external override
+        onlyOwner
+    {
+        ISuperfluid(host).setSuperTokenLogic(ISuperToken(logic));
+    }
+
+    function updateAgreementClass(
+        address host,
+        ISuperAgreement agreementClass
+    )
+        external override
+        onlyOwner
     {
         ISuperfluid(host).updateAgreementClass(agreementClass);
     }

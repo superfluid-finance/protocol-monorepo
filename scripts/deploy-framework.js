@@ -49,42 +49,6 @@ module.exports = async function (callback) {
         }
         console.log("Resolver address", testResolver.address);
 
-        // deploy Superfluid
-        let superfluid;
-        {
-            const name = `Superfluid.${version}`;
-            let superfluidAddress = await testResolver.get(name);
-            console.log("Superfluid address", superfluidAddress);
-            if (reset || !await hasCode(superfluidAddress)) {
-                const proxy = await web3tx(Proxy.new, "Create Superfluid proxy")();
-                superfluidAddress = proxy.address;
-                const superfluidLogic = await web3tx(Superfluid.new, "Superfluid.new")();
-                console.log(`Superfluid new code address ${superfluidLogic.address}`);
-                await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
-                    superfluidLogic.address
-                );
-                superfluid = await Superfluid.at(proxy.address);
-                await web3tx(superfluid.initialize, "Superfluid.initialize")();
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, proxy.address
-                );
-                console.log("Superfluid address", superfluidAddress);
-            } else {
-                if (await proxiableCodeChanged(Proxiable, Superfluid, superfluidAddress)) {
-                    const superfluidLogic = await web3tx(Superfluid.new,
-                        "Superfluid.new due to code change")();
-                    console.log(`Superfluid new code address ${superfluidLogic.address}`);
-                    superfluid = await Superfluid.at(superfluidAddress);
-                    await web3tx(superfluid.updateCode, "superfluid.updateCode")(
-                        superfluidLogic.address
-                    );
-                } else {
-                    console.log("Superfluid has the same logic code, no deployment needed.");
-                }
-            }
-            superfluid = await Superfluid.at(superfluidAddress);
-        }
-
         // deploy TestGovernance
         let governance;
         {
@@ -105,8 +69,46 @@ module.exports = async function (callback) {
                 console.log("TestGovernance has the same code, no deployment needed.");
             }
         }
+
+        // deploy Superfluid
+        let superfluid;
+        {
+            const name = `Superfluid.${version}`;
+            let superfluidAddress = await testResolver.get(name);
+            console.log("Superfluid address", superfluidAddress);
+            if (reset || !await hasCode(superfluidAddress)) {
+                const proxy = await web3tx(Proxy.new, "Create Superfluid proxy")();
+                superfluidAddress = proxy.address;
+                const superfluidLogic = await web3tx(Superfluid.new, "Superfluid.new")();
+                console.log(`Superfluid new code address ${superfluidLogic.address}`);
+                await web3tx(proxy.initializeProxy, "proxy.initializeProxy")(
+                    superfluidLogic.address
+                );
+                superfluid = await Superfluid.at(proxy.address);
+                await web3tx(superfluid.initialize, "Superfluid.initialize")(
+                    governance.address
+                );
+                await web3tx(testResolver.set, `TestResolver set ${name}`)(
+                    name, proxy.address
+                );
+                console.log("Superfluid address", superfluidAddress);
+            } else {
+                if (await proxiableCodeChanged(Proxiable, Superfluid, superfluidAddress)) {
+                    const superfluidLogic = await web3tx(Superfluid.new,
+                        "Superfluid.new due to code change")();
+                    console.log(`Superfluid new code address ${superfluidLogic.address}`);
+                    superfluid = await Superfluid.at(superfluidAddress);
+                    await web3tx(superfluid.updateCode, "superfluid.updateCode")(
+                        superfluidLogic.address
+                    );
+                } else {
+                    console.log("Superfluid has the same logic code, no deployment needed.");
+                }
+            }
+            superfluid = await Superfluid.at(superfluidAddress);
+        }
         if ((await superfluid.getGovernance.call()) !== governance.address){
-            await web3tx(superfluid.setGovernance, "superfluid.setGovernance")(
+            await web3tx(superfluid.replaceGovernance, "superfluid.setGovernance")(
                 governance.address
             );
         }
@@ -180,7 +182,8 @@ module.exports = async function (callback) {
                 const superTokenLogic = await web3tx(SuperTokenLogic.new, "SuperToken.new due to code change")();
                 superTokenLogicAddress = superTokenLogic.address;
                 console.log("SuperTokenLogic address", superTokenLogicAddress);
-                await web3tx(superfluid.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
+                await web3tx(governance.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
+                    superfluid.address,
                     superTokenLogicAddress
                 );
             } else {

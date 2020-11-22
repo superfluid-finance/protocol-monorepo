@@ -2,7 +2,6 @@
 pragma solidity 0.7.4;
 
 import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Ownable } from "../access/Ownable.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 
 

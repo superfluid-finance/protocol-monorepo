@@ -2,7 +2,6 @@
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
-import { Ownable } from "../access/Ownable.sol";
 import { Proxiable } from "../upgradability/Proxiable.sol";
 import { Proxy } from "../upgradability/Proxy.sol";
 
@@ -30,7 +29,6 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 contract Superfluid is
     Proxiable,
-    Ownable,
     ISuperfluid
 {
 
@@ -119,16 +117,16 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Proxiable
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    function initialize() external {
+    function initialize(ISuperfluidGovernance gov) external {
         Proxiable._initialize();
-        _owner = msg.sender;
+        _gov = gov;
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.Superfluid.implementation");
     }
 
-    function updateCode(address newAddress) external onlyOwner {
+    function updateCode(address newAddress) external onlyGovernance {
         return _updateCodeAddress(newAddress);
     }
 
@@ -139,8 +137,8 @@ contract Superfluid is
         return _gov;
     }
 
-    function setGovernance(ISuperfluidGovernance gov) external onlyOwner {
-        _gov = gov;
+    function replaceGovernance(ISuperfluidGovernance newGov) external override onlyGovernance {
+        _gov = newGov;
     }
 
     /**************************************************************************
@@ -235,7 +233,7 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ERC20 Token Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    function setSuperTokenLogic(ISuperToken logic) external onlyOwner {
+    function setSuperTokenLogic(ISuperToken logic) external override onlyGovernance {
         _superTokenLogic = logic;
     }
 
@@ -276,8 +274,7 @@ contract Superfluid is
             underlyingToken,
             underlyingDecimals,
             name,
-            symbol,
-            this
+            symbol
         );
     }
 

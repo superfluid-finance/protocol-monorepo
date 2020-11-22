@@ -571,7 +571,10 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await test(0);
                 await test(1);
                 await test("10000000000000");
-                await expectRevert(test("-100000000000000"), "CFA: not for negative flow rate");
+                await expectRevert(cfa.getDepositRequiredForFlowRate.call(
+                    superToken.address,
+                    toBN("-100000000000000")
+                ), "CFA: not for negative flow rate");
                 const maxFlowRate = toBN(1).shln(95).div(toBN(LIQUIDATION_PERIOD));
                 await test(maxFlowRate);
                 await expectRevert(test(maxFlowRate.addn(1)), "CFA: flow rate too big");

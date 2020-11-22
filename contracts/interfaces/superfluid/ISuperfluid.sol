@@ -353,7 +353,8 @@ interface ISuperfluid {
             uint256 timestamp,
             address msgSender,
             bytes4 agreementSelector,
-            int256 appAllowanceIO,
+            uint256 appAllowanceGranted,
+            uint256 appAllowanceWanted,
             int256 appAllowanceUsed
         );
 

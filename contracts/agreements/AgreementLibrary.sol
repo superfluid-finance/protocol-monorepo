@@ -33,7 +33,8 @@ library AgreementLibrary {
         address msgSender;
         uint8 appLevel;
         uint8 callType;
-        int256 appAllowanceIO;
+        uint256 appAllowanceGranted;
+        uint256 appAllowanceWanted;
         int256 appAllowanceUsed;
     }
 
@@ -47,7 +48,8 @@ library AgreementLibrary {
             context.timestamp,
             context.msgSender,
             ,
-            context.appAllowanceIO,
+            context.appAllowanceGranted,
+            context.appAllowanceWanted,
             context.appAllowanceUsed
         ) = host.decodeCtx(ctx);
         (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
@@ -137,31 +139,15 @@ library AgreementLibrary {
                 inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
-            appContext = _adjustNewAppAllowanceUsed(
-                inputs.appAllowanceGranted,
-                appCtx);
+            appContext = decodeCtx(ISuperfluid(msg.sender), appCtx);
+
+            // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
+            appContext.appAllowanceUsed = max(0, min(
+                inputs.appAllowanceGranted.toInt256(),
+                max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
 
             _popCallbackStatck(ctx, appContext.appAllowanceUsed);
         }
-    }
-
-    function calculateAdjustedNewAppAllowanceUsed(
-        uint256 appAllowanceGranted,
-        int256 appAllowanceWanted,
-        int256 newAppAllowanceUsed
-    )
-        internal pure
-        returns (int256)
-    {
-        // If allowance is used by agreements, app will set appAllowanceIO to a negative value
-        // as app allowance wanted.
-        // Otherwise when no agreement is used, app allowance wanted is zero.
-        if (appAllowanceWanted > 0) return 0;
-        else appAllowanceWanted = -appAllowanceWanted;
-        // rules:
-        // - give allowance up to app allowance
-        // - refund until no less than app allowance wantedd
-        return max(0, min(appAllowanceGranted.toInt256(), max(appAllowanceWanted, newAppAllowanceUsed)));
     }
 
     function _pushCallbackStack(
@@ -187,22 +173,6 @@ library AgreementLibrary {
     {
         // app allowance params stack POP
         ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);
-    }
-
-    // TODO move to superfluid
-    function _adjustNewAppAllowanceUsed(
-        uint256 appAllowanceGranted,
-        bytes memory appCtx
-    )
-        private view
-        returns (Context memory appContext)
-    {
-        appContext = decodeCtx(ISuperfluid(msg.sender), appCtx);
-
-        appContext.appAllowanceUsed = calculateAdjustedNewAppAllowanceUsed(
-            appAllowanceGranted,
-            appContext.appAllowanceIO,
-            appContext.appAllowanceUsed);
     }
 
     /**************************************************************************

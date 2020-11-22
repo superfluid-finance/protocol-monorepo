@@ -41,12 +41,6 @@ library ContextDefinitions {
     uint8 constant internal CALL_INFO_CALL_TYPE_AGREEMENT = 1;
     uint8 constant internal CALL_INFO_CALL_TYPE_APP_ACTION = 2;
     uint8 constant internal CALL_INFO_CALL_TYPE_APP_CALLBACK = 3;
-    uint256 constant internal CALL_INFO_CALL_TYPE_AGREEMENT_BIT =
-        uint256(CALL_INFO_CALL_TYPE_AGREEMENT) << CALL_INFO_CALL_TYPE_SHIFT;
-    uint256 constant internal CALL_INFO_CALL_TYPE_APP_ACTION_BIT =
-        uint256(CALL_INFO_CALL_TYPE_APP_ACTION) << CALL_INFO_CALL_TYPE_SHIFT;
-    uint256 constant internal CALL_INFO_CALL_TYPE_APP_CALLBACK_BIT =
-        uint256(CALL_INFO_CALL_TYPE_APP_CALLBACK) << CALL_INFO_CALL_TYPE_SHIFT;
 
     function decodeCallInfo(uint256 callInfo)
         internal pure

@@ -1021,6 +1021,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
             await timeTravelOnceAndVerifyAll();
 
+            // delete flow of receiver 1
             mfa = {
                 ratioPct: 100,
                 receivers: {
@@ -1032,8 +1033,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     }
                 }
             };
-
-            // only delete flow of receiver 1
             await shouldDeleteFlow({
                 testenv: t,
                 sender,

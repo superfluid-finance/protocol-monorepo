@@ -1,1541 +1,1202 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
-
+const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const {
     web3tx,
-    wad4human,
     toWad,
     toBN
 } = require("@decentral.ee/web3-helpers");
-
-const traveler = require("ganache-time-traveler");
+const {
+    clipDepositNumber,
+    shouldCreateFlow,
+    shouldUpdateFlow,
+    shouldDeleteFlow,
+    syncAccountExpectedBalanceDeltas,
+} = require("./ConstantFlowAgreementV1.behavior.js");
 
 const TestEnvironment = require("../../TestEnvironment");
 
-const ADV_TIME = 2;
-const FLOW_RATE = toBN("10000000000000");
-const FLOW_RATE2 = "385802469135802"; // use a less nice number to test rounding
+const traveler = require("ganache-time-traveler");
+const MultiFlowApp = artifacts.require("MultiFlowApp");
+
+const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
+
+const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
+const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
+const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
 
-contract("Constant Flow Agreement", accounts => {
+contract("Using ConstantFlowAgreement v1", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
-    const { admin, alice, bob, carol, dan } = t.aliases;
-    const { INIT_BALANCE, ZERO_ADDRESS } = t.constants;
+    const { admin, /* carol, */ } = t.aliases;
+    const { ZERO_ADDRESS } = t.constants;
+    const { LIQUIDATION_PERIOD } = t.configs;
 
-    let LIQUIDATION_PERIOD;
-
+    let superfluid;
     let governance;
+    let cfa;
     let testToken;
     let superToken;
-    let cfa;
-    let superfluid;
 
     before(async () => {
         await t.reset();
         ({
+            superfluid,
             governance,
             cfa,
-            superfluid
         } = t.contracts);
     });
 
     beforeEach(async function () {
+        await t.resetForTestCase();
         await t.createNewToken();
         ({
             testToken,
             superToken,
         } = t.contracts);
-        LIQUIDATION_PERIOD = (await governance.getLiquidationPeriod(superToken.address)).toNumber();
     });
 
-    describe("#1 FlowAgreement.createFlow", () => {
-        it("#1.1 should start a new flow", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+    async function _timeTravelOnce(time = TEST_TRAVEL_TIME) {
+        const block1 = await web3.eth.getBlock("latest");
+        console.log("current block time", block1.timestamp);
+        console.log(`time traveler going to the future +${time}...`);
+        await traveler.advanceTimeAndBlock(time);
+        const block2 = await web3.eth.getBlock("latest");
+        console.log("new block time", block2.timestamp);
+    }
 
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            const aliceNetFlow = await cfa.getNetFlow.call(superToken.address, alice);
-            const bobNetFlow = await cfa.getNetFlow.call(superToken.address, bob);
-
-            assert.equal(aliceNetFlow.toString(), -FLOW_RATE, "Alice NetFlow is wrong");
-            assert.equal(bobNetFlow.toString(), FLOW_RATE, "Bob NetFlow is wrong");
-
+    async function verifyAll(opts) {
+        const block2 = await web3.eth.getBlock("latest");
+        await t.validateExpectedBalances(() => {
+            syncAccountExpectedBalanceDeltas({
+                testenv: t,
+                superToken: superToken.address,
+                timestamp: block2.timestamp
+            });
         });
-    });
+        await t.validateSystemInvariance(opts);
+    }
 
-    describe("#1 FlowAgreement.updateFlow", () => {
-        it("#1.1 should stream in correct flow rate with single flow", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(LIQUIDATION_PERIOD * FLOW_RATE);
+    async function timeTravelOnceAndVerifyAll(opts = {}) {
+        const time = opts.time || TEST_TRAVEL_TIME;
+        await _timeTravelOnce(time);
+        await verifyAll(opts);
+    }
 
-            const dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+    async function expectNetFlow(alias, expectedNetFlowRate) {
+        const actualNetFlowRate = (await cfa.getNetFlow(superToken.address, t.getAddress(alias)));
+        console.log(`expected net flow for ${alias}: ${actualNetFlowRate.toString()}`);
+        assert.equal(
+            actualNetFlowRate.toString(),
+            expectedNetFlowRate.toString(),
+            `Unexpected net flow for ${alias}`);
+    }
 
-            const tx = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+    async function shouldTestLiquidations({ titlePrefix, sender, receiver, by, allowCriticalAccount }) {
+        const liquidationType = by === sender ? "liquidate by agent" : "self liquidate";
 
-            // test flow views
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+        it(`${titlePrefix}.1 should ${liquidationType} when critical but solvent`, async () => {
+            assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
+            assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+            // drain the balance until critical (60sec extra)
+            await timeTravelOnceAndVerifyAll({
+                time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() - LIQUIDATION_PERIOD + 60,
+                allowCriticalAccount: true
+            });
+            assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
+            assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
 
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, bob
-            )).toString(), FLOW_RATE.toString());
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver,
+                by
+            });
 
-            /*
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, alice, bob
-            ))[1].toString(), FLOW_RATE.toString());
-            */
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, bob, alice
-            ))[1].toString(), "0");
-
-            const beginBlock = await web3.eth.getBlock(tx.receipt.blockNumber);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const aliceBalance = await superToken.balanceOf.call(alice);
-            const bobBalance = await superToken.balanceOf.call(bob);
-            const span = endBlock.timestamp - beginBlock.timestamp;
-            const aliceBalanceExpected = INIT_BALANCE - (span * FLOW_RATE);
-            const bobBalanceExpected = (span * FLOW_RATE);
-            const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
-
-            assert.equal((aliceBalance.add(aliceDeposit.deposit)).toString(), aliceBalanceExpected.toString(),
-                "Alice final balance is wrong");
-            assert.equal(bobBalance.toString(), bobBalanceExpected.toString(),
-                "Bob final balance is wrong");
-            assert.equal(aliceDeposit.deposit.toString(), deposit.toString(), "Alice deposit is wrong");
-
-            await t.validateSystem();
+            await verifyAll();
         });
 
-        it("#1.2 should stream in correct flow rate after two out flows of the same account", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            const deposit = toBN(LIQUIDATION_PERIOD * FLOW_RATE);
+        it(`${titlePrefix}.2 should ${liquidationType} when insolvent`, async () => {
+            assert.isFalse(await superToken.isAccountCriticalNow(t.aliases[sender]));
+            assert.isTrue(await superToken.isAccountSolventNow(t.aliases[sender]));
+            // drain the balance until insolvent (60sec extra)
+            await timeTravelOnceAndVerifyAll({
+                time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60,
+                allowCriticalAccount: true
+            });
+            assert.isTrue(await superToken.isAccountCriticalNow(t.aliases[sender]));
+            assert.isFalse(await superToken.isAccountSolventNow(t.aliases[sender]));
 
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver,
+                by
+            });
 
-            const tx = await web3tx(superfluid.callAgreement, "CreateFlow alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+            await verifyAll({ allowCriticalAccount });
+        });
+    }
 
-            // test flow views
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, bob
-            )).toString(), FLOW_RATE.toString());
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, alice, bob
-            ))[1].toString(), FLOW_RATE.toString());
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, bob, alice
-            ))[1].toString(), "0");
+    context("#1 without callbacks", () => {
+        const sender = "alice";
+        const receiver = "bob";
+        const agent = "dan";
 
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            const tx2 = await web3tx(superfluid.callAgreement, "CreateFlow alice -> carol")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            // test flow views
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-2)).toString());
-
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, bob
-            )).toString(), FLOW_RATE.toString());
-
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, carol
-            )).toString(), FLOW_RATE.toString());
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, alice, bob
-            ))[1].toString(), FLOW_RATE.toString());
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, bob, alice
-            ))[1].toString(), "0");
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, alice, carol
-            ))[1].toString(), FLOW_RATE.toString());
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, carol, alice
-            ))[1].toString(), "0");
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, bob,carol
-            ))[1].toString(), "0");
-
-            assert.equal((await cfa.getFlow.call(
-                superToken.address, carol, bob
-            ))[1].toString(), "0");
-
-            const block1 = await web3.eth.getBlock(tx.receipt.blockNumber);
-            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-            const user1Balance = await superToken.balanceOf.call(alice);
-            const user2Balance = await superToken.balanceOf.call(bob);
-            const user3Balance = await superToken.balanceOf.call(carol);
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const span2 = endBlock.timestamp - block1.timestamp;
-            const span3 = endBlock.timestamp - block2.timestamp;
-
-            const finalUser2 = (span2 * FLOW_RATE);
-            const finalUser3 = (span3 * FLOW_RATE);
-            const finalUser1 = INIT_BALANCE - finalUser2 - finalUser3;
-            const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
-
-            assert.equal(user1Balance.add(aliceDeposit.deposit).toString(),
-                finalUser1.toString(), "User 1 Final balance is wrong");
-            assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
-            assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wring");
-            assert.equal(aliceDeposit.deposit.toString(), (deposit * 2).toString(), "Alice deposit is wrong");
-
-            await t.validateSystem();
+        before (() => {
+            console.log(`sender is ${sender} ${t.aliases[sender]}`);
+            console.log(`receiver is ${receiver} ${t.aliases[receiver]}`);
         });
 
-        it("#1.3 update with negative flow rate should fail", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
+        describe("#1.1 createFlow", () => {
+            it("#1.1.1 should create when there is enough balance", async () => {
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                "-100000000000",
-                "0x"
-            ).encodeABI();
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
 
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
-                    }
-                ),"FlowAgreement: negative flow rate not allowed" );
+                await timeTravelOnceAndVerifyAll();
+            });
+
+            it("#1.1.2 should reject when there is not enough balance", async () => {
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: FLOW_RATE1.toString()
+                }), "CFA: not enough available balance");
+            });
+
+            it("#1.1.3 should reject when zero flow rate", async () => {
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: "0"
+                }), "CFA: invalid flow rate");
+            });
+
+            it("#1.1.4 should reject when negative flow rate", async () => {
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: "-1"
+                }), "CFA: invalid flow rate");
+            });
+
+            it("#1.1.5 should reject when self flow", async () => {
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.toString()
+                }), "CFA: no self flow");
+            });
+
+            it("#1.1.6 should not create same flow", async () => {
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: FLOW_RATE1.toString()
+                }), "CFA: flow already exist");
+            });
+
+            it("#1.1.7 should reject when overflow flow rate", async () => {
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: MAXIMUM_FLOW_RATE.toString(),
+                }), "Int96SafeMath: multiplication overflow");
+            });
+
+            it("#1.1.8 should reject when receiver is zero address", async () => {
+                await expectRevert(t.sf.cfa.createFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: ZERO_ADDRESS,
+                    flowRate: FLOW_RATE1.toString(),
+                }), "CFA: receiver is zero");
+            });
         });
 
-        it("#1.4 update active flow to negative flow rate should also fail", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            dataAgreement = cfa.contract.methods.updateFlow(
-                superToken.address,
-                bob,
-                "-2000000000000000000",
-                "0x"
-            ).encodeABI();
+        describe("#1.2 updateFlow", () => {
+            beforeEach(async () => {
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
-                    }
-                ), "FlowAgreement: negative flow rate not allowed");
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+            });
 
-            await t.validateSystem();
+            it("#1.2.1 can maintain existing flow rate", async () => {
+                await shouldUpdateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+
+                await timeTravelOnceAndVerifyAll();
+            });
+
+            it("#1.2.2 can increase (+10%) existing flow rate", async () => {
+                await shouldUpdateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                });
+
+                await timeTravelOnceAndVerifyAll();
+            });
+
+            it("#1.2.3 can decrease (-10%) existing flow rate", async () => {
+                await shouldUpdateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+                });
+
+                await timeTravelOnceAndVerifyAll();
+            });
+
+            it("#1.2.4 should not update with zero flow rate", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: "0"
+                }), "CFA: invalid flow rate");
+            });
+
+            it("#1.2.5 should not update with negative flow rate", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: "-1"
+                }), "CFA: invalid flow rate");
+            });
+
+            it("#1.2.6 should not update non existing flow", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[agent],
+                    flowRate: FLOW_RATE1.toString(),
+                }), "CFA: flow does not exist");
+            });
+
+            it("#1.2.7 should not update non existing flow (self flow)", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[sender],
+                    flowRate: FLOW_RATE1.toString(),
+                }), "CFA: no self flow");
+            });
+
+            it("#1.2.8 should reject when there is not enough balance", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: toBN(t.configs.INIT_BALANCE)
+                        .div(toBN(LIQUIDATION_PERIOD).sub(toBN(60)))
+                        .toString()
+                }), "CFA: not enough available balance");
+            });
+
+            it("#1.2.9 should reject when overflow flow rate", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    flowRate: MAXIMUM_FLOW_RATE.toString(),
+                }), "Int96SafeMath: multiplication overflow");
+            });
+
+            it("#1.2.10 should reject when receiver is zero address", async () => {
+                await expectRevert(t.sf.cfa.updateFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: ZERO_ADDRESS,
+                    flowRate: FLOW_RATE1.toString(),
+                }), "CFA: receiver is zero");
+            });
         });
 
-        /*
-        it("Gas report - Constant Flow Agreement", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice creating flow to bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+        describe("#1.3 deleteFlow (non liquidation)", () => {
+            beforeEach(async () => {
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+            });
 
-            dataAgreement = cfa.contract.methods.updateFlow(
-                superToken.address,
-                bob,
-                "1000000000000000000",
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice updating flow to bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+            it("#1.3.1 can delete existing flow", async () => {
+                await shouldDeleteFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    by: sender
+                });
 
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
+                await timeTravelOnceAndVerifyAll();
+            });
 
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice deleting flow to bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-        });
-    */
+            it("#1.3.2 can delete an updated flow", async () => {
+                await shouldUpdateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                });
+                await shouldDeleteFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    by: sender
+                });
 
-        it("#1.5 update other's flow should fail", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+                await timeTravelOnceAndVerifyAll();
+            });
 
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+            it("#1.3.3 should not delete non-existing flow", async () => {
+                await expectRevert(t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[agent],
+                }), "CFA: flow does not exist");
+            });
 
-            dataAgreement = cfa.contract.methods.updateFlow(
-                superToken.address,
-                bob,
-                "-2000000000000000000",
-                "0x"
-            ).encodeABI();
+            it("#1.3.4 should reject when receiver is zero address", async () => {
+                await expectRevert(t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: ZERO_ADDRESS,
+                }), "CFA: receiver is zero");
+            });
 
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob from carol account")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: admin,
-                    }
-                ), "Flow doesn't exist");
+            it("#1.3.5 should reject when sender is zero address", async () => {
+                await expectRevert(t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: ZERO_ADDRESS,
+                    receiver: t.aliases[agent],
+                    by: t.aliases[sender]
+                }), "CFA: sender is zero");
+            });
 
-            await t.validateSystem();
-        });
+            context("#1.3.6 with reward address as admin", () => {
+                beforeEach(async () => {
+                    await web3tx(governance.setRewardAddress, "set reward address to admin")(admin);
+                });
+                shouldTestLiquidations({
+                    titlePrefix: "#1.3.6",
+                    sender,
+                    receiver,
+                    by: sender
+                });
+            });
 
-        it("#1.6 update with zero rate should fail", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            dataAgreement = cfa.contract.methods.updateFlow(
-                superToken.address,
-                bob,
-                "0",
-                "0x"
-            ).encodeABI();
-
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob from carol account")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
-                    }
-                ), "FlowAgreement: use delete flow");
-
-            await t.validateSystem();
+            context("#1.3.7 with zero reward address", () => {
+                beforeEach(async () => {
+                    await web3tx(governance.setRewardAddress, "set reward address to zero")(ZERO_ADDRESS);
+                });
+                shouldTestLiquidations({
+                    titlePrefix: "#1.3.7",
+                    sender,
+                    receiver,
+                    by: sender,
+                    // no one will bail you out, alice :(
+                    allowCriticalAccount: true
+                });
+            });
         });
 
-        it("#1.7 should allow net flow rate 0 then back to normal rate", async() => {
-            const deposit = toBN(LIQUIDATION_PERIOD * FLOW_RATE * 2);
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            await superToken.upgrade(INIT_BALANCE, {from: carol});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+        describe("#1.4 deleteFlow (liquidations)", () => {
+            beforeEach(async () => {
+                // give admin some balance for liquidations
+                await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
+                await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender,
+                    receiver,
+                    flowRate: FLOW_RATE1,
+                });
+            });
 
-            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+            it("#1.4.1 should reject when sender account is not critical", async () => {
+                await expectRevert(t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent]
+                }), "CFA: account is not critical");
+            });
 
-            const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
+            it("#1.4.2 should reject when sender is zero address", async () => {
+                await expectRevert(t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: ZERO_ADDRESS,
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent]
+                }), "CFA: sender is zero");
+            });
 
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                alice,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+            it("#1.4.3 should reject when sender account is not critical", async () => {
+                await expectRevert(t.sf.cfa.deleteFlow({
+                    superToken: superToken.address,
+                    sender: t.aliases[sender],
+                    receiver: t.aliases[receiver],
+                    by: t.aliases[agent]
+                }), "CFA: account is not critical");
+            });
 
-            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement carol -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: carol,
-                }
-            );
-            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), "0");
+            context("#1.4.4 with reward address as admin", () => {
+                beforeEach(async () => {
+                    await web3tx(governance.setRewardAddress, "set reward address to admin")(admin);
+                });
+                shouldTestLiquidations({
+                    titlePrefix: "#1.4.4",
+                    sender,
+                    receiver,
+                    by: agent
+                });
+            });
 
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                dan,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-            const tx3 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> dan")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            const block3 = await web3.eth.getBlock(tx3.receipt.blockNumber);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
-
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const span1 = toBN(block2.timestamp - block1.timestamp);
-            const span2 = toBN(block3.timestamp - block2.timestamp);
-            const span3 = toBN(endBlock.timestamp - block3.timestamp);
-
-            const alice1Balance = await superToken.balanceOf.call(alice);
-            const bobBalance = await superToken.balanceOf.call(bob);
-            const carolBalance = await superToken.balanceOf.call(carol);
-            const danBalance = await superToken.balanceOf.call(dan);
-
-            const aliceDeposit = await superToken.realtimeBalanceOf(alice, endBlock.timestamp);
-            const carolDeposit = await superToken.realtimeBalanceOf(carol, endBlock.timestamp);
-            const aliceBalanceExpected = INIT_BALANCE
-                .sub(span1.mul(FLOW_RATE))
-                .sub(span3.mul(FLOW_RATE));
-            const bobBalanceExpected = span1.add(span2).add(span3).mul(FLOW_RATE);
-            const carolBalanceExpected = INIT_BALANCE
-                .sub(span2.add(span3).mul(FLOW_RATE));
-            const danBalanceExpected = span3.mul(FLOW_RATE);
-
-            assert.equal(alice1Balance.add(aliceDeposit.deposit).toString(), aliceBalanceExpected.toString());
-            assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
-            assert.equal(carolBalance.add(carolDeposit.deposit).toString(), carolBalanceExpected.toString());
-            assert.equal(danBalance.toString(), danBalanceExpected.toString());
-            assert.equal(aliceDeposit.deposit.toString(), deposit.toString());
-
-            await t.validateSystem();
+            context("#1.4.5 with zero reward address", () => {
+                beforeEach(async () => {
+                    await web3tx(governance.setRewardAddress, "set reward address to zero")(ZERO_ADDRESS);
+                });
+                shouldTestLiquidations({
+                    titlePrefix: "#1.4.5",
+                    sender,
+                    receiver,
+                    by: agent,
+                    // thanks for bailing every one out, dan :)
+                    allowCriticalAccount: true
+                });
+            });
         });
 
-        it("#1.8 should update flow the second time to new flow rate", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+        describe("#1.7 real-time balance", () => {
+            // #1.7.1 TODO should be able to downgrade full balance
 
-            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-1)).toString());
-
-            dataAgreement = cfa.contract.methods.updateFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.mul(toBN(2)).toString(),
-                "0x"
-            ).encodeABI();
-
-            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            assert.equal((await cfa.getNetFlow.call(
-                superToken.address, alice
-            )).toString(), FLOW_RATE.mul(toBN(-2)).toString());
-
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const span1 = toBN(block2.timestamp - block1.timestamp);
-            const span2 = toBN(endBlock.timestamp - block2.timestamp);
-
-            const alice1Balance = await superToken.balanceOf.call(alice);
-            const aliceDeposit = await superToken.realtimeBalanceOf(alice, endBlock.timestamp);
-            const bobBalance = await superToken.balanceOf.call(bob);
-
-            const bobBalanceExpected = span1.mul(FLOW_RATE)
-                .add(span2.mul(FLOW_RATE).mul(toBN(2)));
-            const aliceBalanceExpected = INIT_BALANCE
-                .sub(bobBalanceExpected);
-
-            assert.equal(alice1Balance.add(aliceDeposit.deposit).toString(), aliceBalanceExpected.toString());
-            assert.equal(bobBalance.toString(), bobBalanceExpected.toString());
-
-            await t.validateSystem();
+            // #1.7.2 TODO should be able to downgrade full balance
         });
 
-        it("#1.9 create self flow should fail", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                alice,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+        describe("#1.8 misc", () => {
+            it("#1.8.1 getNetflow should return net flow rate", async () => {
+                await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+                await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> alice")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
-                    }
-                ), "FlowAgreement: self flow not allowed");
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender: "alice",
+                    receiver: "bob",
+                    flowRate: FLOW_RATE1,
+                });
+                await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
+                await expectNetFlow("bob", FLOW_RATE1);
 
-            await t.validateSystem();
-        });
-    });
+                const flowRate2 = FLOW_RATE1.divn(3);
+                await shouldCreateFlow({
+                    testenv: t,
+                    sender: "bob",
+                    receiver: "alice",
+                    flowRate: flowRate2,
+                });
+                await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)).add(flowRate2));
+                await expectNetFlow("bob", FLOW_RATE1.sub(flowRate2));
+            });
 
+            it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
+                const test = async (deposit) => {
+                    const flowRate = await cfa.getMaximumFlowRateFromDeposit.call(
+                        superToken.address,
+                        deposit.toString()
+                    );
+                    const expectedFlowRate = clipDepositNumber(toBN(deposit), true /* rounding down */)
+                        .div(toBN(LIQUIDATION_PERIOD));
+                    console.log(`f(${deposit.toString()}) = ${expectedFlowRate.toString()} ?`);
+                    assert.equal(flowRate.toString(), expectedFlowRate.toString(),
+                        `getMaximumFlowRateFromDeposit(${deposit.toString()})`);
+                };
+                await test(0);
+                await test(1);
+                await test("10000000000000");
+                const maxDeposit = toBN(1).shln(95).subn(1);
+                await test(maxDeposit);
+                expectRevert(test(maxDeposit.addn(1)), "CFA: deposit number too big");
+            });
 
-    describe("#2 FlowAgreement.updateFlow and downgrade", () => {
-        it("#2.1 - should downgrade full balance with single flow running", async() => {
-            await web3tx(superToken.upgrade, "upgrade all from alice")(
-                INIT_BALANCE, {from: alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+            it("#1.8.3 getDepositRequiredForFlowRate", async () => {
+                const test = async (flowRate) => {
+                    const deposit = await cfa.getDepositRequiredForFlowRate.call(
+                        superToken.address,
+                        flowRate.toString()
+                    );
+                    const expectedDeposit = clipDepositNumber(toBN(flowRate)
+                        .mul(toBN(LIQUIDATION_PERIOD)));
+                    console.log(`f(${flowRate.toString()}) = ${expectedDeposit.toString()} ?`);
+                    assert.equal(deposit.toString(), expectedDeposit.toString(),
+                        `getDepositRequiredForFlowRate(${flowRate.toString()})`);
+                };
+                await test(0);
+                await test(1);
+                await test("10000000000000");
+                await expectRevert(test("-100000000000000"), "CFA: not for negative flow rate");
+                const maxFlowRate = toBN(1).shln(95).div(toBN(LIQUIDATION_PERIOD));
+                await test(maxFlowRate);
+                await expectRevert(test(maxFlowRate.addn(1)), "CFA: flow rate too big");
+            });
 
-            const createFlowTx = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const interimSuperBalanceBob = await superToken.balanceOf.call(bob);
-            const bobDowngradeTx = await web3tx(superToken.downgrade, "downgrade all interim balance from bob")(
-                interimSuperBalanceBob, {from: bob});
-            const testTokenBalanceBob = await testToken.balanceOf.call(bob);
-            assert.ok(testTokenBalanceBob.eq(INIT_BALANCE.add(interimSuperBalanceBob)),
-                "TestToken.balanceOf bob testToken balance is not correct");
-            const superTokenBalanceBob1 = await superToken.balanceOf.call(bob);
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const endBlock = await web3.eth.getBlock("latest");
-            const finalSuperBalanceAlice = await superToken.balanceOf.call(alice);
-            const finalSuperBalanceBob = await superToken.balanceOf.call(bob);
-            const createFlowTxBlock = await web3.eth.getBlock(createFlowTx.receipt.blockNumber);
-            const bobDowngradeTxBlock = await web3.eth.getBlock(bobDowngradeTx.receipt.blockNumber);
-            const spanSinceFlowUpdated = endBlock.timestamp - createFlowTxBlock.timestamp;
-            const spanSinceBobDowngraded = toBN(endBlock.timestamp - bobDowngradeTxBlock.timestamp);
-            const finalSuperBalanceAliceExpected = INIT_BALANCE.sub(toBN(spanSinceFlowUpdated * FLOW_RATE));
-            const finalSuperBalanceBobExpected = superTokenBalanceBob1.add(spanSinceBobDowngraded.mul(FLOW_RATE));
-            const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
-            assert.equal(
-                finalSuperBalanceAlice.add(aliceDeposit.deposit).toString(),
-                finalSuperBalanceAliceExpected.toString(),
-                "SuperToken.balanceOf - not correct for alice");
-            assert.equal(
-                finalSuperBalanceBob.toString(),
-                finalSuperBalanceBobExpected.toString(),
-                "SuperToken.balanceOf - not correct for bob");
-
-            await t.validateSystem();
         });
 
-        it("#2.2 - should downgrade partial amount with single flow running", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
+        describe("#1.10 should support different flow rates", () => {
+            [
+                ["small", toBN(2)],
+                ["typical", FLOW_RATE1],
+                ["large", toWad(42).div(toBN(3600))],
+                ["maximum", MAXIMUM_FLOW_RATE.div(toBN(LIQUIDATION_PERIOD))]
+            ].forEach(([label, flowRate], i) => {
+                it(`#1.10.${i} should support ${label} flow rate (${flowRate})`, async () => {
+                    // sufficient liquidity for the test case
+                    // - it needs 1x liquidation period
+                    // - it adds an additional 60 seconds as extra safe margin
+                    const marginalLiquidity = flowRate.mul(toBN(60));
+                    const sufficientLiquidity = BN.max(
+                        MINIMAL_DEPOSIT.add(marginalLiquidity),
+                        flowRate
+                            .mul(toBN(LIQUIDATION_PERIOD))
+                            .add(marginalLiquidity)
+                    );
+                    await testToken.mint(t.aliases.alice, sufficientLiquidity, {
+                        from: t.aliases.alice
+                    });
+                    await t.upgradeBalance("alice", sufficientLiquidity);
 
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+                    await shouldCreateFlow({
+                        testenv: t,
+                        sender: "alice",
+                        receiver: "bob",
+                        flowRate: flowRate.div(toBN(2)),
+                    });
 
-            const txFlow12 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
+                    await shouldUpdateFlow({
+                        testenv: t,
+                        sender: "alice",
+                        receiver: "bob",
+                        flowRate: flowRate,
+                    });
 
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            const user2MidwayBalance1 = await superToken.balanceOf.call(bob);
-            const user2DowngradeAmount = toBN(user2MidwayBalance1).div(toBN(1000));
-            await web3tx(superToken.downgrade, "Call: SuperToken.downgrade - user 2")(
-                user2DowngradeAmount.toString(), {from: bob}
-            );
-
-            const user2MidwayBalance2Est = INIT_BALANCE.add(user2DowngradeAmount);
-            const user2MidwayBalance2 = await testToken.balanceOf.call(bob);
-            assert.equal(
-                user2MidwayBalance2.toString(),
-                user2MidwayBalance2Est.toString(),
-                "Call: TestToken.balanceOf - User 2 testToken balance is not correct");
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const endBlock = await web3.eth.getBlock("latest");
-
-            const aliceFinalBalance = await superToken.balanceOf.call(alice);
-            const user2FinalBalance = await superToken.balanceOf.call(bob);
-
-            const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
-            const spanFlow12 = endBlock.timestamp - blockFlow12.timestamp;
-            const aliceFinalBalanceEst = INIT_BALANCE.sub(toBN(spanFlow12 * FLOW_RATE));
-            const user2FinalBalanceEst = (spanFlow12 * FLOW_RATE) - user2DowngradeAmount;
-            const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
-
-            assert.equal(
-                aliceFinalBalance.add(aliceDeposit.deposit).toString(),
-                aliceFinalBalanceEst.toString(),
-                "Call: SuperToken.balanceOf - not correct for alice");
-            assert.equal(
-                user2FinalBalance.toString(),
-                user2FinalBalanceEst.toString(),
-                "Call: SuperToken.balanceOf - not correct for bob");
-
-            await t.validateSystem();
-        });
-
-        it("#2.3 downgrade small portion of testTokens with multiple flows running", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            await superToken.upgrade(INIT_BALANCE, {from: bob});
-            await superToken.upgrade(INIT_BALANCE, {from: carol});
-
-            const smallPortion = new toBN(1000);
-            const userTokenBalance = await testToken.balanceOf.call(bob);
-
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: bob,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement carol -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: carol,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            await web3tx(superToken.downgrade, "SuperToken.downgrade: User 2 Downgrade")(
-                smallPortion, {from: bob});
-            const userTokenBalanceFinal = await testToken.balanceOf.call(bob);
-
-            assert.equal(
-                userTokenBalanceFinal.toString(),
-                userTokenBalance.add(smallPortion).toString(),
-                "User2 downgrade call dont change the testToken balance");
-
-            await t.validateSystem();
-        });
-
-        it("#2.2 downgrade 1/2 portion of testTokens with multiple flows running", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            await superToken.upgrade(INIT_BALANCE, {from: bob});
-            await superToken.upgrade(INIT_BALANCE, {from: carol});
-
-            const halfPortion= new toBN(1000000000000000000);
-            const userTokenBalance = await testToken.balanceOf.call(bob);
-
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: bob,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement carol -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: carol,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-
-            await web3tx(superToken.downgrade, "SuperToken.downgrade: User 2 Downgrade")(
-                halfPortion, {from: bob});
-
-            const userTokenBalanceFinal = await testToken.balanceOf.call(bob);
-
-            assert.equal(
-                userTokenBalanceFinal.toString(),
-                userTokenBalance.add(halfPortion).toString(),
-                "User2 downgrade call dont change the testToken balance");
-
-            await t.validateSystem();
-        });
-
-        it("#2.3 downgrade total balance of testTokens with multiple flows running", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            await superToken.upgrade(INIT_BALANCE, {from: bob});
-            await superToken.upgrade(INIT_BALANCE, {from: carol});
-
-            const userTokenBalance = await testToken.balanceOf.call(bob);
-
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: bob,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement carol -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: carol,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            const userSuperBalance = await superToken.balanceOf.call(bob);
-            await web3tx(
-                superToken.downgrade,
-                "SuperToken.downgrade: User 2 Downgrade"
-            )(userSuperBalance, {from: bob});
-            const userTokenBalanceFinal = await testToken.balanceOf.call(bob);
-
-            assert.equal(
-                userTokenBalanceFinal.toString(),
-                userTokenBalance.add(userSuperBalance).toString(),
-                "User2 downgrade call dont change the testToken balance");
-
-            await t.validateSystem();
+                    await timeTravelOnceAndVerifyAll({ allowCriticalAccount: true });
+                });
+            });
         });
     });
 
-    describe("#3 FlowAgreement.deleteFlow by sender", () => {
-        it("#3.1 should stop streaming after deletion with single flow", async() => {
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
+    describe("#2 multi flows super app scenarios", () => {
+        const sender = "alice";
+        const receiver1 = "bob";
+        const receiver2 = "carol";
+        const lowFlowRate =  FLOW_RATE1.mul(toBN(9)).div(toBN(10));
+        const highFlowRate =  FLOW_RATE1.mul(toBN(11)).div(toBN(10));
+        //const receiver2 = "carol";
+        //const agent = "dan";
+        let app;
 
-            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
+        beforeEach(async () => {
+            app = await web3tx(MultiFlowApp.new, "MultiApp.new")(
                 cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
+                superfluid.address
             );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
-
-            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
-
-            const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
-            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-            const user1Balance = await superToken.balanceOf.call(alice);
-            const user2Balance = await superToken.balanceOf.call(bob);
-
-            const span = block2.timestamp - block1.timestamp;
-            const finalUser1 = INIT_BALANCE - (span * FLOW_RATE);
-            const finalUser2 = (span * FLOW_RATE);
-
-            assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-            assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
-
-            await t.validateSystem();
+            t.addAlias("mfa", app.address);
         });
 
-        it("#3.2 should stop streaming after deletion with multiple flows", async() => {
+        // due to clipping of flow rate, mfa outgoing flow rate is always equal or less
+        // then the sender's rate
+        function mfaFlowRate(flowRate, pct = 100) {
+            return clipDepositNumber(
+                toBN(flowRate)
+                    .mul(toBN(LIQUIDATION_PERIOD))
+                    .muln(pct).divn(100),
+                true
+            ).div(toBN(LIQUIDATION_PERIOD));
+        }
 
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-            await superToken.upgrade(INIT_BALANCE, {from: bob});
+        it("#2.1 mfa-1to1_100pct_create-full_updates-full_delete", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                (FLOW_RATE * 10).toString(),
-                "0x"
-            ).encodeABI();
-
-            const txFlow12 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                carol,
-                (FLOW_RATE).toString(),
-                "0x"
-            ).encodeABI();
-
-            const txFlow23 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> carol")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: bob,
-                }
-            );
-
-            dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                dan,
-                (FLOW_RATE).toString(),
-                "0x"
-            ).encodeABI();
-
-            const txFlow24 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> dan")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: bob,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
-
-            const txflow12End = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement bob -> alice")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            const endBlock = await web3.eth.getBlock("latest");
-            const user1Balance = await superToken.balanceOf.call(alice);
-            const user2Balance = await superToken.balanceOf.call(bob);
-            const user3Balance = await superToken.balanceOf.call(carol);
-            const user4Balance = await superToken.balanceOf.call(dan);
-
-            const blockFlow12 = await web3.eth.getBlock(txFlow12.receipt.blockNumber);
-            const blockFlow23 = await web3.eth.getBlock(txFlow23.receipt.blockNumber);
-            const blockFlow24 = await web3.eth.getBlock(txFlow24.receipt.blockNumber);
-            const blockFlow12End = await web3.eth.getBlock(txflow12End.receipt.blockNumber);
-            const spanFlow12 = blockFlow12End.timestamp - blockFlow12.timestamp;
-            const spanFlow23 = endBlock.timestamp - blockFlow23.timestamp;
-            const spanFlow24 = endBlock.timestamp - blockFlow24.timestamp;
-
-            const finalUser1 = INIT_BALANCE - (spanFlow12 * FLOW_RATE * 10);
-            const finalUser3 = spanFlow23 * FLOW_RATE;
-            const finalUser4 = spanFlow24 * FLOW_RATE;
-            const finalUser2 = spanFlow12 * FLOW_RATE * 10 - finalUser3 - finalUser4;
-            const aliceDeposit = await superToken.realtimeBalanceOf.call(alice, endBlock.timestamp);
-            const bobDeposit = await superToken.realtimeBalanceOf.call(bob, endBlock.timestamp);
-
-            let user1Round = ((user1Balance.add(aliceDeposit.deposit)).sub(toBN(finalUser1)));
-            const user1ToRound = user1Round.lte(t.constants.DUST_AMOUNT);
-            if(!user1ToRound) {
-                user1Round = 0;
-            }
-
-            let user2Round = ((user2Balance.add(bobDeposit.deposit)).sub(toBN(finalUser2)));
-            const user2ToRound = user2Round.lte(t.constants.DUST_AMOUNT);
-            if(!user2ToRound) {
-                user2Round = toBN(0);
-            }
-
-            assert.equal(
-                user1Balance.add(aliceDeposit.deposit).toString(),
-                toBN(finalUser1).add(user1Round).toString(),
-                "User 1 Final balance is wrong");
-            assert.equal(
-                user2Balance.add(bobDeposit.deposit).toString(),
-                INIT_BALANCE.add(toBN(finalUser2)).add(user2Round).toString(),
-                "User 2 Final balance is wrong");
-            assert.equal(user3Balance.toString(), finalUser3.toString(), "User 3 Final balance is wrong");
-            assert.equal(user4Balance.toString(), finalUser4.toString(), "User 4 Final balance is wrong");
-
-            await t.validateSystem();
-        });
-    });
-
-    describe("#4 FlowAgreement.deleteFlow by receiver", () => {
-        it("#4.1 should stop streaming after deletion with single flow", async() => {
-
-            await superToken.upgrade(INIT_BALANCE, {from: alice});
-
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            const tx1 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
-
-            const tx2 = await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(ADV_TIME * 1000);
-
-            const user1Balance = await superToken.balanceOf.call(alice);
-            const user2Balance = await superToken.balanceOf.call(bob);
-
-            const block1 = await web3.eth.getBlock(tx1.receipt.blockNumber);
-            const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-            const span = block2.timestamp - block1.timestamp;
-            const finalUser1 = INIT_BALANCE - (span * FLOW_RATE);
-            const finalUser2 = (span * FLOW_RATE);
-
-            assert.equal(user1Balance.toString(), finalUser1.toString(), "User 1 Final balance is wrong");
-            assert.equal(user2Balance.toString(), finalUser2.toString(), "User 2 Final balance is wrong");
-
-            await t.validateSystem();
-        });
-    });
-
-    describe("#5 FlowAgreement.deleteFlow by liquidator", () => {
-        it("#5.1 liquidation of insolvent account should succeed", async() => {
-
-            const SMALL_FLOW_RATE = "10000";
-            // having just 100 seconds of more liquidity than liquidation period
-            await superToken.upgrade(toBN(SMALL_FLOW_RATE * LIQUIDATION_PERIOD + 100), {from : alice});
-
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                SMALL_FLOW_RATE,
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-
-            await traveler.advanceTimeAndBlock(101);
-
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement admin -> alice")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: admin,
-                }
-            );
-
-            const flowRate = (await cfa.getFlow.call(
-                superToken.address,
-                alice, bob))[3].toString();
-
-            assert.equal(flowRate.toString(), "0", "Liquidation didn't happen");
-        });
-
-        it("#5.2 liquidation of solvent account should fail", async () => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                dataAgreement,
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-
-            dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
-
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: admin,
+            const mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
                     }
-                ), "FlowAgreement: account is solvent");
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: lowFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: highFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate));
+            await timeTravelOnceAndVerifyAll();
+
+            // fully delete everything
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await timeTravelOnceAndVerifyAll();
         });
 
-        it("#5.3 liquidation of non existing flow should fail", async () => {
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
+        it("#2.2 mfa-1to0_create-updates-delete", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
-            let dataAgreement = cfa.contract.methods.deleteFlow(
-                superToken.address,
-                alice,
-                bob,
-                "0x"
-            ).encodeABI();
+            const mfa = {
+                ratioPct: 0,
+                receivers: { }
+            };
 
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: lowFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: highFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate);
+            await timeTravelOnceAndVerifyAll();
+
+            // fully delete everything
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.3 mfa-1to2[50,50]_100pct_create-full_updates-full_delete", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            const mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
                     }
-                ), "FlowAgreement: flow does not exist");
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: lowFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 50));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: highFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 50));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, "0");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.4 mfa-1to2[50,50]_50pct_create-full_updates-full_delete", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            const mfa = {
+                ratioPct: 50,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 25).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 25));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 25));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: lowFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate, 25).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 25));
+            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 25));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: highFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate, 25).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 25));
+            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 25));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, "0");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.5 mfa-1to2[50,50]_150pct_create-full_updates-full_delete", async () => {
+            // double the amount since it's a "bigger" flow
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE.muln(2));
+            await t.transferBalance(sender, "mfa", toWad(50));
+
+            const mfa = {
+                ratioPct: 150,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 75));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 75));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: lowFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate, 75).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 75));
+            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 75));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldUpdateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: highFlowRate,
+            });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate, 75).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 75));
+            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 75));
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, "0");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.6 mfa-1to1-101pct_create-should-fail-without-extra-funds", async () => {
+            const mfa = {
+                ratioPct: 101,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await expectRevert(shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            }), "CFA: not enough available balance");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.7 mfa-1to2[50,50]_100pct_create-partial_delete", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            let mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await timeTravelOnceAndVerifyAll();
+
+            // delete flow of receiver 1
+            mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 0
+                    }
+                }
+            };
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50)));
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+        });
+
+        it("#2.8 mfa-loopback-100pct", async() => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            let mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [sender]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, mfaFlowRate(FLOW_RATE1).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
+            await timeTravelOnceAndVerifyAll();
+
+            // shouldDeleteFlow doesn't support loopback mode for now, let's use the sf directly
+            await web3tx(t.sf.cfa.deleteFlow.bind(t.sf.cfa), "delete the mfa loopback flow")({
+                superToken: superToken.address,
+                sender: t.getAddress(sender),
+                receiver:app.address
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
         });
 
     });
 
-    describe("#6 FlowAgreement Deposit and OwedDeposit", () => {
-        it("#6.1 Should fail if sender don't have balance to pay deposit", async() => {
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                "100000000000",
-                "0x"
-            ).encodeABI();
+    describe("#10 multi accounts scenarios", () => {
+        it("#10.1 two accounts sending to each other with the same flow rate", async () => {
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
-                    }
-                ), "CFA: not enough available balance");
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
+            await expectNetFlow("bob", FLOW_RATE1);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "bob",
+                receiver: "alice",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", "0");
+            await expectNetFlow("bob", "0");
+            await timeTravelOnceAndVerifyAll();
         });
 
-        it("#6.2 Should fail if sender have small balance to pay deposit", async() => {
-            await superToken.upgrade(FLOW_RATE.mul(toBN(LIQUIDATION_PERIOD).sub(toBN(1))), {from : alice});
-            let dataAgreement = cfa.contract.methods.createFlow(
-                superToken.address,
-                bob,
-                FLOW_RATE.toString(),
-                "0x"
-            ).encodeABI();
-            await expectRevert(
-                web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                    cfa.address,
-                    dataAgreement,
-                    {
-                        from: alice,
-                    }
-                ), "CFA: not enough available balance");
+        it("#10.2 three accounts forming a flow loop", async () => {
+            // alice -> bob -> carol
+            //   ^---------------|
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+
+            const flowRateBC = FLOW_RATE1.muln(2).divn(3);
+            const flowRateCA = FLOW_RATE1.divn(3);
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("bob", FLOW_RATE1);
+            await expectNetFlow("carol", "0");
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "bob",
+                receiver: "carol",
+                flowRate: flowRateBC,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
+            await expectNetFlow("carol", flowRateBC);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "carol",
+                receiver: "alice",
+                flowRate: flowRateCA,
+            });
+            await expectNetFlow("alice", toBN(flowRateCA).sub(FLOW_RATE1));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
+            await expectNetFlow("carol", flowRateBC.sub(flowRateCA));
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#10.3 a slight complex flow map", async () => {
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE.muln(2));
+
+            const flowRateBD = FLOW_RATE1.muln(2).divn(3);
+            const flowRateDC = FLOW_RATE1.divn(3);
+            //const flowRate;
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "bob",
+                flowRate: FLOW_RATE1,
+            });
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "alice",
+                receiver: "carol",
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
+            await expectNetFlow("bob", FLOW_RATE1);
+            await expectNetFlow("carol", FLOW_RATE1);
+            await expectNetFlow("dan", "0");
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "bob",
+                receiver: "dan",
+                flowRate: flowRateBD,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
+            await expectNetFlow("carol", FLOW_RATE1);
+            await expectNetFlow("dan", flowRateBD);
+            await timeTravelOnceAndVerifyAll();
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender: "dan",
+                receiver: "carol",
+                flowRate: flowRateDC,
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
+            await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
+            await expectNetFlow("carol", FLOW_RATE1.add(flowRateDC));
+            await expectNetFlow("dan", flowRateBD.sub(flowRateDC));
+            await timeTravelOnceAndVerifyAll();
         });
     });
 
-    describe("#7 FlowAgreement Liquidation Test", () => {
-
-        it("#7.1 Liquidator should take the deposit", async() => {
-            await governance.setRewardAddress(admin);
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                cfa.contract.methods.createFlow(
-                    superToken.address,
-                    bob,
-                    FLOW_RATE2.toString(),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
-                "-385802469135802");
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
-                "385802469135802");
-
-            await expectRevert(superfluid.callAgreement(
-                cfa.address,
-                cfa.contract.methods.deleteFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    "0x"
-                ).encodeABI(), {
-                    from: dan,
-                }
-            ), "FlowAgreement: account is solvent");
-
-            // drain alice account
-            let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            await web3tx(superToken.transferAll, "Alice transfer all")(
-                carol, {
-                    from: alice
-                }
-            );
-            assert.isTrue(!await superToken.isAccountInsolvent(alice));
-
-            // alice become insolvent
-            await traveler.advanceTimeAndBlock(1);
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            assert.isTrue(await superToken.isAccountInsolvent(alice));
-
-            // dan liquidates alice
-            await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
-                cfa.address,
-                cfa.contract.methods.deleteFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    "0x"
-                ).encodeABI(), {
-                    from: dan,
-                }
-            );
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            let danBalance = await superToken.balanceOf.call(dan);
-            console.log("Dan balance: ", wad4human(danBalance));
-            assert.isTrue(toBN(dan).gt(toWad(0)));
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
-                "0");
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
-                "0");
-
-            await t.validateSystem();
-        });
-
-        it("#7.2 Liquidator should take the deposit but also pay for the deficit", async() => {
-            await governance.setRewardAddress(ZERO_ADDRESS);
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                cfa.contract.methods.createFlow(
-                    superToken.address,
-                    bob,
-                    FLOW_RATE.toString(),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
-                "-"+FLOW_RATE.toString());
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
-                FLOW_RATE.toString());
-
-            await expectRevert(superfluid.callAgreement(
-                cfa.address,
-                cfa.contract.methods.deleteFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    "0x"
-                ).encodeABI(), {
-                    from: dan,
-                }
-            ), "FlowAgreement: account is solvent");
-
-            // drain alice account
-            let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance 1: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            await web3tx(superToken.transferAll, "Alice transfer all")(
-                carol, {
-                    from: alice
-                }
-            );
-            assert.isTrue(!await superToken.isAccountInsolvent(alice));
-
-            // alice become insolvent
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance 2: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            await traveler.advanceTimeAndBlock(LIQUIDATION_PERIOD+1);
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance 3: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            assert.isTrue(await superToken.isAccountInsolvent(alice));
-
-            // dan liquidates alice
-            await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
-                cfa.address,
-                cfa.contract.methods.deleteFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    "0x"
-                ).encodeABI(), {
-                    from: dan,
-                }
-            );
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
-                "0");
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
-                "0");
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance 4: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            const danBalance = await superToken.realtimeBalanceOfNow.call(dan);
-            console.log("Dan balance: ", wad4human(danBalance.availableBalance));
-            assert.isTrue(toBN(danBalance.availableBalance).lt(toWad(0)));
-
-            await t.validateSystem();
-        });
-
-        it("#7.3 Liquidator should take the deposit, but reward address pays for the deficit", async() => {
-            // let admin be the reward address
-            await governance.setRewardAddress(admin, { from: admin });
-            await superToken.upgrade(INIT_BALANCE, {from : alice});
-
-            await web3tx(superfluid.callAgreement, "Superfluid.callAgreement alice -> bob")(
-                cfa.address,
-                cfa.contract.methods.createFlow(
-                    superToken.address,
-                    bob,
-                    FLOW_RATE.toString(),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: alice,
-                }
-            );
-            await traveler.advanceTimeAndBlock(ADV_TIME);
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
-                "-"+FLOW_RATE.toString());
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
-                FLOW_RATE.toString());
-
-            await expectRevert(superfluid.callAgreement(
-                cfa.address,
-                cfa.contract.methods.deleteFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    "0x"
-                ).encodeABI(), {
-                    from: dan,
-                }
-            ), "FlowAgreement: account is solvent");
-
-            // drain alice account
-            let aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            await web3tx(superToken.transferAll, "Alice transfer all")(
-                carol, {
-                    from: alice
-                }
-            );
-            assert.isTrue(!await superToken.isAccountInsolvent(alice));
-
-            // alice become insolvent
-            await traveler.advanceTimeAndBlock(5000);
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            console.log("Alice balance: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            assert.isTrue(await superToken.isAccountInsolvent(alice));
-
-            // dan liquidates alice
-            await web3tx(superfluid.callAgreement, "Dan liquidates alice")(
-                cfa.address,
-                cfa.contract.methods.deleteFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    "0x"
-                ).encodeABI(), {
-                    from: dan,
-                }
-            );
-            aliceBalance = await superToken.realtimeBalanceOfNow.call(alice);
-            const adminBalance = await superToken.realtimeBalanceOfNow.call(admin);
-            const danBalance = await superToken.realtimeBalanceOfNow.call(dan);
-            console.log("Alice balance: ",
-                wad4human(aliceBalance.availableBalance), wad4human(aliceBalance.deposit));
-            console.log("Admin balance: ", wad4human(adminBalance.availableBalance));
-            console.log("Dan balance: ", wad4human(danBalance.availableBalance));
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, alice)).toString(),
-                "0");
-            assert.equal(
-                (await cfa.getNetFlow.call(superToken.address, bob)).toString(),
-                "0");
-            assert.isTrue(toBN(adminBalance.availableBalance).lt(toWad(0)));
-            assert.isTrue(toBN(danBalance.availableBalance).gt(toWad(0)));
-
-            await t.validateSystem();
-        });
-
-    });
 });

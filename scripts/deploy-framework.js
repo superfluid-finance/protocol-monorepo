@@ -83,7 +83,6 @@ module.exports = async function (callback) {
                 }
             }
             superfluid = await Superfluid.at(superfluidAddress);
-            process.env.TEST_SUPERFLUID_ADDRESS = superfluidAddress;
         }
 
         // deploy TestGovernance

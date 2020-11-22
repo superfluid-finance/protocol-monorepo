@@ -87,7 +87,7 @@ contract("SuperfluidToken implementation", accounts => {
 
         context("#2.a single agreement real-time balance", () => {
             it("#2.a.1 without deposit", async () => {
-                await acA.setRealtimeBalanceFor(
+                await web3tx(acA.setRealtimeBalanceFor, "setRealtimeBalanceFor")(
                     superToken.address,
                     bob,
                     "10", "0", "0");
@@ -95,7 +95,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#2.a.2 with deposit", async () => {
-                await acA.setRealtimeBalanceFor(
+                await web3tx(acA.setRealtimeBalanceFor, "setRealtimeBalanceFor")(
                     superToken.address,
                     bob,
                     "10", "2", "0");
@@ -103,7 +103,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#2.a.3 with deposit and small owedDeposit", async () => {
-                await acA.setRealtimeBalanceFor(
+                await web3tx(acA.setRealtimeBalanceFor, "setRealtimeBalanceFor")(
                     superToken.address,
                     bob,
                     "10", "2", "1");
@@ -111,7 +111,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#2.a.4 with deposit and equal owedDeposit", async () => {
-                await acA.setRealtimeBalanceFor(
+                await web3tx(acA.setRealtimeBalanceFor, "setRealtimeBalanceFor")(
                     superToken.address,
                     bob,
                     "10", "2", "2");
@@ -119,7 +119,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#2.a.5 with deposit and large owedDeposit", async () => {
-                await acA.setRealtimeBalanceFor(
+                await web3tx(acA.setRealtimeBalanceFor, "setRealtimeBalanceFor")(
                     superToken.address,
                     bob,
                     "10", "2", "4");
@@ -194,7 +194,7 @@ contract("SuperfluidToken implementation", accounts => {
 
         context("#3.a agreement data", () => {
             it("#3.a.1 should create new agreement", async function () {
-                await acA.createAgreementFor(
+                await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address, "0x42", testData
                 );
                 assert.deepEqual(
@@ -209,7 +209,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#3.a.2 should not create the same agreement twice", async () => {
-                await acA.createAgreementFor(
+                await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address, "0x42", testData
                 );
                 await expectRevert(acA.createAgreementFor(
@@ -225,7 +225,7 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#3.a.3 should not overlap data", async () => {
-                await acA.createAgreementFor(
+                await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address, "0x42", testData
                 );
                 assert.deepEqual(
@@ -234,10 +234,10 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#3.a.4 should update data", async () => {
-                await acA.createAgreementFor(
+                await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address, "0x42", testData
                 );
-                await acA.updateAgreementDataFor(
+                await web3tx(acA.updateAgreementDataFor, "updateAgreementDataFor")(
                     superToken.address, "0x42", testData2
                 );
                 assert.deepEqual(
@@ -246,10 +246,10 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#3.a.5 should terminate agreement", async () => {
-                await acA.createAgreementFor(
+                await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address, "0x42", testData
                 );
-                await acA.terminateAgreementFor(
+                await web3tx(acA.terminateAgreementFor, "terminateAgreementFor")(
                     superToken.address, "0x42", 2
                 );
                 assert.deepEqual(
@@ -258,10 +258,10 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#3.a.6 should not terminate agreement twice", async () => {
-                await acA.createAgreementFor(
+                await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address, "0x42", testData
                 );
-                await acA.terminateAgreementFor(
+                await web3tx(acA.terminateAgreementFor, "terminateAgreementFor")(
                     superToken.address, "0x42", 2
                 );
                 await expectRevert(acA.terminateAgreementFor(
@@ -318,13 +318,13 @@ contract("SuperfluidToken implementation", accounts => {
 
             it("#3.c.1 should adjust static balance", async () => {
                 assert.equal(await availableBalanceOf(bob), "0");
-                await acA.settleBalanceFor(superToken.address, bob, "5");
+                await web3tx(acA.settleBalanceFor, "settleBalanceFor")(superToken.address, bob, "5");
                 assert.equal(await availableBalanceOf(bob), "5");
-                await acA.settleBalanceFor(superToken.address, bob, "-10");
+                await web3tx(acA.settleBalanceFor, "settleBalanceFor")(superToken.address, bob, "-10");
                 assert.equal(await availableBalanceOf(bob), "-5");
 
                 assert.equal(await availableBalanceOf(alice), "0");
-                await acA.settleBalanceFor(superToken.address, alice, "42");
+                await web3tx(acA.settleBalanceFor, "settleBalanceFor")(superToken.address, alice, "42");
                 assert.equal(await availableBalanceOf(bob), "-5");
                 assert.equal(await availableBalanceOf(alice), "42");
             });
@@ -336,7 +336,7 @@ contract("SuperfluidToken implementation", accounts => {
         it("#4.1 should only be called by listed agreement", async () => {
             const acBad = await AgreementMock.new(web3.utils.sha3("typeBad"), 1);
             await expectRevert(
-                acBad.liquidateAgreementFor(superToken.address, "0x42", bob, alice, 0, 0),
+                acBad.makeLiquidationPayoutsFor(superToken.address, "0x42", bob, alice, 0, 0),
                 "SuperfluidToken: only listed agreeement");
         });
 
@@ -346,12 +346,12 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.a.1 liquidation without bailout by alice (liquidator)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
-                    "10",
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
+                    "10", /* reward */
                     "0"
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
@@ -360,13 +360,13 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.a.2 liquidation without bailout by admin (reward address) directly", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
-                    admin,
-                    bob,
-                    "10",
-                    "0"
+                    admin, /* liquidator account */
+                    bob, /* panelty account */
+                    "10", /* reward */
+                    "0" /* bailout */
                 );
                 assert.equal(await availableBalanceOf(admin), "10");
                 assert.equal(await availableBalanceOf(bob), "-10");
@@ -374,13 +374,13 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.a.3 liquidation with bailout by alice (liquidator)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
-                    "10",
-                    "5"
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
+                    "10", /* reward */
+                    "5" /* bailout */
                 );
                 assert.equal(await availableBalanceOf(admin), "-15");
                 assert.equal(await availableBalanceOf(bob), "5");
@@ -394,11 +394,11 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.b.1 liquidation without bailout by alice (liquidator)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
                     "10",
                     "0"
                 );
@@ -407,11 +407,11 @@ contract("SuperfluidToken implementation", accounts => {
             });
 
             it("#4.b.2 liquidation with bailout by alice (liquidator and bailout account)", async () => {
-                await acA.liquidateAgreementFor(
+                await acA.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",
-                    alice,
-                    bob,
+                    alice, /* liquidator account */
+                    bob, /* panelty account */
                     "10",
                     "5"
                 );

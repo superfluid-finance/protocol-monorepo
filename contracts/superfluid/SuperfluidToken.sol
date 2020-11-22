@@ -54,7 +54,10 @@ abstract contract SuperfluidToken is ISuperfluidToken
        uint256 timestamp
     )
        public view override
-       returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit)
+       returns (
+           int256 availableBalance,
+           uint256 deposit,
+           uint256 owedDeposit)
     {
         availableBalance = _balances[account];
         ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
@@ -70,7 +73,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
                      );
             deposit = deposit.add(agreementDeposit);
             owedDeposit = owedDeposit.add(agreementOwedDeposit);
-            // 1. Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
+            // 1. Available Balance = Dynamic Balance - Max(0, Deposit - OwedDeposit)
             // 2. Deposit should not be shared between agreements
             availableBalance = availableBalance
                 .add(agreementDynamicBalance)
@@ -86,19 +89,63 @@ abstract contract SuperfluidToken is ISuperfluidToken
        address account
     )
         external view override
-        returns (int256 availableBalance, uint256 deposit, uint256 owedDeposit) {
-        return realtimeBalanceOf(account, block.timestamp);
+        returns (
+            int256 availableBalance,
+            uint256 deposit,
+            uint256 owedDeposit,
+            uint256 timestamp)
+    {
+        timestamp = block.timestamp;
+        (
+            availableBalance,
+            deposit,
+            owedDeposit
+        ) = realtimeBalanceOf(account, timestamp);
     }
 
-    /// @dev ISuperfluidToken.isAccountInsolvent implementation
-    function isAccountInsolvent(
-      address account
+    function isAccountCritical(
+        address account,
+        uint256 timestamp
     )
-      external view override
-      returns(bool)
+        public view override
+        returns(bool isCritical)
     {
-        (int256 amount, ,) = realtimeBalanceOf(account, block.timestamp);
-        return amount < 0;
+        (int256 availableBalance,,) = realtimeBalanceOf(account, timestamp);
+        return availableBalance < 0;
+    }
+
+    function isAccountCriticalNow(
+       address account
+    )
+        external view override
+       returns(bool isCritical)
+    {
+        return isAccountCritical(account, block.timestamp);
+    }
+
+    function isAccountSolvent(
+        address account,
+        uint256 timestamp
+    )
+        public view override
+        returns(bool isSolvent)
+    {
+        (int256 availableBalance, uint256 deposit, uint256 owedDeposit) =
+            realtimeBalanceOf(account, timestamp);
+        // Available Balance = Realtime Balance - Max(0, Deposit - OwedDeposit)
+        int realtimeBalance = availableBalance.add(
+            (deposit > owedDeposit ? (deposit - owedDeposit).toInt256() : 0)
+        );
+        return realtimeBalance >= 0;
+    }
+
+    function isAccountSolventNow(
+       address account
+    )
+       external view override
+       returns(bool isSolvent)
+    {
+        return isAccountSolvent(account, block.timestamp);
     }
 
     /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
@@ -243,8 +290,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
         _balances[account] = _balances[account].add(delta);
     }
 
-    /// @dev ISuperfluidToken.liquidateAgreement implementation
-    function liquidateAgreement
+    /// @dev ISuperfluidToken.makeLiquidationPayouts implementation
+    function makeLiquidationPayouts
     (
         bytes32 id,
         address liquidator,

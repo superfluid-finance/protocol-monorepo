@@ -27,6 +27,19 @@ contract TestGovernance is
         _liquidationPeriod = liquidationPeriod;
     }
 
+    function setRewardAddress(
+        address rewardAddress
+    )
+        external
+        onlyOwner
+    {
+        _rewardAddress = rewardAddress;
+    }
+
+    function setLiquidationPeriod(uint256 liquidationPeriod) external {
+        _liquidationPeriod = liquidationPeriod;
+    }
+
     function registerAgreementClass(address host, ISuperAgreement agreementClass)
         external override
     {
@@ -39,21 +52,10 @@ contract TestGovernance is
         ISuperfluid(host).updateAgreementClass(agreementClass);
     }
 
-    function setRewardAddress(
-        address rewardAddress
-    )
-        external
-        onlyOwner
-    {
-        _rewardAddress = rewardAddress;
-    }
-
     function getRewardAddress(
         ISuperfluidToken /* superToken */
     )
-        external
-        view
-        override
+        external view override
         returns(address rewardAddress)
     {
         return _rewardAddress;
@@ -62,12 +64,9 @@ contract TestGovernance is
     function getLiquidationPeriod(
         ISuperfluidToken /* superToken */
     )
-        external
-        view
-        override
+        external view override
         returns(uint256 period)
     {
         return _liquidationPeriod;
     }
-
 }

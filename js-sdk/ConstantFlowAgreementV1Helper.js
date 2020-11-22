@@ -102,7 +102,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const receiverNorm = await this._sf.utils.normalizeAddressParam(receiver);
         const byNorm = (by && await this._sf.utils.normalizeAddressParam(by)) || senderNorm;
-        console.debug(`Delete flow from ${sender} to ${receiver} by ${by} ...`);
+        console.debug(`Delete flow from ${sender} to ${receiver} by ${by || byNorm} ...`);
         const tx = await this._sf.host.callAgreement(
             this._cfa.address,
             this._cfa.contract.methods.deleteFlow(
@@ -140,20 +140,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const receiverNorm = await this._sf.utils.normalizeAddressParam(receiver);
         const result = await this._cfa.getFlow(superTokenNorm, senderNorm, receiverNorm);
-        // sanitize result
-        return (({
-            timestamp,
-            flowRate,
-            deposit,
-            owedDeposit
-        }) => {
-            return {
-                timestamp: new Date(Number(timestamp.toString())*1000),
-                flowRate: flowRate.toString(),
-                deposit: deposit.toString(),
-                owedDeposit: owedDeposit.toString(),
-            };
-        })(result);
+        return this.constructor._sanitizeflowInfo(result);
     }
 
     /**
@@ -170,6 +157,37 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
         return await this._cfa.getNetFlow(superTokenNorm, accountNorm);
+    }
+
+    /**
+     * @dev Get information of the net flow of an account
+     * @param {tokenParam} superToken superToken for the flow
+     * @param {addressParam} account the account for the query
+     * @return {Promise<string>} Net flow rate of the account
+     */
+    async getAccountFlowInfo({
+        superToken,
+        account,
+        //unit
+    }) {
+        const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
+        const accountNorm = await this._sf.utils.normalizeAddressParam(account);
+        const result = await this._cfa.getAccountFlowInfo(superTokenNorm, accountNorm);
+        return this.constructor._sanitizeflowInfo(result);
+    }
+
+    static _sanitizeflowInfo({
+        timestamp,
+        flowRate,
+        deposit,
+        owedDeposit
+    }) {
+        return {
+            timestamp: new Date(Number(timestamp.toString())*1000),
+            flowRate: flowRate.toString(),
+            deposit: deposit.toString(),
+            owedDeposit: owedDeposit.toString(),
+        };
     }
 
     static getLatestFlows(flows) {

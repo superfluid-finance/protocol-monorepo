@@ -8,20 +8,21 @@ import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 
 abstract contract AgreementBase is
     Proxiable,
-    Ownable,
     ISuperAgreement
 {
+    address private _host;
 
     function initialize() external {
         Proxiable._initialize();
-        _owner = msg.sender;
+        _host = msg.sender;
     }
 
     function proxiableUUID() public view override returns (bytes32) {
         return ISuperAgreement(this).agreementType();
     }
 
-    function updateCode(address newAddress) external onlyOwner {
+    function updateCode(address newAddress) external {
+        require(msg.sender == _host, "SF: only host can update code");
         return _updateCodeAddress(newAddress);
     }
 

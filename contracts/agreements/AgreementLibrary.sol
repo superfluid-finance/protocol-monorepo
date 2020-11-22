@@ -2,270 +2,184 @@
 pragma solidity 0.7.4;
 
 import {
-    ISuperfluid,
     ISuperfluidGovernance,
+    ISuperfluid,
+    ISuperfluidToken,
     ISuperApp,
-    SuperAppDefinitions
+    SuperAppDefinitions,
+    ContextDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 
+
+/**
+ * @dev Helper library for building super agreement
+ */
 library AgreementLibrary {
 
-    struct Context {
-        uint8 appLevel;
-        address msgSender;
-        uint256 allowance;
-        uint256 allowanceUsed;
-    }
+    using SignedSafeMath for int256;
+    using SafeCast for uint256;
+    using SafeCast for int256;
 
-    function updateCtx(ISuperfluid host, bytes memory ctx, Context memory context)
-        internal
-        returns (bytes memory newCtx)
-    {
-        newCtx = host.ctxUpdate(
-            ctx,
-            context.appLevel,
-            context.allowance,
-            context.allowanceUsed);
+    /**************************************************************************
+     * Context helpers
+     *************************************************************************/
+
+    struct Context {
+        uint256 timestamp;
+        address msgSender;
+        uint8 appLevel;
+        uint8 callType;
+        uint256 appAllowanceGranted;
+        uint256 appAllowanceWanted;
+        int256 appAllowanceUsed;
     }
 
     function decodeCtx(ISuperfluid host, bytes memory ctx)
-        internal
-        pure
+        internal pure
         returns (Context memory context)
     {
+        uint256 callInfo;
         (
-            ,
-            context.appLevel,
+            callInfo,
+            context.timestamp,
             context.msgSender,
-            context.allowance,
-            context.allowanceUsed
+            ,
+            context.appAllowanceGranted,
+            context.appAllowanceWanted,
+            context.appAllowanceUsed
         ) = host.decodeCtx(ctx);
+        (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
     }
 
-    function _beforeAgreement(
-        bytes4 selector,
-        uint256 noopBit,
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bool isTermination
-    )
-        private
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        newCtx = ctx;
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(ISuperApp(account));
+    /**************************************************************************
+     * Agreement callback helpers
+     *************************************************************************/
 
-        if (isSuperApp &&
-            ((configWord & noopBit) == 0)) {
-            bytes memory data = abi.encodeWithSelector(
-                selector,
-                token,
-                ctx,
-                agreementClass,
-                agreementId
-            );
-            (cbdata, newCtx) = host.callAppBeforeCallback(ISuperApp(account), data, isTermination, ctx);
+    struct CallbackInputs {
+        uint256 noopMask;
+        address agreementClass;
+        ISuperfluidToken token;
+        address account;
+        bytes32 agreementId;
+        uint256 appAllowanceGranted;
+        int256 appAllowanceUsed;
+        uint256 noopBit;
+        bytes4 selector;
+    }
+
+    function createCallbackInputs(
+        address agreementClass,
+        ISuperfluidToken token,
+        address account,
+        bytes32 agreementId
+    )
+       internal view
+       returns (CallbackInputs memory inputs)
+    {
+        ISuperfluid host = ISuperfluid(msg.sender);
+        (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
+        inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
+        inputs.agreementClass = agreementClass;
+        inputs.token = token;
+        inputs.account = account;
+        inputs.agreementId = agreementId;
+    }
+
+    function callAppBeforeCallback(
+        CallbackInputs memory inputs,
+        bytes memory ctx
+    )
+        internal
+        returns(bytes memory cbdata)
+    {
+        if ((inputs.noopMask & inputs.noopBit) == 0) {
+            bytes memory appCtx = _pushCallbackStack(ctx, inputs);
+
+            (cbdata,) = ISuperfluid(msg.sender).callAppBeforeCallback(
+                ISuperApp(inputs.account),
+                abi.encodeWithSelector(
+                    inputs.selector,
+                    inputs.token,
+                    appCtx,
+                    inputs.agreementClass,
+                    inputs.agreementId
+                ),
+                inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
+                appCtx);
+
+            _popCallbackStatck(ctx, 0);
         }
     }
 
-    function _afterAgreement(
-        bytes4 selector,
-        uint256 noopBit,
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
+    function callAppAfterCallback(
+        CallbackInputs memory inputs,
         bytes memory cbdata,
-        bool isTermination
+        bytes memory ctx
+    )
+        internal
+        returns(Context memory appContext)
+    {
+        if ((inputs.noopMask & inputs.noopBit) == 0) {
+            bytes memory appCtx = _pushCallbackStack(ctx, inputs);
+
+            appCtx = ISuperfluid(msg.sender).callAppAfterCallback(
+                ISuperApp(inputs.account),
+                abi.encodeWithSelector(
+                    inputs.selector,
+                    inputs.token,
+                    appCtx,
+                    inputs.agreementClass,
+                    inputs.agreementId,
+                    cbdata
+                ),
+                inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
+                appCtx);
+
+            appContext = decodeCtx(ISuperfluid(msg.sender), appCtx);
+
+            // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
+            appContext.appAllowanceUsed = max(0, min(
+                inputs.appAllowanceGranted.toInt256(),
+                max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
+
+            _popCallbackStatck(ctx, appContext.appAllowanceUsed);
+        }
+    }
+
+    function _pushCallbackStack(
+        bytes memory ctx,
+        CallbackInputs memory inputs
     )
         private
-        returns(bytes memory newCtx)
+        returns (bytes memory appCtx)
     {
-        (bool isSuperApp, uint256 configWord) =
-            host.getAppManifest(ISuperApp(account));
-
-
-        if (isSuperApp &&
-            ((configWord & noopBit) == 0)) {
-            bytes memory data = abi.encodeWithSelector(
-                selector,
-                token,
-                ctx,
-                agreementClass,
-                agreementId,
-                cbdata
-            );
-            return host.callAppAfterCallback(ISuperApp(account), data, isTermination, ctx);
-        }
-
-        return ctx;
-    }
-
-    function beforeAgreementCreated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId
-    )
-        internal
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        return _beforeAgreement(
-            ISuperApp.beforeAgreementCreated.selector,
-            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP,
-            host,
-            token,
+        // app allowance params stack PUSH
+        // pass app allowance and current allowance used to the app,
+        appCtx = ISuperfluid(msg.sender).appCallbackPush(
             ctx,
-            agreementClass,
-            account,
-            agreementId,
-            false
-        );
+            inputs.appAllowanceGranted,
+            inputs.appAllowanceUsed);
     }
 
-    function afterAgreementCreated(
-        ISuperfluid host,
-        ISuperfluidToken token,
+    function _popCallbackStatck(
         bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bytes memory cbdata
+        int256 appAllowanceUsed
     )
-        internal
-        returns(bytes memory newCtx)
+        private
     {
-
-        return _afterAgreement(
-            ISuperApp.afterAgreementCreated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            cbdata,
-            false
-        );
+        // app allowance params stack POP
+        ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);
     }
 
-    function beforeAgreementUpdated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId
-    )
-        internal
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        return _beforeAgreement(
-            ISuperApp.beforeAgreementUpdated.selector,
-            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            false
-        );
-    }
+    /**************************************************************************
+     * Misc
+     *************************************************************************/
 
-    function afterAgreementUpdated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bytes memory cbdata
-    )
-        internal
-        returns(bytes memory newCtx)
-    {
-        return _afterAgreement(
-            ISuperApp.afterAgreementUpdated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            cbdata,
-            false
-        );
-    }
+    function max(int256 a, int256 b) internal pure returns (int256) { return a > b ? a : b; }
 
-    function beforeAgreementTerminated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId
-    )
-        internal
-        returns(bytes memory cbdata, bytes memory newCtx)
-    {
-        return _beforeAgreement(
-            ISuperApp.beforeAgreementTerminated.selector,
-            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            true
-        );
-    }
-
-    function afterAgreementTerminated(
-        ISuperfluid host,
-        ISuperfluidToken token,
-        bytes memory ctx,
-        address agreementClass,
-        address account,
-        bytes32 agreementId,
-        bytes memory cbdata
-    )
-        internal
-        returns(bytes memory newCtx)
-    {
-        return _afterAgreement(
-            ISuperApp.afterAgreementTerminated.selector,
-            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
-            host,
-            token,
-            ctx,
-            agreementClass,
-            account,
-            agreementId,
-            cbdata,
-            true
-        );
-    }
-
-    function getGovernance()
-        internal
-        view
-        returns(ISuperfluidGovernance gov)
-    {
-        return ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
-    }
+    function min(int256 a, int256 b) internal pure returns (int256) { return a > b ? b : a; }
 }

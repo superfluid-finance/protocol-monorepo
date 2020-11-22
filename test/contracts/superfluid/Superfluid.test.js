@@ -246,7 +246,7 @@ contract("Superfluid Host Contract", accounts => {
                     (await superToken.balanceOf.call(bob)).toString(),
                     toWad("5").toString());
 
-                await t.validateSystem();
+                await t.validateSystemInvariance();
             });
         });
     });

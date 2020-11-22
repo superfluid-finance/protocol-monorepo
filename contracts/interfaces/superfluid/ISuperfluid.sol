@@ -7,7 +7,10 @@ import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
-import { SuperAppDefinitions } from "./SuperAppDefinitions.sol";
+import {
+    ContextDefinitions,
+    SuperAppDefinitions
+} from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
@@ -150,8 +153,9 @@ interface ISuperfluid {
     )
         external view
         returns (
-            bool exist,
-            uint256 configWord
+            bool isSuperApp,
+            bool isJailed,
+            uint256 noopMask
         );
 
     /**
@@ -185,6 +189,7 @@ interface ISuperfluid {
      *
      * These functions can only be called by registered agreements.
      *************************************************************************/
+
     function callAppBeforeCallback(
         ISuperApp app,
         bytes calldata data,
@@ -205,13 +210,27 @@ interface ISuperfluid {
         external
         // onlyAgreement
         // isAppActive(app)
-        returns(bytes memory newCtx);
+        returns(bytes memory appCtx);
 
-    function ctxUpdate(
+    function appCallbackPush(
         bytes calldata ctx,
-        uint8 appLevel,
-        uint256 allowance,
-        uint256 allowanceUsed
+        uint256 allowanceGranted,
+        int256 allowanceUsed
+    ) external
+        // onlyAgreement
+        returns (bytes memory appCtx);
+
+    function appCallbackPop(
+        bytes calldata ctx,
+        int256 allowanceUsedDelta
+    ) external
+        // onlyAgreement
+        returns (bytes memory newCtx);
+
+    function ctxUseAllowance(
+        bytes calldata ctx,
+        uint256 allowanceWantedMore,
+        int256 allowanceUsedDelta
     )
         external
         // onlyAgreement
@@ -330,11 +349,13 @@ interface ISuperfluid {
     function decodeCtx(bytes calldata ctx)
         external pure
         returns (
-            bytes4 agreementSelector,
-            uint8 appLevel,
+            uint256 callInfo,
+            uint256 timestamp,
             address msgSender,
-            uint256 allowance,
-            uint256 allowanceUsed
+            bytes4 agreementSelector,
+            uint256 appAllowanceGranted,
+            uint256 appAllowanceWanted,
+            int256 appAllowanceUsed
         );
 
     /**************************************************************************

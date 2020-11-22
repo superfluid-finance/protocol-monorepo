@@ -9,7 +9,8 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
-    SuperAppDefinitions
+    SuperAppDefinitions,
+    ContextDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
@@ -136,10 +137,7 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-        if (currentContext.appLevel == 0) {
-            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
-            require(availableBalance >= 0, "CFA: not enough available balance");
-        }
+        _requireAvailableBalance(token, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlow implementation
@@ -175,10 +173,7 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-        if (currentContext.appLevel == 0) {
-            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
-            require(availableBalance >= 0, "CFA: not enough available balance");
-        }
+        _requireAvailableBalance(token, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.deleteFlow implementation
@@ -405,11 +400,10 @@ contract ConstantFlowAgreementV1 is
             token, flowParams, oldFlowData);
 
         // STEP 2: update app allowance used
-        newCtx = AgreementLibrary.ctxUpdateAppAllowance(
+        newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
             ctx,
-            currentContext,
-            newFlowData.deposit.toInt256(), // appAllowanceWantedDelta
-            depositDelta
+            newFlowData.deposit, // allowanceWantedMore
+            depositDelta // allowanceUsedDelta
         );
     }
 
@@ -469,7 +463,7 @@ contract ConstantFlowAgreementV1 is
             vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel + 1));
 
             // call the after callback
-            cbStates.appAllowance = vars.appAllowance;
+            cbStates.appAllowanceGranted = vars.appAllowance;
             cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
@@ -527,11 +521,10 @@ contract ConstantFlowAgreementV1 is
                 currentContext.timestamp
             );
 
-            newCtx = AgreementLibrary.ctxUpdateAppAllowance(
+            newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
                 ctx,
-                currentContext,
-                vars.newFlowData.deposit.toInt256(),
-                appAllowanceDelta
+                vars.newFlowData.deposit, // allowanceWantedMore
+                appAllowanceDelta // allowanceUsedDelta
             );
         }
     }
@@ -611,6 +604,19 @@ contract ConstantFlowAgreementV1 is
             flowParams.flowRate,
             totalSenderFlowRate,
             totalReceiverFlowRate);
+    }
+
+    function _requireAvailableBalance(
+        ISuperfluidToken token,
+        AgreementLibrary.Context memory currentContext
+    )
+        private view
+    {
+        // do not enforce balance checks during callbacks
+        if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK) {
+            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
+            require(availableBalance >= 0, "CFA: not enough available balance");
+        }
     }
 
     function _makeLiquidationPayouts(

@@ -21,6 +21,8 @@ import {
 import { SuperToken } from "./SuperToken.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
 
+import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
@@ -30,6 +32,9 @@ contract Superfluid is
     Ownable,
     ISuperfluid
 {
+
+    using SafeCast for uint256;
+    using SignedSafeMath for int256;
 
     enum Info {
         A_1_MANIFEST,
@@ -376,19 +381,16 @@ contract Superfluid is
         ISuperApp app,
         bytes calldata data,
         bool isTermination,
-        bytes calldata ctx
+        bytes calldata /* ctx */
     )
         external override
         onlyAgreement
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
-        returns(bytes memory cbdata, bytes memory newCtx)
+        returns(bytes memory cbdata, bytes memory /*newCtx*/)
     {
-        //TODO: _callCallback
         (bool success, bytes memory returnedData) = _callCallback(app, data, true);
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
-            //(newCtx, cbdata) = splitReturnedData(returnedData);
-            newCtx = ctx;
         } else {
             if (!isTermination) {
                 revert("SF: before callback failed");
@@ -409,14 +411,11 @@ contract Superfluid is
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        require(!isAppJailed(app), "SF: App already jailed");
-
         (bool success, bytes memory returnedData) = _callCallback(app, data, false);
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
             if(!_isCtxValid(newCtx)) {
-                // TODO: JAIL if callback changes ctx
-                //Change return context
+                // TODO: JAIL if callback changes ctx and Change return context
                 if (!isTermination) {
                     revert("SF: B_1_READONLY_CONTEXT");
                 } else {
@@ -432,11 +431,42 @@ contract Superfluid is
         }
     }
 
-    function ctxUpdateAppAllowance(
+    function appCallbackPush(
         bytes calldata ctx,
-        uint8 cbLevel,
-        int256 appAllowanceIO,
-        int256 appAllowanceUsed
+        uint256 allowanceGranted,
+        int256 allowanceUsed
+    )
+        external override
+        onlyAgreement
+        returns (bytes memory appCtx)
+    {
+        FullContext memory appContext = _decodeFullContext(ctx);
+        (uint8 cbLevel,) = ContextDefinitions.decodeCallInfo(appContext.extCall.callInfo);
+        appContext.extCall.callInfo = ContextDefinitions.encodeCallInfo(
+            cbLevel + 1,
+            ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK);
+        appContext.app.allowanceIO = allowanceGranted.toInt256();
+        appContext.app.allowanceUsed = allowanceUsed;
+        appCtx = _updateContext(appContext);
+    }
+
+    function appCallbackPop(
+        bytes calldata ctx,
+        int256 allowanceUsedDelta
+    )
+        external override
+        onlyAgreement
+        returns (bytes memory newCtx)
+    {
+        FullContext memory context = _decodeFullContext(ctx);
+        context.app.allowanceUsed = context.app.allowanceUsed.add(allowanceUsedDelta);
+        newCtx = _updateContext(context);
+    }
+
+    function ctxUseAllowance(
+        bytes calldata ctx,
+        uint256 allowanceWantedMore,
+        int256 allowanceUsedDelta
 
     )
         external override
@@ -444,10 +474,17 @@ contract Superfluid is
         returns (bytes memory newCtx)
     {
         FullContext memory context = _decodeFullContext(ctx);
-        (,uint8 callType) = ContextDefinitions.decodeCallInfo(context.extCall.callInfo);
-        context.extCall.callInfo = ContextDefinitions.encodeCallInfo(cbLevel, callType);
-        context.app.allowanceIO = appAllowanceIO;
-        context.app.allowanceUsed = appAllowanceUsed;
+
+        int256 allowanceWanted;
+        // app allowance given (input in positive) / wanted (output in negative)
+        if (context.app.allowanceIO > 0) allowanceWanted = 0;
+        else allowanceWanted = context.app.allowanceIO;
+        allowanceWanted = allowanceWanted.sub(allowanceWantedMore.toInt256());
+
+        context.app.allowanceIO = allowanceWanted;
+        context.app.allowanceUsed = context.app.allowanceUsed.add(allowanceUsedDelta);
+
+
         newCtx = _updateContext(context);
     }
 
@@ -474,7 +511,7 @@ contract Superfluid is
             (uint32(uint8(data[0])) << 24));
         ctx = _updateContext(FullContext({
             extCall: ExtCallContext({
-                callInfo: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK_BIT,
+                callInfo: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT_BIT,
                 /* solhint-disable-next-line not-rely-on-time */
                 timestamp: block.timestamp,
                 msgSender: msg.sender,
@@ -590,15 +627,16 @@ contract Superfluid is
     {
         FullContext memory context = _decodeFullContext(ctx);
         address oldSender = context.extCall.msgSender;
+
         context.extCall.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
-        //Call app
         bool success;
         (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             assert(_isCtxValid(newCtx));
+            // back to old msg.sender
             context = _decodeFullContext(newCtx);
             context.extCall.msgSender = oldSender;
             newCtx = _updateContext(context);
@@ -617,20 +655,19 @@ contract Superfluid is
         returns(bytes memory newCtx)
     {
         FullContext memory context = _decodeFullContext(ctx);
+        address oldSender = context.extCall.msgSender;
 
         // FIXME max app level check
-        (uint8 cbLevel,) = ContextDefinitions.decodeCallInfo(context.extCall.callInfo);
-        context.extCall.callInfo = ContextDefinitions.encodeCallInfo(
-            cbLevel,
-            ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION);
+        context.extCall.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
         (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
         if (success) {
+            (newCtx) = abi.decode(returnedData, (bytes));
             require(_isCtxValid(newCtx), "SF: app altering the ctx");
-            context.extCall.callInfo = ContextDefinitions.encodeCallInfo(
-                cbLevel,
-                ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION);
+            // back to old msg.sender
+            context = _decodeFullContext(newCtx);
+            context.extCall.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
             revert(_getRevertMsg(returnedData));
@@ -680,7 +717,6 @@ contract Superfluid is
         returns(bool success, bytes memory returnedData)
     {
         // STEP 1 : replace placeholder ctx with actual ctx
-
         // ctx needs to be padded to align with 32 bytes bouondary
         uint256 paddedLength = (ctx.length / 32 + 1) * 32;
         // ctx length has to be stored in the length word of placehoolder ctx

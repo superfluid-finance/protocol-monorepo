@@ -626,6 +626,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         const sender = "alice";
         const receiver1 = "bob";
         const receiver2 = "carol";
+        const lowFlowRate =  FLOW_RATE1.mul(toBN(9)).div(toBN(10));
+        const highFlowRate =  FLOW_RATE1.mul(toBN(11)).div(toBN(10));
         //const receiver2 = "carol";
         //const agent = "dan";
         let app;
@@ -638,7 +640,18 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             t.addAlias("mfa", app.address);
         });
 
-        it("#2.1 mfa-1to1_100pc_create-full_updates-full_delete", async () => {
+        // due to clipping of flow rate, mfa outgoing flow rate is always equal or less
+        // then the sender's rate
+        function mfaFlowRate(flowRate, pct = 100) {
+            return clipDepositNumber(
+                toBN(flowRate)
+                    .mul(toBN(LIQUIDATION_PERIOD))
+                    .muln(pct).divn(100),
+                true
+            ).div(toBN(LIQUIDATION_PERIOD));
+        }
+
+        it("#2.1 mfa-1to1_100pct_create-full_updates-full_delete", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
@@ -650,21 +663,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }
             };
 
-            // TODO use call context user data to configure the multi flows
-            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
-                app.address,
-                app.contract.methods.createMultiFlows(
-                    mfa.ratioPct,
-                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: t.aliases[sender]
-                }
-            );
-
-            // create 1to1 100% through
             await shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -672,26 +670,33 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+                flowRate: lowFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                flowRate: highFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate));
             await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
@@ -702,6 +707,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 by: sender
             });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
             await timeTravelOnceAndVerifyAll();
         });
 
@@ -713,21 +721,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receivers: { }
             };
 
-            // TODO use call context user data to configure the multi flows
-            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
-                app.address,
-                app.contract.methods.createMultiFlows(
-                    mfa.ratioPct,
-                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: t.aliases[sender]
-                }
-            );
-
-            // create 1to1 100% through
             await shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -735,26 +728,30 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1);
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+                flowRate: lowFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate);
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                flowRate: highFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate);
             await timeTravelOnceAndVerifyAll();
 
             // fully delete everything
@@ -765,10 +762,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 by: sender
             });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
             await timeTravelOnceAndVerifyAll();
         });
 
-        it("#2.3 mfa-1to2[50,50]_100pc_create-full_updates-full_delete", async () => {
+        it("#2.3 mfa-1to2[50,50]_100pct_create-full_updates-full_delete", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
@@ -783,21 +782,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }
             };
 
-            // TODO use call context user data to configure the multi flows
-            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
-                app.address,
-                app.contract.methods.createMultiFlows(
-                    mfa.ratioPct,
-                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: t.aliases[sender]
-                }
-            );
-
-            // create 1to1 100% through
             await shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -805,29 +789,38 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+                flowRate: lowFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 50));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                flowRate: highFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 50));
             await timeTravelOnceAndVerifyAll();
 
-            // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
@@ -835,10 +828,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 by: sender
             });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, "0");
             await timeTravelOnceAndVerifyAll();
         });
 
-        it("#2.4 mfa-1to2[50,50]_50pc_create-full_updates-full_delete", async () => {
+        it("#2.4 mfa-1to2[50,50]_50pct_create-full_updates-full_delete", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
@@ -853,21 +850,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }
             };
 
-            // TODO use call context user data to configure the multi flows
-            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
-                app.address,
-                app.contract.methods.createMultiFlows(
-                    mfa.ratioPct,
-                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: t.aliases[sender]
-                }
-            );
-
-            // create 1to1 100% through
             await shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -875,29 +857,38 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 25).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 25));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 25));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+                flowRate: lowFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate, 25).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 25));
+            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 25));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                flowRate: highFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate, 25).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 25));
+            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 25));
             await timeTravelOnceAndVerifyAll();
 
-            // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
@@ -905,10 +896,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 by: sender
             });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, "0");
             await timeTravelOnceAndVerifyAll();
         });
 
-        it("#2.5 mfa-1to2[50,50]_150pc_create-full_updates-full_delete", async () => {
+        it("#2.5 mfa-1to2[50,50]_150pct_create-full_updates-full_delete", async () => {
             // double the amount since it's a "bigger" flow
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE.muln(2));
             await t.transferBalance(sender, "mfa", toWad(50));
@@ -925,21 +920,6 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 }
             };
 
-            // TODO use call context user data to configure the multi flows
-            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
-                app.address,
-                app.contract.methods.createMultiFlows(
-                    mfa.ratioPct,
-                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: t.aliases[sender]
-                }
-            );
-
-            // create 1to1 100% through
             await shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -947,29 +927,38 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 75));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 75));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 90% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
+                flowRate: lowFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
+            await expectNetFlow("mfa", lowFlowRate.sub(mfaFlowRate(lowFlowRate, 75).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(lowFlowRate, 75));
+            await expectNetFlow(receiver2, mfaFlowRate(lowFlowRate, 75));
             await timeTravelOnceAndVerifyAll();
 
-            // update 1to1 with 110% flow rate
             await shouldUpdateFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
+                flowRate: highFlowRate,
             });
+            await expectNetFlow(sender, toBN(0).sub(highFlowRate));
+            await expectNetFlow("mfa", highFlowRate.sub(mfaFlowRate(highFlowRate, 75).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(highFlowRate, 75));
+            await expectNetFlow(receiver2, mfaFlowRate(highFlowRate, 75));
             await timeTravelOnceAndVerifyAll();
 
-            // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
@@ -977,10 +966,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 by: sender
             });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, "0");
             await timeTravelOnceAndVerifyAll();
         });
 
-        it("#2.6 mfa-1to1-101pc_create-should-fail-without-extra-funds", async () => {
+        it("#2.6 mfa-1to1-101pct_create-should-fail-without-extra-funds", async () => {
             const mfa = {
                 ratioPct: 101,
                 receivers: {
@@ -989,21 +982,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     }
                 }
             };
-            // TODO use call context user data to configure the multi flows
-            await web3tx(superfluid.callAppAction, "MultiFlowApp configure alice -> bob [100%]")(
-                app.address,
-                app.contract.methods.createMultiFlows(
-                    mfa.ratioPct,
-                    Object.keys(mfa.receivers).map(i=>t.getAddress(i)),
-                    Object.keys(mfa.receivers).map(i=>mfa.receivers[i].proportion),
-                    "0x"
-                ).encodeABI(),
-                {
-                    from: t.aliases[sender]
-                }
-            );
 
-            // create 1to1 100% through
             await expectRevert(shouldCreateFlow({
                 testenv: t,
                 sender,
@@ -1012,6 +991,93 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 flowRate: FLOW_RATE1,
             }), "CFA: not enough available balance");
             await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.7 mfa-1to2[50,50]_100pct_create-partial_delete", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            let mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+            await timeTravelOnceAndVerifyAll();
+
+            mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 0
+                    }
+                }
+            };
+
+            // only delete flow of receiver 1
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50)));
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+        });
+
+        it("#2.8 mfa-loopback-100pct", async() => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            let mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [sender]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+            await expectNetFlow(sender, mfaFlowRate(FLOW_RATE1).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
+            await timeTravelOnceAndVerifyAll();
+
+            // shouldDeleteFlow doesn't support loopback mode for now, let's use the sf directly
+            await web3tx(t.sf.cfa.deleteFlow.bind(t.sf.cfa), "delete the mfa loopback flow")({
+                superToken: superToken.address,
+                sender: t.getAddress(sender),
+                receiver:app.address
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
         });
 
     });

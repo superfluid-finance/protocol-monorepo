@@ -4,6 +4,8 @@ const {
     web3tx,
     toBN
 } = require("@decentral.ee/web3-helpers");
+const MultiFlowApp = artifacts.require("MultiFlowApp");
+
 
 function clipDepositNumber(deposit, roundingDown = false) {
     // last 32 bites of the deposit (96 bites) is clipped off
@@ -201,15 +203,34 @@ function syncAccountExpectedBalanceDeltas({
 }
 
 class MFASupport {
-    static addRoles({ testenv, mfa, roles }) {
+
+    static async setup({ testenv, mfa, roles }) {
         Object.keys(mfa.receivers).forEach(async receiverAlias => {
             const mfaReceiverName = "mfa.receiver." + receiverAlias;
             roles[mfaReceiverName] = testenv.getAddress(receiverAlias);
             console.log(`${receiverAlias} account address ${roles[mfaReceiverName]} (${receiverAlias})`);
         });
+
+        // filter out the proportion == 0 receivers, they are only for testing
+        const receivers = Object.keys(mfa.receivers).filter(i=>mfa.receivers[i].proportion>0);
+
+        // TODO use call context user data to configure the multi flows
+        const app = await MultiFlowApp.at(roles.receiver);
+        await web3tx(testenv.contracts.superfluid.callAppAction, `MultiFlowApp configure ${JSON.stringify(mfa)}`)(
+            roles.receiver,
+            app.contract.methods.createMultiFlows(
+                mfa.ratioPct,
+                receivers.map(i=>testenv.getAddress(i)),
+                receivers.map(i=>mfa.receivers[i].proportion),
+                "0x"
+            ).encodeABI(),
+            {
+                from: roles.sender
+            }
+        );
     }
 
-    static async setupFlowExpectations({
+    static async updateFlowExpectations({
         testenv,
         mfa,
         flowRate,
@@ -219,8 +240,6 @@ class MFASupport {
         expectedNetFlowDeltas,
         expectedFlowInfo
     }) {
-        console.log("mfa enabled with", JSON.stringify(mfa));
-
         let totalProportions = Object.values(mfa.receivers)
             .map(i => i.proportion)
             .reduce((acc,cur) => acc + cur, 0);
@@ -230,13 +249,23 @@ class MFASupport {
                 .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
             true /* rounding down */);
 
+        Object.keys(mfa.receivers).forEach(receiverAlias => {
+            const receiverAddress = testenv.getAddress(receiverAlias);
+            if (!(receiverAddress in expectedNetFlowDeltas)) {
+                expectedNetFlowDeltas[receiverAddress] = toBN(0);
+            }
+        });
+
         await Promise.all(Object.keys(mfa.receivers).map(async receiverAlias => {
             const mfaReceiverName = "mfa.receiver." + receiverAlias;
             const mfaFlowName = "mfa.flow." + receiverAlias;
+            const receiverAddress = testenv.getAddress(receiverAlias);
+            const notTouched = mfa.receivers[receiverAlias].proportion === 0;
 
             await addFlowInfo1(mfaFlowName, {
                 sender: roles.receiver,
                 receiver: roles[mfaReceiverName],
+                notTouched
             });
 
             const mfaFlowDepositAllowance = clipDepositNumber(
@@ -250,11 +279,12 @@ class MFASupport {
             const mfaFlowRate = toBN(mfaFlowDepositAllowance)
                 .div(toBN(testenv.configs.LIQUIDATION_PERIOD));
 
-            const mfaFlowRateDelta = toBN(mfaFlowRate)
-                .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
-            expectedNetFlowDeltas[roles[mfaReceiverName]] = mfaFlowRateDelta;
-            expectedNetFlowDeltas[roles.receiver] = expectedNetFlowDeltas[roles.receiver]
-                .sub(mfaFlowRateDelta);
+            if (!notTouched) {
+                const mfaFlowRateDelta = toBN(mfaFlowRate)
+                    .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
+                expectedNetFlowDeltas[receiverAddress].iadd(mfaFlowRateDelta);
+                expectedNetFlowDeltas[roles.receiver].isub(mfaFlowRateDelta);
+            }
 
             expectedFlowInfo[mfaFlowName] = {
                 flowRate: mfaFlowRate,
@@ -264,6 +294,7 @@ class MFASupport {
 
             // console.log("!!!! mfa flow",
             //     mfaFlowName,
+            //     notTouched,
             //     mfaFlowRate.toString(),
             //     mfaFlowDepositAllowance.toString());
         }));
@@ -362,11 +393,12 @@ async function _shouldChangeFlow({
         const flowId = {
             superToken: superToken.address,
             sender: flowParams.sender,
-            receiver: flowParams.receiver,
+            receiver: flowParams.receiver
         };
         const flowInfo = await testenv.sf.cfa.getFlow(flowId);
         flows[flowName] =  {
             flowId,
+            notTouched: flowParams.notTouched,
             flowInfo1: flowInfo
         };
         _printFlowInfo(`${flowName} flow info before`, flowInfo);
@@ -383,27 +415,42 @@ async function _shouldChangeFlow({
         console.log(`validating ${flowName} flow change...`);
         const flowData = flows[flowName];
 
-        // validate flow info
-        if (flowData.flowInfo2.flowRate.toString() !== "0") {
+        if (!flowData.notTouched) {
+            // validate flow info
+            if (flowData.flowInfo2.flowRate.toString() !== "0") {
+                assert.equal(
+                    flowData.flowInfo2.timestamp.getTime()/1000,
+                    txBlock.timestamp,
+                    `wrong flow timestamp of the ${flowName} flow`);
+            } else {
+                assert.equal(flowData.flowInfo2.timestamp.getTime(), 0);
+            }
             assert.equal(
-                flowData.flowInfo2.timestamp.getTime()/1000,
-                txBlock.timestamp,
-                `wrong flow timestamp of the ${flowName} flow`);
+                flowData.flowInfo2.flowRate,
+                expectedFlowInfo[flowName].flowRate.toString(),
+                `wrong flow rate of the ${flowName} flow`);
+            assert.equal(
+                flowData.flowInfo2.owedDeposit,
+                expectedFlowInfo[flowName].owedDeposit.toString(),
+                `wrong owed deposit amount of the ${flowName} flow`);
+            assert.equal(
+                flowData.flowInfo2.deposit,
+                expectedFlowInfo[flowName].deposit.toString(),
+                `wrong deposit amount of the ${flowName} flow`);
         } else {
-            assert.equal(flowData.flowInfo2.timestamp.getTime(), 0);
+            assert.equal(
+                flowData.flowInfo2.flowRate,
+                flowData.flowInfo1.flowRate,
+                `flow rate of the ${flowName} flow should not change`);
+            assert.equal(
+                flowData.flowInfo2.owedDeposit,
+                flowData.flowInfo1.owedDeposit,
+                `owed deposit amount of the ${flowName} flow should not change`);
+            assert.equal(
+                flowData.flowInfo2.deposit,
+                flowData.flowInfo1.deposit,
+                `deposit amount of the ${flowName} flow should not change`);
         }
-        assert.equal(
-            flowData.flowInfo2.flowRate,
-            expectedFlowInfo[flowName].flowRate.toString(),
-            `wrong flowrate of the ${flowName} flow`);
-        assert.equal(
-            flowData.flowInfo2.owedDeposit,
-            expectedFlowInfo[flowName].owedDeposit.toString(),
-            `wrong owed deposit amount of the ${flowName} flow`);
-        assert.equal(
-            flowData.flowInfo2.deposit,
-            expectedFlowInfo[flowName].deposit.toString(),
-            `wrong deposit amount of the ${flowName} flow`);
     };
 
     const validateAccountFlowInfoChange = (role) => {
@@ -469,7 +516,9 @@ async function _shouldChangeFlow({
         addRole("agent", by);
         addRole("reward", testenv.toAlias(rewardAddress));
     }
-    if (mfa) MFASupport.addRoles({ testenv, mfa, roles });
+    if (mfa) {
+        await MFASupport.setup({ testenv, mfa, roles });
+    }
     console.log("--------");
 
     // load current balance snapshot
@@ -503,7 +552,7 @@ async function _shouldChangeFlow({
 
     // mfa support
     if (mfa) {
-        await MFASupport.setupFlowExpectations({
+        await MFASupport.updateFlowExpectations({
             testenv,
             mfa,
             flowRate,

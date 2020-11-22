@@ -210,13 +210,27 @@ interface ISuperfluid {
         external
         // onlyAgreement
         // isAppActive(app)
-        returns(bytes memory newCtx);
+        returns(bytes memory appCtx);
 
-    function ctxUpdateAppAllowance(
+    function appCallbackPush(
         bytes calldata ctx,
-        uint8 cbLevel,
-        int256 appAllowanceIO,
-        int256 appAllowanceUsed
+        uint256 allowanceGranted,
+        int256 allowanceUsed
+    ) external
+        // onlyAgreement
+        returns (bytes memory appCtx);
+
+    function appCallbackPop(
+        bytes calldata ctx,
+        int256 allowanceUsedDelta
+    ) external
+        // onlyAgreement
+        returns (bytes memory newCtx);
+
+    function ctxUseAllowance(
+        bytes calldata ctx,
+        uint256 allowanceWantedMore,
+        int256 allowanceUsedDelta
     )
         external
         // onlyAgreement

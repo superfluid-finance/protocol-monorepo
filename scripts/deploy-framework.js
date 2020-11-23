@@ -25,6 +25,7 @@ const {
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
 module.exports = async function (callback, {
+    newTestResolver,
     useMocks,
     nonUpgradable
 } = {}) {
@@ -48,7 +49,7 @@ module.exports = async function (callback, {
         const config = SuperfluidSDK.getConfig(chainId);
 
         let testResolver;
-        if (config.resolverAddress) {
+        if (!newTestResolver && config.resolverAddress) {
             testResolver = await TestResolver.at(config.resolverAddress);
         } else {
             testResolver = await web3tx(TestResolver.new, "TestResolver.new")();

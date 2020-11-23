@@ -64,6 +64,7 @@ module.exports = class TestEnvironment {
 
         // deploy framework
         await deployFramework(this.errorHandler, {
+            newTestResolver: true,
             useMocks: true,
             ...deployOpts
         });

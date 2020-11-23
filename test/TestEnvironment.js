@@ -59,21 +59,19 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     /// reset the system
-    async reset() {
+    async reset(deployOpts = {}) {
         console.log("Aliases", this.aliases);
 
         // deploy framework
-        delete process.env.TEST_RESOLVER_ADDRESS;
-        if (this.useMocks) {
-            process.env.USE_MOCKS = 1;
-        } else {
-            delete process.env.USE_MOCKS;
-        }
-        await deployFramework(this.errorHandler);
-        delete process.env.USE_MOCKS;
+        await deployFramework(this.errorHandler, {
+            useMocks: true,
+            ...deployOpts
+        });
 
         // load the SDK
-        this.sf = new SuperfluidSDK.Framework({ isTruffle: true });
+        this.sf = new SuperfluidSDK.Framework({
+            isTruffle: true
+        });
         await this.sf.initialize();
 
         // re-loading contracts with testing/mocking interfaces

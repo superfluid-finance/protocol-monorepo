@@ -20,7 +20,7 @@ abstract contract AgreementBase is
         return ISuperAgreement(this).agreementType();
     }
 
-    function updateCode(address newAddress) external {
+    function updateCode(address newAddress) external override {
         require(msg.sender == _host, "SF: only host can update code");
         return _updateCodeAddress(newAddress);
     }

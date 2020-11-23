@@ -27,6 +27,8 @@ abstract contract Proxiable {
         return ProxyUtils.implementation();
     }
 
+    function updateCode(address newAddress) external virtual;
+
     /**
      * @dev Proxiable UUID marker function.
      *      This would help to avoid wrong logic contract to be used for upgrading.

@@ -42,21 +42,21 @@ interface ISuperfluid {
 
     /**
      * @dev Register a new agreement class to the system
-     * @param agreementClass INitial agreement class code
+     * @param agreementClassLogic INitial agreement class code
      *
      * Modifiers:
      *  - onlyGovernance
      */
-    function registerAgreementClass(ISuperAgreement agreementClass) external;
+    function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
 
     /**
     * @dev Update code of an agreement class
-    * @param agreementClass New code for the agreement class
+    * @param agreementClassLogic New code for the agreement class
     *
     * Modifiers:
     *  - onlyGovernance
     */
-    function updateAgreementClass(ISuperAgreement agreementClass) external;
+    function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
 
     /**
     * @dev Check if the agreement class is whitelisted

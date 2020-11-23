@@ -9,6 +9,8 @@ import {
     ISuperfluidGovernance
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
+import { Proxiable } from "../upgradability/Proxiable.sol";
+
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
@@ -30,6 +32,10 @@ contract TestGovernance is
         transferOwnership(msg.sender);
     }
 
+    /**************************************************************************
+    /* Configurations
+    /*************************************************************************/
+
     function setRewardAddress(
         address rewardAddress
     )
@@ -46,44 +52,58 @@ contract TestGovernance is
         _liquidationPeriod = liquidationPeriod;
     }
 
-    function registerAgreementClass(
-        address host,
-        ISuperAgreement agreementClass
+    /**************************************************************************
+    /* ISuperfluidGovernance
+    /*************************************************************************/
+
+    function updateHostCode(
+        ISuperfluid host,
+        address newCode
     )
         external override
         onlyOwner
     {
-        ISuperfluid(host).registerAgreementClass(agreementClass);
+        Proxiable(address(host)).updateCode(newCode);
     }
 
     function replaceGovernance(
-        address host,
-        ISuperfluidGovernance newGov
+        ISuperfluid host,
+        address newGov
     )
         external override
         onlyOwner
     {
-        ISuperfluid(host).replaceGovernance(newGov);
+        host.replaceGovernance(ISuperfluidGovernance(newGov));
     }
 
     function setSuperTokenLogic(
-        address host,
-        address logic
+        ISuperfluid host,
+        address newLogic
     )
         external override
         onlyOwner
     {
-        ISuperfluid(host).setSuperTokenLogic(ISuperToken(logic));
+        host.setSuperTokenLogic(ISuperToken(newLogic));
+    }
+
+    function registerAgreementClass(
+        ISuperfluid host,
+        address agreementClass
+    )
+        external override
+        onlyOwner
+    {
+        host.registerAgreementClass(ISuperAgreement(agreementClass));
     }
 
     function updateAgreementClass(
-        address host,
-        ISuperAgreement agreementClass
+        ISuperfluid host,
+        address agreementClass
     )
         external override
         onlyOwner
     {
-        ISuperfluid(host).updateAgreementClass(agreementClass);
+        host.updateAgreementClass(ISuperAgreement(agreementClass));
     }
 
     function getRewardAddress(

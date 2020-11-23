@@ -50,9 +50,6 @@ contract Superfluid is
         J_1_UPSTREAM_RESPONSABILITY
     }
 
-    // ????? TODO
-    uint64 constant private _GAS_RESERVATION = 5000;
-
 
     //
     // the context that only needed for the next external call
@@ -91,6 +88,12 @@ contract Superfluid is
         uint256 configWord;
     }
 
+    // solhint-disable-next-line var-name-mixedcase
+    bool immutable private _NON_UPGRADABLE_DEPLOYMENT;
+
+    // solhint-disable-next-line var-name-mixedcase
+    uint64 immutable private _GAS_RESERVATION = 5000;
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
        permanently BREAK the deployed proxy contract. */
@@ -114,6 +117,10 @@ contract Superfluid is
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
 
+    constructor(bool nonUpgradable) {
+        _NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Proxiable
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,7 +133,7 @@ contract Superfluid is
         return keccak256("org.superfluid-finance.contracts.Superfluid.implementation");
     }
 
-    function updateCode(address newAddress) external onlyGovernance {
+    function updateCode(address newAddress) external override onlyGovernance {
         return _updateCodeAddress(newAddress);
     }
 
@@ -145,26 +152,34 @@ contract Superfluid is
      * Agreement Whitelisting
      *************************************************************************/
 
-    function registerAgreementClass(ISuperAgreement agreementClass) external onlyGovernance override {
-        bytes32 agreementType = agreementClass.agreementType();
+    function registerAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
+        bytes32 agreementType = agreementClassLogic.agreementType();
         require(_agreementClassIndices[agreementType] == 0,
             "SF: Agreement class already registered");
         require(_agreementClasses.length < 256,
             "SF: Support up to 256 agreement classes");
-        // initialize the proxy
-        Proxy proxy = new Proxy();
-        proxy.initializeProxy(address(agreementClass));
-        AgreementBase(address(proxy)).initialize();
+        AgreementBase agreementClass;
+        if (!_NON_UPGRADABLE_DEPLOYMENT) {
+            // initialize the proxy
+            Proxy proxy = new Proxy();
+            proxy.initializeProxy(address(agreementClassLogic));
+            agreementClass = AgreementBase(address(proxy));
+        } else {
+            agreementClass = AgreementBase(address(agreementClassLogic));
+        }
+        agreementClass.initialize();
         // register the agreement proxy
-        _agreementClasses.push(ISuperAgreement(address(proxy)));
+        _agreementClasses.push(ISuperAgreement(address(agreementClass)));
         _agreementClassIndices[agreementType] = _agreementClasses.length;
     }
 
-    function updateAgreementClass(ISuperAgreement agreementClass) external onlyGovernance override {
-        bytes32 agreementType = agreementClass.agreementType();
+    function updateAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
+        require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+        bytes32 agreementType = agreementClassLogic.agreementType();
         uint idx = _agreementClassIndices[agreementType];
         require(idx != 0, "SF: Agreement class not registered");
-        AgreementBase(address(_agreementClasses[idx - 1])).updateCode(address(agreementClass));
+        AgreementBase agreementClass = AgreementBase(address(_agreementClasses[idx - 1]));
+        agreementClass.updateCode(address(agreementClassLogic));
     }
 
     function isAgreementTypeListed(bytes32 agreementType)
@@ -265,11 +280,13 @@ contract Superfluid is
         bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);
         address wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
         require(!Address.isContract(wrapperAddress), "SF: createERC20Wrapper wrapper exist");
+
         Proxy proxy = new Proxy{salt: salt}();
         proxy.initializeProxy(address(_superTokenLogic));
-        require(wrapperAddress == address(proxy), "SF: createERC20Wrapper unexpected address");
-        // initialize the token
         SuperToken superToken = SuperToken(address(proxy));
+
+        // initialize the token
+        require(wrapperAddress == address(superToken), "SF: createERC20Wrapper unexpected address");
         superToken.initialize(
             underlyingToken,
             underlyingDecimals,

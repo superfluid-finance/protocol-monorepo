@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Proxiable } from "../upgradability/Proxiable.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import {
     ISuperfluid,
@@ -29,7 +29,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
  * @author Superfluid
  */
 contract SuperToken is
-    Proxiable,
+    UUPSProxiable,
     SuperfluidToken,
     ISuperToken
 {
@@ -66,16 +66,16 @@ contract SuperToken is
     ERC777Helper.Operators internal _operators;
 
     function initialize(
+        ISuperfluid host,
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
         string calldata s
     )
-        external
+        external override
+        initializer // OpenZeppelin Initializable
     {
-        Proxiable._initialize();
-
-        _host = ISuperfluid(msg.sender);
+        _host = host;
 
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
@@ -92,7 +92,8 @@ contract SuperToken is
     }
 
     function updateCode(address newAddress) external override onlyHost {
-        return Proxiable._updateCodeAddress(newAddress);
+        //FIXME require(!_initialized, "SuperToken: only uninitialized token logic can be updated");
+        return UUPSProxiable._updateCodeAddress(newAddress);
     }
 
     /**************************************************************************

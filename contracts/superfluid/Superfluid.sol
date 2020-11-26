@@ -2,8 +2,8 @@
 pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
-import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Proxy } from "../upgradability/Proxy.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
+import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 import {
     ISuperfluid,
@@ -14,21 +14,17 @@ import {
     ContextDefinitions,
     ISuperfluidToken,
     ISuperToken,
+    ISuperTokenFactory,
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
-
-import { SuperToken } from "./SuperToken.sol";
-import { AgreementBase } from "../agreements/AgreementBase.sol";
 
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 
 
 contract Superfluid is
-    Proxiable,
+    UUPSProxiable,
     ISuperfluid
 {
 
@@ -106,8 +102,8 @@ contract Superfluid is
     /// @dev Mapping between agreement type to agreement index (starting from 1)
     mapping (bytes32 => uint) internal _agreementClassIndices;
 
-    /// @dev Super token logic contract
-    ISuperToken internal _superTokenLogic;
+    /// @dev Super token
+    ISuperTokenFactory internal _superTokenFactory;
 
     /// @dev App manifests
     mapping(ISuperApp => AppManifest) internal _appManifests;
@@ -122,10 +118,15 @@ contract Superfluid is
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Proxiable
+    // UUPSProxiable
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    function initialize(ISuperfluidGovernance gov) external {
-        Proxiable._initialize();
+
+    function initialize(
+        ISuperfluidGovernance gov
+    )
+        external
+        initializer // OpenZeppelin Initializable
+    {
         _gov = gov;
     }
 
@@ -158,18 +159,18 @@ contract Superfluid is
             "SF: Agreement class already registered");
         require(_agreementClasses.length < 256,
             "SF: Support up to 256 agreement classes");
-        AgreementBase agreementClass;
+        ISuperAgreement agreementClass;
         if (!_NON_UPGRADABLE_DEPLOYMENT) {
             // initialize the proxy
-            Proxy proxy = new Proxy();
+            UUPSProxy proxy = new UUPSProxy();
             proxy.initializeProxy(address(agreementClassLogic));
-            agreementClass = AgreementBase(address(proxy));
+            agreementClass = ISuperAgreement(address(proxy));
         } else {
-            agreementClass = AgreementBase(address(agreementClassLogic));
+            agreementClass = ISuperAgreement(address(agreementClassLogic));
         }
         agreementClass.initialize();
         // register the agreement proxy
-        _agreementClasses.push(ISuperAgreement(address(agreementClass)));
+        _agreementClasses.push((agreementClass));
         _agreementClassIndices[agreementType] = _agreementClasses.length;
     }
 
@@ -178,8 +179,8 @@ contract Superfluid is
         bytes32 agreementType = agreementClassLogic.agreementType();
         uint idx = _agreementClassIndices[agreementType];
         require(idx != 0, "SF: Agreement class not registered");
-        AgreementBase agreementClass = AgreementBase(address(_agreementClasses[idx - 1]));
-        agreementClass.updateCode(address(agreementClassLogic));
+        UUPSProxiable proxiable = UUPSProxiable(address(_agreementClasses[idx - 1]));
+        proxiable.updateCode(address(agreementClassLogic));
     }
 
     function isAgreementTypeListed(bytes32 agreementType)
@@ -248,64 +249,40 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // ERC20 Token Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    function setSuperTokenLogic(ISuperToken logic) external override onlyGovernance {
-        _superTokenLogic = logic;
-    }
 
-    function getSuperTokenLogic() external view override returns (ISuperToken) {
-        return _superTokenLogic;
-    }
-
-    function getERC20Wrapper(
-        IERC20 underlyingToken,
-        string calldata symbol
-    )
+    function getSuperTokenFactory()
         external view override
-        returns (address wrapperAddress, bool created)
+        returns (ISuperTokenFactory factory)
     {
-        bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);
-        wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
-        created = Address.isContract(wrapperAddress);
+        return _superTokenFactory;
     }
 
-    function createERC20Wrapper(
-        IERC20 underlyingToken,
-        uint8 underlyingDecimals,
-        string calldata name,
-        string calldata symbol
-    )
+    function getSuperTokenFactoryLogic()
+        external view override
+        returns (address logic)
+    {
+        if (address(_superTokenFactory) == address(0)) return address(0);
+        if (_NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
+        else return UUPSProxiable(address(_superTokenFactory)).getCodeAddress();
+    }
+
+    function updateSuperTokenFactory(ISuperTokenFactory newFactory)
         external override
     {
-        require(address(underlyingToken) != address(0), "SF: createERC20Wrapper zero address");
-        bytes32 salt = _genereateERC20WrapperSalt(underlyingToken, symbol);
-        address wrapperAddress = Create2.computeAddress(salt, keccak256(type(Proxy).creationCode));
-        require(!Address.isContract(wrapperAddress), "SF: createERC20Wrapper wrapper exist");
-
-        Proxy proxy = new Proxy{salt: salt}();
-        proxy.initializeProxy(address(_superTokenLogic));
-        SuperToken superToken = SuperToken(address(proxy));
-
-        // initialize the token
-        require(wrapperAddress == address(superToken), "SF: createERC20Wrapper unexpected address");
-        superToken.initialize(
-            underlyingToken,
-            underlyingDecimals,
-            name,
-            symbol
-        );
-    }
-
-    function _genereateERC20WrapperSalt(
-        IERC20 underlyingToken,
-        string calldata symbol
-    )
-        private pure
-        returns (bytes32 salt)
-    {
-        return keccak256(abi.encodePacked(
-            underlyingToken,
-            symbol
-        ));
+        if (address(_superTokenFactory) == address(0)) {
+            if (!_NON_UPGRADABLE_DEPLOYMENT) {
+                // initialize the proxy
+                UUPSProxy proxy = new UUPSProxy();
+                proxy.initializeProxy(address(newFactory));
+                _superTokenFactory = ISuperTokenFactory(address(proxy));
+            } else {
+                _superTokenFactory = newFactory;
+            }
+            _superTokenFactory.initialize();
+        } else {
+            require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+            UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

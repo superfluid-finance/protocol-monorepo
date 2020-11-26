@@ -17,7 +17,7 @@ interface ISuperfluidGovernance {
 
     function replaceGovernance(ISuperfluid host, address newGov) external;
 
-    function setSuperTokenLogic(ISuperfluid host, address newLogic) external;
+    function updateSuperTokenFactory(ISuperfluid host, address newFactory) external;
 
     function registerAgreementClass(ISuperfluid host, address agreementClass) external;
 

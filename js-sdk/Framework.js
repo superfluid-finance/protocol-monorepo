@@ -106,20 +106,24 @@ module.exports = class Framework {
         if (this._tokens) {
             for (let i = 0; i < this._tokens.length; ++i) {
                 const tokenSymbol = this._tokens[i];
-                const underlyingToken = await this.resolver.get(`tokens.${tokenSymbol}`);
-                if (underlyingToken === ZERO_ADDRESS) {
+                const tokenAddress = await this.resolver.get(`tokens.${tokenSymbol}`);
+                if (tokenAddress === ZERO_ADDRESS) {
                     throw new Error(`Token ${tokenSymbol} is not registered`);
                 }
-                const wrapper = await this.getERC20Wrapper(underlyingToken);
-                if (!wrapper.created) {
+                const superTokenAddress = await this.resolver.get(`supertokens.${tokenSymbol}x`);
+                if (superTokenAddress === ZERO_ADDRESS) {
                     throw new Error(`Token ${tokenSymbol} doesn't have a super token wrapper`);
                 }
-                const superToken = await this.contracts.ISuperToken.at(wrapper.wrapperAddress);
+                const superToken = await this.contracts.ISuperToken.at(superTokenAddress);
                 const superTokenSymbol = await superToken.symbol();
-                this.tokens[tokenSymbol] = await this.contracts.ERC20WithTokenInfo.at(underlyingToken);
+                this.tokens[tokenSymbol] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
                 this.tokens[superTokenSymbol] = superToken;
-                console.debug(`${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${underlyingToken}`);
-                console.debug(`${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${underlyingToken}`);
+                console.debug(
+                    `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+                );
+                console.debug(
+                    `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
+                );
             }
         }
 
@@ -127,40 +131,30 @@ module.exports = class Framework {
     }
 
     /**
-     * @dev Get ERC20 wrapper from underlying token
-     * @param {Any} tokenInfo Either a TokenInfo contract object, or address to the underlying token
-     * @return {Promise<object>} It returns the wrapper result with fields:
-     *         - result.created, is the wrapper created
-     *         - and result.wrapperAddress, if created the address
-     */
-    async getERC20Wrapper(tokenInfo) {
-        if (typeof(tokenInfo) == "string") {
-            tokenInfo = await this.contracts.TokenInfo.at(tokenInfo);
-        }
-        const tokenInfoSymbol = await tokenInfo.symbol.call();
-        return await this.host.getERC20Wrapper.call(
-            tokenInfo.address,
-            `${tokenInfoSymbol}x`,
-        );
-    }
-
-    /**
      * @dev Create the ERC20 wrapper from underlying token
      * @param {Any} tokenInfo the TokenInfo contract object to the underlying token
      * @param {address} from (optional) send transaction from
+     * @param {address} upgradability (optional) send transaction from
      * @return {Promise<Transaction>} web3 transaction object
      */
-    async createERC20Wrapper(tokenInfo, from) {
-        const tokenInfoName = await tokenInfo.name.call();
-        const tokenInfoSymbol = await tokenInfo.symbol.call();
-        const tokenInfoDecimals = await tokenInfo.decimals.call();
-        return await this.host.createERC20Wrapper(
+    async createERC20Wrapper(tokenInfo, { from, upgradability } = {} ) {
+        const tokenName = await tokenInfo.name.call();
+        const tokenSymbol = await tokenInfo.symbol.call();
+        const superTokenSymbol = `${tokenSymbol}x`;
+        const factory = await this.contracts.ISuperTokenFactory.at(
+            await this.host.getSuperTokenFactory()
+        );
+        upgradability = upgradability || 1;
+        const tx = await factory.createERC20Wrapper(
             tokenInfo.address,
-            tokenInfoDecimals,
-            `Super ${tokenInfoName}`,
-            `${tokenInfoSymbol}x`,
+            upgradability,
+            `Super ${tokenName}`,
+            superTokenSymbol,
             ...(from && [{ from }] || []) // don't mind this silly js stuff, thanks to web3.js
         );
+        const wrapperAddress = tx.logs[0].args.token;
+        console.log(`Super token ${superTokenSymbol} created at ${wrapperAddress}`);
+        return this.contracts.ISuperToken.at(wrapperAddress);
     }
 
 };

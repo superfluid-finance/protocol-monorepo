@@ -3,11 +3,11 @@ const SuperfluidSDK = require("..");
 
 const TestResolver = artifacts.require("TestResolver");
 const Superfluid = artifacts.require("Superfluid");
-const SuperToken = artifacts.require("SuperToken");
-const SuperTokenMock = artifacts.require("SuperTokenMock");
+const SuperTokenFactory = artifacts.require("SuperTokenFactory");
+const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const TestGovernance = artifacts.require("TestGovernance");
-const Proxy = artifacts.require("Proxy");
-const Proxiable = artifacts.require("Proxiable");
+const Proxy = artifacts.require("UUPSProxy");
+const Proxiable = artifacts.require("UUPSProxiable");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
 const InstantDistributionAgreementV1 = artifacts.require("InstantDistributionAgreementV1");
 
@@ -138,6 +138,26 @@ module.exports = async function (callback, {
             }
         }
 
+        let superTokenFactoryLogicAddress;
+        {
+            superTokenFactoryLogicAddress = await superfluid.getSuperTokenFactoryLogic.call();
+            console.log("superTokenFactory logic address", superTokenFactoryLogicAddress);
+            const SuperTokenFactoryLogic = useMocks ? SuperTokenFactoryMock : SuperTokenFactory;
+            if (reset || await codeChanged(SuperTokenFactoryLogic, superTokenFactoryLogicAddress)) {
+                const superTokenLogic = await web3tx(
+                    SuperTokenFactoryLogic.new,
+                    "SuperTokenFactoryLogic.new due to code change")();
+                superTokenFactoryLogicAddress = superTokenLogic.address;
+                console.log("New superTokenFactory logic address", superTokenFactoryLogicAddress);
+                await web3tx(governance.updateSuperTokenFactory, "superfluid.updateSuperTokenFactory")(
+                    superfluid.address,
+                    superTokenFactoryLogicAddress
+                );
+            } else {
+                console.log("superTokenFactory has the same code, no deployment needed.");
+            }
+        }
+
         // deploy ConstantFlowAgreementV1
         {
             const agreementType = web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
@@ -195,24 +215,6 @@ module.exports = async function (callback, {
                 }
             } else {
                 console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
-            }
-        }
-
-        let superTokenLogicAddress;
-        {
-            superTokenLogicAddress = await superfluid.getSuperTokenLogic.call();
-            console.log("SuperTokenLogic address", superTokenLogicAddress);
-            const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
-            if (reset || await codeChanged(SuperTokenLogic, superTokenLogicAddress)) {
-                const superTokenLogic = await web3tx(SuperTokenLogic.new, "SuperToken.new due to code change")();
-                superTokenLogicAddress = superTokenLogic.address;
-                console.log("SuperTokenLogic address", superTokenLogicAddress);
-                await web3tx(governance.setSuperTokenLogic, "superfluid.setSuperTokenLogic")(
-                    superfluid.address,
-                    superTokenLogicAddress
-                );
-            } else {
-                console.log("SuperTokenLogic has the same code, no deployment needed.");
             }
         }
 

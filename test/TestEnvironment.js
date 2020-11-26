@@ -107,20 +107,10 @@ module.exports = class TestEnvironment {
     async createNewToken({ doUpgrade } = {}) {
         // test token contract
         this.contracts.testToken = await web3tx(TestToken.new, "TestToken.new")(
-            "Test Token", "TEST");
-
-        // create super token
-        await web3tx(this.contracts.superfluid.createERC20Wrapper, "Creating wrapper for the new TestToken")(
-            this.contracts.testToken.address,
-            18,
-            "Super Test Token",
-            "TESTx");
+            "Test Token", "TEST", 18);
 
         this.contracts.superToken = await SuperTokenMock.at(
-            (await this.contracts.superfluid.getERC20Wrapper.call(
-                this.contracts.testToken.address,
-                "TESTx"
-            )).wrapperAddress
+            (await this.sf.createERC20Wrapper(this.contracts.testToken)).address
         );
 
         // mint test tokens to test accounts

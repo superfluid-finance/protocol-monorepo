@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
+import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
@@ -98,33 +99,17 @@ interface ISuperfluid {
         returns (uint256 newBitmap);
 
     /**************************************************************************
-     * Token Registry
-     *************************************************************************/
-    function getSuperTokenLogic() external view returns (ISuperToken superToken);
-
-    function setSuperTokenLogic(ISuperToken logic) external;
+    * Super Token Factory
+    **************************************************************************/
 
     /**
-     * @dev Query the token wrapper.
-     * @param underlyingToken The underlrying token to wrap.
-     * @param symbol The super token symbol.
-     *
-     * NOTE: Deterministic address is generated based on the input.
+     * @dev Get the super token factory
      */
-    function getERC20Wrapper(
-        IERC20 underlyingToken,
-        string calldata symbol
-    )
-        external view
-        returns (address wrapperAddress, bool created);
+    function getSuperTokenFactory() external view returns (ISuperTokenFactory factory);
 
-    function createERC20Wrapper(
-        IERC20 underlyingToken,
-        uint8 underlyingDecimals,
-        string calldata name,
-        string calldata symbol
-    )
-        external;
+    function getSuperTokenFactoryLogic() external view returns (address logic);
+
+    function updateSuperTokenFactory(ISuperTokenFactory newFactory) external;
 
     /**************************************************************************
      * App Registry

@@ -5,11 +5,11 @@ import {
     ISuperfluid,
     ISuperAgreement,
     ISuperfluidToken,
-    ISuperToken,
+    ISuperTokenFactory,
     ISuperfluidGovernance
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import { Proxiable } from "../upgradability/Proxiable.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -63,7 +63,7 @@ contract TestGovernance is
         external override
         onlyOwner
     {
-        Proxiable(address(host)).updateCode(newCode);
+        UUPSProxiable(address(host)).updateCode(newCode);
     }
 
     function replaceGovernance(
@@ -76,14 +76,14 @@ contract TestGovernance is
         host.replaceGovernance(ISuperfluidGovernance(newGov));
     }
 
-    function setSuperTokenLogic(
+    function updateSuperTokenFactory(
         ISuperfluid host,
-        address newLogic
+        address newFactory
     )
         external override
         onlyOwner
     {
-        host.setSuperTokenLogic(ISuperToken(newLogic));
+        host.updateSuperTokenFactory(ISuperTokenFactory(newFactory));
     }
 
     function registerAgreementClass(

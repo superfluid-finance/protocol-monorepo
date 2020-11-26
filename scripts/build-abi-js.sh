@@ -12,6 +12,7 @@ CONTRACTS=(
     IResolver
     ISuperfluid
     ISuperToken
+    ISuperTokenFactory
     ISuperAgreement
     IConstantFlowAgreementV1
     IInstantDistributionAgreementV1

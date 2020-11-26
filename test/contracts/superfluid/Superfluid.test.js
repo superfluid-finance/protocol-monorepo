@@ -125,36 +125,11 @@ contract("Superfluid Host Contract", accounts => {
     });
 
     describe("#2 Token Registry", () => {
-
+        // TODO this is token factory testing
         it("#2.1 ERC20Wrapper", async () => {
-
-            const token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1");
-            const token2 = await web3tx(TestToken.new, "TestToken.new 2")("Test Token 2", "TT2");
-            const result1 = await superfluid.getERC20Wrapper.call(
-                token1.address,
-                "TEST1x",
-            );
-            assert.isFalse(result1.created);
-            const result2 = await superfluid.getERC20Wrapper.call(
-                token2.address,
-                "TEST2x",
-            );
-            assert.notEqual(result1.wrapperAddress, result2.wrapperAddress);
-            assert.isFalse(result2.created);
-            await web3tx(superfluid.createERC20Wrapper, "registry.createERC20Wrapper 1")(
-                token1.address,
-                18,
-                "Super Test Token 1",
-                "TEST1x", {
-                    from: admin
-                }
-            );
-            const result1b = await superfluid.getERC20Wrapper.call(
-                token1.address,
-                "TEST1x"
-            );
-            assert.isTrue(result1b.created);
-            assert.equal(result1.wrapperAddress, result1b.wrapperAddress);
+            const token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1", 18);
+            const superToken1 = await t.sf.createERC20Wrapper(token1);
+            assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
         });
     });
 

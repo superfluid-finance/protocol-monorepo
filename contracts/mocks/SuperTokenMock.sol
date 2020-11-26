@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-/* solhint-disable */
+/* xxsolhint-disable */
 pragma solidity 0.7.4;
 
 import {
@@ -18,13 +18,9 @@ contract SuperTokenMock is SuperToken {
         uint256 slot;
         uint256 offset;
 
-        // bool public initialized;
-        assembly { slot:= _initialized.slot offset := _initialized.offset }
-        require (slot == 0 && offset == 0, "initialized changed location");
-
         // ISuperfluid internal _host
         assembly { slot:= _host.slot offset := _host.offset }
-        require (slot == 0 && offset == 1, "_host changed location");
+        require (slot == 0 && offset == 2, "_host changed location");
 
         // mapping(address => address[]) internal _inactiveAgreementBitmap;
         assembly { slot:= _inactiveAgreementBitmap.slot offset := _inactiveAgreementBitmap.offset }

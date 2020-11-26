@@ -10,7 +10,6 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 const TestToken = artifacts.require("TestToken");
-const ISuperToken = artifacts.require("ISuperToken");
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -22,13 +21,13 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 
     let testToken;
     let superToken;
-    let superfluid;
+    //let superfluid;
 
     before(async () => {
         await t.reset();
-        ({
+        /*({
             superfluid,
-        } = t.contracts);
+        } = t.contracts);*/
     });
 
     beforeEach(async function () {
@@ -155,7 +154,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 
         it("#2.6 - should convert from smaller underlying decimals", async () => {
             const token6D = await web3tx(TestToken.new, "TestToken.new")(
-                "Test Token 6 Decimals", "TEST6D",
+                "Test Token 6 Decimals", "TEST6D", 6,
                 {
                     from: bob
                 });
@@ -169,18 +168,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 (await token6D.balanceOf.call(bob)).toString(),
                 toDecimals("100", 6));
 
-            superfluid.createERC20Wrapper(
-                token6D.address,
-                6,
-                "Super Test Token 6D",
-                "TEST6Dx",
-            );
-            const superToken6D = await ISuperToken.at(
-                (await superfluid.getERC20Wrapper.call(
-                    token6D.address,
-                    "TEST6Dx"
-                )).wrapperAddress
-            );
+            const superToken6D = await t.sf.createERC20Wrapper(token6D);
             assert.equal(
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 "0");
@@ -257,7 +245,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 
         it("#2.7 - should convert from larger underlying decimals", async () => {
             const token20D = await web3tx(TestToken.new, "TestToken.new")(
-                "Test Token 20 Decimals", "TEST20D",
+                "Test Token 20 Decimals", "TEST20D", 20,
                 {
                     from: bob
                 });
@@ -271,18 +259,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
                 (await token20D.balanceOf.call(bob)).toString(),
                 toDecimals("100", 20));
 
-            superfluid.createERC20Wrapper(
-                token20D.address,
-                20,
-                "Super Test Token 20D",
-                "TEST20Dx",
-            );
-            const superToken6D = await ISuperToken.at(
-                (await superfluid.getERC20Wrapper.call(
-                    token20D.address,
-                    "TEST20Dx"
-                )).wrapperAddress
-            );
+            const superToken6D = await t.sf.createERC20Wrapper(token20D);
             assert.equal(
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 "0");

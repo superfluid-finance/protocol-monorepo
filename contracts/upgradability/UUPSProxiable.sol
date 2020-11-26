@@ -1,30 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import "./ProxyUtils.sol";
-import "./Proxy.sol";
+import { UUPSUtils } from "./UUPSUtils.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/Initializable.sol";
 
 /**
- * @dev Proxiable contract.
- *      Inspired by https://eips.ethereum.org/EIPS/eip-1822
+ * @dev UUPS (Universal Upgradeable Proxy Standard) Proxiable contract.
  */
-abstract contract Proxiable {
-
-    /// @dev avoid double initialization
-    bool internal _initialized;
-
-    function _initialize() internal
-    {
-        require(!_initialized, "Proxiable: already initialized");
-        _initialized = true;
-    }
+abstract contract UUPSProxiable is Initializable {
 
     /**
      * @dev Get current implementation code address.
      */
     function getCodeAddress() external view returns (address codeAddress)
     {
-        return ProxyUtils.implementation();
+        return UUPSUtils.implementation();
     }
 
     function updateCode(address newAddress) external virtual;
@@ -42,10 +32,10 @@ abstract contract Proxiable {
     function _updateCodeAddress(address newAddress) internal
     {
         require(
-            proxiableUUID() == Proxiable(newAddress).proxiableUUID(),
-            "Proxiable: NOT_COMPATIBLE"
+            proxiableUUID() == UUPSProxiable(newAddress).proxiableUUID(),
+            "UUPSProxiable: not compatible logic"
         );
-        ProxyUtils.setImplementation(newAddress);
+        UUPSUtils.setImplementation(newAddress);
     }
 
 }

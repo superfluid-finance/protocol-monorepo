@@ -12,7 +12,21 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
         external override
         returns (address logic)
     {
-        return address(new SuperTokenMock());
+        SuperTokenMock superToken = new SuperTokenMock(0);
+        return address(superToken);
+    }
+
+}
+
+contract SuperTokenFactory42Mock is SuperTokenFactoryBase
+{
+
+    function createSuperTokenLogic()
+        external override
+        returns (address logic)
+    {
+        SuperTokenMock superToken = new SuperTokenMock(42);
+        return address(superToken);
     }
 
 }

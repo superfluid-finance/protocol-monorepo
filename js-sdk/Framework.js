@@ -1,6 +1,5 @@
 const Web3 = require("web3");
 const TruffleContract = require("@truffle/contract");
-const SuperfluidABI = require("../build/abi");
 const getConfig = require("./getConfig");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -31,7 +30,7 @@ module.exports = class Framework {
         resolverAddress,
         tokens
     }) {
-        const contractNames = Object.keys(SuperfluidABI);
+        const contractNames = require("./contracts.json");
 
         this.chainId = chainId;
         this.version = version || "test";
@@ -41,6 +40,7 @@ module.exports = class Framework {
         this.contracts = {};
         if (!isTruffle) {
             console.debug("Using Superfluid SDK outside of the truffle environment");
+            const SuperfluidABI = require("../build/abi");
             if (!web3Provider) throw new Error("web3Provider is required");
             // load contracts from ABI
             contractNames.forEach(i => {

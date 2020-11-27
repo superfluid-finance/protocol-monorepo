@@ -45,9 +45,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
         });
 
         it("#1.2 should have immutable storage layout", async () => {
-            const SuperTokenMock = artifacts.require("SuperTokenMock");
-            const tester = await SuperTokenMock.new();
-            await tester.validateStorageLayout.call();
+            await superToken.validateStorageLayout.call();
         });
 
         it("#1.3 should return underlying token", async () => {

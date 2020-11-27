@@ -257,4 +257,5 @@ contract("SuperToken's ERC20 compliance", accounts => {
             );
         });
     });
+
 });

@@ -111,6 +111,8 @@ interface ISuperfluid {
 
     function updateSuperTokenFactory(ISuperTokenFactory newFactory) external;
 
+    function updateSuperTokenLogic(ISuperToken token) external;
+
     /**************************************************************************
      * App Registry
      *************************************************************************/

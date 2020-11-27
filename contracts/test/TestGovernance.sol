@@ -5,6 +5,7 @@ import {
     ISuperfluid,
     ISuperAgreement,
     ISuperfluidToken,
+    ISuperToken,
     ISuperTokenFactory,
     ISuperfluidGovernance
 } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -76,16 +77,6 @@ contract TestGovernance is
         host.replaceGovernance(ISuperfluidGovernance(newGov));
     }
 
-    function updateSuperTokenFactory(
-        ISuperfluid host,
-        address newFactory
-    )
-        external override
-        onlyOwner
-    {
-        host.updateSuperTokenFactory(ISuperTokenFactory(newFactory));
-    }
-
     function registerAgreementClass(
         ISuperfluid host,
         address agreementClass
@@ -104,6 +95,26 @@ contract TestGovernance is
         onlyOwner
     {
         host.updateAgreementClass(ISuperAgreement(agreementClass));
+    }
+
+    function updateSuperTokenFactory(
+        ISuperfluid host,
+        address newFactory
+    )
+        external override
+        onlyOwner
+    {
+        host.updateSuperTokenFactory(ISuperTokenFactory(newFactory));
+    }
+
+    function updateSuperTokenLogic(
+        ISuperfluid host,
+        ISuperToken token
+    )
+        external override
+        onlyOwner
+    {
+        host.updateSuperTokenLogic(token);
     }
 
     function getRewardAddress(

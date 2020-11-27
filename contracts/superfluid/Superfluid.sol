@@ -268,6 +268,7 @@ contract Superfluid is
 
     function updateSuperTokenFactory(ISuperTokenFactory newFactory)
         external override
+        onlyGovernance
     {
         if (address(_superTokenFactory) == address(0)) {
             if (!_NON_UPGRADABLE_DEPLOYMENT) {
@@ -283,6 +284,15 @@ contract Superfluid is
             require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
             UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
         }
+    }
+
+    function updateSuperTokenLogic(ISuperToken token)
+        external override
+        onlyGovernance
+    {
+        // assuming it's uups proxiable
+        UUPSProxiable(address(token))
+            .updateCode(address(_superTokenFactory.getSuperTokenLogic()));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

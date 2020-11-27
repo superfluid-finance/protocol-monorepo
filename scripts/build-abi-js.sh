@@ -4,19 +4,7 @@ cd "$(dirname "$0")/.."
 
 which jq &>/dev/null || { echo "Install jq utility!" && exit 1; }
 
-CONTRACTS=(
-    IERC20
-    TokenInfo
-    ERC20WithTokenInfo
-    TestToken
-    IResolver
-    ISuperfluid
-    ISuperToken
-    ISuperTokenFactory
-    ISuperAgreement
-    IConstantFlowAgreementV1
-    IInstantDistributionAgreementV1
-)
+CONTRACTS=( $(jq -r .[] ./js-sdk/contracts.json) )
 
 {
     echo "if (typeof module === \"undefined\") module = {};"

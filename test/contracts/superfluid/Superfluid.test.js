@@ -11,11 +11,12 @@ const {
     toBN
 } = require("@decentral.ee/web3-helpers");
 
+
 contract("Superfluid Host Contract", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 3));
     const { admin, alice, bob } = t.aliases;
-    const { MAX_UINT256 } = t.constants;
+    const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
     let governance;
     let superfluid;
@@ -122,15 +123,15 @@ contract("Superfluid Host Contract", accounts => {
                 MAX_UINT256);
         });
 
-    });
-
-    describe("#2 Token Registry", () => {
-        // TODO this is token factory testing
-        it("#2.1 ERC20Wrapper", async () => {
-            const token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1", 18);
-            const superToken1 = await t.sf.createERC20Wrapper(token1);
-            assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
+        it("#1.2 only governance can update agreement listings", async () => {
+            await expectRevert(
+                superfluid.registerAgreementClass(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+            await expectRevert(
+                superfluid.updateAgreementClass(ZERO_ADDRESS),
+                "SF: Only governance allowed");
         });
+
     });
 
     describe("#3 App Registry", async () => {
@@ -233,11 +234,62 @@ contract("Superfluid Host Contract", accounts => {
         // chargeGasFee ?
     });
 
-    describe("#10 Governance and upgradability", () => {
+    describe("#9 Super token factory", () => {
+        it("#9.1 only governance can update", async () => {
+            await expectRevert(
+                superfluid.updateSuperTokenFactory(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+            await expectRevert(
+                superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+        });
+
+        it("#9.2 update super token factory and super token logic", async () => {
+            const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
+
+            assert.equal(await superToken.waterMark.call(), 0);
+            const factory2Logic = await SuperTokenFactory42Mock.new();
+            await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
+                superfluid.address, factory2Logic.address
+            );
+            await web3tx(await superfluid.getSuperTokenFactoryLogic.call(), factory2Logic.address);
+
+            await web3tx(governance.updateSuperTokenLogic, "governance.updateSuperTokenLogic")(
+                superfluid.address, superToken.address
+            );
+            assert.equal(await superToken.waterMark.call(), 42);
+        });
+
+        it("#9.3 createERC20Wrapper", async () => {
+            const token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1", 18);
+            const superToken1 = await t.sf.createERC20Wrapper(token1);
+            assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
+        });
+    });
+
+    describe("#10 Governance", () => {
         it("#10.1 getGovernance", async () => {
             assert.equal(
                 await superfluid.getGovernance.call(),
                 t.contracts.governance.address);
         });
+
+        it("#10.2 only governance can replace itself", async () => {
+            await expectRevert(
+                superfluid.updateCode(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+            await expectRevert(
+                superfluid.replaceGovernance(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+        });
     });
+
+    describe("#11 Host upgradability", () => {
+        it("#11.2 only governance can update the code", async () => {
+            await expectRevert(
+                superfluid.updateCode(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+        });
+    });
+
 });

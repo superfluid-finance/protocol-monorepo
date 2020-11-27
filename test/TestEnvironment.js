@@ -3,7 +3,7 @@ const deployFramework = require("../scripts/deploy-framework");
 const SuperfluidSDK = require("..");
 
 const IERC1820Registry = artifacts.require("IERC1820Registry");
-const ISuperfluid = artifacts.require("ISuperfluid");
+const Superfluid = artifacts.require("Superfluid");
 const IConstantFlowAgreementV1 = artifacts.require("IConstantFlowAgreementV1");
 const IInstantDistributionAgreementV1 = artifacts.require("IInstantDistributionAgreementV1");
 const TestGovernance = artifacts.require("TestGovernance");
@@ -80,7 +80,7 @@ module.exports = class TestEnvironment {
         // load singletons
         this.contracts.erc1820 = await IERC1820Registry.at("0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24");
         // load host contract
-        this.contracts.superfluid = await ISuperfluid.at(this.sf.host.address);
+        this.contracts.superfluid = await Superfluid.at(this.sf.host.address);
         // load agreement contracts
         this.contracts.cfa = await IConstantFlowAgreementV1.at(this.sf.agreements.cfa.address);
         this.contracts.ida = await IInstantDistributionAgreementV1.at(this.sf.agreements.ida.address);

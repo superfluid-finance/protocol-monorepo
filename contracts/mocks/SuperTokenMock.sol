@@ -10,6 +10,12 @@ import {
 
 contract SuperTokenMock is SuperToken {
 
+    uint256 immutable public waterMark;
+
+    constructor(uint256 w) {
+        waterMark = w;
+    }
+
     /**
      * Upgradability
      */

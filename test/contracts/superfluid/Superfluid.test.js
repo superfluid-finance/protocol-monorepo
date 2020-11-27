@@ -132,6 +132,12 @@ contract("Superfluid Host Contract", accounts => {
                 "SF: Only governance allowed");
         });
 
+        it("#1.3 only host can update agreement code", async () => {
+            await expectRevert(
+                t.contracts.ida.updateCode(ZERO_ADDRESS),
+                "only host can update code");
+        });
+
     });
 
     describe("#3 App Registry", async () => {
@@ -285,6 +291,10 @@ contract("Superfluid Host Contract", accounts => {
     });
 
     describe("#11 Host upgradability", () => {
+        it("#11.1 storage layout", async () => {
+            await superfluid.validateStorageLayout.call();
+        });
+
         it("#11.2 only governance can update the code", async () => {
             await expectRevert(
                 superfluid.updateCode(ZERO_ADDRESS),

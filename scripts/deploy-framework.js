@@ -3,6 +3,7 @@ const SuperfluidSDK = require("..");
 
 const TestResolver = artifacts.require("TestResolver");
 const Superfluid = artifacts.require("Superfluid");
+const SuperfluidMock = artifacts.require("SuperfluidMock");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const TestGovernance = artifacts.require("TestGovernance");
@@ -85,8 +86,9 @@ module.exports = async function (callback, {
             const name = `Superfluid.${version}`;
             let superfluidAddress = await testResolver.get(name);
             console.log("Superfluid address", superfluidAddress);
+            const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
             if (reset || !await hasCode(superfluidAddress)) {
-                const superfluidLogic = await web3tx(Superfluid.new, "Superfluid.new")(
+                const superfluidLogic = await web3tx(SuperfluidLogic.new, "SuperfluidLogic.new")(
                     nonUpgradable
                 );
                 console.log(`Superfluid new code address ${superfluidLogic.address}`);
@@ -119,12 +121,12 @@ module.exports = async function (callback, {
             }
 
             if (!nonUpgradable) {
-                if (await proxiableCodeChanged(Proxiable, Superfluid, superfluidAddress)) {
+                if (await proxiableCodeChanged(Proxiable, SuperfluidLogic, superfluidAddress)) {
                     console.log("Superfluid code has changed");
                     if (!(await isProxiable(Proxiable, superfluidAddress))) {
                         throw new Error("Superfluid is non-upgradable");
                     }
-                    const superfluidLogic = await web3tx(Superfluid.new, "Superfluid.new due to code change")(
+                    const superfluidLogic = await web3tx(SuperfluidLogic.new, "Superfluid.new due to code change")(
                         false /* nonUpgradable = false, of course... */
                     );
                     console.log(`Superfluid new code address ${superfluidLogic.address}`);

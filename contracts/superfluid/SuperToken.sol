@@ -92,7 +92,6 @@ contract SuperToken is
     }
 
     function updateCode(address newAddress) external override onlyHost {
-        //FIXME require(!_initialized, "SuperToken: only uninitialized token logic can be updated");
         return UUPSProxiable._updateCodeAddress(newAddress);
     }
 

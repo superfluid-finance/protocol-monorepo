@@ -13,7 +13,7 @@ const TestToken = artifacts.require("TestToken");
 
 const TestEnvironment = require("../../TestEnvironment");
 
-contract("SuperToken's ERC20 Wrapper implementation", accounts => {
+contract("SuperToken's Non Standard Functions", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 4));
     const { alice, bob } = t.aliases;
@@ -21,13 +21,9 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 
     let testToken;
     let superToken;
-    //let superfluid;
 
     before(async () => {
         await t.reset();
-        /*({
-            superfluid,
-        } = t.contracts);*/
     });
 
     beforeEach(async function () {
@@ -38,7 +34,7 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
         } = t.contracts);
     });
 
-    describe("#1 SuperToken wrapper basics", () => {
+    describe("#1 SuperToken upgradability", () => {
         it("#1.1 - should support upgradability", async () => {
             assert.equal(await superToken.proxiableUUID.call(),
                 web3.utils.sha3("org.superfluid-finance.contracts.SuperToken.implementation"));
@@ -46,11 +42,6 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
 
         it("#1.2 should have immutable storage layout", async () => {
             await superToken.validateStorageLayout.call();
-        });
-
-        it("#1.3 should return underlying token", async () => {
-            assert.equal(await superToken.getUnderlyingToken.call(),
-                t.contracts.testToken.address);
         });
     });
 
@@ -292,6 +283,33 @@ contract("SuperToken's ERC20 Wrapper implementation", accounts => {
             assert.equal(
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 toWad("0").toString());
+        });
+    });
+
+    describe("#3 misc", () => {
+        it("#3.1 should return underlying token", async () => {
+            assert.equal(await superToken.getUnderlyingToken.call(),
+                t.contracts.testToken.address);
+        });
+
+        it("#3.2 transferAll", async () => {
+            await t.upgradeBalance("alice", toWad(2));
+            assert.equal(
+                (await superToken.balanceOf.call(alice)).toString(),
+                toWad(2).toString()
+            );
+            await web3tx(superToken.transferAll, "superToken.transferAll")(
+                bob,
+                { from: alice }
+            );
+            assert.equal(
+                await superToken.balanceOf.call(alice),
+                "0"
+            );
+            assert.equal(
+                (await superToken.balanceOf.call(bob)).toString(),
+                toWad(2).toString()
+            );
         });
     });
 

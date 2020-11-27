@@ -91,8 +91,9 @@ contract SuperToken is
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external override onlyHost {
-        return UUPSProxiable._updateCodeAddress(newAddress);
+    function updateCode(address newAddress) external override {
+        require(msg.sender == address(_host), "only host can update code");
+        UUPSProxiable._updateCodeAddress(newAddress);
     }
 
     /**************************************************************************

@@ -12,7 +12,7 @@ abstract contract UUPSProxiable is Initializable {
     /**
      * @dev Get current implementation code address.
      */
-    function getCodeAddress() external view returns (address codeAddress)
+    function getCodeAddress() public view returns (address codeAddress)
     {
         return UUPSUtils.implementation();
     }
@@ -31,6 +31,8 @@ abstract contract UUPSProxiable is Initializable {
      */
     function _updateCodeAddress(address newAddress) internal
     {
+        // require UUPSProxy.initializeProxy first
+        require(UUPSUtils.implementation() != address(0), "UUPSProxiable: not upgradable");
         require(
             proxiableUUID() == UUPSProxiable(newAddress).proxiableUUID(),
             "UUPSProxiable: not compatible logic"

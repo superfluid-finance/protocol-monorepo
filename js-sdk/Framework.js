@@ -144,7 +144,7 @@ module.exports = class Framework {
         const factory = await this.contracts.ISuperTokenFactory.at(
             await this.host.getSuperTokenFactory()
         );
-        upgradability = upgradability || 1;
+        upgradability = typeof(upgradability) === "undefined" ? 1 : upgradability;
         const tx = await factory.createERC20Wrapper(
             tokenInfo.address,
             upgradability,
@@ -153,7 +153,12 @@ module.exports = class Framework {
             ...(from && [{ from }] || []) // don't mind this silly js stuff, thanks to web3.js
         );
         const wrapperAddress = tx.logs[0].args.token;
-        console.log(`Super token ${superTokenSymbol} created at ${wrapperAddress}`);
+        const u = [
+            "Non upgradable",
+            "Semi upgrdable",
+            "Full upgradable"
+        ][upgradability];
+        console.log(`${u} super token ${superTokenSymbol} created at ${wrapperAddress}`);
         return this.contracts.ISuperToken.at(wrapperAddress);
     }
 

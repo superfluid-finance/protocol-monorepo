@@ -1,6 +1,5 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
-const TestToken = artifacts.require("TestToken");
 const AgreementMock = artifacts.require("AgreementMock");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -37,9 +36,34 @@ contract("Superfluid Host Contract", accounts => {
         } = t.contracts);
     });
 
-    describe("#1 Agreement Whitelisting", async () => {
+    describe("#1 upgradability", () => {
+        it("#1.1 storage layout", async () => {
+            await superfluid.validateStorageLayout.call();
+        });
 
-        it("#1.1 Agreement whitelisting operations", async () => {
+        it("#1.2 proxiable info", async () => {
+            assert.equal(await superfluid.proxiableUUID.call(),
+                web3.utils.sha3("org.superfluid-finance.contracts.Superfluid.implementation"));
+        });
+
+        it("#1.3 only governance can update the code", async () => {
+            await expectRevert(
+                superfluid.updateCode(ZERO_ADDRESS),
+                "SF: Only governance allowed");
+        });
+
+        it("#1.4 only can initialize once", async () => {
+            await expectRevert(
+                superfluid.initialize(
+                    ZERO_ADDRESS,
+                ),
+                "Initializable: contract is already initialized");
+        });
+    });
+
+    describe("#2 Agreement Whitelisting", async () => {
+
+        it("#2.1 Agreement whitelisting operations", async () => {
             const N_DEFAULT_AGREEMENTS = (await superfluid.mapAgreementClasses.call(MAX_UINT256)).length;
             const typeA = web3.utils.sha3("typeA");
             const typeB = web3.utils.sha3("typeB");
@@ -123,7 +147,7 @@ contract("Superfluid Host Contract", accounts => {
                 MAX_UINT256);
         });
 
-        it("#1.2 only governance can update agreement listings", async () => {
+        it("#2.2 only governance can update agreement listings", async () => {
             await expectRevert(
                 superfluid.registerAgreementClass(ZERO_ADDRESS),
                 "SF: Only governance allowed");
@@ -132,7 +156,7 @@ contract("Superfluid Host Contract", accounts => {
                 "SF: Only governance allowed");
         });
 
-        it("#1.3 only host can update agreement code", async () => {
+        it("#2.3 only host can update agreement code", async () => {
             await expectRevert(
                 t.contracts.ida.updateCode(ZERO_ADDRESS),
                 "only host can update code");
@@ -249,28 +273,6 @@ contract("Superfluid Host Contract", accounts => {
                 superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
                 "SF: Only governance allowed");
         });
-
-        it("#9.2 update super token factory and super token logic", async () => {
-            const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
-
-            assert.equal(await superToken.waterMark.call(), 0);
-            const factory2Logic = await SuperTokenFactory42Mock.new();
-            await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
-                superfluid.address, factory2Logic.address
-            );
-            await web3tx(await superfluid.getSuperTokenFactoryLogic.call(), factory2Logic.address);
-
-            await web3tx(governance.updateSuperTokenLogic, "governance.updateSuperTokenLogic")(
-                superfluid.address, superToken.address
-            );
-            assert.equal(await superToken.waterMark.call(), 42);
-        });
-
-        it("#9.3 createERC20Wrapper", async () => {
-            const token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1", 18);
-            const superToken1 = await t.sf.createERC20Wrapper(token1);
-            assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
-        });
     });
 
     describe("#10 Governance", () => {
@@ -286,18 +288,6 @@ contract("Superfluid Host Contract", accounts => {
                 "SF: Only governance allowed");
             await expectRevert(
                 superfluid.replaceGovernance(ZERO_ADDRESS),
-                "SF: Only governance allowed");
-        });
-    });
-
-    describe("#11 Host upgradability", () => {
-        it("#11.1 storage layout", async () => {
-            await superfluid.validateStorageLayout.call();
-        });
-
-        it("#11.2 only governance can update the code", async () => {
-            await expectRevert(
-                superfluid.updateCode(ZERO_ADDRESS),
                 "SF: Only governance allowed");
         });
     });

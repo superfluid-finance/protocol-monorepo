@@ -17,7 +17,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 4));
     const { alice, bob } = t.aliases;
-    const { MAX_UINT256 } = t.constants;
+    const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
     let testToken;
     let superToken;
@@ -35,13 +35,31 @@ contract("SuperToken's Non Standard Functions", accounts => {
     });
 
     describe("#1 SuperToken upgradability", () => {
-        it("#1.1 - should support upgradability", async () => {
+        it("#1.1 storage layout", async () => {
+            await superToken.validateStorageLayout.call();
+        });
+
+        it("#1.2 proxiable info", async () => {
             assert.equal(await superToken.proxiableUUID.call(),
                 web3.utils.sha3("org.superfluid-finance.contracts.SuperToken.implementation"));
         });
 
-        it("#1.2 should have immutable storage layout", async () => {
-            await superToken.validateStorageLayout.call();
+        it("#1.3 only host can update the code", async () => {
+            await expectRevert(
+                superToken.updateCode(ZERO_ADDRESS),
+                "only host can update code");
+        });
+
+        it("#1.4 only can initialize once", async () => {
+            await expectRevert(
+                superToken.initialize(
+                    ZERO_ADDRESS,
+                    ZERO_ADDRESS,
+                    18,
+                    "name",
+                    "symbol"
+                ),
+                "Initializable: contract is already initialized");
         });
     });
 

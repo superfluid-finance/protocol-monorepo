@@ -13,7 +13,8 @@ contract FullUpgradableSuperToken is Proxy {
     // web3.utils.keccak256("org.superfluid-finance.FullUpgradableSuperTokenWrapper.factory_slot")
     bytes32 internal constant _FACTORY_SLOT = 0xb8fcd5719b3ddf8626f3664705a89b7fc476129a58c1aa5eda57c600cc1821a0;
 
-    function initialize() external {
+    function initialize() external
+    {
         address factory;
         assembly { // solium-disable-line
             factory := sload(_FACTORY_SLOT)

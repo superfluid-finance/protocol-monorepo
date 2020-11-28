@@ -2,9 +2,10 @@
 pragma solidity 0.7.4;
 
 /**
- * @title Proxy Shared Library
+ * @title UUPS (Universal Upgradeable Proxy Standard) Shared Library
  */
-library ProxyUtils {
+library UUPSUtils {
+
     /**
      * @dev Implementation slot constant.
      * Using https://eips.ethereum.org/EIPS/eip-1967 standard
@@ -30,4 +31,5 @@ library ProxyUtils {
             )
         }
     }
+
 }

@@ -93,16 +93,15 @@ Initialize the SDK
 const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
 const sf = new SuperfluidSDK.Framework({
     version: "preview-20200928", // This is for using different protocol release
-    web3Provider: web3.currentProvider // your web3 provider
+    web3Provider: web3.currentProvider, // your web3 provider
+    tokens: ["fDAI"]
 });
 
 await sf.initialize();
 
-const daiAddress = await sf.resolver.get("tokens.fDAI");
-const dai = await sf.contracts.TestToken.at(daiAddress);
-const daixWrapper = await sf.getERC20Wrapper(dai);
-// assert(daixWrapper.created);
-const daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
+sf.tokens.fDAI;
+sf.tokens.fDAIx;
+
 ```
 
 What's In the Bag
@@ -120,8 +119,7 @@ to interact with the host contract (Superfluid.sol).
   - `ISuperToken` : The Super token contract interface.
   - `IConstantFlowAgreementV1` : The constant flow agreement (v1) contract interface.
   - `IInstantDistributionAgreementV1` : The instant distribution agreement (v1) contract interface.
-* Token registry functions:
-  - `sf.getERC20Wrapper`
+* Token factory functions:
   - `sf.createERC20Wrapper`
 * `sf.resolver`: The resolver used by the SDK.
   - In test nets, there are some test tokens can be located with the resolver:

@@ -4,10 +4,10 @@ const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
 const TestResolver = artifacts.require("TestResolver");
-const Proxiable = artifacts.require("Proxiable");
+const Proxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
 
-contract("deployment test", () => {
+contract("deployment test (outside truffle environment)", () => {
 
     const errorHandler = err => { if (err) throw err; };
 

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
+import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
@@ -12,6 +13,15 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Superfluid
  */
 interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
+
+    /// @dev Initialize the contract
+    function initialize(
+        ISuperfluid host,
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s
+    ) external;
 
     /**************************************************************************
     * TokenInfo & ERC777

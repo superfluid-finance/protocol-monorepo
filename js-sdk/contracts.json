@@ -1,0 +1,13 @@
+[
+    "IERC20",
+    "TokenInfo",
+    "ERC20WithTokenInfo",
+    "TestToken",
+    "IResolver",
+    "ISuperfluid",
+    "ISuperToken",
+    "ISuperTokenFactory",
+    "ISuperAgreement",
+    "IConstantFlowAgreementV1",
+    "IInstantDistributionAgreementV1"
+]

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Ownable } from "../access/Ownable.sol";
-
 import {
     ISuperfluid,
     ISuperToken,
@@ -11,6 +9,7 @@ import {
 } from "./SuperAppBase.sol";
 import { IInstantDistributionAgreementV1 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
@@ -58,7 +57,7 @@ contract DividendRightsToken is
             )
         );
 
-        _owner = msg.sender;
+        transferOwnership(msg.sender);
         _setupDecimals(0); // no decimals
     }
 
@@ -174,7 +173,7 @@ contract DividendRightsToken is
             address(this), INDEX_ID,
             cashAmount);
 
-        _cashToken.transferFrom(_owner, address(this), actualCashAmount);
+        _cashToken.transferFrom(owner(), address(this), actualCashAmount);
 
         _host.callAgreement(
             _ida,

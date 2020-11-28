@@ -37,8 +37,9 @@ module.exports = async function (callback, argv) {
         let testTokenAddress = await testResolver.get(name);
         if (reset || testTokenAddress === "0x0000000000000000000000000000000000000000") {
             const testToken = await web3tx(TestToken.new, "TestToken.new")(
+                tokenName + " Fake Token",
                 tokenName,
-                tokenName + " Fake Token"
+                18
             );
             testTokenAddress = testToken.address;
             await web3tx(testResolver.set, `TestResolver set ${name}`)(

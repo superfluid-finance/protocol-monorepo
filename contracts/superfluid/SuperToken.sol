@@ -476,7 +476,12 @@ contract SuperToken is
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
-        _upgrade(msg.sender, msg.sender, amount);
+        _upgrade(msg.sender, msg.sender, msg.sender, amount);
+    }
+
+    /// @dev ISuperToken.upgradeTo implementation
+    function upgradeTo(address to, uint256 amount) external override {
+        _upgrade(msg.sender, msg.sender, to, amount);
     }
 
     /// @dev ISuperToken.downgrade implementation
@@ -487,11 +492,12 @@ contract SuperToken is
     function _upgrade(
         address operator,
         address account,
+        address to,
         uint256 amount
     ) private {
         (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
         _underlyingToken.transferFrom(account, address(this), underlyingAmount);
-        _mint(operator, account, actualAmount, "", "");
+        _mint(operator, to, actualAmount, "", "");
         emit TokenUpgraded(account, actualAmount);
     }
 
@@ -559,7 +565,7 @@ contract SuperToken is
         external override
         onlyHost
     {
-        _upgrade(msg.sender, account, amount);
+        _upgrade(msg.sender, account, account, amount);
     }
 
     function operationDowngrade(address account, uint256 amount)

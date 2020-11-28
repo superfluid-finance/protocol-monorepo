@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Ownable } from "../access/Ownable.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import {
     ISuperfluid,
@@ -30,8 +29,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
  * @author Superfluid
  */
 contract SuperToken is
-    Proxiable,
-    Ownable,
+    UUPSProxiable,
     SuperfluidToken,
     ISuperToken
 {
@@ -68,18 +66,15 @@ contract SuperToken is
     ERC777Helper.Operators internal _operators;
 
     function initialize(
+        ISuperfluid host,
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
-        string calldata s,
-        ISuperfluid host
+        string calldata s
     )
-        external
+        external override
+        initializer // OpenZeppelin Initializable
     {
-        Proxiable._initialize();
-
-        _owner = msg.sender;
-
         _host = host;
 
         _underlyingToken = underlyingToken;
@@ -96,8 +91,9 @@ contract SuperToken is
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external onlyOwner {
-        return _updateCodeAddress(newAddress);
+    function updateCode(address newAddress) external override {
+        require(msg.sender == address(_host), "only host can update code");
+        UUPSProxiable._updateCodeAddress(newAddress);
     }
 
     /**************************************************************************
@@ -571,15 +567,6 @@ contract SuperToken is
         onlyHost
     {
         _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
-    }
-
-    /**************************************************************************
-    * Modifiers
-    *************************************************************************/
-
-    modifier onlyHost() {
-        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
-        _;
     }
 
 }

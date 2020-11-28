@@ -9,7 +9,6 @@ const {
 
 const {
     shouldBehaveLikeERC20,
-    shouldBehaveLikeERC20Transfer,
     shouldBehaveLikeERC20Approve,
 } = require("./ERC20.behavior");
 
@@ -210,9 +209,10 @@ contract("SuperToken's ERC20 compliance", accounts => {
     });
 
     describe("_transfer", function () {
-        shouldBehaveLikeERC20Transfer("ERC20", alice, bob, initialSupply, function (from, to, amount) {
-            return this.token.transferInternal(from, to, amount);
-        });
+        // it is already tesetd under shouldBehaveLikeERC20
+        // shouldBehaveLikeERC20Transfer("ERC20", alice, bob, initialSupply, function (from, to, amount) {
+        //     return this.token.transferInternal(from, to, amount);
+        // });
 
         describe("when the sender is the zero address", function () {
             it("reverts", async function () {
@@ -257,4 +257,5 @@ contract("SuperToken's ERC20 compliance", accounts => {
             );
         });
     });
+
 });

@@ -2,7 +2,8 @@
 pragma solidity >= 0.7.0;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
-import { ISuperfluidToken } from "./ISuperToken.sol";
+import { ISuperToken, ISuperfluidToken } from "./ISuperToken.sol";
+import { ISuperfluid } from "./ISuperfluid.sol";
 
 
 /**
@@ -12,9 +13,17 @@ import { ISuperfluidToken } from "./ISuperToken.sol";
  */
 interface ISuperfluidGovernance {
 
-    function registerAgreementClass(address host, ISuperAgreement agreementClass) external;
+    function updateHostCode(ISuperfluid host, address newCode) external;
 
-    function updateAgreementClass(address host, ISuperAgreement agreementClass) external;
+    function replaceGovernance(ISuperfluid host, address newGov) external;
+
+    function registerAgreementClass(ISuperfluid host, address agreementClass) external;
+
+    function updateAgreementClass(ISuperfluid host, address agreementClass) external;
+
+    function updateSuperTokenFactory(ISuperfluid host, address newFactory) external;
+
+    function updateSuperTokenLogic(ISuperfluid host, ISuperToken token) external;
 
     /**
      * @dev Get the Reward address that receives the liquidation fees.

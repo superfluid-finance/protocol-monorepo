@@ -3,9 +3,9 @@ const deployFramework = require("../scripts/deploy-framework");
 const SuperfluidSDK = require("..");
 
 const IERC1820Registry = artifacts.require("IERC1820Registry");
-const ISuperfluid = artifacts.require("ISuperfluid");
-const IConstantFlowAgreementV1 = artifacts.require("IConstantFlowAgreementV1");
-const IInstantDistributionAgreementV1 = artifacts.require("IInstantDistributionAgreementV1");
+const SuperfluidMock = artifacts.require("SuperfluidMock");
+const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
+const InstantDistributionAgreementV1 = artifacts.require("InstantDistributionAgreementV1");
 const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
@@ -59,21 +59,20 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     /// reset the system
-    async reset() {
+    async reset(deployOpts = {}) {
         console.log("Aliases", this.aliases);
 
         // deploy framework
-        delete process.env.TEST_RESOLVER_ADDRESS;
-        if (this.useMocks) {
-            process.env.USE_MOCKS = 1;
-        } else {
-            delete process.env.USE_MOCKS;
-        }
-        await deployFramework(this.errorHandler);
-        delete process.env.USE_MOCKS;
+        await deployFramework(this.errorHandler, {
+            newTestResolver: true,
+            useMocks: true,
+            ...deployOpts
+        });
 
         // load the SDK
-        this.sf = new SuperfluidSDK.Framework({ isTruffle: true });
+        this.sf = new SuperfluidSDK.Framework({
+            isTruffle: true
+        });
         await this.sf.initialize();
 
         // re-loading contracts with testing/mocking interfaces
@@ -81,10 +80,10 @@ module.exports = class TestEnvironment {
         // load singletons
         this.contracts.erc1820 = await IERC1820Registry.at("0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24");
         // load host contract
-        this.contracts.superfluid = await ISuperfluid.at(this.sf.host.address);
+        this.contracts.superfluid = await SuperfluidMock.at(this.sf.host.address);
         // load agreement contracts
-        this.contracts.cfa = await IConstantFlowAgreementV1.at(this.sf.agreements.cfa.address);
-        this.contracts.ida = await IInstantDistributionAgreementV1.at(this.sf.agreements.ida.address);
+        this.contracts.cfa = await ConstantFlowAgreementV1.at(this.sf.agreements.cfa.address);
+        this.contracts.ida = await InstantDistributionAgreementV1.at(this.sf.agreements.ida.address);
         // load governance contract
         this.contracts.governance = await TestGovernance.at(await this.sf.host.getGovernance());
 
@@ -108,20 +107,10 @@ module.exports = class TestEnvironment {
     async createNewToken({ doUpgrade } = {}) {
         // test token contract
         this.contracts.testToken = await web3tx(TestToken.new, "TestToken.new")(
-            "Test Token", "TEST");
-
-        // create super token
-        await web3tx(this.contracts.superfluid.createERC20Wrapper, "Creating wrapper for the new TestToken")(
-            this.contracts.testToken.address,
-            18,
-            "Super Test Token",
-            "TESTx");
+            "Test Token", "TEST", 18);
 
         this.contracts.superToken = await SuperTokenMock.at(
-            (await this.contracts.superfluid.getERC20Wrapper.call(
-                this.contracts.testToken.address,
-                "TESTx"
-            )).wrapperAddress
+            (await this.sf.createERC20Wrapper(this.contracts.testToken)).address
         );
 
         // mint test tokens to test accounts

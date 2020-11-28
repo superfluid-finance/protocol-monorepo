@@ -1,13 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Ownable } from "../access/Ownable.sol";
 import {
     ISuperfluid,
     ISuperAgreement,
     ISuperfluidToken,
+    ISuperToken,
+    ISuperTokenFactory,
     ISuperfluidGovernance
 } from "../interfaces/superfluid/ISuperfluid.sol";
+
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
+
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 contract TestGovernance is
@@ -22,10 +27,15 @@ contract TestGovernance is
         uint256 liquidationPeriod
     )
     {
-        _owner = msg.sender;
         _rewardAddress = rewardAddress;
         _liquidationPeriod = liquidationPeriod;
+
+        transferOwnership(msg.sender);
     }
+
+    /**************************************************************************
+    /* Configurations
+    /*************************************************************************/
 
     function setRewardAddress(
         address rewardAddress
@@ -36,20 +46,75 @@ contract TestGovernance is
         _rewardAddress = rewardAddress;
     }
 
-    function setLiquidationPeriod(uint256 liquidationPeriod) external {
+    function setLiquidationPeriod(uint256 liquidationPeriod)
+        external
+        onlyOwner
+    {
         _liquidationPeriod = liquidationPeriod;
     }
 
-    function registerAgreementClass(address host, ISuperAgreement agreementClass)
+    /**************************************************************************
+    /* ISuperfluidGovernance
+    /*************************************************************************/
+
+    function updateHostCode(
+        ISuperfluid host,
+        address newCode
+    )
         external override
+        onlyOwner
     {
-        ISuperfluid(host).registerAgreementClass(agreementClass);
+        UUPSProxiable(address(host)).updateCode(newCode);
     }
 
-    function updateAgreementClass(address host, ISuperAgreement agreementClass)
+    function replaceGovernance(
+        ISuperfluid host,
+        address newGov
+    )
         external override
+        onlyOwner
     {
-        ISuperfluid(host).updateAgreementClass(agreementClass);
+        host.replaceGovernance(ISuperfluidGovernance(newGov));
+    }
+
+    function registerAgreementClass(
+        ISuperfluid host,
+        address agreementClass
+    )
+        external override
+        onlyOwner
+    {
+        host.registerAgreementClass(ISuperAgreement(agreementClass));
+    }
+
+    function updateAgreementClass(
+        ISuperfluid host,
+        address agreementClass
+    )
+        external override
+        onlyOwner
+    {
+        host.updateAgreementClass(ISuperAgreement(agreementClass));
+    }
+
+    function updateSuperTokenFactory(
+        ISuperfluid host,
+        address newFactory
+    )
+        external override
+        onlyOwner
+    {
+        host.updateSuperTokenFactory(ISuperTokenFactory(newFactory));
+    }
+
+    function updateSuperTokenLogic(
+        ISuperfluid host,
+        ISuperToken token
+    )
+        external override
+        onlyOwner
+    {
+        host.updateSuperTokenLogic(token);
     }
 
     function getRewardAddress(

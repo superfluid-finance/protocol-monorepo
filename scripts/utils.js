@@ -44,6 +44,12 @@ async function codeChanged(contract, address) {
     return bytecodeFromCompiler.indexOf(code.slice(2)) === -1;
 }
 
+async function isProxiable(Proxiable, address) {
+    const p = await Proxiable.at(address);
+    const codeAddress = await p.getCodeAddress.call();
+    return codeAddress !== ZERO_ADDRESS;
+}
+
 async function proxiableCodeChanged(Proxiable, contract, address) {
     const p = await Proxiable.at(address);
     return await codeChanged(contract, await p.getCodeAddress());
@@ -54,6 +60,7 @@ module.exports = {
     ZERO_ADDRESS,
     hasCode,
     codeChanged,
+    isProxiable,
     proxiableCodeChanged,
     rl: promisify(rl.question),
 };

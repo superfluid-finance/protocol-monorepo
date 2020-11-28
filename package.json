@@ -16,8 +16,8 @@
     "js-sdk/**/*.js"
   ],
   "dependencies": {
-    "@openzeppelin/contracts": "3.2.2-solc-0.7",
-    "@truffle/contract": "4.2.31",
+    "@openzeppelin/contracts": "3.3.0-solc-0.7",
+    "@truffle/contract": "4.3.0",
     "ethereumjs-tx": "2.1.2",
     "ethereumjs-util": "7.0.7"
   },
@@ -35,7 +35,7 @@
     "solidity-coverage": "^0.7.12",
     "truffle": "^5.1.49",
     "truffle-flattener": "^1.5.0",
-    "truffle-plugin-verify": "^0.5.1"
+    "truffle-plugin-verify": "^0.5.2"
   },
   "scripts": {
     "build": "run-s build:*",

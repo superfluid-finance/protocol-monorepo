@@ -14,7 +14,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
-    /// @dev Initialize as a full super token
+    /// @dev Initialize the contract
     function initialize(
         ISuperfluid host,
         IERC20 underlyingToken,

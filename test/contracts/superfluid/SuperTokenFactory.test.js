@@ -2,6 +2,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const Proxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
+const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
@@ -57,6 +58,7 @@ contract("SuperTokenFactory Contract", accounts => {
     describe("#2 createERC20Wrapper", () => {
 
         let superfluid;
+        let factory;
         let governance;
         let token1;
 
@@ -66,52 +68,79 @@ contract("SuperTokenFactory Contract", accounts => {
                 superfluid,
                 governance,
             } = t.contracts);
+            factory = await SuperTokenFactoryMock.at(await superfluid.getSuperTokenFactory.call());
             token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1", 18);
         });
 
-        async function updateSuperTokenFactory() {
-            const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
-            const factory2Logic = await SuperTokenFactory42Mock.new();
+        context("Mock factory", () => {
+            async function updateSuperTokenFactory() {
+                const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
+                const factory2Logic = await SuperTokenFactory42Mock.new();
+                await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
+                    superfluid.address, factory2Logic.address
+                );
+                await web3tx(await superfluid.getSuperTokenFactoryLogic.call(), factory2Logic.address);
+            }
+
+            it("#2.1 non upgradable", async () => {
+                let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
+                superToken1 = await SuperTokenMock.at(superToken1.address);
+                await updateSuperTokenFactory();
+                assert.equal((await superToken1.waterMark.call()).toString(), "0");
+                await expectRevert(
+                    governance.updateSuperTokenLogic(superfluid.address, superToken1.address),
+                    "UUPSProxiable: not upgradable"
+                );
+                assert.equal((await superToken1.waterMark.call()).toString(), "0");
+            });
+
+            it("#2.2 semi upgradable", async () => {
+                let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 1 } );
+                superToken1 = await SuperTokenMock.at(superToken1.address);
+                assert.equal((await superToken1.waterMark.call()).toString(), "0");
+                await updateSuperTokenFactory();
+                assert.equal((await superToken1.waterMark.call()).toString(), "0");
+                await web3tx(governance.updateSuperTokenLogic, "governance.updateSuperTokenLogic")(
+                    superfluid.address, superToken1.address
+                );
+                assert.equal((await superToken1.waterMark.call()).toString(), "42");
+            });
+
+            it("#2.3 full upgradable", async () => {
+                let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 2 } );
+                superToken1 = await SuperTokenMock.at(superToken1.address);
+                await updateSuperTokenFactory();
+                assert.equal((await superToken1.waterMark.call()).toString(), "42");
+                await expectRevert(
+                    governance.updateSuperTokenLogic(superfluid.address, superToken1.address),
+                    "UUPSProxiable: not upgradable"
+                );
+            });
+        });
+
+        it("#2.4 use production factory", async () => {
+            const factory2Logic = await SuperTokenFactory.new();
             await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
                 superfluid.address, factory2Logic.address
             );
-            await web3tx(await superfluid.getSuperTokenFactoryLogic.call(), factory2Logic.address);
-        }
-
-        it("#2.1 non upgradable", async () => {
-            let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
-            superToken1 = await SuperTokenMock.at(superToken1.address);
-            await updateSuperTokenFactory();
-            assert.equal((await superToken1.waterMark.call()).toString(), "0");
-            await expectRevert(
-                governance.updateSuperTokenLogic(superfluid.address, superToken1.address),
-                "UUPSProxiable: not upgradable"
-            );
-            assert.equal((await superToken1.waterMark.call()).toString(), "0");
-        });
-
-        it("#2.2 semi upgradable", async () => {
+            let superToken0 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
+            assert.equal(await superToken0.getUnderlyingToken.call(), token1.address);
             let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 1 } );
-            superToken1 = await SuperTokenMock.at(superToken1.address);
-            assert.equal((await superToken1.waterMark.call()).toString(), "0");
-            await updateSuperTokenFactory();
-            assert.equal((await superToken1.waterMark.call()).toString(), "0");
-            await web3tx(governance.updateSuperTokenLogic, "governance.updateSuperTokenLogic")(
-                superfluid.address, superToken1.address
-            );
-            assert.equal((await superToken1.waterMark.call()).toString(), "42");
+            assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
+            let superToken2 = await t.sf.createERC20Wrapper(token1, { upgradability: 2 } );
+            assert.equal(await superToken2.getUnderlyingToken.call(), token1.address);
         });
 
-        it("#2.3 full upgradable", async () => {
-            let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 2 } );
-            superToken1 = await SuperTokenMock.at(superToken1.address);
-            await updateSuperTokenFactory();
-            assert.equal((await superToken1.waterMark.call()).toString(), "42");
-            await expectRevert(
-                governance.updateSuperTokenLogic(superfluid.address, superToken1.address),
-                "UUPSProxiable: not upgradable"
-            );
+        it("#2.5 should fail on ZERO_ADDRESS", async () => {
+            expectRevert(factory.createERC20Wrapper(
+                ZERO_ADDRESS,
+                18,
+                0,
+                "name",
+                "symbol"
+            ), "SF: createERC20Wrapper zero address");
         });
+
     });
 
 });

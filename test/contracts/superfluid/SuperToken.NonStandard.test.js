@@ -34,7 +34,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
         } = t.contracts);
     });
 
-    describe("#1 SuperToken upgradability", () => {
+    describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
             await superToken.validateStorageLayout.call();
         });

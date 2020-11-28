@@ -1,6 +1,7 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const AgreementMock = artifacts.require("AgreementMock");
+const TestGovernance = artifacts.require("TestGovernance");
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -289,6 +290,20 @@ contract("Superfluid Host Contract", accounts => {
             await expectRevert(
                 superfluid.replaceGovernance(ZERO_ADDRESS),
                 "SF: Only governance allowed");
+        });
+
+        it("#10.3 replace with new governance", async () => {
+            const newGov = await TestGovernance.new(
+                ZERO_ADDRESS,
+                1000
+            );
+            await web3tx(governance.replaceGovernance, "superfluid.replaceGovernance")(
+                superfluid.address,
+                newGov.address
+            );
+            assert.equal(
+                await superfluid.getGovernance.call(),
+                newGov.address);
         });
     });
 

@@ -104,13 +104,28 @@ interface ISuperfluid {
 
     /**
      * @dev Get the super token factory
+     * @return factory The factory
      */
     function getSuperTokenFactory() external view returns (ISuperTokenFactory factory);
 
+    /**
+     * @dev Get the super token factory logic (applicable to upgradable deployment)
+     * @return logic The factory logic
+     */
     function getSuperTokenFactoryLogic() external view returns (address logic);
 
+    /**
+     * @dev Update super token factory
+     * @param newFactory New factory logic
+     */
     function updateSuperTokenFactory(ISuperTokenFactory newFactory) external;
 
+    /**
+     * @dev Update the super token logic to the latest
+     *
+     * NOTE:
+     * - Refer toISuperTokenFactory.Upgradability for expected behaviours.
+     */
     function updateSuperTokenLogic(ISuperToken token) external;
 
     /**************************************************************************

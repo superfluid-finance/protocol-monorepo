@@ -72,7 +72,7 @@ abstract contract SuperTokenFactoryBase is
     )
         public override
     {
-        require(address(underlyingToken) != address(0), "SF: createERC20Wrapper zero address");
+        require(address(underlyingToken) != address(0), "SuperTokenFactory: zero address");
 
         ISuperToken token;
         if (upgradability == Upgradability.NON_UPGRADABLE) {

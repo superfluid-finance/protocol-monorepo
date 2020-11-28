@@ -132,13 +132,13 @@ contract("SuperTokenFactory Contract", accounts => {
         });
 
         it("#2.5 should fail on ZERO_ADDRESS", async () => {
-            expectRevert(factory.createERC20Wrapper(
+            await expectRevert(factory.createERC20Wrapper(
                 ZERO_ADDRESS,
                 18,
                 0,
                 "name",
                 "symbol"
-            ), "SF: createERC20Wrapper zero address");
+            ), "SuperTokenFactory: zero address");
         });
 
     });

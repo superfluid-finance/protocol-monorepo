@@ -320,11 +320,12 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @dev Upgrade ERC20 to SuperToken and transfer immediately
      * @param to The account to received upgraded tokens
      * @param amount Number of tokens to be upgraded (in 18 decimals)
+     * @param data User data for the TokensRecipient callback
      *
      * NOTE: It will use ´transferFrom´ to get tokens. Before calling this
      * function you should ´approve´ this contract
      */
-    function upgradeTo(address to, uint256 amount) external;
+    function upgradeTo(address to, uint256 amount, bytes calldata data) external;
 
     /**
      * @dev Token upgrade event

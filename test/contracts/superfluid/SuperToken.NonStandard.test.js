@@ -308,7 +308,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             const initialBalanceBob = await testToken.balanceOf.call(bob);
 
             await web3tx(superToken.upgradeTo, "SuperToken.upgrade 2.0 tokens from alice to bob") (
-                bob, toWad(2), {
+                bob, toWad(2), "0x", {
                     from: alice
                 });
             const { timestamp } = await web3.eth.getBlock("latest");

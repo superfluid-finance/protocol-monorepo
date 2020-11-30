@@ -2,11 +2,17 @@
 pragma solidity 0.7.4;
 
 import "@openzeppelin/contracts/GSN/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
 import "@openzeppelin/contracts/introspection/ERC1820Implementer.sol";
+
+import {
+    ISuperToken
+} from "../superfluid/SuperToken.sol";
+
 
 contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, ERC1820Implementer {
     event TokensToSendCalled(
@@ -145,4 +151,19 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
     function burn(IERC777 token, uint256 amount, bytes memory data) public {
         token.burn(amount, data);
     }
+
+    function upgradeAll(ISuperToken token) public {
+        IERC20 underlying = IERC20(token.getUnderlyingToken());
+        uint256 amount = underlying.balanceOf(address(this));
+        underlying.approve(address(token), amount);
+        token.upgrade(amount);
+    }
+
+    function upgradeAllToSelf(ISuperToken token) public {
+        IERC20 underlying = IERC20(token.getUnderlyingToken());
+        uint256 amount = underlying.balanceOf(address(this));
+        underlying.approve(address(token), amount);
+        token.upgradeTo(address(this), amount, "");
+    }
+
 }

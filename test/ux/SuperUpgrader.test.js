@@ -8,8 +8,8 @@ const {
     toWad
 } = require("@decentral.ee/web3-helpers");
 
-const DEFAULT_ADMIN_ROLE = '0x0000000000000000000000000000000000000000000000000000000000000000';
-const BACKEND_ROLE= web3.utils.soliditySha3('BACKEND_ROLE');
+const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
+const BACKEND_ROLE= web3.utils.soliditySha3("BACKEND_ROLE");
 
 contract("Superfluid Super Upgrader Contract", accounts => {
 

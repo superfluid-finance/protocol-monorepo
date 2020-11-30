@@ -1,27 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Ownable } from "../../access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import {
     ISuperToken,
     IERC20
 } from "../../interfaces/superfluid/ISuperfluid.sol";
-import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
-import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
-import "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
-contract SuperUpgrader is Ownable {
+contract SuperUpgrader is AccessControl {
+    // Create a new role identifier for the backend role
+    bytes32 public constant BACKEND_ROLE = keccak256("BACKEND_ROLE");
 
     using SafeMath for uint256;
 
-    IERC1820Registry private _erc1820 = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
-    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
-
-    constructor(address backendAddr) {
-        require(backendAddr != address(0), "Backend Address can't be zero");
-        _owner = backendAddr;
-        _erc1820.setInterfaceImplementer(address(this), _TOKENS_RECIPIENT_INTERFACE_HASH, address(this));
+    constructor(address adminRole, address[] memory backendAddr) {
+        require(adminRole != address(0), "adminRole is empty");
+        _setupRole(DEFAULT_ADMIN_ROLE, adminRole);
+        for (uint256 i = 0; i < backendAddr.length; ++i) {
+            require(backendAddr[i] != address(0), "backend can't be zero");
+            _setupRole(BACKEND_ROLE, backendAddr[i]);
+        }
     }
 
     /**
@@ -37,8 +36,8 @@ contract SuperUpgrader is Ownable {
         uint256 amount
     )
     external
-    onlyOwner
     {
+        require(msg.sender == account || hasRole(BACKEND_ROLE, msg.sender), "operation not allowed");
         //get underlaying token
         ISuperToken superToken = ISuperToken(superTokenAddr);
         uint256 oldBalance = superToken.balanceOf(address(this));
@@ -51,18 +50,5 @@ contract SuperUpgrader is Ownable {
         uint256 newBalance = superToken.balanceOf(address(this));
         //SuperTokens back to user
         superToken.transfer(account, newBalance.sub(oldBalance));
-    }
-
-    function tokensReceived(
-        address,
-        address from,
-        address,
-        uint256 amount,
-        bytes calldata userData,
-        bytes calldata
-    )
-        external
-    {
-
     }
 }

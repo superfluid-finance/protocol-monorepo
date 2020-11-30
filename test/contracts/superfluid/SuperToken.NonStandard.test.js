@@ -10,6 +10,7 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 const TestToken = artifacts.require("TestToken");
+const ERC777SenderRecipientMock = artifacts.require("ERC777SenderRecipientMock");
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -340,6 +341,41 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 "(bob) balanceOf should equal realtimeBalanceOf");
 
             await t.validateSystemInvariance();
+        });
+
+        it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
+            const mock = await ERC777SenderRecipientMock.new();
+            await expectRevert(superToken.upgradeTo(
+                mock.address, toWad(2), "0x", {
+                    from: alice
+                }), "SuperToken: not an ERC777TokensRecipient");
+            await web3tx(mock.registerRecipient, "registerRecipient")(mock.address);
+            await web3tx(superToken.upgradeTo, "SuperToken.upgrade 2.0 tokens from alice to bob") (
+                mock.address, toWad(2), "0x", {
+                    from: alice
+                });
+        });
+
+        it("#2.10 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
+            const mock = await ERC777SenderRecipientMock.new();
+            await web3tx(testToken.transfer, "send token from alice to mock")(
+                mock.address, toWad(2), {
+                    from: alice
+                });
+            await web3tx(mock.upgradeAll, "mock.upgradeAll")(superToken.address);
+            assert.equal(
+                (await superToken.balanceOf.call(mock.address)).toString(),
+                toWad(2).toString()
+            );
+            await web3tx(testToken.transfer, "send token from alice to mock")(
+                mock.address, toWad(2), {
+                    from: alice
+                });
+            await web3tx(mock.upgradeAllToSelf, "mock.upgradeAllToSelf")(superToken.address);
+            assert.equal(
+                (await superToken.balanceOf.call(mock.address)).toString(),
+                toWad(4).toString()
+            );
         });
     });
 

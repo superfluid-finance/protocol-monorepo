@@ -5,7 +5,7 @@ const {
     expectRevert
 } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
-
+const GasMetering = require("../../utils/gasMetering/gasMetering")
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
 
@@ -15,9 +15,14 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
     let sf;
     let superToken;
 
+    const gasMetering = new GasMetering('HTML', 'USD', '416')
+
     before(async () => {
         await t.reset();
         sf = t.sf;
+    });
+    after(function() {
+        gasMetering.report()
     });
 
     beforeEach(async () => {
@@ -25,13 +30,15 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         ({ superToken } = t.contracts);
     });
 
-    it("createFlow", async () => {
+    it.only("createFlow", async () => {
         const tx = await sf.cfa.createFlow({
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
             flowRate: "38580246913580" // 100 / mo
         });
+        console.log(tx)
+        gasMetering.pushTx(tx, 'createFlow')
         // validate flow data
         const flow = await sf.cfa.getFlow({
             superToken: superToken.address,
@@ -55,18 +62,20 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
     });
 
     it("updateFlow", async () => {
-        await sf.cfa.createFlow({
+        const tx1 = await sf.cfa.createFlow({
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
             flowRate: "38580246913580" // 100 / mo
         });
-        await sf.cfa.updateFlow({
+        gasMetering.pushTx(tx1, 'createFlow')
+        const tx2 = await sf.cfa.updateFlow({
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
             flowRate: "19290123456790" // 100 / mo
         });
+        gasMetering.pushTx(tx2, 'updateFlow')
         // validate account net flows
         assert.equal((await sf.cfa.getNetFlow({
             superToken: superToken.address,

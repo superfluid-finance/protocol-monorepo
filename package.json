@@ -47,6 +47,7 @@
     "test:apps": "truffle test test test/apps.test.js",
     "test:sdk": "truffle test test/sdk.test.js",
     "test:deployment": "truffle test test/deployment.test.js",
+    "test:utils": "truffle test test/utils.test.js",
     "test-coverage": "npm run build && truffle run coverage --file test/contracts.test.js",
     "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
     "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",

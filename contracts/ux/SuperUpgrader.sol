@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import {
     ISuperToken,
     IERC20
-} from "../../interfaces/superfluid/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
 contract SuperUpgrader is AccessControl {

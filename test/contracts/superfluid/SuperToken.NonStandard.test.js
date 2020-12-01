@@ -377,7 +377,6 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 toWad(4).toString()
             );
         });
-
     });
 
     describe("#3 misc", () => {

@@ -8,6 +8,14 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 
+/**
+ * @dev Upgrader contract for super tokens.
+ *
+ * NOTE:
+ * - User would need to first SuperToken.approve the `SuperUpgrader` for the job.
+ * - Using access control to allow multiple backend agent to upgrade tokens for the users
+ * - Risk taken by the user is that the underlying tokens are converted to the Super Tokens by the upgrader agents.
+ */
 contract SuperUpgrader is AccessControl {
     // Create a new role identifier for the backend role
     bytes32 public constant BACKEND_ROLE = keccak256("BACKEND_ROLE");

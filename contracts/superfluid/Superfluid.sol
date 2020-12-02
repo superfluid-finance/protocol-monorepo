@@ -156,9 +156,9 @@ contract Superfluid is
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
         bytes32 agreementType = agreementClassLogic.agreementType();
         require(_agreementClassIndices[agreementType] == 0,
-            "SF: Agreement class already registered");
+            "SF: agreement class already registered");
         require(_agreementClasses.length < 256,
-            "SF: Support up to 256 agreement classes");
+            "SF: support up to 256 agreement classes");
         ISuperAgreement agreementClass;
         if (!_NON_UPGRADABLE_DEPLOYMENT) {
             // initialize the proxy
@@ -178,7 +178,7 @@ contract Superfluid is
         require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
         bytes32 agreementType = agreementClassLogic.agreementType();
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         UUPSProxiable proxiable = UUPSProxiable(address(_agreementClasses[idx - 1]));
         proxiable.updateCode(address(agreementClassLogic));
     }
@@ -206,7 +206,7 @@ contract Superfluid is
         returns(ISuperAgreement agreementClass)
     {
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         return ISuperAgreement(_agreementClasses[idx - 1]);
     }
 
@@ -233,7 +233,7 @@ contract Superfluid is
         returns (uint256 newBitmap)
     {
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         return bitmap | (1 << (idx - 1));
     }
 
@@ -242,7 +242,7 @@ contract Superfluid is
         returns (uint256 newBitmap)
     {
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         return bitmap & ~(1 << (idx - 1));
     }
 

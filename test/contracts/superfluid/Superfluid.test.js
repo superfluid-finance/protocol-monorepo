@@ -235,6 +235,12 @@ contract("Superfluid Host Contract", accounts => {
                     "SF: agreement class not registered");
             });
 
+            it("#2.7 mapAgreementClasses", async () => {
+                const agreements = await superfluid.mapAgreementClasses.call(1);
+                assert.equal(agreements.length, 1);
+                assert.equal(agreements[0], t.contracts.cfa.address);
+            });
+
         });
 
         describe("#3 App Registry", async () => {

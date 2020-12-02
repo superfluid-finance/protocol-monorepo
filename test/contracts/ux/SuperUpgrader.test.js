@@ -198,5 +198,95 @@ contract("Superfluid Super Upgrader Contract", accounts => {
             const aliceSuperTokenBalance = await superToken.balanceOf.call(alice);
             assert.equal(aliceSuperTokenBalance.toString(), toWad("3"), "Alice should receive the correct amount");
         });
+
+        it("#2.8 Owner should define optout/optin blocking backend upgrade", async () => {
+
+            const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(testToken.approve, "testToken.approve - from alice to backend")(
+                upgrader.address,
+                toWad("1000000"), {
+                    from: alice
+                }
+            );
+
+            await web3tx(upgrader.optoutAutoUpgrades, "Alice opt-out")(
+                { from: alice }
+            );
+
+            await expectRevert(
+                upgrader.upgrade(superToken.address, alice, toWad("3"), { from: backend[0]}),
+                "operation not allowed");
+
+            await web3tx(upgrader.optinAutoUpgrades, "Alice opt-in")(
+                { from: alice }
+            );
+
+            await web3tx(upgrader.upgrade, "Backend upgrade alice tokens")(
+                superToken.address,
+                alice,
+                toWad("100"), {
+                    from: backend[0]
+                }
+            );
+            const aliceSuperTokenBalance = await superToken.balanceOf.call(alice);
+            assert.equal(aliceSuperTokenBalance.toString(), toWad("100"), "Alice should receive the correct amount");
+        });
     });
+
+    describe("#3 Control list of roles", async () => { 
+
+        it("#3.1 Admin should add/remove backend accounts", async () => {
+            const upgrader = await SuperUpgrader.new(admin, backend);
+
+            for(let i = 0; i < backend.length; i++) {
+                assert.isOk(await upgrader.isBackendAgent(backend[i]), 
+                    "address should be in backend role");
+            }
+
+            await web3tx(upgrader.revokeBackendAgent, "admin revoke backend account")(
+                backend[0], {
+                    from: admin
+                }
+            );
+
+            assert.isOk(!(await upgrader.isBackendAgent(backend[0])), 
+                "address should not be in backend role");
+
+            await web3tx(upgrader.grantBackendAgent, "admin grant backend account")(
+                backend[0], {
+                    from: admin
+                }
+            );
+
+            assert.isOk(await upgrader.isBackendAgent(backend[0]), 
+                "address should be in backend role");
+
+            await expectRevert(
+                upgrader.grantBackendAgent(ZERO_ADDRESS, { from: admin}),
+                "operation not allowed");
+            await expectRevert(
+                upgrader.revokeBackendAgent(backend[1], { from: eve}),
+                "AccessControl: sender must be an admin to revoke.");
+        });
+
+        it("Admin should add/remove admin accounts", async () => {
+            const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.grantRole, "admin add bob to admin")(
+                DEFAULT_ADMIN_ROLE, bob, {
+                    from:admin
+                }
+            );
+            assert.isOk(await upgrader.hasRole(DEFAULT_ADMIN_ROLE, bob), 
+                "bob should be in admin role");
+        });
+
+        it("List all Backend accounts", async () => {
+            const upgrader = await SuperUpgrader.new(admin, backend);
+            const registerBackend = await upgrader.getBackendAgents.call();
+            for(let i = 0; i < backend.length; i++) {
+                assert.equal(registerBackend[i], backend[i], "not register backend");
+            }
+        });
+    });
+
 });

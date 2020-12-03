@@ -572,7 +572,6 @@ contract Superfluid is
     )
        external override
     {
-        require(operations.length > 1, "SF: Use the single method");
         for(uint256 i = 0; i < operations.length; i++) {
             OperationType opType = operations[i].opType;
             /*  */ if (opType == OperationType.Approve) {
@@ -811,7 +810,7 @@ contract Superfluid is
     }
 
     modifier cleanCtx() {
-        require(_ctxStamp == 0, "SF: Ctx is not clean");
+        require(_ctxStamp == 0, "SF: ctx is not clean");
         _;
     }
 

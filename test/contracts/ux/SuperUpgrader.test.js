@@ -264,6 +264,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
             await expectRevert(
                 upgrader.grantBackendAgent(ZERO_ADDRESS, { from: admin}),
                 "operation not allowed");
+
+            await expectRevert(
+                upgrader.grantBackendAgent(eve, { from: eve}),
+                "AccessControl: sender must be an admin to grant");
+
             await expectRevert(
                 upgrader.revokeBackendAgent(backend[1], { from: eve}),
                 "AccessControl: sender must be an admin to revoke.");
@@ -288,5 +293,4 @@ contract("Superfluid Super Upgrader Contract", accounts => {
             }
         });
     });
-
 });

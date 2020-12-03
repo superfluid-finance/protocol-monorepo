@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import {
+    ISuperfluid,
+    ISuperfluidToken,
+    ISuperApp
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
 
 
@@ -119,6 +123,30 @@ contract AgreementMock is AgreementBase {
         uint256 bailoutAmount
     ) external {
         token.makeLiquidationPayouts(id, liquidator, penaltyAccount, rewardAmount, bailoutAmount);
+    }
+
+    /**
+     * Agreement Framework mockings
+     */
+
+    function tryCallAppBeforeCallback(ISuperfluid host) external {
+        host.callAppBeforeCallback(ISuperApp(address(0)), "", false, "");
+    }
+
+    function tryCallAppAfterCallback(ISuperfluid host) external {
+        host.callAppAfterCallback(ISuperApp(address(0)), "", false, "");
+    }
+
+    function tryAppCallbackPush(ISuperfluid host) external {
+        host.appCallbackPush("", 0, 0);
+    }
+
+    function tryAppCallbackPop(ISuperfluid host) external {
+        host.appCallbackPop("", 0);
+    }
+
+    function tryCtxUseAllowance(ISuperfluid host) external {
+        host.ctxUseAllowance("", 0, 0);
     }
 
 }

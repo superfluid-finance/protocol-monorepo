@@ -2,6 +2,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const AgreementMock = artifacts.require("AgreementMock");
 const TestGovernance = artifacts.require("TestGovernance");
+const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -18,18 +19,22 @@ contract("Superfluid Host Contract", accounts => {
     const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
-    let governance;
-    let superfluid;
-    let superToken;
-
     context("Upgradable deployment", () => {
 
-        before(async () => {
+        let governance;
+        let superfluid;
+        let superToken;
+
+        async function reset() {
             await t.reset();
             ({
                 governance,
                 superfluid,
             } = t.contracts);
+        }
+
+        before(async () => {
+            await reset();
         });
 
         beforeEach(async function () {
@@ -52,7 +57,7 @@ contract("Superfluid Host Contract", accounts => {
             it("#1.3 only governance can update the code", async () => {
                 await expectRevert(
                     superfluid.updateCode(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
+                    "SF: only governance allowed");
             });
 
             it("#1.4 only can initialize once", async () => {
@@ -146,20 +151,16 @@ contract("Superfluid Host Contract", accounts => {
                     )).toString(),
                     MAX_UINT256);
 
-                await t.reset();
-                ({
-                    governance,
-                    superfluid,
-                } = t.contracts);
+                await reset();
             });
 
             it("#2.2 only governance can update agreement listings", async () => {
                 await expectRevert(
                     superfluid.registerAgreementClass(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
+                    "SF: only governance allowed");
                 await expectRevert(
                     superfluid.updateAgreementClass(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
+                    "SF: only governance allowed");
             });
 
             it("#2.3 only host can update agreement code", async () => {
@@ -181,11 +182,7 @@ contract("Superfluid Host Contract", accounts => {
                     governance.registerAgreementClass(superfluid.address, mockA2.address),
                     "SF: agreement class already registered");
 
-                await t.reset();
-                ({
-                    governance,
-                    superfluid,
-                } = t.contracts);
+                await reset();
             });
 
             it("#2.5 cannot register more than 256 agreements", async () => {
@@ -211,11 +208,7 @@ contract("Superfluid Host Contract", accounts => {
                     governance.registerAgreementClass(superfluid.address, badMock.address),
                     "SF: support up to 256 agreement classes");
 
-                await t.reset();
-                ({
-                    governance,
-                    superfluid,
-                } = t.contracts);
+                await reset();
             });
 
             it("#2.6 agreement must be registered first", async () => {
@@ -243,22 +236,109 @@ contract("Superfluid Host Contract", accounts => {
 
         });
 
-        describe("#3 App Registry", async () => {
+        describe("#3 Super Token Factory", () => {
+            it("#3.1 only governance can update super token factory", async () => {
+                await expectRevert(
+                    superfluid.updateSuperTokenFactory(ZERO_ADDRESS),
+                    "SF: only governance allowed");
+                await expectRevert(
+                    superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
+                    "SF: only governance allowed");
+            });
+
+            it("#3.2 update super token factory", async () => {
+                const factory = await superfluid.getSuperTokenFactory();
+                const factory2Logic = await SuperTokenFactory.new();
+                await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
+                    superfluid.address, factory2Logic.address
+                );
+                assert.equal(
+                    await superfluid.getSuperTokenFactory(),
+                    factory,
+                    "Upgradable factory address does not change"
+                );
+                assert.equal(
+                    await superfluid.getSuperTokenFactoryLogic.call(),
+                    factory2Logic.address,
+                    "Upgradable factory logic address should change to the new one"
+                );
+                await reset();
+            });
+        });
+
+        describe("#4 App Registry", () => {
             // TODO
         });
 
-        describe("#4 Agreement Callback System", async () => {
-            // TODO
+        describe("#5 Agreement Framework", () => {
+            it("#5.1 only agreement can call the agreement framework", async () => {
+                const reason = "SF: sender is not listed agreeement";
+
+                // call from an EOA
+                await expectRevert.unspecified(superfluid.callAppBeforeCallback(
+                    ZERO_ADDRESS, "0x", false, "0x"
+                ));
+                await expectRevert.unspecified(superfluid.callAppAfterCallback(
+                    ZERO_ADDRESS, "0x", false, "0x"
+                ));
+                await expectRevert.unspecified(superfluid.appCallbackPush(
+                    "0x", 0, 0
+                ));
+                await expectRevert.unspecified(superfluid.appCallbackPop(
+                    "0x", 0
+                ));
+                await expectRevert.unspecified(superfluid.ctxUseAllowance(
+                    "0x", 0, 0
+                ));
+
+                // call from an unregisterred mock agreement
+                let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
+                await expectRevert(mock.tryCallAppBeforeCallback(superfluid.address), reason);
+                await expectRevert(mock.tryCallAppAfterCallback(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
+                await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
+
+                // call from an in personating mock agreement
+                mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
+                await expectRevert(mock.tryCallAppBeforeCallback(superfluid.address), reason);
+                await expectRevert(mock.tryCallAppAfterCallback(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
+                await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
+            });
+
+
         });
 
-        describe("#5 Non-app Call Proxy", async () => {
-            // TODO
-            // 5.a callAgreement
-            // 5.b callAppAction
+        describe("#6 Contextless Call Proxies", () => {
+            describe("#6.a callAgreement", () => {
+                it("#6.a.1 only listed agreement allowed", async () => {
+                    const reason = "SF: only listed agreeement allowed";
+                    // call to an non agreement
+                    await expectRevert.unspecified(superfluid.callAgreement(alice, "0x"));
+                    // call to an unregisterred mock agreement
+                    let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
+                    await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
+                    // call to an in personating mock agreement
+                    mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
+                    await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
+                });
+            });
 
-            // 5.c
-            context("#5.a batchCall", () => {
-                it("#5.a.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
+
+            describe("#6.b callAppAction", () => {
+                it("#6.b.1 only super app can be called", async () => {
+                    const reason = "SF: not a super app";
+                    // call to an non agreement
+                    await expectRevert.unspecified(superfluid.callAppAction(alice, "0x"));
+                    // call to an unregisterred mock agreement
+                    await expectRevert(superfluid.callAppAction(superToken.address, "0x"), reason);
+                });
+            });
+
+            describe("#6.c batchCall", () => {
+                it("#6.c.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
                     await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                         toWad("10"), {
                             from: alice
@@ -336,22 +416,10 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#6 Contextual Call Proxy", async () => {
+        describe("#7 Contextual Call Proxies and Context Utilities", () => {
             // TODO
             // callAgreementWithContext
             // callAppActionWithContext
-            // chargeGasFee ?
-        });
-
-        describe("#9 Super token factory", () => {
-            it("#9.1 only governance can update", async () => {
-                await expectRevert(
-                    superfluid.updateSuperTokenFactory(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
-                await expectRevert(
-                    superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
-            });
         });
 
         describe("#10 Governance", () => {
@@ -364,10 +432,10 @@ contract("Superfluid Host Contract", accounts => {
             it("#10.2 only governance can replace itself", async () => {
                 await expectRevert(
                     superfluid.updateCode(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
+                    "SF: only governance allowed");
                 await expectRevert(
                     superfluid.replaceGovernance(ZERO_ADDRESS),
-                    "SF: Only governance allowed");
+                    "SF: only governance allowed");
             });
 
             it("#10.3 replace with new governance", async () => {
@@ -389,6 +457,9 @@ contract("Superfluid Host Contract", accounts => {
 
     context("Non-upgradable deployment", () => {
 
+        let governance;
+        let superfluid;
+
         before(async () => {
             await t.reset({ nonUpgradable: true });
             ({
@@ -397,8 +468,8 @@ contract("Superfluid Host Contract", accounts => {
             } = t.contracts);
         });
 
-        describe("#100 non-upgradability", () => {
-            it("#100.1 agreement is not upgradable", async () => {
+        describe("#20 non-upgradability", () => {
+            it("#20.1 agreement is not upgradable", async () => {
                 await expectRevert(
                     governance.updateAgreementClass(
                         superfluid.address,
@@ -406,7 +477,7 @@ contract("Superfluid Host Contract", accounts => {
                     "SF: non upgradable");
             });
 
-            it("#100.2 supertoken factory logic contract identical and not upgradable", async () => {
+            it("#20.2 supertoken factory logic contract identical and not upgradable", async () => {
                 assert.equal(
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic());

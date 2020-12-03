@@ -61,7 +61,7 @@ contract MultiFlowApp is SuperAppBase {
         assert(receivers.length == proportions.length);
         (,,address sender,,,,) = _host.decodeCtx(ctx);
 
-        newCtx = _host.chargeGasFee(ctx, 30000);
+        newCtx = ctx;
 
         _userConfigs[sender].ratioPct = ratioPct;
         delete _userConfigs[sender].receivers;

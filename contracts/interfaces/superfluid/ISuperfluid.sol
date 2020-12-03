@@ -33,6 +33,7 @@ interface ISuperfluid {
     /**************************************************************************
      * Governance
      *************************************************************************/
+
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
     function replaceGovernance(ISuperfluidGovernance newGov) external;
@@ -131,6 +132,7 @@ interface ISuperfluid {
     /**************************************************************************
      * App Registry
      *************************************************************************/
+
     /**
      * @dev Message sender declares it as a super app
      * @param configWord The super app manifest configuration, flags are defined in
@@ -188,10 +190,16 @@ interface ISuperfluid {
         external view
         returns (bool isAppAllowed);
 
+    /**
+     * @dev Jail event for the app
+     */
     event Jail(ISuperApp app, uint256 info);
 
     /**************************************************************************
-     * Agreement Callback System
+     * Agreement Framework
+     *
+     * Agreements use these function to trigger super app callbacks, updates
+     * app allowance and charge gas fees.
      *
      * These functions can only be called by registered agreements.
      *************************************************************************/
@@ -243,7 +251,7 @@ interface ISuperfluid {
         returns (bytes memory newCtx);
 
     /**************************************************************************
-     * Non-app Call Proxy
+     * Contextless Call Proxies
      *
      * For EOAs or non-app contracts, they are the entry points for interacting
      * with agreements or apps.
@@ -251,6 +259,7 @@ interface ISuperfluid {
      * If the app use these entry points while having an active context, the
      * violating app will be jailed.
      *************************************************************************/
+
      /**
       * @dev Call agreement function
       * @param data The contextual call data.
@@ -315,7 +324,7 @@ interface ISuperfluid {
     function batchCall(Operation[] memory operations) external;
 
     /**************************************************************************
-     * Contextual Call Proxy and Context Utilities
+     * Contextual Call Proxies and Context Utilities
      *
      * For apps, they must use context they receive to interact with
      * agreements or apps.
@@ -324,6 +333,7 @@ interface ISuperfluid {
      * callbacks always, any modification to the context will be detected and
      * the violating app will be jailed.
      *************************************************************************/
+
     function callAgreementWithContext(
         ISuperAgreement agreementClass,
         bytes calldata data,
@@ -342,14 +352,6 @@ interface ISuperfluid {
         external
         // validCtx(ctx)
         // isAppActive(app)
-        returns (bytes memory newCtx);
-
-    function chargeGasFee(
-        bytes calldata ctx,
-        uint fee
-    )
-        external
-        // validCtx(ctx)
         returns (bytes memory newCtx);
 
     function decodeCtx(bytes calldata ctx)

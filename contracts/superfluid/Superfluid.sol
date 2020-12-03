@@ -247,7 +247,7 @@ contract Superfluid is
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ERC20 Token Registry
+    // Super Token Factory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     function getSuperTokenFactory()
@@ -379,7 +379,7 @@ contract Superfluid is
 
 
     /**************************************************************************
-     * Agreement Callback System
+     * Agreement Framework
      *************************************************************************/
 
     //Split the callback in the two functions so they can have different rules and returns data formats
@@ -487,7 +487,7 @@ contract Superfluid is
     }
 
     /**************************************************************************
-    * Non-app Call Proxies
+    * Contextless Call Proxies
     *************************************************************************/
 
     function callAgreement(
@@ -540,8 +540,6 @@ contract Superfluid is
         isAppActive(app)
         returns(bytes memory returnedData)
     {
-        require(!isAppJailed(app), "SF: App already jailed");
-
         //Build context data
         //TODO: Where we get the gas reservation?
         bool success;
@@ -615,8 +613,9 @@ contract Superfluid is
     }
 
     /**************************************************************************
-     * Contextual Call Proxy and Context Utilities
+     * Contextual Call Proxy
      *************************************************************************/
+
     function callAgreementWithContext(
         ISuperAgreement agreementClass,
         bytes calldata data,
@@ -676,20 +675,6 @@ contract Superfluid is
         }
     }
 
-    function chargeGasFee(
-        bytes calldata ctx,
-        uint fee
-    )
-        external override
-        validCtx(ctx)
-        returns (bytes memory newCtx)
-    {
-        // FIXME do some non-sense with the fee for now
-       // solhint-disable-next-line no-empty-blocks
-        for (uint i = 0; i < fee; ++i) { }
-        newCtx = ctx;
-    }
-
     function decodeCtx(bytes calldata ctx)
         external pure override
         returns (
@@ -711,6 +696,10 @@ contract Superfluid is
         appAllowanceWanted = context.app.allowanceWanted;
         appAllowanceUsed = context.app.allowanceUsed;
     }
+
+    /**************************************************************************
+     * Internal
+     *************************************************************************/
 
     function _decodeFullContext(bytes memory ctx)
         private pure
@@ -836,23 +825,24 @@ contract Superfluid is
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
-        require(isAgreementClassListed(agreementClass), "SF: Only listed agreeement allowed");
+        require(isAgreementClassListed(agreementClass), "SF: only listed agreeement allowed");
         _;
     }
 
     modifier onlyGovernance() {
-        require(msg.sender == address(_gov), "SF: Only governance allowed");
+        require(msg.sender == address(_gov), "SF: only governance allowed");
         _;
     }
 
     modifier onlyAgreement() {
-        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: Sender is not listed agreeement");
+        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: sender is not listed agreeement");
         _;
     }
 
     modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
-        require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "SF: not an active app");
+        require(w > 0, "SF: not a super app");
+        require((w & SuperAppDefinitions.JAIL) == 0, "SF: app is jailed");
         _;
     }
 }

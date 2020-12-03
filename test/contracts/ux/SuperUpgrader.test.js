@@ -269,7 +269,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 "AccessControl: sender must be an admin to revoke.");
         });
 
-        it("Admin should add/remove admin accounts", async () => {
+        it("#3.2 Admin should add/remove admin accounts", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
             await web3tx(upgrader.grantRole, "admin add bob to admin")(
                 DEFAULT_ADMIN_ROLE, bob, {
@@ -280,7 +280,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 "bob should be in admin role");
         });
 
-        it("List all Backend accounts", async () => {
+        it("#3.3 List all Backend accounts", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
             const registerBackend = await upgrader.getBackendAgents.call();
             for(let i = 0; i < backend.length; i++) {

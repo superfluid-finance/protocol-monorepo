@@ -801,7 +801,7 @@ contract Superfluid is
     }
 
     modifier validCtx(bytes memory ctx) {
-        require(!_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
+        require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
         _;
     }
     modifier cleanCtx() {

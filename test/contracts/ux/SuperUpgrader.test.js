@@ -91,7 +91,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                     from: alice
                 }
             );
-            await web3tx(upgrader.upgrade, "registerAgreementClass typeA")(
+            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 toWad("3"), {
@@ -111,7 +111,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 }
             );
 
-            await web3tx(upgrader.upgrade, "registerAgreementClass typeA")(
+            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 1, {
@@ -136,7 +136,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 }
             );
 
-            await web3tx(upgrader.upgrade, "registerAgreementClass typeA")(
+            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 toWad("100000000000"), {
@@ -153,7 +153,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
         it("#2.5 Should revert without approval", async() => {
             const upgrader = await SuperUpgrader.new(admin, backend);
 
-            await expectRevert(web3tx(upgrader.upgrade, "registerAgreementClass typeA")(
+            await expectRevert(web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 1, {
@@ -171,7 +171,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 }
             );
 
-            await expectRevert(web3tx(upgrader.upgrade, "registerAgreementClass typeA")(
+            await expectRevert(web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 "1000000000000000001", {
@@ -188,7 +188,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                     from: alice
                 }
             );
-            await web3tx(upgrader.upgrade, "registerAgreementClass typeA")(
+            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 toWad("3"), {

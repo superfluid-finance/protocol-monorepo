@@ -23,6 +23,10 @@ contract SuperAppMock is ISuperApp {
         _host.registerApp(configWord);
     }
 
+    function allowCompositeApp(ISuperApp target) external {
+        _host.allowCompositeApp(target);
+    }
+
     /*************************************************************************
     * Callbacks
     **************************************************************************/

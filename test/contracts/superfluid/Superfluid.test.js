@@ -298,6 +298,15 @@ contract("Superfluid Host Contract", accounts => {
             it("#4.4 app double registration should fail", async () => {
                 await expectRevert(SuperAppMock.new(superfluid.address, 1, true), "SF: app already registered");
             });
+
+            it("#4.5 allowCompositeApp", async () => {
+                const app2 = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+                await expectRevert(superfluid.allowCompositeApp(app.address), "SF: sender is not an app");
+                await expectRevert(app.allowCompositeApp(alice), "SF: target is not an app");
+                assert.isFalse(await superfluid.isCompositeAppAllowed.call(app.address, app2.address));
+                await web3tx(app.allowCompositeApp, "app.allowCompositeApp(app2)")(app2.address);
+                assert.isTrue(await superfluid.isCompositeAppAllowed.call(app.address, app2.address));
+            });
         });
 
         describe("#5 Agreement Framework WIP", () => {

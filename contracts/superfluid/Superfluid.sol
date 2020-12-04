@@ -352,7 +352,7 @@ contract Superfluid is
     )
         external override
     {
-        require(isApp(ISuperApp(msg.sender)), "SF: msg.sender is not an app");
+        require(isApp(ISuperApp(msg.sender)), "SF: sender is not an app");
         require(isApp(targetApp), "SF: target is not an app");
         _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }

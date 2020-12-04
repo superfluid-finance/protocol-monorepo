@@ -56,12 +56,9 @@ contract MultiFlowApp is SuperAppBase {
     )
         external
         onlyHost
-        returns(bytes memory newCtx)
     {
         assert(receivers.length == proportions.length);
         (,,address sender,,,,) = _host.decodeCtx(ctx);
-
-        newCtx = ctx;
 
         _userConfigs[sender].ratioPct = ratioPct;
         delete _userConfigs[sender].receivers;

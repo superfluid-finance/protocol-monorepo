@@ -278,7 +278,7 @@ interface ISuperfluid {
         returns(bytes memory returnedData);
 
     /**
-     * @dev Call agreement function
+     * @dev Call app action
      * @param data The contextual call data.
      *
      * NOTE: See callAgreement about contextual call data.

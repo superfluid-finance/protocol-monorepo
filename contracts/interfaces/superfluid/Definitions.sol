@@ -13,11 +13,14 @@ library SuperAppDefinitions {
     uint256 constant internal APP_LEVEL_MASK = 0xFF;
     uint256 constant internal APP_LEVEL_FINAL = 1 << 0;
     uint256 constant internal APP_LEVEL_SECOND = 1 << 1;
-    function getAppLevel(uint256 configWord) internal pure returns (uint8 appLevel) {
+    function getAppLevel(uint256 configWord) internal pure returns (uint8) {
         return uint8(configWord & APP_LEVEL_MASK);
     }
 
     uint256 constant internal APP_JAIL_BIT = 1 << 15;
+    function isAppJailed(uint256 configWord) internal pure returns (bool) {
+        return (configWord & SuperAppDefinitions.APP_JAIL_BIT) > 0;
+    }
 
     /**************************************************************************
     / Callback implementation bit masks
@@ -37,6 +40,7 @@ library SuperAppDefinitions {
     uint256 constant internal APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR = 1;
     uint256 constant internal APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK = 10;
     uint256 constant internal APP_RULE_CTX_IS_READONLY = 20;
+    uint256 constant internal APP_RULE_CTX_IS_NOT_CLEAN = 21;
 }
 
 library ContextDefinitions {

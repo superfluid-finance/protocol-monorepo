@@ -1,4 +1,4 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
 const AgreementMock = artifacts.require("AgreementMock");
 const SuperAppMock = artifacts.require("SuperAppMock");
@@ -267,7 +267,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#4 App Registry WIP", () => {
+        describe("#4 App Registry", () => {
             let app;
 
             beforeEach(async () => {
@@ -366,12 +366,57 @@ contract("Superfluid Host Contract", accounts => {
             });
 
             describe("#6.b callAppAction", () => {
+                let app;
+
+                beforeEach(async () => {
+                    app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+                });
+
                 it("#6.b.1 only super app can be called", async () => {
                     const reason = "SF: not a super app";
                     // call to an non agreement
                     await expectRevert.unspecified(superfluid.callAppAction(alice, "0x"));
                     // call to an unregisterred mock agreement
                     await expectRevert(superfluid.callAppAction(superToken.address, "0x"), reason);
+                });
+
+                it("#6.b.2 actionNoop", async () => {
+                    const tx = await superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionNoop("0x").encodeABI()
+                    );
+                    await expectEvent.inTransaction(tx.tx, app.contract, "ActionNoopEvent");
+                });
+
+                it("#6.b.3 callAppAction assert or revert", async () => {
+                    await expectRevert(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.contract.methods.actionAssert("0x").encodeABI()
+                        ), "SF: target reverted");
+                    await expectRevert(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.contract.methods.actionRevert("0x").encodeABI()
+                        ), "SF: target reverted");
+                    await expectRevert(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.contract.methods.actionRevertWithReason("error 42", "0x").encodeABI()
+                        ), "error 42");
+                });
+
+                it("#6.b.4 callAppAction should not call app or agreement without ctx", async () => {
+                    await expectRevert(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.contract.methods.actionCallAgreement("0x").encodeABI()
+                        ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
+                    await expectRevert(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.contract.methods.actionCallAppAction("0x").encodeABI()
+                        ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
                 });
             });
 

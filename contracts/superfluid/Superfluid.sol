@@ -284,10 +284,6 @@ contract Superfluid is
     // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @notice Message sender declares it as a super app.
-     * @param configWord The super app manifest configuration
-     */
     function registerApp(
         uint256 configWord
     )
@@ -320,16 +316,16 @@ contract Superfluid is
         ISuperApp app
     )
         external view override
-    returns (
-        bool isSuperApp,
-        bool isJailed,
-        uint256 noopMask
-    )
+        returns (
+            bool isSuperApp,
+            bool isJailed,
+            uint256 noopMask
+        )
     {
         AppManifest memory manifest = _appManifests[app];
         isSuperApp = (manifest.configWord > 0);
         if (isSuperApp) {
-            isJailed = manifest.configWord & SuperAppDefinitions.APP_JAIL_BIT > 0;
+            isJailed = SuperAppDefinitions.isAppJailed(manifest.configWord);
             noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
         }
     }
@@ -340,13 +336,9 @@ contract Superfluid is
         public view override
         returns(bool)
     {
-        return (_appManifests[app].configWord & SuperAppDefinitions.APP_JAIL_BIT) > 0;
+        return SuperAppDefinitions.isAppJailed(_appManifests[app].configWord);
     }
 
-    /**
-     * @notice White-list the target app for app composition for the source app `msg.sender`
-     * @param targetApp The taget super app address
-     */
     function allowCompositeApp(
         ISuperApp targetApp
     )
@@ -367,13 +359,10 @@ contract Superfluid is
         return _compositeApps[app][targetApp];
     }
 
-
     /**************************************************************************
      * Agreement Framework
      *************************************************************************/
 
-    //Split the callback in the two functions so they can have different rules and returns data formats
-    //TODO : msg.sender should be only SuperAgreement
     function callAppBeforeCallback(
         ISuperApp app,
         bytes calldata data,
@@ -805,7 +794,7 @@ contract Superfluid is
         _;
     }
     modifier cleanCtx() {
-        require(_ctxStamp == 0, "SF: ctx is not clean");
+        require(_ctxStamp == 0, "SF: APP_RULE_CTX_IS_NOT_CLEAN");
         _;
     }
 
@@ -827,7 +816,7 @@ contract Superfluid is
     modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
         require(w > 0, "SF: not a super app");
-        require((w & SuperAppDefinitions.APP_JAIL_BIT) == 0, "SF: app is jailed");
+        require(!SuperAppDefinitions.isAppJailed(w), "SF: app is jailed");
         _;
     }
 }

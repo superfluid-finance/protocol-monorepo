@@ -4,7 +4,8 @@ pragma solidity 0.7.4;
 import {
     ISuperfluid,
     ISuperToken,
-    ISuperApp
+    ISuperApp,
+    ISuperAgreement
 } from "../superfluid/Superfluid.sol";
 
 contract SuperAppMock is ISuperApp {
@@ -25,6 +26,39 @@ contract SuperAppMock is ISuperApp {
 
     function allowCompositeApp(ISuperApp target) external {
         _host.allowCompositeApp(target);
+    }
+
+    /*************************************************************************
+    * Test App Actions
+    **************************************************************************/
+
+    event ActionNoopEvent();
+
+    function actionNoop(bytes memory /* ctx */) external {
+        emit ActionNoopEvent();
+    }
+
+    function actionAssert(bytes memory /* ctx */) external pure {
+        assert(false);
+    }
+
+    function actionRevert(bytes memory /* ctx */) external pure {
+        // solhint-disable-next-line reason-string
+        revert();
+    }
+
+    function actionRevertWithReason(string memory reason, bytes memory /* ctx */) external pure {
+        revert(reason);
+    }
+
+    function actionCallAgreement(bytes memory /* ctx */) external {
+        // this should fail, action should call agreement with ctx
+        _host.callAgreement(ISuperAgreement(address(0)), "");
+    }
+
+    function actionCallAppAction(bytes memory /* ctx */) external {
+        // this should fail, action should call agreement with ctx
+        _host.callAppAction(ISuperApp(address(0)), "");
     }
 
     /*************************************************************************

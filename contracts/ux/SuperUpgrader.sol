@@ -22,6 +22,11 @@ contract SuperUpgrader is AccessControl {
 
     using SafeMath for uint256;
 
+    event OptoutAutoUpgrade(address indexed account);
+    event OptinAutoUpgrade(address indexed account);
+
+    mapping(address => bool) internal _optout;
+
     constructor(address adminRole, address[] memory backendAddr) {
         require(adminRole != address(0), "adminRole is empty");
         _setupRole(DEFAULT_ADMIN_ROLE, adminRole);
@@ -45,18 +50,69 @@ contract SuperUpgrader is AccessControl {
     )
     external
     {
-        require(msg.sender == account || hasRole(BACKEND_ROLE, msg.sender), "operation not allowed");
+        require(msg.sender == account || 
+            (hasRole(BACKEND_ROLE, msg.sender) &&
+            !_optout[account])
+        , "operation not allowed");
         //get underlaying token
         ISuperToken superToken = ISuperToken(superTokenAddr);
-        uint256 oldBalance = superToken.balanceOf(address(this));
         //get tokens from user
         IERC20 token = IERC20(superToken.getUnderlyingToken());
         token.transferFrom(account, address(this), amount);
         token.approve(address(superToken), amount);
-        //upgrade tokens to SuperTokens
-        superToken.upgrade(amount);
-        uint256 newBalance = superToken.balanceOf(address(this));
-        //SuperTokens back to user
-        superToken.transfer(account, newBalance.sub(oldBalance));
+        //upgrade tokens and send back to user
+        superToken.upgradeTo(account, amount, "");
+    }
+
+    /**
+     * @dev Test if account is member BACKEND_ROLE 
+     */
+    function isBackendAgent(address account) external view returns(bool yes) {
+        return hasRole(BACKEND_ROLE, account);
+    }
+
+    /**
+     * @dev Add account to BACKEND_ROLE 
+     */
+    function grantBackendAgent(address account) external {
+        require(account != address(0), "operation not allowed");
+        //grantRole will check if sender is adminRole member
+        grantRole(BACKEND_ROLE, account);
+    }
+
+    /**
+     * @dev Remove account to BACKEND_ROLE 
+     */
+    function revokeBackendAgent(address account) external {
+        //grantRole will check if sender is adminRole member
+        revokeRole(BACKEND_ROLE, account);
+    }
+
+    /**
+     * @dev Get list of all members of BACKEND_ROLE
+     */
+    function getBackendAgents() external view returns(address[] memory) {
+        uint256 numberOfMembers = getRoleMemberCount(BACKEND_ROLE);
+        address[] memory members = new address[](numberOfMembers);
+        for(uint256 i = 0; i < numberOfMembers; i++) {
+            members[i] = getRoleMember(BACKEND_ROLE, i);
+        }
+        return members;
+    }
+
+    /**
+     * @dev User signal that opt-out from backend upgrades
+     */
+    function optoutAutoUpgrades() external {
+        _optout[msg.sender] = true;
+        emit OptoutAutoUpgrade(msg.sender);
+    }
+
+    /**
+     * @dev User signal that revoke opt-out from backend upgrades
+     */
+    function optinAutoUpgrades() external {
+        delete _optout[msg.sender];
+        emit OptinAutoUpgrade(msg.sender);
     }
 }

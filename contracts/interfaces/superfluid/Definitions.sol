@@ -9,9 +9,15 @@ library SuperAppDefinitions {
     /**************************************************************************
     / App manifest config word
     /**************************************************************************/
-    uint256 constant internal TYPE_APP_FINAL = 1 << 0;
-    uint256 constant internal TYPE_APP_SECOND = 1 << 1;
-    uint256 constant internal JAIL = 1 << 15;
+
+    uint256 constant internal APP_LEVEL_MASK = 0xFF;
+    uint256 constant internal APP_LEVEL_FINAL = 1 << 0;
+    uint256 constant internal APP_LEVEL_SECOND = 1 << 1;
+    function getAppLevel(uint256 configWord) internal pure returns (uint8 appLevel) {
+        return uint8(configWord & APP_LEVEL_MASK);
+    }
+
+    uint256 constant internal APP_JAIL_BIT = 1 << 15;
 
     /**************************************************************************
     / Callback implementation bit masks
@@ -24,6 +30,13 @@ library SuperAppDefinitions {
     uint256 constant internal BEFORE_AGREEMENT_TERMINATED_NOOP = 1 << (32 + 4);
     uint256 constant internal AFTER_AGREEMENT_TERMINATED_NOOP = 1 << (32 + 5);
 
+    /**************************************************************************
+    / App Jail Reasons
+    /**************************************************************************/
+
+    uint256 constant internal APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR = 1;
+    uint256 constant internal APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK = 10;
+    uint256 constant internal APP_RULE_CTX_IS_READONLY = 20;
 }
 
 library ContextDefinitions {

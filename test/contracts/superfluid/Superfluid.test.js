@@ -1,6 +1,7 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
 const AgreementMock = artifacts.require("AgreementMock");
+const SuperAppMock = artifacts.require("SuperAppMock");
 const TestGovernance = artifacts.require("TestGovernance");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 
@@ -266,11 +267,40 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#4 App Registry", () => {
-            // TODO
+        describe("#4 App Registry WIP", () => {
+            let app;
+
+            beforeEach(async () => {
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+            });
+
+            it("#4.1 basic app info", async () => {
+                assert.isFalse(await superfluid.isApp(superToken.address));
+                assert.isTrue(await superfluid.isApp(app.address));
+                assert.isFalse(await superfluid.isAppJailed(app.address));
+                assert.equal(await superfluid.getAppLevel(app.address), 1);
+                const manifest = await superfluid.getAppManifest(app.address);
+                assert.equal(manifest.isSuperApp, true);
+                assert.equal(manifest.isJailed, false);
+                assert.equal(manifest.noopMask, 0);
+            });
+
+            it("#4.2 app registration only in constructor", async () => {
+                await expectRevert(app.tryRegisterApp(0), "SF: app registration only in constructor");
+            });
+
+            it("#4.3 app registration with bad config", async () => {
+                const reason = "SF: invalid config word";
+                await expectRevert(SuperAppMock.new(superfluid.address, 0, false), reason);
+                await expectRevert(SuperAppMock.new(superfluid.address, (1 | (1<<15)) /* jail bit */, false), reason);
+            });
+
+            it("#4.4 app double registration should fail", async () => {
+                await expectRevert(SuperAppMock.new(superfluid.address, 1, true), "SF: app already registered");
+            });
         });
 
-        describe("#5 Agreement Framework", () => {
+        describe("#5 Agreement Framework WIP", () => {
             it("#5.1 only agreement can call the agreement framework", async () => {
                 const reason = "SF: sender is not listed agreeement";
 
@@ -308,10 +338,10 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
             });
 
-
+            // TODOs
         });
 
-        describe("#6 Contextless Call Proxies", () => {
+        describe("#6 Contextless Call Proxies WIP", () => {
             describe("#6.a callAgreement", () => {
                 it("#6.a.1 only listed agreement allowed", async () => {
                     const reason = "SF: only listed agreeement allowed";
@@ -325,7 +355,6 @@ contract("Superfluid Host Contract", accounts => {
                     await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
                 });
             });
-
 
             describe("#6.b callAppAction", () => {
                 it("#6.b.1 only super app can be called", async () => {
@@ -416,7 +445,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#7 Contextual Call Proxies and Context Utilities", () => {
+        describe("#7 Contextual Call Proxies and Context Utilities WIP", () => {
             // TODO
             // callAgreementWithContext
             // callAppActionWithContext

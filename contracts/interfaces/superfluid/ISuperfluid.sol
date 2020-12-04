@@ -374,6 +374,7 @@ interface ISuperfluid {
      *
      * TODO: turning these off because solidity-coverage don't like it
      *************************************************************************/
+
      /* /// @dev The current superfluid context is clean.
      modifier cleanCtx() virtual;
 

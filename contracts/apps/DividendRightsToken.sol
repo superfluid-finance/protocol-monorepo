@@ -41,7 +41,7 @@ contract DividendRightsToken is
         _ida = ida;
 
         uint256 configWord =
-            SuperAppDefinitions.TYPE_APP_FINAL |
+            SuperAppDefinitions.APP_LEVEL_FINAL |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 

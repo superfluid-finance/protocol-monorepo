@@ -41,7 +41,7 @@ contract MultiFlowApp is SuperAppBase {
         _host = superfluid;
 
         uint256 configWord =
-            SuperAppDefinitions.TYPE_APP_FINAL |
+            SuperAppDefinitions.APP_LEVEL_FINAL |
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 

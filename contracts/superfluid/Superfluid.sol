@@ -32,21 +32,6 @@ contract Superfluid is
     using SafeCast for uint256;
     using SignedSafeMath for int256;
 
-    enum Info {
-        A_1_MANIFEST,
-        A_2_DOWNSTREAM_WHITELIST,
-        A_3_IMMUTABLE_CALLBACK,
-        B_1_READONLY_CONTEXT,
-        B_2_UPSTREAM_CONTEXT,
-        B_3_CALL_JAIL_APP,
-        C_2_TERMINATION_CALLBACK,
-        C_3_REVERT_NO_REASON,
-        C_4_GAS_LIMIT,
-        E_2_GAS_REFUND,
-        J_1_UPSTREAM_RESPONSABILITY
-    }
-
-
     //
     // the context that only needed for the next external call
     //
@@ -308,7 +293,17 @@ contract Superfluid is
     )
         external override
     {
-        require(configWord > 0, "SF: invalid config word");
+        ISuperApp app = ISuperApp(msg.sender);
+        {
+            uint256 cs;
+            // solhint-disable-next-line no-inline-assembly
+            assembly { cs := extcodesize(app) }
+            require(cs == 0, "SF: app registration only in constructor");
+        }
+        require(
+            SuperAppDefinitions.getAppLevel(configWord) > 0 &&
+            (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
+            "SF: invalid config word");
         require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "SF: app already registered");
         _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
     }
@@ -318,12 +313,7 @@ contract Superfluid is
     }
 
     function getAppLevel(ISuperApp appAddr) public override view returns(uint8) {
-        if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_FINAL > 0) {
-            return 1;
-        } else if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_SECOND > 0) {
-            return 2;
-        }
-        return 0;
+        return SuperAppDefinitions.getAppLevel(_appManifests[appAddr].configWord);
     }
 
     function getAppManifest(
@@ -339,7 +329,7 @@ contract Superfluid is
         AppManifest memory manifest = _appManifests[app];
         isSuperApp = (manifest.configWord > 0);
         if (isSuperApp) {
-            isJailed = manifest.configWord & SuperAppDefinitions.JAIL > 0;
+            isJailed = manifest.configWord & SuperAppDefinitions.APP_JAIL_BIT > 0;
             noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
         }
     }
@@ -350,7 +340,7 @@ contract Superfluid is
         public view override
         returns(bool)
     {
-        return (_appManifests[app].configWord & SuperAppDefinitions.JAIL) > 0;
+        return (_appManifests[app].configWord & SuperAppDefinitions.APP_JAIL_BIT) > 0;
     }
 
     /**
@@ -402,7 +392,7 @@ contract Superfluid is
             if (!isTermination) {
                 revert("SF: before callback failed");
             } else {
-                emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
+                emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
         }
     }
@@ -422,18 +412,18 @@ contract Superfluid is
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
             if(!_isCtxValid(newCtx)) {
-                // TODO: JAIL if callback changes ctx and Change return context
+                // TODO: APP_JAIL_BIT if callback changes ctx and Change return context
                 if (!isTermination) {
-                    revert("SF: B_1_READONLY_CONTEXT");
+                    revert("SF: APP_RULE_CTX_IS_READONLY");
                 } else {
-                    emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
+                    emit Jail(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
                 }
             }
         } else {
             if (!isTermination) {
                 revert("SF: after callback failed");
             } else {
-                emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
+                emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
         }
     }
@@ -621,8 +611,8 @@ contract Superfluid is
         bytes calldata ctx
     )
         external override
-        isAgreement(agreementClass)
         validCtx(ctx)
+        isAgreement(agreementClass)
         returns(bytes memory newCtx, bytes memory returnedData)
     {
         FullContext memory context = _decodeFullContext(ctx);
@@ -652,6 +642,7 @@ contract Superfluid is
     )
         external override
         validCtx(ctx)
+        isAppActive(app)
         returns(bytes memory newCtx)
     {
         FullContext memory context = _decodeFullContext(ctx);
@@ -664,7 +655,7 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
-            require(_isCtxValid(newCtx), "SF: app altering the ctx");
+            require(_isCtxValid(newCtx), "SF: APP_RULE_CTX_IS_READONLY");
             // back to old msg.sender
             context = _decodeFullContext(newCtx);
             context.extCall.msgSender = oldSender;
@@ -790,7 +781,7 @@ contract Superfluid is
                  revert("SF: try with more gas");
              } else {
                 revert(_getRevertMsg(returnedData));
-                 //_appManifests[app].configWord |= SuperAppDefinitions.JAIL;
+                 //_appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
              }
          }
     }
@@ -809,18 +800,13 @@ contract Superfluid is
         return abi.decode(res, (string)); // All that remains is the revert string
     }
 
+    modifier validCtx(bytes memory ctx) {
+        require(!_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
+        _;
+    }
     modifier cleanCtx() {
         require(_ctxStamp == 0, "SF: ctx is not clean");
         _;
-    }
-
-    modifier validCtx(bytes memory ctx) {
-        if(!_isCtxValid(ctx)) {
-            _appManifests[ISuperApp(msg.sender)].configWord |= SuperAppDefinitions.JAIL;
-            emit Jail(ISuperApp(msg.sender), uint256(Info.B_1_READONLY_CONTEXT));
-        } else {
-            _;
-        }
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
@@ -841,7 +827,7 @@ contract Superfluid is
     modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
         require(w > 0, "SF: not a super app");
-        require((w & SuperAppDefinitions.JAIL) == 0, "SF: app is jailed");
+        require((w & SuperAppDefinitions.APP_JAIL_BIT) == 0, "SF: app is jailed");
         _;
     }
 }

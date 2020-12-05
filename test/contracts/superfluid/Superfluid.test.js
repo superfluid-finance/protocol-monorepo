@@ -309,7 +309,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#5 Agreement Framework WIP", () => {
+        describe("#5 (WIP) Agreement Framework", () => {
             it("#5.1 only agreement can call the agreement framework", async () => {
                 const reason = "SF: sender is not listed agreeement";
 
@@ -350,169 +350,287 @@ contract("Superfluid Host Contract", accounts => {
             // TODOs
         });
 
-        describe("#6 Contextless Call Proxies WIP", () => {
-            describe("#6.a callAgreement", () => {
-                it("#6.a.1 only listed agreement allowed", async () => {
-                    const reason = "SF: only listed agreeement allowed";
-                    // call to an non agreement
-                    await expectRevert.unspecified(superfluid.callAgreement(alice, "0x"));
-                    // call to an unregisterred mock agreement
-                    let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
-                    await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
-                    // call to an in personating mock agreement
-                    mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
-                    await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
-                });
+        describe("#7 callAgreement", () => {
+            let agreement;
+            let app;
+
+            before(async () => {
+                agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+                await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
+                    superfluid.address, agreement.address);
+                agreement = await AgreementMock.at(
+                    await superfluid.getAgreementClass(web3.utils.sha3("MockAgreement")));
             });
 
-            describe("#6.b callAppAction", () => {
-                let app;
+            after(async () => {
+                await reset();
+            });
 
-                beforeEach(async () => {
-                    app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
-                });
+            it("#7.1 only listed agreement allowed", async () => {
+                const reason = "SF: only listed agreeement allowed";
+                // call to an non agreement
+                await expectRevert.unspecified(superfluid.callAgreement(alice, "0x"));
+                // call to an unregisterred mock agreement
+                let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
+                await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
+                // call to an in personating mock agreement
+                mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
+                await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
+            });
 
-                it("#6.b.1 only super app can be called", async () => {
-                    const reason = "SF: not a super app";
-                    // call to an non agreement
-                    await expectRevert.unspecified(superfluid.callAppAction(alice, "0x"));
-                    // call to an unregisterred mock agreement
-                    await expectRevert(superfluid.callAppAction(superToken.address, "0x"), reason);
-                });
-
-                it("#6.b.2 actionNoop", async () => {
-                    const tx = await superfluid.callAppAction(
+            it("#7.2 before callback noop", async () => {
+                await app.setNextCallbackAction(0 /* noop */, "0x");
+                const tx = await superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
                         app.address,
-                        app.contract.methods.actionNoop("0x").encodeABI()
-                    );
-                    await expectEvent.inTransaction(tx.tx, app.contract, "ActionNoopEvent");
-                });
-
-                it("#6.b.3 callAppAction assert or revert", async () => {
-                    await expectRevert(
-                        superfluid.callAppAction(
-                            app.address,
-                            app.contract.methods.actionAssert("0x").encodeABI()
-                        ), "SF: target reverted");
-                    await expectRevert(
-                        superfluid.callAppAction(
-                            app.address,
-                            app.contract.methods.actionRevert("0x").encodeABI()
-                        ), "SF: target reverted");
-                    await expectRevert(
-                        superfluid.callAppAction(
-                            app.address,
-                            app.contract.methods.actionRevertWithReason("error 42", "0x").encodeABI()
-                        ), "error 42");
-                });
-
-                it("#6.b.4 callAppAction should not call app or agreement without ctx", async () => {
-                    await expectRevert(
-                        superfluid.callAppAction(
-                            app.address,
-                            app.contract.methods.actionCallAgreement("0x").encodeABI()
-                        ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
-                    await expectRevert(
-                        superfluid.callAppAction(
-                            app.address,
-                            app.contract.methods.actionCallAppAction("0x").encodeABI()
-                        ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
-                });
+                        "0x"
+                    ).encodeABI()
+                );
+                await expectEvent.inTransaction(tx.tx, agreement.contract,
+                    "AppBeforeCallbackResult", {
+                        cbdata: "0x" + Buffer.from("Noop").toString("hex")
+                    });
             });
 
-            describe("#6.c batchCall", () => {
-                it("#6.c.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
-                    await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
-                        toWad("10"), {
-                            from: alice
-                        }
-                    );
+            it("#7.2 before callback noop", async () => {
+                await app.setNextCallbackAction(0 /* noop */, "0x");
+                const tx = await superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                );
+                await expectEvent.inTransaction(tx.tx, agreement.contract,
+                    "AppBeforeCallbackResult", {
+                        cbdata: "0x" + Buffer.from("Noop").toString("hex")
+                    });
+            });
 
-                    await web3tx(superToken.approve, "SuperToken.approve - from alice to admin")(
-                        admin,
-                        toWad("3"), {
-                            from: alice
-                        }
-                    );
-                    assert.equal(
-                        (await superToken.allowance.call(alice, admin)).toString(),
-                        toWad("3").toString());
+            it("#7.3 before callback assert or revert", async () => {
+                await app.setNextCallbackAction(1 /* assert */, "0x");
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                ), "SF: target reverted");
 
-                    await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
-                        [
-                            [
-                                2, // upgrade
-                                superToken.address,
-                                web3.eth.abi.encodeParameters(
-                                    ["uint256"],
-                                    [toWad("10").toString()])
-                            ],
-                            [
-                                0, // approve
-                                superToken.address,
-                                web3.eth.abi.encodeParameters(
-                                    ["address", "uint256"],
-                                    [bob, toWad("1").toString()])
-                            ],
-                            [
-                                1, // transferFrom own funds
-                                superToken.address,
-                                web3.eth.abi.encodeParameters(
-                                    ["address", "address", "uint256"],
-                                    [admin, bob, toWad("2").toString()])
-                            ],
-                            [
-                                1, // transferFrom other's funds
-                                superToken.address,
-                                web3.eth.abi.encodeParameters(
-                                    ["address", "address", "uint256"],
-                                    [alice, bob, toWad("3").toString()])
-                            ],
-                            [
-                                3, // downgrade
-                                superToken.address,
-                                web3.eth.abi.encodeParameters(["uint256"], [toWad("5").toString()])
-                            ]
-                        ],
-                        {
-                            from: admin
-                        }
-                    );
-                    assert.equal(
-                        (await superToken.balanceOf.call(admin)).toString(),
-                        toWad("3").toString());
-                    assert.equal(
-                        (await superToken.allowance.call(alice, admin)).toString(),
-                        toWad("0").toString());
-                    assert.equal(
-                        (await superToken.balanceOf.call(alice)).toString(),
-                        toWad("7").toString());
-                    assert.equal(
-                        (await superToken.allowance.call(admin, bob)).toString(),
-                        toWad("1").toString());
-                    assert.equal(
-                        (await superToken.balanceOf.call(bob)).toString(),
-                        toWad("5").toString());
+                await app.setNextCallbackAction(2 /* revert */, "0x");
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                ), "SF: target reverted");
 
-                    await t.validateSystemInvariance();
-                });
+                await app.setNextCallbackAction(
+                    3 /* revert with reason */,
+                    web3.eth.abi.encodeParameter("string", "error 42"));
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                ), "error 42");
+            });
+
+            it("#7.4 after callback noop", async () => {
+                await app.setNextCallbackAction(0 /* noop */, "0x");
+                const tx = await superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                );
+                await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
+            });
+
+            it("#7.5 after callback assert or revert", async () => {
+                await app.setNextCallbackAction(1 /* assert */, "0x");
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                ), "SF: target reverted");
+
+                await app.setNextCallbackAction(2 /* revert */, "0x");
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                ), "SF: target reverted");
+
+                await app.setNextCallbackAction(
+                    3 /* revert with reason */,
+                    web3.eth.abi.encodeParameter("string", "error 42"));
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI()
+                ), "error 42");
             });
         });
 
-        describe("#7 Contextual Call Proxies and Context Utilities WIP", () => {
+        describe("#8 callAppAction", () => {
+            let app;
+
+            beforeEach(async () => {
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+            });
+
+            it("#8.1 only super app can be called", async () => {
+                const reason = "SF: not a super app";
+                // call to an non agreement
+                await expectRevert.unspecified(superfluid.callAppAction(alice, "0x"));
+                // call to an unregisterred mock agreement
+                await expectRevert(superfluid.callAppAction(superToken.address, "0x"), reason);
+            });
+
+            it("#8.2 actionNoop", async () => {
+                const tx = await superfluid.callAppAction(
+                    app.address,
+                    app.contract.methods.actionNoop("0x").encodeABI()
+                );
+                await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
+            });
+
+            it("#8.3 callAppAction assert or revert", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionAssert("0x").encodeABI()
+                    ), "SF: target reverted");
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionRevert("0x").encodeABI()
+                    ), "SF: target reverted");
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionRevertWithReason("error 42", "0x").encodeABI()
+                    ), "error 42");
+            });
+
+            it("#8.4 app action should not call without ctx", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionCallAgreement("0x").encodeABI()
+                    ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionCallAppAction("0x").encodeABI()
+                    ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
+            });
+        });
+
+        describe("#9 batchCall", () => {
+            it("#9.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
+                await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
+                    toWad("10"), {
+                        from: alice
+                    }
+                );
+
+                await web3tx(superToken.approve, "SuperToken.approve - from alice to admin")(
+                    admin,
+                    toWad("3"), {
+                        from: alice
+                    }
+                );
+                assert.equal(
+                    (await superToken.allowance.call(alice, admin)).toString(),
+                    toWad("3").toString());
+
+                await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                    [
+                        [
+                            2, // upgrade
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["uint256"],
+                                [toWad("10").toString()])
+                        ],
+                        [
+                            0, // approve
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["address", "uint256"],
+                                [bob, toWad("1").toString()])
+                        ],
+                        [
+                            1, // transferFrom own funds
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["address", "address", "uint256"],
+                                [admin, bob, toWad("2").toString()])
+                        ],
+                        [
+                            1, // transferFrom other's funds
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(
+                                ["address", "address", "uint256"],
+                                [alice, bob, toWad("3").toString()])
+                        ],
+                        [
+                            3, // downgrade
+                            superToken.address,
+                            web3.eth.abi.encodeParameters(["uint256"], [toWad("5").toString()])
+                        ]
+                    ],
+                    {
+                        from: admin
+                    }
+                );
+                assert.equal(
+                    (await superToken.balanceOf.call(admin)).toString(),
+                    toWad("3").toString());
+                assert.equal(
+                    (await superToken.allowance.call(alice, admin)).toString(),
+                    toWad("0").toString());
+                assert.equal(
+                    (await superToken.balanceOf.call(alice)).toString(),
+                    toWad("7").toString());
+                assert.equal(
+                    (await superToken.allowance.call(admin, bob)).toString(),
+                    toWad("1").toString());
+                assert.equal(
+                    (await superToken.balanceOf.call(bob)).toString(),
+                    toWad("5").toString());
+
+                await t.validateSystemInvariance();
+            });
+        });
+
+        describe("#10 (WIP) Contextual Call Proxies and Context Utilities", () => {
             // TODO
             // callAgreementWithContext
             // callAppActionWithContext
         });
 
-        describe("#10 Governance", () => {
-            it("#10.1 getGovernance", async () => {
+        describe("#20 Governance", () => {
+            it("#20.1 getGovernance", async () => {
                 assert.equal(
                     await superfluid.getGovernance.call(),
                     t.contracts.governance.address);
             });
 
-            it("#10.2 only governance can replace itself", async () => {
+            it("#20.2 only governance can replace itself", async () => {
                 await expectRevert(
                     superfluid.updateCode(ZERO_ADDRESS),
                     "SF: only governance allowed");
@@ -521,7 +639,7 @@ contract("Superfluid Host Contract", accounts => {
                     "SF: only governance allowed");
             });
 
-            it("#10.3 replace with new governance", async () => {
+            it("#20.3 replace with new governance", async () => {
                 const newGov = await TestGovernance.new(
                     ZERO_ADDRESS,
                     1000
@@ -551,8 +669,8 @@ contract("Superfluid Host Contract", accounts => {
             } = t.contracts);
         });
 
-        describe("#20 non-upgradability", () => {
-            it("#20.1 agreement is not upgradable", async () => {
+        describe("#30 non-upgradability", () => {
+            it("#30.1 agreement is not upgradable", async () => {
                 await expectRevert(
                     governance.updateAgreementClass(
                         superfluid.address,
@@ -560,7 +678,7 @@ contract("Superfluid Host Contract", accounts => {
                     "SF: non upgradable");
             });
 
-            it("#20.2 supertoken factory logic contract identical and not upgradable", async () => {
+            it("#30.2 supertoken factory logic contract identical and not upgradable", async () => {
                 assert.equal(
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic());

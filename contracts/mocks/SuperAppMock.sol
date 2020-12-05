@@ -32,10 +32,10 @@ contract SuperAppMock is ISuperApp {
     * Test App Actions
     **************************************************************************/
 
-    event ActionNoopEvent();
+    event NoopEvent();
 
     function actionNoop(bytes memory /* ctx */) external {
-        emit ActionNoopEvent();
+        emit NoopEvent();
     }
 
     function actionAssert(bytes memory /* ctx */) external pure {
@@ -64,6 +64,61 @@ contract SuperAppMock is ISuperApp {
     /*************************************************************************
     * Callbacks
     **************************************************************************/
+
+    enum NextCallbackActionType {
+        Noop, // 0
+        Assert, // 1
+        Revert, // 2
+        RevertWithReason // 3
+    }
+
+    struct NextCallbackAction {
+        NextCallbackActionType actionType;
+        bytes data;
+    }
+
+    NextCallbackAction private _nextCallbackAction;
+
+    function setNextCallbackAction(
+        NextCallbackActionType actionType,
+        bytes calldata data)
+        external
+    {
+        _nextCallbackAction.actionType = actionType;
+        _nextCallbackAction.data = data;
+    }
+
+    function _executeBeforeCallbackAction()
+        private view returns (bytes memory cbdata)
+    {
+        if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
+            //emit NoopEvent();
+            return "Noop";
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.Assert) {
+            assert(false);
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.Revert) {
+            // solhint-disable-next-line reason-string
+            revert();
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.RevertWithReason) {
+            revert(abi.decode(_nextCallbackAction.data, (string)));
+        } else assert(false);
+    }
+
+    function _executeAfterCallbackAction()
+        private
+    {
+        if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
+            emit NoopEvent();
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.Assert) {
+            assert(false);
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.Revert) {
+            // solhint-disable-next-line reason-string
+            revert();
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.RevertWithReason) {
+            revert(abi.decode(_nextCallbackAction.data, (string)));
+        } else assert(false);
+    }
+
     function beforeAgreementCreated(
         ISuperToken /*superToken*/,
         bytes calldata /*ctx*/,
@@ -76,12 +131,12 @@ contract SuperAppMock is ISuperApp {
         override
         returns (bytes memory /*cbdata*/)
     {
-        revert("Unsupported callback - Before Agreement Created");
+        return _executeBeforeCallbackAction();
     }
 
     function afterAgreementCreated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
+        bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*cbdata*/
@@ -89,9 +144,10 @@ contract SuperAppMock is ISuperApp {
         external
         virtual
         override
-        returns (bytes memory /*newCtx*/)
+        returns (bytes memory newCtx)
     {
-        revert("Unsupported callback - After Agreement Created");
+        _executeAfterCallbackAction();
+        newCtx = ctx;
     }
 
     function beforeAgreementUpdated(
@@ -106,12 +162,12 @@ contract SuperAppMock is ISuperApp {
         override
         returns (bytes memory /*cbdata*/)
     {
-        revert("Unsupported callback - Before Agreement updated");
+        return _executeBeforeCallbackAction();
     }
 
     function afterAgreementUpdated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
+        bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*cbdata*/
@@ -119,9 +175,10 @@ contract SuperAppMock is ISuperApp {
         external
         virtual
         override
-        returns (bytes memory /*newCtx*/)
+        returns (bytes memory newCtx)
     {
-        revert("Unsupported callback - After Agreement Updated");
+        _executeAfterCallbackAction();
+        newCtx = ctx;
     }
 
     function beforeAgreementTerminated(
@@ -136,12 +193,12 @@ contract SuperAppMock is ISuperApp {
         override
         returns (bytes memory /*cbdata*/)
     {
-        revert("Unsupported callback -  Before Agreement Terminated");
+        return _executeBeforeCallbackAction();
     }
 
     function afterAgreementTerminated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
+        bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes memory /*cbdata*/
@@ -149,9 +206,10 @@ contract SuperAppMock is ISuperApp {
         external
         virtual
         override
-        returns (bytes memory /*newCtx*/)
+        returns (bytes memory newCtx)
     {
-        revert("Unsupported callback - After Agreement Terminated");
+        _executeAfterCallbackAction();
+        newCtx = ctx;
     }
 
 }

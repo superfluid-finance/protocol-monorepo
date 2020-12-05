@@ -481,11 +481,7 @@ contract Superfluid is
         //Build context data
         bytes memory ctx;
         // beaware of the endiness
-        bytes4 agreementSelector = bytes4(
-            uint32(uint8(data[3])) |
-            (uint32(uint8(data[2])) << 8) |
-            (uint32(uint8(data[1])) << 16) |
-            (uint32(uint8(data[0])) << 24));
+        bytes4 agreementSelector = _functionPrefix(data);
         ctx = _updateContext(FullContext({
             extCall: ExtCallContext({
                 cbLevel: 0,
@@ -787,6 +783,20 @@ contract Superfluid is
             res := add(res, 0x04)
         }
         return abi.decode(res, (string)); // All that remains is the revert string
+    }
+
+    /**
+    * @notice Helper method to parse data and extract the method signature.
+    *
+    * Copied from: https://github.com/argentlabs/argent-contracts/
+    * blob/master/contracts/modules/common/Utils.sol#L54-L60
+    */
+    function _functionPrefix(bytes memory data) internal pure returns (bytes4 prefix) {
+        require(data.length >= 4, "SF: invalid functionPrefix");
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            prefix := mload(add(data, 0x20))
+        }
     }
 
     modifier validCtx(bytes memory ctx) {

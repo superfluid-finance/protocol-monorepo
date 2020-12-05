@@ -4,9 +4,11 @@ pragma solidity 0.7.4;
 import {
     ISuperfluid,
     ISuperfluidToken,
-    ISuperApp
+    ISuperApp,
+    SuperAppDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
+import { AgreementLibrary } from "../agreements/AgreementLibrary.sol";
 
 
 contract AgreementMock is AgreementBase {
@@ -147,6 +149,48 @@ contract AgreementMock is AgreementBase {
 
     function tryCtxUseAllowance(ISuperfluid host) external {
         host.ctxUseAllowance("", 0, 0);
+    }
+
+    event AppBeforeCallbackResult(bytes cbdata);
+
+    function callAppBeforeAgreementCreatedCallback(
+        ISuperApp app,
+        bytes calldata ctx
+    )
+        external
+        returns (bytes memory newCtx)
+    {
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            address(this),
+            ISuperfluidToken(address(0)) /* token */,
+            address(app) /* account */,
+            0 /* agreementId */
+        );
+        cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
+        cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
+        bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
+        emit AppBeforeCallbackResult(cbdata);
+        newCtx = ctx;
+    }
+
+
+    function callAppAfterAgreementCreatedCallback(
+        ISuperApp app,
+        bytes calldata ctx
+    )
+        external
+        returns (bytes memory newCtx)
+    {
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            address(this),
+            ISuperfluidToken(address(0)) /* token */,
+            address(app) /* account */,
+            0 /* agreementId */
+        );
+        cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+        cbStates.selector = ISuperApp.afterAgreementCreated.selector;
+        AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
+        newCtx = ctx;
     }
 
 }

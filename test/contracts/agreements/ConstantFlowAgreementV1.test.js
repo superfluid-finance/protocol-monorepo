@@ -1082,6 +1082,54 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await expectNetFlow("mfa", "0");
         });
 
+        it("#2.9 mfa-1to2[50,50]_100pct_create-partial_delete-negative_app_balance", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            let mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+
+            // delete flow of receiver 1
+            mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 0
+                    }
+                }
+            };
+            await shouldDeleteFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                by: sender
+            });
+
+            const mfaBal = await superToken.realtimeBalanceOfNow(t.getAddress("mfa"));
+            const isJailed = await superfluid.isAppJailed(t.getAddress("mfa"));
+            assert.isTrue(mfaBal.availableBalance.gte(toBN(0)) || isJailed,
+                "mfa app not jailed despite neg. balance");
+        });
     });
 
     describe("#10 multi accounts scenarios", () => {

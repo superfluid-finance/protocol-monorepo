@@ -1,10 +1,10 @@
 const fs = require("fs");
-
+const path = require("path");
 class GasMeterReporter {
 
     constructor({ fileSystem, fileName}) {
         this.fs = fileSystem ? fileSystem : fs;
-        this.filePath = "../../build/";
+        this.filePath = path.join(process.cwd(),"build");
         this.fileName = fileName ? fileName : "gasReport";
     }
 
@@ -19,7 +19,6 @@ class GasMeterJSONReporter extends GasMeterReporter {
 }
 
 class GasMeterHTMLReporter extends GasMeterReporter {
-
 
     _joinStrings(prevVal, currVal, idx) {
         return idx == 0 ? currVal : prevVal + currVal;
@@ -46,15 +45,18 @@ class GasMeterHTMLReporter extends GasMeterReporter {
     }
 
     generateReport(report) {
-        const htmlStub = this.fs.readFileSync("./htmlStub.txt");
+        const htmlStub = require("./htmlStub");
         const txHeaders = this._generateHeaders(report.executedTxs[0]);
         const txTableBody = this._generateBody(report.executedTxs);
         const statHeaders = this._generateHeaders(report.totals);
         const statBody = this._generateBody([report.totals]);
-        const result =  htmlStub.replace("{{HEADERS-TX}}", txHeaders).replace("{{BODY-TX}}", txTableBody)
-            .replace("{{HEADERS-STATS}}", statHeaders).replace("{{BODY-STATS}}", statBody);
+        const result =  htmlStub.replace("{{HEADERS-TX}}", txHeaders)
+            .replace("{{BODY-TX}}", txTableBody)
+            .replace("{{HEADERS-STATS}}", statHeaders)
+            .replace("{{BODY-STATS}}", statBody)
+            .replace("{{TITLE}}", this.fileName);
 
-        this.fs.writeFileSync(`${this.filePath}${this.fileName}.html`, result);
+        this.fs.writeFileSync(path.join(this.filePath, `${this.fileName}.html`), result);
     }
 
 }

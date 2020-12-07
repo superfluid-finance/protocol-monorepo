@@ -45,6 +45,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 from: senderNorm,
             }
         );
+        this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
         return tx;
     }
@@ -81,6 +82,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
             }
         );
         console.debug("Flow updated.");
+        this._sf._pushTxForGasReport(tx, "updateFlow");
+
         return tx;
     }
 
@@ -111,10 +114,14 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 receiverNorm,
                 "0x"
             ).encodeABI(),
-            {
-                from: byNorm,
-            }
+            (
+                {
+                    from: byNorm,
+                }
+            )
         );
+        this._sf._pushTxForGasReport(tx, "deleteFlow");
+
         console.debug("Flow deleted.");
         return tx;
     }

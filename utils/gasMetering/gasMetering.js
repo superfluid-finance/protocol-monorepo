@@ -8,16 +8,17 @@ const {
 } = require("./gasReporter");
 
 class Formatter {
-    static formatBigNumber(key, value, fiatCurr) {
-
+    static formatBigNumber(key, value) {
         switch (key) {
         case "cost":
+        case "totalCost":
+        case "avgCost":
             value = `${web3.utils.fromWei(value)} ETH`;
             break;
-        case "fiatCost":
-            value = `${web3.utils.fromWei(value)} ${fiatCurr}`;
-            break;
+        case "totalTx":
         case "gas":
+        case "totalGas":
+        case "avgGas":
             value = value.toString(10);
             break;
         case "gasPrice":
@@ -28,12 +29,12 @@ class Formatter {
 
     }
 
-    static formatObject(x, fiatCurr) {
+    static formatObject(x) {
         const result = {};
         Object.keys(x).forEach((key) => {
             var value = x[key];
             if (BN.isBN(value)) {
-                value = Formatter.formatBigNumber(key, value, fiatCurr);
+                value = Formatter.formatBigNumber(key, value);
             }
             result[key] = value;
         });
@@ -45,7 +46,7 @@ class Formatter {
 
 module.exports = class GasMeter {
 
-    constructor(outputFormat, gasPrice, fiatCurr, fiatPrice) {
+    constructor(outputFormat, gasPrice) {
         switch (outputFormat) {
         case "JSON":
             this.reporter = new GasMeterJSONReporter({});
@@ -60,14 +61,14 @@ module.exports = class GasMeter {
             throw new Error(`Unsuported report type ${outputFormat}`);
         }
         this.gasPrice = new BN(gasPrice);
-        this.fiatCurr = fiatCurr || "USD";
-        this.fiatPrice = fiatPrice ? new BN(fiatPrice) : new BN("0");
         this.records = [];
         this.totals = {
-            gas: new BN("0"),
+            totalTx: new BN("0"),
+            totalGas: new BN("0"),
+            avgGas: new BN("0"),
             gasPrice: this.gasPrice,
-            cost: new BN("0"),
-            fiatCost: new BN("0")
+            totalCost: new BN("0"),
+            avgCost: new BN("0")
         };
     }
 
@@ -86,27 +87,27 @@ module.exports = class GasMeter {
     pushTx(tx, actionName) {
         const gas = new BN(tx.receipt.gasUsed);
         const cost = gas.mul(this.gasPrice);
-        const fiatCost = cost.mul(this.fiatPrice);
         this.records.push({
             action: actionName,
             txHash: tx.tx,
             gas: gas,
-            cost: cost,
-            fiatCost: fiatCost
+            cost: cost
         });
         this.totals = {
-            gas: this.totals.gas.add(gas),
+            totalTx: this.totals.totalTx.add(new BN("1")),
+            totalGas: this.totals.totalGas.add(gas),
             gasPrice: this.gasPrice,
-            cost: this.totals.cost.add(cost),
-            fiatCost: this.totals.fiatCost.add(fiatCost),
+            totalCost: this.totals.totalCost.add(cost)
         };
+        this.totals.avgCost = this.totals.totalCost.div(this.totals.totalTx);
+        this.totals.avgGas = this.totals.totalGas.div(this.totals.totalTx);
 
     }
+    
 
     generateReport(name) {
         this.reporter.fileName = name;
         const formattedReport = this._format();
-        console.log("formattedReport", formattedReport);
         this.reporter.generateReport(formattedReport);
     }
 

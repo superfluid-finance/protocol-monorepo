@@ -71,10 +71,10 @@ module.exports = class TestEnvironment {
 
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
-            isTruffle: true
+            isTruffle: true,
+            gasReportType: "HTML"
         });
         await this.sf.initialize();
-
         // re-loading contracts with testing/mocking interfaces
         this.contracts = {};
         // load singletons

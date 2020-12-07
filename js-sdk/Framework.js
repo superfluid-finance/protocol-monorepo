@@ -1,6 +1,7 @@
 const Web3 = require("web3");
 const TruffleContract = require("@truffle/contract");
 const getConfig = require("./getConfig");
+const GasMeter = require("../utils/gasMetering/gasMetering");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -18,6 +19,7 @@ module.exports = class Framework {
      * @param {string} chainId force chainId, instead relying on web3.eth.net.getId
      * @param {string} resolverAddress force resolver address
      * @param {string[]} tokens the tokens to be loaded, each element is an alias for the underlying token
+     * @param {string} gasReportType (optional) output type for gas reporting. Currently HTML only
      * @return {Framework} The Framework object
      *
      * NOTE: You should call async function Framework.initialize to initialize the object.
@@ -28,7 +30,8 @@ module.exports = class Framework {
         version,
         chainId,
         resolverAddress,
-        tokens
+        tokens,
+        gasReportType
     }) {
         const contractNames = require("./contracts.json");
 
@@ -62,6 +65,13 @@ module.exports = class Framework {
         }
 
         this._tokens = tokens;
+        if (gasReportType) {
+
+            if (gasReportType !== "HTML" && gasReportType !== "JSON") {
+                throw new Error("Unsuported gas report type: " + gasReportType);
+            }
+            this._gasReportType = gasReportType;
+        }
     }
 
 
@@ -128,6 +138,11 @@ module.exports = class Framework {
         }
 
         this.utils = new (require("./Utils"))(this);
+        if (this._gasReportType) {
+            const defaultGasPrice = await this.web3.eth.getGasPrice();
+            this._gasMetering = new GasMeter(this._gasReportType, defaultGasPrice, "USD", "500");
+        }
+        
     }
 
     /**
@@ -150,8 +165,9 @@ module.exports = class Framework {
             upgradability,
             `Super ${tokenName}`,
             superTokenSymbol,
-            ...(from && [{ from }] || []) // don't mind this silly js stuff, thanks to web3.js
+            ...(from && [{ from }] || []) // don"t mind this silly js stuff, thanks to web3.js
         );
+        this._pushTxForGasReport(tx, "createERC20Wrapper");
         const wrapperAddress = tx.logs[0].args.token;
         const u = [
             "Non upgradable",
@@ -161,5 +177,27 @@ module.exports = class Framework {
         console.log(`${u} super token ${superTokenSymbol} created at ${wrapperAddress}`);
         return this.contracts.ISuperToken.at(wrapperAddress);
     }
+    /**
+     * @dev call to add a tx in the gas report. Does nothing if gas report type is not set.
+     * @param {tx oject} tx as returned by truffleContract action
+     * @param {str} actionName action title for row in report
+     */
+    _pushTxForGasReport(tx, actionName) {
+        this._gasMetering? this._gasMetering.pushTx(tx, actionName) : null;
+    }
+    
+    /**
+     * @dev generate gas report with transactions pushed until this call
+     * @param {str} name file name for gas report
+     * @throws if gas report type was not indicated in constructor
+     */
+    generateGasReport(name) {
+        if (!this._gasMetering) {
+            throw new Error("No gas metering configured");
+        }
+        this._gasMetering.generateReport(name);
+    }
+
+    
 
 };

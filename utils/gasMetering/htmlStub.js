@@ -1,4 +1,4 @@
-<html>
+module.exports = `<html>
 <head>
     <style type="text/css">
 body {
@@ -94,7 +94,7 @@ table th {
 
 </head>
 <body>
-  <h2>Superfluid Gas Report</h2>
+  <h2>{{TITLE}}</h2>
   <div class="table-wrapper">
       <table class="fl-table">
           <thead>
@@ -121,4 +121,4 @@ table th {
       </table>
   </div>
 </body>
-</html>
+</html>`;

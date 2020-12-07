@@ -40,7 +40,6 @@ describe("GasMetering", function () {
         expect(record.gas).to.be.bignumber.equal(new BN(100000));
         const expectedCost = new BN(100000).mul(new BN(this.gasPrice));
         expect(record.cost).to.be.bignumber.equal(expectedCost);
-        expect(record.fiatCost).to.be.bignumber.equal(expectedCost.mul(new BN("400")));
 
     });
 
@@ -50,10 +49,15 @@ describe("GasMetering", function () {
         gasMeter.pushTx(this.tx, "SomeAction");
         gasMeter.pushTx(this.tx, "SomeAction2");
         const totals = gasMeter.totals;
-        expect(totals.gas).to.be.bignumber.equal(new BN(200000));
+        expect(totals.totalGas).to.be.bignumber.equal(new BN(200000));
+        expect(totals.totalTx).to.be.bignumber.equal(new BN(2));
         const expectedCost = new BN(200000).mul(new BN(this.gasPrice));
-        expect(totals.cost).to.be.bignumber.equal(expectedCost);
-        expect(totals.fiatCost).to.be.bignumber.equal(expectedCost.mul(new BN("400")));
+        expect(totals.totalCost).to.be.bignumber.equal(expectedCost);
+        const avgGas = new BN(200000).div(new BN(2));
+
+        expect(totals.avgGas).to.be.bignumber.equal(avgGas);
+        const avgCost = expectedCost.div(new BN(2));
+        expect(totals.avgCost).to.be.bignumber.equal(avgCost);
         expect(totals.gasPrice).to.be.bignumber.equal(new BN(this.gasPrice));
 
     });
@@ -67,24 +71,24 @@ describe("GasMetering", function () {
 
         expect(result).to.be.deep.equal({
             totals: {
-                gas: "200000",
+                totalTx: "2",
+                totalGas: "200000",
+                avgGas: "100000",
                 gasPrice: "1 GWEI",
-                cost: "0.0002 ETH",
-                fiatCost: "0.08 USD"
+                totalCost: "0.0002 ETH",
+                avgCost: "0.0001 ETH"
             },
             executedTxs: [{
                 action: "SomeAction",
                 txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                 gas: "100000",
-                cost: "0.0001 ETH",
-                fiatCost: "0.04 USD"
+                cost: "0.0001 ETH"
             },
             {
                 action: "SomeAction2",
                 txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                 gas: "100000",
-                cost: "0.0001 ETH",
-                fiatCost: "0.04 USD"
+                cost: "0.0001 ETH"
             }]
         });
 

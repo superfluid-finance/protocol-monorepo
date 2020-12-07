@@ -1,62 +1,65 @@
-const fs = require('fs')
+const fs = require("fs");
 
 class GasMeterReporter {
 
-  constructor(fileSystem) {
-    this.fs = fileSystem ? fileSystem : fs
-    this.filePath = '../../build/gasReport'
-  }
+    constructor({ fileSystem, fileName}) {
+        this.fs = fileSystem ? fileSystem : fs;
+        this.filePath = "../../build/";
+        this.fileName = fileName ? fileName : "gasReport";
+    }
 
 }
 
 class GasMeterJSONReporter extends GasMeterReporter {
 
-  generateOutput(report) {
-    const result = JSON.stringify(report)
-    this.fs.writeFileSync(`${this.filePath}.json`, result); 
-  }
+    generateOutput(report) {
+        const result = JSON.stringify(report);
+        this.fs.writeFileSync(`${this.filePath}${this.fileName}.json`, result);
+    }
 }
 
-class GasMeterHTMLReporter {
+class GasMeterHTMLReporter extends GasMeterReporter {
 
-  _joinStrings(prevVal, currVal, idx) {
-    return idx == 0 ? currVal : prevVal + currVal;
-  }
 
-  _generateHeaders(report) {
-    let keys = Object.keys(report.executedTxs[0])
-    
-    const headers = keys.map(key => {
-      return `<th>${key}</th>`
-    }).reduce(this._joinStrings)
+    _joinStrings(prevVal, currVal, idx) {
+        return idx == 0 ? currVal : prevVal + currVal;
+    }
 
-    return `<tr>${headers}</tr>`
-  }
+    _generateHeaders(element) {
+        let keys = Object.keys(element);
 
-  _generateBody(report) {
-    return report.executedTxs.map(tx => {
-      let keys = Object.keys(tx)
-      let tds = keys.map( key => {
-        return `<td>${tx[key]}</td>`
-      }).reduce(this._joinStrings)
-      return `<tr>${tds}</tr>`
-    }).reduce(this._joinStrings)
-  }
+        const headers = keys.map(key => {
+            return `<th>${key}</th>`;
+        }).reduce(this._joinStrings);
 
-  generateOutput(report) {
-    const htmlStub = this.fs.readFileSync('./htmlStub.txt')
-    const headers = this._generateHeaders(report)
-    const withHeaders = htmlStub.replace('{{HEADERS}}', headers)
-    const tableBody = this._generateBody(report)
-    const result = withHeaders.replace('{{BODY}}', tableBody)
-    console.log(result)
-    this.fs.writeFileSync(`${this.filePath}.html`, result)
+        return `<tr>${headers}</tr>`;
+    }
 
-  }
+    _generateBody(elements) {
+        return elements.map(tx => {
+            let keys = Object.keys(tx);
+            let tds = keys.map(key => {
+                return `<td>${tx[key]}</td>`;
+            }).reduce(this._joinStrings);
+            return `<tr>${tds}</tr>`;
+        }).reduce(this._joinStrings);
+    }
+
+    generateReport(report) {
+        const htmlStub = this.fs.readFileSync("./htmlStub.txt");
+        const txHeaders = this._generateHeaders(report.executedTxs[0]);
+        const txTableBody = this._generateBody(report.executedTxs);
+        const statHeaders = this._generateHeaders(report.totals);
+        const statBody = this._generateBody([report.totals]);
+        const result =  htmlStub.replace("{{HEADERS-TX}}", txHeaders).replace("{{BODY-TX}}", txTableBody)
+            .replace("{{HEADERS-STATS}}", statHeaders).replace("{{BODY-STATS}}", statBody);
+
+        this.fs.writeFileSync(`${this.filePath}${this.fileName}.html`, result);
+    }
 
 }
 
 module.exports = {
-  GasMeterJSONReporter,
-  GasMeterHTMLReporter
-}
+    GasMeterJSONReporter,
+    GasMeterHTMLReporter
+};

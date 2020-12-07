@@ -5,6 +5,7 @@ module.exports = {
         "describe": true,
         "contract": true,
         "context": true,
+        "after": true,
         "before": true,
         "beforeEach": true,
         "afterEach": true,

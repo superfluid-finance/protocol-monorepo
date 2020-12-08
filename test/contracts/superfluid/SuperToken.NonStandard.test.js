@@ -10,6 +10,7 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 const TestToken = artifacts.require("TestToken");
+const ERC777SenderRecipientMock = artifacts.require("ERC777SenderRecipientMock");
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -301,6 +302,80 @@ contract("SuperToken's Non Standard Functions", accounts => {
             assert.equal(
                 (await superToken6D.balanceOf.call(bob)).toString(),
                 toWad("0").toString());
+        });
+
+        it("#2.8 - should upgradeTo if enough balance", async () => {
+            const initialBalanceAlice = await testToken.balanceOf.call(alice);
+            const initialBalanceBob = await testToken.balanceOf.call(bob);
+
+            await web3tx(superToken.upgradeTo, "SuperToken.upgrade 2.0 tokens from alice to bob") (
+                bob, toWad(2), "0x", {
+                    from: alice
+                });
+            const { timestamp } = await web3.eth.getBlock("latest");
+
+            const finalBalanceAlice = await testToken.balanceOf.call(alice);
+            const finalSuperTokenBalanceAlice = await superToken.balanceOf.call(alice);
+            const finalRealBalanceAlice = await superToken.realtimeBalanceOf.call(alice, timestamp);
+
+            const finalBalanceBob = await testToken.balanceOf.call(bob);
+            const finalSuperTokenBalanceBob = await superToken.balanceOf.call(bob);
+            const finalRealBalanceBob = await superToken.realtimeBalanceOf.call(bob, timestamp);
+
+            assert.equal(initialBalanceAlice.sub(finalBalanceAlice).toString(), toWad(2).toString(),
+                "(alice) SuperToken.upgradeTo should manage underlying tokens");
+            assert.equal(finalSuperTokenBalanceAlice.toString(), "0",
+                "(alice) SuperToken.balanceOf is wrong");
+            assert.equal(
+                finalRealBalanceAlice.availableBalance.toString(),
+                finalSuperTokenBalanceAlice.toString(),
+                "(alice) balanceOf should equal realtimeBalanceOf");
+
+            assert.equal(initialBalanceBob.sub(finalBalanceBob).toString(), "0",
+                "(bob) SuperToken.upgradeTo should not affect recipient");
+            assert.equal(finalSuperTokenBalanceBob.toString(), toWad(2).toString(),
+                "(bob) SuperToken.balanceOf is wrong");
+            assert.equal(
+                finalRealBalanceBob.availableBalance.toString(),
+                finalSuperTokenBalanceBob.toString(),
+                "(bob) balanceOf should equal realtimeBalanceOf");
+
+            await t.validateSystemInvariance();
+        });
+
+        it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
+            const mock = await ERC777SenderRecipientMock.new();
+            await expectRevert(superToken.upgradeTo(
+                mock.address, toWad(2), "0x", {
+                    from: alice
+                }), "SuperToken: not an ERC777TokensRecipient");
+            await web3tx(mock.registerRecipient, "registerRecipient")(mock.address);
+            await web3tx(superToken.upgradeTo, "SuperToken.upgrade 2.0 tokens from alice to bob") (
+                mock.address, toWad(2), "0x", {
+                    from: alice
+                });
+        });
+
+        it("#2.10 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
+            const mock = await ERC777SenderRecipientMock.new();
+            await web3tx(testToken.transfer, "send token from alice to mock")(
+                mock.address, toWad(2), {
+                    from: alice
+                });
+            await web3tx(mock.upgradeAll, "mock.upgradeAll")(superToken.address);
+            assert.equal(
+                (await superToken.balanceOf.call(mock.address)).toString(),
+                toWad(2).toString()
+            );
+            await web3tx(testToken.transfer, "send token from alice to mock")(
+                mock.address, toWad(2), {
+                    from: alice
+                });
+            await web3tx(mock.upgradeAllToSelf, "mock.upgradeAllToSelf")(superToken.address);
+            assert.equal(
+                (await superToken.balanceOf.call(mock.address)).toString(),
+                toWad(4).toString()
+            );
         });
     });
 

@@ -72,7 +72,6 @@ library AgreementLibrary {
     }
 
     function createCallbackInputs(
-        address agreementClass,
         ISuperfluidToken token,
         address account,
         bytes32 agreementId
@@ -81,12 +80,12 @@ library AgreementLibrary {
        returns (CallbackInputs memory inputs)
     {
         ISuperfluid host = ISuperfluid(msg.sender);
-        (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
-        inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
-        inputs.agreementClass = agreementClass;
+        inputs.agreementClass = address(this);
         inputs.token = token;
         inputs.account = account;
         inputs.agreementId = agreementId;
+        (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
+        inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
     }
 
     function callAppBeforeCallback(

@@ -161,7 +161,6 @@ contract AgreementMock is AgreementBase {
         returns (bytes memory newCtx)
     {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
             0 /* agreementId */
@@ -182,7 +181,6 @@ contract AgreementMock is AgreementBase {
         returns (bytes memory newCtx)
     {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
             0 /* agreementId */

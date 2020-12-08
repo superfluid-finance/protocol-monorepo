@@ -293,6 +293,10 @@ interface ISuperfluid {
         returns(bytes memory returnedData);
 
 
+    /**************************************************************************
+    * Batch call
+    **************************************************************************/
+
     /**
      * @dev Operation type for batch operations
      */

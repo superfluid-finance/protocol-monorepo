@@ -301,7 +301,6 @@ contract InstantDistributionAgreementV1 is
 
         newCtx = ctx;
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             publisher,
             vars.sId);
@@ -380,7 +379,6 @@ contract InstantDistributionAgreementV1 is
         }
 
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             subscriber,
             sId);
@@ -582,7 +580,6 @@ contract InstantDistributionAgreementV1 is
         assert(vars.sdata.indexId == indexId);
 
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             sender == subscriber ? publisher : subscriber,
             vars.sId);
@@ -653,7 +650,6 @@ contract InstantDistributionAgreementV1 is
             * uint256(vars.sdata.units);
 
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             publisher,
             vars.sId);

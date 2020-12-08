@@ -498,7 +498,7 @@ contract Superfluid is
             })
         }));
         bool success;
-        (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), data, ctx);
         if (success) {
             _ctxStamp = 0;
         } else {
@@ -535,12 +535,16 @@ contract Superfluid is
                 allowanceUsed: 0
             })
         }));
-        (success, returnedData) = _callExternal(address(app), data, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(app), data, ctx);
         if(!success) {
             revert(_getRevertMsg(returnedData));
         }
         _ctxStamp = 0;
     }
+
+    /**************************************************************************
+    * Batch call
+    **************************************************************************/
 
     function batchCall(
        Operation[] memory operations
@@ -587,7 +591,7 @@ contract Superfluid is
     }
 
     /**************************************************************************
-     * Contextual Call Proxy
+     * Contextual Call Proxies
      *************************************************************************/
 
     function callAgreementWithContext(
@@ -607,7 +611,7 @@ contract Superfluid is
         newCtx = _updateContext(context);
 
         bool success;
-        (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), data, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             assert(_isCtxValid(newCtx));
@@ -637,7 +641,7 @@ contract Superfluid is
         context.extCall.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
-        (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
+        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), data, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             require(_isCtxValid(newCtx), "SF: APP_RULE_CTX_IS_READONLY");
@@ -718,7 +722,7 @@ contract Superfluid is
         return ctx.length != 0 && keccak256(ctx) == _ctxStamp;
     }
 
-    function _callExternal(
+    function _callExternalWithReplacedCtx(
         address target,
         bytes memory data,
         bytes memory ctx
@@ -727,15 +731,16 @@ contract Superfluid is
         returns(bool success, bytes memory returnedData)
     {
         // STEP 1 : replace placeholder ctx with actual ctx
-        // ctx needs to be padded to align with 32 bytes bouondary
+        // 1.a ctx needs to be padded to align with 32 bytes bouondary
         uint256 paddedLength = (ctx.length / 32 + 1) * 32;
-        // ctx length has to be stored in the length word of placehoolder ctx
-        // we support up to 2^16 length of the data
-        data[data.length - 2] = byte(uint8(ctx.length >> 8));
-        data[data.length - 1] = byte(uint8(ctx.length));
-        // pack data with the replacement ctx
+        // 1.b remove the placeholder ctx
+        // solhint-disable-next-line no-inline-assembly
+        assembly { mstore(data, sub(mload(data), 0x20)) }
+        // 1.c pack data with the replacement ctx
         ctx = abi.encodePacked(
             data,
+            // bytes with padded length
+            ctx.length,
             ctx, new bytes(paddedLength - ctx.length) // ctx padding
         );
 
@@ -763,7 +768,7 @@ contract Superfluid is
                  // this is out of gas, but the call may still fail if m_callCallbackore gas is provied
                  // and this is okay, because there can be incentive to jail the app by providing
                  // more gas
-                 revert("SF: try with more gas");
+                 revert("SF: need more more gas");
              } else {
                 revert(_getRevertMsg(returnedData));
                  //_appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
@@ -778,6 +783,7 @@ contract Superfluid is
     function _getRevertMsg(bytes memory res) internal pure returns (string memory) {
         // If the _res length is less than 68, then the transaction failed silently (without a revert message)
         if (res.length < 68) return "SF: target reverted";
+        // solhint-disable-next-line no-inline-assembly
         assembly {
             // Slice the sighash.
             res := add(res, 0x04)

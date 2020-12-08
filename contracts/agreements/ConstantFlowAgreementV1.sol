@@ -436,7 +436,6 @@ contract ConstantFlowAgreementV1 is
 
         {
             AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
-                address(this),
                 token,
                 flowParams.receiver,
                 flowParams.flowId

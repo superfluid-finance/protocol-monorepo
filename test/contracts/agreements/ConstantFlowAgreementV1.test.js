@@ -1249,5 +1249,4 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await timeTravelOnceAndVerifyAll();
         });
     });
-
 });

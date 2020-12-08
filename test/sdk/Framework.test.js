@@ -28,6 +28,7 @@ contract("Framework class", accounts => {
                 TokenInfo,
                 ISuperfluid,
                 ISuperToken,
+                ISuperTokenFactory,
                 IConstantFlowAgreementV1,
                 IInstantDistributionAgreementV1,
             } = sf.contracts;
@@ -46,11 +47,15 @@ contract("Framework class", accounts => {
 
             assert.isDefined(ISuperfluid.abi);
             assert.equal(ISuperfluid.contractName, "ISuperfluid");
-            assert.isTrue(ISuperfluid.abi.filter(i => i.name === "getERC20Wrapper").length > 0);
+            assert.isTrue(ISuperfluid.abi.filter(i => i.name === "callAgreement").length > 0);
 
             assert.isDefined(ISuperToken.abi);
             assert.equal(ISuperToken.contractName, "ISuperToken");
             assert.isTrue(ISuperToken.abi.filter(i => i.name === "upgrade").length > 0);
+
+            assert.isDefined(ISuperTokenFactory.abi);
+            assert.equal(ISuperTokenFactory.contractName, "ISuperTokenFactory");
+            assert.isTrue(ISuperTokenFactory.abi.filter(i => i.name === "createERC20Wrapper").length > 0);
 
             assert.isDefined(IConstantFlowAgreementV1.abi);
             assert.equal(IConstantFlowAgreementV1.contractName, "IConstantFlowAgreementV1");
@@ -105,49 +110,27 @@ contract("Framework class", accounts => {
         });
     });
 
-    describe("token registry", () => {
+    describe("createERC20Wrapper", () => {
         let sf;
 
         beforeEach(async () => {
             sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider,
-                tokens: ["fUSDC"]
+                web3Provider: web3.currentProvider
             });
             await sf.initialize();
         });
 
-        describe("getERC20Wrapper", () => {
-            it("by token info", async () => {
-                const fUSDCAddress = await sf.resolver.get("tokens.fUSDC");
-                const wrapper = await sf.getERC20Wrapper(await sf.contracts.TokenInfo.at(fUSDCAddress));
-                assert.isTrue(wrapper.created);
-                assert.equal(wrapper.wrapperAddress, sf.tokens.fUSDCx.address);
+        it("create new super token", async () => {
+            await deployTestToken(t.errorHandler, [":", "MISO"]);
+            const misoAddress = await sf.resolver.get("tokens.MISO");
+            const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
+            const superMisoToken = await sf.createERC20Wrapper(misoToken, {
+                from: admin
             });
-            it("by token address", async () => {
-                const fUSDCAddress = await sf.resolver.get("tokens.fUSDC");
-                const wrapper = await sf.getERC20Wrapper(fUSDCAddress);
-                assert.isTrue(wrapper.created);
-                assert.equal(wrapper.wrapperAddress, sf.tokens.fUSDCx.address);
-            });
+            assert.equal(
+                await superMisoToken.getUnderlyingToken.call(),
+                misoAddress);
         });
-
-        describe("createERC20Wrapper", () => {
-            it("over new underlying token", async () => {
-                await deployTestToken(t.errorHandler, [":", "MISO"]);
-                const misoAddress = await sf.resolver.get("tokens.MISO");
-                const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
-                await sf.createERC20Wrapper(misoToken, admin);
-                const wrapper = await sf.getERC20Wrapper(misoToken);
-                assert.isTrue(wrapper.created);
-            });
-
-            it("failed on existing token", async () => {
-                await expectRevert(
-                    sf.createERC20Wrapper(sf.tokens.fUSDC, admin),
-                    "SF: createERC20Wrapper wrapper exist");
-            });
-        });
-
     });
 
 });

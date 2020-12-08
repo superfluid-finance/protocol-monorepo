@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Ownable } from "../access/Ownable.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import {
     ISuperfluid,
@@ -30,8 +29,7 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
  * @author Superfluid
  */
 contract SuperToken is
-    Proxiable,
-    Ownable,
+    UUPSProxiable,
     SuperfluidToken,
     ISuperToken
 {
@@ -68,18 +66,15 @@ contract SuperToken is
     ERC777Helper.Operators internal _operators;
 
     function initialize(
+        ISuperfluid host,
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
-        string calldata s,
-        ISuperfluid host
+        string calldata s
     )
-        external
+        external override
+        initializer // OpenZeppelin Initializable
     {
-        Proxiable._initialize();
-
-        _owner = msg.sender;
-
         _host = host;
 
         _underlyingToken = underlyingToken;
@@ -96,8 +91,9 @@ contract SuperToken is
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external onlyOwner {
-        return _updateCodeAddress(newAddress);
+    function updateCode(address newAddress) external override {
+        require(msg.sender == address(_host), "only host can update code");
+        UUPSProxiable._updateCodeAddress(newAddress);
     }
 
     /**************************************************************************
@@ -212,6 +208,7 @@ contract SuperToken is
         address operator,
         address account,
         uint256 amount,
+        bool requireReceptionAck,
         bytes memory userData,
         bytes memory operatorData
     )
@@ -221,7 +218,7 @@ contract SuperToken is
 
         SuperfluidToken._mint(account, amount.toInt256());
 
-        _callTokensReceived(operator, address(0), account, amount, userData, operatorData, true);
+        _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
 
         emit Minted(operator, account, amount, userData, operatorData);
         emit Transfer(address(0), account, amount);
@@ -231,25 +228,25 @@ contract SuperToken is
      * @dev Burn tokens
      * @param from address token holder address
      * @param amount uint256 amount of tokens to burn
-     * @param data bytes extra information provided by the token holder
+     * @param userData bytes extra information provided by the token holder
      * @param operatorData bytes extra information provided by the operator (if any)
      */
     function _burn(
         address operator,
         address from,
         uint256 amount,
-        bytes memory data,
+        bytes memory userData,
         bytes memory operatorData
     )
         internal
     {
         require(from != address(0), "SuperToken: burn from zero address");
 
-        _callTokensToSend(operator, from, address(0), amount, data, operatorData);
+        _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
 
         SuperfluidToken._burn(from, amount.toInt256());
 
-        emit Burned(operator, from, amount, data, operatorData);
+        emit Burned(operator, from, amount, userData, operatorData);
         emit Transfer(from, address(0), amount);
     }
 
@@ -404,11 +401,11 @@ contract SuperToken is
     function granularity() external pure override returns (uint256) { return 1; }
 
     function send(address recipient, uint256 amount, bytes calldata data) external override {
-        _send(msg.sender, msg.sender, recipient, amount, data, new bytes(0), true);
+        _send(msg.sender, msg.sender, recipient, amount, data, "", true);
     }
 
     function burn(uint256 amount, bytes calldata data) external override {
-        _downgrade(msg.sender, msg.sender, amount, data, new bytes(0));
+        _downgrade(msg.sender, msg.sender, amount, data, "");
     }
 
     function isOperatorFor(address operator, address tokenHolder) external override view returns (bool) {
@@ -480,7 +477,12 @@ contract SuperToken is
 
     /// @dev ISuperToken.upgrade implementation
     function upgrade(uint256 amount) external override {
-        _upgrade(msg.sender, msg.sender, amount);
+        _upgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
+    }
+
+    /// @dev ISuperToken.upgradeTo implementation
+    function upgradeTo(address to, uint256 amount, bytes calldata data) external override {
+        _upgrade(msg.sender, msg.sender, to, amount, "", data);
     }
 
     /// @dev ISuperToken.downgrade implementation
@@ -491,11 +493,16 @@ contract SuperToken is
     function _upgrade(
         address operator,
         address account,
-        uint256 amount
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData
     ) private {
         (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
         _underlyingToken.transferFrom(account, address(this), underlyingAmount);
-        _mint(operator, account, actualAmount, "", "");
+        _mint(operator, to, actualAmount,
+            // if `to` is diffferent from `account`, we requireReceptionAck
+            account != to, userData, operatorData);
         emit TokenUpgraded(account, actualAmount);
     }
 
@@ -563,23 +570,14 @@ contract SuperToken is
         external override
         onlyHost
     {
-        _upgrade(msg.sender, account, amount);
+        _upgrade(msg.sender, account, account, amount, "", "");
     }
 
     function operationDowngrade(address account, uint256 amount)
         external override
         onlyHost
     {
-        _downgrade(msg.sender, account, amount, new bytes(0), new bytes(0));
-    }
-
-    /**************************************************************************
-    * Modifiers
-    *************************************************************************/
-
-    modifier onlyHost() {
-        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
-        _;
+        _downgrade(msg.sender, account, amount, "", "");
     }
 
 }

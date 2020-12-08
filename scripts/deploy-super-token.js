@@ -1,5 +1,6 @@
 const SuperfluidSDK = require("..");
-const { parseColonArgs } = require("./utils");
+const TestResolver = artifacts.require("TestResolver");
+const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 
 
 /**
@@ -40,14 +41,21 @@ module.exports = async function (callback, argv) {
         console.log("Token info symbol()", tokenInfoSymbol);
         console.log("Token info decimals()", tokenInfoDecimals.toString());
 
-        const superTokenWrapper = await sf.getERC20Wrapper(tokenInfo);
-        console.log("SuperToken wrapper address: ", superTokenWrapper.wrapperAddress);
-        if (!superTokenWrapper.created) {
+        const superTokenAddress = await sf.resolver.get(`supertokens.${tokenName}x`);
+        console.log("SuperToken address: ", superTokenAddress);
+        if (superTokenAddress == ZERO_ADDRESS) {
             console.log("Creating the wrapper...");
-            await sf.createERC20Wrapper(tokenInfo);
-            console.log("Wrapper created.");
+            const superToken = await sf.createERC20Wrapper(tokenInfo);
+            console.log("Wrapper created at", superToken.address);
+            console.log("Resolver setting new address...");
+            const testResolver = await TestResolver.at(sf.resolver.address);
+            await testResolver.set(
+                `supertokens.${tokenName}x`,
+                superToken.address
+            );
+            console.log("Resolver set done.");
         } else {
-            console.log("SuperToken wrapper already created.");
+            console.log("SuperToken already registered.");
         }
 
         callback();

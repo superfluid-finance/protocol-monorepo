@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
+import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
@@ -34,27 +35,29 @@ interface ISuperfluid {
      *************************************************************************/
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
+    function replaceGovernance(ISuperfluidGovernance newGov) external;
+
     /**************************************************************************
      * Agreement Whitelisting
      *************************************************************************/
 
     /**
      * @dev Register a new agreement class to the system
-     * @param agreementClass INitial agreement class code
+     * @param agreementClassLogic INitial agreement class code
      *
      * Modifiers:
      *  - onlyGovernance
      */
-    function registerAgreementClass(ISuperAgreement agreementClass) external;
+    function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
 
     /**
     * @dev Update code of an agreement class
-    * @param agreementClass New code for the agreement class
+    * @param agreementClassLogic New code for the agreement class
     *
     * Modifiers:
     *  - onlyGovernance
     */
-    function updateAgreementClass(ISuperAgreement agreementClass) external;
+    function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
 
     /**
     * @dev Check if the agreement class is whitelisted
@@ -96,31 +99,34 @@ interface ISuperfluid {
         returns (uint256 newBitmap);
 
     /**************************************************************************
-     * Token Registry
-     *************************************************************************/
-    function getSuperTokenLogic() external view returns (ISuperToken superToken);
+    * Super Token Factory
+    **************************************************************************/
 
     /**
-     * @dev Query the token wrapper.
-     * @param underlyingToken The underlrying token to wrap.
-     * @param symbol The super token symbol.
-     *
-     * NOTE: Deterministic address is generated based on the input.
+     * @dev Get the super token factory
+     * @return factory The factory
      */
-    function getERC20Wrapper(
-        IERC20 underlyingToken,
-        string calldata symbol
-    )
-        external view
-        returns (address wrapperAddress, bool created);
+    function getSuperTokenFactory() external view returns (ISuperTokenFactory factory);
 
-    function createERC20Wrapper(
-        IERC20 underlyingToken,
-        uint8 underlyingDecimals,
-        string calldata name,
-        string calldata symbol
-    )
-        external;
+    /**
+     * @dev Get the super token factory logic (applicable to upgradable deployment)
+     * @return logic The factory logic
+     */
+    function getSuperTokenFactoryLogic() external view returns (address logic);
+
+    /**
+     * @dev Update super token factory
+     * @param newFactory New factory logic
+     */
+    function updateSuperTokenFactory(ISuperTokenFactory newFactory) external;
+
+    /**
+     * @dev Update the super token logic to the latest
+     *
+     * NOTE:
+     * - Refer toISuperTokenFactory.Upgradability for expected behaviours.
+     */
+    function updateSuperTokenLogic(ISuperToken token) external;
 
     /**************************************************************************
      * App Registry

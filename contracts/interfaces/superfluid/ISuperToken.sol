@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 
+import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
@@ -12,6 +13,15 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Superfluid
  */
 interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
+
+    /// @dev Initialize the contract
+    function initialize(
+        ISuperfluid host,
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s
+    ) external;
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -305,6 +315,17 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * function you should ´approve´ this contract
      */
     function upgrade(uint256 amount) external;
+
+    /**
+     * @dev Upgrade ERC20 to SuperToken and transfer immediately
+     * @param to The account to received upgraded tokens
+     * @param amount Number of tokens to be upgraded (in 18 decimals)
+     * @param data User data for the TokensRecipient callback
+     *
+     * NOTE: It will use ´transferFrom´ to get tokens. Before calling this
+     * function you should ´approve´ this contract
+     */
+    function upgradeTo(address to, uint256 amount, bytes calldata data) external;
 
     /**
      * @dev Token upgrade event

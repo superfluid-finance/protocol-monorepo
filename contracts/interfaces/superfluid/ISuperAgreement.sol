@@ -11,6 +11,11 @@ import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 interface ISuperAgreement {
 
     /**
+     * @dev Initialize the agreement contract
+     */
+    function initialize() external;
+
+    /**
      * @dev Get the type of the agreement class.
      */
     function agreementType() external view returns (bytes32);

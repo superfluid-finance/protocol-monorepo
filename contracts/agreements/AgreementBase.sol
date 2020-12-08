@@ -1,28 +1,34 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.4;
 
-import { Proxiable } from "../upgradability/Proxiable.sol";
-import { Ownable } from "../access/Ownable.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 
 
 abstract contract AgreementBase is
-    Proxiable,
+    UUPSProxiable,
     ISuperAgreement
 {
     address private _host;
 
-    function initialize() external {
-        Proxiable._initialize();
+    function initialize()
+        external override
+        initializer // OpenZeppelin Initializable
+    {
         _host = msg.sender;
     }
 
-    function proxiableUUID() public view override returns (bytes32) {
+    function proxiableUUID()
+        public view override
+        returns (bytes32)
+    {
         return ISuperAgreement(this).agreementType();
     }
 
-    function updateCode(address newAddress) external {
-        require(msg.sender == _host, "SF: only host can update code");
+    function updateCode(address newAddress)
+        external override
+    {
+        require(msg.sender == _host, "only host can update code");
         return _updateCodeAddress(newAddress);
     }
 

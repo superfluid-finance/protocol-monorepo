@@ -7,6 +7,7 @@ const SuperfluidMock = artifacts.require("SuperfluidMock");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const TestGovernance = artifacts.require("TestGovernance");
+const ISuperfluidGovernance = artifacts.require("ISuperfluidGovernance");
 const Proxy = artifacts.require("UUPSProxy");
 const Proxiable = artifacts.require("UUPSProxiable");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
@@ -115,7 +116,8 @@ module.exports = async function (callback, {
             superfluid = await Superfluid.at(superfluidAddress);
 
             if ((await superfluid.getGovernance.call()) !== governance.address){
-                await web3tx(governance.replaceGovernance, "governance.replaceGovernance")(
+                const currentGovernance = await ISuperfluidGovernance.at(superfluid.getGovernance.call());
+                await web3tx(currentGovernance.replaceGovernance, "governance.replaceGovernance")(
                     superfluid.address, governance.address
                 );
             }

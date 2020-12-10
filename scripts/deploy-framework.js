@@ -116,7 +116,7 @@ module.exports = async function (callback, {
             superfluid = await Superfluid.at(superfluidAddress);
 
             if ((await superfluid.getGovernance.call()) !== governance.address){
-                const currentGovernance = await ISuperfluidGovernance.at(superfluid.getGovernance.call());
+                const currentGovernance = await ISuperfluidGovernance.at(await superfluid.getGovernance.call());
                 await web3tx(currentGovernance.replaceGovernance, "governance.replaceGovernance")(
                     superfluid.address, governance.address
                 );

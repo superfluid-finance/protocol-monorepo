@@ -63,9 +63,10 @@ contract DividendRightsToken is
 
     function beforeAgreementCreated(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
         address agreementClass,
-        bytes32 /* agreementId */
+        bytes32 /* agreementId */,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external view override
         returns (bytes memory data)
@@ -77,10 +78,11 @@ contract DividendRightsToken is
 
     function afterAgreementCreated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address /* agreementClass */,
         bytes32 agreementId,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external override
         returns(bytes memory newCtx)
@@ -91,9 +93,10 @@ contract DividendRightsToken is
 
     function beforeAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
         address agreementClass,
-        bytes32 /* agreementId */
+        bytes32 /* agreementId */,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external view override
         returns (bytes memory data)
@@ -105,10 +108,11 @@ contract DividendRightsToken is
 
     function afterAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address /* agreementClass */,
         bytes32 agreementId,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external override
         returns(bytes memory newCtx)

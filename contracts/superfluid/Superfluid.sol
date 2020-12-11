@@ -367,14 +367,14 @@ contract Superfluid is
         ISuperApp app,
         bytes calldata data,
         bool isTermination,
-        bytes calldata /* ctx */
+        bytes calldata ctx
     )
         external override
         onlyAgreement
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
-        returns(bytes memory cbdata, bytes memory /*newCtx*/)
+        returns(bytes memory cbdata)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, data, true);
+        (bool success, bytes memory returnedData) = _callCallback(app, true, data, ctx);
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
         } else {
@@ -390,14 +390,15 @@ contract Superfluid is
         ISuperApp app,
         bytes calldata data,
         bool isTermination,
-        bytes calldata /* ctx */
+        bytes calldata ctx
     )
         external override
         onlyAgreement
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, data, false);
+        require(_isCtxValid(ctx), "!!!! wtf 3");
+        (bool success, bytes memory returnedData) = _callCallback(app, false, data, ctx);
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
             if(!_isCtxValid(newCtx)) {
@@ -676,6 +677,13 @@ contract Superfluid is
         appAllowanceUsed = context.app.allowanceUsed;
     }
 
+    function isCtxValid(bytes calldata ctx)
+        external view override
+        returns (bool)
+    {
+        return _isCtxValid(ctx);
+    }
+
     /**************************************************************************
      * Internal
      *************************************************************************/
@@ -731,37 +739,38 @@ contract Superfluid is
         returns(bool success, bytes memory returnedData)
     {
         // STEP 1 : replace placeholder ctx with actual ctx
-        // 1.a ctx needs to be padded to align with 32 bytes bouondary
-        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
-        // 1.b remove the placeholder ctx
-        // solhint-disable-next-line no-inline-assembly
-        assembly { mstore(data, sub(mload(data), 0x20)) }
-        // 1.c pack data with the replacement ctx
-        ctx = abi.encodePacked(
-            data,
-            // bytes with padded length
-            ctx.length,
-            ctx, new bytes(paddedLength - ctx.length) // ctx padding
-        );
+        data = _replacePlaceholderCtx(data, ctx);
 
         // STEP 2: Call external with replaced context
         // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
-        (success, returnedData) = target.call(ctx);
+        (success, returnedData) = target.call(data);
     }
 
     function _callCallback(
         ISuperApp app,
+        bool isStaticall,
         bytes memory data,
-        bool isStaticall
+        bytes memory ctx
     )
         private
         returns(bool success, bytes memory returnedData)
     {
+        require(_isCtxValid(ctx), "!!!! wtf 4.1");
+        require(ctx.length > 0, "!!!! wtf 4.2");
+        uint dataLenPrev = data.length;
+        data = _replacePlaceholderCtx(data, ctx);
+        require(data.length - dataLenPrev >= ctx.length, "!!!! wtf 5");
+
         //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
-        (success, returnedData) = isStaticall ?
+
+        if (isStaticall) {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            address(app).staticcall(data) : address(app).call(data);
+            (success, returnedData) = address(app).staticcall(data);
+        } else {
+            /* solhint-disable-next-line avoid-low-level-calls*/
+            (success, returnedData) = address(app).call(data);
+        }
 
          if (!success) {
              if (gasleft() < _GAS_RESERVATION) {
@@ -774,6 +783,24 @@ contract Superfluid is
                  //_appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
              }
          }
+    }
+
+    function _replacePlaceholderCtx(bytes memory data, bytes memory ctx)
+        private pure
+        returns (bytes memory dataWithCtx)
+    {
+        // 1.a ctx needs to be padded to align with 32 bytes bundary
+        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
+        // 1.b remove the placeholder ctx
+        // solhint-disable-next-line no-inline-assembly
+        assembly { mstore(data, sub(mload(data), 0x20)) }
+        // 1.c pack data with the replacement ctx
+        return abi.encodePacked(
+            data,
+            // bytes with padded length
+            uint256(ctx.length),
+            ctx, new bytes(paddedLength - ctx.length) // ctx padding
+        );
     }
 
     /// @dev Get the revert message from a call

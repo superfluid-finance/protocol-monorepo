@@ -121,9 +121,10 @@ contract SuperAppMock is ISuperApp {
 
     function beforeAgreementCreated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external
         view
@@ -136,25 +137,29 @@ contract SuperAppMock is ISuperApp {
 
     function afterAgreementCreated(
         ISuperToken /*superToken*/,
-        bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external
         virtual
         override
         returns (bytes memory newCtx)
     {
+        require(ctx.length > 0, "!!! wtf 6.1");
+        require(_host.isCtxValid(ctx), "!!! wtf 6.2");
         _executeAfterCallbackAction();
         newCtx = ctx;
     }
 
     function beforeAgreementUpdated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external
         view
@@ -167,10 +172,11 @@ contract SuperAppMock is ISuperApp {
 
     function afterAgreementUpdated(
         ISuperToken /*superToken*/,
-        bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external
         virtual
@@ -183,9 +189,10 @@ contract SuperAppMock is ISuperApp {
 
     function beforeAgreementTerminated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external
         view
@@ -198,10 +205,11 @@ contract SuperAppMock is ISuperApp {
 
     function afterAgreementTerminated(
         ISuperToken /*superToken*/,
-        bytes calldata ctx,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes memory /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external
         virtual

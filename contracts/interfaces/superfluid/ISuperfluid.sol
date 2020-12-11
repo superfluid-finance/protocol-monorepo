@@ -213,7 +213,7 @@ interface ISuperfluid {
         external
         // onlyAgreement
         // isAppActive(app)
-        returns(bytes memory newCtx, bytes memory cbdata);
+        returns(bytes memory cbdata);
 
     function callAppAfterCallback(
         ISuperApp app,
@@ -369,6 +369,8 @@ interface ISuperfluid {
             uint256 appAllowanceWanted,
             int256 appAllowanceUsed
         );
+
+    function isCtxValid(bytes calldata ctx) external view returns (bool);
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

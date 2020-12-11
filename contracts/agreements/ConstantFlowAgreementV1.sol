@@ -474,7 +474,7 @@ contract ConstantFlowAgreementV1 is
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
                 cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
             }
-            vars.appContext = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
         // FIXME

@@ -350,7 +350,7 @@ contract("Superfluid Host Contract", accounts => {
             // TODOs
         });
 
-        describe("#7 callAgreement", () => {
+        describe.only("#7 callAgreement", () => {
             let agreement;
             let app;
 
@@ -379,22 +379,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
             });
 
-            it("#7.2 before callback noop", async () => {
-                await app.setNextCallbackAction(0 /* noop */, "0x");
-                const tx = await superfluid.callAgreement(
-                    agreement.address,
-                    agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
-                        app.address,
-                        "0x"
-                    ).encodeABI()
-                );
-                await expectEvent.inTransaction(tx.tx, agreement.contract,
-                    "AppBeforeCallbackResult", {
-                        cbdata: "0x" + Buffer.from("Noop").toString("hex")
-                    });
-            });
-
-            it("#7.2 before callback noop", async () => {
+            it.only("#7.2 before callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
                     agreement.address,
@@ -440,7 +425,7 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            it("#7.4 after callback noop", async () => {
+            it.only("#7.4 after callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
                     agreement.address,

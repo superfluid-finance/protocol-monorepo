@@ -122,10 +122,11 @@ contract MultiFlowApp is SuperAppBase {
 
     function afterAgreementCreated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external override
         onlyHost
@@ -149,9 +150,10 @@ contract MultiFlowApp is SuperAppBase {
 
     function beforeAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
         address agreementClass,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external view override
         onlyHost
@@ -164,10 +166,11 @@ contract MultiFlowApp is SuperAppBase {
 
     function afterAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata /* cbdata */
+        bytes calldata /*agreementData*/,
+        bytes calldata /* cbdata */,
+        bytes calldata ctx
     )
         external override
         onlyHost
@@ -191,10 +194,11 @@ contract MultiFlowApp is SuperAppBase {
 
     function afterAgreementTerminated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 /*agreementId*/,
-        bytes memory /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
 
         external override

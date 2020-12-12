@@ -95,17 +95,17 @@ library AgreementLibrary {
     {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
             bytes memory appCtx = _pushCallbackStack(ctx, inputs);
-
+            bytes memory callData = abi.encodeWithSelector(
+                inputs.selector,
+                inputs.token,
+                address(this) /* agreementClass */,
+                inputs.agreementId,
+                new bytes(0), // FIXME agreeement data
+                new bytes(0) // placeholder ctx
+            );
             cbdata = ISuperfluid(msg.sender).callAppBeforeCallback(
                 ISuperApp(inputs.account),
-                abi.encodeWithSelector(
-                    inputs.selector,
-                    inputs.token,
-                    address(this) /* agreementClass */,
-                    inputs.agreementId,
-                    "", // FIXME agreeement data
-                    "" // placeholder ctx
-                ),
+                callData,
                 inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
@@ -124,18 +124,18 @@ library AgreementLibrary {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
             appCtx = _pushCallbackStack(ctx, inputs);
 
-            require(ISuperfluid(msg.sender).isCtxValid(appCtx), "!!!! wtf 2");
+            bytes memory callData = abi.encodeWithSelector(
+                inputs.selector,
+                inputs.token,
+                address(this) /* agreementClass */,
+                inputs.agreementId,
+                new bytes(0), // FIXME agreeement data
+                cbdata,
+                new bytes(0) // placeholder ctx
+            );
             appCtx = ISuperfluid(msg.sender).callAppAfterCallback(
                 ISuperApp(inputs.account),
-                abi.encodeWithSelector(
-                    inputs.selector,
-                    inputs.token,
-                    address(this) /* agreementClass */,
-                    inputs.agreementId,
-                    "", // FIXME agreeement data
-                    cbdata,
-                    "" // placeholder ctx
-                ),
+                callData,
                 inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 

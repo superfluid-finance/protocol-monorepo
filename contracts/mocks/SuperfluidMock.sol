@@ -48,4 +48,35 @@ contract SuperfluidMock is Superfluid {
         require (slot == 6 && offset == 0, "_ctxStamp changed location");
     }
 
+    function ctxFunc1(uint256 n, bytes calldata ctx)
+        external pure
+        returns (uint256, bytes memory)
+    {
+        return (n, ctx);
+    }
+
+    // same ABI to afterAgreementCreated
+    function ctxFunc2(
+        address superToken,
+        address agreementClass,
+        bytes32 agreementId,
+        bytes calldata agreementData,
+        bytes calldata cbdata,
+        bytes calldata ctx)
+        external pure
+        returns (address, address, bytes32, bytes memory, bytes memory, bytes memory)
+    {
+        return (superToken, agreementClass, agreementId, agreementData, cbdata, ctx);
+    }
+
+    function testCtxFuncX(bytes calldata dataWithPlaceHolderCtx, bytes calldata ctx)
+        external view
+        returns (bytes memory returnedData)
+    {
+        bytes memory data = _replacePlaceholderCtx(dataWithPlaceHolderCtx, ctx);
+        bool success;
+        (success, returnedData) = address(this).staticcall(data);
+        if (success) return returnedData;
+        else revert(_getRevertMsg(returnedData));
+    }
 }

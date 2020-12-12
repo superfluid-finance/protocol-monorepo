@@ -148,8 +148,6 @@ contract SuperAppMock is ISuperApp {
         override
         returns (bytes memory newCtx)
     {
-        require(ctx.length > 0, "!!! wtf 6.1");
-        require(_host.isCtxValid(ctx), "!!! wtf 6.2");
         _executeAfterCallbackAction();
         newCtx = ctx;
     }

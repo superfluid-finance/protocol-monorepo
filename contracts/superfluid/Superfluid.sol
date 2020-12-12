@@ -388,7 +388,7 @@ contract Superfluid is
 
     function callAppAfterCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
     )
@@ -397,8 +397,7 @@ contract Superfluid is
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        require(_isCtxValid(ctx), "!!!! wtf 3");
-        (bool success, bytes memory returnedData) = _callCallback(app, false, data, ctx);
+        (bool success, bytes memory returnedData) = _callCallback(app, false, callData, ctx);
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
             if(!_isCtxValid(newCtx)) {
@@ -732,44 +731,40 @@ contract Superfluid is
 
     function _callExternalWithReplacedCtx(
         address target,
-        bytes memory data,
+        bytes memory callData,
         bytes memory ctx
     )
         private
         returns(bool success, bytes memory returnedData)
     {
         // STEP 1 : replace placeholder ctx with actual ctx
-        data = _replacePlaceholderCtx(data, ctx);
+        callData = _replacePlaceholderCtx(callData, ctx);
 
         // STEP 2: Call external with replaced context
         // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
-        (success, returnedData) = target.call(data);
+        (success, returnedData) = target.call(callData);
     }
 
     function _callCallback(
         ISuperApp app,
         bool isStaticall,
-        bytes memory data,
+        bytes memory callData,
         bytes memory ctx
     )
         private
         returns(bool success, bytes memory returnedData)
     {
-        require(_isCtxValid(ctx), "!!!! wtf 4.1");
-        require(ctx.length > 0, "!!!! wtf 4.2");
-        uint dataLenPrev = data.length;
-        data = _replacePlaceholderCtx(data, ctx);
-        require(data.length - dataLenPrev >= ctx.length, "!!!! wtf 5");
+        callData = _replacePlaceholderCtx(callData, ctx);
 
         //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
 
         if (isStaticall) {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).staticcall(data);
+            (success, returnedData) = address(app).staticcall(callData);
         } else {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).call(data);
+            (success, returnedData) = address(app).call(callData);
         }
 
          if (!success) {
@@ -786,14 +781,25 @@ contract Superfluid is
     }
 
     function _replacePlaceholderCtx(bytes memory data, bytes memory ctx)
-        private pure
+        internal pure
         returns (bytes memory dataWithCtx)
     {
         // 1.a ctx needs to be padded to align with 32 bytes bundary
         uint256 paddedLength = (ctx.length / 32 + 1) * 32;
+        uint256 dataLen = data.length;
+
+        // double check if the ctx is a placeholder ctx
+        {
+            uint256 placeHolderCtxLength;
+            // solhint-disable-next-line no-inline-assembly
+            assembly { placeHolderCtxLength := mload(add(data, dataLen)) }
+            require(placeHolderCtxLength == 0, "SF: placerholder ctx should have zero length");
+        }
+
         // 1.b remove the placeholder ctx
         // solhint-disable-next-line no-inline-assembly
-        assembly { mstore(data, sub(mload(data), 0x20)) }
+        assembly { mstore(data, sub(dataLen, 0x20)) }
+
         // 1.c pack data with the replacement ctx
         return abi.encodePacked(
             data,

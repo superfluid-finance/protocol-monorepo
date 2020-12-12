@@ -309,7 +309,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#5 (WIP) Agreement Framework", () => {
+        describe("#5 Agreement Framework", () => {
             it("#5.1 only agreement can call the agreement framework", async () => {
                 const reason = "SF: sender is not listed agreeement";
 
@@ -347,10 +347,77 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
             });
 
-            // TODOs
+            it("#5.2 test replacePlaceholderCtx with testCtxFuncX", async () => {
+                const testCtxFunc = async (ctxFuncX, args, ctx) => {
+                    const result = (await superfluid.testCtxFuncX(
+                        superfluid.contract.methods[ctxFuncX](
+                            ...args,
+                            "0x"
+                        ).encodeABI(),
+                        ctx)).slice(2);
+                    const expectedResult = superfluid.contract.methods[ctxFuncX](
+                        ...args,
+                        ctx
+                    ).encodeABI().slice(10);
+                    assert.equal(result, expectedResult);
+                };
+
+                // trivial case
+                await testCtxFunc(
+                    "ctxFunc1",
+                    [42],
+                    "0x");
+                // with 32 bytes boundary padding
+                await testCtxFunc(
+                    "ctxFunc1",
+                    [42],
+                    "0xdeadbeef");
+                // 32 bytes
+                await testCtxFunc(
+                    "ctxFunc1",
+                    [42],
+                    "0x" + "dead".repeat(16));
+                // 40 bytes
+                await testCtxFunc(
+                    "ctxFunc1",
+                    [42],
+                    "0x" + "dead".repeat(20));
+
+                // more complicated ABI
+                await testCtxFunc(
+                    "ctxFunc2",
+                    [
+                        superToken.address,
+                        t.contracts.ida.address,
+                        "0x2020",
+                        "0x" /* agreementData */,
+                        "0x" /* cbdata */
+                    ],
+                    "0x" + "dead".repeat(20));
+                await testCtxFunc(
+                    "ctxFunc2",
+                    [
+                        superToken.address,
+                        t.contracts.ida.address,
+                        "0x2020",
+                        "0xdead" /* agreementData */,
+                        "0xbeef" /* cbdata */
+                    ],
+                    "0x" + "faec".repeat(20));
+
+                // error case
+                await expectRevert(
+                    superfluid.testCtxFuncX(
+                        superfluid.contract.methods.ctxFunc1(
+                            42,
+                            "0xbad"
+                        ).encodeABI(),
+                        "0xbeef"),
+                    "SF: placerholder ctx should have zero length");
+            });
         });
 
-        describe.only("#7 callAgreement", () => {
+        describe("#7 callAgreement", () => {
             let agreement;
             let app;
 
@@ -379,7 +446,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
             });
 
-            it.only("#7.2 before callback noop", async () => {
+            it("#7.2 before callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
                     agreement.address,
@@ -425,7 +492,7 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            it.only("#7.4 after callback noop", async () => {
+            it("#7.4 after callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
                     agreement.address,

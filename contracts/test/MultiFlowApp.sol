@@ -31,8 +31,6 @@ contract MultiFlowApp is SuperAppBase {
 
     IConstantFlowAgreementV1 internal _cfa;
     ISuperfluid internal _host;
-    //Sender => To / Proportion
-    mapping(address => Configuration) internal _userConfigs;
 
     constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
         assert(address(cfa) != address(0));
@@ -48,23 +46,24 @@ contract MultiFlowApp is SuperAppBase {
         _host.registerApp(configWord);
     }
 
-    function createMultiFlows(
-        uint8 ratioPct,
-        address[] calldata receivers,
-        uint256[] calldata proportions,
-        bytes calldata ctx
+    function _parseUserData(
+        bytes memory userData
     )
-        external
-        onlyHost
+        private pure
+        returns (Configuration memory configuration)
     {
+        // parse user data
+        uint8 ratioPct;
+        address[] memory receivers;
+        uint256[] memory proportions;
+        (ratioPct, receivers, proportions) = abi.decode(userData, (uint8, address[], uint256[]));
         assert(receivers.length == proportions.length);
-        (,,address sender,,,,) = _host.decodeCtx(ctx);
 
-        _userConfigs[sender].ratioPct = ratioPct;
-        delete _userConfigs[sender].receivers;
+        configuration.ratioPct = ratioPct;
+        configuration.receivers = new ReceiverData[](receivers.length);
         for(uint256 i = 0; i < receivers.length; i++) {
             assert(proportions[i] > 0);
-            _userConfigs[sender].receivers.push(ReceiverData(receivers[i], proportions[i]));
+            configuration.receivers[i] = ReceiverData(receivers[i], proportions[i]);
         }
     }
 
@@ -75,9 +74,9 @@ contract MultiFlowApp is SuperAppBase {
     }
 
     function _updateMultiFlow(
+        Configuration memory configuration,
         ISuperToken superToken,
         bytes4 selector,
-        address sender,
         int96 flowRate,
         uint256 appAllowance,
         bytes calldata ctx
@@ -85,18 +84,18 @@ contract MultiFlowApp is SuperAppBase {
         private
         returns (bytes memory newCtx)
     {
-        uint256 sum = _sumProportions(_userConfigs[sender].receivers);
+        uint256 sum = _sumProportions(configuration.receivers);
 
         newCtx = ctx;
 
         // scale the flow rate and app allowance numbers
-        flowRate = flowRate * _userConfigs[sender].ratioPct / 100;
-        appAllowance = appAllowance * _userConfigs[sender].ratioPct / 100;
+        flowRate = flowRate * configuration.ratioPct / 100;
+        appAllowance = appAllowance * configuration.ratioPct / 100;
 
-        for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
+        for(uint256 i = 0; i < configuration.receivers.length; i++) {
             bytes memory callData;
             {
-                ReceiverData memory receiverData = _userConfigs[sender].receivers[i];
+                ReceiverData memory receiverData = configuration.receivers[i];
                 uint256 targetAllowance = appAllowance * receiverData.proportion / sum;
                 int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
                     superToken,
@@ -114,10 +113,18 @@ contract MultiFlowApp is SuperAppBase {
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
                 callData,
+                new bytes(0), // user data
                 newCtx
             );
         }
         assert(flowRate >= 0);
+    }
+
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars {
+        int96 flowRate;
+        uint256 appAllowance;
+        bytes userData;
     }
 
     function afterAgreementCreated(
@@ -133,18 +140,18 @@ contract MultiFlowApp is SuperAppBase {
         returns(bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        address sender;
-        int96 flowRate;
-        uint256 appAllowance;
-        (,,sender,,appAllowance,,) = _host.decodeCtx(ctx);
-        (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
-        assert(appAllowance > 0);
+        _StackVars memory vars;
+        Configuration memory configuration;
+        (,,,,vars.userData,vars.appAllowance,,) = _host.decodeCtx(ctx);
+        (,vars.flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
+        assert(vars.appAllowance > 0);
+        configuration = _parseUserData(vars.userData);
         newCtx = _updateMultiFlow(
+            configuration,
             superToken,
             _cfa.createFlow.selector,
-            sender,
-            flowRate,
-            appAllowance,
+            vars.flowRate,
+            vars.appAllowance,
             ctx);
     }
 
@@ -177,18 +184,18 @@ contract MultiFlowApp is SuperAppBase {
         returns (bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        address sender;
-        int96 flowRate;
-        uint256 appAllowance;
-        (,,sender,,appAllowance,,) = _host.decodeCtx(ctx);
-        (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
-        assert(appAllowance > 0);
+        _StackVars memory vars;
+        Configuration memory configuration;
+        (,,,,vars.userData,vars.appAllowance,,) = _host.decodeCtx(ctx);
+        (,vars.flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
+        assert(vars.appAllowance > 0);
+        configuration = _parseUserData(vars.userData);
         newCtx = _updateMultiFlow(
+            configuration,
             superToken,
             _cfa.updateFlow.selector,
-            sender,
-            flowRate,
-            appAllowance,
+            vars.flowRate,
+            vars.appAllowance,
             ctx);
     }
 
@@ -206,22 +213,26 @@ contract MultiFlowApp is SuperAppBase {
         returns (bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        (,,address sender,,,,) = _host.decodeCtx(ctx);
+        _StackVars memory vars;
+        Configuration memory configuration;
+        (,,,,vars.userData,,,) = _host.decodeCtx(ctx);
+        configuration = _parseUserData(vars.userData);
         newCtx = ctx;
-        for(uint256 i = 0; i < _userConfigs[sender].receivers.length; i++) {
+        for(uint256 i = 0; i < configuration.receivers.length; i++) {
+            bytes memory callData = abi.encodeWithSelector(
+                _cfa.deleteFlow.selector,
+                superToken,
+                address(this),
+                configuration.receivers[i].to,
+                new bytes(0) //placeholder ctx
+            );
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
-                abi.encodeWithSelector(
-                    _cfa.deleteFlow.selector,
-                    superToken,
-                    address(this),
-                    _userConfigs[sender].receivers[i].to,
-                    new bytes(0)
-                ),
+                callData,
+                new bytes(0), // user data
                 newCtx
             );
         }
-        delete _userConfigs[sender];
     }
 
     modifier onlyHost() {

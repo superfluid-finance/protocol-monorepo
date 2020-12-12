@@ -1076,7 +1076,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(t.sf.cfa.deleteFlow.bind(t.sf.cfa), "delete the mfa loopback flow")({
                 superToken: superToken.address,
                 sender: t.getAddress(sender),
-                receiver:app.address
+                receiver:app.address,
+                userData: web3.eth.abi.encodeParameters(
+                    ["uint256", "address[]", "uint256[]"],
+                    [
+                        mfa.ratioPct,
+                        [t.getAddress(sender)],
+                        [1]
+                    ])
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");

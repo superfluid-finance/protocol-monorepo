@@ -53,12 +53,12 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallAgreement(bytes memory /* ctx */) external {
         // this should fail, action should call agreement with ctx
-        _host.callAgreement(ISuperAgreement(address(0)), "");
+        _host.callAgreement(ISuperAgreement(address(0)), new bytes(0), new bytes(0));
     }
 
     function actionCallAppAction(bytes memory /* ctx */) external {
         // this should fail, action should call agreement with ctx
-        _host.callAppAction(ISuperApp(address(0)), "");
+        _host.callAppAction(ISuperApp(address(0)), new bytes(0));
     }
 
     /*************************************************************************

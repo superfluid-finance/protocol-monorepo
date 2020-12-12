@@ -20,18 +20,21 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
+     * @param {Buffer} userData the user data passed to the callbacks
      * @return {Promise<Transaction>} web3 transaction object
      */
     async createFlow({
         superToken,
         sender,
         receiver,
-        flowRate
+        flowRate,
+        userData
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const receiverNorm = await this._sf.utils.normalizeAddressParam(receiver);
         const flowRateNorm = this._sf.utils.normalizeFlowRateParam(flowRate);
+        userData = userData || "0x";
         console.debug(`Create flow from ${sender} to ${receiver} at ${flowRate} ...`);
         const tx = await this._sf.host.callAgreement(
             this._cfa.address,
@@ -41,6 +44,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 flowRateNorm,
                 "0x"
             ).encodeABI(),
+            userData,
             {
                 from: senderNorm,
             }
@@ -55,18 +59,21 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
+     * @param {Buffer} userData the user data passed to the callbacks
      * @return {Promise<Transaction>} web3 transaction object
      */
     async updateFlow({
         superToken,
         sender,
         receiver,
-        flowRate
+        flowRate,
+        userData
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const receiverNorm = await this._sf.utils.normalizeAddressParam(receiver);
         const flowRateNorm = this._sf.utils.normalizeFlowRateParam(flowRate);
+        userData = userData || "0x";
         console.debug(`Update flow from ${sender} to ${receiver} to ${flowRate} ...`);
         const tx = await this._sf.host.callAgreement(
             this._cfa.address,
@@ -76,6 +83,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 flowRateNorm,
                 "0x"
             ).encodeABI(),
+            userData,
             {
                 from: senderNorm,
             }
@@ -90,18 +98,21 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {addressParam} by delete flow by a third party (liquidations)
+     * @param {Buffer} userData the user data passed to the callbacks
      * @return {Promise<Transaction>} web3 transaction object
      */
     async deleteFlow({
         superToken,
         sender,
         receiver,
-        by
+        by,
+        userData
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const receiverNorm = await this._sf.utils.normalizeAddressParam(receiver);
         const byNorm = (by && await this._sf.utils.normalizeAddressParam(by)) || senderNorm;
+        userData = userData || "0x";
         console.debug(`Delete flow from ${sender} to ${receiver} by ${by || byNorm} ...`);
         const tx = await this._sf.host.callAgreement(
             this._cfa.address,
@@ -111,6 +122,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 receiverNorm,
                 "0x"
             ).encodeABI(),
+            userData,
             {
                 from: byNorm,
             }

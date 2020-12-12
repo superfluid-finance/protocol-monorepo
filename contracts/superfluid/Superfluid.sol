@@ -33,10 +33,10 @@ contract Superfluid is
     using SignedSafeMath for int256;
 
     //
-    // the context that only needed for the next external call
+    // the context that only needed for the next callback level
     //
     struct ExtCallContext {
-        // callback stack level
+        // callback level
         uint8 cbLevel;
         // type of call
         uint8 callType;
@@ -46,6 +46,8 @@ contract Superfluid is
         address msgSender;
         // For callbacks it is used to know which agreement function selector is called
         bytes4 agreementSelector;
+        // User provided data for app callbacks
+        bytes userData;
     }
 
     //
@@ -365,7 +367,7 @@ contract Superfluid is
 
     function callAppBeforeCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
     )
@@ -374,7 +376,7 @@ contract Superfluid is
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, true, data, ctx);
+        (bool success, bytes memory returnedData) = _callCallback(app, true, callData, ctx);
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
         } else {
@@ -471,7 +473,8 @@ contract Superfluid is
 
     function callAgreement(
         ISuperAgreement agreementClass,
-        bytes memory data
+        bytes memory callData,
+        bytes calldata userData
     )
         public override
         cleanCtx
@@ -481,7 +484,7 @@ contract Superfluid is
         //Build context data
         bytes memory ctx;
         // beaware of the endiness
-        bytes4 agreementSelector = _functionPrefix(data);
+        bytes4 agreementSelector = _functionPrefix(callData);
         ctx = _updateContext(FullContext({
             extCall: ExtCallContext({
                 cbLevel: 0,
@@ -489,7 +492,8 @@ contract Superfluid is
                 /* solhint-disable-next-line not-rely-on-time */
                 timestamp: block.timestamp,
                 msgSender: msg.sender,
-                agreementSelector: agreementSelector
+                agreementSelector: agreementSelector,
+                userData: userData
             }),
             app: AppContext({
                 allowanceGranted: 0,
@@ -498,7 +502,7 @@ contract Superfluid is
             })
         }));
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), data, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
         if (success) {
             _ctxStamp = 0;
         } else {
@@ -508,7 +512,7 @@ contract Superfluid is
 
     function callAppAction(
         ISuperApp app,
-        bytes memory data
+        bytes memory callData
     )
         public override
         cleanCtx
@@ -527,7 +531,8 @@ contract Superfluid is
                 /* solhint-disable-next-line not-rely-on-time */
                 timestamp: block.timestamp,
                 msgSender: msg.sender,
-                agreementSelector: 0
+                agreementSelector: 0,
+                userData: ""
             }),
             app: AppContext({
                 allowanceGranted: 0,
@@ -535,7 +540,7 @@ contract Superfluid is
                 allowanceUsed: 0
             })
         }));
-        (success, returnedData) = _callExternalWithReplacedCtx(address(app), data, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
         if(!success) {
             revert(_getRevertMsg(returnedData));
         }
@@ -577,13 +582,15 @@ contract Superfluid is
                     msg.sender,
                     abi.decode(operations[i].data, (uint256)));
             } else if (opType == OperationType.CallAgreement) {
-               callAgreement(
-                   ISuperAgreement(operations[i].target),
-                   operations[i].data);
+                (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
+                this.callAgreement(
+                    ISuperAgreement(operations[i].target),
+                    callData,
+                    userData);
             } else if (opType == OperationType.CallApp) {
-               callAppAction(
-                   ISuperApp(operations[i].target),
-                   operations[i].data);
+                this.callAppAction(
+                    ISuperApp(operations[i].target),
+                    operations[i].data);
             } else {
                revert("SF: unknown operation type");
             }
@@ -596,7 +603,8 @@ contract Superfluid is
 
     function callAgreementWithContext(
         ISuperAgreement agreementClass,
-        bytes calldata data,
+        bytes calldata callData,
+        bytes calldata userData,
         bytes calldata ctx
     )
         external override
@@ -608,10 +616,12 @@ contract Superfluid is
         address oldSender = context.extCall.msgSender;
 
         context.extCall.msgSender = msg.sender;
+        //context.extCall.agreementSelector =;
+        context.extCall.userData = userData;
         newCtx = _updateContext(context);
 
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), data, newCtx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             assert(_isCtxValid(newCtx));
@@ -626,7 +636,7 @@ contract Superfluid is
 
     function callAppActionWithContext(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bytes calldata ctx
     )
         external override
@@ -641,7 +651,7 @@ contract Superfluid is
         context.extCall.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
-        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), data, newCtx);
+        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             require(_isCtxValid(newCtx), "SF: APP_RULE_CTX_IS_READONLY");
@@ -661,6 +671,7 @@ contract Superfluid is
             uint256 timestamp,
             address msgSender,
             bytes4 agreementSelector,
+            bytes memory userData,
             uint256 appAllowanceGranted,
             uint256 appAllowanceWanted,
             int256 appAllowanceUsed
@@ -671,6 +682,7 @@ contract Superfluid is
         timestamp = context.extCall.timestamp;
         msgSender = context.extCall.msgSender;
         agreementSelector = context.extCall.agreementSelector;
+        userData = context.extCall.userData;
         appAllowanceGranted = context.app.allowanceGranted;
         appAllowanceWanted = context.app.allowanceWanted;
         appAllowanceUsed = context.app.allowanceUsed;
@@ -698,9 +710,10 @@ contract Superfluid is
             context.extCall.timestamp,
             context.extCall.msgSender,
             context.extCall.agreementSelector,
+            context.extCall.userData,
             allowanceIO,
             context.app.allowanceUsed
-        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, uint256, int256));
+        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256));
         (context.extCall.cbLevel, context.extCall.callType) = ContextDefinitions.decodeCallInfo(callInfo);
         context.app.allowanceGranted = allowanceIO & type(uint128).max;
         context.app.allowanceWanted = allowanceIO >> 128;
@@ -719,6 +732,7 @@ contract Superfluid is
             context.extCall.timestamp,
             context.extCall.msgSender,
             context.extCall.agreementSelector,
+            context.extCall.userData,
             allowanceIO,
             context.app.allowanceUsed
         );
@@ -780,6 +794,9 @@ contract Superfluid is
          }
     }
 
+    /**
+     * @dev Replace the placeholder ctx with the actual ctx
+     */
     function _replacePlaceholderCtx(bytes memory data, bytes memory ctx)
         internal pure
         returns (bytes memory dataWithCtx)

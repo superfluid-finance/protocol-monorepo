@@ -437,13 +437,13 @@ contract("Superfluid Host Contract", accounts => {
             it("#7.1 only listed agreement allowed", async () => {
                 const reason = "SF: only listed agreeement allowed";
                 // call to an non agreement
-                await expectRevert.unspecified(superfluid.callAgreement(alice, "0x"));
+                await expectRevert.unspecified(superfluid.callAgreement(alice, "0x", "0x"));
                 // call to an unregisterred mock agreement
                 let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
-                await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
+                await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
                 // call to an in personating mock agreement
                 mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
-                await expectRevert(superfluid.callAgreement(mock.address, "0x"), reason);
+                await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
             });
 
             it("#7.2 before callback noop", async () => {
@@ -453,7 +453,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 );
                 await expectEvent.inTransaction(tx.tx, agreement.contract,
                     "AppBeforeCallbackResult", {
@@ -468,7 +469,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 ), "SF: target reverted");
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -477,7 +479,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 ), "SF: target reverted");
 
                 await app.setNextCallbackAction(
@@ -488,7 +491,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 ), "error 42");
             });
 
@@ -499,7 +503,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppAfterAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 );
                 await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
             });
@@ -511,7 +516,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppAfterAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 ), "SF: target reverted");
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
@@ -520,7 +526,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppAfterAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 ), "SF: target reverted");
 
                 await app.setNextCallbackAction(
@@ -531,7 +538,8 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract.methods.callAppAfterAgreementCreatedCallback(
                         app.address,
                         "0x"
-                    ).encodeABI()
+                    ).encodeABI(),
+                    "0x"
                 ), "error 42");
             });
         });

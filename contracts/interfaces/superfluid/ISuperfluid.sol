@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
+// This is required by the batchCall
 pragma experimental ABIEncoderV2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
@@ -206,7 +207,7 @@ interface ISuperfluid {
 
     function callAppBeforeCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
     )
@@ -217,7 +218,7 @@ interface ISuperfluid {
 
     function callAppAfterCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
     )
@@ -253,25 +254,24 @@ interface ISuperfluid {
     /**************************************************************************
      * Contextless Call Proxies
      *
-     * For EOAs or non-app contracts, they are the entry points for interacting
+     * NOTE: For EOAs or non-app contracts, they are the entry points for interacting
      * with agreements or apps.
      *
-     * If the app use these entry points while having an active context, the
-     * violating app will be jailed.
+     * NOTE: The contextual call data should be generated using
+     * abi.encodeWithSelector. The context parameter should be set to "0x",
+     * an empty bytes array as a placeholder to be replaced by the host
+     * contract.
      *************************************************************************/
 
      /**
       * @dev Call agreement function
-      * @param data The contextual call data.
-      *
-      * NOTE: The contextual call data should be generated using
-      * abi.encodeWithSelector. The context parameter should be set to "0x",
-      * an empty bytes array as a placeholder to be replaced by the host
-      * contract.
+      * @param callData The contextual call data with placeholder ctx
+      * @param userData Extra user data being sent to the super app callbacks
       */
      function callAgreement(
          ISuperAgreement agreementClass,
-         bytes calldata data
+         bytes calldata callData,
+         bytes calldata userData
      )
         external
         //cleanCtx
@@ -279,13 +279,13 @@ interface ISuperfluid {
 
     /**
      * @dev Call app action
-     * @param data The contextual call data.
+     * @param callData The contextual call data.
      *
      * NOTE: See callAgreement about contextual call data.
      */
     function callAppAction(
         ISuperApp app,
-        bytes calldata data
+        bytes calldata callData
     )
         external
         //cleanCtx
@@ -340,7 +340,8 @@ interface ISuperfluid {
 
     function callAgreementWithContext(
         ISuperAgreement agreementClass,
-        bytes calldata data,
+        bytes calldata callData,
+        bytes calldata userData,
         bytes calldata ctx
     )
         external
@@ -350,7 +351,7 @@ interface ISuperfluid {
 
     function callAppActionWithContext(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bytes calldata ctx
     )
         external
@@ -365,6 +366,7 @@ interface ISuperfluid {
             uint256 timestamp,
             address msgSender,
             bytes4 agreementSelector,
+            bytes memory userData,
             uint256 appAllowanceGranted,
             uint256 appAllowanceWanted,
             int256 appAllowanceUsed

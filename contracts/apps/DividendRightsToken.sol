@@ -53,8 +53,9 @@ contract DividendRightsToken is
                 _ida.createIndex.selector,
                 _cashToken,
                 INDEX_ID,
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
 
         transferOwnership(msg.sender);
@@ -128,7 +129,7 @@ contract DividendRightsToken is
     )
         private
     {
-        (,,address subscriber,bytes4 agreementSelector,,,) = _host.decodeCtx(ctx);
+        (,,address subscriber,bytes4 agreementSelector,,,,) = _host.decodeCtx(ctx);
         // only interested in the subscription approval callbacks
         if (agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
             address publisher;
@@ -165,8 +166,9 @@ contract DividendRightsToken is
                 INDEX_ID,
                 beneficiary,
                 uint128(currentAmount) + uint128(amount),
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
     }
 
@@ -186,8 +188,9 @@ contract DividendRightsToken is
                 _cashToken,
                 INDEX_ID,
                 actualCashAmount,
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
     }
 
@@ -206,8 +209,9 @@ contract DividendRightsToken is
                 INDEX_ID,
                 sender,
                 senderUnits - uint128(amount),
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
 
         _host.callAgreement(
@@ -218,8 +222,9 @@ contract DividendRightsToken is
                 INDEX_ID,
                 recipient,
                 recipientUnits + uint128(amount),
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
     }
 

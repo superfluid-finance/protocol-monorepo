@@ -309,45 +309,8 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#5 Agreement Framework", () => {
-            it("#5.1 only agreement can call the agreement framework", async () => {
-                const reason = "SF: sender is not listed agreeement";
-
-                // call from an EOA
-                await expectRevert.unspecified(superfluid.callAppBeforeCallback(
-                    ZERO_ADDRESS, "0x", false, "0x"
-                ));
-                await expectRevert.unspecified(superfluid.callAppAfterCallback(
-                    ZERO_ADDRESS, "0x", false, "0x"
-                ));
-                await expectRevert.unspecified(superfluid.appCallbackPush(
-                    "0x", 0, 0
-                ));
-                await expectRevert.unspecified(superfluid.appCallbackPop(
-                    "0x", 0
-                ));
-                await expectRevert.unspecified(superfluid.ctxUseAllowance(
-                    "0x", 0, 0
-                ));
-
-                // call from an unregisterred mock agreement
-                let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
-                await expectRevert(mock.tryCallAppBeforeCallback(superfluid.address), reason);
-                await expectRevert(mock.tryCallAppAfterCallback(superfluid.address), reason);
-                await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
-                await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
-                await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
-
-                // call from an in personating mock agreement
-                mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
-                await expectRevert(mock.tryCallAppBeforeCallback(superfluid.address), reason);
-                await expectRevert(mock.tryCallAppAfterCallback(superfluid.address), reason);
-                await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
-                await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
-                await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
-            });
-
-            it("#5.2 test replacePlaceholderCtx with testCtxFuncX", async () => {
+        describe("#5 Ctx", () => {
+            it("#5.1 test replacePlaceholderCtx with testCtxFuncX", async () => {
                 const testCtxFunc = async (ctxFuncX, args, ctx) => {
                     const result = (await superfluid.testCtxFuncX(
                         superfluid.contract.methods[ctxFuncX](
@@ -417,7 +380,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#7 callAgreement", () => {
+        describe("#6 Agreement Framework", () => {
             let agreement;
             let app;
 
@@ -434,19 +397,44 @@ contract("Superfluid Host Contract", accounts => {
                 await reset();
             });
 
-            it("#7.1 only listed agreement allowed", async () => {
-                const reason = "SF: only listed agreeement allowed";
-                // call to an non agreement
-                await expectRevert.unspecified(superfluid.callAgreement(alice, "0x", "0x"));
-                // call to an unregisterred mock agreement
+            it("#6.1 only agreement can call the agreement framework", async () => {
+                const reason = "SF: sender is not listed agreeement";
+
+                // call from an EOA
+                await expectRevert.unspecified(superfluid.callAppBeforeCallback(
+                    ZERO_ADDRESS, "0x", false, "0x"
+                ));
+                await expectRevert.unspecified(superfluid.callAppAfterCallback(
+                    ZERO_ADDRESS, "0x", false, "0x"
+                ));
+                await expectRevert.unspecified(superfluid.appCallbackPush(
+                    "0x", 0, 0
+                ));
+                await expectRevert.unspecified(superfluid.appCallbackPop(
+                    "0x", 0
+                ));
+                await expectRevert.unspecified(superfluid.ctxUseAllowance(
+                    "0x", 0, 0
+                ));
+
+                // call from an unregisterred mock agreement
                 let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
-                await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
-                // call to an in personating mock agreement
+                await expectRevert(mock.tryCallAppBeforeCallback(superfluid.address), reason);
+                await expectRevert(mock.tryCallAppAfterCallback(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
+                await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
+
+                // call from an in personating mock agreement
                 mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
-                await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
+                await expectRevert(mock.tryCallAppBeforeCallback(superfluid.address), reason);
+                await expectRevert(mock.tryCallAppAfterCallback(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
+                await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
+                await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
             });
 
-            it("#7.2 before callback noop", async () => {
+            it("#6.2 beforeAgreementCreated callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
                     agreement.address,
@@ -462,7 +450,7 @@ contract("Superfluid Host Contract", accounts => {
                     });
             });
 
-            it("#7.3 before callback assert or revert", async () => {
+            it("#6.3 beforeAgreementCreated callback assert or revert", async () => {
                 await app.setNextCallbackAction(1 /* assert */, "0x");
                 await expectRevert(superfluid.callAgreement(
                     agreement.address,
@@ -496,7 +484,7 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            it("#7.4 after callback noop", async () => {
+            it("#6.4 afterAgreementCreated callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
                     agreement.address,
@@ -509,7 +497,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
             });
 
-            it("#7.5 after callback assert or revert", async () => {
+            it("#6.5 afterAgreementCreated callback assert or revert", async () => {
                 await app.setNextCallbackAction(1 /* assert */, "0x");
                 await expectRevert(superfluid.callAgreement(
                     agreement.address,
@@ -542,13 +530,44 @@ contract("Superfluid Host Contract", accounts => {
                     "0x"
                 ), "error 42");
             });
+
+            // TODO test cleanCtx
+            // TODO test gas reservation
+            // TODO app allowance
+            // TODO app callback masks
+            // TODO app callback gas limit
+            // TODO app level
         });
 
-        describe("#8 callAppAction", () => {
+        describe("#7 (WIP) callAgreement", () => {
+            it("#7.1 only listed agreement allowed", async () => {
+                const reason = "SF: only listed agreeement allowed";
+                // call to an non agreement
+                await expectRevert.unspecified(superfluid.callAgreement(alice, "0x", "0x"));
+                // call to an unregisterred mock agreement
+                let mock = await AgreementMock.new(web3.utils.sha3("typeA"), 0);
+                await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
+                // call to an in personating mock agreement
+                mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
+                await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
+            });
+        });
+
+        describe("#8 (WIP) callAppAction", () => {
+            let agreement;
             let app;
 
-            beforeEach(async () => {
+            before(async () => {
+                agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
                 app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+                await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
+                    superfluid.address, agreement.address);
+                agreement = await AgreementMock.at(
+                    await superfluid.getAgreementClass(web3.utils.sha3("MockAgreement")));
+            });
+
+            after(async () => {
+                await reset();
             });
 
             it("#8.1 only super app can be called", async () => {
@@ -589,18 +608,71 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods.actionCallAgreement("0x").encodeABI()
+                        app.contract.methods.actionCallAgreementWithoutCtx("0x").encodeABI()
                     ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
                 await expectRevert(
                     superfluid.callAppAction(
                         app.address,
-                        app.contract.methods.actionCallAppAction("0x").encodeABI()
+                        app.contract.methods.actionCallAppActionWithoutCtx("0x").encodeABI()
                     ), "SF: APP_RULE_CTX_IS_NOT_CLEAN");
             });
+
+            it("#8.5 app callAgreementWithContext which doPing", async () => {
+                const tx = await superfluid.callAppAction(
+                    app.address,
+                    app.contract.methods.actionPingAgreement(
+                        agreement.address,
+                        42,
+                        "0x"
+                    ).encodeABI()
+                );
+                await expectEvent.inTransaction(tx.tx, agreement.contract, "Pong", {
+                    ping: "42"
+                });
+            });
+
+            it("#8.6 app callAgreementWithContext which reverts", async () => {
+                await expectRevert(superfluid.callAppAction(
+                    app.address,
+                    app.contract.methods.actionAgreementRevert(
+                        agreement.address,
+                        "error 42",
+                        "0x"
+                    ).encodeABI()
+                ), "error 42");
+            });
+
+            it("#8.7 app callAppActionWithContext which noop", async () => {
+                const tx = await superfluid.callAppAction(
+                    app.address,
+                    app.contract.methods.actionCallActionNoop(
+                        "0x"
+                    ).encodeABI()
+                );
+                await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
+            });
+
+            it("#8.7 app callAppActionWithContext which reverts", async () => {
+                await expectRevert(superfluid.callAppAction(
+                    app.address,
+                    app.contract.methods.actionCallActionRevert(
+                        "error 42",
+                        "0x"
+                    ).encodeABI()
+                ), "error 42");
+            });
+
+            // TODO catch action not returning ctx
         });
 
-        describe("#9 batchCall", () => {
-            it("#9.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
+        describe("#9 (WIP) Contextual Call Proxies and Context Utilities", () => {
+            // TODO
+            // callAgreementWithContext
+            // callAppActionWithContext
+        });
+
+        describe("#10 (WIP) batchCall", () => {
+            it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
                 await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                     toWad("10"), {
                         from: alice
@@ -675,12 +747,6 @@ contract("Superfluid Host Contract", accounts => {
 
                 await t.validateSystemInvariance();
             });
-        });
-
-        describe("#10 (WIP) Contextual Call Proxies and Context Utilities", () => {
-            // TODO
-            // callAgreementWithContext
-            // callAppActionWithContext
         });
 
         describe("#20 Governance", () => {

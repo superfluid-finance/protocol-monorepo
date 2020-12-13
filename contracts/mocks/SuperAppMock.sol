@@ -7,6 +7,8 @@ import {
     ISuperApp,
     ISuperAgreement
 } from "../superfluid/Superfluid.sol";
+import { AgreementMock } from "./AgreementMock.sol";
+
 
 contract SuperAppMock is ISuperApp {
 
@@ -34,31 +36,93 @@ contract SuperAppMock is ISuperApp {
 
     event NoopEvent();
 
-    function actionNoop(bytes memory /* ctx */) external {
+    function actionNoop(bytes calldata ctx) external validCtx(ctx) returns (bytes memory newCtx) {
         emit NoopEvent();
+        return ctx;
     }
 
-    function actionAssert(bytes memory /* ctx */) external pure {
+    function actionAssert(bytes calldata ctx) external view validCtx(ctx) {
         assert(false);
     }
 
-    function actionRevert(bytes memory /* ctx */) external pure {
+    function actionRevert(bytes calldata ctx) external view validCtx(ctx) {
         // solhint-disable-next-line reason-string
         revert();
     }
 
-    function actionRevertWithReason(string memory reason, bytes memory /* ctx */) external pure {
+    function actionRevertWithReason(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
         revert(reason);
     }
 
-    function actionCallAgreement(bytes memory /* ctx */) external {
+    function actionCallAgreementWithoutCtx(bytes calldata ctx) external validCtx(ctx) {
         // this should fail, action should call agreement with ctx
         _host.callAgreement(ISuperAgreement(address(0)), new bytes(0), new bytes(0));
     }
 
-    function actionCallAppAction(bytes memory /* ctx */) external {
+    function actionCallAppActionWithoutCtx(bytes calldata ctx) external validCtx(ctx) {
         // this should fail, action should call agreement with ctx
         _host.callAppAction(ISuperApp(address(0)), new bytes(0));
+    }
+
+    function actionPingAgreement(AgreementMock agreement, uint256 ping, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        (newCtx, ) = _host.callAgreementWithContext(
+            agreement,
+            abi.encodeWithSelector(
+                AgreementMock.pingMe.selector,
+                ping,
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            ctx);
+    }
+
+    function actionAgreementRevert(AgreementMock agreement, string calldata reason, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        (newCtx, ) = _host.callAgreementWithContext(
+            agreement,
+            abi.encodeWithSelector(
+                AgreementMock.doRevert.selector,
+                reason,
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            ctx);
+    }
+
+    function actionCallActionNoop(bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        newCtx = _host.callAppActionWithContext(
+            this,
+            abi.encodeWithSelector(
+                SuperAppMock.actionNoop.selector,
+                new bytes(0)
+            ),
+            ctx);
+    }
+
+    function actionCallActionRevert(string calldata reason, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        newCtx = _host.callAppActionWithContext(
+            this,
+            abi.encodeWithSelector(
+                SuperAppMock.actionRevertWithReason.selector,
+                reason,
+                new bytes(0)
+            ),
+            ctx);
     }
 
     /*************************************************************************
@@ -89,7 +153,8 @@ contract SuperAppMock is ISuperApp {
     }
 
     function _executeBeforeCallbackAction()
-        private view returns (bytes memory cbdata)
+        private view
+        returns (bytes memory cbdata)
     {
         if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
             //emit NoopEvent();
@@ -124,12 +189,11 @@ contract SuperAppMock is ISuperApp {
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*agreementData*/,
-        bytes calldata /*ctx*/
+        bytes calldata ctx
     )
-        external
-        view
-        virtual
-        override
+        external view
+        validCtx(ctx)
+        virtual override
         returns (bytes memory /*cbdata*/)
     {
         return _executeBeforeCallbackAction();
@@ -144,8 +208,8 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external
-        virtual
-        override
+        validCtx(ctx)
+        virtual override
         returns (bytes memory newCtx)
     {
         _executeAfterCallbackAction();
@@ -157,12 +221,11 @@ contract SuperAppMock is ISuperApp {
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*agreementData*/,
-        bytes calldata /*ctx*/
+        bytes calldata ctx
     )
-        external
-        view
-        virtual
-        override
+        external view
+        validCtx(ctx)
+        virtual override
         returns (bytes memory /*cbdata*/)
     {
         return _executeBeforeCallbackAction();
@@ -177,8 +240,8 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external
-        virtual
-        override
+        validCtx(ctx)
+        virtual override
         returns (bytes memory newCtx)
     {
         _executeAfterCallbackAction();
@@ -190,12 +253,11 @@ contract SuperAppMock is ISuperApp {
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*agreementData*/,
-        bytes calldata /*ctx*/
+        bytes calldata ctx
     )
-        external
-        view
-        virtual
-        override
+        external view
+        validCtx(ctx)
+        virtual override
         returns (bytes memory /*cbdata*/)
     {
         return _executeBeforeCallbackAction();
@@ -210,12 +272,17 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external
-        virtual
-        override
+        validCtx(ctx)
+        virtual override
         returns (bytes memory newCtx)
     {
         _executeAfterCallbackAction();
         newCtx = ctx;
+    }
+
+    modifier validCtx(bytes calldata ctx) {
+        require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
+        _;
     }
 
 }

@@ -231,14 +231,16 @@ interface ISuperfluid {
         bytes calldata ctx,
         uint256 allowanceGranted,
         int256 allowanceUsed
-    ) external
+    )
+        external
         // onlyAgreement
         returns (bytes memory appCtx);
 
     function appCallbackPop(
         bytes calldata ctx,
         int256 allowanceUsedDelta
-    ) external
+    )
+        external
         // onlyAgreement
         returns (bytes memory newCtx);
 
@@ -292,41 +294,6 @@ interface ISuperfluid {
         //isAppActive(app)
         returns(bytes memory returnedData);
 
-
-    /**************************************************************************
-    * Batch call
-    **************************************************************************/
-
-    /**
-     * @dev Operation type for batch operations
-     */
-    enum OperationType {
-        Approve,          // 0
-        TransferFrom,     // 1
-        Upgrade,          // 2
-        Downgrade,        // 3
-        CallAgreement,    // 4
-        CallApp           // 5
-    }
-
-    /**
-     * @dev Batch operation data
-     */
-    struct Operation {
-        // Operation
-        OperationType opType;
-        // Operation target
-        address target;
-        // Data specific to operation
-        bytes data;
-    }
-
-    /**
-     * @dev Batch call function.
-     * @param operations Array of batch operations.
-     */
-    function batchCall(Operation[] memory operations) external;
-
     /**************************************************************************
      * Contextual Call Proxies and Context Utilities
      *
@@ -373,6 +340,40 @@ interface ISuperfluid {
         );
 
     function isCtxValid(bytes calldata ctx) external view returns (bool);
+
+    /**************************************************************************
+    * Batch call
+    **************************************************************************/
+
+    /**
+     * @dev Operation type for batch operations
+     */
+    enum OperationType {
+        Approve,          // 0
+        TransferFrom,     // 1
+        Upgrade,          // 2
+        Downgrade,        // 3
+        CallAgreement,    // 4
+        CallApp           // 5
+    }
+
+    /**
+     * @dev Batch operation data
+     */
+    struct Operation {
+        // Operation
+        OperationType opType;
+        // Operation target
+        address target;
+        // Data specific to operation
+        bytes data;
+    }
+
+    /**
+     * @dev Batch call function.
+     * @param operations Array of batch operations.
+     */
+    function batchCall(Operation[] memory operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

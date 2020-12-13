@@ -151,6 +151,21 @@ contract AgreementMock is AgreementBase {
         host.ctxUseAllowance("", 0, 0);
     }
 
+    function doRevert(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
+        revert(reason);
+    }
+
+    event Pong(uint256 ping);
+
+    function pingMe(uint256 ping, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        emit Pong(ping);
+        return ctx;
+    }
+
     event AppBeforeCallbackResult(bytes cbdata);
 
     function callAppBeforeAgreementCreatedCallback(
@@ -181,7 +196,6 @@ contract AgreementMock is AgreementBase {
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
-
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
@@ -193,7 +207,7 @@ contract AgreementMock is AgreementBase {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid after callAppBeforeCallback");
     }
 
-    modifier validCtx(bytes calldata ctx) {
+    modifier validCtx(bytes memory ctx) {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
         _;
     }

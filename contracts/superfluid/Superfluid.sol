@@ -381,7 +381,7 @@ contract Superfluid is
             cbdata = abi.decode(returnedData, (bytes));
         } else {
             if (!isTermination) {
-                revert("SF: before callback failed");
+               revert(_getRevertMsg(returnedData));
             } else {
                 emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
@@ -412,7 +412,7 @@ contract Superfluid is
             }
         } else {
             if (!isTermination) {
-                revert("SF: after callback failed");
+                revert(_getRevertMsg(returnedData));
             } else {
                 emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
@@ -503,11 +503,11 @@ contract Superfluid is
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
-        if (success) {
-            _ctxStamp = 0;
-        } else {
+        if (!success) {
             revert(_getRevertMsg(returnedData));
         }
+        // clear the stamp
+        _ctxStamp = 0;
     }
 
     function callAppAction(
@@ -541,60 +541,14 @@ contract Superfluid is
             })
         }));
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
-        if(!success) {
+        if (success) {
+            ctx = abi.decode(returnedData, (bytes));
+            require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
+        } else {
             revert(_getRevertMsg(returnedData));
         }
+        // clear the stamp
         _ctxStamp = 0;
-    }
-
-    /**************************************************************************
-    * Batch call
-    **************************************************************************/
-
-    function batchCall(
-       Operation[] memory operations
-    )
-       external override
-    {
-        for(uint256 i = 0; i < operations.length; i++) {
-            OperationType opType = operations[i].opType;
-            /*  */ if (opType == OperationType.Approve) {
-                (address spender, uint256 amount) =
-                    abi.decode(operations[i].data, (address, uint256));
-                ISuperToken(operations[i].target).operationApprove(
-                    msg.sender,
-                    spender,
-                    amount);
-            } else if (opType == OperationType.TransferFrom) {
-                (address sender, address receiver, uint256 amount) =
-                    abi.decode(operations[i].data, (address, address, uint256));
-                ISuperToken(operations[i].target).operationTransferFrom(
-                    msg.sender,
-                    sender,
-                    receiver,
-                    amount);
-            } else if (opType == OperationType.Upgrade) {
-                ISuperToken(operations[i].target).operationUpgrade(
-                    msg.sender,
-                    abi.decode(operations[i].data, (uint256)));
-            } else if (opType == OperationType.Downgrade) {
-                ISuperToken(operations[i].target).operationDowngrade(
-                    msg.sender,
-                    abi.decode(operations[i].data, (uint256)));
-            } else if (opType == OperationType.CallAgreement) {
-                (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
-                this.callAgreement(
-                    ISuperAgreement(operations[i].target),
-                    callData,
-                    userData);
-            } else if (opType == OperationType.CallApp) {
-                this.callAppAction(
-                    ISuperApp(operations[i].target),
-                    operations[i].data);
-            } else {
-               revert("SF: unknown operation type");
-            }
-        }
     }
 
     /**************************************************************************
@@ -610,7 +564,7 @@ contract Superfluid is
         external override
         validCtx(ctx)
         isAgreement(agreementClass)
-        returns(bytes memory newCtx, bytes memory returnedData)
+        returns (bytes memory newCtx, bytes memory returnedData)
     {
         FullContext memory context = _decodeFullContext(ctx);
         address oldSender = context.extCall.msgSender;
@@ -693,6 +647,56 @@ contract Superfluid is
         returns (bool)
     {
         return _isCtxValid(ctx);
+    }
+
+    /**************************************************************************
+    * Batch call
+    **************************************************************************/
+
+    function batchCall(
+       Operation[] memory operations
+    )
+       external override
+    {
+        for(uint256 i = 0; i < operations.length; i++) {
+            OperationType opType = operations[i].opType;
+            /*  */ if (opType == OperationType.Approve) {
+                (address spender, uint256 amount) =
+                    abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationApprove(
+                    msg.sender,
+                    spender,
+                    amount);
+            } else if (opType == OperationType.TransferFrom) {
+                (address sender, address receiver, uint256 amount) =
+                    abi.decode(operations[i].data, (address, address, uint256));
+                ISuperToken(operations[i].target).operationTransferFrom(
+                    msg.sender,
+                    sender,
+                    receiver,
+                    amount);
+            } else if (opType == OperationType.Upgrade) {
+                ISuperToken(operations[i].target).operationUpgrade(
+                    msg.sender,
+                    abi.decode(operations[i].data, (uint256)));
+            } else if (opType == OperationType.Downgrade) {
+                ISuperToken(operations[i].target).operationDowngrade(
+                    msg.sender,
+                    abi.decode(operations[i].data, (uint256)));
+            } else if (opType == OperationType.CallAgreement) {
+                (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
+                this.callAgreement(
+                    ISuperAgreement(operations[i].target),
+                    callData,
+                    userData);
+            } else if (opType == OperationType.CallApp) {
+                this.callAppAction(
+                    ISuperApp(operations[i].target),
+                    operations[i].data);
+            } else {
+               revert("SF: unknown operation type");
+            }
+        }
     }
 
     /**************************************************************************
@@ -783,13 +787,10 @@ contract Superfluid is
 
          if (!success) {
              if (gasleft() < _GAS_RESERVATION) {
-                 // this is out of gas, but the call may still fail if m_callCallbackore gas is provied
+                 // this is out of gas, but the call may still fail if more gas is provied
                  // and this is okay, because there can be incentive to jail the app by providing
                  // more gas
                  revert("SF: need more more gas");
-             } else {
-                revert(_getRevertMsg(returnedData));
-                 //_appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
              }
          }
     }

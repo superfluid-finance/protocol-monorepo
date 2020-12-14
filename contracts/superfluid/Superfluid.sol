@@ -402,8 +402,7 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callCallback(app, false, callData, ctx);
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
-            if(!_isCtxValid(newCtx)) {
-                // TODO: APP_JAIL_BIT if callback changes ctx and Change return context
+            if (!_isCtxValid(newCtx)) {
                 if (!isTermination) {
                     revert("SF: APP_RULE_CTX_IS_READONLY");
                 } else {
@@ -857,9 +856,10 @@ contract Superfluid is
     }
 
     modifier validCtx(bytes memory ctx) {
-        require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
+        require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_NOT_VALID");
         _;
     }
+
     modifier cleanCtx() {
         require(_ctxStamp == 0, "SF: APP_RULE_CTX_IS_NOT_CLEAN");
         _;

@@ -309,7 +309,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#5 Ctx", () => {
+        describe("#5 Context Utilities", () => {
             it("#5.1 test replacePlaceholderCtx with testCtxFuncX", async () => {
                 const testCtxFunc = async (ctxFuncX, args, ctx) => {
                     const result = (await superfluid.testCtxFuncX(
@@ -531,7 +531,9 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            // TODO test cleanCtx
+            // TODO decode ctx
+            // TODO jail
+            // TODO agreement return result
             // TODO test gas reservation
             // TODO app allowance
             // TODO app callback masks
@@ -539,7 +541,7 @@ contract("Superfluid Host Contract", accounts => {
             // TODO app level
         });
 
-        describe("#7 (WIP) callAgreement", () => {
+        describe("#7 callAgreement", () => {
             it("#7.1 only listed agreement allowed", async () => {
                 const reason = "SF: only listed agreeement allowed";
                 // call to an non agreement
@@ -604,7 +606,7 @@ contract("Superfluid Host Contract", accounts => {
                     ), "error 42");
             });
 
-            it("#8.4 app action should not call without ctx", async () => {
+            it("#8.4 app action should not callAgreement or callAppAction without ctx", async () => {
                 await expectRevert(
                     superfluid.callAppAction(
                         app.address,
@@ -652,7 +654,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
             });
 
-            it("#8.7 app callAppActionWithContext which reverts", async () => {
+            it("#8.8 app callAppActionWithContext which reverts", async () => {
                 await expectRevert(superfluid.callAppAction(
                     app.address,
                     app.contract.methods.actionCallActionRevert(
@@ -662,14 +664,59 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            // TODO test msg.sender in Noop
-            // TODO catch action not returning ctx
+            it("#8.9 app action should not alter ctx", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionAlteringCtx("0x").encodeABI()
+                    ), "SF: APP_RULE_CTX_IS_READONLY");
+            });
+
+            // TODO decode ctx
+            // TODO try/catch action not returning ctx
         });
 
-        describe("#9 (WIP) Contextual Call Proxies and Context Utilities", () => {
-            // TODO
-            // callAgreementWithContext
-            // callAppActionWithContext
+        describe("#9 Contextual Call Proxies", () => {
+            let agreement;
+            let app;
+
+            before(async () => {
+                agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+                await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
+                    superfluid.address, agreement.address);
+                agreement = await AgreementMock.at(
+                    await superfluid.getAgreementClass(web3.utils.sha3("MockAgreement")));
+            });
+
+            after(async () => {
+                await reset();
+            });
+
+            it("#9.1 must call with valid ctx", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionCallAgreementWithInvalidCtx(
+                            agreement.address, "0x"
+                        ).encodeABI()
+                    ), "SF: APP_RULE_CTX_IS_NOT_VALID");
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionCallActionWithInvalidCtx(
+                            agreement.address, "0x"
+                        ).encodeABI()
+                    ), "SF: APP_RULE_CTX_IS_NOT_VALID");
+            });
+
+            it("#9.2 app action should not alter ctx", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods.actionCallBadAction("0x").encodeABI()
+                    ), "SF: APP_RULE_CTX_IS_READONLY");
+            });
         });
 
         describe("#10 (WIP) batchCall", () => {

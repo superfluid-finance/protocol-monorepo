@@ -64,6 +64,14 @@ contract SuperAppMock is ISuperApp {
         _host.callAppAction(ISuperApp(address(0)), new bytes(0));
     }
 
+    function actionAlteringCtx(bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        return abi.encode(42);
+    }
+
     function actionPingAgreement(AgreementMock agreement, uint256 ping, bytes calldata ctx)
         external
         validCtx(ctx)
@@ -123,6 +131,52 @@ contract SuperAppMock is ISuperApp {
                 new bytes(0)
             ),
             ctx);
+    }
+
+    function actionCallAgreementWithInvalidCtx(AgreementMock agreement, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        (newCtx, ) = _host.callAgreementWithContext(
+            agreement,
+            abi.encodeWithSelector(
+                AgreementMock.pingMe.selector,
+                42,
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            abi.encode(42));
+    }
+
+    function actionCallActionWithInvalidCtx(string calldata reason, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        newCtx = _host.callAppActionWithContext(
+            this,
+            abi.encodeWithSelector(
+                SuperAppMock.actionRevertWithReason.selector,
+                reason,
+                new bytes(0)
+            ),
+            abi.encode(42));
+    }
+
+    function actionCallBadAction(bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        _host.callAppActionWithContext(
+            this,
+            abi.encodeWithSelector(
+                SuperAppMock.actionAlteringCtx.selector,
+                new bytes(0)
+            ),
+            ctx);
+        assert(false);
     }
 
     /*************************************************************************

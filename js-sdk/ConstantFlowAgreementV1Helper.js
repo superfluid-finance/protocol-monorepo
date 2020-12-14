@@ -20,13 +20,15 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
+     * @param {function} onTransaction function to be called when transaction hash has bee generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async createFlow({
         superToken,
         sender,
         receiver,
-        flowRate
+        flowRate,
+        onTransaction = () => null
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
@@ -44,7 +46,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             {
                 from: senderNorm,
             }
-        );
+        ).on("transactionHash", onTransaction) ;
         console.debug("Flow created.");
         return tx;
     }
@@ -55,13 +57,15 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
+     * @param {function} onTransaction function to be called when transaction hash has bee generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async updateFlow({
         superToken,
         sender,
         receiver,
-        flowRate
+        flowRate,
+        onTransaction = () => null
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
@@ -79,7 +83,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             {
                 from: senderNorm,
             }
-        );
+        ).on("transactionHash", onTransaction) ;
         console.debug("Flow updated.");
         return tx;
     }
@@ -90,13 +94,15 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {addressParam} by delete flow by a third party (liquidations)
+     * @param {function} onTransaction function to be called when transaction hash has bee generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async deleteFlow({
         superToken,
         sender,
         receiver,
-        by
+        by,
+        onTransaction = () => null
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
@@ -114,7 +120,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             {
                 from: byNorm,
             }
-        );
+        ).on("transactionHash", onTransaction) ;
         console.debug("Flow deleted.");
         return tx;
     }

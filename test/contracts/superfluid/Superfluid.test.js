@@ -662,6 +662,7 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
+            // TODO test msg.sender in Noop
             // TODO catch action not returning ctx
         });
 

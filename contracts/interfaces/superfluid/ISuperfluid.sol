@@ -47,7 +47,7 @@ interface ISuperfluid {
         IERC20 underlyingToken,
         string calldata symbol
     )
-        external
+        external view
         returns (address wrapperAddress, bool created);
 
     function createERC20Wrapper(

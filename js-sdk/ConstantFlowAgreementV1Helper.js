@@ -20,7 +20,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
-     * @param {function} onTransaction function to be called when transaction hash has bee generated
+     * @param {function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async createFlow({
@@ -57,7 +57,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
-     * @param {function} onTransaction function to be called when transaction hash has bee generated
+     * @param {function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async updateFlow({
@@ -94,7 +94,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} sender sender of the flow
      * @param {addressParam} receiver receiver of the flow
      * @param {addressParam} by delete flow by a third party (liquidations)
-     * @param {function} onTransaction function to be called when transaction hash has bee generated
+     * @param {function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async deleteFlow({

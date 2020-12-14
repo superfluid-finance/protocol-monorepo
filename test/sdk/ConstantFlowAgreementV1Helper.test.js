@@ -26,13 +26,11 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
     });
 
     it("createFlow", async () => {
-        let txHash = "";
         const tx = await sf.cfa.createFlow({
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
             flowRate: "38580246913580", // 100 / mo
-            onTransaction: hash => { txHash = hash; }
         });
         // validate flow data
         const flow = await sf.cfa.getFlow({
@@ -45,7 +43,6 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         assert.equal(flow.flowRate, "38580246913580");
         assert.notEqual(flow.deposit, "0");
         assert.equal(flow.owedDeposit, "0");
-        assert.equal(txHash, tx.receipt.transactionHash);
         // validate account net flows
         assert.equal((await sf.cfa.getNetFlow({
             superToken: superToken.address,
@@ -57,7 +54,43 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         })).toString(), "38580246913580");
     });
 
+    it("createFlow with onTransaction", async () => {
+        let txHash = "";
+        const tx = await sf.cfa.createFlow({
+            superToken: superToken.address,
+            sender: alice,
+            receiver: bob,
+            flowRate: "38580246913580", // 100 / mo
+            onTransaction: hash => { txHash = hash; }
+        });
+        assert.equal(txHash, tx.receipt.transactionHash);
+    });
+
     it("updateFlow", async () => {
+        await sf.cfa.createFlow({
+            superToken: superToken.address,
+            sender: alice,
+            receiver: bob,
+            flowRate: "38580246913580" // 100 / mo
+        });
+        await sf.cfa.updateFlow({
+            superToken: superToken.address,
+            sender: alice,
+            receiver: bob,
+            flowRate: "19290123456790", // 100 / mo
+        });
+        // validate account net flows
+        assert.equal((await sf.cfa.getNetFlow({
+            superToken: superToken.address,
+            account: alice,
+        })).toString(), "-19290123456790");
+        assert.equal((await sf.cfa.getNetFlow({
+            superToken: superToken.address,
+            account: bob,
+        })).toString(), "19290123456790");
+    });
+
+    it("updateFlow with onTransaction", async () => {
         let txHash = "";
         await sf.cfa.createFlow({
             superToken: superToken.address,
@@ -73,15 +106,6 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             onTransaction: hash => { txHash = hash; }
         });
         assert.equal(txHash, tx.receipt.transactionHash);
-        // validate account net flows
-        assert.equal((await sf.cfa.getNetFlow({
-            superToken: superToken.address,
-            account: alice,
-        })).toString(), "-19290123456790");
-        assert.equal((await sf.cfa.getNetFlow({
-            superToken: superToken.address,
-            account: bob,
-        })).toString(), "19290123456790");
     });
 
     describe("deleteFlow", () => {
@@ -95,16 +119,13 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         });
 
         it("by sender", async () => {
-            let txHash = "";
             const ethBefore = await web3.eth.getBalance(alice);
-            const tx = await sf.cfa.deleteFlow({
+            await sf.cfa.deleteFlow({
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                onTransaction: hash => { txHash = hash; }
             });
             const ethAfter = await web3.eth.getBalance(alice);
-            assert.equal(txHash, tx.receipt.transactionHash);
             assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
             assert.equal((await sf.cfa.getNetFlow({
                 superToken: superToken.address,
@@ -117,17 +138,14 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         });
 
         it("by receiver", async () => {
-            let txHash = "";
             const ethBefore = await web3.eth.getBalance(bob);
-            const tx = await sf.cfa.deleteFlow({
+            await sf.cfa.deleteFlow({
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
                 by: bob,
-                onTransaction: hash => { txHash = hash; }
             });
             const ethAfter = await web3.eth.getBalance(bob);
-            assert.equal(txHash, tx.receipt.transactionHash);
             assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
             assert.equal((await sf.cfa.getNetFlow({
                 superToken: superToken.address,
@@ -146,6 +164,17 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 receiver: bob,
                 by: admin
             }), "CFA: account is not critical");
+        });
+
+        it("by sender with onTransaction", async () => {
+            let txHash = "";
+            const tx = await sf.cfa.deleteFlow({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: bob,
+                onTransaction: hash => { txHash = hash; }
+            });
+            assert.equal(txHash, tx.receipt.transactionHash);
         });
     });
 

@@ -18,6 +18,8 @@ import {
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
+import { CallUtils } from "../utils/CallUtils.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
@@ -381,7 +383,7 @@ contract Superfluid is
             cbdata = abi.decode(returnedData, (bytes));
         } else {
             if (!isTermination) {
-               revert(_getRevertMsg(returnedData));
+               revert(CallUtils.getRevertMsg(returnedData));
             } else {
                 emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
@@ -411,7 +413,7 @@ contract Superfluid is
             }
         } else {
             if (!isTermination) {
-                revert(_getRevertMsg(returnedData));
+                revert(CallUtils.getRevertMsg(returnedData));
             } else {
                 emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
@@ -483,7 +485,7 @@ contract Superfluid is
         //Build context data
         bytes memory ctx;
         // beaware of the endiness
-        bytes4 agreementSelector = _functionPrefix(callData);
+        bytes4 agreementSelector = CallUtils.functionPrefix(callData);
         ctx = _updateContext(FullContext({
             extCall: ExtCallContext({
                 cbLevel: 0,
@@ -503,7 +505,7 @@ contract Superfluid is
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
         if (!success) {
-            revert(_getRevertMsg(returnedData));
+            revert(CallUtils.getRevertMsg(returnedData));
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -544,7 +546,7 @@ contract Superfluid is
             ctx = abi.decode(returnedData, (bytes));
             require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
         } else {
-            revert(_getRevertMsg(returnedData));
+            revert(CallUtils.getRevertMsg(returnedData));
         }
         // clear the stamp
         _ctxStamp = 0;
@@ -583,7 +585,7 @@ contract Superfluid is
             context.extCall.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(_getRevertMsg(returnedData));
+            revert(CallUtils.getRevertMsg(returnedData));
         }
     }
 
@@ -613,7 +615,7 @@ contract Superfluid is
             context.extCall.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
-            revert(_getRevertMsg(returnedData));
+            revert(CallUtils.getRevertMsg(returnedData));
         }
     }
 
@@ -699,8 +701,15 @@ contract Superfluid is
     }
 
     /**************************************************************************
-     * Internal
-     *************************************************************************/
+    * Internal
+    **************************************************************************/
+
+    function _jailApp(ISuperApp app, uint256 reason)
+        internal
+    {
+        _appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
+        emit Jail(app, reason);
+    }
 
     function _decodeFullContext(bytes memory ctx)
         private pure
@@ -824,35 +833,6 @@ contract Superfluid is
             uint256(ctx.length),
             ctx, new bytes(paddedLength - ctx.length) // ctx padding
         );
-    }
-
-    /// @dev Get the revert message from a call
-    /// @notice This is needed in order to get the human-readable revert message from a call
-    /// @param res Response of the call
-    /// @return Revert message string
-    function _getRevertMsg(bytes memory res) internal pure returns (string memory) {
-        // If the _res length is less than 68, then the transaction failed silently (without a revert message)
-        if (res.length < 68) return "SF: target reverted";
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            // Slice the sighash.
-            res := add(res, 0x04)
-        }
-        return abi.decode(res, (string)); // All that remains is the revert string
-    }
-
-    /**
-    * @notice Helper method to parse data and extract the method signature.
-    *
-    * Copied from: https://github.com/argentlabs/argent-contracts/
-    * blob/master/contracts/modules/common/Utils.sol#L54-L60
-    */
-    function _functionPrefix(bytes memory data) internal pure returns (bytes4 prefix) {
-        require(data.length >= 4, "SF: invalid functionPrefix");
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            prefix := mload(add(data, 0x20))
-        }
     }
 
     modifier validCtx(bytes memory ctx) {

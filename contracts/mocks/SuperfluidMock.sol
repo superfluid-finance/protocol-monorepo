@@ -3,8 +3,11 @@ pragma solidity 0.7.4;
 pragma experimental ABIEncoderV2;
 
 import {
-    Superfluid
+    Superfluid,
+    ISuperApp
 } from "../superfluid/Superfluid.sol";
+
+import { CallUtils } from "../utils/CallUtils.sol";
 
 
 contract SuperfluidMock is Superfluid {
@@ -77,6 +80,13 @@ contract SuperfluidMock is Superfluid {
         bool success;
         (success, returnedData) = address(this).staticcall(data);
         if (success) return returnedData;
-        else revert(_getRevertMsg(returnedData));
+        else revert(CallUtils.getRevertMsg(returnedData));
     }
+
+    function jailApp(ISuperApp app)
+        external
+    {
+        _jailApp(app, 0);
+    }
+
 }

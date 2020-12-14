@@ -531,8 +531,8 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
+            // TODO jail rules
             // TODO decode ctx
-            // TODO jail
             // TODO agreement return result
             // TODO test gas reservation
             // TODO app allowance
@@ -670,6 +670,16 @@ contract("Superfluid Host Contract", accounts => {
                         app.address,
                         app.contract.methods.actionAlteringCtx("0x").encodeABI()
                     ), "SF: APP_RULE_CTX_IS_READONLY");
+            });
+
+            it("#8.10 should not be able call jailed app", async () => {
+                await superfluid.jailApp(app.address);
+                await expectRevert(superfluid.callAppAction(
+                    app.address,
+                    app.contract.methods.actionCallActionNoop(
+                        "0x"
+                    ).encodeABI()
+                ), "SF: app is jailed");
             });
 
             // TODO decode ctx

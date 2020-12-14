@@ -65,7 +65,7 @@ contract SuperAppMock is ISuperApp {
     }
 
     function actionAlteringCtx(bytes calldata ctx)
-        external
+        external view
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
@@ -167,7 +167,6 @@ contract SuperAppMock is ISuperApp {
     function actionCallBadAction(bytes calldata ctx)
         external
         validCtx(ctx)
-        returns (bytes memory newCtx)
     {
         _host.callAppActionWithContext(
             this,

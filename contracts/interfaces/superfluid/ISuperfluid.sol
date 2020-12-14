@@ -194,7 +194,7 @@ interface ISuperfluid {
     /**
      * @dev Jail event for the app
      */
-    event Jail(ISuperApp app, uint256 info);
+    event Jail(ISuperApp app, uint256 reason);
 
     /**************************************************************************
      * Agreement Framework

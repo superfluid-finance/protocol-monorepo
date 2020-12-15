@@ -383,8 +383,10 @@ contract("Superfluid Host Contract", accounts => {
         describe("#6 (WIP) Agreement Framework", () => {
             let agreement;
             let app;
+            let gasLimit;
 
             before(async () => {
+                gasLimit = (await superfluid.CALLBACK_GAS_LIMIT.call()).toString();
                 agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
                 await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
                     superfluid.address, agreement.address);
@@ -596,7 +598,149 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            // TODO test gas reservation
+            describe("callback gas limit", () => {
+                it("#6.20 beforeCreated callback burn all gas", async () => {
+                    await app.setNextCallbackAction(
+                        5 /* BurnGas */,
+                        web3.eth.abi.encodeParameter("uint256", gasLimit));
+
+                    // burn all the gas
+                    await expectRevert(superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                            app.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x"
+                    ), "SF: target reverted");
+                });
+
+                it("#6.21 beforeCreated callback try to burn all gas but less gas provided", async () => {
+                    await app.setNextCallbackAction(
+                        5 /* BurnGas */,
+                        web3.eth.abi.encodeParameter("uint256", gasLimit));
+
+                    // provide less gas
+                    await expectRevert(superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                            app.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x", {
+                            gas: Math.ceil(gasLimit/2)
+                        }
+                    ), "SF: need more gas");
+                });
+
+                it("#6.22 afterTerminated burn all gas", async () => {
+                    await app.setNextCallbackAction(
+                        5 /* BurnGas */,
+                        web3.eth.abi.encodeParameter("uint256", gasLimit));
+
+                    // provide less gas
+                    const tx = await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods.callAppAfterAgreementTerminatedCallback(
+                            app.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x"
+                    );
+                    await expectEvent.inTransaction(tx.tx, superfluid.contract, "Jail", {
+                        app: app.address,
+                        reason: "10" // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
+                    });
+                });
+
+                it("#6.23 afterTerminated try to burn all gas but with less gas provided", async () => {
+                    await app.setNextCallbackAction(
+                        5 /* BurnGas */,
+                        web3.eth.abi.encodeParameter("uint256", gasLimit));
+
+                    // provide less gas
+                    await expectRevert(superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods.callAppAfterAgreementTerminatedCallback(
+                            app.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x", {
+                            gas: Math.ceil(gasLimit/2)
+                        }
+                    ), "SF: need more gas");
+                });
+
+                it("#6.24 beforeCreated try to burn just enough gas", async () => {
+                    const actionOverhead = 15000 /* some action overhead */;
+                    const setNextAction = async () => {
+                        await app.setNextCallbackAction(
+                            5 /* BurnGas */,
+                            web3.eth.abi.encodeParameter("uint256", gasLimit - actionOverhead));
+                    };
+                    await setNextAction();
+                    let tx = await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                            app.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x"
+                    );
+                    console.log("Gas used", tx.receipt.gasUsed);
+
+                    // binary search proof if there is a price can trigger unexpected revert
+                    let gap = 5000;
+                    let gas = Math.ceil(tx.receipt.gasUsed + 295000 + gap);
+                    // make sure the initial gap works
+                    await setNextAction();
+                    tx = await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                            app.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x", {
+                            gas
+                        }
+                    );
+                    console.log("Gas used", tx.receipt.gasUsed);
+                    gap = Math.floor(gap / 2); // next gap
+                    // make sure to find another successful gas limit
+                    let errorCount = 0;
+                    let successCount = 0;
+                    while (gap > 0) {
+                        console.log("Trying with new gas limit", gas);
+                        try {
+                            await setNextAction();
+                            tx = await superfluid.callAgreement(
+                                agreement.address,
+                                agreement.contract.methods.callAppBeforeAgreementCreatedCallback(
+                                    app.address,
+                                    "0x"
+                                ).encodeABI(),
+                                "0x", {
+                                    gas
+                                }
+                            );
+                            console.log("No error, decreasing gas with gap", gap);
+                            console.log("Gas used", tx.receipt.gasUsed);
+                            gas -= gap;
+                            ++errorCount;
+                        } catch (error) {
+                            // with error, check error and increase gas
+                            assert.isNotNull(error.message.match("SF: need more gas"));
+                            console.log("Expected error, increasing gas with gap", gap);
+                            gas += gap;
+                            ++successCount;
+                        }
+                        //  decrease gap to half
+                        gap = Math.floor(gap / 2);
+                    }
+                    assert.isTrue(errorCount > 0, "expect some errors");
+                    assert.isTrue(successCount > 0, "expect some success");
+                });
+            });
 
             // TODO app callback masks
             // TODO app allowance

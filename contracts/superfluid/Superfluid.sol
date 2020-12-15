@@ -74,10 +74,10 @@ contract Superfluid is
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    bool immutable private _NON_UPGRADABLE_DEPLOYMENT;
+    bool immutable public NON_UPGRADABLE_DEPLOYMENT;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint64 immutable private _GAS_RESERVATION = 5000;
+    uint64 immutable public CALLBACK_GAS_LIMIT = 3000000;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
@@ -103,7 +103,7 @@ contract Superfluid is
     bytes32 internal _ctxStamp;
 
     constructor(bool nonUpgradable) {
-        _NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
+        NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ contract Superfluid is
         require(_agreementClasses.length < 256,
             "SF: support up to 256 agreement classes");
         ISuperAgreement agreementClass;
-        if (!_NON_UPGRADABLE_DEPLOYMENT) {
+        if (!NON_UPGRADABLE_DEPLOYMENT) {
             // initialize the proxy
             UUPSProxy proxy = new UUPSProxy();
             proxy.initializeProxy(address(agreementClassLogic));
@@ -164,7 +164,7 @@ contract Superfluid is
     }
 
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
-        require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+        require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
         bytes32 agreementType = agreementClassLogic.agreementType();
         uint idx = _agreementClassIndices[agreementType];
         require(idx != 0, "SF: agreement class not registered");
@@ -251,7 +251,7 @@ contract Superfluid is
         returns (address logic)
     {
         if (address(_superTokenFactory) == address(0)) return address(0);
-        if (_NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
+        if (NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
         else return UUPSProxiable(address(_superTokenFactory)).getCodeAddress();
     }
 
@@ -260,7 +260,7 @@ contract Superfluid is
         onlyGovernance
     {
         if (address(_superTokenFactory) == address(0)) {
-            if (!_NON_UPGRADABLE_DEPLOYMENT) {
+            if (!NON_UPGRADABLE_DEPLOYMENT) {
                 // initialize the proxy
                 UUPSProxy proxy = new UUPSProxy();
                 proxy.initializeProxy(address(newFactory));
@@ -270,7 +270,7 @@ contract Superfluid is
             }
             _superTokenFactory.initialize();
         } else {
-            require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+            require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
             UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
         }
     }
@@ -378,15 +378,9 @@ contract Superfluid is
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, true, callData, ctx);
+        (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
-        } else {
-            if (!isTermination) {
-               revert(CallUtils.getRevertMsg(returnedData));
-            } else {
-                _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
-            }
         }
     }
 
@@ -401,7 +395,7 @@ contract Superfluid is
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, false, callData, ctx);
+        (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(newCtx)) {
@@ -414,12 +408,6 @@ contract Superfluid is
             }
         } else {
             newCtx = ctx;
-            if (!isTermination) {
-                revert(CallUtils.getRevertMsg(returnedData));
-            } else {
-                newCtx = ctx;
-                _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
-            }
         }
     }
 
@@ -778,6 +766,7 @@ contract Superfluid is
     function _callCallback(
         ISuperApp app,
         bool isStaticall,
+        bool isTermination,
         bytes memory callData,
         bytes memory ctx
     )
@@ -786,24 +775,31 @@ contract Superfluid is
     {
         callData = _replacePlaceholderCtx(callData, ctx);
 
-        //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
-
+        uint256 gasLeftBefore = gasleft();
         if (isStaticall) {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).staticcall(callData);
+            (success, returnedData) = address(app).staticcall{ gas: CALLBACK_GAS_LIMIT }(callData);
         } else {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).call(callData);
+            (success, returnedData) = address(app).call{ gas: CALLBACK_GAS_LIMIT }(callData);
         }
 
-         if (!success) {
-             if (gasleft() < _GAS_RESERVATION) {
-                 // this is out of gas, but the call may still fail if more gas is provied
-                 // and this is okay, because there can be incentive to jail the app by providing
-                 // more gas
-                 revert("SF: need more more gas");
-             }
-         }
+        if (!success) {
+            // "/ 63" is a magic to avoid out of gas attack. See https://ronan.eth.link/blog/ethereum-gas-dangers/.
+            // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
+            if (gasleft() > gasLeftBefore / 63) {
+                if (!isTermination) {
+                    revert(CallUtils.getRevertMsg(returnedData));
+                } else {
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
+                }
+            } else {
+                // For legit out of gas issue, the call may still fail if more gas is provied
+                // and this is okay, because there can be incentive to jail the app by providing
+                // more gas.
+                revert("SF: need more gas");
+            }
+        }
     }
 
     /**

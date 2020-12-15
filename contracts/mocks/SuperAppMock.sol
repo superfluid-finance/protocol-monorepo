@@ -187,7 +187,8 @@ contract SuperAppMock is ISuperApp {
         Assert, // 1
         Revert, // 2
         RevertWithReason, // 3
-        AlteringCtx // 4
+        AlteringCtx, // 4
+        BurnGas // 5
     }
 
     struct NextCallbackAction {
@@ -220,6 +221,9 @@ contract SuperAppMock is ISuperApp {
             revert();
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.RevertWithReason) {
             revert(abi.decode(_nextCallbackAction.data, (string)));
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.BurnGas) {
+            uint256 gasToBurn = abi.decode(_nextCallbackAction.data, (uint256));
+            _burnGas(gasToBurn);
         } else assert(false);
     }
 
@@ -239,6 +243,9 @@ contract SuperAppMock is ISuperApp {
             revert(abi.decode(_nextCallbackAction.data, (string)));
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.AlteringCtx) {
             return abi.encode(42);
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.BurnGas) {
+            uint256 gasToBurn = abi.decode(_nextCallbackAction.data, (uint256));
+            _burnGas(gasToBurn);
         } else assert(false);
     }
 
@@ -333,6 +340,14 @@ contract SuperAppMock is ISuperApp {
         returns (bytes memory newCtx)
     {
         return _executeAfterCallbackAction(ctx);
+    }
+
+    function _burnGas(uint256 gasToBurn) private view {
+        uint256 gasStart = gasleft();
+        uint256 gasNow = gasleft();
+        while ((gasStart - gasNow) < gasToBurn - 1000 /* some margin for other things*/) {
+            gasNow = gasleft();
+        }
     }
 
     modifier validCtx(bytes calldata ctx) {

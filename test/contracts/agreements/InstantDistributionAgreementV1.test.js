@@ -1445,161 +1445,229 @@ contract("Instance Distribution Agreement v1", accounts => {
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 1);
         });
+
+        it("#3.9 claim distribution from pending subscriptions", async() => {
+            let idata;
+            let sdata;
+            let subs;
+            await superToken.upgrade(INIT_BALANCE, {from: alice});
+
+            await web3tx(superfluid.callAgreement, "Alice create default index")(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from: alice,
+                }
+            );
+
+            await expectRevert(superfluid.callAgreement(
+                ida.address,
+                ida.contract.methods.claim(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from:bob,
+                }
+            ), "IDA: E_NO_SUBS");
+
+            await web3tx(superfluid.callAgreement, "Alice update the subscription")(
+                ida.address,
+                ida.contract.methods.updateSubscription(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    toWad("0.003").toString(),
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from: alice,
+                }
+            );
+
+            await web3tx(superfluid.callAgreement, "Alice update the index")(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    "100",
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from: alice,
+                }
+            );
+            idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(idata.indexValue, "100");
+            assert.equal(idata.totalUnitsApproved, "0");
+            assert.equal(idata.totalUnitsPending.toString(), toWad("0.003").toString());
+            await testExpectedBalances([
+                [alice, toWad("99.7")], // FIXME check deposit
+                [bob,   toWad("0")],
+            ]);
+            sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.approved);
+            assert.equal(sdata.units.toString(), toWad("0.003").toString());
+            assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
+            subs = await ida.listSubscriptions.call(superToken.address, bob);
+            assert.equal(subs.publishers.length, 0);
+            await t.validateSystemInvariance();
+
+            await web3tx(superfluid.callAgreement, "Bob claims his pending distribution")(
+                ida.address,
+                ida.contract.methods.claim(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from:bob,
+                }
+            );
+            idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(idata.indexValue, "100");
+            assert.equal(idata.totalUnitsApproved, "0");
+            assert.equal(idata.totalUnitsPending.toString(), toWad("0.003").toString());
+            await testExpectedBalances([
+                [alice, toWad("99.7")], // FIXME check deposit
+                [bob,   toWad("0.3")],
+            ]);
+
+            await web3tx(superfluid.callAgreement, "Alice claims bob's pending distribution")(
+                ida.address,
+                ida.contract.methods.claim(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from: alice,
+                }
+            );
+            idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
+            assert.equal(idata.indexValue, "100");
+            assert.equal(idata.totalUnitsApproved, "0");
+            assert.equal(idata.totalUnitsPending.toString(), toWad("0.003").toString());
+            await testExpectedBalances([
+                [alice, toWad("99.7")], // FIXME check deposit
+                [bob,   toWad("0.3")],
+            ]);
+
+            await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from:bob,
+                }
+            );
+            await expectRevert(superfluid.callAgreement(
+                ida.address,
+                ida.contract.methods.claim(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob,
+                    "0x"
+                ).encodeABI(),
+                "0x",
+                {
+                    from:bob,
+                }
+            ), "IDA: E_SUBS_APPROVED");
+
+            await t.validateSystemInvariance();
+        });
     });
 
-    it("#3.9 claim distribution from pending subscriptions", async() => {
-        let idata;
-        let sdata;
-        let subs;
-        await superToken.upgrade(INIT_BALANCE, {from: alice});
-
-        await web3tx(superfluid.callAgreement, "Alice create default index")(
-            ida.address,
-            ida.contract.methods.createIndex(
-                superToken.address,
-                DEFAULT_INDEX_ID,
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from: alice,
-            }
-        );
-
-        await expectRevert(superfluid.callAgreement(
-            ida.address,
-            ida.contract.methods.claim(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID,
-                bob,
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from:bob,
-            }
-        ), "IDA: E_NO_SUBS");
-
-        await web3tx(superfluid.callAgreement, "Alice update the subscription")(
-            ida.address,
-            ida.contract.methods.updateSubscription(
-                superToken.address,
-                DEFAULT_INDEX_ID,
-                bob,
-                toWad("0.003").toString(),
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from: alice,
-            }
-        );
-
-        await web3tx(superfluid.callAgreement, "Alice update the index")(
-            ida.address,
-            ida.contract.methods.updateIndex(
-                superToken.address,
-                DEFAULT_INDEX_ID,
-                "100",
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from: alice,
-            }
-        );
-        idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
-        assert.equal(idata.indexValue, "100");
-        assert.equal(idata.totalUnitsApproved, "0");
-        assert.equal(idata.totalUnitsPending.toString(), toWad("0.003").toString());
-        await testExpectedBalances([
-            [alice, toWad("99.7")], // FIXME check deposit
-            [bob,   toWad("0")],
-        ]);
-        sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
-        assert.isFalse(sdata.approved);
-        assert.equal(sdata.units.toString(), toWad("0.003").toString());
-        assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
-        subs = await ida.listSubscriptions.call(superToken.address, bob);
-        assert.equal(subs.publishers.length, 0);
-        await t.validateSystemInvariance();
-
-        await web3tx(superfluid.callAgreement, "Bob claims his pending distribution")(
-            ida.address,
-            ida.contract.methods.claim(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID,
-                bob,
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from:bob,
-            }
-        );
-        idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
-        assert.equal(idata.indexValue, "100");
-        assert.equal(idata.totalUnitsApproved, "0");
-        assert.equal(idata.totalUnitsPending.toString(), toWad("0.003").toString());
-        await testExpectedBalances([
-            [alice, toWad("99.7")], // FIXME check deposit
-            [bob,   toWad("0.3")],
-        ]);
-
-        await web3tx(superfluid.callAgreement, "Alice claims bob's pending distribution")(
-            ida.address,
-            ida.contract.methods.claim(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID,
-                bob,
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from: alice,
-            }
-        );
-        idata = await ida.getIndex.call(superToken.address, alice, DEFAULT_INDEX_ID);
-        assert.equal(idata.indexValue, "100");
-        assert.equal(idata.totalUnitsApproved, "0");
-        assert.equal(idata.totalUnitsPending.toString(), toWad("0.003").toString());
-        await testExpectedBalances([
-            [alice, toWad("99.7")], // FIXME check deposit
-            [bob,   toWad("0.3")],
-        ]);
-
-        await web3tx(superfluid.callAgreement, "Bob approve the subscription")(
-            ida.address,
-            ida.contract.methods.approveSubscription(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID,
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from:bob,
-            }
-        );
-        await expectRevert(superfluid.callAgreement(
-            ida.address,
-            ida.contract.methods.claim(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID,
-                bob,
-                "0x"
-            ).encodeABI(),
-            "0x",
-            {
-                from:bob,
-            }
-        ), "IDA: E_SUBS_APPROVED");
-
-        await t.validateSystemInvariance();
+    describe("#4 misc", async () => {
+        it("#4.1 only authorized host can access token", async () => {
+            const FakeSuperfluid = artifacts.require("FakeSuperfluid");
+            const fakeHost = await FakeSuperfluid.new();
+            await expectRevert(fakeHost.callAgreement(
+                ida.address,
+                ida.contract.methods.createIndex(
+                    superToken.address,
+                    42,
+                    "0x"
+                ).encodeABI(),
+                { from: alice }
+            ), "AgreementLibrary: unauthroized host");
+            await expectRevert(fakeHost.callAgreement(
+                ida.address,
+                ida.contract.methods.updateIndex(
+                    superToken.address,
+                    42,
+                    9000,
+                    "0x"
+                ).encodeABI(),
+                { from: alice }
+            ), "AgreementLibrary: unauthroized host");
+            await expectRevert(fakeHost.callAgreement(
+                ida.address,
+                ida.contract.methods.distribute(
+                    superToken.address,
+                    42,
+                    9000,
+                    "0x"
+                ).encodeABI(),
+                { from: alice }
+            ), "AgreementLibrary: unauthroized host");
+            await expectRevert(fakeHost.callAgreement(
+                ida.address,
+                ida.contract.methods.approveSubscription(
+                    superToken.address,
+                    bob,
+                    42,
+                    "0x"
+                ).encodeABI(),
+                { from: alice }
+            ), "AgreementLibrary: unauthroized host");
+            await expectRevert(fakeHost.callAgreement(
+                ida.address,
+                ida.contract.methods.updateSubscription(
+                    superToken.address,
+                    42,
+                    alice,
+                    1000,
+                    "0x"
+                ).encodeABI(),
+                { from: alice }
+            ), "AgreementLibrary: unauthroized host");
+            await expectRevert(fakeHost.callAgreement(
+                ida.address,
+                ida.contract.methods.deleteSubscription(
+                    superToken.address,
+                    bob,
+                    42,
+                    alice,
+                    "0x"
+                ).encodeABI(),
+                { from: alice }
+            ), "AgreementLibrary: unauthroized host");
+        });
     });
 
 });

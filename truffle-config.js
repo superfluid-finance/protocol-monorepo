@@ -106,7 +106,7 @@ module.exports = {
                 10, // num_addresses
                 true // shareNonce
             ),
-            network_id:  80001, // mainnet's id
+            network_id:  80001, // matic mumbai id
             gas: 8e6,
             gasPrice: +process.env.MUMBAI_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
@@ -170,7 +170,7 @@ module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.7.4",   // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.7.5",   // Fetch exact version from solc-bin (default: truffle's version)
             settings: {          // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
                     enabled: true,

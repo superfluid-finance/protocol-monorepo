@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import {
     IConstantFlowAgreementV1,
@@ -116,7 +116,8 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        AgreementLibrary.authorizeTokenAccess(token);
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -153,7 +154,8 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        AgreementLibrary.authorizeTokenAccess(token);
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -190,7 +192,8 @@ contract ConstantFlowAgreementV1 is
         FlowParams memory flowParams;
         require(sender != address(0), "CFA: sender is zero");
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        AgreementLibrary.authorizeTokenAccess(token);
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
         flowParams.flowId = _generateFlowId(sender, receiver);
         flowParams.sender = sender;
         flowParams.receiver = receiver;

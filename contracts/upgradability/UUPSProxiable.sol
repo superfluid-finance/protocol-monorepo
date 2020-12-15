@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import { UUPSUtils } from "./UUPSUtils.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/Initializable.sol";

@@ -27,7 +27,7 @@ const MINIMAL_DEPOSIT = toBN(1).shln(32);
 contract("Using ConstantFlowAgreement v1", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
-    const { admin, /* carol, */ } = t.aliases;
+    const { admin, alice, bob } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
     const { LIQUIDATION_PERIOD } = t.configs;
 
@@ -580,6 +580,40 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(test(maxFlowRate.addn(1)), "CFA: flow rate too big");
             });
 
+            it("#1.8.4 only authorized host can access token", async () => {
+                const FakeSuperfluid = artifacts.require("FakeSuperfluid");
+                const fakeHost = await FakeSuperfluid.new();
+                await expectRevert(fakeHost.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods.createFlow(
+                        superToken.address,
+                        bob,
+                        1,
+                        "0x"
+                    ).encodeABI(),
+                    { from: alice }
+                ), "AgreementLibrary: unauthroized host");
+                await expectRevert(fakeHost.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods.updateFlow(
+                        superToken.address,
+                        bob,
+                        1,
+                        "0x"
+                    ).encodeABI(),
+                    { from: alice }
+                ), "AgreementLibrary: unauthroized host");
+                await expectRevert(fakeHost.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods.deleteFlow(
+                        superToken.address,
+                        alice,
+                        bob,
+                        "0x"
+                    ).encodeABI(),
+                    { from: alice }
+                ), "AgreementLibrary: unauthroized host");
+            });
         });
 
         describe("#1.10 should support different flow rates", () => {

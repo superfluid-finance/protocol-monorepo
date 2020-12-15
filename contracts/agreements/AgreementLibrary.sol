@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import {
     ISuperfluidGovernance,
@@ -38,8 +38,14 @@ library AgreementLibrary {
         int256 appAllowanceUsed;
     }
 
-    function decodeCtx(ISuperfluid host, bytes memory ctx)
-        internal pure
+    function authorizeTokenAccess(ISuperfluidToken token)
+        internal view
+    {
+        require(token.getHost() == msg.sender, "AgreementLibrary: unauthroized host");
+    }
+
+    function decodeCtx(bytes memory ctx)
+        internal view
         returns (Context memory context)
     {
         uint256 callInfo;
@@ -52,7 +58,7 @@ library AgreementLibrary {
             context.appAllowanceGranted,
             context.appAllowanceWanted,
             context.appAllowanceUsed
-        ) = host.decodeCtx(ctx);
+        ) = ISuperfluid(msg.sender).decodeCtx(ctx);
         (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
     }
 
@@ -140,7 +146,7 @@ library AgreementLibrary {
                 inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
-            appContext = decodeCtx(ISuperfluid(msg.sender), appCtx);
+            appContext = decodeCtx(appCtx);
 
             // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
             appContext.appAllowanceUsed = max(0, min(

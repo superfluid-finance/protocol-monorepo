@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";

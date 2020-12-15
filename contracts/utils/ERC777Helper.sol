@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
 

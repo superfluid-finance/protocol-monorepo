@@ -745,11 +745,10 @@ contract("Superfluid Host Contract", accounts => {
 
             // TODO app callback masks
             // TODO app allowance
-            // TODO app callback gas limit
             // TODO app level
         });
 
-        describe("#7 callAgreement", () => {
+        describe("#7 (WIP) callAgreement", () => {
             it("#7.1 only listed agreement allowed", async () => {
                 const reason = "SF: only listed agreeement allowed";
                 // call to an non agreement

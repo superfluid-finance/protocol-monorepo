@@ -21,6 +21,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
      * @param {Buffer} userData the user data passed to the callbacks
+     * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async createFlow({
@@ -28,7 +29,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
         sender,
         receiver,
         flowRate,
-        userData
+        userData,
+        onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
@@ -48,7 +50,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             {
                 from: senderNorm,
             }
-        );
+        ).on("transactionHash", onTransaction) ;
         console.debug("Flow created.");
         return tx;
     }
@@ -60,6 +62,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} receiver receiver of the flow
      * @param {flowRateParam} flowRate the flowrate of the flow
      * @param {Buffer} userData the user data passed to the callbacks
+     * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async updateFlow({
@@ -67,7 +70,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
         sender,
         receiver,
         flowRate,
-        userData
+        userData,
+        onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
@@ -87,7 +91,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             {
                 from: senderNorm,
             }
-        );
+        ).on("transactionHash", onTransaction) ;
         console.debug("Flow updated.");
         return tx;
     }
@@ -99,6 +103,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @param {addressParam} receiver receiver of the flow
      * @param {addressParam} by delete flow by a third party (liquidations)
      * @param {Buffer} userData the user data passed to the callbacks
+     * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
     async deleteFlow({
@@ -106,7 +111,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
         sender,
         receiver,
         by,
-        userData
+        userData,
+        onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
@@ -126,7 +132,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             {
                 from: byNorm,
             }
-        );
+        ).on("transactionHash", onTransaction) ;
         console.debug("Flow deleted.");
         return tx;
     }

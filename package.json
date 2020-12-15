@@ -13,6 +13,8 @@
     "/build/contracts/*.json",
     "!/build/contracts/*Mock.json",
     "scripts/**/*.js",
+    "scripts/**/*.sh",
+    "js-sdk/**/*.json",
     "js-sdk/**/*.js"
   ],
   "dependencies": {

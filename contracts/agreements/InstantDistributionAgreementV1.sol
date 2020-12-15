@@ -483,6 +483,7 @@ contract InstantDistributionAgreementV1 is
     )
         external view override
         returns (
+            bool exist,
             bool approved,
             uint128 units,
             uint256 pendingDistribution
@@ -494,9 +495,10 @@ contract InstantDistributionAgreementV1 is
         require(vars.exist, "IDA: E_NO_INDEX");
         vars.sId = _getSubscriptionId(subscriber, vars.iId);
         (vars.exist, vars.sdata) = _getSubscriptionData(token, vars.sId);
-        require(vars.exist, "IDA: E_NO_SUBS");
+        if (!vars.exist) return (false, false, 0, 0);
         assert(vars.sdata.publisher == publisher);
         assert(vars.sdata.indexId == indexId);
+        exist = true;
         approved = vars.sdata.subId != _UNALLOCATED_SUB_ID;
         units = vars.sdata.units;
         pendingDistribution = approved ? 0 :

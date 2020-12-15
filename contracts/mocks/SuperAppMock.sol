@@ -186,7 +186,8 @@ contract SuperAppMock is ISuperApp {
         Noop, // 0
         Assert, // 1
         Revert, // 2
-        RevertWithReason // 3
+        RevertWithReason, // 3
+        AlteringCtx // 4
     }
 
     struct NextCallbackAction {
@@ -222,11 +223,13 @@ contract SuperAppMock is ISuperApp {
         } else assert(false);
     }
 
-    function _executeAfterCallbackAction()
+    function _executeAfterCallbackAction(bytes memory ctx)
         private
+        returns (bytes memory newCtx)
     {
         if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
             emit NoopEvent();
+            return ctx;
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.Assert) {
             assert(false);
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.Revert) {
@@ -234,6 +237,8 @@ contract SuperAppMock is ISuperApp {
             revert();
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.RevertWithReason) {
             revert(abi.decode(_nextCallbackAction.data, (string)));
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.AlteringCtx) {
+            return abi.encode(42);
         } else assert(false);
     }
 
@@ -265,8 +270,7 @@ contract SuperAppMock is ISuperApp {
         virtual override
         returns (bytes memory newCtx)
     {
-        _executeAfterCallbackAction();
-        newCtx = ctx;
+        return _executeAfterCallbackAction(ctx);
     }
 
     function beforeAgreementUpdated(
@@ -297,8 +301,7 @@ contract SuperAppMock is ISuperApp {
         virtual override
         returns (bytes memory newCtx)
     {
-        _executeAfterCallbackAction();
-        newCtx = ctx;
+        return _executeAfterCallbackAction(ctx);
     }
 
     function beforeAgreementTerminated(
@@ -329,8 +332,7 @@ contract SuperAppMock is ISuperApp {
         virtual override
         returns (bytes memory newCtx)
     {
-        _executeAfterCallbackAction();
-        newCtx = ctx;
+        return _executeAfterCallbackAction(ctx);
     }
 
     modifier validCtx(bytes calldata ctx) {

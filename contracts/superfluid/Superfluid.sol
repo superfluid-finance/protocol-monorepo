@@ -385,7 +385,7 @@ contract Superfluid is
             if (!isTermination) {
                revert(CallUtils.getRevertMsg(returnedData));
             } else {
-                emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
+                _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
         }
     }
@@ -408,14 +408,17 @@ contract Superfluid is
                 if (!isTermination) {
                     revert("SF: APP_RULE_CTX_IS_READONLY");
                 } else {
-                    emit Jail(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
+                    newCtx = ctx;
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
                 }
             }
         } else {
+            newCtx = ctx;
             if (!isTermination) {
                 revert(CallUtils.getRevertMsg(returnedData));
             } else {
-                emit Jail(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
+                newCtx = ctx;
+                _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
             }
         }
     }

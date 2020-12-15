@@ -380,13 +380,12 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#6 Agreement Framework", () => {
+        describe("#6 (WIP) Agreement Framework", () => {
             let agreement;
             let app;
 
             before(async () => {
                 agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
-                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
                 await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
                     superfluid.address, agreement.address);
                 agreement = await AgreementMock.at(
@@ -395,6 +394,10 @@ contract("Superfluid Host Contract", accounts => {
 
             after(async () => {
                 await reset();
+            });
+
+            beforeEach(async () => {
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
             });
 
             it("#6.1 only agreement can call the agreement framework", async () => {
@@ -531,9 +534,54 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            // TODO jail rules
-            // TODO decode ctx
-            // TODO agreement return result
+            it("#6.6 beforeAgreementTerminated callback revert jail rule", async () => {
+                await app.setNextCallbackAction(1 /* assert */, "0x");
+                const tx = await web3tx(superfluid.callAgreement, "callAgreement")(
+                    agreement.address,
+                    agreement.contract.methods.callAppBeforeAgreementTerminatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI(),
+                    "0x"
+                );
+                await expectEvent.inTransaction(tx.tx, superfluid.contract, "Jail", {
+                    app: app.address,
+                    reason: "10" // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
+                });
+            });
+
+            it("#6.7 afterAgreementTerminated callback revert jail rule", async () => {
+                await app.setNextCallbackAction(1 /* assert */, "0x");
+                const tx = await web3tx(superfluid.callAgreement, "callAgreement")(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementTerminatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI(),
+                    "0x"
+                );
+                await expectEvent.inTransaction(tx.tx, superfluid.contract, "Jail", {
+                    app: app.address,
+                    reason: "10" // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
+                });
+            });
+
+            it("#6.8 afterAgreementTerminated callback readonly ctx jail rule", async () => {
+                await app.setNextCallbackAction(4 /* assert */, "0x");
+                const tx = await web3tx(superfluid.callAgreement, "callAgreement")(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementTerminatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI(),
+                    "0x"
+                );
+                await expectEvent.inTransaction(tx.tx, superfluid.contract, "Jail", {
+                    app: app.address,
+                    reason: "20" // APP_RULE_CTX_IS_READONLY
+                });
+            });
+
             // TODO test gas reservation
             // TODO app allowance
             // TODO app callback masks
@@ -553,6 +601,9 @@ contract("Superfluid Host Contract", accounts => {
                 mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
                 await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
             });
+
+            // TODO decode ctx
+            // TODO agreement return result
         });
 
         describe("#8 (WIP) callAppAction", () => {
@@ -561,7 +612,6 @@ contract("Superfluid Host Contract", accounts => {
 
             before(async () => {
                 agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
-                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
                 await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
                     superfluid.address, agreement.address);
                 agreement = await AgreementMock.at(
@@ -572,6 +622,10 @@ contract("Superfluid Host Contract", accounts => {
                 await reset();
             });
 
+            beforeEach(async () => {
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+            });
+
             it("#8.1 only super app can be called", async () => {
                 const reason = "SF: not a super app";
                 // call to an non agreement
@@ -580,6 +634,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(superfluid.callAppAction(superToken.address, "0x"), reason);
             });
 
+            // TODO decode ctx
             it("#8.2 actionNoop", async () => {
                 const tx = await superfluid.callAppAction(
                     app.address,
@@ -682,7 +737,6 @@ contract("Superfluid Host Contract", accounts => {
                 ), "SF: app is jailed");
             });
 
-            // TODO decode ctx
             // TODO try/catch action not returning ctx
         });
 
@@ -692,7 +746,6 @@ contract("Superfluid Host Contract", accounts => {
 
             before(async () => {
                 agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
-                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
                 await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
                     superfluid.address, agreement.address);
                 agreement = await AgreementMock.at(
@@ -701,6 +754,10 @@ contract("Superfluid Host Contract", accounts => {
 
             after(async () => {
                 await reset();
+            });
+
+            beforeEach(async () => {
+                app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
             });
 
             it("#9.1 must call with valid ctx", async () => {

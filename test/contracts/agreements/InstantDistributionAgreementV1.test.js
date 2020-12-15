@@ -59,6 +59,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -86,6 +87,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         DEFAULT_INDEX_ID,
                         "0x"
                     ).encodeABI(),
+                    "0x",
                     {
                         from: subscriberAddr,
                     }
@@ -106,6 +108,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         subscriptionUnits.toString(),
                         "0x"
                     ).encodeABI(),
+                    "0x",
                     {
                         from: alice,
                     }
@@ -130,6 +133,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     100,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -153,6 +157,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     300,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -193,6 +198,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         DEFAULT_INDEX_ID,
                         "0x"
                     ).encodeABI(),
+                    "0x",
                     {
                         from: publisherAddr,
                     }
@@ -211,6 +217,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         DEFAULT_INDEX_ID,
                         "0x"
                     ).encodeABI(),
+                    "0x",
                     {
                         from: dan,
                     }
@@ -227,6 +234,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         subscriptionUnits.toString(),
                         "0x"
                     ).encodeABI(),
+                    "0x",
                     {
                         from: publisherAddr,
                     }
@@ -260,6 +268,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     100,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -282,6 +291,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     200,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -308,6 +318,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.0003").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -334,6 +345,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     200,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -360,6 +372,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -381,6 +394,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -393,6 +407,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -412,6 +427,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -424,6 +440,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "1984",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -446,6 +463,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "1984",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -461,6 +479,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -473,6 +492,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "1984",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -490,6 +510,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "1984",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -502,6 +523,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "1983",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -528,6 +550,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -546,6 +569,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -566,6 +590,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -589,6 +614,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.001").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -619,6 +645,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "100",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -648,6 +675,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -667,6 +695,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.001").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -695,6 +724,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.003").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -722,6 +752,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "100",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -750,6 +781,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -762,6 +794,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -800,6 +833,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -819,6 +853,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.001").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -846,6 +881,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -858,6 +894,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -888,6 +925,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "100",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -922,6 +960,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -941,6 +980,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.003").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -968,6 +1008,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "100",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -997,6 +1038,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.005").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1025,6 +1067,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     "200",
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1053,6 +1096,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -1082,6 +1126,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1094,6 +1139,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -1109,6 +1155,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.001").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1121,6 +1168,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     200,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1134,6 +1182,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     bob,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: dan,
                 }
@@ -1147,6 +1196,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     bob,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -1160,6 +1210,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     bob,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -1193,6 +1244,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1206,6 +1258,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.001").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1218,6 +1271,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     200,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1231,6 +1285,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     bob,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -1264,6 +1319,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1277,6 +1333,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     toWad("0.001").toString(),
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1289,6 +1346,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     200,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1302,6 +1360,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     bob,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1334,6 +1393,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: alice,
                 }
@@ -1346,6 +1406,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -1361,6 +1422,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     bob,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from: bob,
                 }
@@ -1375,6 +1437,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     DEFAULT_INDEX_ID,
                     "0x"
                 ).encodeABI(),
+                "0x",
                 {
                     from:bob,
                 }
@@ -1397,6 +1460,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 DEFAULT_INDEX_ID,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from: alice,
             }
@@ -1411,6 +1475,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 bob,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from:bob,
             }
@@ -1425,6 +1490,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 toWad("0.003").toString(),
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from: alice,
             }
@@ -1438,6 +1504,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 "100",
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from: alice,
             }
@@ -1467,6 +1534,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 bob,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from:bob,
             }
@@ -1489,6 +1557,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 bob,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from: alice,
             }
@@ -1510,6 +1579,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 DEFAULT_INDEX_ID,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from:bob,
             }
@@ -1523,6 +1593,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 bob,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from:bob,
             }

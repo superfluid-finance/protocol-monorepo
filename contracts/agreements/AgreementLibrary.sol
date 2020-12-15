@@ -48,6 +48,7 @@ library AgreementLibrary {
             context.timestamp,
             context.msgSender,
             ,
+            ,
             context.appAllowanceGranted,
             context.appAllowanceWanted,
             context.appAllowanceUsed
@@ -61,7 +62,6 @@ library AgreementLibrary {
 
     struct CallbackInputs {
         uint256 noopMask;
-        address agreementClass;
         ISuperfluidToken token;
         address account;
         bytes32 agreementId;
@@ -72,7 +72,6 @@ library AgreementLibrary {
     }
 
     function createCallbackInputs(
-        address agreementClass,
         ISuperfluidToken token,
         address account,
         bytes32 agreementId
@@ -81,12 +80,11 @@ library AgreementLibrary {
        returns (CallbackInputs memory inputs)
     {
         ISuperfluid host = ISuperfluid(msg.sender);
-        (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
-        inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
-        inputs.agreementClass = agreementClass;
         inputs.token = token;
         inputs.account = account;
         inputs.agreementId = agreementId;
+        (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
+        inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
     }
 
     function callAppBeforeCallback(
@@ -98,16 +96,17 @@ library AgreementLibrary {
     {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
             bytes memory appCtx = _pushCallbackStack(ctx, inputs);
-
-            (cbdata,) = ISuperfluid(msg.sender).callAppBeforeCallback(
+            bytes memory callData = abi.encodeWithSelector(
+                inputs.selector,
+                inputs.token,
+                address(this) /* agreementClass */,
+                inputs.agreementId,
+                new bytes(0), // FIXME agreeement data
+                new bytes(0) // placeholder ctx
+            );
+            cbdata = ISuperfluid(msg.sender).callAppBeforeCallback(
                 ISuperApp(inputs.account),
-                abi.encodeWithSelector(
-                    inputs.selector,
-                    inputs.token,
-                    appCtx,
-                    inputs.agreementClass,
-                    inputs.agreementId
-                ),
+                callData,
                 inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
@@ -121,21 +120,23 @@ library AgreementLibrary {
         bytes memory ctx
     )
         internal
-        returns(Context memory appContext)
+        returns (Context memory appContext, bytes memory appCtx)
     {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
-            bytes memory appCtx = _pushCallbackStack(ctx, inputs);
+            appCtx = _pushCallbackStack(ctx, inputs);
 
+            bytes memory callData = abi.encodeWithSelector(
+                inputs.selector,
+                inputs.token,
+                address(this) /* agreementClass */,
+                inputs.agreementId,
+                new bytes(0), // FIXME agreeement data
+                cbdata,
+                new bytes(0) // placeholder ctx
+            );
             appCtx = ISuperfluid(msg.sender).callAppAfterCallback(
                 ISuperApp(inputs.account),
-                abi.encodeWithSelector(
-                    inputs.selector,
-                    inputs.token,
-                    appCtx,
-                    inputs.agreementClass,
-                    inputs.agreementId,
-                    cbdata
-                ),
+                callData,
                 inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
@@ -146,7 +147,7 @@ library AgreementLibrary {
                 inputs.appAllowanceGranted.toInt256(),
                 max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
 
-            _popCallbackStatck(ctx, appContext.appAllowanceUsed);
+            appCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
         }
     }
 
@@ -170,9 +171,10 @@ library AgreementLibrary {
         int256 appAllowanceUsed
     )
         private
+        returns (bytes memory appCtx)
     {
         // app allowance params stack POP
-        ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);
+        return ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);
     }
 
     /**************************************************************************

@@ -76,6 +76,7 @@ contract("DividendRightsToken", accounts => {
                 0,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from: bob,
             }
@@ -92,6 +93,7 @@ contract("DividendRightsToken", accounts => {
                 0,
                 "0x"
             ).encodeABI(),
+            "0x",
             {
                 from: carol,
             }

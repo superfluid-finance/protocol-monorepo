@@ -41,7 +41,7 @@ contract DividendRightsToken is
         _ida = ida;
 
         uint256 configWord =
-            SuperAppDefinitions.TYPE_APP_FINAL |
+            SuperAppDefinitions.APP_LEVEL_FINAL |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
             SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
@@ -53,8 +53,9 @@ contract DividendRightsToken is
                 _ida.createIndex.selector,
                 _cashToken,
                 INDEX_ID,
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
 
         transferOwnership(msg.sender);
@@ -63,9 +64,10 @@ contract DividendRightsToken is
 
     function beforeAgreementCreated(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
         address agreementClass,
-        bytes32 /* agreementId */
+        bytes32 /* agreementId */,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external view override
         returns (bytes memory data)
@@ -77,10 +79,11 @@ contract DividendRightsToken is
 
     function afterAgreementCreated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address /* agreementClass */,
         bytes32 agreementId,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external override
         returns(bytes memory newCtx)
@@ -91,9 +94,10 @@ contract DividendRightsToken is
 
     function beforeAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
         address agreementClass,
-        bytes32 /* agreementId */
+        bytes32 /* agreementId */,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external view override
         returns (bytes memory data)
@@ -105,10 +109,11 @@ contract DividendRightsToken is
 
     function afterAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address /* agreementClass */,
         bytes32 agreementId,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
     )
         external override
         returns(bytes memory newCtx)
@@ -124,7 +129,7 @@ contract DividendRightsToken is
     )
         private
     {
-        (,,address subscriber,bytes4 agreementSelector,,,) = _host.decodeCtx(ctx);
+        (,,address subscriber,bytes4 agreementSelector,,,,) = _host.decodeCtx(ctx);
         // only interested in the subscription approval callbacks
         if (agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
             address publisher;
@@ -161,8 +166,9 @@ contract DividendRightsToken is
                 INDEX_ID,
                 beneficiary,
                 uint128(currentAmount) + uint128(amount),
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
     }
 
@@ -182,8 +188,9 @@ contract DividendRightsToken is
                 _cashToken,
                 INDEX_ID,
                 actualCashAmount,
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
     }
 
@@ -202,8 +209,9 @@ contract DividendRightsToken is
                 INDEX_ID,
                 sender,
                 senderUnits - uint128(amount),
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
 
         _host.callAgreement(
@@ -214,8 +222,9 @@ contract DividendRightsToken is
                 INDEX_ID,
                 recipient,
                 recipientUnits + uint128(amount),
-                new bytes(0)
-            )
+                new bytes(0) // placeholder ctx
+            ),
+            new bytes(0) // user data
         );
     }
 

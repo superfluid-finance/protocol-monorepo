@@ -690,8 +690,9 @@ contract("Superfluid Host Contract", accounts => {
                     console.log("Gas used", tx.receipt.gasUsed);
 
                     // binary search proof if there is a price can trigger unexpected revert
-                    let gap = 5000;
-                    let gas = Math.ceil(tx.receipt.gasUsed + 295000 + gap);
+                    const extraGas = 300000;
+                    let gap = 10000; // initial gap
+                    let gas = Math.ceil(tx.receipt.gasUsed + extraGas);
                     // make sure the initial gap works
                     await setNextAction();
                     tx = await superfluid.callAgreement(

@@ -437,6 +437,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
             });
 
+            // TODO decode ctx
             it("#6.2 beforeAgreementCreated callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
@@ -487,6 +488,7 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
+            // TODO decode ctx
             it("#6.4 afterAgreementCreated callback noop", async () => {
                 await app.setNextCallbackAction(0 /* noop */, "0x");
                 const tx = await superfluid.callAgreement(
@@ -534,7 +536,19 @@ contract("Superfluid Host Contract", accounts => {
                 ), "error 42");
             });
 
-            it("#6.6 beforeAgreementTerminated callback revert jail rule", async () => {
+            it("#6.6 afterAgreementCreated callback altering ctx", async () => {
+                await app.setNextCallbackAction(4 /* AlteringCtx */, "0x");
+                await expectRevert(superfluid.callAgreement(
+                    agreement.address,
+                    agreement.contract.methods.callAppAfterAgreementCreatedCallback(
+                        app.address,
+                        "0x"
+                    ).encodeABI(),
+                    "0x"
+                ), "SF: APP_RULE_CTX_IS_READONLY");
+            });
+
+            it("#6.7 beforeAgreementTerminated callback revert jail rule", async () => {
                 await app.setNextCallbackAction(1 /* assert */, "0x");
                 const tx = await web3tx(superfluid.callAgreement, "callAgreement")(
                     agreement.address,
@@ -550,7 +564,7 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            it("#6.7 afterAgreementTerminated callback revert jail rule", async () => {
+            it("#6.8 afterAgreementTerminated callback revert jail rule", async () => {
                 await app.setNextCallbackAction(1 /* assert */, "0x");
                 const tx = await web3tx(superfluid.callAgreement, "callAgreement")(
                     agreement.address,
@@ -566,8 +580,8 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            it("#6.8 afterAgreementTerminated callback readonly ctx jail rule", async () => {
-                await app.setNextCallbackAction(4 /* assert */, "0x");
+            it("#6.9 afterAgreementTerminated callback readonly ctx jail rule", async () => {
+                await app.setNextCallbackAction(4 /* AlteringCtx */, "0x");
                 const tx = await web3tx(superfluid.callAgreement, "callAgreement")(
                     agreement.address,
                     agreement.contract.methods.callAppAfterAgreementTerminatedCallback(
@@ -583,8 +597,9 @@ contract("Superfluid Host Contract", accounts => {
             });
 
             // TODO test gas reservation
-            // TODO app allowance
+
             // TODO app callback masks
+            // TODO app allowance
             // TODO app callback gas limit
             // TODO app level
         });
@@ -602,7 +617,6 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
             });
 
-            // TODO decode ctx
             // TODO agreement return result
         });
 

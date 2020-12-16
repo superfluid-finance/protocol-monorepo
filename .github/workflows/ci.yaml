@@ -86,6 +86,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
     strategy:
+      fail-fast: false
       matrix:
         network: [goerli, rinkeby, ropsten, mumbai]
 

@@ -369,7 +369,7 @@ contract ConstantFlowAgreementV1 is
         if (dynamicBalance != 0) {
             token.settleBalance(account, dynamicBalance);
         }
-        state.flowRate = state.flowRate.add(flowRateDelta);
+        state.flowRate = state.flowRate.add(flowRateDelta, "CFA: flowrate overflow");
         state.timestamp = currentTimestamp;
         state.deposit = state.deposit.toInt256().add(depositDelta).toUint256();
         state.owedDeposit = state.owedDeposit.toInt256().add(owedDepositDelta).toUint256();
@@ -584,7 +584,7 @@ contract ConstantFlowAgreementV1 is
         int96 totalSenderFlowRate = _updateAccountFlowState(
             token,
             flowParams.sender,
-            oldFlowData.flowRate.sub(flowParams.flowRate),
+            oldFlowData.flowRate.sub(flowParams.flowRate, "CFA: flowrate overflow"),
             depositDelta,
             0,
             currentTimestamp
@@ -592,7 +592,7 @@ contract ConstantFlowAgreementV1 is
         int96 totalReceiverFlowRate = _updateAccountFlowState(
             token,
             flowParams.receiver,
-            flowParams.flowRate.sub(oldFlowData.flowRate),
+            flowParams.flowRate.sub(oldFlowData.flowRate, "CFA: flowrate overflow"),
             0,
             0, // leaving owed deposit unchanged for later adjustment
             currentTimestamp
@@ -695,7 +695,8 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
-        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod))));
+        // assert(flowRate >= 0) // Local code is ensuring it
+        deposit = uint256(flowRate).mul(liquidationPeriod);
         if (roundingDown) return _clipDepositNumberRoundingDown(deposit);
         return _clipDepositNumber(deposit);
     }

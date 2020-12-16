@@ -476,7 +476,7 @@ contract Superfluid is
         //Build context data
         bytes memory ctx;
         // beaware of the endiness
-        bytes4 agreementSelector = CallUtils.functionPrefix(callData);
+        bytes4 agreementSelector = CallUtils.parseSelector(callData);
         ctx = _updateContext(FullContext({
             extCall: ExtCallContext({
                 cbLevel: 0,

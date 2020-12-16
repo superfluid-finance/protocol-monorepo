@@ -269,7 +269,7 @@ contract InstantDistributionAgreementV1 is
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
         uint128 indexDelta = (amount / totalUnits).toUint128();
-        newIndexValue = idata.indexValue.add(indexDelta);
+        newIndexValue = idata.indexValue.add(indexDelta, "IDA: E_OVERFLOW");
         actualAmount = uint256(indexDelta).mul(totalUnits);
     }
 
@@ -434,7 +434,7 @@ contract InstantDistributionAgreementV1 is
             });
             token.createAgreement(sId, _encodeSubscriptionData(vars.sdata));
 
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units);
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units, "IDA: E_OVERFLOW");
             token.updateAgreementData(iId, _encodeIndexData(vars.idata));
         }
 
@@ -599,9 +599,9 @@ contract InstantDistributionAgreementV1 is
 
         // update publisher index agreement data
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
-            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units);
+            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units, "IDA: E_OVERFLOW");
         } else {
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.sub(vars.sdata.units);
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.sub(vars.sdata.units, "IDA: E_OVERFLOW");
         }
         token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 

@@ -7,7 +7,7 @@ pragma solidity ^0.7.0;
  * @dev Int96 math operations with safety checks that revert on error.
  */
 library Int96SafeMath {
-    int96 constant private _INT96_MIN = -2**95;
+    // int96 constant private _INT96_MIN = -2**95;
 
     /**
      * @dev Returns the multiplication of two signed integers, reverting on
@@ -19,7 +19,7 @@ library Int96SafeMath {
      *
      * - Multiplication cannot overflow.
      */
-    function mul(int96 a, int96 b) internal pure returns (int96) {
+    /* function mul(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -27,13 +27,13 @@ library Int96SafeMath {
             return 0;
         }
 
-        require(!(a == -1 && b == _INT96_MIN), "Int96SafeMath: multiplication overflow");
+        require(!(a == -1 && b == _INT96_MIN), errorMessage);
 
         int96 c = a * b;
-        require(c / a == b, "Int96SafeMath: multiplication overflow");
+        require(c / a == b, errorMessage);
 
         return c;
-    }
+    } */
 
     /**
      * @dev Returns the integer division of two signed integers. Reverts on
@@ -66,9 +66,9 @@ library Int96SafeMath {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(int96 a, int96 b) internal pure returns (int96) {
+    function sub(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
         int96 c = a - b;
-        require((b >= 0 && c <= a) || (b < 0 && c > a), "Int96SafeMath: subtraction overflow");
+        require((b >= 0 && c <= a) || (b < 0 && c > a), errorMessage);
 
         return c;
     }
@@ -83,9 +83,9 @@ library Int96SafeMath {
      *
      * - Addition cannot overflow.
      */
-    function add(int96 a, int96 b) internal pure returns (int96) {
+    function add(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
         int96 c = a + b;
-        require((b >= 0 && c >= a) || (b < 0 && c < a), "Int96SafeMath: addition overflow");
+        require((b >= 0 && c >= a) || (b < 0 && c < a), errorMessage);
 
         return c;
     }

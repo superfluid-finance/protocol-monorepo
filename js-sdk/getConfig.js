@@ -1,6 +1,9 @@
 const DEFAULT_CONFIG = {
     5: {
         resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E"
+    },
+    80001: {
+        resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E"
     }
 };
 

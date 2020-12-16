@@ -581,8 +581,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
 
             it("#1.8.4 only authorized host can access token", async () => {
-                const FakeSuperfluid = artifacts.require("FakeSuperfluid");
-                const fakeHost = await FakeSuperfluid.new();
+                const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
+                const fakeHost = await FakeSuperfluidMock.new();
                 await expectRevert(fakeHost.callAgreement(
                     cfa.address,
                     cfa.contract.methods.createFlow(

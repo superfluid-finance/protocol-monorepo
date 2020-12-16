@@ -43,15 +43,6 @@ jobs:
         npm run build
         # npm run test // FIXME disasble for now
 
-    - name: archive build for 12.x node build
-      # only archive for master branch push
-      if:  matrix.node-version == '12.x'
-      uses: actions/upload-artifact@v2
-      with:
-        name: build
-        path: .
-        retention-days: 1
-
   coverage:
 
     name: Run coverage test
@@ -72,15 +63,10 @@ jobs:
       with:
         node-version: 12.x
 
-    - name: Download build
-      uses: actions/download-artifact@v2
-      with:
-        name: build
-        path: .
-
     - name: Run coverage test
       run: |
-        # npm run test-coverage // FIXME skip for now
+        # npm ci
+        # npm run test-coverage // fixme skip for now
         true
 
     - name: Create coverage artifact
@@ -102,6 +88,10 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
+    strategy:
+      matrix:
+        network: [goerli, mumbai]
+
     # only publish npm package for master branch push
     if: github.ref == 'refs/heads/ci_150_deploy_to_all_testnets'
 
@@ -114,19 +104,20 @@ jobs:
       with:
         node-version: 12.x
 
-    - name: Download build
-      uses: actions/download-artifact@v2
-      with:
-        name: build
-        path: .
-
-    - name: Deploy to goerli
+    - name: Build
       run: |
-        npx truffle exec --network goerli scripts/deploy-test-environment.js
+        npm ci
+        npm run build
+
+    - name: Deploy
+      run: |
+        npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
       env:
         RELEASE_VERSION: master
-        GOERLI_MNEMONIC: ${{ secrets.GOERLI_MNEMONIC }}
+        GOERLI_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
         GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+        MUMBAI_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+        MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
 
   npm-publish-master:
 

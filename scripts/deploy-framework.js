@@ -113,7 +113,9 @@ module.exports = async function (callback, {
                 await web3tx(superfluid.initialize, "Superfluid.initialize")(
                     governance.address
                 );
-                assert(!await proxiableCodeChanged(SuperfluidLogic, superfluid));
+                if (!nonUpgradable) {
+                    assert(!await proxiableCodeChanged(SuperfluidLogic, superfluid));
+                }
             } else {
                 // upgrade superfluid contract
 

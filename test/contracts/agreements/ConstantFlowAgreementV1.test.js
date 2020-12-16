@@ -218,9 +218,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(t.sf.cfa.createFlow({
                     superToken: superToken.address,
                     sender: t.aliases[sender],
-                    receiver: t.aliases[receiver],
+                    receiver: t.aliases.carol,
                     flowRate: MAXIMUM_FLOW_RATE.toString(),
-                }), "Int96SafeMath: multiplication overflow");
+                }), "CFA: deposit overflow");
             });
 
             it("#1.1.8 should reject when receiver is zero address", async () => {
@@ -331,7 +331,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     sender: t.aliases[sender],
                     receiver: t.aliases[receiver],
                     flowRate: MAXIMUM_FLOW_RATE.toString(),
-                }), "Int96SafeMath: multiplication overflow");
+                }), "CFA: deposit overflow");
             });
 
             it("#1.2.10 should reject when receiver is zero address", async () => {

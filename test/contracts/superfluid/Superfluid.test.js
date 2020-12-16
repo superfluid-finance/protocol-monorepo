@@ -465,7 +465,7 @@ contract("Superfluid Host Contract", accounts => {
                         "0x"
                     ).encodeABI(),
                     "0x"
-                ), "SF: target reverted");
+                ), "CallUtils: target reverted");
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
                 await expectRevert(superfluid.callAgreement(
@@ -475,7 +475,7 @@ contract("Superfluid Host Contract", accounts => {
                         "0x"
                     ).encodeABI(),
                     "0x"
-                ), "SF: target reverted");
+                ), "CallUtils: target reverted");
 
                 await app.setNextCallbackAction(
                     3 /* revert with reason */,
@@ -513,7 +513,7 @@ contract("Superfluid Host Contract", accounts => {
                         "0x"
                     ).encodeABI(),
                     "0x"
-                ), "SF: target reverted");
+                ), "CallUtils: target reverted");
 
                 await app.setNextCallbackAction(2 /* revert */, "0x");
                 await expectRevert(superfluid.callAgreement(
@@ -523,7 +523,7 @@ contract("Superfluid Host Contract", accounts => {
                         "0x"
                     ).encodeABI(),
                     "0x"
-                ), "SF: target reverted");
+                ), "CallUtils: target reverted");
 
                 await app.setNextCallbackAction(
                     3 /* revert with reason */,
@@ -612,7 +612,7 @@ contract("Superfluid Host Contract", accounts => {
                             "0x"
                         ).encodeABI(),
                         "0x"
-                    ), "SF: target reverted");
+                    ), "CallUtils: target reverted");
                 });
 
                 it("#6.21 beforeCreated callback try to burn all gas but less gas provided", async () => {
@@ -761,6 +761,12 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(superfluid.callAgreement(mock.address, "0x", "0x"), reason);
             });
 
+            it("#7.2 callData without correct selector", async () => {
+                await expectRevert(
+                    superfluid.callAgreement(t.contracts.cfa.address, "0x", "0x"),
+                    "CallUtils: invalid callData");
+            });
+
             // TODO agreement return result
         });
 
@@ -806,12 +812,12 @@ contract("Superfluid Host Contract", accounts => {
                     superfluid.callAppAction(
                         app.address,
                         app.contract.methods.actionAssert("0x").encodeABI()
-                    ), "SF: target reverted");
+                    ), "CallUtils: target reverted");
                 await expectRevert(
                     superfluid.callAppAction(
                         app.address,
                         app.contract.methods.actionRevert("0x").encodeABI()
-                    ), "SF: target reverted");
+                    ), "CallUtils: target reverted");
                 await expectRevert(
                     superfluid.callAppAction(
                         app.address,

@@ -13,7 +13,7 @@ library CallUtils {
     /// @return Revert message string
     function getRevertMsg(bytes memory res) internal pure returns (string memory) {
         // If the _res length is less than 68, then the transaction failed silently (without a revert message)
-        if (res.length < 68) return "SF: target reverted";
+        if (res.length < 68) return "CallUtils: target reverted";
         // solhint-disable-next-line no-inline-assembly
         assembly {
             // Slice the sighash.
@@ -23,16 +23,16 @@ library CallUtils {
     }
 
     /**
-    * @notice Helper method to parse data and extract the method signature.
+    * @notice Helper method to parse data and extract the method signature (selector).
     *
     * Copied from: https://github.com/argentlabs/argent-contracts/
     * blob/master/contracts/modules/common/Utils.sol#L54-L60
     */
-    function functionPrefix(bytes memory data) internal pure returns (bytes4 prefix) {
-        require(data.length >= 4, "SF: invalid functionPrefix");
+    function parseSelector(bytes memory callData) internal pure returns (bytes4 selector) {
+        require(callData.length >= 4, "CallUtils: invalid callData");
         // solhint-disable-next-line no-inline-assembly
         assembly {
-            prefix := mload(add(data, 0x20))
+            selector := mload(add(callData, 0x20))
         }
     }
 

@@ -41,7 +41,7 @@ jobs:
       run: |
         npm ci
         npm run build
-        # npm run test // FIXME disasble for now
+        npm run test
 
   coverage:
 
@@ -63,11 +63,8 @@ jobs:
 
     - name: Run coverage test
       run: |
-        # npm ci
-        # npm run test-coverage
-        # // FIXME skip for now
-        mkdir coverage
-        touch coverage/coverage.json
+        npm ci
+        npm run test-coverage
 
     - name: Create coverage artifact
       uses: actions/upload-artifact@v2
@@ -93,7 +90,7 @@ jobs:
         network: [goerli, mumbai]
 
     # only deploy for master branch push
-    if: github.ref == 'refs/heads/ci_150_deploy_to_all_testnets'
+    if: github.ref == 'refs/heads/master'
 
     steps:
 

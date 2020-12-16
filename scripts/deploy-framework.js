@@ -88,7 +88,10 @@ module.exports = async function (callback, {
             let superfluidAddress = await testResolver.get(name);
             console.log("Superfluid address", superfluidAddress);
             const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
+
             if (reset || !await hasCode(superfluidAddress)) {
+                // deploy new superfluid contract
+
                 const superfluidLogic = await web3tx(SuperfluidLogic.new, "SuperfluidLogic.new")(
                     nonUpgradable
                 );
@@ -110,35 +113,38 @@ module.exports = async function (callback, {
                 await web3tx(superfluid.initialize, "Superfluid.initialize")(
                     governance.address
                 );
+                assert(!await proxiableCodeChanged(SuperfluidLogic, superfluid));
             } else {
-                superfluid = await Superfluid.at(superfluidAddress);
-            }
-            superfluid = await Superfluid.at(superfluidAddress);
+                // upgrade superfluid contract
 
+                superfluid = await Superfluid.at(superfluidAddress);
+
+                if (!nonUpgradable) {
+                    if (await proxiableCodeChanged(SuperfluidLogic, superfluid)) {
+                        console.log("Superfluid code has changed");
+                        if (!(await isProxiable(Proxiable, superfluidAddress))) {
+                            throw new Error("Superfluid is non-upgradable");
+                        }
+                        const superfluidLogic = await web3tx(SuperfluidLogic.new, "Superfluid.new due to code change")(
+                            false /* nonUpgradable = false, of course... */
+                        );
+                        console.log(`Superfluid new code address ${superfluidLogic.address}`);
+                        await web3tx(governance.updateHostCode, "governance.updateHostCode")(
+                            superfluidAddress,
+                            superfluidLogic.address
+                        );
+                    } else {
+                        console.log("Superfluid has the same logic code, no deployment needed.");
+                    }
+                }
+            }
+
+            // replace with new governance if needed
             if ((await superfluid.getGovernance.call()) !== governance.address){
                 const currentGovernance = await ISuperfluidGovernance.at(await superfluid.getGovernance.call());
                 await web3tx(currentGovernance.replaceGovernance, "governance.replaceGovernance")(
                     superfluid.address, governance.address
                 );
-            }
-
-            if (!nonUpgradable) {
-                if (await proxiableCodeChanged(Proxiable, SuperfluidLogic, superfluidAddress)) {
-                    console.log("Superfluid code has changed");
-                    if (!(await isProxiable(Proxiable, superfluidAddress))) {
-                        throw new Error("Superfluid is non-upgradable");
-                    }
-                    const superfluidLogic = await web3tx(SuperfluidLogic.new, "Superfluid.new due to code change")(
-                        false /* nonUpgradable = false, of course... */
-                    );
-                    console.log(`Superfluid new code address ${superfluidLogic.address}`);
-                    await web3tx(governance.updateHostCode, "governance.updateHostCode")(
-                        superfluidAddress,
-                        superfluidLogic.address
-                    );
-                } else {
-                    console.log("Superfluid has the same logic code, no deployment needed.");
-                }
             }
         }
 

@@ -32,16 +32,20 @@ async function hasCode(address) {
 }
 
 async function codeChanged(contract, address) {
+    const bytecodeFromCompiler = contract.bytecode;
     const code = await web3.eth.getCode(address);
+
     // no code
     if (code.length <= 3) return true;
+
     // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
     // find the second occurance of the init code
-    const bytecodeFromCompiler = contract.bytecode;
+    const codeTrimed = code.slice(code.lastIndexOf("6080604052"));
+
     // console.log(code);
     // console.log(bytecodeFromCompiler);
     // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));
-    return bytecodeFromCompiler.indexOf(code.slice(2)) === -1;
+    return bytecodeFromCompiler.indexOf(codeTrimed) === -1;
 }
 
 async function isProxiable(Proxiable, address) {
@@ -50,9 +54,8 @@ async function isProxiable(Proxiable, address) {
     return codeAddress !== ZERO_ADDRESS;
 }
 
-async function proxiableCodeChanged(Proxiable, contract, address) {
-    const p = await Proxiable.at(address);
-    return await codeChanged(contract, await p.getCodeAddress());
+async function proxiableCodeChanged(contract, proxiable) {
+    return await codeChanged(contract, await proxiable.getCodeAddress());
 }
 
 module.exports = {

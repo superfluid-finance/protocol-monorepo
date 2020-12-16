@@ -60,7 +60,23 @@ module.exports = {
             ),
             network_id: 4, // Rinkeby's id
             gas: 8e6,
-            gasPrice: 10e9, // 1 GWEI
+            gasPrice: 10e9, // 10 GWEI
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+        },
+
+        ropsten: {
+            provider: () => new HDWalletProvider(
+                process.env.ROPSTEN_MNEMONIC,
+                process.env.ROPSTEN_PROVIDER_URL,
+                0, //address_index
+                10, // num_addresses
+                true // shareNonce
+            ),
+            network_id: 3, // Ropsten's id
+            gas: 8e6,
+            gasPrice: 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )

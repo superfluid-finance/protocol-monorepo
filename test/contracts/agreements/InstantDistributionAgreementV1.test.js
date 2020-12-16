@@ -79,6 +79,8 @@ contract("Instance Distribution Agreement v1", accounts => {
                 const subscriberAddr = subscribers[i][0];
                 const subscriptionUnits = subscribers[i][1];
                 const subscriberName = t.toAlias(subscriberAddr);
+                sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
+                assert.isFalse(sdata.exist);
                 await web3tx(superfluid.callAgreement, `${subscriberName} approves subscription to Alice`)(
                     ida.address,
                     ida.contract.methods.approveSubscription(
@@ -93,6 +95,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     }
                 );
                 sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
+                assert.isTrue(sdata.exist);
                 assert.isTrue(sdata.approved);
                 assert.equal(sdata.units.toString(), "0");
                 assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -114,6 +117,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     }
                 );
                 sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, subscriberAddr);
+                assert.isTrue(sdata.exist);
                 assert.isTrue(sdata.approved);
                 assert.equal(sdata.units.toString(), subscriptionUnits.toString());
                 assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -240,6 +244,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     }
                 );
                 sdata = await ida.getSubscription.call(superToken.address, publisherAddr, DEFAULT_INDEX_ID, dan);
+                assert.isTrue(sdata.exist);
                 assert.isTrue(sdata.approved);
                 assert.equal(sdata.units.toString(), subscriptionUnits.toString());
                 assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -327,6 +332,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.indexValue.toString(), "100");
             assert.equal(idata.totalUnitsApproved.toString(), toWad("0.0003").toString());
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, dan);
+            assert.isTrue(sdata.exist);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.0003").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -596,6 +602,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 }
             ), "IDA: E_SUBS_APPROVED");
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), "0");
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -628,6 +635,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.001").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -709,6 +717,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.001").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -738,6 +747,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.003").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -766,6 +776,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.003").toString());
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
@@ -808,6 +819,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.003").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -867,6 +879,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.001").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -908,6 +921,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.001").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -994,6 +1008,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.003").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -1022,6 +1037,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.003").toString());
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.3").toString());
@@ -1052,6 +1068,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.005").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -1081,6 +1098,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob,   toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isFalse(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.005").toString());
             assert.equal(sdata.pendingDistribution.toString(), toWad("0.5").toString());
@@ -1102,6 +1120,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 }
             );
             sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isTrue(sdata.exist);
             assert.isTrue(sdata.approved);
             assert.equal(sdata.units.toString(), toWad("0.005").toString());
             assert.equal(sdata.pendingDistribution.toString(), "0");
@@ -1223,9 +1242,8 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.indexValue, "200");
             assert.equal(idata.totalUnitsApproved, "0");
             assert.equal(idata.totalUnitsPending.toString(), "0");
-            await expectRevert(
-                ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
-                "IDA: E_NO_SUBS");
+            const sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.exist);
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
@@ -1298,9 +1316,8 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.indexValue, "200");
             assert.equal(idata.totalUnitsApproved, "0");
             assert.equal(idata.totalUnitsPending.toString(), "0");
-            await expectRevert(
-                ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
-                "IDA: E_NO_SUBS");
+            const sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.exist);
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 
@@ -1373,9 +1390,8 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.indexValue, "200");
             assert.equal(idata.totalUnitsApproved, "0");
             assert.equal(idata.totalUnitsPending.toString(), "0");
-            await expectRevert(
-                ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob),
-                "IDA: E_NO_SUBS");
+            const sdata = await ida.getSubscription.call(superToken.address, alice, DEFAULT_INDEX_ID, bob);
+            assert.isFalse(sdata.exist);
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 0);
 

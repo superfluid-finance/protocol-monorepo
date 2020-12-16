@@ -24,6 +24,10 @@ contract UtilsTester {
         return c1;
     }
 
+    function testInt96SafeMathMul(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.mul(a, b, "testInt96SafeMathMul overflow");
+    }
+
     function testInt96SafeMathAdd(int96 a, int96 b) external pure returns (int96 c) {
         return Int96SafeMath.add(a, b, "testInt96SafeMathAdd overflow");
     }

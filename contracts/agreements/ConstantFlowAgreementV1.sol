@@ -33,10 +33,10 @@ contract ConstantFlowAgreementV1 is
     using Int96SafeMath for int96;
 
     struct FlowData {
-        uint256 timestamp;
-        int96 flowRate;
-        uint256 deposit;
-        uint256 owedDeposit;
+        uint256 timestamp; // stored as uint32
+        int96 flowRate; // stored also as int96
+        uint256 deposit; // stored as int96 with lower 32 bits clipped to 0
+        uint256 owedDeposit; // stored as int96 with lower 32 bits clipped to 0
     }
 
     struct FlowParams {
@@ -695,8 +695,7 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
-        // assert(flowRate >= 0) // Local code is ensuring it
-        deposit = uint256(flowRate).mul(liquidationPeriod);
+        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow"));
         if (roundingDown) return _clipDepositNumberRoundingDown(deposit);
         return _clipDepositNumber(deposit);
     }

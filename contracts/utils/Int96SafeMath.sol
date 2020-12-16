@@ -7,7 +7,7 @@ pragma solidity ^0.7.0;
  * @dev Int96 math operations with safety checks that revert on error.
  */
 library Int96SafeMath {
-    // int96 constant private _INT96_MIN = -2**95;
+    int96 constant private _INT96_MIN = -2**95;
 
     /**
      * @dev Returns the multiplication of two signed integers, reverting on
@@ -19,7 +19,7 @@ library Int96SafeMath {
      *
      * - Multiplication cannot overflow.
      */
-    /* function mul(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
+    function mul(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
         // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
         // benefit is lost if 'b' is also tested.
         // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
@@ -33,7 +33,7 @@ library Int96SafeMath {
         require(c / a == b, errorMessage);
 
         return c;
-    } */
+    }
 
     /**
      * @dev Returns the integer division of two signed integers. Reverts on

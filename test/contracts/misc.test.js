@@ -124,7 +124,7 @@ contract("Miscellaneous for test coverages", accounts => {
                 tester.testInt96SafeMathMul(MIN_INT96_DIV_2_MINUS_1, 2),
                 "testInt96SafeMathMul overflow");
             await expectRevert(
-                tester.testInt96SafeMathMul(MIN_INT96, "-1"),
+                tester.testInt96SafeMathMul("-1", MIN_INT96),
                 "testInt96SafeMathMul overflow");
 
             // testInt96SafeMathAdd

@@ -4,7 +4,6 @@ const {
     web3tx,
     toBN
 } = require("@decentral.ee/web3-helpers");
-const MultiFlowApp = artifacts.require("MultiFlowApp");
 
 
 function clipDepositNumber(deposit, roundingDown = false) {
@@ -211,23 +210,16 @@ class MFASupport {
             console.log(`${receiverAlias} account address ${roles[mfaReceiverName]} (${receiverAlias})`);
         });
 
-        // filter out the proportion == 0 receivers, they are only for testing
         const receivers = Object.keys(mfa.receivers).filter(i=>mfa.receivers[i].proportion>0);
-
-        // TODO use call context user data to configure the multi flows
-        const app = await MultiFlowApp.at(roles.receiver);
-        await web3tx(testenv.contracts.superfluid.callAppAction, `MultiFlowApp configure ${JSON.stringify(mfa)}`)(
-            roles.receiver,
-            app.contract.methods.createMultiFlows(
-                mfa.ratioPct,
-                receivers.map(i=>testenv.getAddress(i)),
-                receivers.map(i=>mfa.receivers[i].proportion),
-                "0x"
-            ).encodeABI(),
-            {
-                from: roles.sender
-            }
-        );
+        return {
+            userData: web3.eth.abi.encodeParameters(
+                ["uint256", "address[]", "uint256[]"],
+                [
+                    mfa.ratioPct,
+                    receivers.map(i=>testenv.getAddress(i)),
+                    receivers.map(i=>mfa.receivers[i].proportion)
+                ])
+        };
     }
 
     static async updateFlowExpectations({
@@ -315,6 +307,7 @@ async function _shouldChangeFlow({
     receiver,
     flowRate,
     mfa,
+    userData,
     by
 }) {
     console.log(`======== ${fn} begins ========`);
@@ -517,7 +510,7 @@ async function _shouldChangeFlow({
         addRole("reward", testenv.toAlias(rewardAddress));
     }
     if (mfa) {
-        await MFASupport.setup({ testenv, mfa, roles });
+        ({ userData } = await MFASupport.setup({ testenv, mfa, roles }));
     }
     console.log("--------");
 
@@ -621,6 +614,7 @@ async function _shouldChangeFlow({
         )({
             ...flows.main.flowId,
             flowRate: flowRate.toString(),
+            userData
         });
         break;
     case "deleteFlow":
@@ -630,6 +624,7 @@ async function _shouldChangeFlow({
         )({
             ...flows.main.flowId,
             by: roles.agent,
+            userData
         });
         break;
     default:

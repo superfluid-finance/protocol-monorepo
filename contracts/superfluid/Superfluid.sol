@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 pragma experimental ABIEncoderV2;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
@@ -18,6 +18,8 @@ import {
     IERC20
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
+import { CallUtils } from "../utils/CallUtils.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
@@ -32,26 +34,11 @@ contract Superfluid is
     using SafeCast for uint256;
     using SignedSafeMath for int256;
 
-    enum Info {
-        A_1_MANIFEST,
-        A_2_DOWNSTREAM_WHITELIST,
-        A_3_IMMUTABLE_CALLBACK,
-        B_1_READONLY_CONTEXT,
-        B_2_UPSTREAM_CONTEXT,
-        B_3_CALL_JAIL_APP,
-        C_2_TERMINATION_CALLBACK,
-        C_3_REVERT_NO_REASON,
-        C_4_GAS_LIMIT,
-        E_2_GAS_REFUND,
-        J_1_UPSTREAM_RESPONSABILITY
-    }
-
-
     //
-    // the context that only needed for the next external call
+    // the context that only needed for the next callback level
     //
     struct ExtCallContext {
-        // callback stack level
+        // callback level
         uint8 cbLevel;
         // type of call
         uint8 callType;
@@ -61,6 +48,8 @@ contract Superfluid is
         address msgSender;
         // For callbacks it is used to know which agreement function selector is called
         bytes4 agreementSelector;
+        // User provided data for app callbacks
+        bytes userData;
     }
 
     //
@@ -85,10 +74,10 @@ contract Superfluid is
     }
 
     // solhint-disable-next-line var-name-mixedcase
-    bool immutable private _NON_UPGRADABLE_DEPLOYMENT;
+    bool immutable public NON_UPGRADABLE_DEPLOYMENT;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint64 immutable private _GAS_RESERVATION = 5000;
+    uint64 immutable public CALLBACK_GAS_LIMIT = 3000000;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
@@ -114,7 +103,7 @@ contract Superfluid is
     bytes32 internal _ctxStamp;
 
     constructor(bool nonUpgradable) {
-        _NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
+        NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,11 +145,11 @@ contract Superfluid is
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
         bytes32 agreementType = agreementClassLogic.agreementType();
         require(_agreementClassIndices[agreementType] == 0,
-            "SF: Agreement class already registered");
+            "SF: agreement class already registered");
         require(_agreementClasses.length < 256,
-            "SF: Support up to 256 agreement classes");
+            "SF: support up to 256 agreement classes");
         ISuperAgreement agreementClass;
-        if (!_NON_UPGRADABLE_DEPLOYMENT) {
+        if (!NON_UPGRADABLE_DEPLOYMENT) {
             // initialize the proxy
             UUPSProxy proxy = new UUPSProxy();
             proxy.initializeProxy(address(agreementClassLogic));
@@ -175,10 +164,10 @@ contract Superfluid is
     }
 
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
-        require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+        require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
         bytes32 agreementType = agreementClassLogic.agreementType();
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         UUPSProxiable proxiable = UUPSProxiable(address(_agreementClasses[idx - 1]));
         proxiable.updateCode(address(agreementClassLogic));
     }
@@ -206,7 +195,7 @@ contract Superfluid is
         returns(ISuperAgreement agreementClass)
     {
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         return ISuperAgreement(_agreementClasses[idx - 1]);
     }
 
@@ -233,7 +222,7 @@ contract Superfluid is
         returns (uint256 newBitmap)
     {
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         return bitmap | (1 << (idx - 1));
     }
 
@@ -242,12 +231,12 @@ contract Superfluid is
         returns (uint256 newBitmap)
     {
         uint idx = _agreementClassIndices[agreementType];
-        require(idx != 0, "SF: Agreement class not registered");
+        require(idx != 0, "SF: agreement class not registered");
         return bitmap & ~(1 << (idx - 1));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // ERC20 Token Registry
+    // Super Token Factory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     function getSuperTokenFactory()
@@ -262,7 +251,7 @@ contract Superfluid is
         returns (address logic)
     {
         if (address(_superTokenFactory) == address(0)) return address(0);
-        if (_NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
+        if (NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
         else return UUPSProxiable(address(_superTokenFactory)).getCodeAddress();
     }
 
@@ -271,7 +260,7 @@ contract Superfluid is
         onlyGovernance
     {
         if (address(_superTokenFactory) == address(0)) {
-            if (!_NON_UPGRADABLE_DEPLOYMENT) {
+            if (!NON_UPGRADABLE_DEPLOYMENT) {
                 // initialize the proxy
                 UUPSProxy proxy = new UUPSProxy();
                 proxy.initializeProxy(address(newFactory));
@@ -281,7 +270,7 @@ contract Superfluid is
             }
             _superTokenFactory.initialize();
         } else {
-            require(!_NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+            require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
             UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
         }
     }
@@ -299,16 +288,22 @@ contract Superfluid is
     // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @notice Message sender declares it as a super app.
-     * @param configWord The super app manifest configuration
-     */
     function registerApp(
         uint256 configWord
     )
         external override
     {
-        require(configWord > 0, "SF: invalid config word");
+        ISuperApp app = ISuperApp(msg.sender);
+        {
+            uint256 cs;
+            // solhint-disable-next-line no-inline-assembly
+            assembly { cs := extcodesize(app) }
+            require(cs == 0, "SF: app registration only in constructor");
+        }
+        require(
+            SuperAppDefinitions.getAppLevel(configWord) > 0 &&
+            (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
+            "SF: invalid config word");
         require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "SF: app already registered");
         _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
     }
@@ -318,28 +313,23 @@ contract Superfluid is
     }
 
     function getAppLevel(ISuperApp appAddr) public override view returns(uint8) {
-        if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_FINAL > 0) {
-            return 1;
-        } else if (_appManifests[appAddr].configWord & SuperAppDefinitions.TYPE_APP_SECOND > 0) {
-            return 2;
-        }
-        return 0;
+        return SuperAppDefinitions.getAppLevel(_appManifests[appAddr].configWord);
     }
 
     function getAppManifest(
         ISuperApp app
     )
         external view override
-    returns (
-        bool isSuperApp,
-        bool isJailed,
-        uint256 noopMask
-    )
+        returns (
+            bool isSuperApp,
+            bool isJailed,
+            uint256 noopMask
+        )
     {
         AppManifest memory manifest = _appManifests[app];
         isSuperApp = (manifest.configWord > 0);
         if (isSuperApp) {
-            isJailed = manifest.configWord & SuperAppDefinitions.JAIL > 0;
+            isJailed = SuperAppDefinitions.isAppJailed(manifest.configWord);
             noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
         }
     }
@@ -350,19 +340,15 @@ contract Superfluid is
         public view override
         returns(bool)
     {
-        return (_appManifests[app].configWord & SuperAppDefinitions.JAIL) > 0;
+        return SuperAppDefinitions.isAppJailed(_appManifests[app].configWord);
     }
 
-    /**
-     * @notice White-list the target app for app composition for the source app `msg.sender`
-     * @param targetApp The taget super app address
-     */
     function allowCompositeApp(
         ISuperApp targetApp
     )
         external override
     {
-        require(isApp(ISuperApp(msg.sender)), "SF: msg.sender is not an app");
+        require(isApp(ISuperApp(msg.sender)), "SF: sender is not an app");
         require(isApp(targetApp), "SF: target is not an app");
         _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }
@@ -377,64 +363,51 @@ contract Superfluid is
         return _compositeApps[app][targetApp];
     }
 
-
     /**************************************************************************
-     * Agreement Callback System
+     * Agreement Framework
      *************************************************************************/
 
-    //Split the callback in the two functions so they can have different rules and returns data formats
-    //TODO : msg.sender should be only SuperAgreement
     function callAppBeforeCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
-        bytes calldata /* ctx */
+        bytes calldata ctx
     )
         external override
         onlyAgreement
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
-        returns(bytes memory cbdata, bytes memory /*newCtx*/)
+        returns(bytes memory cbdata)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, data, true);
+        (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
         if (success) {
             cbdata = abi.decode(returnedData, (bytes));
-        } else {
-            if (!isTermination) {
-                revert("SF: before callback failed");
-            } else {
-                emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
-            }
         }
     }
 
     function callAppAfterCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
-        bytes calldata /* ctx */
+        bytes calldata ctx
     )
         external override
         onlyAgreement
         isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
-        (bool success, bytes memory returnedData) = _callCallback(app, data, false);
+        (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
         if (success) {
             newCtx = abi.decode(returnedData, (bytes));
-            if(!_isCtxValid(newCtx)) {
-                // TODO: JAIL if callback changes ctx and Change return context
+            if (!_isCtxValid(newCtx)) {
                 if (!isTermination) {
-                    revert("SF: B_1_READONLY_CONTEXT");
+                    revert("SF: APP_RULE_CTX_IS_READONLY");
                 } else {
-                    emit Jail(app, uint256(Info.B_1_READONLY_CONTEXT));
+                    newCtx = ctx;
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
                 }
             }
         } else {
-            if (!isTermination) {
-                revert("SF: after callback failed");
-            } else {
-                emit Jail(app, uint256(Info.C_2_TERMINATION_CALLBACK));
-            }
+            newCtx = ctx;
         }
     }
 
@@ -487,12 +460,13 @@ contract Superfluid is
     }
 
     /**************************************************************************
-    * Non-app Call Proxies
+    * Contextless Call Proxies
     *************************************************************************/
 
     function callAgreement(
         ISuperAgreement agreementClass,
-        bytes memory data
+        bytes memory callData,
+        bytes calldata userData
     )
         public override
         cleanCtx
@@ -502,11 +476,7 @@ contract Superfluid is
         //Build context data
         bytes memory ctx;
         // beaware of the endiness
-        bytes4 agreementSelector = bytes4(
-            uint32(uint8(data[3])) |
-            (uint32(uint8(data[2])) << 8) |
-            (uint32(uint8(data[1])) << 16) |
-            (uint32(uint8(data[0])) << 24));
+        bytes4 agreementSelector = CallUtils.parseSelector(callData);
         ctx = _updateContext(FullContext({
             extCall: ExtCallContext({
                 cbLevel: 0,
@@ -514,7 +484,8 @@ contract Superfluid is
                 /* solhint-disable-next-line not-rely-on-time */
                 timestamp: block.timestamp,
                 msgSender: msg.sender,
-                agreementSelector: agreementSelector
+                agreementSelector: agreementSelector,
+                userData: userData
             }),
             app: AppContext({
                 allowanceGranted: 0,
@@ -523,25 +494,23 @@ contract Superfluid is
             })
         }));
         bool success;
-        (success, returnedData) = _callExternal(address(agreementClass), data, ctx);
-        if (success) {
-            _ctxStamp = 0;
-        } else {
-            revert(_getRevertMsg(returnedData));
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
+        if (!success) {
+            revert(CallUtils.getRevertMsg(returnedData));
         }
+        // clear the stamp
+        _ctxStamp = 0;
     }
 
     function callAppAction(
         ISuperApp app,
-        bytes memory data
+        bytes memory callData
     )
         public override
         cleanCtx
         isAppActive(app)
         returns(bytes memory returnedData)
     {
-        require(!isAppJailed(app), "SF: App already jailed");
-
         //Build context data
         //TODO: Where we get the gas reservation?
         bool success;
@@ -554,7 +523,8 @@ contract Superfluid is
                 /* solhint-disable-next-line not-rely-on-time */
                 timestamp: block.timestamp,
                 msgSender: msg.sender,
-                agreementSelector: 0
+                agreementSelector: 0,
+                userData: ""
             }),
             app: AppContext({
                 allowanceGranted: 0,
@@ -562,19 +532,124 @@ contract Superfluid is
                 allowanceUsed: 0
             })
         }));
-        (success, returnedData) = _callExternal(address(app), data, ctx);
-        if(!success) {
-            revert(_getRevertMsg(returnedData));
+        (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
+        if (success) {
+            ctx = abi.decode(returnedData, (bytes));
+            require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_READONLY");
+        } else {
+            revert(CallUtils.getRevertMsg(returnedData));
         }
+        // clear the stamp
         _ctxStamp = 0;
     }
+
+    /**************************************************************************
+     * Contextual Call Proxies
+     *************************************************************************/
+
+    function callAgreementWithContext(
+        ISuperAgreement agreementClass,
+        bytes calldata callData,
+        bytes calldata userData,
+        bytes calldata ctx
+    )
+        external override
+        validCtx(ctx)
+        isAgreement(agreementClass)
+        returns (bytes memory newCtx, bytes memory returnedData)
+    {
+        FullContext memory context = _decodeFullContext(ctx);
+        address oldSender = context.extCall.msgSender;
+
+        context.extCall.msgSender = msg.sender;
+        //context.extCall.agreementSelector =;
+        context.extCall.userData = userData;
+        newCtx = _updateContext(context);
+
+        bool success;
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, newCtx);
+        if (success) {
+            (newCtx) = abi.decode(returnedData, (bytes));
+            assert(_isCtxValid(newCtx));
+            // back to old msg.sender
+            context = _decodeFullContext(newCtx);
+            context.extCall.msgSender = oldSender;
+            newCtx = _updateContext(context);
+        } else {
+            revert(CallUtils.getRevertMsg(returnedData));
+        }
+    }
+
+    function callAppActionWithContext(
+        ISuperApp app,
+        bytes calldata callData,
+        bytes calldata ctx
+    )
+        external override
+        validCtx(ctx)
+        isAppActive(app)
+        returns(bytes memory newCtx)
+    {
+        FullContext memory context = _decodeFullContext(ctx);
+        address oldSender = context.extCall.msgSender;
+
+        // FIXME max app level check
+        context.extCall.msgSender = msg.sender;
+        newCtx = _updateContext(context);
+
+        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
+        if (success) {
+            (newCtx) = abi.decode(returnedData, (bytes));
+            require(_isCtxValid(newCtx), "SF: APP_RULE_CTX_IS_READONLY");
+            // back to old msg.sender
+            context = _decodeFullContext(newCtx);
+            context.extCall.msgSender = oldSender;
+            newCtx = _updateContext(context);
+        } else {
+            revert(CallUtils.getRevertMsg(returnedData));
+        }
+    }
+
+    function decodeCtx(bytes calldata ctx)
+        external pure override
+        returns (
+            uint256 callInfo,
+            uint256 timestamp,
+            address msgSender,
+            bytes4 agreementSelector,
+            bytes memory userData,
+            uint256 appAllowanceGranted,
+            uint256 appAllowanceWanted,
+            int256 appAllowanceUsed
+        )
+    {
+        FullContext memory context = _decodeFullContext(ctx);
+        callInfo = ContextDefinitions.encodeCallInfo(context.extCall.cbLevel, context.extCall.callType);
+        timestamp = context.extCall.timestamp;
+        msgSender = context.extCall.msgSender;
+        agreementSelector = context.extCall.agreementSelector;
+        userData = context.extCall.userData;
+        appAllowanceGranted = context.app.allowanceGranted;
+        appAllowanceWanted = context.app.allowanceWanted;
+        appAllowanceUsed = context.app.allowanceUsed;
+    }
+
+    function isCtxValid(bytes calldata ctx)
+        external view override
+        returns (bool)
+    {
+        return _isCtxValid(ctx);
+    }
+
+    /**************************************************************************
+    * Batch call
+    **************************************************************************/
 
     function batchCall(
        Operation[] memory operations
     )
        external override
     {
-        require(operations.length > 1, "SF: Use the single method");
         for(uint256 i = 0; i < operations.length; i++) {
             OperationType opType = operations[i].opType;
             /*  */ if (opType == OperationType.Approve) {
@@ -601,13 +676,15 @@ contract Superfluid is
                     msg.sender,
                     abi.decode(operations[i].data, (uint256)));
             } else if (opType == OperationType.CallAgreement) {
-               callAgreement(
-                   ISuperAgreement(operations[i].target),
-                   operations[i].data);
+                (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
+                this.callAgreement(
+                    ISuperAgreement(operations[i].target),
+                    callData,
+                    userData);
             } else if (opType == OperationType.CallApp) {
-               callAppAction(
-                   ISuperApp(operations[i].target),
-                   operations[i].data);
+                this.callAppAction(
+                    ISuperApp(operations[i].target),
+                    operations[i].data);
             } else {
                revert("SF: unknown operation type");
             }
@@ -615,101 +692,14 @@ contract Superfluid is
     }
 
     /**************************************************************************
-     * Contextual Call Proxy and Context Utilities
-     *************************************************************************/
-    function callAgreementWithContext(
-        ISuperAgreement agreementClass,
-        bytes calldata data,
-        bytes calldata ctx
-    )
-        external override
-        isAgreement(agreementClass)
-        validCtx(ctx)
-        returns(bytes memory newCtx, bytes memory returnedData)
+    * Internal
+    **************************************************************************/
+
+    function _jailApp(ISuperApp app, uint256 reason)
+        internal
     {
-        FullContext memory context = _decodeFullContext(ctx);
-        address oldSender = context.extCall.msgSender;
-
-        context.extCall.msgSender = msg.sender;
-        newCtx = _updateContext(context);
-
-        bool success;
-        (success, returnedData) = _callExternal(address(agreementClass), data, newCtx);
-        if (success) {
-            (newCtx) = abi.decode(returnedData, (bytes));
-            assert(_isCtxValid(newCtx));
-            // back to old msg.sender
-            context = _decodeFullContext(newCtx);
-            context.extCall.msgSender = oldSender;
-            newCtx = _updateContext(context);
-        } else {
-            revert(_getRevertMsg(returnedData));
-        }
-    }
-
-    function callAppActionWithContext(
-        ISuperApp app,
-        bytes calldata data,
-        bytes calldata ctx
-    )
-        external override
-        validCtx(ctx)
-        returns(bytes memory newCtx)
-    {
-        FullContext memory context = _decodeFullContext(ctx);
-        address oldSender = context.extCall.msgSender;
-
-        // FIXME max app level check
-        context.extCall.msgSender = msg.sender;
-        newCtx = _updateContext(context);
-
-        (bool success, bytes memory returnedData) = _callExternal(address(app), data, newCtx);
-        if (success) {
-            (newCtx) = abi.decode(returnedData, (bytes));
-            require(_isCtxValid(newCtx), "SF: app altering the ctx");
-            // back to old msg.sender
-            context = _decodeFullContext(newCtx);
-            context.extCall.msgSender = oldSender;
-            newCtx = _updateContext(context);
-        } else {
-            revert(_getRevertMsg(returnedData));
-        }
-    }
-
-    function chargeGasFee(
-        bytes calldata ctx,
-        uint fee
-    )
-        external override
-        validCtx(ctx)
-        returns (bytes memory newCtx)
-    {
-        // FIXME do some non-sense with the fee for now
-       // solhint-disable-next-line no-empty-blocks
-        for (uint i = 0; i < fee; ++i) { }
-        newCtx = ctx;
-    }
-
-    function decodeCtx(bytes calldata ctx)
-        external pure override
-        returns (
-            uint256 callInfo,
-            uint256 timestamp,
-            address msgSender,
-            bytes4 agreementSelector,
-            uint256 appAllowanceGranted,
-            uint256 appAllowanceWanted,
-            int256 appAllowanceUsed
-        )
-    {
-        FullContext memory context = _decodeFullContext(ctx);
-        callInfo = ContextDefinitions.encodeCallInfo(context.extCall.cbLevel, context.extCall.callType);
-        timestamp = context.extCall.timestamp;
-        msgSender = context.extCall.msgSender;
-        agreementSelector = context.extCall.agreementSelector;
-        appAllowanceGranted = context.app.allowanceGranted;
-        appAllowanceWanted = context.app.allowanceWanted;
-        appAllowanceUsed = context.app.allowanceUsed;
+        _appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
+        emit Jail(app, reason);
     }
 
     function _decodeFullContext(bytes memory ctx)
@@ -723,9 +713,10 @@ contract Superfluid is
             context.extCall.timestamp,
             context.extCall.msgSender,
             context.extCall.agreementSelector,
+            context.extCall.userData,
             allowanceIO,
             context.app.allowanceUsed
-        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, uint256, int256));
+        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256));
         (context.extCall.cbLevel, context.extCall.callType) = ContextDefinitions.decodeCallInfo(callInfo);
         context.app.allowanceGranted = allowanceIO & type(uint128).max;
         context.app.allowanceWanted = allowanceIO >> 128;
@@ -744,6 +735,7 @@ contract Superfluid is
             context.extCall.timestamp,
             context.extCall.msgSender,
             context.extCall.agreementSelector,
+            context.extCall.userData,
             allowanceIO,
             context.app.allowanceUsed
         );
@@ -754,105 +746,123 @@ contract Superfluid is
         return ctx.length != 0 && keccak256(ctx) == _ctxStamp;
     }
 
-    function _callExternal(
+    function _callExternalWithReplacedCtx(
         address target,
-        bytes memory data,
+        bytes memory callData,
         bytes memory ctx
     )
         private
         returns(bool success, bytes memory returnedData)
     {
         // STEP 1 : replace placeholder ctx with actual ctx
-        // ctx needs to be padded to align with 32 bytes bouondary
-        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
-        // ctx length has to be stored in the length word of placehoolder ctx
-        // we support up to 2^16 length of the data
-        data[data.length - 2] = byte(uint8(ctx.length >> 8));
-        data[data.length - 1] = byte(uint8(ctx.length));
-        // pack data with the replacement ctx
-        ctx = abi.encodePacked(
-            data,
-            ctx, new bytes(paddedLength - ctx.length) // ctx padding
-        );
+        callData = _replacePlaceholderCtx(callData, ctx);
 
         // STEP 2: Call external with replaced context
         // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
-        (success, returnedData) = target.call(ctx);
+        (success, returnedData) = target.call(callData);
     }
 
     function _callCallback(
         ISuperApp app,
-        bytes memory data,
-        bool isStaticall
+        bool isStaticall,
+        bool isTermination,
+        bytes memory callData,
+        bytes memory ctx
     )
         private
         returns(bool success, bytes memory returnedData)
     {
-        //uint256 gasBudget = gasleft() - _GAS_RESERVATION;
-        (success, returnedData) = isStaticall ?
+        callData = _replacePlaceholderCtx(callData, ctx);
+
+        uint256 gasLeftBefore = gasleft();
+        if (isStaticall) {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            address(app).staticcall(data) : address(app).call(data);
-
-         if (!success) {
-             if (gasleft() < _GAS_RESERVATION) {
-                 // this is out of gas, but the call may still fail if m_callCallbackore gas is provied
-                 // and this is okay, because there can be incentive to jail the app by providing
-                 // more gas
-                 revert("SF: try with more gas");
-             } else {
-                revert(_getRevertMsg(returnedData));
-                 //_appManifests[app].configWord |= SuperAppDefinitions.JAIL;
-             }
-         }
-    }
-
-    /// @dev Get the revert message from a call
-    /// @notice This is needed in order to get the human-readable revert message from a call
-    /// @param res Response of the call
-    /// @return Revert message string
-    function _getRevertMsg(bytes memory res) internal pure returns (string memory) {
-        // If the _res length is less than 68, then the transaction failed silently (without a revert message)
-        if (res.length < 68) return "SF: target reverted";
-        assembly {
-            // Slice the sighash.
-            res := add(res, 0x04)
+            (success, returnedData) = address(app).staticcall{ gas: CALLBACK_GAS_LIMIT }(callData);
+        } else {
+            /* solhint-disable-next-line avoid-low-level-calls*/
+            (success, returnedData) = address(app).call{ gas: CALLBACK_GAS_LIMIT }(callData);
         }
-        return abi.decode(res, (string)); // All that remains is the revert string
+
+        if (!success) {
+            // "/ 63" is a magic to avoid out of gas attack. See https://ronan.eth.link/blog/ethereum-gas-dangers/.
+            // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
+            if (gasleft() > gasLeftBefore / 63) {
+                if (!isTermination) {
+                    revert(CallUtils.getRevertMsg(returnedData));
+                } else {
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
+                }
+            } else {
+                // For legit out of gas issue, the call may still fail if more gas is provied
+                // and this is okay, because there can be incentive to jail the app by providing
+                // more gas.
+                revert("SF: need more gas");
+            }
+        }
     }
 
-    modifier cleanCtx() {
-        require(_ctxStamp == 0, "SF: Ctx is not clean");
-        _;
+    /**
+     * @dev Replace the placeholder ctx with the actual ctx
+     */
+    function _replacePlaceholderCtx(bytes memory data, bytes memory ctx)
+        internal pure
+        returns (bytes memory dataWithCtx)
+    {
+        // 1.a ctx needs to be padded to align with 32 bytes bundary
+        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
+        uint256 dataLen = data.length;
+
+        // double check if the ctx is a placeholder ctx
+        {
+            uint256 placeHolderCtxLength;
+            // solhint-disable-next-line no-inline-assembly
+            assembly { placeHolderCtxLength := mload(add(data, dataLen)) }
+            require(placeHolderCtxLength == 0, "SF: placerholder ctx should have zero length");
+        }
+
+        // 1.b remove the placeholder ctx
+        // solhint-disable-next-line no-inline-assembly
+        assembly { mstore(data, sub(dataLen, 0x20)) }
+
+        // 1.c pack data with the replacement ctx
+        return abi.encodePacked(
+            data,
+            // bytes with padded length
+            uint256(ctx.length),
+            ctx, new bytes(paddedLength - ctx.length) // ctx padding
+        );
     }
 
     modifier validCtx(bytes memory ctx) {
-        if(!_isCtxValid(ctx)) {
-            _appManifests[ISuperApp(msg.sender)].configWord |= SuperAppDefinitions.JAIL;
-            emit Jail(ISuperApp(msg.sender), uint256(Info.B_1_READONLY_CONTEXT));
-        } else {
-            _;
-        }
+        require(_isCtxValid(ctx), "SF: APP_RULE_CTX_IS_NOT_VALID");
+        _;
+    }
+
+    modifier cleanCtx() {
+        require(_ctxStamp == 0, "SF: APP_RULE_CTX_IS_NOT_CLEAN");
+        _;
     }
 
     modifier isAgreement(ISuperAgreement agreementClass) {
-        require(isAgreementClassListed(agreementClass), "SF: Only listed agreeement allowed");
+        require(isAgreementClassListed(agreementClass), "SF: only listed agreeement allowed");
         _;
     }
 
     modifier onlyGovernance() {
-        require(msg.sender == address(_gov), "SF: Only governance allowed");
+        require(msg.sender == address(_gov), "SF: only governance allowed");
         _;
     }
 
     modifier onlyAgreement() {
-        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: Sender is not listed agreeement");
+        require(isAgreementClassListed(ISuperAgreement(msg.sender)), "SF: sender is not listed agreeement");
         _;
     }
 
     modifier isAppActive(ISuperApp app) {
         uint256 w = _appManifests[app].configWord;
-        require( w > 0 && (w & SuperAppDefinitions.JAIL) == 0, "SF: not an active app");
+        require(w > 0, "SF: not a super app");
+        require(!SuperAppDefinitions.isAppJailed(w), "SF: app is jailed");
         _;
     }
 }

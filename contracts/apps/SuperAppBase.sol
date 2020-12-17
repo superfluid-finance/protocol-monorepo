@@ -12,9 +12,10 @@ abstract contract SuperAppBase is ISuperApp {
 
     function beforeAgreementCreated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external
         view
@@ -27,10 +28,11 @@ abstract contract SuperAppBase is ISuperApp {
 
     function afterAgreementCreated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
     )
         external
         virtual
@@ -42,9 +44,10 @@ abstract contract SuperAppBase is ISuperApp {
 
     function beforeAgreementUpdated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external
         view
@@ -57,10 +60,11 @@ abstract contract SuperAppBase is ISuperApp {
 
     function afterAgreementUpdated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes calldata /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
     )
         external
         virtual
@@ -72,9 +76,10 @@ abstract contract SuperAppBase is ISuperApp {
 
     function beforeAgreementTerminated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
         external
         view
@@ -87,10 +92,11 @@ abstract contract SuperAppBase is ISuperApp {
 
     function afterAgreementTerminated(
         ISuperToken /*superToken*/,
-        bytes calldata /*ctx*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
-        bytes memory /*cbdata*/
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
     )
         external
         virtual

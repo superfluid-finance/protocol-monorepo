@@ -17,9 +17,10 @@ interface ISuperApp {
     /**
      * @dev Callback before a new agreement is created.
      * @param superToken The super token used for the agreement.
-     * @param ctx The context data.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
+     * @param agreementData The agreement data (non-compressed)
+     * @param ctx The context data.
      * @return cbdata A free format in memory data the app can use to pass
      *          arbitary information to the after-hook callback.
      *
@@ -29,9 +30,10 @@ interface ISuperApp {
      */
     function beforeAgreementCreated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bytes calldata agreementData,
+        bytes calldata ctx
     )
         external
         view
@@ -40,10 +42,11 @@ interface ISuperApp {
     /**
      * @dev Callback after a new agreement is created.
      * @param superToken The super token used for the agreement.
-     * @param ctx The context data.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
+     * @param agreementData The agreement data (non-compressed)
      * @param cbdata The data returned from the before-hook callback.
+     * @param ctx The context data.
      * @return newCtx The current context of the transaction.
      *
      * NOTE:
@@ -52,10 +55,11 @@ interface ISuperApp {
      */
     function afterAgreementCreated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata cbdata
+        bytes calldata agreementData,
+        bytes calldata cbdata,
+        bytes calldata ctx
     )
         external
         returns (bytes memory newCtx);
@@ -63,9 +67,10 @@ interface ISuperApp {
     /**
      * @dev Callback before a new agreement is updated.
      * @param superToken The super token used for the agreement.
-     * @param ctx The context data.
      * @param agreementClass The agreement class address.
      * @param agreementId The agreementId
+     * @param agreementData The agreement data (non-compressed)
+     * @param ctx The context data.
      * @return cbdata A free format in memory data the app can use to pass
      *          arbitary information to the after-hook callback.
      *
@@ -75,9 +80,10 @@ interface ISuperApp {
      */
     function beforeAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bytes calldata agreementData,
+        bytes calldata ctx
     )
         external
         view
@@ -87,10 +93,11 @@ interface ISuperApp {
     /**
     * @dev Callback after a new agreement is updated.
     * @param superToken The super token used for the agreement.
-    * @param ctx The context data.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
+    * @param agreementData The agreement data (non-compressed)
     * @param cbdata The data returned from the before-hook callback.
+    * @param ctx The context data.
     * @return newCtx The current context of the transaction.
     *
     * NOTE:
@@ -99,10 +106,11 @@ interface ISuperApp {
     */
     function afterAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata cbdata
+        bytes calldata agreementData,
+        bytes calldata cbdata,
+        bytes calldata ctx
     )
         external
         returns (bytes memory newCtx);
@@ -110,9 +118,10 @@ interface ISuperApp {
     /**
     * @dev Callback before a new agreement is terminated.
     * @param superToken The super token used for the agreement.
-    * @param ctx The context data.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
+    * @param agreementData The agreement data (non-compressed)
+    * @param ctx The context data.
     * @return cbdata A free format in memory data the app can use to pass
     *          arbitary information to the after-hook callback.
     *
@@ -122,9 +131,10 @@ interface ISuperApp {
     */
     function beforeAgreementTerminated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bytes calldata agreementData,
+        bytes calldata ctx
     )
         external
         view
@@ -133,10 +143,11 @@ interface ISuperApp {
     /**
     * @dev Callback after a new agreement is terminated.
     * @param superToken The super token used for the agreement.
-    * @param ctx The context data.
     * @param agreementClass The agreement class address.
     * @param agreementId The agreementId
+    * @param agreementData The agreement data (non-compressed)
     * @param cbdata The data returned from the before-hook callback.
+    * @param ctx The context data.
     * @return newCtx The current context of the transaction.
     *
     * NOTE:
@@ -145,10 +156,11 @@ interface ISuperApp {
     */
     function afterAgreementTerminated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata cbdata
+        bytes calldata agreementData,
+        bytes calldata cbdata,
+        bytes calldata ctx
     )
         external
         returns (bytes memory newCtx);

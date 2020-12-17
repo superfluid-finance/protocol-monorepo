@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import {
     IConstantFlowAgreementV1,
@@ -33,10 +33,10 @@ contract ConstantFlowAgreementV1 is
     using Int96SafeMath for int96;
 
     struct FlowData {
-        uint256 timestamp;
-        int96 flowRate;
-        uint256 deposit;
-        uint256 owedDeposit;
+        uint256 timestamp; // stored as uint32
+        int96 flowRate; // stored also as int96
+        uint256 deposit; // stored as int96 with lower 32 bits clipped to 0
+        uint256 owedDeposit; // stored as int96 with lower 32 bits clipped to 0
     }
 
     struct FlowParams {
@@ -116,7 +116,8 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        AgreementLibrary.authorizeTokenAccess(token);
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -153,7 +154,8 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        AgreementLibrary.authorizeTokenAccess(token);
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -190,7 +192,8 @@ contract ConstantFlowAgreementV1 is
         FlowParams memory flowParams;
         require(sender != address(0), "CFA: sender is zero");
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx);
+        AgreementLibrary.authorizeTokenAccess(token);
+        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
         flowParams.flowId = _generateFlowId(sender, receiver);
         flowParams.sender = sender;
         flowParams.receiver = receiver;
@@ -366,7 +369,7 @@ contract ConstantFlowAgreementV1 is
         if (dynamicBalance != 0) {
             token.settleBalance(account, dynamicBalance);
         }
-        state.flowRate = state.flowRate.add(flowRateDelta);
+        state.flowRate = state.flowRate.add(flowRateDelta, "CFA: flowrate overflow");
         state.timestamp = currentTimestamp;
         state.deposit = state.deposit.toInt256().add(depositDelta).toUint256();
         state.owedDeposit = state.owedDeposit.toInt256().add(owedDepositDelta).toUint256();
@@ -436,7 +439,6 @@ contract ConstantFlowAgreementV1 is
 
         {
             AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
-                address(this),
                 token,
                 flowParams.receiver,
                 flowParams.flowId
@@ -475,7 +477,7 @@ contract ConstantFlowAgreementV1 is
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
                 cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
             }
-            vars.appContext = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         }
 
         // FIXME
@@ -582,7 +584,7 @@ contract ConstantFlowAgreementV1 is
         int96 totalSenderFlowRate = _updateAccountFlowState(
             token,
             flowParams.sender,
-            oldFlowData.flowRate.sub(flowParams.flowRate),
+            oldFlowData.flowRate.sub(flowParams.flowRate, "CFA: flowrate overflow"),
             depositDelta,
             0,
             currentTimestamp
@@ -590,7 +592,7 @@ contract ConstantFlowAgreementV1 is
         int96 totalReceiverFlowRate = _updateAccountFlowState(
             token,
             flowParams.receiver,
-            flowParams.flowRate.sub(oldFlowData.flowRate),
+            flowParams.flowRate.sub(oldFlowData.flowRate, "CFA: flowrate overflow"),
             0,
             0, // leaving owed deposit unchanged for later adjustment
             currentTimestamp
@@ -693,7 +695,7 @@ contract ConstantFlowAgreementV1 is
     {
         if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
-        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod))));
+        deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow"));
         if (roundingDown) return _clipDepositNumberRoundingDown(deposit);
         return _clipDepositNumber(deposit);
     }

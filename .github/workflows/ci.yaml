@@ -8,6 +8,8 @@ jobs:
 
   build:
 
+    name: Build and run tests
+
     runs-on: ubuntu-latest
 
     env:
@@ -43,6 +45,8 @@ jobs:
 
   coverage:
 
+    name: Run coverage test
+
     runs-on: ubuntu-latest
 
     env:
@@ -57,7 +61,7 @@ jobs:
       with:
         node-version: 12.x
 
-    - name: npm install, build, and test
+    - name: Run coverage test
       run: |
         npm ci
         npm run test-coverage
@@ -70,7 +74,9 @@ jobs:
             coverage/
             coverage.json
 
-  master-deploy-goerli:
+  deploy-master-to-testnets:
+
+    name: Deploy master branch to testnets
 
     needs: [build, coverage]
 
@@ -79,7 +85,12 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
-    # only publish npm package for master branch push
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [goerli, rinkeby, ropsten, mumbai]
+
+    # only deploy for master branch push
     if: github.ref == 'refs/heads/master'
 
     steps:
@@ -91,29 +102,32 @@ jobs:
       with:
         node-version: 12.x
 
-    #- name: Determine release version
-    #  run: |
-    #    RELEASE_VERSION=`basename "$GITHUB_REF"`
-    #    echo "::set-env name=RELEASE_VERSION::$RELEASE_VERSION"
-    #    echo "Release version is $RELEASE_VERSION"
-
-    - name: Build package
+    - name: Build
       run: |
         npm ci
         npm run build
 
-    - name: Deploy to goerli
+    - name: Deploy
       run: |
-        npx truffle exec --network goerli scripts/deploy-test-environment.js
+        npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
       env:
         RELEASE_VERSION: master
-        GOERLI_MNEMONIC: ${{ secrets.GOERLI_MNEMONIC }}
+        GOERLI_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
         GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-        GOERLI_GAS_PRICE: 100e9 # 100 GWEI!
+        RINKEBY_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+        RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
+        ROPSTEN_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+        ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
+        MUMBAI_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+        MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
 
-  master-npm-publish:
+  npm-publish-master:
 
-    needs: [build, coverage, master-deploy-goerli]
+    name: NPM publish master branch package
+
+    # TODO make this happen faster
+
+    needs: [build, coverage, deploy-master-to-testnets]
 
     runs-on: ubuntu-latest
 

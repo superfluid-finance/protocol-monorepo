@@ -7,6 +7,7 @@ const SuperfluidMock = artifacts.require("SuperfluidMock");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const TestGovernance = artifacts.require("TestGovernance");
+const ISuperfluidGovernance = artifacts.require("ISuperfluidGovernance");
 const Proxy = artifacts.require("UUPSProxy");
 const Proxiable = artifacts.require("UUPSProxiable");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
@@ -87,7 +88,10 @@ module.exports = async function (callback, {
             let superfluidAddress = await testResolver.get(name);
             console.log("Superfluid address", superfluidAddress);
             const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
+
             if (reset || !await hasCode(superfluidAddress)) {
+                // deploy new superfluid contract
+
                 const superfluidLogic = await web3tx(SuperfluidLogic.new, "SuperfluidLogic.new")(
                     nonUpgradable
                 );
@@ -109,34 +113,42 @@ module.exports = async function (callback, {
                 await web3tx(superfluid.initialize, "Superfluid.initialize")(
                     governance.address
                 );
-            } else {
-                superfluid = await Superfluid.at(superfluidAddress);
-            }
-            superfluid = await Superfluid.at(superfluidAddress);
-
-            if ((await superfluid.getGovernance.call()) !== governance.address){
-                await web3tx(superfluid.replaceGovernance, "superfluid.replaceGovernance")(
-                    governance.address
-                );
-            }
-
-            if (!nonUpgradable) {
-                if (await proxiableCodeChanged(Proxiable, SuperfluidLogic, superfluidAddress)) {
-                    console.log("Superfluid code has changed");
-                    if (!(await isProxiable(Proxiable, superfluidAddress))) {
-                        throw new Error("Superfluid is non-upgradable");
+                if (!nonUpgradable) {
+                    if (await proxiableCodeChanged(SuperfluidLogic, superfluid)) {
+                        throw new Error("Unexpected code change from fresh deployment");
                     }
-                    const superfluidLogic = await web3tx(SuperfluidLogic.new, "Superfluid.new due to code change")(
-                        false /* nonUpgradable = false, of course... */
-                    );
-                    console.log(`Superfluid new code address ${superfluidLogic.address}`);
-                    await web3tx(governance.updateHostCode, "governance.updateHostCode")(
-                        superfluidAddress,
-                        superfluidLogic.address
-                    );
-                } else {
-                    console.log("Superfluid has the same logic code, no deployment needed.");
                 }
+            } else {
+                // upgrade superfluid contract
+
+                superfluid = await Superfluid.at(superfluidAddress);
+
+                if (!nonUpgradable) {
+                    if (await proxiableCodeChanged(SuperfluidLogic, superfluid)) {
+                        console.log("Superfluid code has changed");
+                        if (!(await isProxiable(Proxiable, superfluidAddress))) {
+                            throw new Error("Superfluid is non-upgradable");
+                        }
+                        const superfluidLogic = await web3tx(SuperfluidLogic.new, "Superfluid.new due to code change")(
+                            false /* nonUpgradable = false, of course... */
+                        );
+                        console.log(`Superfluid new code address ${superfluidLogic.address}`);
+                        await web3tx(governance.updateHostCode, "governance.updateHostCode")(
+                            superfluidAddress,
+                            superfluidLogic.address
+                        );
+                    } else {
+                        console.log("Superfluid has the same logic code, no deployment needed.");
+                    }
+                }
+            }
+
+            // replace with new governance if needed
+            if ((await superfluid.getGovernance.call()) !== governance.address){
+                const currentGovernance = await ISuperfluidGovernance.at(await superfluid.getGovernance.call());
+                await web3tx(currentGovernance.replaceGovernance, "governance.replaceGovernance")(
+                    superfluid.address, governance.address
+                );
             }
         }
 

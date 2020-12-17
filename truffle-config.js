@@ -130,6 +130,22 @@ module.exports = {
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
         },
 
+        artis_tau1: {
+            provider: () => new HDWalletProvider(
+                process.env.ARTIS_MNEMONIC,
+                process.env.ARTIS_PROVIDER_URL,
+                0, //address_index
+                10, // num_addresses
+                true // shareNonce
+            ),
+            network_id: 0x03C401, // artis tau1 network
+            gas: 8e6,
+            gasPrice: +process.env.ARTIS_GAS_PRICE || 1e9, // default 1 gwei
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+        },
+
         coverage: {
             host: "localhost",
             network_id: "*",

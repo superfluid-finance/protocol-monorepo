@@ -58,6 +58,7 @@ module.exports = async function (callback) {
         } else {
             console.log("Code is already deployoed.");
         }
+        callback();
     } catch (err) {
         callback(err);
     }

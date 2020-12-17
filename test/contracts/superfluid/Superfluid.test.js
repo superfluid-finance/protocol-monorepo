@@ -1,5 +1,6 @@
 const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
+const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
 const SuperAppMock = artifacts.require("SuperAppMock");
 const TestGovernance = artifacts.require("TestGovernance");
@@ -61,12 +62,22 @@ contract("Superfluid Host Contract", accounts => {
                     "SF: only governance allowed");
             });
 
-            it("#1.4 only can initialize once", async () => {
+            it("#1.4 only can be initialized once", async () => {
                 await expectRevert(
                     superfluid.initialize(
                         ZERO_ADDRESS,
                     ),
                     "Initializable: contract is already initialized");
+            });
+
+            it("#1.5 update the code by governanc3", async () => {
+                const mock1 = await SuperfluidMock.new(false /* nonUpgradable */);
+                const mock2 = await SuperfluidMock.new(true /* nonUpgradable */);
+                await governance.updateHostCode(superfluid.address, mock1.address);
+                assert.equal(await superfluid.getCodeAddress(), mock1.address);
+                await expectRevert(
+                    governance.updateHostCode(superfluid.address, mock2.address),
+                    "SF: cannot downgrade to non upgradable");
             });
         });
 
@@ -1091,6 +1102,13 @@ contract("Superfluid Host Contract", accounts => {
                     governance.updateSuperTokenFactory(
                         superfluid.address,
                         ZERO_ADDRESS),
+                    "SF: non upgradable");
+            });
+
+            it("#30.3 host is not upgradable", async () => {
+                const mock1 = await SuperfluidMock.new(false /* nonUpgradable */);
+                await expectRevert(
+                    governance.updateHostCode(superfluid.address, mock1.address),
                     "SF: non upgradable");
             });
         });

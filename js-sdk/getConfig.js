@@ -8,8 +8,11 @@ const DEFAULT_CONFIG = {
     3 : { // ropsten
         resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a",
     },
-    80001: { // (matic) mumbai
+    80001: { // (matic) mumbai testnet
         resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3"
+    },
+    0x03C401: { // (artis) tau1 testnet
+        resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47"
     }
 };
 

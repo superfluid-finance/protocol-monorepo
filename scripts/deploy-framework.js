@@ -114,7 +114,9 @@ module.exports = async function (callback, {
                     governance.address
                 );
                 if (!nonUpgradable) {
-                    assert(!await proxiableCodeChanged(SuperfluidLogic, superfluid));
+                    if (!await proxiableCodeChanged(SuperfluidLogic, superfluid)) {
+                        throw new Error("Unexpected code change from fresh deployment");
+                    }
                 }
             } else {
                 // upgrade superfluid contract

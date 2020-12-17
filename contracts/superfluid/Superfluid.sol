@@ -124,7 +124,9 @@ contract Superfluid is
     }
 
     function updateCode(address newAddress) external override onlyGovernance {
-        return _updateCodeAddress(newAddress);
+        require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
+        require(!Superfluid(newAddress).NON_UPGRADABLE_DEPLOYMENT(), "SF: cannot downgrade to non upgradable");
+        _updateCodeAddress(newAddress);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

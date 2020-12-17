@@ -1620,8 +1620,8 @@ contract("Instance Distribution Agreement v1", accounts => {
 
     describe("#4 misc", async () => {
         it("#4.1 only authorized host can access token", async () => {
-            const FakeSuperfluid = artifacts.require("FakeSuperfluid");
-            const fakeHost = await FakeSuperfluid.new();
+            const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
+            const fakeHost = await FakeSuperfluidMock.new();
             await expectRevert(fakeHost.callAgreement(
                 ida.address,
                 ida.contract.methods.createIndex(

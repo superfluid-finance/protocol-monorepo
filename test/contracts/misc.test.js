@@ -8,12 +8,52 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 // } = require("@decentral.ee/web3-helpers");
 
 const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
-
+const ZERO_ADDRESS = "0x"+"0".repeat(40);
 
 contract("Miscellaneous for test coverages", accounts => {
 
     const admin = accounts[0];
     const alice = accounts[1];
+
+    describe("UUPS", () => {
+        const UUPSProxy = artifacts.require("UUPSProxy");
+        const UUPSProxiableMock = artifacts.require("UUPSProxiableMock");
+
+        it("UUPSProxy", async () => {
+            const proxy = await UUPSProxy.new();
+            const proxiable = await UUPSProxiableMock.at(proxy.address);
+            const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
+            const mock = await UUPSProxiableMock.new(uuid1, 1);
+            await expectRevert(proxy.initializeProxy(ZERO_ADDRESS), "UUPSProxy: zero address");
+            await proxy.initializeProxy(mock.address);
+            await expectRevert(proxy.initializeProxy(mock.address), "UUPSProxy: already initialized");
+            assert.equal(await proxiable.proxiableUUID(), uuid1);
+        });
+
+        it("UUPSProxiable", async () => {
+            const proxy = await UUPSProxy.new();
+            const proxiable = await UUPSProxiableMock.at(proxy.address);
+            const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
+            const uuid2 = web3.utils.sha3("UUPSProxiableMock2");
+            const mock1a = await UUPSProxiableMock.new(uuid1, 1);
+            const mock1b = await UUPSProxiableMock.new(uuid1, 2);
+            const mock2 = await UUPSProxiableMock.new(uuid2, 1);
+
+            assert.equal(await mock1a.getCodeAddress(), ZERO_ADDRESS);
+            await expectRevert(mock1a.updateCode(mock1a.address), "UUPSProxiable: not upgradable");
+            await proxiable.updateCode(mock1a.address);
+
+            await proxy.initializeProxy(mock1a.address);
+            assert.equal(await proxiable.proxiableUUID(), uuid1);
+            assert.equal(await proxiable.waterMark(), 1);
+
+            await proxiable.updateCode(mock1b.address);
+            assert.equal(await proxiable.proxiableUUID(), uuid1);
+            assert.equal(await proxiable.waterMark(), 2);
+
+            await expectRevert(proxiable.updateCode(mock2.address), "UUPSProxiable: not compatible logic");
+        });
+    });
 
     describe("TestResolver", () => {
         const TestResolver = artifacts.require("TestResolver");
@@ -64,7 +104,7 @@ contract("Miscellaneous for test coverages", accounts => {
                 MIN_INT96
             );
 
-            // testInt96SafeMathAdd
+            // testInt96SafeMathMul
             assert.equal(
                 (await tester.testInt96SafeMathMul(0, MAX_INT96)).toString(),
                 "0"
@@ -82,6 +122,9 @@ contract("Miscellaneous for test coverages", accounts => {
             );
             await expectRevert(
                 tester.testInt96SafeMathMul(MIN_INT96_DIV_2_MINUS_1, 2),
+                "testInt96SafeMathMul overflow");
+            await expectRevert(
+                tester.testInt96SafeMathMul(MIN_INT96, "-1"),
                 "testInt96SafeMathMul overflow");
 
             // testInt96SafeMathAdd

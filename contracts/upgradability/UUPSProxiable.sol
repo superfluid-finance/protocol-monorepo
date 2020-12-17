@@ -38,6 +38,8 @@ abstract contract UUPSProxiable is Initializable {
             "UUPSProxiable: not compatible logic"
         );
         UUPSUtils.setImplementation(newAddress);
+        emit CodeUpdated(proxiableUUID(), newAddress);
     }
 
+    event CodeUpdated(bytes32 uuid, address codeAddress);
 }

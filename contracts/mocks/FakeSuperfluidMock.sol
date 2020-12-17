@@ -4,7 +4,8 @@ pragma solidity 0.7.5;
 import { CallUtils } from "../utils/CallUtils.sol";
 
 
-contract FakeSuperfluid {
+contract FakeSuperfluidMock {
+
     function callAgreement(
         address agreement,
         bytes calldata callData

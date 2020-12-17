@@ -25,7 +25,7 @@ const {
 
 contract("SuperToken's ERC777 implementation", accounts => {
 
-    const t = new TestEnvironment(accounts.slice(0, 6), { useMocks: true });
+    const t = new TestEnvironment(accounts.slice(0, 6));
     const [ , holder, defaultOperatorA, defaultOperatorB, newOperator, anyone ] = accounts;
     const defaultOperators = [defaultOperatorA, defaultOperatorB];
     const initialSupply = toWad(50);

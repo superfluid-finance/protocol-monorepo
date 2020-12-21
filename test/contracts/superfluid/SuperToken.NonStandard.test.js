@@ -406,19 +406,19 @@ contract("SuperToken's Non Standard Functions", accounts => {
 
         it("#3.3 batchCall should only be called by host", async function () {
             await expectRevert(
-                this.token.operationApprove(alice, bob, "0"),
+                superToken.operationApprove(alice, bob, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
             await expectRevert(
-                this.token.operationTransferFrom(alice, bob, admin, "0"),
+                superToken.operationTransferFrom(alice, bob, admin, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
             await expectRevert(
-                this.token.operationUpgrade(alice, "0"),
+                superToken.operationUpgrade(alice, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
             await expectRevert(
-                this.token.operationDowngrade(alice, "0"),
+                superToken.operationDowngrade(alice, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
         });

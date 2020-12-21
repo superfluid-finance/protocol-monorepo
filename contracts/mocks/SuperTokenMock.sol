@@ -51,6 +51,13 @@ contract SuperTokenMock is SuperToken {
 
         assembly { slot:= _operators.slot offset := _operators.offset }
         require (slot == 7 && offset == 0, "_operators changed location");
+        // uses 4 slots
+
+        assembly { slot:= _reserve0.slot offset := _reserve0.offset }
+        require (slot == 11 && offset == 0, "_reserve0 changed location");
+
+        assembly { slot:= _reserve9.slot offset := _reserve9.offset }
+        require (slot == 20 && offset == 0, "_reserve9 changed location");
     }
 
     /**

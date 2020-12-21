@@ -16,7 +16,6 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /// @dev Initialize the contract
     function initialize(
-        ISuperfluid host,
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
@@ -376,7 +375,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
     * @dev Perform ERC20 transfer from by host contract.
     * @param account The account to spend sender's funds.
-    * @param sender  The account where the funds is sent from.
+    * @param spender  The account where the funds is sent from.
     * @param recipient The recipient of thefunds.
     * @param amount Number of tokens to be transferred.
     *
@@ -385,7 +384,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     */
     function operationTransferFrom(
         address account,
-        address sender,
+        address spender,
         address recipient,
         uint256 amount
     ) external;

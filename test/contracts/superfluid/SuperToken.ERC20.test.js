@@ -237,25 +237,4 @@ contract("SuperToken's ERC20 compliance", accounts => {
         });
     });
 
-    describe("batchCall", function () {
-        it("should only be called by host", async function () {
-            await expectRevert(
-                this.token.operationApprove(alice, bob, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-            await expectRevert(
-                this.token.operationTransferFrom(alice, bob, carol, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-            await expectRevert(
-                this.token.operationUpgrade(alice, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-            await expectRevert(
-                this.token.operationDowngrade(alice, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-        });
-    });
-
 });

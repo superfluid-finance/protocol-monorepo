@@ -10,8 +10,9 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
+    SuperAppDefinitions,
     ContextDefinitions,
-    SuperAppDefinitions
+    BatchOperation
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -344,28 +345,15 @@ interface ISuperfluid {
     /**************************************************************************
     * Batch call
     **************************************************************************/
-
-    /**
-     * @dev Operation type for batch operations
-     */
-    enum OperationType {
-        Approve,          // 0
-        TransferFrom,     // 1
-        Upgrade,          // 2
-        Downgrade,        // 3
-        CallAgreement,    // 4
-        CallApp           // 5
-    }
-
     /**
      * @dev Batch operation data
      */
     struct Operation {
         // Operation
-        OperationType opType;
+        uint32 opeartionType;
         // Operation target
         address target;
-        // Data specific to operation
+        // Data specific to the operation
         bytes data;
     }
 

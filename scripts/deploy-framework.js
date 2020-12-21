@@ -160,7 +160,7 @@ module.exports = async function (callback, {
             if (reset || await codeChanged(SuperTokenFactoryLogic, superTokenFactoryLogicAddress)) {
                 const superTokenLogic = await web3tx(
                     SuperTokenFactoryLogic.new,
-                    "SuperTokenFactoryLogic.new due to code change")();
+                    "SuperTokenFactoryLogic.new due to code change")(superfluid.address);
                 superTokenFactoryLogicAddress = superTokenLogic.address;
                 console.log("New superTokenFactory logic address", superTokenFactoryLogicAddress);
                 await web3tx(governance.updateSuperTokenFactory, "superfluid.updateSuperTokenFactory")(

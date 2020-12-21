@@ -2,28 +2,38 @@
 pragma solidity 0.7.5;
 
 import { SuperTokenMock } from "./SuperTokenMock.sol";
-import { SuperTokenFactoryBase } from "../superfluid/SuperTokenFactory.sol";
+import {
+    SuperTokenFactoryBase,
+    ISuperfluid
+} from "../superfluid/SuperTokenFactory.sol";
 
 
 contract SuperTokenFactoryMock is SuperTokenFactoryBase
 {
 
+    constructor(
+        ISuperfluid host
+    )
+        SuperTokenFactoryBase(host)
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
     function validateStorageLayout() external pure {
         uint256 slot;
         uint256 offset;
 
-        assembly { slot:= _host.slot offset := _host.offset }
-        require (slot == 0 && offset == 2, "_host changed location");
+        // Initializable bool _initialized and bool _initialized
 
         assembly { slot:= _superTokenLogic.slot offset := _superTokenLogic.offset }
-        require (slot == 1 && offset == 0, "_superTokenLogic changed location");
+        require (slot == 0 && offset == 2, "_superTokenLogic changed location");
     }
 
-    function createSuperTokenLogic()
+    function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        SuperTokenMock superToken = new SuperTokenMock(0);
+        SuperTokenMock superToken = new SuperTokenMock(host, 0);
         return address(superToken);
     }
 
@@ -32,11 +42,19 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
 contract SuperTokenFactory42Mock is SuperTokenFactoryBase
 {
 
-    function createSuperTokenLogic()
+    constructor(
+        ISuperfluid host
+    )
+        SuperTokenFactoryBase(host)
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
+    function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        SuperTokenMock superToken = new SuperTokenMock(42);
+        SuperTokenMock superToken = new SuperTokenMock(host, 42);
         return address(superToken);
     }
 

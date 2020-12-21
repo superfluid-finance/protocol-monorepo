@@ -65,8 +65,28 @@ contract SuperToken is
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
+    // NOTE: for future compatibility, these are reserved solidity slots
+    // The sub-class of SuperToken solidity slot will start after _reserve9
+    uint256 internal _reserve0;
+    uint256 private _reserve1;
+    uint256 private _reserve2;
+    uint256 private _reserve3;
+    uint256 private _reserve4;
+    uint256 private _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 internal _reserve9;
+
+    constructor(
+        ISuperfluid host
+    )
+        SuperfluidToken(host)
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
     function initialize(
-        ISuperfluid host,
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
@@ -75,8 +95,6 @@ contract SuperToken is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _host = host;
-
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
 
@@ -556,14 +574,14 @@ contract SuperToken is
 
     function operationTransferFrom(
         address account,
-        address sender,
+        address spender,
         address recipient,
         uint256 amount
     )
         external override
         onlyHost
     {
-        _transferFrom(account, sender, recipient, amount);
+        _transferFrom(account, spender, recipient, amount);
     }
 
     function operationUpgrade(address account, uint256 amount)

@@ -961,7 +961,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe("#10 (WIP) batchCall", () => {
+        describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
                 await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                     toWad("10"), {
@@ -982,35 +982,35 @@ contract("Superfluid Host Contract", accounts => {
                 await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
                     [
                         [
-                            2, // upgrade
+                            101, // upgrade
                             superToken.address,
                             web3.eth.abi.encodeParameters(
                                 ["uint256"],
                                 [toWad("10").toString()])
                         ],
                         [
-                            0, // approve
+                            1, // approve
                             superToken.address,
                             web3.eth.abi.encodeParameters(
                                 ["address", "uint256"],
                                 [bob, toWad("1").toString()])
                         ],
                         [
-                            1, // transferFrom own funds
+                            2, // transferFrom own funds
                             superToken.address,
                             web3.eth.abi.encodeParameters(
                                 ["address", "address", "uint256"],
                                 [admin, bob, toWad("2").toString()])
                         ],
                         [
-                            1, // transferFrom other's funds
+                            2, // transferFrom other's funds
                             superToken.address,
                             web3.eth.abi.encodeParameters(
                                 ["address", "address", "uint256"],
                                 [alice, bob, toWad("3").toString()])
                         ],
                         [
-                            3, // downgrade
+                            102, // downgrade
                             superToken.address,
                             web3.eth.abi.encodeParameters(["uint256"], [toWad("5").toString()])
                         ]
@@ -1036,6 +1036,144 @@ contract("Superfluid Host Contract", accounts => {
                     toWad("5").toString());
 
                 await t.validateSystemInvariance();
+            });
+
+            it("#10.2 batchCall call agreement", async () => {
+                let agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
+                await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
+                    superfluid.address, agreement.address);
+                agreement = await AgreementMock.at(
+                    await superfluid.getAgreementClass(web3.utils.sha3("MockAgreement")));
+
+                const tx = await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                    [
+                        [
+                            201, // call agreement
+                            agreement.address,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                [
+                                    agreement.contract.methods.pingMe(
+                                        42,
+                                        "0x"
+                                    ).encodeABI(),
+                                    "0x" // user data
+                                ]
+                            )
+                        ],
+                        [
+                            201, // call agreement
+                            agreement.address,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                [
+                                    agreement.contract.methods.pingMe(
+                                        43,
+                                        "0x"
+                                    ).encodeABI(),
+                                    "0x" // user data
+                                ]
+                            )
+                        ],
+                    ],
+                    {
+                        from: admin
+                    }
+                );
+                await expectEvent.inTransaction(tx.tx, agreement.contract, "Pong", {
+                    ping: "42"
+                });
+                await expectEvent.inTransaction(tx.tx, agreement.contract, "Pong", {
+                    ping: "43"
+                });
+
+                await reset();
+            });
+
+            it("#10.3 batchCall call app action", async () => {
+                let agreement = await AgreementMock.new(web3.utils.sha3("MockAgreement"), 0);
+                await web3tx(governance.registerAgreementClass, "Registering mock agreement")(
+                    superfluid.address, agreement.address);
+                agreement = await AgreementMock.at(
+                    await superfluid.getAgreementClass(web3.utils.sha3("MockAgreement")));
+                const app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+
+                const tx = await web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                    [
+                        [
+                            201, // call agreement
+                            agreement.address,
+                            web3.eth.abi.encodeParameters(
+                                ["bytes", "bytes"],
+                                [
+                                    agreement.contract.methods.pingMe(
+                                        42,
+                                        "0x"
+                                    ).encodeABI(),
+                                    "0x" // user data
+                                ]
+                            )
+                        ],
+                        [
+                            202, // call app action
+                            app.address,
+                            app.contract.methods.actionCallActionNoop(
+                                "0x"
+                            ).encodeABI()
+                        ],
+                    ],
+                    {
+                        from: admin
+                    }
+                );
+                await expectEvent.inTransaction(tx.tx, agreement.contract, "Pong", {
+                    ping: "42"
+                });
+                await expectEvent.inTransaction(tx.tx, app.contract, "NoopEvent");
+
+                await reset();
+            });
+
+            it("#10.4 batchCall one fail revert all", async () => {
+                const app = await SuperAppMock.new(superfluid.address, 1 /* APP_TYPE_FINAL_LEVEL */, false);
+
+                await expectRevert(web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                    [
+                        [
+                            202, // call app action
+                            app.address,
+                            app.contract.methods.actionCallActionNoop(
+                                "0x"
+                            ).encodeABI()
+                        ],
+                        [
+                            202, // call app action
+                            app.address,
+                            app.contract.methods.actionCallActionRevert(
+                                "error 42",
+                                "0x"
+                            ).encodeABI()
+                        ],
+                    ],
+                    {
+                        from: admin
+                    }
+                ), "error 42");
+            });
+
+            it("#10.5 batchCall invalid operation type", async () => {
+                await expectRevert(web3tx(superfluid.batchCall, "Superfluid.batchCall")(
+                    [
+                        [
+                            8888,
+                            ZERO_ADDRESS,
+                            "0x"
+                        ],
+                    ],
+                    {
+                        from: admin
+                    }
+                ), "SF: unknown batch call operation type");
             });
         });
 

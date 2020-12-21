@@ -43,6 +43,9 @@ library SuperAppDefinitions {
     uint256 constant internal APP_RULE_CTX_IS_NOT_CLEAN = 21;
 }
 
+/**
+ * @dev Context definitions library
+ */
 library ContextDefinitions {
 
     /**************************************************************************
@@ -74,4 +77,66 @@ library ContextDefinitions {
         return uint256(cbLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
     }
 
+}
+
+/**
+ * @dev Batch operation library
+ */
+library BatchOperation {
+    /**
+     * @dev ERC20.approve batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationApprove(
+     *     abi.decode(data, (address spender, uint256 amount))
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC20_APPROVE = 1;
+    /**
+     * @dev ERC20.transferFrom batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationTransferFrom(
+     *     abi.decode(data, (address sender, address recipient, uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC20_TRANSFER_FROM = 2;
+    /**
+     * @dev SuperToken.upgrade batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationUpgrade(
+     *     abi.decode(data, (uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERTOKEN_UPGRADE = 1 + 100;
+    /**
+     * @dev SuperToken.downgrade batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationDowngrade(
+     *     abi.decode(data, (uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERTOKEN_DOWNGRADE = 2 + 100;
+    /**
+     * @dev ERC20 Approve batch operation type
+     *
+     * Call spec:
+     * callAgreement(
+     *     ISuperAgreement(target)),
+     *     abi.decode(data, (bytes calldata, bytes userdata)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT = 1 + 200;
+    /**
+     * @dev ERC20 Approve batch operation type
+     *
+     * Call spec:
+     * callAppAction(
+     *     ISuperApp(target)),
+     *     data
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION = 2 + 200;
 }

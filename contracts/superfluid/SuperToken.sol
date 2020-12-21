@@ -561,14 +561,14 @@ contract SuperToken is
 
     function operationTransferFrom(
         address account,
-        address sender,
+        address spender,
         address recipient,
         uint256 amount
     )
         external override
         onlyHost
     {
-        _transferFrom(account, sender, recipient, amount);
+        _transferFrom(account, spender, recipient, amount);
     }
 
     function operationUpgrade(address account, uint256 amount)

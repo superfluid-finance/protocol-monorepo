@@ -25,9 +25,24 @@ abstract contract SuperTokenFactoryBase is
     ISuperTokenFactory
 {
 
-    ISuperfluid internal _host;
+    ISuperfluid immutable internal _host;
 
     ISuperToken internal _superTokenLogic;
+
+    constructor(
+        ISuperfluid host
+    ) {
+        _host = host;
+    }
+
+    /// @dev ISuperTokenFactory.getHost implementation
+    function getHost()
+       external view
+       override(ISuperTokenFactory)
+       returns(address host)
+    {
+       return address(_host);
+    }
 
     /**************************************************************************
     * UUPSProxiable
@@ -36,8 +51,7 @@ abstract contract SuperTokenFactoryBase is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _host = ISuperfluid(msg.sender);
-        _superTokenLogic = SuperToken(this.createSuperTokenLogic());
+        _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -48,7 +62,7 @@ abstract contract SuperTokenFactoryBase is
         require(msg.sender == address(_host), "only host can update code");
         _updateCodeAddress(newAddress);
         // use external call to trigger the new code to update the super token logic contract
-        _superTokenLogic = SuperToken(this.createSuperTokenLogic());
+        _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
     }
 
     /**************************************************************************
@@ -61,7 +75,7 @@ abstract contract SuperTokenFactoryBase is
         return _superTokenLogic;
     }
 
-    function createSuperTokenLogic() external virtual returns (address logic);
+    function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
     function createERC20Wrapper(
         IERC20 underlyingToken,
@@ -76,7 +90,7 @@ abstract contract SuperTokenFactoryBase is
 
         ISuperToken token;
         if (upgradability == Upgradability.NON_UPGRADABLE) {
-            token = ISuperToken(this.createSuperTokenLogic());
+            token = ISuperToken(this.createSuperTokenLogic(_host));
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
@@ -90,7 +104,6 @@ abstract contract SuperTokenFactoryBase is
 
         // initialize the token
         token.initialize(
-            _host,
             underlyingToken,
             underlyingDecimals,
             name,
@@ -121,10 +134,19 @@ abstract contract SuperTokenFactoryBase is
 
 contract SuperTokenFactory is SuperTokenFactoryBase
 {
-    function createSuperTokenLogic()
+
+    constructor(
+        ISuperfluid host
+    )
+        SuperTokenFactoryBase(host)
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
+    function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        return address(new SuperToken());
+        return address(new SuperToken(host));
     }
 }

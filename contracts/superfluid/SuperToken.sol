@@ -65,8 +65,15 @@ contract SuperToken is
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
+    constructor(
+        ISuperfluid host
+    )
+        SuperfluidToken(host)
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
     function initialize(
-        ISuperfluid host,
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
@@ -75,8 +82,6 @@ contract SuperToken is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _host = host;
-
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
 

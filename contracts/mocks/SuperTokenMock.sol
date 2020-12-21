@@ -2,6 +2,7 @@
 pragma solidity 0.7.5;
 
 import {
+    ISuperfluid,
     ISuperAgreement,
     SuperToken
 } from "../superfluid/SuperToken.sol";
@@ -11,7 +12,9 @@ contract SuperTokenMock is SuperToken {
 
     uint256 immutable public waterMark;
 
-    constructor(uint256 w) {
+    constructor(ISuperfluid host, uint256 w)
+        SuperToken(host)
+    {
         waterMark = w;
     }
 
@@ -23,8 +26,7 @@ contract SuperTokenMock is SuperToken {
         uint256 slot;
         uint256 offset;
 
-        assembly { slot:= _host.slot offset := _host.offset }
-        require (slot == 0 && offset == 2, "_host changed location");
+        // Initializable _initialized and _initialized
 
         assembly { slot:= _inactiveAgreementBitmap.slot offset := _inactiveAgreementBitmap.offset }
         require (slot == 1 && offset == 0, "_inactiveAgreementBitmap changed location");

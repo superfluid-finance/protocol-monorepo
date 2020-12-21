@@ -260,7 +260,7 @@ contract("Superfluid Host Contract", accounts => {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const factory2Logic = await SuperTokenFactory.new();
+                const factory2Logic = await SuperTokenFactory.new(superfluid.address);
                 await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
                     superfluid.address, factory2Logic.address
                 );

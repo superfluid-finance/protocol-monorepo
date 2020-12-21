@@ -79,7 +79,7 @@ contract("SuperTokenFactory Contract", accounts => {
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
                 const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
-                const factory2Logic = await SuperTokenFactory42Mock.new();
+                const factory2Logic = await SuperTokenFactory42Mock.new(superfluid.address);
                 await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
                     superfluid.address, factory2Logic.address
                 );
@@ -124,7 +124,7 @@ contract("SuperTokenFactory Contract", accounts => {
 
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
-                const factory2Logic = await SuperTokenFactory.new();
+                const factory2Logic = await SuperTokenFactory.new(superfluid.address);
                 await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
                     superfluid.address, factory2Logic.address
                 );

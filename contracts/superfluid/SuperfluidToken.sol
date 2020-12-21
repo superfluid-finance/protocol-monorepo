@@ -27,7 +27,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     using SignedSafeMath for int256;
 
     /// @dev Superfluid contract
-    ISuperfluid internal _host;
+    ISuperfluid immutable internal _host;
 
     /// @dev Active agreement bitmap
     mapping(address => uint256) internal _inactiveAgreementBitmap;
@@ -35,7 +35,13 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev Settled balance for the account
     mapping(address => int256) internal _balances;
 
-    /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
+    constructor(
+        ISuperfluid host
+    ) {
+        _host = host;
+    }
+
+    /// @dev ISuperfluidToken.getHost implementation
     function getHost()
        external view
        override(ISuperfluidToken)

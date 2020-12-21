@@ -55,7 +55,6 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await expectRevert(
                 superToken.initialize(
                     ZERO_ADDRESS,
-                    ZERO_ADDRESS,
                     18,
                     "name",
                     "symbol"

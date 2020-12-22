@@ -212,7 +212,7 @@ class MFASupport {
 
         const receivers = Object.keys(mfa.receivers).filter(i=>mfa.receivers[i].proportion>0);
         return {
-            userData: web3.eth.abi.encodeParameters(
+            userData: mfa.noUserData ? "0x" : web3.eth.abi.encodeParameters(
                 ["uint256", "address[]", "uint256[]"],
                 [
                     mfa.ratioPct,
@@ -623,8 +623,8 @@ async function _shouldChangeFlow({
             `${fn} from ${sender} to ${receiver}`
         )({
             ...flows.main.flowId,
-            by: roles.agent
-            // delete flow will use the last user data received from the sender
+            by: roles.agent,
+            userData
         });
         break;
     default:

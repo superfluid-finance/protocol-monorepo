@@ -334,8 +334,6 @@ interface ISuperfluid {
         //
         // For callbacks it is used to know which agreement function selector is called
         bytes4 agreementSelector;
-        // Additional agreement data specific to the agreement function
-        bytes agreementData;
         // User provided data for app callbacks
         bytes userData;
 

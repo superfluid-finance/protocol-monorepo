@@ -53,6 +53,7 @@ library AgreementLibrary {
         ISuperfluidToken token;
         address account;
         bytes32 agreementId;
+        bytes agreementData;
         uint256 appAllowanceGranted;
         int256 appAllowanceUsed;
         uint256 noopBit;
@@ -62,7 +63,8 @@ library AgreementLibrary {
     function createCallbackInputs(
         ISuperfluidToken token,
         address account,
-        bytes32 agreementId
+        bytes32 agreementId,
+        bytes memory agreementData
     )
        internal view
        returns (CallbackInputs memory inputs)
@@ -71,6 +73,7 @@ library AgreementLibrary {
         inputs.token = token;
         inputs.account = account;
         inputs.agreementId = agreementId;
+        inputs.agreementData = agreementData;
         (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
         inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
     }
@@ -89,7 +92,7 @@ library AgreementLibrary {
                 inputs.token,
                 address(this) /* agreementClass */,
                 inputs.agreementId,
-                new bytes(0), // FIXME agreeement data
+                inputs.agreementData,
                 new bytes(0) // placeholder ctx
             );
             cbdata = ISuperfluid(msg.sender).callAppBeforeCallback(
@@ -118,7 +121,7 @@ library AgreementLibrary {
                 inputs.token,
                 address(this) /* agreementClass */,
                 inputs.agreementId,
-                new bytes(0), // FIXME agreeement data
+                inputs.agreementData,
                 cbdata,
                 new bytes(0) // placeholder ctx
             );

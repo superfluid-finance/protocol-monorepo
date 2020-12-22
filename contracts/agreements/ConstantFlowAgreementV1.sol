@@ -129,6 +129,7 @@ contract ConstantFlowAgreementV1 is
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)))
         {
             newCtx = _changeFlowToApp(
+                receiver,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.CREATE_FLOW);
         } else {
@@ -165,6 +166,7 @@ contract ConstantFlowAgreementV1 is
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
             newCtx = _changeFlowToApp(
+                receiver,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.UPDATE_FLOW);
         } else {
@@ -198,7 +200,8 @@ contract ConstantFlowAgreementV1 is
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
         require(exist, "CFA: flow does not exist");
 
-        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
+        int256 availableBalance;
+        (availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
 
         // delete should only be called by sender or receiver
         // unless it is a liquidation (availale balance < 0)
@@ -215,14 +218,41 @@ contract ConstantFlowAgreementV1 is
                 currentContext.msgSender);
         }
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-            newCtx = _changeFlowToApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext, FlowChangeType.DELETE_FLOW);
-        } else {
-            newCtx = _changeFlowToNonApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext);
+        if (currentContext.msgSender == sender) {
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
+                newCtx = _changeFlowToApp(
+                    receiver,
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext);
+            }
+        } else if (currentContext.msgSender == receiver) {
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
+                newCtx = _changeFlowToApp(
+                    sender,
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext);
+            }
+        } else /* liquidation */ {
+            // FIXME if sender is app, jail it
+            // always attempt to call receiver callback
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
+                newCtx = _changeFlowToApp(
+                    receiver,
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext);
+            }
         }
     }
 
@@ -420,6 +450,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid.Context appContext;
     }
     function _changeFlowToApp(
+        address app,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
@@ -437,8 +468,9 @@ contract ConstantFlowAgreementV1 is
         {
             AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
                 token,
-                flowParams.receiver,
-                flowParams.flowId
+                app,
+                flowParams.flowId,
+                abi.encode(flowParams.sender, flowParams.receiver)
             );
 
             // call the before callback

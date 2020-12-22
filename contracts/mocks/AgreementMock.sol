@@ -179,7 +179,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
         cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
@@ -199,7 +200,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
         cbStates.selector = ISuperApp.afterAgreementCreated.selector;
@@ -218,7 +220,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
@@ -238,7 +241,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         cbStates.selector = ISuperApp.afterAgreementTerminated.selector;

@@ -307,7 +307,8 @@ contract InstantDistributionAgreementV1 is
         vars.cbStates = AgreementLibrary.createCallbackInputs(
             token,
             publisher,
-            vars.sId);
+            vars.sId,
+            "");
 
         if (!vars.exist) {
             vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
@@ -386,7 +387,8 @@ contract InstantDistributionAgreementV1 is
         vars.cbStates = AgreementLibrary.createCallbackInputs(
             token,
             subscriber,
-            sId);
+            sId,
+            "");
         newCtx = ctx;
 
         // before-hook callback
@@ -590,7 +592,8 @@ contract InstantDistributionAgreementV1 is
         vars.cbStates = AgreementLibrary.createCallbackInputs(
             token,
             sender == subscriber ? publisher : subscriber,
-            vars.sId);
+            vars.sId,
+            "");
         newCtx = ctx;
 
         vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
@@ -660,7 +663,8 @@ contract InstantDistributionAgreementV1 is
         vars.cbStates = AgreementLibrary.createCallbackInputs(
             token,
             publisher,
-            vars.sId);
+            vars.sId,
+            "");
         newCtx = ctx;
 
         if (pendingDistribution > 0) {

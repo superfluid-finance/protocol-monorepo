@@ -1123,7 +1123,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await expectNetFlow("mfa", "0");
         });
 
-        it.skip("#2.9 mfa-1to1_100pct_create_full_delete_by_receiver", async () => {
+        it("#2.9 mfa-1to1_100pct_create_full_delete_by_receiver", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             const mfa = {
@@ -1142,14 +1142,21 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1));
+            await timeTravelOnceAndVerifyAll();
 
             // fully delete everything by receiver1
             await shouldDeleteFlow({
                 testenv: t,
                 sender: "mfa",
                 receiver: receiver1,
-                mfa,
-                by: receiver1
+                by: receiver1,
+                mfa: {
+                    ...mfa,
+                    noUserData: true
+                }
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");

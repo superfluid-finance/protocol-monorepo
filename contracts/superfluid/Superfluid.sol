@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -34,41 +34,6 @@ contract Superfluid is
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
-
-    //
-    // the context that only needed for the next callback level
-    //
-    struct ExtCallContext {
-        // callback level
-        uint8 cbLevel;
-        // type of call
-        uint8 callType;
-        // the system timestsamp
-        uint256 timestamp;
-        // The intended message sender for the call
-        address msgSender;
-        // For callbacks it is used to know which agreement function selector is called
-        bytes4 agreementSelector;
-        // User provided data for app callbacks
-        bytes userData;
-    }
-
-    //
-    // the context that needed by the app
-    //
-    struct AppContext {
-        // app allowance granted
-        uint256 allowanceGranted;
-        // app allowance wanted by the app callback
-        uint256 allowanceWanted;
-        // app allowance used, allowing negative values over a callback session
-        int256 allowanceUsed;
-    }
-
-    struct FullContext {
-        ExtCallContext extCall;
-        AppContext app;
-    }
 
     struct AppManifest {
         uint256 configWord;
@@ -416,19 +381,19 @@ contract Superfluid is
 
     function appCallbackPush(
         bytes calldata ctx,
-        uint256 allowanceGranted,
-        int256 allowanceUsed
+        uint256 appAllowanceGranted,
+        int256 appAllowanceUsed
     )
         external override
         onlyAgreement
         returns (bytes memory appCtx)
     {
-        FullContext memory appContext = _decodeFullContext(ctx);
-        appContext.extCall.cbLevel++;
-        appContext.extCall.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
-        appContext.app.allowanceGranted = allowanceGranted;
-        appContext.app.allowanceWanted = 0;
-        appContext.app.allowanceUsed = allowanceUsed;
+        Context memory appContext = decodeCtx(ctx);
+        appContext.cbLevel++;
+        appContext.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
+        appContext.appAllowanceGranted = appAllowanceGranted;
+        appContext.appAllowanceWanted = 0;
+        appContext.appAllowanceUsed = appAllowanceUsed;
         appCtx = _updateContext(appContext);
     }
 
@@ -440,8 +405,8 @@ contract Superfluid is
         onlyAgreement
         returns (bytes memory newCtx)
     {
-        FullContext memory context = _decodeFullContext(ctx);
-        context.app.allowanceUsed = context.app.allowanceUsed.add(allowanceUsedDelta);
+        Context memory context = decodeCtx(ctx);
+        context.appAllowanceUsed = context.appAllowanceUsed.add(allowanceUsedDelta);
         newCtx = _updateContext(context);
     }
 
@@ -454,10 +419,10 @@ contract Superfluid is
         onlyAgreement
         returns (bytes memory newCtx)
     {
-        FullContext memory context = _decodeFullContext(ctx);
+        Context memory context = decodeCtx(ctx);
 
-        context.app.allowanceWanted = context.app.allowanceWanted.add(allowanceWantedMore);
-        context.app.allowanceUsed = context.app.allowanceUsed.add(allowanceUsedDelta);
+        context.appAllowanceWanted = context.appAllowanceWanted.add(allowanceWantedMore);
+        context.appAllowanceUsed = context.appAllowanceUsed.add(allowanceUsedDelta);
 
         newCtx = _updateContext(context);
     }
@@ -480,21 +445,18 @@ contract Superfluid is
         bytes memory ctx;
         // beaware of the endiness
         bytes4 agreementSelector = CallUtils.parseSelector(callData);
-        ctx = _updateContext(FullContext({
-            extCall: ExtCallContext({
-                cbLevel: 0,
-                callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
-                /* solhint-disable-next-line not-rely-on-time */
-                timestamp: block.timestamp,
-                msgSender: msg.sender,
-                agreementSelector: agreementSelector,
-                userData: userData
-            }),
-            app: AppContext({
-                allowanceGranted: 0,
-                allowanceWanted: 0,
-                allowanceUsed: 0
-            })
+        ctx = _updateContext(Context({
+            cbLevel: 0,
+            callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
+            /* solhint-disable-next-line not-rely-on-time */
+            timestamp: block.timestamp,
+            msgSender: msg.sender,
+            agreementSelector: agreementSelector,
+            agreementData: "",
+            userData: userData,
+            appAllowanceGranted: 0,
+            appAllowanceWanted: 0,
+            appAllowanceUsed: 0
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
@@ -519,21 +481,18 @@ contract Superfluid is
         bool success;
 
         bytes memory ctx;
-        ctx = _updateContext(FullContext({
-            extCall: ExtCallContext({
-                cbLevel: 0,
-                callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
-                /* solhint-disable-next-line not-rely-on-time */
-                timestamp: block.timestamp,
-                msgSender: msg.sender,
-                agreementSelector: 0,
-                userData: ""
-            }),
-            app: AppContext({
-                allowanceGranted: 0,
-                allowanceWanted: 0,
-                allowanceUsed: 0
-            })
+        ctx = _updateContext(Context({
+            cbLevel: 0,
+            callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
+            /* solhint-disable-next-line not-rely-on-time */
+            timestamp: block.timestamp,
+            msgSender: msg.sender,
+            agreementSelector: 0,
+            agreementData: "",
+            userData: "",
+            appAllowanceGranted: 0,
+            appAllowanceWanted: 0,
+            appAllowanceUsed: 0
         }));
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
         if (success) {
@@ -561,12 +520,12 @@ contract Superfluid is
         isAgreement(agreementClass)
         returns (bytes memory newCtx, bytes memory returnedData)
     {
-        FullContext memory context = _decodeFullContext(ctx);
-        address oldSender = context.extCall.msgSender;
+        Context memory context = decodeCtx(ctx);
+        address oldSender = context.msgSender;
 
-        context.extCall.msgSender = msg.sender;
-        //context.extCall.agreementSelector =;
-        context.extCall.userData = userData;
+        context.msgSender = msg.sender;
+        //context.agreementSelector =;
+        context.userData = userData;
         newCtx = _updateContext(context);
 
         bool success;
@@ -575,8 +534,8 @@ contract Superfluid is
             (newCtx) = abi.decode(returnedData, (bytes));
             assert(_isCtxValid(newCtx));
             // back to old msg.sender
-            context = _decodeFullContext(newCtx);
-            context.extCall.msgSender = oldSender;
+            context = decodeCtx(newCtx);
+            context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
             revert(CallUtils.getRevertMsg(returnedData));
@@ -593,11 +552,11 @@ contract Superfluid is
         isAppActive(app)
         returns(bytes memory newCtx)
     {
-        FullContext memory context = _decodeFullContext(ctx);
-        address oldSender = context.extCall.msgSender;
+        Context memory context = decodeCtx(ctx);
+        address oldSender = context.msgSender;
 
         // FIXME max app level check
-        context.extCall.msgSender = msg.sender;
+        context.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
         (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
@@ -605,36 +564,32 @@ contract Superfluid is
             (newCtx) = abi.decode(returnedData, (bytes));
             require(_isCtxValid(newCtx), "SF: APP_RULE_CTX_IS_READONLY");
             // back to old msg.sender
-            context = _decodeFullContext(newCtx);
-            context.extCall.msgSender = oldSender;
+            context = decodeCtx(newCtx);
+            context.msgSender = oldSender;
             newCtx = _updateContext(context);
         } else {
             revert(CallUtils.getRevertMsg(returnedData));
         }
     }
 
-    function decodeCtx(bytes calldata ctx)
-        external pure override
-        returns (
-            uint256 callInfo,
-            uint256 timestamp,
-            address msgSender,
-            bytes4 agreementSelector,
-            bytes memory userData,
-            uint256 appAllowanceGranted,
-            uint256 appAllowanceWanted,
-            int256 appAllowanceUsed
-        )
+    function decodeCtx(bytes memory ctx)
+        public pure override
+        returns (Context memory context)
     {
-        FullContext memory context = _decodeFullContext(ctx);
-        callInfo = ContextDefinitions.encodeCallInfo(context.extCall.cbLevel, context.extCall.callType);
-        timestamp = context.extCall.timestamp;
-        msgSender = context.extCall.msgSender;
-        agreementSelector = context.extCall.agreementSelector;
-        userData = context.extCall.userData;
-        appAllowanceGranted = context.app.allowanceGranted;
-        appAllowanceWanted = context.app.allowanceWanted;
-        appAllowanceUsed = context.app.allowanceUsed;
+        uint256 callInfo;
+        uint256 allowanceIO;
+        (
+            callInfo,
+            context.timestamp,
+            context.msgSender,
+            context.agreementSelector,
+            context.userData,
+            allowanceIO,
+            context.appAllowanceUsed
+        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256));
+        (context.cbLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
+        context.appAllowanceGranted = allowanceIO & type(uint128).max;
+        context.appAllowanceWanted = allowanceIO >> 128;
     }
 
     function isCtxValid(bytes calldata ctx)
@@ -705,42 +660,22 @@ contract Superfluid is
         emit Jail(app, reason);
     }
 
-    function _decodeFullContext(bytes memory ctx)
-        private pure
-        returns (FullContext memory context)
-    {
-        uint256 callInfo;
-        uint256 allowanceIO;
-        (
-            callInfo,
-            context.extCall.timestamp,
-            context.extCall.msgSender,
-            context.extCall.agreementSelector,
-            context.extCall.userData,
-            allowanceIO,
-            context.app.allowanceUsed
-        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256));
-        (context.extCall.cbLevel, context.extCall.callType) = ContextDefinitions.decodeCallInfo(callInfo);
-        context.app.allowanceGranted = allowanceIO & type(uint128).max;
-        context.app.allowanceWanted = allowanceIO >> 128;
-    }
-
-    function _updateContext(FullContext memory context)
+    function _updateContext(Context memory context)
         private
         returns (bytes memory ctx)
     {
-        uint256 callInfo = ContextDefinitions.encodeCallInfo(context.extCall.cbLevel, context.extCall.callType);
+        uint256 callInfo = ContextDefinitions.encodeCallInfo(context.cbLevel, context.callType);
         uint256 allowanceIO =
-            context.app.allowanceGranted.toUint128() |
-            (uint256(context.app.allowanceWanted.toUint128()) << 128);
+            context.appAllowanceGranted.toUint128() |
+            (uint256(context.appAllowanceWanted.toUint128()) << 128);
         ctx = abi.encode(
             callInfo,
-            context.extCall.timestamp,
-            context.extCall.msgSender,
-            context.extCall.agreementSelector,
-            context.extCall.userData,
+            context.timestamp,
+            context.msgSender,
+            context.agreementSelector,
+            context.userData,
             allowanceIO,
-            context.app.allowanceUsed
+            context.appAllowanceUsed
         );
         _ctxStamp = keccak256(ctx);
     }

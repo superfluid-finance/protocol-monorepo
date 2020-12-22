@@ -141,8 +141,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        AgreementLibrary.authorizeTokenAccess(token);
-        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
+        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        address publisher = context.msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         require(!_hasIndexData(token, iId), "IDA: E_INDEX_EXISTS");
 
@@ -187,8 +187,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        AgreementLibrary.authorizeTokenAccess(token);
-        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
+        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        address publisher = context.msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDA: E_NO_INDEX");
@@ -209,8 +209,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        AgreementLibrary.authorizeTokenAccess(token);
-        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
+        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        address publisher = context.msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDA: E_NO_INDEX");
@@ -288,8 +288,8 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         _StackVars memory vars;
-        AgreementLibrary.authorizeTokenAccess(token);
-        address subscriber = AgreementLibrary.decodeCtx(ctx).msgSender;
+        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        address subscriber = context.msgSender;
         vars.iId = _getPublisherId(publisher, indexId);
         vars.sId = _getSubscriptionId(subscriber, vars.iId);
         (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
@@ -370,8 +370,8 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         _StackVars memory vars;
-        AgreementLibrary.authorizeTokenAccess(token);
-        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
+        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        address publisher = context.msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         bytes32 sId = _getSubscriptionId(subscriber, iId);
         (vars.exist, vars.idata) = _getIndexData(token, iId);
@@ -575,8 +575,8 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         _StackVars memory vars;
-        AgreementLibrary.authorizeTokenAccess(token);
-        address sender = AgreementLibrary.decodeCtx(ctx).msgSender;
+        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        address sender = context.msgSender;
         require(sender == publisher || sender == subscriber, "IDA: E_NOT_ALLOWED");
         vars.iId = _getPublisherId(publisher, indexId);
         vars.sId = _getSubscriptionId(subscriber, vars.iId);

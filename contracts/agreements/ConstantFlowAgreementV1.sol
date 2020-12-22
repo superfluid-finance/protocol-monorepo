@@ -116,8 +116,7 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.authorizeTokenAccess(token);
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -154,8 +153,7 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.authorizeTokenAccess(token);
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -192,8 +190,7 @@ contract ConstantFlowAgreementV1 is
         FlowParams memory flowParams;
         require(sender != address(0), "CFA: sender is zero");
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.authorizeTokenAccess(token);
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         flowParams.flowId = _generateFlowId(sender, receiver);
         flowParams.sender = sender;
         flowParams.receiver = receiver;
@@ -387,7 +384,7 @@ contract ConstantFlowAgreementV1 is
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
         bytes memory ctx,
-        AgreementLibrary.Context memory currentContext
+        ISuperfluid.Context memory currentContext
     )
         private
         returns (bytes memory newCtx)
@@ -420,14 +417,14 @@ contract ConstantFlowAgreementV1 is
         bytes cbdata;
         FlowData newFlowData;
         uint256 appAllowance;
-        AgreementLibrary.Context appContext;
+        ISuperfluid.Context appContext;
     }
     function _changeFlowToApp(
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
         bytes memory ctx,
-        AgreementLibrary.Context memory currentContext,
+        ISuperfluid.Context memory currentContext,
         FlowChangeType optype
     )
         private
@@ -462,7 +459,7 @@ contract ConstantFlowAgreementV1 is
                     token, flowParams, oldFlowData);
 
             // each app level get a same amount of allowance
-            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel + 1));
+            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.cbLevel + 1));
 
             // call the after callback
             cbStates.appAllowanceGranted = vars.appAllowance;
@@ -610,7 +607,7 @@ contract ConstantFlowAgreementV1 is
 
     function _requireAvailableBalance(
         ISuperfluidToken token,
-        AgreementLibrary.Context memory currentContext
+        ISuperfluid.Context memory currentContext
     )
         private view
     {

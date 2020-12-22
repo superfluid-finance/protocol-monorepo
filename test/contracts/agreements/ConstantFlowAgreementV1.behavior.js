@@ -623,8 +623,8 @@ async function _shouldChangeFlow({
             `${fn} from ${sender} to ${receiver}`
         )({
             ...flows.main.flowId,
-            by: roles.agent,
-            userData
+            by: roles.agent
+            // delete flow will use the last user data received from the sender
         });
         break;
     default:

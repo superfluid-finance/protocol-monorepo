@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
+pragma abicoder v2;
 
 import {
     ISuperfluidGovernance,
@@ -28,38 +29,19 @@ library AgreementLibrary {
      * Context helpers
      *************************************************************************/
 
-    struct Context {
-        uint256 timestamp;
-        address msgSender;
-        uint8 appLevel;
-        uint8 callType;
-        uint256 appAllowanceGranted;
-        uint256 appAllowanceWanted;
-        int256 appAllowanceUsed;
-    }
-
-    function authorizeTokenAccess(ISuperfluidToken token)
+    /**
+     * @dev Authorize the msg.sender to access token agreement storage
+     *
+     * NOTE:
+     * - msg.sender must be the expected host contract.
+     * - it should revert on unauthorized access.
+     */
+    function authorizeTokenAccess(ISuperfluidToken token, bytes memory ctx)
         internal view
+        returns (ISuperfluid.Context memory)
     {
         require(token.getHost() == msg.sender, "AgreementLibrary: unauthroized host");
-    }
-
-    function decodeCtx(bytes memory ctx)
-        internal view
-        returns (Context memory context)
-    {
-        uint256 callInfo;
-        (
-            callInfo,
-            context.timestamp,
-            context.msgSender,
-            ,
-            ,
-            context.appAllowanceGranted,
-            context.appAllowanceWanted,
-            context.appAllowanceUsed
-        ) = ISuperfluid(msg.sender).decodeCtx(ctx);
-        (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
+        return ISuperfluid(msg.sender).decodeCtx(ctx);
     }
 
     /**************************************************************************
@@ -126,7 +108,7 @@ library AgreementLibrary {
         bytes memory ctx
     )
         internal
-        returns (Context memory appContext, bytes memory appCtx)
+        returns (ISuperfluid.Context memory appContext, bytes memory appCtx)
     {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
             appCtx = _pushCallbackStack(ctx, inputs);
@@ -146,7 +128,7 @@ library AgreementLibrary {
                 inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
 
-            appContext = decodeCtx(appCtx);
+            appContext = ISuperfluid(msg.sender).decodeCtx(appCtx);
 
             // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
             appContext.appAllowanceUsed = max(0, min(

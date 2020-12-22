@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
-// This is required by the batchCall
-pragma experimental ABIEncoderV2;
+// This is required by the batchCall and decodeCtx
+pragma abicoder v2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
@@ -230,8 +230,8 @@ interface ISuperfluid {
 
     function appCallbackPush(
         bytes calldata ctx,
-        uint256 allowanceGranted,
-        int256 allowanceUsed
+        uint256 appAllowanceGranted,
+        int256 appAllowanceUsed
     )
         external
         // onlyAgreement
@@ -306,6 +306,50 @@ interface ISuperfluid {
      * the violating app will be jailed.
      *************************************************************************/
 
+    /**
+     * @dev ABIv2 Encoded memory data of context
+     *
+     * NOTE on backward compatibility:
+     * - Non-dynamic fields are padded to 32bytes and packed
+     * - Dynamic fields are referenced through a 32bytes offset to their "parents" field (or root)
+     * - The order of the fields hence should not be rearranged in order to be backward compatible:
+     *    - non-dynamic fields will be parsed at the same memory location,
+     *    - and dynamic fields will simply have a greater offset than it was.
+     */
+    struct Context {
+        //
+        // Call context
+        //
+        // callback level
+        uint8 cbLevel;
+        // type of call
+        uint8 callType;
+        // the system timestsamp
+        uint256 timestamp;
+        // The intended message sender for the call
+        address msgSender;
+
+        //
+        // Callback context
+        //
+        // For callbacks it is used to know which agreement function selector is called
+        bytes4 agreementSelector;
+        // Additional agreement data specific to the agreement function
+        bytes agreementData;
+        // User provided data for app callbacks
+        bytes userData;
+
+        //
+        // App context
+        //
+        // app allowance granted
+        uint256 appAllowanceGranted;
+        // app allowance wanted by the app callback
+        uint256 appAllowanceWanted;
+        // app allowance used, allowing negative values over a callback session
+        int256 appAllowanceUsed;
+    }
+
     function callAgreementWithContext(
         ISuperAgreement agreementClass,
         bytes calldata callData,
@@ -329,16 +373,7 @@ interface ISuperfluid {
 
     function decodeCtx(bytes calldata ctx)
         external pure
-        returns (
-            uint256 callInfo,
-            uint256 timestamp,
-            address msgSender,
-            bytes4 agreementSelector,
-            bytes memory userData,
-            uint256 appAllowanceGranted,
-            uint256 appAllowanceWanted,
-            int256 appAllowanceUsed
-        );
+        returns (Context memory context);
 
     function isCtxValid(bytes calldata ctx) external view returns (bool);
 

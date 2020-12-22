@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.5;
+pragma abicoder v2;
 
 import {
     ISuperfluid,
@@ -129,9 +130,9 @@ contract DividendRightsToken is
     )
         private
     {
-        (,,address subscriber,bytes4 agreementSelector,,,,) = _host.decodeCtx(ctx);
+        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         // only interested in the subscription approval callbacks
-        if (agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
+        if (context.agreementSelector == IInstantDistributionAgreementV1.approveSubscription.selector) {
             address publisher;
             uint32 indexId;
             bool approved;
@@ -145,7 +146,7 @@ contract DividendRightsToken is
             require(indexId == INDEX_ID, "DRT: publisher mismatch");
 
             if (approved) {
-                isSubscribing[subscriber] = true;
+                isSubscribing[context.msgSender /* subscriber */] = true;
             }
         }
     }

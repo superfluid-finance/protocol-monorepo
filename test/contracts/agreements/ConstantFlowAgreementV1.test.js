@@ -1123,6 +1123,51 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await expectNetFlow("mfa", "0");
         });
 
+        it.skip("#2.9 mfa-1to1_100pct_create_full_delete_by_receiver", async () => {
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            const mfa = {
+                ratioPct: 100,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            });
+
+            // fully delete everything by receiver1
+            await shouldDeleteFlow({
+                testenv: t,
+                sender: "mfa",
+                receiver: receiver1,
+                mfa,
+                by: receiver1
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", "0");
+            await expectNetFlow(receiver1, "0");
+            await timeTravelOnceAndVerifyAll();
+        });
+
+        it("#2.20 createFlow via app action should respect deposit rule", async () => {
+            await expectRevert(t.sf.host.callAppAction(
+                app.address,
+                app.contract.methods.createFlow(
+                    superToken.address,
+                    bob,
+                    FLOW_RATE1.toString(),
+                    "0x"
+                ).encodeABI()
+            ), "CFA: not enough available balance");
+        });
     });
 
     describe("#10 multi accounts scenarios", () => {

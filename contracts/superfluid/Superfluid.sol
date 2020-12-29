@@ -727,7 +727,6 @@ contract Superfluid is
                 if (!isTermination) {
                     revert(CallUtils.getRevertMsg(returnedData));
                 } else {
-                    revert(CallUtils.getRevertMsg(returnedData));
                     _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
                 }
             } else {

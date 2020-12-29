@@ -32,7 +32,6 @@ contract MultiFlowApp is SuperAppBase {
 
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
-    mapping (address => bytes) private _userDatas;
 
     constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
         assert(address(cfa) != address(0));
@@ -52,13 +51,14 @@ contract MultiFlowApp is SuperAppBase {
         bytes memory userData
     )
         private pure
-        returns (Configuration memory configuration)
+        returns (address sender, Configuration memory configuration)
     {
         // parse user data
         uint8 ratioPct;
         address[] memory receivers;
         uint256[] memory proportions;
-        (ratioPct, receivers, proportions) = abi.decode(userData, (uint8, address[], uint256[]));
+        (sender, ratioPct, receivers, proportions) = abi.decode(
+            userData, (address, uint8, address[], uint256[]));
         assert(receivers.length == proportions.length);
 
         configuration.ratioPct = ratioPct;
@@ -146,6 +146,14 @@ contract MultiFlowApp is SuperAppBase {
         );
     }
 
+    struct StackVars {
+    	ISuperfluid.Context context;
+        address mfaSender;
+        Configuration configuration;
+        address flowSender;
+        address flowReceiver;
+    }
+
     function afterAgreementCreated(
         ISuperToken superToken,
         address agreementClass,
@@ -159,27 +167,26 @@ contract MultiFlowApp is SuperAppBase {
         returns(bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        StackVars memory vars;
+
+        vars.context = _host.decodeCtx(ctx);
+        // parse user data
+        (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
         // validate the context
         {
-            address flowSender;
-            address flowReceiver;
-            (flowSender, flowReceiver) = abi.decode(agreementData, (address, address));
-            assert(flowSender == context.msgSender);
-            assert(flowReceiver == address(this));
-            assert(context.appAllowanceGranted > 0);
+            (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
+            assert(vars.flowSender == vars.context.msgSender);
+            assert(vars.flowReceiver == address(this));
+            assert(vars.context.appAllowanceGranted > 0);
         }
         int96 flowRate;
-        Configuration memory configuration;
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
-        configuration = _parseUserData(context.userData);
-        _userDatas[context.msgSender] = context.userData;
         newCtx = _updateMultiFlow(
-            configuration,
+            vars.configuration,
             superToken,
             _cfa.createFlow.selector,
             flowRate,
-            context.appAllowanceGranted,
+            vars.context.appAllowanceGranted,
             ctx);
     }
 
@@ -212,27 +219,26 @@ contract MultiFlowApp is SuperAppBase {
         returns (bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        StackVars memory vars;
+
+        vars.context = _host.decodeCtx(ctx);
+        // parse user data
+        (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
         // validate the context
         {
-            address flowSender;
-            address flowReceiver;
-            (flowSender, flowReceiver) = abi.decode(agreementData, (address, address));
-            assert(flowSender == context.msgSender);
-            assert(flowReceiver == address(this));
-            assert(context.appAllowanceGranted > 0);
+            (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
+            assert(vars.flowSender == vars.context.msgSender);
+            assert(vars.flowReceiver == address(this));
+            assert(vars.context.appAllowanceGranted > 0);
         }
         int96 flowRate;
-        Configuration memory configuration;
         (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
-        configuration = _parseUserData(context.userData);
-        _userDatas[context.msgSender] = context.userData;
         newCtx = _updateMultiFlow(
-            configuration,
+            vars.configuration,
             superToken,
             _cfa.updateFlow.selector,
             flowRate,
-            context.appAllowanceGranted,
+            vars.context.appAllowanceGranted,
             ctx);
     }
 
@@ -250,26 +256,58 @@ contract MultiFlowApp is SuperAppBase {
         returns (bytes memory newCtx)
     {
         assert(agreementClass == address(_cfa));
-        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        StackVars memory vars;
+
+        vars.context = _host.decodeCtx(ctx);
+
+        // parse user data
+        (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
         // validate the context
-        address flowSender;
-        {
-            address flowReceiver;
-            (flowSender, flowReceiver) = abi.decode(agreementData, (address, address));
-            assert(flowReceiver == address(this) || flowSender == address(this));
-        }
-        Configuration memory configuration;
-        configuration = _parseUserData(
-            // allow the user to override the user data
-            context.userData.length > 0 ? context.userData : _userDatas[flowSender]
-        );
+        (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
+
+        bytes memory callData;
         newCtx = ctx;
-        for(uint256 i = 0; i < configuration.receivers.length; i++) {
-            bytes memory callData = abi.encodeWithSelector(
+        if (vars.flowReceiver == address(this)) {
+            for(uint256 i = 0; i < vars.configuration.receivers.length; i++) {
+                callData = abi.encodeWithSelector(
+                    _cfa.deleteFlow.selector,
+                    superToken,
+                    address(this),
+                    vars.configuration.receivers[i].to,
+                    new bytes(0) //placeholder ctx
+                );
+                (newCtx, ) = _host.callAgreementWithContext(
+                    _cfa,
+                    callData,
+                    new bytes(0), // user data
+                    newCtx
+                );
+            }
+        } else if (vars.flowSender == address(this)) {
+            for(uint256 i = 0; i < vars.configuration.receivers.length; i++) {
+                // skip current closed flow
+                if (vars.configuration.receivers[i].to == vars.flowReceiver) continue;
+                // close the rest of the mfa receiver flows
+                callData = abi.encodeWithSelector(
+                    _cfa.deleteFlow.selector,
+                    superToken,
+                    address(this),
+                    vars.configuration.receivers[i].to,
+                    new bytes(0) //placeholder ctx
+                );
+                (newCtx, ) = _host.callAgreementWithContext(
+                    _cfa,
+                    callData,
+                    new bytes(0), // user data
+                    newCtx
+                );
+            }
+            // close the mfa sender flow
+            callData = abi.encodeWithSelector(
                 _cfa.deleteFlow.selector,
                 superToken,
+                vars.mfaSender,
                 address(this),
-                configuration.receivers[i].to,
                 new bytes(0) //placeholder ctx
             );
             (newCtx, ) = _host.callAgreementWithContext(
@@ -278,7 +316,7 @@ contract MultiFlowApp is SuperAppBase {
                 new bytes(0), // user data
                 newCtx
             );
-        }
+        } else assert(false) /* FIXME test liquidation */;
     }
 
     modifier onlyHost() {

@@ -693,6 +693,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 100,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -755,6 +756,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 0,
+                sender,
                 receivers: { }
             };
 
@@ -809,6 +811,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 100,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -877,6 +880,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 50,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -947,6 +951,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 150,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -1013,6 +1018,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         it("#2.6 mfa-1to1-101pct_create-should-fail-without-extra-funds", async () => {
             const mfa = {
                 ratioPct: 101,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -1035,6 +1041,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             let mfa = {
                 ratioPct: 100,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -1061,6 +1068,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             // delete flow of receiver 1
             mfa = {
                 ratioPct: 100,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -1088,6 +1096,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             let mfa = {
                 ratioPct: 100,
+                sender,
                 receivers: {
                     [sender]: {
                         proportion: 1
@@ -1112,13 +1121,15 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender: t.getAddress(sender),
                 receiver:app.address,
                 userData: web3.eth.abi.encodeParameters(
-                    ["uint256", "address[]", "uint256[]"],
+                    ["address", "uint256", "address[]", "uint256[]"],
                     [
+                        t.getAddress(sender),
                         mfa.ratioPct,
                         [t.getAddress(sender)],
                         [1]
                     ])
             });
+            assert.isFalse(await t.contracts.superfluid.isAppJailed(app.address));
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
         });
@@ -1128,6 +1139,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             const mfa = {
                 ratioPct: 100,
+                sender,
                 receivers: {
                     [receiver1]: {
                         proportion: 1
@@ -1153,10 +1165,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender: "mfa",
                 receiver: receiver1,
                 by: receiver1,
-                mfa: {
-                    ...mfa,
-                    noUserData: true
-                }
+                mfa
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");

@@ -235,12 +235,17 @@ contract ConstantFlowAgreementV1 is
                     sender,
                     token, flowParams, oldFlowData,
                     ctx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
+                newCtx = _changeFlowToApp(
+                    address(0),
+                    token, flowParams, oldFlowData,
+                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
             } else {
                 newCtx = _changeFlowToNonApp(
                     token, flowParams, oldFlowData,
                     ctx, currentContext);
             }
-        } else /* liquidation */ {
+        } else /* liquidations */ {
             // FIXME if sender is app, jail it
             // always attempt to call receiver callback
             if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
@@ -450,7 +455,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluid.Context appContext;
     }
     function _changeFlowToApp(
-        address app,
+        address appToCallback,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
@@ -465,10 +470,11 @@ contract ConstantFlowAgreementV1 is
         // apply callbacks
         _StackVars_changeFlowToApp memory vars;
 
-        {
+        // call callback
+        if (appToCallback != address(0)) {
             AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
                 token,
-                app,
+                appToCallback,
                 flowParams.flowId,
                 abi.encode(flowParams.sender, flowParams.receiver)
             );
@@ -507,6 +513,10 @@ contract ConstantFlowAgreementV1 is
                 cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
             }
             (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+        } else {
+            (,,vars.newFlowData) = _changeFlow(
+                    currentContext.timestamp,
+                    token, flowParams, oldFlowData);
         }
 
         // FIXME
@@ -525,7 +535,6 @@ contract ConstantFlowAgreementV1 is
 
             int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
                 .sub(oldFlowData.owedDeposit.toInt256());
-
             vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
                     .add(appAllowanceDelta)
                     .toUint256();

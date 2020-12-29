@@ -9,9 +9,18 @@ library SuperAppDefinitions {
     /**************************************************************************
     / App manifest config word
     /**************************************************************************/
-    uint256 constant internal TYPE_APP_FINAL = 1 << 0;
-    uint256 constant internal TYPE_APP_SECOND = 1 << 1;
-    uint256 constant internal JAIL = 1 << 15;
+
+    uint256 constant internal APP_LEVEL_MASK = 0xFF;
+    uint256 constant internal APP_LEVEL_FINAL = 1 << 0;
+    uint256 constant internal APP_LEVEL_SECOND = 1 << 1;
+    function getAppLevel(uint256 configWord) internal pure returns (uint8) {
+        return uint8(configWord & APP_LEVEL_MASK);
+    }
+
+    uint256 constant internal APP_JAIL_BIT = 1 << 15;
+    function isAppJailed(uint256 configWord) internal pure returns (bool) {
+        return (configWord & SuperAppDefinitions.APP_JAIL_BIT) > 0;
+    }
 
     /**************************************************************************
     / Callback implementation bit masks
@@ -24,8 +33,19 @@ library SuperAppDefinitions {
     uint256 constant internal BEFORE_AGREEMENT_TERMINATED_NOOP = 1 << (32 + 4);
     uint256 constant internal AFTER_AGREEMENT_TERMINATED_NOOP = 1 << (32 + 5);
 
+    /**************************************************************************
+    / App Jail Reasons
+    /**************************************************************************/
+
+    uint256 constant internal APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR = 1;
+    uint256 constant internal APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK = 10;
+    uint256 constant internal APP_RULE_CTX_IS_READONLY = 20;
+    uint256 constant internal APP_RULE_CTX_IS_NOT_CLEAN = 21;
 }
 
+/**
+ * @dev Context definitions library
+ */
 library ContextDefinitions {
 
     /**************************************************************************
@@ -57,4 +77,66 @@ library ContextDefinitions {
         return uint256(cbLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
     }
 
+}
+
+/**
+ * @dev Batch operation library
+ */
+library BatchOperation {
+    /**
+     * @dev ERC20.approve batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationApprove(
+     *     abi.decode(data, (address spender, uint256 amount))
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC20_APPROVE = 1;
+    /**
+     * @dev ERC20.transferFrom batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationTransferFrom(
+     *     abi.decode(data, (address sender, address recipient, uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC20_TRANSFER_FROM = 2;
+    /**
+     * @dev SuperToken.upgrade batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationUpgrade(
+     *     abi.decode(data, (uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERTOKEN_UPGRADE = 1 + 100;
+    /**
+     * @dev SuperToken.downgrade batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationDowngrade(
+     *     abi.decode(data, (uint256 amount)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERTOKEN_DOWNGRADE = 2 + 100;
+    /**
+     * @dev ERC20 Approve batch operation type
+     *
+     * Call spec:
+     * callAgreement(
+     *     ISuperAgreement(target)),
+     *     abi.decode(data, (bytes calldata, bytes userdata)
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT = 1 + 200;
+    /**
+     * @dev ERC20 Approve batch operation type
+     *
+     * Call spec:
+     * callAppAction(
+     *     ISuperApp(target)),
+     *     data
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION = 2 + 200;
 }

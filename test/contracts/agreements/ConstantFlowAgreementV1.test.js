@@ -27,7 +27,7 @@ const MINIMAL_DEPOSIT = toBN(1).shln(32);
 contract("Using ConstantFlowAgreement v1", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 5));
-    const { admin, /* carol, */ } = t.aliases;
+    const { admin, alice, bob } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
     const { LIQUIDATION_PERIOD } = t.configs;
 
@@ -218,9 +218,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(t.sf.cfa.createFlow({
                     superToken: superToken.address,
                     sender: t.aliases[sender],
-                    receiver: t.aliases[receiver],
+                    receiver: t.aliases.carol,
                     flowRate: MAXIMUM_FLOW_RATE.toString(),
-                }), "Int96SafeMath: multiplication overflow");
+                }), "CFA: deposit overflow");
             });
 
             it("#1.1.8 should reject when receiver is zero address", async () => {
@@ -331,7 +331,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     sender: t.aliases[sender],
                     receiver: t.aliases[receiver],
                     flowRate: MAXIMUM_FLOW_RATE.toString(),
-                }), "Int96SafeMath: multiplication overflow");
+                }), "CFA: deposit overflow");
             });
 
             it("#1.2.10 should reject when receiver is zero address", async () => {
@@ -580,6 +580,40 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await expectRevert(test(maxFlowRate.addn(1)), "CFA: flow rate too big");
             });
 
+            it("#1.8.4 only authorized host can access token", async () => {
+                const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
+                const fakeHost = await FakeSuperfluidMock.new();
+                await expectRevert(fakeHost.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods.createFlow(
+                        superToken.address,
+                        bob,
+                        1,
+                        "0x"
+                    ).encodeABI(),
+                    { from: alice }
+                ), "AgreementLibrary: unauthroized host");
+                await expectRevert(fakeHost.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods.updateFlow(
+                        superToken.address,
+                        bob,
+                        1,
+                        "0x"
+                    ).encodeABI(),
+                    { from: alice }
+                ), "AgreementLibrary: unauthroized host");
+                await expectRevert(fakeHost.callAgreement(
+                    cfa.address,
+                    cfa.contract.methods.deleteFlow(
+                        superToken.address,
+                        alice,
+                        bob,
+                        "0x"
+                    ).encodeABI(),
+                    { from: alice }
+                ), "AgreementLibrary: unauthroized host");
+            });
         });
 
         describe("#1.10 should support different flow rates", () => {
@@ -1076,7 +1110,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await web3tx(t.sf.cfa.deleteFlow.bind(t.sf.cfa), "delete the mfa loopback flow")({
                 superToken: superToken.address,
                 sender: t.getAddress(sender),
-                receiver:app.address
+                receiver:app.address,
+                userData: web3.eth.abi.encodeParameters(
+                    ["uint256", "address[]", "uint256[]"],
+                    [
+                        mfa.ratioPct,
+                        [t.getAddress(sender)],
+                        [1]
+                    ])
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");

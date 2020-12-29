@@ -17,7 +17,7 @@ const TestEnvironment = require("../../TestEnvironment");
 contract("SuperToken's Non Standard Functions", accounts => {
 
     const t = new TestEnvironment(accounts.slice(0, 4));
-    const { alice, bob } = t.aliases;
+    const { admin, alice, bob, } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
     let testToken;
@@ -54,7 +54,6 @@ contract("SuperToken's Non Standard Functions", accounts => {
         it("#1.4 only can initialize once", async () => {
             await expectRevert(
                 superToken.initialize(
-                    ZERO_ADDRESS,
                     ZERO_ADDRESS,
                     18,
                     "name",
@@ -402,6 +401,25 @@ contract("SuperToken's Non Standard Functions", accounts => {
             assert.equal(
                 (await superToken.balanceOf.call(bob)).toString(),
                 toWad(2).toString()
+            );
+        });
+
+        it("#3.3 batchCall should only be called by host", async function () {
+            await expectRevert(
+                superToken.operationApprove(alice, bob, "0"),
+                "SuperfluidToken: Only host contract allowed"
+            );
+            await expectRevert(
+                superToken.operationTransferFrom(alice, bob, admin, "0"),
+                "SuperfluidToken: Only host contract allowed"
+            );
+            await expectRevert(
+                superToken.operationUpgrade(alice, "0"),
+                "SuperfluidToken: Only host contract allowed"
+            );
+            await expectRevert(
+                superToken.operationDowngrade(alice, "0"),
+                "SuperfluidToken: Only host contract allowed"
             );
         });
     });

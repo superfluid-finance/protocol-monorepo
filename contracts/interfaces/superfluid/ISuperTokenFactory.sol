@@ -11,6 +11,11 @@ import {
 
 interface ISuperTokenFactory {
 
+    /**
+     * @dev Get superfluid host contract address
+     */
+    function getHost() external view returns(address host);
+
     /// @dev Initialize the contract
     function initialize() external;
 

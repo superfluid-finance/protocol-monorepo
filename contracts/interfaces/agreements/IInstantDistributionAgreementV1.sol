@@ -241,6 +241,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param publisher The publisher of the index.
      * @param indexId Id of the index.
      * @param subscriber The subscriber of the index.
+     * @return exist Does the subscription exist?
      * @return approved Is the subscription approved?
      * @return units Units of the suscription.
      * @return pendingDistribution Pending amount of tokens to be distributed for unapproved subscription.
@@ -254,6 +255,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             view
             virtual
             returns(
+                bool exist,
                 bool approved,
                 uint128 units,
                 uint256 pendingDistribution

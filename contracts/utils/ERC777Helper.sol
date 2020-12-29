@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import { IERC1820Registry } from "@openzeppelin/contracts/introspection/IERC1820Registry.sol";
 
@@ -64,6 +64,8 @@ library ERC777Helper {
     }
 
     function setupDefaultOperators(Operators storage self, address[] memory operators) internal {
+        // According to 777 spec: default operators should only be setup once
+        assert(self.defaultOperatorsArray.length == 0);
         self.defaultOperatorsArray = operators;
         for (uint i = 0; i < operators.length; ++i) {
             self.defaultOperators[operators[i]] = true;

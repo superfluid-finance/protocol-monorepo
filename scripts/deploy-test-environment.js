@@ -27,9 +27,9 @@ module.exports = async function (callback) {
             await deployTestToken(errorHandler, [":", tokens[i]]);
             console.log(`==== Test token ${tokens[i]} deployed.`);
 
-            console.log(`==== Creating super token ${tokens[i]}...`);
+            console.log(`==== Creating super token for ${tokens[i]}...`);
             await deploySuperToken(errorHandler, [":", tokens[i]]);
-            console.log(`==== Super token ${tokens[i]} deployed.`);
+            console.log(`==== Super token for ${tokens[i]} deployed.`);
         }
 
         if (process.env.TEST_RESOLVER_ADDRESS) {

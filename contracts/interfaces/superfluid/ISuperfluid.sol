@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
+// This is required by the batchCall
 pragma experimental ABIEncoderV2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
@@ -9,8 +10,9 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
+    SuperAppDefinitions,
     ContextDefinitions,
-    SuperAppDefinitions
+    BatchOperation
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -33,6 +35,7 @@ interface ISuperfluid {
     /**************************************************************************
      * Governance
      *************************************************************************/
+
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
     function replaceGovernance(ISuperfluidGovernance newGov) external;
@@ -131,6 +134,7 @@ interface ISuperfluid {
     /**************************************************************************
      * App Registry
      *************************************************************************/
+
     /**
      * @dev Message sender declares it as a super app
      * @param configWord The super app manifest configuration, flags are defined in
@@ -188,28 +192,34 @@ interface ISuperfluid {
         external view
         returns (bool isAppAllowed);
 
-    event Jail(ISuperApp app, uint256 info);
+    /**
+     * @dev Jail event for the app
+     */
+    event Jail(ISuperApp app, uint256 reason);
 
     /**************************************************************************
-     * Agreement Callback System
+     * Agreement Framework
+     *
+     * Agreements use these function to trigger super app callbacks, updates
+     * app allowance and charge gas fees.
      *
      * These functions can only be called by registered agreements.
      *************************************************************************/
 
     function callAppBeforeCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
     )
         external
         // onlyAgreement
         // isAppActive(app)
-        returns(bytes memory newCtx, bytes memory cbdata);
+        returns(bytes memory cbdata);
 
     function callAppAfterCallback(
         ISuperApp app,
-        bytes calldata data,
+        bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
     )
@@ -222,14 +232,16 @@ interface ISuperfluid {
         bytes calldata ctx,
         uint256 allowanceGranted,
         int256 allowanceUsed
-    ) external
+    )
+        external
         // onlyAgreement
         returns (bytes memory appCtx);
 
     function appCallbackPop(
         bytes calldata ctx,
         int256 allowanceUsedDelta
-    ) external
+    )
+        external
         // onlyAgreement
         returns (bytes memory newCtx);
 
@@ -243,68 +255,105 @@ interface ISuperfluid {
         returns (bytes memory newCtx);
 
     /**************************************************************************
-     * Non-app Call Proxy
+     * Contextless Call Proxies
      *
-     * For EOAs or non-app contracts, they are the entry points for interacting
+     * NOTE: For EOAs or non-app contracts, they are the entry points for interacting
      * with agreements or apps.
      *
-     * If the app use these entry points while having an active context, the
-     * violating app will be jailed.
+     * NOTE: The contextual call data should be generated using
+     * abi.encodeWithSelector. The context parameter should be set to "0x",
+     * an empty bytes array as a placeholder to be replaced by the host
+     * contract.
      *************************************************************************/
+
      /**
       * @dev Call agreement function
-      * @param data The contextual call data.
-      *
-      * NOTE: The contextual call data should be generated using
-      * abi.encodeWithSelector. The context parameter should be set to "0x",
-      * an empty bytes array as a placeholder to be replaced by the host
-      * contract.
+      * @param callData The contextual call data with placeholder ctx
+      * @param userData Extra user data being sent to the super app callbacks
       */
      function callAgreement(
          ISuperAgreement agreementClass,
-         bytes calldata data
+         bytes calldata callData,
+         bytes calldata userData
      )
         external
         //cleanCtx
         returns(bytes memory returnedData);
 
     /**
-     * @dev Call agreement function
-     * @param data The contextual call data.
+     * @dev Call app action
+     * @param callData The contextual call data.
      *
      * NOTE: See callAgreement about contextual call data.
      */
     function callAppAction(
         ISuperApp app,
-        bytes calldata data
+        bytes calldata callData
     )
         external
         //cleanCtx
         //isAppActive(app)
         returns(bytes memory returnedData);
 
+    /**************************************************************************
+     * Contextual Call Proxies and Context Utilities
+     *
+     * For apps, they must use context they receive to interact with
+     * agreements or apps.
+     *
+     * The context changes must be saved and returned by the apps in their
+     * callbacks always, any modification to the context will be detected and
+     * the violating app will be jailed.
+     *************************************************************************/
 
-    /**
-     * @dev Operation type for batch operations
-     */
-    enum OperationType {
-        Approve,          // 0
-        TransferFrom,     // 1
-        Upgrade,          // 2
-        Downgrade,        // 3
-        CallAgreement,    // 4
-        CallApp           // 5
-    }
+    function callAgreementWithContext(
+        ISuperAgreement agreementClass,
+        bytes calldata callData,
+        bytes calldata userData,
+        bytes calldata ctx
+    )
+        external
+        // validCtx(ctx)
+        // onlyAgreement(agreementClass)
+        returns (bytes memory newCtx, bytes memory returnedData);
 
+    function callAppActionWithContext(
+        ISuperApp app,
+        bytes calldata callData,
+        bytes calldata ctx
+    )
+        external
+        // validCtx(ctx)
+        // isAppActive(app)
+        returns (bytes memory newCtx);
+
+    function decodeCtx(bytes calldata ctx)
+        external pure
+        returns (
+            uint256 callInfo,
+            uint256 timestamp,
+            address msgSender,
+            bytes4 agreementSelector,
+            bytes memory userData,
+            uint256 appAllowanceGranted,
+            uint256 appAllowanceWanted,
+            int256 appAllowanceUsed
+        );
+
+    function isCtxValid(bytes calldata ctx) external view returns (bool);
+
+    /**************************************************************************
+    * Batch call
+    **************************************************************************/
     /**
      * @dev Batch operation data
      */
     struct Operation {
         // Operation
-        OperationType opType;
+        uint32 opeartionType;
         // Operation target
         address target;
-        // Data specific to operation
+        // Data specific to the operation
         bytes data;
     }
 
@@ -315,56 +364,6 @@ interface ISuperfluid {
     function batchCall(Operation[] memory operations) external;
 
     /**************************************************************************
-     * Contextual Call Proxy and Context Utilities
-     *
-     * For apps, they must use context they receive to interact with
-     * agreements or apps.
-     *
-     * The context changes must be saved and returned by the apps in their
-     * callbacks always, any modification to the context will be detected and
-     * the violating app will be jailed.
-     *************************************************************************/
-    function callAgreementWithContext(
-        ISuperAgreement agreementClass,
-        bytes calldata data,
-        bytes calldata ctx
-    )
-        external
-        // validCtx(ctx)
-        // onlyAgreement(agreementClass)
-        returns (bytes memory newCtx, bytes memory returnedData);
-
-    function callAppActionWithContext(
-        ISuperApp app,
-        bytes calldata data,
-        bytes calldata ctx
-    )
-        external
-        // validCtx(ctx)
-        // isAppActive(app)
-        returns (bytes memory newCtx);
-
-    function chargeGasFee(
-        bytes calldata ctx,
-        uint fee
-    )
-        external
-        // validCtx(ctx)
-        returns (bytes memory newCtx);
-
-    function decodeCtx(bytes calldata ctx)
-        external pure
-        returns (
-            uint256 callInfo,
-            uint256 timestamp,
-            address msgSender,
-            bytes4 agreementSelector,
-            uint256 appAllowanceGranted,
-            uint256 appAllowanceWanted,
-            int256 appAllowanceUsed
-        );
-
-    /**************************************************************************
      * Function modifiers for access control and parameter validations
      *
      * While they cannot be explicitly stated in function definitions, they are
@@ -372,6 +371,7 @@ interface ISuperfluid {
      *
      * TODO: turning these off because solidity-coverage don't like it
      *************************************************************************/
+
      /* /// @dev The current superfluid context is clean.
      modifier cleanCtx() virtual;
 

@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import {
+    ISuperfluid,
+    ISuperfluidToken,
+    ISuperApp,
+    SuperAppDefinitions
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
+import { AgreementLibrary } from "../agreements/AgreementLibrary.sol";
 
 
 contract AgreementMock is AgreementBase {
@@ -121,4 +127,127 @@ contract AgreementMock is AgreementBase {
         token.makeLiquidationPayouts(id, liquidator, penaltyAccount, rewardAmount, bailoutAmount);
     }
 
+    /**
+     * Agreement Framework mockings
+     */
+
+    function tryCallAppBeforeCallback(ISuperfluid host) external {
+        host.callAppBeforeCallback(ISuperApp(address(0)), "", false, "");
+    }
+
+    function tryCallAppAfterCallback(ISuperfluid host) external {
+        host.callAppAfterCallback(ISuperApp(address(0)), "", false, "");
+    }
+
+    function tryAppCallbackPush(ISuperfluid host) external {
+        host.appCallbackPush("", 0, 0);
+    }
+
+    function tryAppCallbackPop(ISuperfluid host) external {
+        host.appCallbackPop("", 0);
+    }
+
+    function tryCtxUseAllowance(ISuperfluid host) external {
+        host.ctxUseAllowance("", 0, 0);
+    }
+
+    function doRevert(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
+        revert(reason);
+    }
+
+    event Pong(uint256 ping);
+
+    function pingMe(uint256 ping, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        emit Pong(ping);
+        return ctx;
+    }
+
+    event AppBeforeCallbackResult(bytes cbdata);
+
+    function callAppBeforeAgreementCreatedCallback(
+        ISuperApp app,
+        bytes calldata ctx
+    )
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            ISuperfluidToken(address(0)) /* token */,
+            address(app) /* account */,
+            0 /* agreementId */
+        );
+        cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
+        cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
+        bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
+        emit AppBeforeCallbackResult(cbdata);
+        newCtx = ctx;
+    }
+
+    function callAppAfterAgreementCreatedCallback(
+        ISuperApp app,
+        bytes calldata ctx
+    )
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            ISuperfluidToken(address(0)) /* token */,
+            address(app) /* account */,
+            0 /* agreementId */
+        );
+        cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+        cbStates.selector = ISuperApp.afterAgreementCreated.selector;
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
+        require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
+    }
+
+    function callAppBeforeAgreementTerminatedCallback(
+        ISuperApp app,
+        bytes calldata ctx
+    )
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            ISuperfluidToken(address(0)) /* token */,
+            address(app) /* account */,
+            0 /* agreementId */
+        );
+        cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
+        cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
+        bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
+        emit AppBeforeCallbackResult(cbdata);
+        newCtx = ctx;
+    }
+
+    function callAppAfterAgreementTerminatedCallback(
+        ISuperApp app,
+        bytes calldata ctx
+    )
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            ISuperfluidToken(address(0)) /* token */,
+            address(app) /* account */,
+            0 /* agreementId */
+        );
+        cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+        cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
+        require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
+    }
+
+    modifier validCtx(bytes memory ctx) {
+        require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
+        _;
+    }
 }

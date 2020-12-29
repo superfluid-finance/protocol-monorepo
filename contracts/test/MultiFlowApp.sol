@@ -264,6 +264,7 @@ contract MultiFlowApp is SuperAppBase {
         (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
         // validate the context
         (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
+        assert(vars.flowSender == address(this) || vars.flowReceiver == address(this));
 
         bytes memory callData;
         newCtx = ctx;
@@ -316,7 +317,7 @@ contract MultiFlowApp is SuperAppBase {
                 new bytes(0), // user data
                 newCtx
             );
-        } else assert(false) /* FIXME test liquidation */;
+        }
     }
 
     modifier onlyHost() {

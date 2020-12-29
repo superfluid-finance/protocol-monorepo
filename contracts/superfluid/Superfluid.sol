@@ -427,6 +427,19 @@ contract Superfluid is
         newCtx = _updateContext(context);
     }
 
+    function jailApp(
+        bytes calldata ctx,
+        ISuperApp app,
+        uint256 reason
+    )
+        external override
+        onlyAgreement
+        returns (bytes memory newCtx)
+    {
+        _jailApp(app, reason);
+        return ctx;
+    }
+
     /**************************************************************************
     * Contextless Call Proxies
     *************************************************************************/
@@ -654,8 +667,10 @@ contract Superfluid is
     function _jailApp(ISuperApp app, uint256 reason)
         internal
     {
-        _appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
-        emit Jail(app, reason);
+        if (_appManifests[app].configWord & SuperAppDefinitions.APP_JAIL_BIT == 0) {
+            _appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
+            emit Jail(app, reason);
+        }
     }
 
     function _updateContext(Context memory context)
@@ -727,6 +742,7 @@ contract Superfluid is
                 if (!isTermination) {
                     revert(CallUtils.getRevertMsg(returnedData));
                 } else {
+                    //revert(CallUtils.getRevertMsg(returnedData)); { }
                     _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
                 }
             } else {

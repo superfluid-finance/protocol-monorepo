@@ -284,7 +284,7 @@ contract MultiFlowApp is SuperAppBase {
                     newCtx
                 );
             }
-        } else if (vars.flowSender == address(this)) {
+        } else /* if (vars.flowSender == address(this)) */ {
             for(uint256 i = 0; i < vars.configuration.receivers.length; i++) {
                 // skip current closed flow
                 if (vars.configuration.receivers[i].to == vars.flowReceiver) continue;

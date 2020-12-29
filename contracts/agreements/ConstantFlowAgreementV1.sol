@@ -206,7 +206,11 @@ contract ConstantFlowAgreementV1 is
         // delete should only be called by sender or receiver
         // unless it is a liquidation (availale balance < 0)
         if (currentContext.msgSender != sender && currentContext.msgSender != receiver) {
-            require(availableBalance < 0, "CFA: account is not critical");
+            // liquidation should only for sender that is critical, unless sender or receiver is a jailed app
+            if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(sender)) &&
+                !ISuperfluid(msg.sender).isAppJailed(ISuperApp(receiver))) {
+                require(availableBalance < 0, "CFA: sender account is not critical");
+            }
         }
 
         if (availableBalance < 0) {
@@ -218,45 +222,50 @@ contract ConstantFlowAgreementV1 is
                 currentContext.msgSender);
         }
 
+        newCtx = ctx;
         if (currentContext.msgSender == sender) {
             if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
                 newCtx = _changeFlowToApp(
                     receiver,
                     token, flowParams, oldFlowData,
-                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
             } else {
                 newCtx = _changeFlowToNonApp(
                     token, flowParams, oldFlowData,
-                    ctx, currentContext);
+                    newCtx, currentContext);
             }
         } else if (currentContext.msgSender == receiver) {
             if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
                 newCtx = _changeFlowToApp(
                     sender,
                     token, flowParams, oldFlowData,
-                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
             } else if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
                 newCtx = _changeFlowToApp(
                     address(0),
                     token, flowParams, oldFlowData,
-                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
             } else {
                 newCtx = _changeFlowToNonApp(
                     token, flowParams, oldFlowData,
-                    ctx, currentContext);
+                    newCtx, currentContext);
             }
         } else /* liquidations */ {
-            // FIXME if sender is app, jail it
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
+                newCtx = ISuperfluid(msg.sender).jailApp(
+                    newCtx,
+                    ISuperApp(sender), SuperAppDefinitions.APP_RULE_NO_CRITICAL_ACCOUNT);
+            }
             // always attempt to call receiver callback
             if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
                 newCtx = _changeFlowToApp(
                     receiver,
                     token, flowParams, oldFlowData,
-                    ctx, currentContext, FlowChangeType.DELETE_FLOW);
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
             } else {
                 newCtx = _changeFlowToNonApp(
                     token, flowParams, oldFlowData,
-                    ctx, currentContext);
+                    newCtx, currentContext);
             }
         }
     }

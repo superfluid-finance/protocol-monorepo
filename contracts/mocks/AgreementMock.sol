@@ -151,6 +151,10 @@ contract AgreementMock is AgreementBase {
         host.ctxUseAllowance("", 0, 0);
     }
 
+    function tryJailApp(ISuperfluid host) external {
+        host.jailApp("", ISuperApp(address(0)), 0);
+    }
+
     function doRevert(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
         revert(reason);
     }

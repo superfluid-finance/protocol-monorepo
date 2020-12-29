@@ -440,6 +440,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
                 await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
                 await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
+                await expectRevert(mock.tryJailApp(superfluid.address), reason);
 
                 // call from an in personating mock agreement
                 mock = await AgreementMock.new(await t.contracts.cfa.agreementType.call(), 0);
@@ -448,6 +449,7 @@ contract("Superfluid Host Contract", accounts => {
                 await expectRevert(mock.tryAppCallbackPush(superfluid.address), reason);
                 await expectRevert(mock.tryAppCallbackPop(superfluid.address), reason);
                 await expectRevert(mock.tryCtxUseAllowance(superfluid.address), reason);
+                await expectRevert(mock.tryJailApp(superfluid.address), reason);
             });
 
             // TODO decode ctx

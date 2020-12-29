@@ -254,6 +254,15 @@ interface ISuperfluid {
         // onlyAgreement
         returns (bytes memory newCtx);
 
+    function jailApp(
+        bytes calldata ctx,
+        ISuperApp app,
+        uint256 reason
+    )
+        external
+        // onlyAgreement
+        returns (bytes memory newCtx);
+
     /**************************************************************************
      * Contextless Call Proxies
      *

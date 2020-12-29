@@ -667,7 +667,7 @@ contract Superfluid is
     function _jailApp(ISuperApp app, uint256 reason)
         internal
     {
-        if (_appManifests[app].configWord & SuperAppDefinitions.APP_JAIL_BIT == 0) {
+        if ((_appManifests[app].configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0) {
             _appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
             emit Jail(app, reason);
         }

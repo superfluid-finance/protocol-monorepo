@@ -39,7 +39,8 @@ library SuperAppDefinitions {
 
     uint256 constant internal APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR = 1;
     uint256 constant internal APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK = 10;
-    uint256 constant internal APP_RULE_NO_CRITICAL_ACCOUNT = 11;
+    uint256 constant internal APP_RULE_NO_CRITICAL_SENDER_ACCOUNT = 11;
+    uint256 constant internal APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT = 12;
     uint256 constant internal APP_RULE_CTX_IS_READONLY = 20;
     uint256 constant internal APP_RULE_CTX_IS_NOT_CLEAN = 21;
 }

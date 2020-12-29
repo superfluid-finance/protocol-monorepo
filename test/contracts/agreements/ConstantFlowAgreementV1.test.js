@@ -91,12 +91,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             `Unexpected net flow for ${alias}`);
     }
 
-    async function expectJailed(app, reasonCode) {
-        assert.isTrue(await t.contracts.superfluid.isAppJailed(app));
+    async function expectJailed(appAddress, reasonCode) {
+        assert.isTrue(await t.contracts.superfluid.isAppJailed(appAddress));
         const events = await superfluid.getPastEvents("Jail", {
             fromBlock: 0,
             toBlock: "latest",
-            app: app.address
+            filter: {
+                app: appAddress
+            }
         });
         assert.equal(events.length, 1);
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
@@ -1059,7 +1061,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
 
         it("#2.7 mfa-1to2[50,50]_100pct_create-partial_delete", async () => {
-            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE.muln(2));
+            await t.transferBalance(sender, "mfa", toWad(50));
 
             let mfa = {
                 ratioPct: 100,
@@ -1151,6 +1154,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         [1]
                     ])
             });
+            await t.validateSystemInvariance();
             assert.isFalse(await t.contracts.superfluid.isAppJailed(app.address));
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -1303,7 +1307,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receiver: t.getAddress(receiver1),
                 by: dan
             });
-            await expectJailed(app.address, 11 /* APP_RULE_NO_CRITICAL_ACCOUNT */);
+            await expectJailed(app.address, 11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */);
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 75)));
             await expectNetFlow(receiver1, "0");
@@ -1319,7 +1323,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receiver: t.getAddress(receiver2),
                 by: dan
             });
-            await expectJailed(app.address, 11 /* APP_RULE_NO_CRITICAL_ACCOUNT */);
+            await expectJailed(app.address, 11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */);
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow("mfa", FLOW_RATE1);
             await expectNetFlow(receiver1, "0");
@@ -1331,26 +1335,15 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receiver: app.address,
                 by: dan
             });
-            await expectJailed(app.address, 11 /* APP_RULE_NO_CRITICAL_ACCOUNT */);
+            await expectJailed(app.address, 11 /* APP_RULE_NO_CRITICAL_SENDER_ACCOUNT */);
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
             await expectNetFlow(receiver1, "0");
             await expectNetFlow(receiver2, "0");
+            await t.validateSystemInvariance();
         });
 
-        it("#2.20 createFlow via app action should respect deposit rule", async () => {
-            await expectRevert(t.sf.host.callAppAction(
-                app.address,
-                app.contract.methods.createFlow(
-                    superToken.address,
-                    bob,
-                    FLOW_RATE1.toString(),
-                    "0x"
-                ).encodeABI()
-            ), "CFA: not enough available balance");
-        });
-
-        it.skip("#2.21 mfa-1to2[50,50]_100pct_create-partial_delete-negative_app_balance", async () => {
+        it("#2.12 mfa-1to2[50,50]_100pct_create-partial_delete-negative_app_balance", async () => {
             await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
             let mfa = {
@@ -1373,32 +1366,45 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 mfa,
                 flowRate: FLOW_RATE1,
             });
+            await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
+            await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1, 50).muln(2)));
+            await expectNetFlow(receiver1, mfaFlowRate(FLOW_RATE1, 50));
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
 
             // delete flow of receiver 1
-            mfa = {
-                ratioPct: 100,
-                sender,
-                receivers: {
-                    [receiver1]: {
-                        proportion: 1
-                    },
-                    [receiver2]: {
-                        proportion: 0
-                    }
-                }
-            };
-            await shouldDeleteFlow({
-                testenv: t,
-                sender,
-                receiver: "mfa",
-                mfa,
-                by: sender
+            await web3tx(t.sf.cfa.deleteFlow.bind(t.sf.cfa), "delete the mfa flows partially")({
+                superToken: superToken.address,
+                sender: t.getAddress(sender),
+                receiver: app.address,
+                userData: web3.eth.abi.encodeParameters(
+                    ["address", "uint256", "address[]", "uint256[]"],
+                    [
+                        t.getAddress(sender),
+                        mfa.ratioPct,
+                        [t.getAddress(receiver1)],
+                        [1]
+                    ])
             });
+            await expectJailed(app.address, 12 /* APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT */);
+            await t.validateSystemInvariance({
+                allowCriticalAccount: true
+            });
+            await expectNetFlow(sender, "0");
+            await expectNetFlow("mfa", toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50)));
+            await expectNetFlow(receiver1, "0");
+            await expectNetFlow(receiver2, mfaFlowRate(FLOW_RATE1, 50));
+        });
 
-            const mfaBal = await superToken.realtimeBalanceOfNow(t.getAddress("mfa"));
-            assert.isTrue(mfaBal.availableBalance.lt(toBN(0)));
-            const isJailed = await superfluid.isAppJailed(t.getAddress("mfa"));
-            assert.isTrue(isJailed, "mfa app not jailed despite negative balance");
+        it("#2.20 createFlow via app action should respect deposit rule", async () => {
+            await expectRevert(t.sf.host.callAppAction(
+                app.address,
+                app.contract.methods.createFlow(
+                    superToken.address,
+                    bob,
+                    FLOW_RATE1.toString(),
+                    "0x"
+                ).encodeABI()
+            ), "CFA: not enough available balance");
         });
     });
 

@@ -326,7 +326,7 @@ class MFASupport {
     }
 
     static async postCheck({ testenv, roles }) {
-        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.mfa), "MFA app jailed");
+        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.mfa), "MFA app was jailed");
     }
 }
 

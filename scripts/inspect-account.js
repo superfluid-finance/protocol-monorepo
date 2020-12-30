@@ -21,7 +21,6 @@ module.exports = async function (callback, argv) {
         }
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         const sf = new SuperfluidSDK.Framework({
-            chainId: 5,
             version:  process.env.RELEASE_VERSION || "test",
             web3Provider: web3.currentProvider,
             tokens
@@ -60,11 +59,10 @@ module.exports = async function (callback, argv) {
             }
             console.log("=".repeat(80));
         }
-        
+
         callback();
 
     } catch (err) {
         callback(err);
-    }      
+    }
 };
-

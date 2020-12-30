@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 /* solhint-disable not-rely-on-time */
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import {
     IInstantDistributionAgreementV1,
@@ -141,7 +141,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        AgreementLibrary.authorizeTokenAccess(token);
+        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         require(!_hasIndexData(token, iId), "IDA: E_INDEX_EXISTS");
 
@@ -186,7 +187,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        AgreementLibrary.authorizeTokenAccess(token);
+        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDA: E_NO_INDEX");
@@ -207,7 +209,8 @@ contract InstantDistributionAgreementV1 is
         external override
         returns(bytes memory newCtx)
     {
-        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        AgreementLibrary.authorizeTokenAccess(token);
+        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
         require(exist, "IDA: E_NO_INDEX");
@@ -266,7 +269,7 @@ contract InstantDistributionAgreementV1 is
 
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
         uint128 indexDelta = (amount / totalUnits).toUint128();
-        newIndexValue = idata.indexValue.add(indexDelta);
+        newIndexValue = idata.indexValue.add(indexDelta, "IDA: E_OVERFLOW");
         actualAmount = uint256(indexDelta).mul(totalUnits);
     }
 
@@ -285,7 +288,8 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         _StackVars memory vars;
-        address subscriber = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        AgreementLibrary.authorizeTokenAccess(token);
+        address subscriber = AgreementLibrary.decodeCtx(ctx).msgSender;
         vars.iId = _getPublisherId(publisher, indexId);
         vars.sId = _getSubscriptionId(subscriber, vars.iId);
         (vars.exist, vars.idata) = _getIndexData(token, vars.iId);
@@ -301,7 +305,6 @@ contract InstantDistributionAgreementV1 is
 
         newCtx = ctx;
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             publisher,
             vars.sId);
@@ -367,7 +370,8 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         _StackVars memory vars;
-        address publisher = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        AgreementLibrary.authorizeTokenAccess(token);
+        address publisher = AgreementLibrary.decodeCtx(ctx).msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         bytes32 sId = _getSubscriptionId(subscriber, iId);
         (vars.exist, vars.idata) = _getIndexData(token, iId);
@@ -380,7 +384,6 @@ contract InstantDistributionAgreementV1 is
         }
 
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             subscriber,
             sId);
@@ -431,7 +434,7 @@ contract InstantDistributionAgreementV1 is
             });
             token.createAgreement(sId, _encodeSubscriptionData(vars.sdata));
 
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units);
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.add(units, "IDA: E_OVERFLOW");
             token.updateAgreementData(iId, _encodeIndexData(vars.idata));
         }
 
@@ -480,6 +483,7 @@ contract InstantDistributionAgreementV1 is
     )
         external view override
         returns (
+            bool exist,
             bool approved,
             uint128 units,
             uint256 pendingDistribution
@@ -491,9 +495,10 @@ contract InstantDistributionAgreementV1 is
         require(vars.exist, "IDA: E_NO_INDEX");
         vars.sId = _getSubscriptionId(subscriber, vars.iId);
         (vars.exist, vars.sdata) = _getSubscriptionData(token, vars.sId);
-        require(vars.exist, "IDA: E_NO_SUBS");
+        if (!vars.exist) return (false, false, 0, 0);
         assert(vars.sdata.publisher == publisher);
         assert(vars.sdata.indexId == indexId);
+        exist = true;
         approved = vars.sdata.subId != _UNALLOCATED_SUB_ID;
         units = vars.sdata.units;
         pendingDistribution = approved ? 0 :
@@ -570,7 +575,8 @@ contract InstantDistributionAgreementV1 is
         returns(bytes memory newCtx)
     {
         _StackVars memory vars;
-        address sender = AgreementLibrary.decodeCtx(ISuperfluid(msg.sender), ctx).msgSender;
+        AgreementLibrary.authorizeTokenAccess(token);
+        address sender = AgreementLibrary.decodeCtx(ctx).msgSender;
         require(sender == publisher || sender == subscriber, "IDA: E_NOT_ALLOWED");
         vars.iId = _getPublisherId(publisher, indexId);
         vars.sId = _getSubscriptionId(subscriber, vars.iId);
@@ -582,7 +588,6 @@ contract InstantDistributionAgreementV1 is
         assert(vars.sdata.indexId == indexId);
 
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             sender == subscriber ? publisher : subscriber,
             vars.sId);
@@ -596,9 +601,9 @@ contract InstantDistributionAgreementV1 is
 
         // update publisher index agreement data
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
-            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units);
+            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved.sub(vars.sdata.units, "IDA: E_OVERFLOW");
         } else {
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.sub(vars.sdata.units);
+            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending.sub(vars.sdata.units, "IDA: E_OVERFLOW");
         }
         token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 
@@ -653,7 +658,6 @@ contract InstantDistributionAgreementV1 is
             * uint256(vars.sdata.units);
 
         vars.cbStates = AgreementLibrary.createCallbackInputs(
-            address(this),
             token,
             publisher,
             vars.sId);

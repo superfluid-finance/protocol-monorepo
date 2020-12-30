@@ -18,7 +18,7 @@ const TestEnvironment = require("../../TestEnvironment");
 
 contract("SuperToken's ERC20 compliance", accounts => {
 
-    const t = new TestEnvironment(accounts.slice(0, 4), { useMocks: true });
+    const t = new TestEnvironment(accounts.slice(0, 4));
     const { alice, bob, carol } = t.aliases;
     const initialSupply = toBN(100);
 
@@ -234,27 +234,6 @@ contract("SuperToken's ERC20 compliance", accounts => {
                     "SuperToken: approve from zero address",
                 );
             });
-        });
-    });
-
-    describe("batchCall", function () {
-        it("should only be called by host", async function () {
-            await expectRevert(
-                this.token.operationApprove(alice, bob, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-            await expectRevert(
-                this.token.operationTransferFrom(alice, bob, carol, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-            await expectRevert(
-                this.token.operationUpgrade(alice, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
-            await expectRevert(
-                this.token.operationDowngrade(alice, "0"),
-                "SuperfluidToken: Only host contract allowed"
-            );
         });
     });
 

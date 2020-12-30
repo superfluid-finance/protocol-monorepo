@@ -60,7 +60,23 @@ module.exports = {
             ),
             network_id: 4, // Rinkeby's id
             gas: 8e6,
-            gasPrice: 10e9, // 1 GWEI
+            gasPrice: 10e9, // 10 GWEI
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+        },
+
+        ropsten: {
+            provider: () => new HDWalletProvider(
+                process.env.ROPSTEN_MNEMONIC,
+                process.env.ROPSTEN_PROVIDER_URL,
+                0, //address_index
+                10, // num_addresses
+                true // shareNonce
+            ),
+            network_id: 3, // Ropsten's id
+            gas: 8e6,
+            gasPrice: 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
@@ -76,7 +92,7 @@ module.exports = {
             ),
             network_id: 5, // Goerli's id
             gas: 8e6,
-            gasPrice: +process.env.GOERLI_GAS_PRICE || 10e9, // 10 GWEI
+            gasPrice: +process.env.GOERLI_GAS_PRICE || 100e9, // 100 GWEI, goerli is busy!
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
@@ -106,9 +122,25 @@ module.exports = {
                 10, // num_addresses
                 true // shareNonce
             ),
-            network_id:  80001, // mainnet's id
+            network_id:  80001, // matic mumbai id
             gas: 8e6,
             gasPrice: +process.env.MUMBAI_GAS_PRICE || 1e9, // default 1 gwei
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+        },
+
+        artis_tau1: {
+            provider: () => new HDWalletProvider(
+                process.env.ARTIS_MNEMONIC,
+                process.env.ARTIS_PROVIDER_URL,
+                0, //address_index
+                10, // num_addresses
+                true // shareNonce
+            ),
+            network_id: 0x03C401, // artis tau1 network
+            gas: 8e6,
+            gasPrice: +process.env.ARTIS_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
@@ -170,7 +202,7 @@ module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.7.4",   // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.7.5",   // Fetch exact version from solc-bin (default: truffle's version)
             settings: {          // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
                     enabled: true,

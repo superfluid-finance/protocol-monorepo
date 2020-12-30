@@ -41,7 +41,9 @@ module.exports = async function (callback, argv) {
         console.log("Token info symbol()", tokenInfoSymbol);
         console.log("Token info decimals()", tokenInfoDecimals.toString());
 
-        const superTokenAddress = await sf.resolver.get(`supertokens.${tokenName}x`);
+        const name = `supertokens.${version}.${tokenName}x`;
+        const superTokenAddress = await sf.resolver.get(name);
+        console.log("SuperToken namt at the resolver: ", name);
         console.log("SuperToken address: ", superTokenAddress);
         if (superTokenAddress == ZERO_ADDRESS) {
             console.log("Creating the wrapper...");
@@ -49,10 +51,7 @@ module.exports = async function (callback, argv) {
             console.log("Wrapper created at", superToken.address);
             console.log("Resolver setting new address...");
             const testResolver = await TestResolver.at(sf.resolver.address);
-            await testResolver.set(
-                `supertokens.${tokenName}x`,
-                superToken.address
-            );
+            await testResolver.set(name, superToken.address);
             console.log("Resolver set done.");
         } else {
             console.log("SuperToken already registered.");

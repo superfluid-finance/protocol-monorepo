@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 
 /**
@@ -26,25 +26,11 @@ library UInt128SafeMath {
      *
      * - Addition cannot overflow.
      */
-    function add(uint128 a, uint128 b) internal pure returns (uint128) {
+    function add(uint128 a, uint128 b, string memory errorMessage) internal pure returns (uint128) {
         uint128 c = a + b;
-        require(c >= a, "UInt128SafeMath: addition overflow");
+        require(c >= a, errorMessage);
 
         return c;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint128 a, uint128 b) internal pure returns (uint128) {
-        return sub(a, b, "UInt128SafeMath: subtraction overflow");
     }
 
     /**

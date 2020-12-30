@@ -7,6 +7,7 @@ module.exports = {
         "context": true,
         "after": true,
         "before": true,
+        "after": true,
         "beforeEach": true,
         "afterEach": true,
         "it": true,

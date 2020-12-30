@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import {
+    ISuperfluid,
     ISuperAgreement,
     SuperToken
 } from "../superfluid/SuperToken.sol";
@@ -11,7 +12,9 @@ contract SuperTokenMock is SuperToken {
 
     uint256 immutable public waterMark;
 
-    constructor(uint256 w) {
+    constructor(ISuperfluid host, uint256 w)
+        SuperToken(host)
+    {
         waterMark = w;
     }
 
@@ -23,8 +26,7 @@ contract SuperTokenMock is SuperToken {
         uint256 slot;
         uint256 offset;
 
-        assembly { slot:= _host.slot offset := _host.offset }
-        require (slot == 0 && offset == 2, "_host changed location");
+        // Initializable _initialized and _initialized
 
         assembly { slot:= _inactiveAgreementBitmap.slot offset := _inactiveAgreementBitmap.offset }
         require (slot == 1 && offset == 0, "_inactiveAgreementBitmap changed location");
@@ -49,6 +51,13 @@ contract SuperTokenMock is SuperToken {
 
         assembly { slot:= _operators.slot offset := _operators.offset }
         require (slot == 7 && offset == 0, "_operators changed location");
+        // uses 4 slots
+
+        assembly { slot:= _reserve0.slot offset := _reserve0.offset }
+        require (slot == 11 && offset == 0, "_reserve0 changed location");
+
+        assembly { slot:= _reserve9.slot offset := _reserve9.offset }
+        require (slot == 20 && offset == 0, "_reserve9 changed location");
     }
 
     /**

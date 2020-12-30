@@ -120,7 +120,7 @@ module.exports = class Framework {
                 if (tokenAddress === ZERO_ADDRESS) {
                     throw new Error(`Token ${tokenSymbol} is not registered`);
                 }
-                const superTokenAddress = await this.resolver.get(`supertokens.${tokenSymbol}x`);
+                const superTokenAddress = await this.resolver.get(`supertokens.${this.version}.${tokenSymbol}x`);
                 if (superTokenAddress === ZERO_ADDRESS) {
                     throw new Error(`Token ${tokenSymbol} doesn't have a super token wrapper`);
                 }

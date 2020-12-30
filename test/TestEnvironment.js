@@ -21,8 +21,7 @@ const {
 
 module.exports = class TestEnvironment {
 
-    constructor(accounts, { useMocks } = { useMocks: false }) {
-        this.useMocks = useMocks;
+    constructor(accounts) {
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],

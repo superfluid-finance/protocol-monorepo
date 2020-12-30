@@ -43,6 +43,7 @@ contract("SuperTokenFactory Contract", accounts => {
         });
 
         it("#1.3 only host can update the code", async () => {
+            assert.equal(await factory.getHost.call(), superfluid.address);
             await expectRevert(
                 factory.updateCode(ZERO_ADDRESS),
                 "only host can update code");
@@ -63,7 +64,6 @@ contract("SuperTokenFactory Contract", accounts => {
         let token1;
 
         beforeEach(async () => {
-            await t.reset();
             ({
                 superfluid,
                 governance,
@@ -72,17 +72,22 @@ contract("SuperTokenFactory Contract", accounts => {
             token1 = await web3tx(TestToken.new, "TestToken.new 1")("Test Token 1", "TT1", 18);
         });
 
-        context("Mock factory", () => {
+        afterEach(async () => {
+            // cleanup test environment for other tests
+            await t.reset();
+        });
+
+        context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
                 const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
-                const factory2Logic = await SuperTokenFactory42Mock.new();
+                const factory2Logic = await SuperTokenFactory42Mock.new(superfluid.address);
                 await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
                     superfluid.address, factory2Logic.address
                 );
                 await web3tx(await superfluid.getSuperTokenFactoryLogic.call(), factory2Logic.address);
             }
 
-            it("#2.1 non upgradable", async () => {
+            it("#2.a.1 non upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
@@ -94,7 +99,7 @@ contract("SuperTokenFactory Contract", accounts => {
                 assert.equal((await superToken1.waterMark.call()).toString(), "0");
             });
 
-            it("#2.2 semi upgradable", async () => {
+            it("#2.a.2 semi upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 1 } );
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 assert.equal((await superToken1.waterMark.call()).toString(), "0");
@@ -106,7 +111,7 @@ contract("SuperTokenFactory Contract", accounts => {
                 assert.equal((await superToken1.waterMark.call()).toString(), "42");
             });
 
-            it("#2.3 full upgradable", async () => {
+            it("#2.a.3 full upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 2 } );
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
@@ -118,20 +123,22 @@ contract("SuperTokenFactory Contract", accounts => {
             });
         });
 
-        it("#2.4 use production factory", async () => {
-            const factory2Logic = await SuperTokenFactory.new();
-            await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
-                superfluid.address, factory2Logic.address
-            );
-            let superToken0 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
-            assert.equal(await superToken0.getUnderlyingToken.call(), token1.address);
-            let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 1 } );
-            assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
-            let superToken2 = await t.sf.createERC20Wrapper(token1, { upgradability: 2 } );
-            assert.equal(await superToken2.getUnderlyingToken.call(), token1.address);
+        context("#2.b Production Factory", () => {
+            it("#2.b.1 use production factory to create different super tokens", async () => {
+                const factory2Logic = await SuperTokenFactory.new(superfluid.address);
+                await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
+                    superfluid.address, factory2Logic.address
+                );
+                let superToken0 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
+                assert.equal(await superToken0.getUnderlyingToken.call(), token1.address);
+                let superToken1 = await t.sf.createERC20Wrapper(token1, { upgradability: 1 } );
+                assert.equal(await superToken1.getUnderlyingToken.call(), token1.address);
+                let superToken2 = await t.sf.createERC20Wrapper(token1, { upgradability: 2 } );
+                assert.equal(await superToken2.getUnderlyingToken.call(), token1.address);
+            });
         });
 
-        it("#2.5 should fail on ZERO_ADDRESS", async () => {
+        it("#2.c.1 should fail on ZERO_ADDRESS", async () => {
             await expectRevert(factory.createERC20Wrapper(
                 ZERO_ADDRESS,
                 18,

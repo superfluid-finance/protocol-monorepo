@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.4;
+pragma solidity 0.7.5;
 
 import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";
 
 
 /**
- * @dev Full upgradable super token
+ * @dev Full upgradable super token proxy
  */
-contract FullUpgradableSuperToken is Proxy {
+contract FullUpgradableSuperTokenProxy is Proxy {
 
     // web3.utils.keccak256("org.superfluid-finance.FullUpgradableSuperTokenWrapper.factory_slot")
     bytes32 internal constant _FACTORY_SLOT = 0xb8fcd5719b3ddf8626f3664705a89b7fc476129a58c1aa5eda57c600cc1821a0;

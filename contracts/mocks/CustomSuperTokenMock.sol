@@ -4,7 +4,7 @@ pragma solidity 0.7.6;
 import {
     ISuperfluid,
     ISuperAgreement,
-    SuperToken
+    ISuperToken
 } from "../superfluid/SuperToken.sol";
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -12,9 +12,20 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { CallUtils } from "../utils/CallUtils.sol";
 
 
-contract CustomSuperTokenMock is UUPSProxy {
+interface CustomSuperTokenFunctionsMock {
+    function selfBurn(
+        address to,
+        uint256 amount,
+        bytes memory userData
+    ) external;
+}
 
-    // this function shadows SuperToken.mint with selfMint
+// solhint-disable-next-line no-empty-blocks
+interface CustomSuperTokenMock is CustomSuperTokenFunctionsMock, ISuperToken { }
+
+contract CustomSuperTokenProxyMock is CustomSuperTokenFunctionsMock, UUPSProxy {
+
+    // this function shadows ISuperToken.mint with selfMint
     function mint(
         address to,
         uint256 amount,
@@ -35,8 +46,18 @@ contract CustomSuperTokenMock is UUPSProxy {
         bytes memory returnedValue;
         // solhint-disable-next-line avoid-low-level-calls
         (success, returnedValue) = logic.delegatecall(abi.encodeWithSelector(
-            SuperToken.mint.selector,
+            ISuperToken.mint.selector,
             to, amount, userData));
         if (!success) revert(CallUtils.getRevertMsg(returnedValue));
+    }
+
+    // this function self calls burn
+    function selfBurn(
+        address to,
+        uint256 amount,
+        bytes memory userData
+    ) external override {
+        // this makes msg.sender to self
+        ISuperToken(address(this)).burn(to, amount, userData);
     }
 }

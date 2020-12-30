@@ -383,16 +383,16 @@ contract("SuperToken's Non Standard Functions", accounts => {
     describe("#3 SuperToken custom token support", () => {
         const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
         const CustomSuperTokenMock = artifacts.require("CustomSuperTokenMock");
+        const CustomSuperTokenProxyMock = artifacts.require("CustomSuperTokenProxyMock");
 
         it("#3.1 Custom token functions can only be called by self", async () => {
             const reason = "SuperToken: only self allowed";
             await expectRevert(superToken.mint(alice, 100, "0x"), reason);
         });
 
-        it("#3.2 Custom token with customMint and disabling upgrade/downgrade", async () => {
-            const ISuperToken = artifacts.require("ISuperToken");
-            const customToken = await ISuperToken.at(
-                (await web3tx(CustomSuperTokenMock.new, "CustomSuperTokenMock.new")(
+        it("#3.2 Custom token that mints/burn and disabling upgrade/downgrade", async () => {
+            const customToken = await CustomSuperTokenMock.at(
+                (await web3tx(CustomSuperTokenProxyMock.new, "CustomSuperTokenProxyMock.new")(
                     superfluid.address
                 )).address);
             const factory = await ISuperTokenFactory.at(await superfluid.getSuperTokenFactory());
@@ -407,9 +407,18 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 "Custom SuperTestToken",
                 "CSTT"
             );
+
             await web3tx(customToken.mint, "customToken.mint")(alice, 100, "0x");
             assert.equal((await customToken.balanceOf(alice)).toString(), "100");
             assert.equal((await customToken.totalSupply()).toString(), "100");
+
+            await expectRevert(
+                customToken.selfBurn(alice, 101, "0x"),
+                "SuperfluidToken: burn amount exceeds balance");
+
+            await web3tx(customToken.selfBurn, "customToken.selfBurn")(alice, 100, "0x");
+            assert.equal((await customToken.balanceOf(alice)).toString(), "0");
+            assert.equal((await customToken.totalSupply()).toString(), "0");
         });
     });
 

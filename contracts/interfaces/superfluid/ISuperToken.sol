@@ -303,6 +303,18 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         bytes memory userData
     ) external;
 
+   /**
+    * @dev Burn existing tokens for the account
+    *
+    * Modifiers:
+    *  - onlySelf
+    */
+   function burn(
+       address account,
+       uint256 amount,
+       bytes memory userData
+   ) external;
+
     /**************************************************************************
      * SuperToken extra functions
      *************************************************************************/

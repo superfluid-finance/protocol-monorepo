@@ -489,6 +489,17 @@ contract SuperToken is
             true /* requireReceptionAck */, userData, new bytes(0));
     }
 
+    function burn(
+       address account,
+       uint256 amount,
+       bytes memory userData
+    )
+       external override
+       onlySelf
+    {
+       _burn(msg.sender, account, amount, userData, new bytes(0));
+    }
+
     /**************************************************************************
      * SuperToken extra functions
      *************************************************************************/

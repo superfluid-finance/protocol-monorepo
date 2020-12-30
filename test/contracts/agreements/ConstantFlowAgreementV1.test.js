@@ -1056,7 +1056,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 receiver: "mfa",
                 mfa,
                 flowRate: FLOW_RATE1,
-            }), "CFA: not enough available balance");
+            }), "CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
             await timeTravelOnceAndVerifyAll();
         });
 

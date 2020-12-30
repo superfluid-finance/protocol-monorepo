@@ -12,6 +12,7 @@
     "/build/abi.js",
     "/build/contracts/*.json",
     "!/build/contracts/*Mock.json",
+    "!/build/contracts/*Tester.json",
     "scripts/**/*.js",
     "scripts/**/*.sh",
     "js-sdk/**/*.json",

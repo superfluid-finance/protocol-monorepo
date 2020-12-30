@@ -638,7 +638,7 @@ contract ConstantFlowAgreementV1 is
             //int256 oldDeposit;
 
             // STEP 1: calculate old and new deposit required for the flow
-            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(token.getHost()).getGovernance());
+            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
             uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
 
             //oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod, false).toInt256();

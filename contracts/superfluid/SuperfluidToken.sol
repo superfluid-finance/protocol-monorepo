@@ -35,6 +35,22 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev Settled balance for the account
     mapping(address => int256) internal _balances;
 
+    /// @dev Total supply
+    uint256 internal _totalSupply;
+
+    // NOTE: for future compatibility, these are reserved solidity slots
+    // The sub-class of SuperfluidToken solidity slot will start after _reserve9
+    uint256 internal _reserve0;
+    uint256 private _reserve1;
+    uint256 private _reserve2;
+    uint256 private _reserve3;
+    uint256 private _reserve4;
+    uint256 private _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 internal _reserve9;
+
     constructor(
         ISuperfluid host
     ) {
@@ -168,22 +184,24 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
     function _mint(
         address account,
-        int256 amount
+        uint256 amount
     )
         internal
     {
-        _balances[account] = _balances[account].add(amount);
+        _balances[account] = _balances[account].add(amount.toInt256());
+        _totalSupply = _totalSupply.add(amount);
     }
 
     function _burn(
         address account,
-        int256 amount
+        uint256 amount
     )
         internal
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, block.timestamp);
-        require(availableBalance >= amount, "SuperfluidToken: burn amount exceeds balance");
-        _balances[account] = _balances[account].sub(amount);
+        require(availableBalance >= amount.toInt256(), "SuperfluidToken: burn amount exceeds balance");
+        _balances[account] = _balances[account].sub(amount.toInt256());
+        _totalSupply = _totalSupply.sub(amount);
     }
 
     function _move(

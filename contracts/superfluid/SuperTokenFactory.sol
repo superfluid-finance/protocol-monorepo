@@ -51,7 +51,7 @@ abstract contract SuperTokenFactoryBase is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
+        _updateSuperTokenLogic();
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -61,8 +61,13 @@ abstract contract SuperTokenFactoryBase is
     function updateCode(address newAddress) external override {
         require(msg.sender == address(_host), "only host can update code");
         _updateCodeAddress(newAddress);
+        _updateSuperTokenLogic();
+    }
+
+    function _updateSuperTokenLogic() private {
         // use external call to trigger the new code to update the super token logic contract
         _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
+        emit SuperTokenLogicCreated(_superTokenLogic);
     }
 
     /**************************************************************************
@@ -128,6 +133,14 @@ abstract contract SuperTokenFactoryBase is
             name,
             symbol
         );
+    }
+
+    function initializeCustomSuperToken(
+        UUPSProxy customSuperTokenProxy
+    )
+        external override
+    {
+        customSuperTokenProxy.initializeProxy(address(_superTokenLogic));
     }
 
 }

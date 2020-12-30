@@ -1386,9 +1386,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     ])
             });
             await expectJailed(app.address, 12 /* APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT */);
-            await t.validateSystemInvariance({
-                allowCriticalAccount: true
-            });
+            await t.validateSystemInvariance();
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", toBN(0).sub(mfaFlowRate(FLOW_RATE1, 50)));
             await expectNetFlow(receiver1, "0");

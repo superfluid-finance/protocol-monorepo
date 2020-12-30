@@ -544,12 +544,35 @@ contract ConstantFlowAgreementV1 is
 
             int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
                 .sub(oldFlowData.owedDeposit.toInt256());
-            _changeFlowAllowanceDelta(
-                token,
-                flowParams,
-                vars.newFlowData,
-                currentContext,
-                appAllowanceDelta);
+
+            // update flow data and account state with the allowance delta
+            {
+                vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
+                        .add(appAllowanceDelta)
+                        .toUint256();
+                vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
+                        .add(appAllowanceDelta)
+                        .toUint256();
+                token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
+                // update sender and receiver deposit (for sender) and owed deposit (for receiver)
+                _updateAccountFlowState(
+                    token,
+                    flowParams.sender,
+                    0, // flow rate delta
+                    appAllowanceDelta, // deposit delta
+                    0, // owed deposit delta
+                    currentContext.timestamp
+                );
+                _updateAccountFlowState(
+                    token,
+                    flowParams.receiver,
+                    0, // flow rate delta
+                    0, // deposit delta
+                    appAllowanceDelta, // owed deposit delta
+                    currentContext.timestamp
+                );
+            }
+
             newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
                 ctx,
                 vars.newFlowData.deposit, // allowanceWantedMore
@@ -562,63 +585,28 @@ contract ConstantFlowAgreementV1 is
                 int256 availableBalance;
                 (availableBalance,,) = token.realtimeBalanceOf(flowParams.receiver, currentContext.timestamp);
                 if (availableBalance < 0) {
+                    // app goes broke, send the app to jail
                     newCtx = ISuperfluid(msg.sender).jailApp(
                         newCtx,
                         ISuperApp(flowParams.receiver),
                         SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
-                    // take all the app balance
-                    int256 appAllowanceDelta2 = AgreementLibrary.min(-availableBalance, -appAllowanceDelta);
-                    _changeFlowAllowanceDelta(
-                        token,
-                        flowParams,
-                        vars.newFlowData,
-                        currentContext,
-                        appAllowanceDelta2);
-                    newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
-                        ctx,
-                        0, // allowanceWantedMore
-                        appAllowanceDelta2 // allowanceUsedDelta
+                    // calculate user's damange
+                    int256 userDamangeAmount = AgreementLibrary.min(
+                        // user will take the damage if the app is broke,
+                        -availableBalance,
+                        // but user's damage is limited to the amount of app allowance it gives to the app
+                        AgreementLibrary.max(0, -appAllowanceDelta));
+                    token.settleBalance(
+                        flowParams.sender,
+                        -userDamangeAmount
+                    );
+                    token.settleBalance(
+                        flowParams.receiver,
+                        userDamangeAmount
                     );
                 }
             }
         }
-    }
-
-    function _changeFlowAllowanceDelta(
-        ISuperfluidToken token,
-        FlowParams memory flowParams,
-        FlowData memory flowData,
-        ISuperfluid.Context memory currentContext,
-        int256 appAllowanceDelta
-    )
-        private
-    {
-        // update flow agreement data
-        flowData.deposit = flowData.deposit.toInt256()
-                .add(appAllowanceDelta)
-                .toUint256();
-        flowData.owedDeposit = flowData.owedDeposit.toInt256()
-                .add(appAllowanceDelta)
-                .toUint256();
-        token.updateAgreementData(flowParams.flowId, _encodeFlowData(flowData));
-
-        // update sender and receiver deposit (for sender) and owed deposit (for receiver)
-        _updateAccountFlowState(
-            token,
-            flowParams.sender,
-            0, // flow rate delta
-            appAllowanceDelta, // deposit delta
-            0, // owed deposit delta
-            currentContext.timestamp
-        );
-        _updateAccountFlowState(
-            token,
-            flowParams.receiver,
-            0, // flow rate delta
-            0, // deposit delta
-            appAllowanceDelta, // owed deposit delta
-            currentContext.timestamp
-        );
     }
 
     /**

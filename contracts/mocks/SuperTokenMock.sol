@@ -73,6 +73,10 @@ contract SuperTokenMock is SuperToken {
         require (slot == 31 && offset == 0, "_reserve19 changed location");
     }
 
+    function getLastSuperTokenStorageSlot() external pure returns (uint slot) {
+        assembly { slot:= _reserve19.slot }
+    }
+
     /**
      * ERC-20 mockings
      */

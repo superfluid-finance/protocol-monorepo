@@ -477,7 +477,7 @@ contract SuperToken is
      * SuperToken custom token functions
      *************************************************************************/
 
-    function mint(
+    function selfMint(
         address account,
         uint256 amount,
         bytes memory userData
@@ -489,7 +489,7 @@ contract SuperToken is
             true /* requireReceptionAck */, userData, new bytes(0));
     }
 
-    function burn(
+    function selfBurn(
        address account,
        uint256 amount,
        bytes memory userData

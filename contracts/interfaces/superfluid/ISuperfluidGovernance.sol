@@ -2,7 +2,8 @@
 pragma solidity >= 0.7.0;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
-import { ISuperToken, ISuperfluidToken } from "./ISuperToken.sol";
+import { ISuperToken } from "./ISuperToken.sol";
+import { ISuperfluidToken  } from "./ISuperfluidToken.sol";
 import { ISuperfluid } from "./ISuperfluid.sol";
 
 

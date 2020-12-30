@@ -385,13 +385,10 @@ contract("SuperToken's Non Standard Functions", accounts => {
         const CustomSuperTokenMock = artifacts.require("CustomSuperTokenMock");
         const CustomSuperTokenProxyMock = artifacts.require("CustomSuperTokenProxyMock");
 
-        it("#3.1 Custom token functions can only be called by self", async () => {
-            const reason = "SuperToken: only self allowed";
-            await expectRevert(superToken.mint(alice, 100, "0x"), reason);
-        });
+        let customToken;
 
-        it("#3.2 Custom token that mints/burn and disabling upgrade/downgrade", async () => {
-            const customToken = await CustomSuperTokenMock.at(
+        beforeEach(async () => {
+            customToken = await CustomSuperTokenMock.at(
                 (await web3tx(CustomSuperTokenProxyMock.new, "CustomSuperTokenProxyMock.new")(
                     superfluid.address
                 )).address);
@@ -399,6 +396,26 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(factory.initializeCustomSuperToken, "initializeCustomSuperToken")(
                 customToken.address
             );
+        });
+
+        it("#3.1 Custom token storage should not overlap with super token", async () => {
+            const a = await superToken.getLastSuperTokenStorageSlot();
+            const b = await customToken.getFirstCustomTokenStorageSlot();
+            console.log("lastSuperTokenStorageSlot", a.toString());
+            console.log("firstCustomTokenStorageSlot", b.toString());
+            assert.equal(
+                Number(a.toString()) + 1,
+                Number(b.toString())
+            );
+        });
+
+        it("#3.2 Custom token functions can only be called by self", async () => {
+            const reason = "SuperToken: only self allowed";
+            await expectRevert(superToken.selfMint(alice, 100, "0x"), reason);
+            await expectRevert(superToken.selfBurn(alice, 100, "0x"), reason);
+        });
+
+        it("#3.3 Custom token that mints/burn and disabling upgrade/downgrade", async () => {
             await expectRevert(customToken.upgrade(100), "SuperToken: no underlying token");
             await expectRevert(customToken.downgrade(100), "SuperToken: no underlying token");
             await web3tx(customToken.initialize, "customToken.initialize")(
@@ -408,15 +425,15 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 "CSTT"
             );
 
-            await web3tx(customToken.mint, "customToken.mint")(alice, 100, "0x");
+            await web3tx(customToken.selfMint, "customToken.selfMint")(alice, 100, "0x");
             assert.equal((await customToken.balanceOf(alice)).toString(), "100");
             assert.equal((await customToken.totalSupply()).toString(), "100");
 
             await expectRevert(
-                customToken.selfBurn(alice, 101, "0x"),
+                customToken.callSelfBurn(alice, 101, "0x"),
                 "SuperfluidToken: burn amount exceeds balance");
 
-            await web3tx(customToken.selfBurn, "customToken.selfBurn")(alice, 100, "0x");
+            await web3tx(customToken.callSelfBurn, "customToken.callSelfBurn")(alice, 100, "0x");
             assert.equal((await customToken.balanceOf(alice)).toString(), "0");
             assert.equal((await customToken.totalSupply()).toString(), "0");
         });

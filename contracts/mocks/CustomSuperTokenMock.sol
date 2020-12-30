@@ -2,62 +2,66 @@
 pragma solidity 0.7.6;
 
 import {
-    ISuperfluid,
-    ISuperAgreement,
+    CustomSuperTokenProxyBase,
     ISuperToken
-} from "../superfluid/SuperToken.sol";
+}
+from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
-import { CallUtils } from "../utils/CallUtils.sol";
 
+abstract contract CustomSuperTokenBaseMock is CustomSuperTokenProxyBase {
+    function getFirstCustomTokenStorageSlot() external pure virtual returns (uint slot);
 
-interface CustomSuperTokenFunctionsMock {
-    function selfBurn(
+    function callSelfBurn(
         address to,
         uint256 amount,
         bytes memory userData
-    ) external;
+    ) external virtual;
 }
 
 // solhint-disable-next-line no-empty-blocks
-interface CustomSuperTokenMock is CustomSuperTokenFunctionsMock, ISuperToken { }
+abstract contract CustomSuperTokenMock is CustomSuperTokenBaseMock, ISuperToken {}
 
-contract CustomSuperTokenProxyMock is CustomSuperTokenFunctionsMock, UUPSProxy {
+contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock, UUPSProxy {
 
-    // this function shadows ISuperToken.mint with selfMint
-    function mint(
-        address to,
-        uint256 amount,
-        bytes memory userData
-    ) external {
-        // this makes msg.sender to self
-        this.selfMint(to, amount, userData);
+    uint256 private _firstStorageSlot;
+
+    function getFirstCustomTokenStorageSlot() external pure override returns (uint slot) {
+        assembly { slot:= _firstStorageSlot.slot }
     }
 
-    // this function uses delegatecall to avoid calling shadow mint defined in this contract
+    // this function overrides the default ISuperToken.selfMint behavior
     function selfMint(
         address to,
         uint256 amount,
         bytes memory userData
     ) external {
+        // this makes msg.sender to self
+        this.delegatecallSelfMint(to, amount, userData);
+    }
+
+    // this function uses delegatecall to avoid calling shadow mint defined in this contract
+    function delegatecallSelfMint(
+        address to,
+        uint256 amount,
+        bytes memory userData
+    ) external {
         address logic = _implementation();
-        bool success;
-        bytes memory returnedValue;
         // solhint-disable-next-line avoid-low-level-calls
-        (success, returnedValue) = logic.delegatecall(abi.encodeWithSelector(
-            ISuperToken.mint.selector,
+        (bool success, ) = logic.delegatecall(abi.encodeWithSelector(
+            ISuperToken.selfMint.selector,
             to, amount, userData));
-        if (!success) revert(CallUtils.getRevertMsg(returnedValue));
+        assert(success);
     }
 
     // this function self calls burn
-    function selfBurn(
+    function callSelfBurn(
         address to,
         uint256 amount,
         bytes memory userData
     ) external override {
         // this makes msg.sender to self
-        ISuperToken(address(this)).burn(to, amount, userData);
+        ISuperToken(address(this)).selfBurn(to, amount, userData);
     }
 }

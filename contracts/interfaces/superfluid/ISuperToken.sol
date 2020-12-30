@@ -297,7 +297,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * Modifiers:
      *  - onlySelf
      */
-    function mint(
+    function selfMint(
         address account,
         uint256 amount,
         bytes memory userData
@@ -309,7 +309,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * Modifiers:
     *  - onlySelf
     */
-   function burn(
+   function selfBurn(
        address account,
        uint256 amount,
        bytes memory userData

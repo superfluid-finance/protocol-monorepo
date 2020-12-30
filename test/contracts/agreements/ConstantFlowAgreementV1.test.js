@@ -1404,6 +1404,32 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 ).encodeABI()
             ), "CFA: not enough available balance");
         });
+
+        it("#2.21 mfa-1to2[50,50]_150pct_create-full should fail without app balance", async () => {
+            // double the amount since it's a "bigger" flow
+            await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
+
+            const mfa = {
+                ratioPct: 150,
+                sender,
+                receivers: {
+                    [receiver1]: {
+                        proportion: 1
+                    },
+                    [receiver2]: {
+                        proportion: 1
+                    }
+                }
+            };
+
+            await expectRevert(shouldCreateFlow({
+                testenv: t,
+                sender,
+                receiver: "mfa",
+                mfa,
+                flowRate: FLOW_RATE1,
+            }), "CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
+        });
     });
 
     describe("#10 multi accounts scenarios", () => {

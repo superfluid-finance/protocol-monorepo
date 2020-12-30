@@ -507,7 +507,8 @@ contract ConstantFlowAgreementV1 is
                     currentContext.timestamp,
                     token, flowParams, oldFlowData);
 
-            // each app level get a same amount of allowance
+            // - each app level can at least "relay" the same amount of input flow rate to others
+            // - each app level get a same amount of allowance
             vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.cbLevel + 1));
 
             // call the after callback
@@ -586,24 +587,28 @@ contract ConstantFlowAgreementV1 is
                 (availableBalance,,) = token.realtimeBalanceOf(flowParams.receiver, currentContext.timestamp);
                 if (availableBalance < 0) {
                     // app goes broke, send the app to jail
-                    newCtx = ISuperfluid(msg.sender).jailApp(
-                        newCtx,
-                        ISuperApp(flowParams.receiver),
-                        SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
-                    // calculate user's damange
-                    int256 userDamangeAmount = AgreementLibrary.min(
-                        // user will take the damage if the app is broke,
-                        -availableBalance,
-                        // but user's damage is limited to the amount of app allowance it gives to the app
-                        AgreementLibrary.max(0, -appAllowanceDelta));
-                    token.settleBalance(
-                        flowParams.sender,
-                        -userDamangeAmount
-                    );
-                    token.settleBalance(
-                        flowParams.receiver,
-                        userDamangeAmount
-                    );
+                    if (optype == FlowChangeType.DELETE_FLOW) {
+                        newCtx = ISuperfluid(msg.sender).jailApp(
+                            newCtx,
+                            ISuperApp(flowParams.receiver),
+                            SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
+                        // calculate user's damange
+                        int256 userDamangeAmount = AgreementLibrary.min(
+                            // user will take the damage if the app is broke,
+                            -availableBalance,
+                            // but user's damage is limited to the amount of app allowance it gives to the app
+                            AgreementLibrary.max(0, -appAllowanceDelta));
+                        token.settleBalance(
+                            flowParams.sender,
+                            -userDamangeAmount
+                        );
+                        token.settleBalance(
+                            flowParams.receiver,
+                            userDamangeAmount
+                        );
+                    } else {
+                        revert("CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
+                    }
                 }
             }
         }

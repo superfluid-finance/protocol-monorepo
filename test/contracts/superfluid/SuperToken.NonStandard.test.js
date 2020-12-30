@@ -20,6 +20,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
     const { admin, alice, bob, } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
+    let superfluid;
     let testToken;
     let superToken;
 
@@ -30,6 +31,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
     beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
         ({
+            superfluid,
             testToken,
             superToken,
         } = t.contracts);
@@ -378,13 +380,46 @@ contract("SuperToken's Non Standard Functions", accounts => {
         });
     });
 
-    describe("#3 misc", () => {
-        it("#3.1 should return underlying token", async () => {
+    describe("#3 SuperToken custom token support", () => {
+        const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+        const CustomSuperTokenMock = artifacts.require("CustomSuperTokenMock");
+
+        it("#3.1 Custom token functions can only be called by self", async () => {
+            const reason = "SuperToken: only self allowed";
+            await expectRevert(superToken.mint(alice, 100, "0x"), reason);
+        });
+
+        it("#3.2 Custom token with customMint and disabling upgrade/downgrade", async () => {
+            const ISuperToken = artifacts.require("ISuperToken");
+            const customToken = await ISuperToken.at(
+                (await web3tx(CustomSuperTokenMock.new, "CustomSuperTokenMock.new")(
+                    superfluid.address
+                )).address);
+            const factory = await ISuperTokenFactory.at(await superfluid.getSuperTokenFactory());
+            await web3tx(factory.initializeCustomSuperToken, "initializeCustomSuperToken")(
+                customToken.address
+            );
+            await expectRevert(customToken.upgrade(100), "SuperToken: no underlying token");
+            await expectRevert(customToken.downgrade(100), "SuperToken: no underlying token");
+            await web3tx(customToken.initialize, "customToken.initialize")(
+                ZERO_ADDRESS,
+                0,
+                "Custom SuperTestToken",
+                "CSTT"
+            );
+            await web3tx(customToken.mint, "customToken.mint")(alice, 100, "0x");
+            assert.equal((await customToken.balanceOf(alice)).toString(), "100");
+            assert.equal((await customToken.totalSupply()).toString(), "100");
+        });
+    });
+
+    describe("#10 misc", () => {
+        it("#10.1 should return underlying token", async () => {
             assert.equal(await superToken.getUnderlyingToken.call(),
                 t.contracts.testToken.address);
         });
 
-        it("#3.2 transferAll", async () => {
+        it("#10.2 transferAll", async () => {
             await t.upgradeBalance("alice", toWad(2));
             assert.equal(
                 (await superToken.balanceOf.call(alice)).toString(),
@@ -404,7 +439,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             );
         });
 
-        it("#3.3 batchCall should only be called by host", async function () {
+        it("#10.3 batchCall should only be called by host", async function () {
             await expectRevert(
                 superToken.operationApprove(alice, bob, "0"),
                 "SuperfluidToken: Only host contract allowed"

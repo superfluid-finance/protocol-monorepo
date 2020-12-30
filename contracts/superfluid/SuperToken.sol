@@ -66,17 +66,17 @@ contract SuperToken is
     ERC777Helper.Operators internal _operators;
 
     // NOTE: for future compatibility, these are reserved solidity slots
-    // The sub-class of SuperToken solidity slot will start after _reserve9
-    uint256 internal _reserve0;
-    uint256 private _reserve1;
-    uint256 private _reserve2;
-    uint256 private _reserve3;
-    uint256 private _reserve4;
-    uint256 private _reserve5;
-    uint256 private _reserve6;
-    uint256 private _reserve7;
-    uint256 private _reserve8;
-    uint256 internal _reserve9;
+    // The sub-class of SuperToken solidity slot will start after _reserve19
+    uint256 internal _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 internal _reserve19;
 
     constructor(
         ISuperfluid host
@@ -234,7 +234,7 @@ contract SuperToken is
     {
         require(account != address(0), "SuperToken: mint to zero address");
 
-        SuperfluidToken._mint(account, amount.toInt256());
+        SuperfluidToken._mint(account, amount);
 
         _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
 
@@ -262,7 +262,7 @@ contract SuperToken is
 
         _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
 
-        SuperfluidToken._burn(from, amount.toInt256());
+        SuperfluidToken._burn(from, amount);
 
         emit Burned(operator, from, amount, userData, operatorData);
         emit Transfer(from, address(0), amount);
@@ -357,7 +357,7 @@ contract SuperToken is
     function totalSupply()
         public view override returns (uint256)
     {
-        return _underlyingToken.balanceOf(address(this));
+        return _totalSupply;
     }
 
     function balanceOf(
@@ -474,12 +474,27 @@ contract SuperToken is
     }
 
     /**************************************************************************
+     * SuperToken custom token functions
+     *************************************************************************/
+
+    function mint(
+        address account,
+        uint256 amount,
+        bytes memory userData
+    )
+        external override
+        onlySelf
+    {
+        _mint(msg.sender, account, amount,
+            true /* requireReceptionAck */, userData, new bytes(0));
+    }
+
+    /**************************************************************************
      * SuperToken extra functions
      *************************************************************************/
 
     function transferAll(address recipient)
-        external
-        override
+        external override
     {
         _transferFrom(msg.sender, msg.sender, recipient, balanceOf(msg.sender));
     }
@@ -516,6 +531,7 @@ contract SuperToken is
         bytes memory userData,
         bytes memory operatorData
     ) private {
+        require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
         (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
         _underlyingToken.transferFrom(account, address(this), underlyingAmount);
         _mint(operator, to, actualAmount,
@@ -530,6 +546,7 @@ contract SuperToken is
         uint256 amount,
         bytes memory data,
         bytes memory operatorData) private {
+        require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
         // - in case of downcasting of decimals, actual amount can be smaller than requested amount
         (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
          // _burn will check the (actual) amount availability again
@@ -596,6 +613,15 @@ contract SuperToken is
         onlyHost
     {
         _downgrade(msg.sender, account, amount, "", "");
+    }
+
+    /**************************************************************************
+    * Modifiers
+    *************************************************************************/
+
+    modifier onlySelf() {
+        require(msg.sender == address(this), "SuperToken: only self allowed");
+        _;
     }
 
 }

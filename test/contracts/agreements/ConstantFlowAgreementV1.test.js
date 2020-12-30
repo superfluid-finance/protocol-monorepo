@@ -683,7 +683,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         });
     });
 
-    describe.only("#2 multi flows super app scenarios", () => {
+    describe("#2 multi flows super app scenarios", () => {
         const sender = "alice";
         const receiver1 = "bob";
         const receiver2 = "carol";

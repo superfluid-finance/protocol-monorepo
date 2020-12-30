@@ -372,7 +372,8 @@ module.exports = class TestEnvironment {
                 .sub(web3.utils.BN.min(superTokenBalance.owedDeposit, superTokenBalance.deposit));
 
             this.printSingleBalance(`${alias} underlying token balance`, tokenBalance);
-            this.printRealtimeBalance(`${alias} super token balance`, superTokenBalance);
+            console.log(`${alias} super token balance`, wad4human(realtimeBalance));
+            this.printRealtimeBalance(`${alias} super token balance (tuple)`, superTokenBalance);
 
             if (!allowCriticalAccount) {
                 assert.isTrue(superTokenBalance.availableBalance.gte(toBN(0)), `${alias} account is critical`);

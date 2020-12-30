@@ -163,7 +163,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 sender: alice,
                 receiver: bob,
                 by: admin
-            }), "CFA: account is not critical");
+            }), "CFA: sender account is not critical");
         });
 
         it("by sender with onTransaction", async () => {

@@ -81,8 +81,11 @@ contract("SuperTokenFactory Contract", accounts => {
             async function updateSuperTokenFactory() {
                 const SuperTokenFactory42Mock = artifacts.require("SuperTokenFactory42Mock");
                 const factory2Logic = await SuperTokenFactory42Mock.new(superfluid.address);
-                await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
-                    superfluid.address, factory2Logic.address
+                await web3tx(governance.updateContracts, "governance.updateContracts")(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    [],
+                    factory2Logic.address
                 );
                 await web3tx(await superfluid.getSuperTokenFactoryLogic.call(), factory2Logic.address);
             }
@@ -126,8 +129,11 @@ contract("SuperTokenFactory Contract", accounts => {
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
                 const factory2Logic = await SuperTokenFactory.new(superfluid.address);
-                await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
-                    superfluid.address, factory2Logic.address
+                await web3tx(governance.updateContracts, "governance.updateContracts")(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    [],
+                    factory2Logic.address
                 );
                 let superToken0 = await t.sf.createERC20Wrapper(token1, { upgradability: 0 } );
                 assert.equal(await superToken0.getUnderlyingToken.call(), token1.address);

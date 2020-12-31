@@ -73,10 +73,18 @@ contract("Superfluid Host Contract", accounts => {
             it("#1.5 update the code by governanc3", async () => {
                 const mock1 = await SuperfluidMock.new(false /* nonUpgradable */);
                 const mock2 = await SuperfluidMock.new(true /* nonUpgradable */);
-                await governance.updateHostCode(superfluid.address, mock1.address);
+                await governance.updateContracts(
+                    superfluid.address,
+                    mock1.address,
+                    [],
+                    ZERO_ADDRESS);
                 assert.equal(await superfluid.getCodeAddress(), mock1.address);
                 await expectRevert(
-                    governance.updateHostCode(superfluid.address, mock2.address),
+                    governance.updateContracts(
+                        superfluid.address,
+                        mock2.address,
+                        [],
+                        ZERO_ADDRESS),
                     "SF: cannot downgrade to non upgradable");
             });
         });
@@ -135,9 +143,11 @@ contract("Superfluid Host Contract", accounts => {
                     [mockAProxy.address, mockBProxy.address]);
 
                 // upgrade typeA
-                await web3tx(governance.updateAgreementClass, "registerAgreementClass typeA")(
+                await web3tx(governance.updateContracts, "registerAgreementClass typeA")(
                     superfluid.address,
-                    mockA2.address
+                    ZERO_ADDRESS,
+                    [mockA2.address],
+                    ZERO_ADDRESS
                 );
                 console.log("Agreement classes", await superfluid.mapAgreementClasses.call(MAX_UINT256));
                 const mockAProxy2 = await AgreementMock.at(
@@ -227,9 +237,11 @@ contract("Superfluid Host Contract", accounts => {
                 const typeA = web3.utils.sha3("typeA");
                 const mockA = await AgreementMock.new(typeA, 1);
 
-                await expectRevert(governance.updateAgreementClass(
+                await expectRevert(governance.updateContracts(
                     superfluid.address,
-                    mockA.address
+                    ZERO_ADDRESS,
+                    [mockA.address],
+                    ZERO_ADDRESS
                 ), "SF: agreement class not registered");
 
                 await expectRevert(superfluid.getAgreementClass(typeA),
@@ -261,8 +273,11 @@ contract("Superfluid Host Contract", accounts => {
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
                 const factory2Logic = await SuperTokenFactory.new(superfluid.address);
-                await web3tx(governance.updateSuperTokenFactory, "governance.updateSuperTokenFactory")(
-                    superfluid.address, factory2Logic.address
+                await web3tx(governance.updateContracts, "governance.updateContracts")(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    [],
+                    factory2Logic.address
                 );
                 assert.equal(
                     await superfluid.getSuperTokenFactory(),
@@ -1228,9 +1243,11 @@ contract("Superfluid Host Contract", accounts => {
         describe("#30 non-upgradability", () => {
             it("#30.1 agreement is not upgradable", async () => {
                 await expectRevert(
-                    governance.updateAgreementClass(
+                    governance.updateContracts(
                         superfluid.address,
-                        t.contracts.ida.address),
+                        ZERO_ADDRESS,
+                        [t.contracts.ida.address],
+                        ZERO_ADDRESS),
                     "SF: non upgradable");
             });
 
@@ -1238,17 +1255,24 @@ contract("Superfluid Host Contract", accounts => {
                 assert.equal(
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic());
+                const factory2Logic = await SuperTokenFactory.new(superfluid.address);
                 await expectRevert(
-                    governance.updateSuperTokenFactory(
+                    governance.updateContracts(
                         superfluid.address,
-                        ZERO_ADDRESS),
+                        ZERO_ADDRESS,
+                        [],
+                        factory2Logic),
                     "SF: non upgradable");
             });
 
             it("#30.3 host is not upgradable", async () => {
                 const mock1 = await SuperfluidMock.new(false /* nonUpgradable */);
                 await expectRevert(
-                    governance.updateHostCode(superfluid.address, mock1.address),
+                    governance.updateContracts(
+                        superfluid.address,
+                        mock1.address,
+                        [],
+                        ZERO_ADDRESS),
                     "SF: non upgradable");
             });
         });

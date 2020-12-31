@@ -57,16 +57,6 @@ contract TestGovernance is
     /* ISuperfluidGovernance
     /*************************************************************************/
 
-    function updateHostCode(
-        ISuperfluid host,
-        address newCode
-    )
-        external override
-        onlyOwner
-    {
-        UUPSProxiable(address(host)).updateCode(newCode);
-    }
-
     function replaceGovernance(
         ISuperfluid host,
         address newGov
@@ -87,24 +77,24 @@ contract TestGovernance is
         host.registerAgreementClass(ISuperAgreement(agreementClass));
     }
 
-    function updateAgreementClass(
+    function updateContracts(
         ISuperfluid host,
-        address agreementClass
+        address hostNewLogic,
+        address[] calldata agreementClassNewLogics,
+        address superTokenFactoryNewLogic
     )
         external override
         onlyOwner
     {
-        host.updateAgreementClass(ISuperAgreement(agreementClass));
-    }
-
-    function updateSuperTokenFactory(
-        ISuperfluid host,
-        address newFactory
-    )
-        external override
-        onlyOwner
-    {
-        host.updateSuperTokenFactory(ISuperTokenFactory(newFactory));
+        if (hostNewLogic != address(0)) {
+            UUPSProxiable(address(host)).updateCode(hostNewLogic);
+        }
+        for (uint i = 0; i < agreementClassNewLogics.length; ++i) {
+            host.updateAgreementClass(ISuperAgreement(agreementClassNewLogics[i]));
+        }
+        if (superTokenFactoryNewLogic != address(0)) {
+            host.updateSuperTokenFactory(ISuperTokenFactory(superTokenFactoryNewLogic));
+        }
     }
 
     function updateSuperTokenLogic(

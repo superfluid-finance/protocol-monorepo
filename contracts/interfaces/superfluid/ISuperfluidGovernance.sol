@@ -14,17 +14,24 @@ import { ISuperfluid } from "./ISuperfluid.sol";
  */
 interface ISuperfluidGovernance {
 
-    function updateHostCode(ISuperfluid host, address newCode) external;
+    function replaceGovernance(
+        ISuperfluid host,
+        address newGov) external;
 
-    function replaceGovernance(ISuperfluid host, address newGov) external;
+    function registerAgreementClass(
+        ISuperfluid host,
+        address agreementClass) external;
 
-    function registerAgreementClass(ISuperfluid host, address agreementClass) external;
+    function updateContracts(
+        ISuperfluid host,
+        address hostNewLogic,
+        address[] calldata agreementClassNewLogics,
+        address superTokenFactoryNewLogic
+    ) external;
 
-    function updateAgreementClass(ISuperfluid host, address agreementClass) external;
-
-    function updateSuperTokenFactory(ISuperfluid host, address newFactory) external;
-
-    function updateSuperTokenLogic(ISuperfluid host, ISuperToken token) external;
+    function updateSuperTokenLogic(
+        ISuperfluid host,
+        ISuperToken token) external;
 
     /**
      * @dev Get the Reward address that receives the liquidation fees.

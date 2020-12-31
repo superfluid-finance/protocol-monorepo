@@ -6,19 +6,51 @@ const deploySuperToken = require("../scripts/deploy-super-token");
 const TestResolver = artifacts.require("TestResolver");
 const Proxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
+const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers").constants;
 
 contract("deployment test (outside truffle environment)", () => {
 
     const errorHandler = err => { if (err) throw err; };
-
     const cfav1Type = web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     const idav1Type = web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
 
+    beforeEach(() => {
+        delete process.env.RESET;
+        delete process.env.RELEASE_VERSION;
+        delete process.env.TEST_RESOLVER_ADDRESS;
+    });
+
     // some cleanup
-    after(() => {
+    afterEach(() => {
         delete process.env.RESET;
         delete process.env.TEST_RESOLVER_ADDRESS;
     });
+
+    async function getSuperfluidAddresses() {
+        const version = "test";
+        const superfluidName = `Superfluid.${version}`;
+        const govName = `TestGovernance.${version}`;
+        const testResolver = await TestResolver.at(process.env.TEST_RESOLVER_ADDRESS);
+        const superfluid = await Superfluid.at(await testResolver.get(superfluidName));
+        const superfluidCode = await superfluid.getCodeAddress.call();
+        const gov = await testResolver.get(govName);
+        const superTokenFactory = await superfluid.getSuperTokenFactory.call();
+        const superTokenFactoryLogic = await superfluid.getSuperTokenFactoryLogic.call();
+        const superTokenLogic = await (await ISuperTokenFactory.at(superTokenFactory)).getSuperTokenLogic();
+        const cfa = await (await Proxiable.at(await superfluid.getAgreementClass(cfav1Type))).getCodeAddress.call();
+        const ida = await (await Proxiable.at(await superfluid.getAgreementClass(idav1Type))).getCodeAddress.call();
+        return {
+            superfluid,
+            superfluidCode,
+            gov,
+            superTokenFactory,
+            superTokenFactoryLogic,
+            superTokenLogic,
+            cfa,
+            ida
+        };
+    }
 
     it("codeChanged function", async () => {
         const {
@@ -37,79 +69,90 @@ contract("deployment test (outside truffle environment)", () => {
         }
     });
 
-    it("Superfluid framework test environment deployment script", async () => {
-        const version = process.env.RELEASE_VERSION || "test";
+    it("Superfluid fresh deployment", async () => {
+        await deployFramework(errorHandler);
+        const s = await getSuperfluidAddresses();
+        assert.notEqual(s.superfluidCode, ZERO_ADDRESS, "superfluidCode not set");
+        assert.notEqual(s.gov, ZERO_ADDRESS, "gov not set");
+        assert.notEqual(s.superTokenFactory, ZERO_ADDRESS, "superTokenFactory not set");
+        assert.notEqual(s.superTokenFactoryLogic, ZERO_ADDRESS, "superTokenFactoryLogic not set");
+        assert.notEqual(s.superTokenLogic, ZERO_ADDRESS, "superTokenLogic not set");
+        assert.notEqual(s.cfa, ZERO_ADDRESS, "cfa not registered");
+        assert.notEqual(s.ida, ZERO_ADDRESS, "ida not registered");
+        assert.isTrue(await s.superfluid.isAgreementClassListed.call(await s.superfluid.getAgreementClass(cfav1Type)));
+        assert.isTrue(await s.superfluid.isAgreementClassListed.call(await s.superfluid.getAgreementClass(idav1Type)));
+        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(cfav1Type));
+        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(idav1Type));
+    });
 
-        const superfluidName = `Superfluid.${version}`;
-        const govName = `TestGovernance.${version}`;
-
+    it("Superfluid deployment and updates", async () => {
+        // use the same resolver for the entire test
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
-        delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+
         console.log("==== First deployment");
         await deployFramework(errorHandler);
-        const superfluid1 = await Superfluid.at(await testResolver.get(superfluidName));
-        const superfluid1Code = await superfluid1.getCodeAddress.call();
-        const gov1 = await testResolver.get(govName);
-        const cfa1 = await (await Proxiable.at(await superfluid1.getAgreementClass(cfav1Type))).getCodeAddress.call();
-        const ida1 = await (await Proxiable.at(await superfluid1.getAgreementClass(idav1Type))).getCodeAddress.call();
-        assert.notEqual(superfluid1, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(gov1, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(cfa1, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(ida1, "0x0000000000000000000000000000000000000000");
-        assert.isTrue(await superfluid1.isAgreementClassListed.call(await superfluid1.getAgreementClass(cfav1Type)));
-        assert.isTrue(await superfluid1.isAgreementClassListed.call(await superfluid1.getAgreementClass(idav1Type)));
-        assert.isTrue(await superfluid1.isAgreementTypeListed.call(cfav1Type));
-        assert.isTrue(await superfluid1.isAgreementTypeListed.call(idav1Type));
+        const s1 = await getSuperfluidAddresses();
 
         console.log("==== Deploy again without logic contract changes");
         await deployFramework(errorHandler);
-        const superfluid2 = await Superfluid.at(await testResolver.get(superfluidName));
-        const superfluid2Code = await superfluid2.getCodeAddress.call();
-        const gov2 = await testResolver.get(govName);
-        const cfa2 = await (await Proxiable.at(await superfluid2.getAgreementClass(cfav1Type))).getCodeAddress.call();
-        const ida2 = await (await Proxiable.at(await superfluid2.getAgreementClass(idav1Type))).getCodeAddress.call();
-        assert.equal(superfluid1.address, superfluid2.address, "Proxy stays the same address");
-        assert.equal(superfluid1Code, superfluid2Code, "superfluid logic deployment not required");
-        assert.equal(gov1, gov2, "Governance deployment not required");
-        assert.equal(cfa1, cfa2, "cfa deployment not required");
-        assert.equal(ida1, ida2, "cfa deployment not required");
+        const s2 = await getSuperfluidAddresses();
+        assert.equal(s1.superfluid.address, s2.superfluid.address,
+            "Superfluid proxy should stay the same address");
+        assert.equal(s1.superfluidCode, s2.superfluidCode,
+            "superfluid logic deployment not required");
+        assert.equal(s1.gov, s2.gov,
+            "Governance deployment not required");
+        assert.equal(s1.superTokenFactory, s2.superTokenFactory,
+            "superTokenFactory deployment not required");
+        assert.equal(s1.superTokenFactoryLogic, s2.superTokenFactoryLogic,
+            "superTokenFactoryLogic deployment not required");
+        assert.equal(s1.superTokenLogic, s2.superTokenLogic,
+            "superTokenLogic deployment not required");
+        assert.equal(s1.cfa, s2.cfa,
+            "cfa deployment not required");
+        assert.equal(s1.ida, s2.ida,
+            "cfa deployment not required");
 
         console.log("==== Reset all");
         process.env.RESET = 1;
         await deployFramework(errorHandler);
-        const superfluid3 = await Superfluid.at(await testResolver.get(superfluidName));
-        const superfluid3Code = await superfluid3.getCodeAddress.call();
-        const gov3 = await testResolver.get(govName);
-        const cfa3 = await (await Proxiable.at(await superfluid3.getAgreementClass(cfav1Type))).getCodeAddress.call();
-        const ida3 = await (await Proxiable.at(await superfluid3.getAgreementClass(idav1Type))).getCodeAddress.call();
-        assert.notEqual(superfluid3, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(gov3, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(cfa3, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(ida3, "0x0000000000000000000000000000000000000000");
-        assert.notEqual(superfluid1, superfluid3);
-        assert.notEqual(superfluid2Code, superfluid3Code);
-        assert.notEqual(gov1, gov3);
-        assert.notEqual(cfa1, cfa3);
-        assert.notEqual(ida1, ida3);
+        const s3 = await getSuperfluidAddresses();
+        assert.notEqual(s3.superfluidCode, ZERO_ADDRESS, "superfluidCode not set");
+        assert.notEqual(s3.gov, ZERO_ADDRESS, "gov not set");
+        assert.notEqual(s3.superTokenFactory, ZERO_ADDRESS, "superTokenFactory not set");
+        assert.notEqual(s3.superTokenFactoryLogic, ZERO_ADDRESS, "superTokenFactoryLogic not set");
+        assert.notEqual(s3.superTokenLogic, ZERO_ADDRESS, "superTokenLogic not set");
+        assert.notEqual(s3.cfa, ZERO_ADDRESS, "cfa not registered");
+        assert.notEqual(s3.ida, ZERO_ADDRESS, "ida not registered");
+        assert.notEqual(s1.superfluid.address, s3.superfluid.address);
+        assert.notEqual(s1.superfluidCode, s3.superfluidCode);
+        assert.notEqual(s1.gov, s3.gov);
+        assert.notEqual(s1.superTokenFactory, s3.superTokenFactory);
+        assert.notEqual(s1.superTokenLogic, s3.superTokenLogic);
+        assert.notEqual(s1.cfa, s3.cfa);
+        assert.notEqual(s1.ida, s3.ida);
 
         console.log("==== Deploy again with mock logic contract");
         delete process.env.RESET;
         await deployFramework(errorHandler, { useMocks: true });
-        const superfluid4 = await Superfluid.at(await testResolver.get(superfluidName));
-        const superfluid4Code = await superfluid4.getCodeAddress.call();
-        const gov4 = await testResolver.get(govName);
-        const cfa4 = await (await Proxiable.at(await superfluid4.getAgreementClass(cfav1Type))).getCodeAddress.call();
-        const ida4 = await (await Proxiable.at(await superfluid4.getAgreementClass(idav1Type))).getCodeAddress.call();
-        assert.equal(superfluid3.address, superfluid4.address, "Proxy stays the same address");
-        assert.notEqual(superfluid3Code, superfluid4Code, "superfluid logic deployment required");
-        assert.equal(gov3, gov4, "Governance deployment not required"); // no mock contract
-        assert.equal(cfa3, cfa4, "cfa deployment not required"); // no mock contract
-        assert.equal(ida3, ida4, "cfa deployment not required"); // no mock contract
-    });
-
-    it("Deployment without resolver", async () => {
-        await deployFramework(errorHandler);
+        const s4 = await getSuperfluidAddresses();
+        assert.equal(s3.superfluid.address, s4.superfluid.address,
+            "Superfluid proxy should stay the same address");
+        assert.notEqual(s3.superfluidCode, s4.superfluidCode,
+            "superfluid logic deployment required");
+        assert.equal(s3.gov, s4.gov,
+            "Governance deployment not required");
+        assert.equal(s3.superTokenFactory, s4.superTokenFactory,
+            "superTokenFactory proxy should stay the same address");
+        assert.notEqual(s3.superTokenFactoryLogic, s4.superTokenFactoryLogic,
+            "superTokenFactoryLogic deployment required");
+        assert.notEqual(s3.superTokenLogic, s4.superTokenLogic,
+            "superTokenLogic update required");
+        assert.equal(s3.cfa, s4.cfa,
+            "cfa deployment not required");
+        assert.equal(s3.ida, s4.ida,
+            "cfa deployment not required");
     });
 
     it("Deploy/upgrade/reset Super Token", async () => {

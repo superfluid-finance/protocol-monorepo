@@ -14,15 +14,53 @@ const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
 const InstantDistributionAgreementV1 = artifacts.require("InstantDistributionAgreementV1");
 
 const {
+    ZERO_ADDRESS,
     hasCode,
     codeChanged,
-    isProxiable,
-    proxiableCodeChanged
+    isProxiable
 } = require("./utils");
 
 
+let reset;
+let testResolver;
+
+async function deployAndRegisterContractIf(Contract, resolverKey, cond, deployFunc) {
+    let contractDeployed;
+    const contractName = Contract.contractName;
+    const contractAddress = await testResolver.get(resolverKey);
+    console.log(`${resolverKey} address`, contractAddress);
+    if (reset || await cond(contractAddress)) {
+        console.log(`${contractName} needs new deployment.`);
+        contractDeployed = await deployFunc();
+        console.log(`${resolverKey} deployed to`, contractDeployed.address);
+        await web3tx(testResolver.set, `Resolver set ${resolverKey}`)(
+            resolverKey, contractDeployed.address
+        );
+    } else {
+        console.log(`${contractName} does not need new deployment.`);
+        contractDeployed = await Contract.at(contractAddress);
+    }
+    return contractDeployed;
+}
+
+async function deployNewLogicContractIfNew(LogicContract, codeAddress, deployFunc) {
+    let newCodeAddress = ZERO_ADDRESS;
+    const contractName = LogicContract.contractName;
+    if (await codeChanged(LogicContract, codeAddress)) {
+        console.log(`${contractName} logic code has changed`);
+        newCodeAddress = await deployFunc();
+        console.log(`${contractName} new logic code address ${newCodeAddress}`);
+    } else {
+        console.log(`${contractName} has the same logic code, no deployment needed.`);
+    }
+    return newCodeAddress;
+}
+
 /**
  * @dev Deploy the superfluid framework
+ * @param newTestResolver Force to create a new resolver
+ * @param useMocks Use mock contracts instead
+ * @param nonUpgradable Deploy contracts configured to be non-upgradable
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
@@ -34,11 +72,14 @@ module.exports = async function (callback, {
     try {
         global.web3 = web3;
 
+        const CFAv1_TYPE = web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+        const IDAv1_TYPE = web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
+
         const accounts = await web3.eth.getAccounts();
 
-        const reset = !!process.env.RESET;
+        reset = !!process.env.RESET;
         const version = process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // FIXME use eth.getChainId;
+        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
         console.log("reset: ", reset);
         console.log("network ID: ", chainId);
         console.log("release version:", version);
@@ -50,7 +91,6 @@ module.exports = async function (callback, {
 
         const config = SuperfluidSDK.getConfig(chainId);
 
-        let testResolver;
         if (!newTestResolver && config.resolverAddress) {
             testResolver = await TestResolver.at(config.resolverAddress);
         } else {
@@ -60,38 +100,27 @@ module.exports = async function (callback, {
         }
         console.log("Resolver address", testResolver.address);
 
-        // deploy TestGovernance
-        let governance;
-        {
-            const name = `TestGovernance.${version}`;
-            const governanceAddress = await testResolver.get(name);
-            console.log("TestGovernance address", governanceAddress);
-            if (reset || await codeChanged(TestGovernance, governanceAddress)) {
-                governance = await web3tx(TestGovernance.new, "TestGovernance.new due to code change")(
+        // deploy new governance contract
+        let governance = await deployAndRegisterContractIf(
+            TestGovernance,
+            `TestGovernance.${version}`,
+            async contractAddress => await codeChanged(TestGovernance, contractAddress),
+            async () => {
+                return await web3tx(TestGovernance.new, "TestGovernance.new")(
                     accounts[0], // rewardAddress
                     3600, // liquidationPeriod
                 );
-                console.log("TestGovernance address", governance.address);
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, governance.address
-                );
-            } else {
-                governance = await TestGovernance.at(governanceAddress);
-                console.log("TestGovernance has the same code, no deployment needed.");
             }
-        }
+        );
 
-        // deploy Superfluid
-        let superfluid;
-        {
-            const name = `Superfluid.${version}`;
-            let superfluidAddress = await testResolver.get(name);
-            console.log("Superfluid address", superfluidAddress);
-            const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
-
-            if (reset || !await hasCode(superfluidAddress)) {
-                // deploy new superfluid contract
-
+        // deploy new superfluid host contract
+        const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
+        let superfluid = await deployAndRegisterContractIf(
+            SuperfluidLogic,
+            `Superfluid.${version}`,
+            async contractAddress => !await hasCode(contractAddress),
+            async () => {
+                let superfluidAddress;
                 const superfluidLogic = await web3tx(SuperfluidLogic.new, "SuperfluidLogic.new")(
                     nonUpgradable
                 );
@@ -105,131 +134,112 @@ module.exports = async function (callback, {
                 } else {
                     superfluidAddress = superfluidLogic.address;
                 }
-                await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                    name, superfluidAddress
-                );
-                superfluid = await Superfluid.at(superfluidAddress);
-                console.log("Superfluid address", superfluidAddress);
+                const superfluid = await Superfluid.at(superfluidAddress);
                 await web3tx(superfluid.initialize, "Superfluid.initialize")(
                     governance.address
                 );
                 if (!nonUpgradable) {
-                    if (await proxiableCodeChanged(SuperfluidLogic, superfluid)) {
+                    if (await codeChanged(SuperfluidLogic, await superfluid.getCodeAddress())) {
                         throw new Error("Unexpected code change from fresh deployment");
                     }
                 }
-            } else {
-                // upgrade superfluid contract
+                return superfluid;
+            }
+        );
 
-                superfluid = await Superfluid.at(superfluidAddress);
+        // replace with new governance
+        if ((await superfluid.getGovernance.call()) !== governance.address){
+            const currentGovernance = await ISuperfluidGovernance.at(await superfluid.getGovernance.call());
+            await web3tx(currentGovernance.replaceGovernance, "governance.replaceGovernance")(
+                superfluid.address, governance.address
+            );
+        }
 
-                if (!nonUpgradable) {
-                    if (await proxiableCodeChanged(SuperfluidLogic, superfluid)) {
-                        console.log("Superfluid code has changed");
-                        if (!(await isProxiable(Proxiable, superfluidAddress))) {
-                            throw new Error("Superfluid is non-upgradable");
-                        }
-                        const superfluidLogic = await web3tx(SuperfluidLogic.new, "Superfluid.new due to code change")(
-                            false /* nonUpgradable = false, of course... */
-                        );
-                        console.log(`Superfluid new code address ${superfluidLogic.address}`);
-                        await web3tx(governance.updateHostCode, "governance.updateHostCode")(
-                            superfluidAddress,
-                            superfluidLogic.address
-                        );
-                    } else {
-                        console.log("Superfluid has the same logic code, no deployment needed.");
+        // list CFA v1
+        const deployCFAv1 = async () => {
+            const agreement = await web3tx(
+                ConstantFlowAgreementV1.new,
+                "ConstantFlowAgreementV1.new")();
+            console.log("New ConstantFlowAgreementV1 address", agreement.address);
+            return agreement;
+        };
+        if (!(await superfluid.isAgreementTypeListed.call(CFAv1_TYPE))) {
+            const cfa = await deployCFAv1();
+            await web3tx(governance.registerAgreementClass, "Governance registers CFA")(
+                superfluid.address,
+                cfa.address
+            );
+        }
+
+        // list IDA v1
+        const deployIDAv1 = async () => {
+            const agreement = await web3tx(
+                InstantDistributionAgreementV1.new,
+                "InstantDistributionAgreementV1.new")();
+            console.log("New InstantDistributionAgreementV1 address", agreement.address);
+            return agreement;
+        };
+        if (!(await superfluid.isAgreementTypeListed.call(IDAv1_TYPE))) {
+            const ida = await deployIDAv1();
+            await web3tx(governance.registerAgreementClass, "Governance registers IDA")(
+                superfluid.address,
+                ida.address
+            );
+        }
+
+        if (!nonUpgradable) {
+            if (await superfluid.NON_UPGRADABLE_DEPLOYMENT.call()) {
+                throw new Error("Superfluid is not upgradable");
+            }
+
+            // deploy new superfluid host logic
+            const superfluidNewLogicAddress = await deployNewLogicContractIfNew(
+                SuperfluidLogic,
+                await superfluid.getCodeAddress(),
+                async () => {
+                    if (!(await isProxiable(Proxiable, superfluid.address))) {
+                        throw new Error("Superfluid is non-upgradable");
                     }
+                    const superfluidLogic = await web3tx(SuperfluidLogic.new, "SuperfluidLogic.new")(
+                        false /* nonUpgradable = false, of course... */
+                    );
+                    return superfluidLogic.address;
                 }
-            }
-
-            // replace with new governance if needed
-            if ((await superfluid.getGovernance.call()) !== governance.address){
-                const currentGovernance = await ISuperfluidGovernance.at(await superfluid.getGovernance.call());
-                await web3tx(currentGovernance.replaceGovernance, "governance.replaceGovernance")(
-                    superfluid.address, governance.address
-                );
-            }
-        }
-
-        let superTokenFactoryLogicAddress;
-        {
-            superTokenFactoryLogicAddress = await superfluid.getSuperTokenFactoryLogic.call();
-            console.log("superTokenFactory logic address", superTokenFactoryLogicAddress);
+            );
+            // deploy new super token factory logic
             const SuperTokenFactoryLogic = useMocks ? SuperTokenFactoryMock : SuperTokenFactory;
-            if (reset || await codeChanged(SuperTokenFactoryLogic, superTokenFactoryLogicAddress)) {
-                const superTokenLogic = await web3tx(
-                    SuperTokenFactoryLogic.new,
-                    "SuperTokenFactoryLogic.new due to code change")(superfluid.address);
-                superTokenFactoryLogicAddress = superTokenLogic.address;
-                console.log("New superTokenFactory logic address", superTokenFactoryLogicAddress);
-                await web3tx(governance.updateSuperTokenFactory, "superfluid.updateSuperTokenFactory")(
-                    superfluid.address,
-                    superTokenFactoryLogicAddress
-                );
-            } else {
-                console.log("superTokenFactory has the same code, no deployment needed.");
-            }
-        }
-
-        // deploy ConstantFlowAgreementV1
-        {
-            const agreementType = web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
-            const isListed = await superfluid.isAgreementTypeListed.call(agreementType);
-            const isChanged = !isListed || await codeChanged(
+            const superTokenFactoryNewLogicAddress = await deployNewLogicContractIfNew(
+                SuperTokenFactoryLogic,
+                await superfluid.getSuperTokenFactoryLogic.call(),
+                async () => {
+                    const superTokenLogic = await web3tx(SuperTokenFactoryLogic.new, "SuperTokenFactoryLogic.new")(
+                        superfluid.address
+                    );
+                    return superTokenLogic.address;
+                }
+            );
+            const agreementsToUpdate = [];
+            // deploy new CFA logic
+            const cfaNewLogicAddress = await deployNewLogicContractIfNew(
                 ConstantFlowAgreementV1,
-                await (await Proxiable.at(await superfluid.getAgreementClass.call(agreementType))).getCodeAddress()
+                await (await Proxiable.at(await superfluid.getAgreementClass.call(CFAv1_TYPE))).getCodeAddress(),
+                async () => (await deployCFAv1()).address
             );
-            console.log(`ConstantFlowAgreementV1 isListed ${isListed} isChanged ${isChanged}`);
-            if (reset || !isListed || isChanged) {
-                const agreement = await web3tx(
-                    ConstantFlowAgreementV1.new,
-                    "ConstantFlowAgreementV1.new")();
-                console.log("New ConstantFlowAgreementV1 address", agreement.address);
-                if (reset || !isListed) {
-                    await web3tx(governance.registerAgreementClass, "Governance registers CFA")(
-                        superfluid.address,
-                        agreement.address
-                    );
-                } else {
-                    await web3tx(governance.updateAgreementClass, "Governance updates CFA code")(
-                        superfluid.address,
-                        agreement.address
-                    );
-                }
-            } else {
-                console.log("ConstantFlowAgreementV1 has the same code, no deployment needed");
-            }
-        }
-
-        // deploy InstantDistributionAgreementV1
-        {
-            const agreementType = web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
-            const isListed = await superfluid.isAgreementTypeListed.call(agreementType);
-            const isChanged = !isListed || await codeChanged(
+            if (cfaNewLogicAddress !== ZERO_ADDRESS) agreementsToUpdate.push(cfaNewLogicAddress);
+            // deploy new IDA logic
+            const idaNewLogicAddress = await deployNewLogicContractIfNew(
                 InstantDistributionAgreementV1,
-                await (await Proxiable.at(await superfluid.getAgreementClass.call(agreementType))).getCodeAddress()
+                await (await Proxiable.at(await superfluid.getAgreementClass.call(IDAv1_TYPE))).getCodeAddress(),
+                async () => (await deployIDAv1()).address
             );
-            console.log(`InstantDistributionAgreementV1 isListed ${isListed} isChanged ${isChanged}`);
-            if (reset || !isListed || isChanged) {
-                const agreement = await web3tx(
-                    InstantDistributionAgreementV1.new,
-                    "InstantDistributionAgreementV1.new")();
-                console.log("New InstantDistributionAgreementV1 address", agreement.address);
-                if (reset || !isListed) {
-                    await web3tx(governance.registerAgreementClass, "Governance registers IDA")(
-                        superfluid.address,
-                        agreement.address
-                    );
-                } else {
-                    await web3tx(governance.updateAgreementClass, "Governance updates IDA code")(
-                        superfluid.address,
-                        agreement.address
-                    );
-                }
-            } else {
-                console.log("InstantDistributionAgreementV1 has the same code, no deployment needed");
-            }
+            if (idaNewLogicAddress !== ZERO_ADDRESS) agreementsToUpdate.push(idaNewLogicAddress);
+
+            await web3tx(governance.updateContracts, "superfluid.updateContracts")(
+                superfluid.address,
+                superfluidNewLogicAddress,
+                agreementsToUpdate,
+                superTokenFactoryNewLogicAddress
+            );
         }
 
         callback();

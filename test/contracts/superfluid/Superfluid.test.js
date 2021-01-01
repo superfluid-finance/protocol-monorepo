@@ -1261,7 +1261,7 @@ contract("Superfluid Host Contract", accounts => {
                         superfluid.address,
                         ZERO_ADDRESS,
                         [],
-                        factory2Logic),
+                        factory2Logic.address),
                     "SF: non upgradable");
             });
 

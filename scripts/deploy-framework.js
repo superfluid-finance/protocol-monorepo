@@ -187,13 +187,15 @@ module.exports = async function (callback, {
             );
         }
 
+        let superfluidNewLogicAddress = ZERO_ADDRESS;
+        const agreementsToUpdate = [];
         if (!nonUpgradable) {
             if (await superfluid.NON_UPGRADABLE_DEPLOYMENT.call()) {
                 throw new Error("Superfluid is not upgradable");
             }
 
             // deploy new superfluid host logic
-            const superfluidNewLogicAddress = await deployNewLogicContractIfNew(
+            superfluidNewLogicAddress = await deployNewLogicContractIfNew(
                 SuperfluidLogic,
                 await superfluid.getCodeAddress(),
                 async () => {
@@ -201,24 +203,12 @@ module.exports = async function (callback, {
                         throw new Error("Superfluid is non-upgradable");
                     }
                     const superfluidLogic = await web3tx(SuperfluidLogic.new, "SuperfluidLogic.new")(
-                        false /* nonUpgradable = false, of course... */
+                        nonUpgradable
                     );
                     return superfluidLogic.address;
                 }
             );
-            // deploy new super token factory logic
-            const SuperTokenFactoryLogic = useMocks ? SuperTokenFactoryMock : SuperTokenFactory;
-            const superTokenFactoryNewLogicAddress = await deployNewLogicContractIfNew(
-                SuperTokenFactoryLogic,
-                await superfluid.getSuperTokenFactoryLogic.call(),
-                async () => {
-                    const superTokenLogic = await web3tx(SuperTokenFactoryLogic.new, "SuperTokenFactoryLogic.new")(
-                        superfluid.address
-                    );
-                    return superTokenLogic.address;
-                }
-            );
-            const agreementsToUpdate = [];
+
             // deploy new CFA logic
             const cfaNewLogicAddress = await deployNewLogicContractIfNew(
                 ConstantFlowAgreementV1,
@@ -226,6 +216,7 @@ module.exports = async function (callback, {
                 async () => (await deployCFAv1()).address
             );
             if (cfaNewLogicAddress !== ZERO_ADDRESS) agreementsToUpdate.push(cfaNewLogicAddress);
+
             // deploy new IDA logic
             const idaNewLogicAddress = await deployNewLogicContractIfNew(
                 InstantDistributionAgreementV1,
@@ -233,14 +224,27 @@ module.exports = async function (callback, {
                 async () => (await deployIDAv1()).address
             );
             if (idaNewLogicAddress !== ZERO_ADDRESS) agreementsToUpdate.push(idaNewLogicAddress);
-
-            await web3tx(governance.updateContracts, "superfluid.updateContracts")(
-                superfluid.address,
-                superfluidNewLogicAddress,
-                agreementsToUpdate,
-                superTokenFactoryNewLogicAddress
-            );
         }
+
+        // deploy new super token factory logic
+        const SuperTokenFactoryLogic = useMocks ? SuperTokenFactoryMock : SuperTokenFactory;
+        const superTokenFactoryNewLogicAddress = await deployNewLogicContractIfNew(
+            SuperTokenFactoryLogic,
+            await superfluid.getSuperTokenFactoryLogic.call(),
+            async () => {
+                const superTokenLogic = await web3tx(SuperTokenFactoryLogic.new, "SuperTokenFactoryLogic.new")(
+                    superfluid.address
+                );
+                return superTokenLogic.address;
+            }
+        );
+
+        await web3tx(governance.updateContracts, "superfluid.updateContracts")(
+            superfluid.address,
+            superfluidNewLogicAddress,
+            agreementsToUpdate,
+            superTokenFactoryNewLogicAddress
+        );
 
         callback();
     } catch (err) {

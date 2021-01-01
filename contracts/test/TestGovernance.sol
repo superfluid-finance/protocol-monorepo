@@ -19,16 +19,24 @@ contract TestGovernance is
     Ownable,
     ISuperfluidGovernance
 {
-    address private _rewardAddress;
-    uint256 private _liquidationPeriod;
+
+    // solhint-disable-next-line const-name-snakecase
+    bytes32 private constant _SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.superfluid.rewardAddress");
+
+    // solhint-disable-next-line const-name-snakecase
+    bytes32 private constant _CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
+
+    mapping (bytes32 => uint256) private _configs;
 
     constructor(
         address rewardAddress,
         uint256 liquidationPeriod
     )
     {
-        _rewardAddress = rewardAddress;
-        _liquidationPeriod = liquidationPeriod;
+        _configs[_SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
+        _configs[_CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
 
         transferOwnership(msg.sender);
     }
@@ -37,24 +45,28 @@ contract TestGovernance is
     /* Configurations
     /*************************************************************************/
 
+    function getRewardAddress() external view returns (address) {
+        return address(int160(_configs[_SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY]));
+    }
+
     function setRewardAddress(
         address rewardAddress
     )
         external
         onlyOwner
     {
-        _rewardAddress = rewardAddress;
+        _configs[_SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
     }
 
     function setLiquidationPeriod(uint256 liquidationPeriod)
         external
         onlyOwner
     {
-        _liquidationPeriod = liquidationPeriod;
+        _configs[_CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
     }
 
     /**************************************************************************
-    /* ISuperfluidGovernance
+    /* ISuperfluidGovernance interface
     /*************************************************************************/
 
     function replaceGovernance(
@@ -107,21 +119,25 @@ contract TestGovernance is
         host.updateSuperTokenLogic(token);
     }
 
-    function getRewardAddress(
-        ISuperfluidToken /* superToken */
+    function getConfigAsAddress(
+        ISuperfluid /*host*/,
+        ISuperfluidToken /* superToken */,
+        bytes32 key
     )
         external view override
         returns(address rewardAddress)
     {
-        return _rewardAddress;
+        return address(int160(_configs[key]));
     }
 
-    function getLiquidationPeriod(
-        ISuperfluidToken /* superToken */
+    function getConfigAsUint256(
+        ISuperfluid /*host*/,
+        ISuperfluidToken /* superToken */,
+        bytes32 key
     )
         external view override
         returns(uint256 period)
     {
-        return _liquidationPeriod;
+        return _configs[key];
     }
 }

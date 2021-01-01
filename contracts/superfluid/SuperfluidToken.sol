@@ -22,6 +22,9 @@ import { FixedSizeData } from "../utils/FixedSizeData.sol";
 abstract contract SuperfluidToken is ISuperfluidToken
 {
 
+    bytes32 private constant _REWARD_ADDRESS_CONFIG_KEY =
+        keccak256("org.superfluid-finance.superfluid.rewardAddress");
+
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
@@ -327,7 +330,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         onlyAgreement
     {
         ISuperfluidGovernance gov = _host.getGovernance();
-        address rewardAccount = gov.getRewardAddress(this);
+        address rewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
         // reward go to liquidator if reward address is null
         if (rewardAccount == address(0)) {
             rewardAccount = liquidator;

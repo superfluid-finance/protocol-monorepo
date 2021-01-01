@@ -535,7 +535,7 @@ async function _shouldChangeFlow({
     if (fn === "deleteFlow") {
         assert.isDefined(by);
         const agentAddress = testenv.getAddress(by);
-        let rewardAddress = await governance.getRewardAddress(superToken.address);
+        let rewardAddress = await governance.getRewardAddress();
         if (rewardAddress === testenv.constants.ZERO_ADDRESS) {
             rewardAddress = agentAddress;
         }

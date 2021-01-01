@@ -54,16 +54,11 @@ async function isProxiable(Proxiable, address) {
     return codeAddress !== ZERO_ADDRESS;
 }
 
-async function proxiableCodeChanged(contract, proxiable) {
-    return await codeChanged(contract, await proxiable.getCodeAddress());
-}
-
 module.exports = {
-    parseColonArgs,
     ZERO_ADDRESS,
+    parseColonArgs,
     hasCode,
     codeChanged,
     isProxiable,
-    proxiableCodeChanged,
     rl: promisify(rl.question),
 };

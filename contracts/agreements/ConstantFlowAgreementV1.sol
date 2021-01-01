@@ -26,6 +26,9 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
+    bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
+
     using SafeMath for uint256;
     using SafeCast for uint256;
     using SignedSafeMath for int256;
@@ -84,7 +87,7 @@ contract ConstantFlowAgreementV1 is
         deposit = _clipDepositNumberRoundingDown(deposit);
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
         uint256 flowrate1 = deposit.div(liquidationPeriod);
         return int96(flowrate1);
     }
@@ -98,7 +101,7 @@ contract ConstantFlowAgreementV1 is
         require(flowRate >= 0, "CFA: not for negative flow rate");
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         return _calculateDeposit(flowRate, liquidationPeriod, false);
     }
@@ -639,7 +642,8 @@ contract ConstantFlowAgreementV1 is
 
             // STEP 1: calculate old and new deposit required for the flow
             ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
-            uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+            uint256 liquidationPeriod = gov.getConfigAsUint256(
+                ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
 
             //oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod, false).toInt256();
             depositDelta = _calculateDeposit(flowParams.flowRate, liquidationPeriod, false).toInt256();

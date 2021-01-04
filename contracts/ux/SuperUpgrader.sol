@@ -59,7 +59,6 @@ contract SuperUpgrader is AccessControl {
         //get tokens from user
         IERC20 token = IERC20(superToken.getUnderlyingToken());
         token.transferFrom(account, address(this), amount);
-        token.approve(address(superToken), amount);
         //upgrade tokens and send back to user
         superToken.upgradeTo(account, amount, "");
     }
@@ -98,6 +97,20 @@ contract SuperUpgrader is AccessControl {
             members[i] = getRoleMember(BACKEND_ROLE, i);
         }
         return members;
+    }
+
+
+    /**
+     * @dev Max approve superToken in underlaying token contract
+     */
+
+    function approve(address superTokenAddr) external {
+        require(hasRole(BACKEND_ROLE, msg.sender), "operation not allowed");
+        //get underlaying token
+        ISuperToken superToken = ISuperToken(superTokenAddr);
+        //get tokens from user
+        IERC20 token = IERC20(superToken.getUnderlyingToken());
+        token.approve(address(superToken), type(uint256).max);
     }
 
     /**

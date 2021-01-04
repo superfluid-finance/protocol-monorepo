@@ -37,7 +37,6 @@ contract("Superfluid Super Upgrader Contract", accounts => {
     describe("#1 SuperUpgrader Deployement", async () => {
 
         it("#1.1 Should deploy adminRole address", async () => {
-            console.log(backend);
             const upgrader = await SuperUpgrader.new(admin, backend);
             const isAdminRole = await upgrader.hasRole(DEFAULT_ADMIN_ROLE, admin);
             const isBackend = await upgrader.hasRole(BACKEND_ROLE, backend[0]);
@@ -72,6 +71,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.1 Should revert if not in role", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await web3tx(testToken.approve, "testToken.approve - from alice to admin")(
                 upgrader.address,
                 toWad("3"), {
@@ -85,6 +89,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.2 Should upgrade amount and give it back to user", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await web3tx(testToken.approve, "testToken.approve - from alice to admin")(
                 upgrader.address,
                 toWad("3"), {
@@ -104,6 +113,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.3 Should upgrade small amount", async() => {
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await web3tx(testToken.approve, "testToken.approve - from alice to backend")(
                 upgrader.address,
                 toWad("3"), {
@@ -125,6 +139,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.4 Should upgrade large amount", async() => {
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await testToken.mint(alice, toWad("100000000000"), {
                 from: admin
             });
@@ -152,7 +171,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.5 Should revert without approval", async() => {
             const upgrader = await SuperUpgrader.new(admin, backend);
-
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await expectRevert(web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
@@ -164,6 +187,12 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.6 Should revert approval is less than need it", async() => {
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
+
             await web3tx(testToken.approve, "testToken.approve - from alice to backend")(
                 upgrader.address,
                 toWad("1"), {
@@ -182,6 +211,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
         it("#2.7 Owner of tokens can use SuperUpgrader directly", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await web3tx(testToken.approve, "testToken.approve - from alice to admin")(
                 upgrader.address,
                 toWad("1000000"), {
@@ -200,8 +234,12 @@ contract("Superfluid Super Upgrader Contract", accounts => {
         });
 
         it("#2.8 Owner should define optout/optin blocking backend upgrade", async () => {
-
             const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
             await web3tx(testToken.approve, "testToken.approve - from alice to backend")(
                 upgrader.address,
                 toWad("1000000"), {
@@ -291,6 +329,48 @@ contract("Superfluid Super Upgrader Contract", accounts => {
             for(let i = 0; i < backend.length; i++) {
                 assert.equal(registerBackend[i], backend[i], "not register backend");
             }
+        });
+    });
+
+    describe("#4 Approve Token to SuperToken", async () => { 
+
+        it("#4.1 Should revert without backend approve", async() => {
+            const upgrader = await SuperUpgrader.new(admin, backend);
+            await web3tx(testToken.approve, "testToken.approve - from alice to admin")(
+                upgrader.address,
+                toWad("3"), {
+                    from: alice
+                }
+            );
+            await expectRevert(web3tx(upgrader.upgrade, "upgrader.upgrade")(
+                superToken.address,
+                alice,
+                1, {
+                    from: backend[0]
+                }
+            ), "ERC20: transfer amount exceeds allowance");
+
+            await web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: backend[0]
+                }
+            );
+            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
+                superToken.address,
+                alice,
+                toWad(3), {
+                    from: backend[0]
+                }
+            );
+        });
+
+        it("#4.2 Should revert if not backend", async() => {
+            const upgrader = await SuperUpgrader.new(admin, backend);
+            await expectRevert(web3tx(upgrader.approve, "upgrader.approve")(
+                superToken.address, {
+                    from: alice
+                }
+            ), "operation not allowed");
         });
     });
 });

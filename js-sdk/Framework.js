@@ -1,6 +1,9 @@
 const Web3 = require("web3");
 const TruffleContract = require("@truffle/contract");
 const getConfig = require("./getConfig");
+const {getErrorResponse} = require("./utils/error")
+const {validateAddress} = require("./utils/general")
+const User = require("./User")
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -162,4 +165,15 @@ module.exports = class Framework {
         return this.contracts.ISuperToken.at(wrapperAddress);
     }
 
+    user({address, token, options}) {
+      try {
+        if (!address) throw "Please provide an address";
+        if (!token) throw "Please provide a token";
+        validateAddress(address)
+        // TODO: validate token
+        return new User({sf: this, address, token, options});
+      } catch (e) {
+        throw getErrorResponse(e, "Framework", "user");
+      }
+    }
 };

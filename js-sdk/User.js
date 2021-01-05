@@ -21,15 +21,28 @@ module.exports = class User {
         }
     }
 
-    async flow({recipient, flowRate}) {
+    async flow({ recipient, flowRate }) {
         try {
-            if (flowRate === 0) {
-                return await this.sf.cfa.deleteFlow({});
-            }
-            const existingFlow = await this.sf.cfa.getFlow({ superToken: this.token, sender: this.address, receiver: recipient });
-            if (existingFlow > 0) {
-                return await this.sf.cfa.updateFlow({});
-            }
+            if (!recipient || !flowRate) throw "You must provide a recipient and flowRate";
+            if (flowRate === "0")
+                return await this.sf.cfa.deleteFlow({
+                    superToken: this.token,
+                    sender: this.address,
+                    receiver: recipient
+                });
+
+            const existingFlow = await this.sf.cfa.getFlow({
+                superToken: this.token,
+                sender: this.address,
+                receiver: recipient
+            });
+            if (existingFlow.flowRate !== "0")
+                return await this.sf.cfa.updateFlow({
+                    superToken: this.token,
+                    sender: this.address,
+                    receiver: recipient,
+                    flowRate
+                });
             return await this.sf.cfa.createFlow({
                 superToken: this.token,
                 sender: this.address,

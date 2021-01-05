@@ -1,22 +1,17 @@
-const {
-    toBN
-} = require("@decentral.ee/web3-helpers");
-const {
-    expectRevert
-} = require("@openzeppelin/test-helpers");
+const { toBN } = require("@decentral.ee/web3-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
-
+var should = require("should");
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
-
     const t = new TestEnvironment(accounts.slice(0, 4));
-    const { admin: adminAddress, alice: aliceAddress, bob: bobAddress, carol:carolAddress } = t.aliases;
+    const { admin: adminAddress, alice: aliceAddress, bob: bobAddress, carol: carolAddress } = t.aliases;
 
     let sf;
     let superToken;
-    let alice
-    let bob
-    let carol
+    let alice;
+    let bob;
+    let carol;
 
     before(async () => {
         await t.reset();
@@ -26,91 +21,120 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
     beforeEach(async () => {
         await t.createNewToken({ doUpgrade: true });
         ({ superToken } = t.contracts);
-        alice = sf.user({address: aliceAddress, token: superToken.address})
-        bob = sf.user({address: bobAddress, token: superToken.address})
-        carol = sf.user({address: carolAddress, token: superToken.address})
+        alice = sf.user({ address: aliceAddress, token: superToken.address });
+        bob = sf.user({ address: bobAddress, token: superToken.address });
+        carol = sf.user({ address: carolAddress, token: superToken.address });
     });
 
-    it("initializes a user correctly", async () => {
-        const admin = sf.user({address: adminAddress, token: superToken.address})
-        assert.equal(admin.address, adminAddress);
-        assert.equal(admin.token, superToken.address);
-        assert.equal(admin.sf, sf);
-    })
-
-    it("create a new flow", async () => {
-        await alice.flow({
-            recipient: bob.address,
-            flowRate: "38580246913580", // 100 / mo
+    describe("initialize", () => {
+        it("user", async () => {
+            const admin = sf.user({ address: adminAddress, token: superToken.address });
+            assert.equal(admin.address, adminAddress);
+            assert.equal(admin.token, superToken.address);
+            assert.equal(admin.sf, sf);
         });
-        // validate flow data
-        const flow = await sf.cfa.getFlow({
-            superToken: superToken.address,
-            sender: alice.address,
-            receiver: bob.address
-        });
-        const block = await web3.eth.getBlock(tx.receipt.blockNumber);
-        assert.equal(flow.timestamp.getTime(), block.timestamp*1000);
-        assert.equal(flow.flowRate, "38580246913580");
-        assert.notEqual(flow.deposit, "0");
-        assert.equal(flow.owedDeposit, "0");
-        // validate account net flows
-        assert.equal((await sf.cfa.getNetFlow({
-            superToken: superToken.address,
-            account: alice.address,
-        })).toString(), "-38580246913580");
-        assert.equal((await sf.cfa.getNetFlow({
-            superToken: superToken.address,
-            account: bob.address,
-        })).toString(), "38580246913580");
     });
 
-    it("modify an existing flow", async () => {
-        const tx = await alice.flow({
-            recipient: bob.address,
-            flowRate: "38580246913580", // 100 / mo
+    describe.only("new flows", () => {
+        it("should fail without recipient", async () => {
+            (
+                await alice.flow({
+                    recipient: null,
+                    flowRate: "0"
+                })
+            ).should.throwError(/^You must provide a recipient and flowRate*/);
         });
-        const block = await web3.eth.getBlock(tx.receipt.blockNumber);
-        assert.equal(flow.timestamp.getTime(), block.timestamp*1000);
-        assert.equal(flow.flowRate, "38580246913580");
-
-        const tx2 = await alice.flow({
-            recipient: bob.address,
-            flowRate: "19290123456790", // 50 / mo
+        it("should fail without flowRate", async () => {
+            (
+                await alice.flow({
+                    recipient: bob.address,
+                    flowRate: null
+                })
+            ).should.throwError(/^You must provide a recipient and flowRate*/);
         });
-
-        const flow = await sf.cfa.getFlow({
-            superToken: superToken.address,
-            sender: alice.address,
-            receiver: bob.address
+        it("should create a new flow", async () => {
+            const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "38580246913580" // 100 / mo
+            });
+            // validate flow data
+            const flow = await sf.cfa.getFlow({
+                superToken: superToken.address,
+                sender: alice.address,
+                receiver: bob.address
+            });
+            const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
+            assert.equal(flow.flowRate, "38580246913580");
+            assert.notEqual(flow.deposit, "0");
+            assert.equal(flow.owedDeposit, "0");
+            // validate account net flows
+            assert.equal(
+                (
+                    await sf.cfa.getNetFlow({
+                        superToken: superToken.address,
+                        account: alice.address
+                    })
+                ).toString(),
+                "-38580246913580"
+            );
+            assert.equal(
+                (
+                    await sf.cfa.getNetFlow({
+                        superToken: superToken.address,
+                        account: bob.address
+                    })
+                ).toString(),
+                "38580246913580"
+            );
         });
-        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-        assert.equal(flow.timestamp.getTime(), block2.timestamp*1000);
-        assert.equal(flow.flowRate, "19290123456790");
     });
-
-    it("stop an existing flow", async () => {
-        const tx = await alice.flow({
-            recipient: bob.address,
-            flowRate: "38580246913580", // 100 / mo
+    describe("existing flows", () => {
+        beforeEach(async () => {
+            const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "38580246913580" // 100 / mo
+            });
+            const flow = await sf.cfa.getFlow({
+                superToken: superToken.address,
+                sender: alice.address,
+                receiver: bob.address
+            });
+            const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
+            assert.equal(flow.flowRate, "38580246913580");
         });
-        const block = await web3.eth.getBlock(tx.receipt.blockNumber);
-        assert.equal(flow.timestamp.getTime(), block.timestamp*1000);
-        assert.equal(flow.flowRate, "38580246913580");
+        it("should modify an existing flow", async () => {
+            const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "19290123456790" // 50 / mo
+            });
 
-        const tx2= await alice.flow({
-            recipient: bob.address,
-            flowRate: "0", // 0 / mo
+            const flow = await sf.cfa.getFlow({
+                superToken: superToken.address,
+                sender: alice.address,
+                receiver: bob.address
+            });
+            const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
+            assert.equal(flow.flowRate, "19290123456790");
         });
 
-        const flow = await sf.cfa.getFlow({
-            superToken: superToken.address,
-            sender: alice.address,
-            receiver: bob.address
+        it("should stop an existing flow", async () => {
+            const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "0" // 0 / mo
+            });
+
+            const flow = await sf.cfa.getFlow({
+                superToken: superToken.address,
+                sender: alice.address,
+                receiver: bob.address
+            });
+            const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
+            assert.equal(flow.flowRate, "0");
         });
-        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
-        assert.equal(flow.timestamp.getTime(), block2.timestamp*1000);
-        assert.equal(flow.flowRate, "0");
     });
     //
     // it("createFlow with onTransaction", async () => {
@@ -316,5 +340,4 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
     //         });
     //     });
     // });
-
 });

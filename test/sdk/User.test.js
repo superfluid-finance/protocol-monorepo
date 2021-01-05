@@ -1,136 +1,320 @@
 const {
+    toBN
+} = require("@decentral.ee/web3-helpers");
+const {
     expectRevert
 } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
-const deployTestToken = require("../../scripts/deploy-test-token");
-const deploySuperToken = require("../../scripts/deploy-super-token");
-const SuperfluidSDK = require("../..");
 
 
-contract("Framework class", accounts => {
+contract("ConstantFlowAgreementV1 helper class", accounts => {
 
-    const t = new TestEnvironment(accounts.slice(0, 1));
-    const { admin } = t.aliases;
+    const t = new TestEnvironment(accounts.slice(0, 4));
+    const { admin: adminAddress, alice: aliceAddress, bob: bobAddress, carol:carolAddress } = t.aliases;
+
+    let sf;
+    let superToken;
+    let alice
+    let bob
+    let carol
 
     before(async () => {
         await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"]);
-        await deployTestToken(t.errorHandler, [":", "fUSDC"]);
-        await deploySuperToken(t.errorHandler, [":", "fDAI"]);
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"]);
+        sf = t.sf;
     });
 
-    describe("initialization", () => {
-        function testLoadedContracts(sf) {
-            const {
-                IERC20,
-                IResolver,
-                TokenInfo,
-                ISuperfluid,
-                ISuperToken,
-                ISuperTokenFactory,
-                IConstantFlowAgreementV1,
-                IInstantDistributionAgreementV1,
-            } = sf.contracts;
-
-            assert.isDefined(IERC20.abi);
-            assert.equal(IERC20.contractName, "IERC20");
-            assert.isTrue(IERC20.abi.filter(i => i.name === "Transfer").length > 0);
-
-            assert.isDefined(IResolver.abi);
-            assert.equal(IResolver.contractName, "IResolver");
-            assert.isTrue(IResolver.abi.filter(i => i.name === "get").length > 0);
-
-            assert.isDefined(TokenInfo.abi);
-            assert.equal(TokenInfo.contractName, "TokenInfo");
-            assert.isTrue(TokenInfo.abi.filter(i => i.name === "symbol").length > 0);
-
-            assert.isDefined(ISuperfluid.abi);
-            assert.equal(ISuperfluid.contractName, "ISuperfluid");
-            assert.isTrue(ISuperfluid.abi.filter(i => i.name === "callAgreement").length > 0);
-
-            assert.isDefined(ISuperToken.abi);
-            assert.equal(ISuperToken.contractName, "ISuperToken");
-            assert.isTrue(ISuperToken.abi.filter(i => i.name === "upgrade").length > 0);
-
-            assert.isDefined(ISuperTokenFactory.abi);
-            assert.equal(ISuperTokenFactory.contractName, "ISuperTokenFactory");
-            assert.isTrue(ISuperTokenFactory.abi.filter(i => i.name === "createERC20Wrapper").length > 0);
-
-            assert.isDefined(IConstantFlowAgreementV1.abi);
-            assert.equal(IConstantFlowAgreementV1.contractName, "IConstantFlowAgreementV1");
-            assert.isTrue(IConstantFlowAgreementV1.abi.filter(i => i.name === "updateFlow").length > 0);
-
-            assert.isDefined(IInstantDistributionAgreementV1.abi);
-            assert.equal(IInstantDistributionAgreementV1.contractName, "IInstantDistributionAgreementV1");
-            assert.isTrue(IInstantDistributionAgreementV1.abi.filter(i => i.name === "createIndex").length > 0);
-        }
-
-        it("without truffle framework", async () => {
-            const sf = new SuperfluidSDK.Framework({ web3Provider: web3.currentProvider });
-            await sf.initialize();
-            testLoadedContracts(sf);
-        });
-
-        it("with truffle framework", async () => {
-            const sf = new SuperfluidSDK.Framework({ isTruffle: true });
-            await sf.initialize();
-            testLoadedContracts(sf);
-        });
-
-        describe("and load tokens", () => {
-            it("registered in resolver", async () => {
-                const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["fUSDC", "fDAI"]
-                });
-                await sf.initialize();
-                assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
-                assert.equal(await sf.tokens.fDAI.symbol(), "fDAI");
-                assert.equal(await sf.tokens.fUSDCx.symbol(), "fUSDCx");
-                assert.equal(await sf.tokens.fDAIx.symbol(), "fDAIx");
-            });
-
-            it("failed due to unregistered in resolver", async () => {
-                const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["fML"]
-                });
-                await expectRevert(sf.initialize(), "Token fML is not registered");
-            });
-
-            it("failed due to no super token wrapper", async () => {
-                await deployTestToken(t.errorHandler, [":", "SASHIMI"]);
-                const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["SASHIMI"]
-                });
-                await expectRevert(sf.initialize(), "Token SASHIMI doesn't have a super token wrapper");
-            });
-        });
+    beforeEach(async () => {
+        await t.createNewToken({ doUpgrade: true });
+        ({ superToken } = t.contracts);
+        alice = sf.user({address: aliceAddress, token: superToken.address})
+        bob = sf.user({address: bobAddress, token: superToken.address})
+        carol = sf.user({address: carolAddress, token: superToken.address})
     });
 
-    describe("createERC20Wrapper", () => {
-        let sf;
+    it("initializes a user correctly", async () => {
+        const admin = sf.user({address: adminAddress, token: superToken.address})
+        assert.equal(admin.address, adminAddress);
+        assert.equal(admin.token, superToken.address);
+        assert.equal(admin.sf, sf);
+    })
 
-        beforeEach(async () => {
-            sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider
-            });
-            await sf.initialize();
+    it("create a new flow", async () => {
+        await alice.flow({
+            recipient: bob.address,
+            flowRate: "38580246913580", // 100 / mo
         });
-
-        it("create new super token", async () => {
-            await deployTestToken(t.errorHandler, [":", "MISO"]);
-            const misoAddress = await sf.resolver.get("tokens.MISO");
-            const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
-            const superMisoToken = await sf.createERC20Wrapper(misoToken, {
-                from: admin
-            });
-            assert.equal(
-                await superMisoToken.getUnderlyingToken.call(),
-                misoAddress);
+        // validate flow data
+        const flow = await sf.cfa.getFlow({
+            superToken: superToken.address,
+            sender: alice.address,
+            receiver: bob.address
         });
+        const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+        assert.equal(flow.timestamp.getTime(), block.timestamp*1000);
+        assert.equal(flow.flowRate, "38580246913580");
+        assert.notEqual(flow.deposit, "0");
+        assert.equal(flow.owedDeposit, "0");
+        // validate account net flows
+        assert.equal((await sf.cfa.getNetFlow({
+            superToken: superToken.address,
+            account: alice.address,
+        })).toString(), "-38580246913580");
+        assert.equal((await sf.cfa.getNetFlow({
+            superToken: superToken.address,
+            account: bob.address,
+        })).toString(), "38580246913580");
     });
+
+    it("modify an existing flow", async () => {
+        const tx = await alice.flow({
+            recipient: bob.address,
+            flowRate: "38580246913580", // 100 / mo
+        });
+        const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+        assert.equal(flow.timestamp.getTime(), block.timestamp*1000);
+        assert.equal(flow.flowRate, "38580246913580");
+
+        const tx2 = await alice.flow({
+            recipient: bob.address,
+            flowRate: "19290123456790", // 50 / mo
+        });
+
+        const flow = await sf.cfa.getFlow({
+            superToken: superToken.address,
+            sender: alice.address,
+            receiver: bob.address
+        });
+        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+        assert.equal(flow.timestamp.getTime(), block2.timestamp*1000);
+        assert.equal(flow.flowRate, "19290123456790");
+    });
+
+    it("stop an existing flow", async () => {
+        const tx = await alice.flow({
+            recipient: bob.address,
+            flowRate: "38580246913580", // 100 / mo
+        });
+        const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+        assert.equal(flow.timestamp.getTime(), block.timestamp*1000);
+        assert.equal(flow.flowRate, "38580246913580");
+
+        const tx2= await alice.flow({
+            recipient: bob.address,
+            flowRate: "0", // 0 / mo
+        });
+
+        const flow = await sf.cfa.getFlow({
+            superToken: superToken.address,
+            sender: alice.address,
+            receiver: bob.address
+        });
+        const block2 = await web3.eth.getBlock(tx2.receipt.blockNumber);
+        assert.equal(flow.timestamp.getTime(), block2.timestamp*1000);
+        assert.equal(flow.flowRate, "0");
+    });
+    //
+    // it("createFlow with onTransaction", async () => {
+    //     let txHash = "";
+    //     const tx = await sf.cfa.createFlow({
+    //         superToken: superToken.address,
+    //         sender: alice,
+    //         receiver: bob,
+    //         flowRate: "38580246913580", // 100 / mo
+    //         onTransaction: hash => { txHash = hash; }
+    //     });
+    //     assert.equal(txHash, tx.receipt.transactionHash);
+    // });
+    //
+    // it("updateFlow", async () => {
+    //     await sf.cfa.createFlow({
+    //         superToken: superToken.address,
+    //         sender: alice,
+    //         receiver: bob,
+    //         flowRate: "38580246913580" // 100 / mo
+    //     });
+    //     await sf.cfa.updateFlow({
+    //         superToken: superToken.address,
+    //         sender: alice,
+    //         receiver: bob,
+    //         flowRate: "19290123456790", // 100 / mo
+    //     });
+    //     // validate account net flows
+    //     assert.equal((await sf.cfa.getNetFlow({
+    //         superToken: superToken.address,
+    //         account: alice,
+    //     })).toString(), "-19290123456790");
+    //     assert.equal((await sf.cfa.getNetFlow({
+    //         superToken: superToken.address,
+    //         account: bob,
+    //     })).toString(), "19290123456790");
+    // });
+    //
+    // it("updateFlow with onTransaction", async () => {
+    //     let txHash = "";
+    //     await sf.cfa.createFlow({
+    //         superToken: superToken.address,
+    //         sender: alice,
+    //         receiver: bob,
+    //         flowRate: "38580246913580" // 100 / mo
+    //     });
+    //     const tx = await sf.cfa.updateFlow({
+    //         superToken: superToken.address,
+    //         sender: alice,
+    //         receiver: bob,
+    //         flowRate: "19290123456790", // 100 / mo
+    //         onTransaction: hash => { txHash = hash; }
+    //     });
+    //     assert.equal(txHash, tx.receipt.transactionHash);
+    // });
+    //
+    // describe("deleteFlow", () => {
+    //     beforeEach(async () => {
+    //         await sf.cfa.createFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //             flowRate: "38580246913580" // 100 / mo
+    //         });
+    //     });
+    //
+    //     it("by sender", async () => {
+    //         const ethBefore = await web3.eth.getBalance(alice);
+    //         await sf.cfa.deleteFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //         });
+    //         const ethAfter = await web3.eth.getBalance(alice);
+    //         assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
+    //         assert.equal((await sf.cfa.getNetFlow({
+    //             superToken: superToken.address,
+    //             account: alice,
+    //         })).toString(), "0");
+    //         assert.equal((await sf.cfa.getNetFlow({
+    //             superToken: superToken.address,
+    //             account: bob,
+    //         })).toString(), "0");
+    //     });
+    //
+    //     it("by receiver", async () => {
+    //         const ethBefore = await web3.eth.getBalance(bob);
+    //         await sf.cfa.deleteFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //             by: bob,
+    //         });
+    //         const ethAfter = await web3.eth.getBalance(bob);
+    //         assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
+    //         assert.equal((await sf.cfa.getNetFlow({
+    //             superToken: superToken.address,
+    //             account: alice,
+    //         })).toString(), "0");
+    //         assert.equal((await sf.cfa.getNetFlow({
+    //             superToken: superToken.address,
+    //             account: bob,
+    //         })).toString(), "0");
+    //     });
+    //
+    //     it("by wrong person", async () => {
+    //         await expectRevert(sf.cfa.deleteFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //             by: admin
+    //         }), "CFA: sender account is not critical");
+    //     });
+    //
+    //     it("by sender with onTransaction", async () => {
+    //         let txHash = "";
+    //         const tx = await sf.cfa.deleteFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //             onTransaction: hash => { txHash = hash; }
+    //         });
+    //         assert.equal(txHash, tx.receipt.transactionHash);
+    //     });
+    // });
+    //
+    // describe("listFlows", () => {
+    //     it("normally", async () => {
+    //         await sf.cfa.createFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //             flowRate: "38580246913580" // 100 / mo
+    //         });
+    //         await sf.cfa.createFlow({
+    //             superToken: superToken.address,
+    //             sender: bob,
+    //             receiver: carol,
+    //             flowRate: "19290123456790" // 100 / mo
+    //         });
+    //         assert.deepEqual(await sf.cfa.listFlows({
+    //             superToken: superToken.address,
+    //             account: alice,
+    //         }), {
+    //             inFlows: [],
+    //             outFlows: [{
+    //                 sender: alice,
+    //                 receiver: bob,
+    //                 flowRate: "38580246913580"
+    //             }]
+    //         });
+    //         assert.deepEqual(await sf.cfa.listFlows({
+    //             superToken: superToken.address,
+    //             account: bob,
+    //         }), {
+    //             inFlows: [{
+    //                 sender: alice,
+    //                 receiver: bob,
+    //                 flowRate: "38580246913580"
+    //             }],
+    //             outFlows: [{
+    //                 sender: bob,
+    //                 receiver: carol,
+    //                 flowRate: "19290123456790"
+    //             }],
+    //         });
+    //     });
+    //
+    //     it("onlyInFlows and onlyOutFlows", async () => {
+    //         await sf.cfa.createFlow({
+    //             superToken: superToken.address,
+    //             sender: alice,
+    //             receiver: bob,
+    //             flowRate: "38580246913580" // 100 / mo
+    //         });
+    //         await sf.cfa.createFlow({
+    //             superToken: superToken.address,
+    //             sender: bob,
+    //             receiver: carol,
+    //             flowRate: "19290123456790" // 100 / mo
+    //         });
+    //         assert.deepEqual(await sf.cfa.listFlows({
+    //             superToken: superToken.address,
+    //             account: bob,
+    //             onlyOutFlows: true
+    //         }), {
+    //             outFlows: [{
+    //                 sender: bob,
+    //                 receiver: carol,
+    //                 flowRate: "19290123456790"
+    //             }],
+    //         });
+    //         assert.deepEqual(await sf.cfa.listFlows({
+    //             superToken: superToken.address,
+    //             account: bob,
+    //             onlyInFlows: true
+    //         }), {
+    //             inFlows: [{
+    //                 sender: alice,
+    //                 receiver: bob,
+    //                 flowRate: "38580246913580"
+    //             }],
+    //         });
+    //     });
+    // });
 
 });

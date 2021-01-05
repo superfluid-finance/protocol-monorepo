@@ -25,20 +25,24 @@ Development
 ===========
 
 To develop the project, pull the repository from GitHub and install its
-dependencies. You will need npm installed.
+dependencies. You will need npm and jq installed.
 
-```
-$ git clone https://github.com/superfluid-finance/ethereum-contracts
-$ cd ethereum-contracts
-$ npm ci
+```bash
+sudo apt-get install jq
+
+git clone https://github.com/superfluid-finance/ethereum-contracts
+cd ethereum-contracts
+cp .env.template .env
+# Add your github token
+npm ci
 ```
 
 Linting
 -------
 
-Javascripts are linted using [eslint](https://eslint.org/).
+Javascript is linted using [eslint](https://eslint.org/).
 
-Solidity are linted using [solhint](https://protofire.github.io/solhint/)
+Solidity is linted using [solhint](https://protofire.github.io/solhint/)
 
 Testing
 -------
@@ -76,7 +80,7 @@ To run the coverage tests please use:
 $ truffle run test-coverage
 ```
 
-This step is not integraded with the unit test because of the time it consumes to execute.
+This step is not integrated with the unit test because of the time it consumes to execute.
 
 Integration
 ===========

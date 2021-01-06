@@ -183,10 +183,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             const tx = await alice.flow({
                 // "bob" rather than "bob.address"
                 recipient: bob,
-                flowRate: "38580246913580", // 100 / mo
-                onTransaction: hash => {
-                    txHash = hash;
-                }
+                flowRate: "38580246913580" // 100 / mo
             });
             const flow = await sf.cfa.getFlow({
                 superToken: superToken.address,

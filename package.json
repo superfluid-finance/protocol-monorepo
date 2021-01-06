@@ -4,10 +4,11 @@
     "description": "Superfluid Protocol monorepo",
     "repository": "github:superfluid-finance/superfluid-monorepo",
     "license": "MIT",
-    "workspaces": {
-        "packages": [
-            "packages/*"
-        ]
+    "scripts": {
+        "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
+        "build": "yarn workspaces run build",
+        "lint": "yarn workspaces run lint",
+        "pre-commit":"yarn workspaces run pre-commit"
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",
@@ -19,19 +20,20 @@
         "prettier": "^1.19.1",
         "prettier-eslint": "^9.0.0"
     },
-    "scripts": {
-        "build": "yarn workspaces run build",
-        "lint": "yarn workspaces run lint"
-    },
     "lint-staged": {
-        "**/*.+(js|jsx|ts|tsx|json|css)": [
-            "yarn lint"
+        "**/*.+(js|jsx|ts|tsx|json|css|sol)": [
+            "yarn pre-commit"
         ]
     },
     "husky": {
         "hooks": {
             "pre-commit": "lint-staged"
         }
+    },
+    "workspaces": {
+        "packages": [
+            "packages/*"
+        ]
     },
     "publishConfig": {
         "registry": "https://npm.pkg.github.com/"

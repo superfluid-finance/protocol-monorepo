@@ -5,6 +5,7 @@ const DEFAULT_CONFIG = {
     4 : { // rinkeby
         resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A"
     },
+
     3 : { // ropsten
         resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a",
     },

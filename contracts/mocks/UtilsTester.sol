@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.5;
+pragma solidity 0.7.6;
 
 import { Int96SafeMath } from "../utils/Int96SafeMath.sol";
 import { UInt128SafeMath } from "../utils/UInt128SafeMath.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.5;
+pragma solidity 0.7.6;
 
 import {
     IConstantFlowAgreementV1,
@@ -25,6 +25,9 @@ contract ConstantFlowAgreementV1 is
     AgreementBase,
     IConstantFlowAgreementV1
 {
+
+    bytes32 private constant _LIQUIDATION_PERIOD_CONFIG_KEY =
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
 
     using SafeMath for uint256;
     using SafeCast for uint256;
@@ -84,7 +87,7 @@ contract ConstantFlowAgreementV1 is
         deposit = _clipDepositNumberRoundingDown(deposit);
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
         uint256 flowrate1 = deposit.div(liquidationPeriod);
         return int96(flowrate1);
     }
@@ -98,7 +101,7 @@ contract ConstantFlowAgreementV1 is
         require(flowRate >= 0, "CFA: not for negative flow rate");
         ISuperfluid host = ISuperfluid(token.getHost());
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+        uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
         return _calculateDeposit(flowRate, liquidationPeriod, false);
     }
@@ -116,8 +119,7 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.authorizeTokenAccess(token);
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -130,6 +132,7 @@ contract ConstantFlowAgreementV1 is
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)))
         {
             newCtx = _changeFlowToApp(
+                receiver,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.CREATE_FLOW);
         } else {
@@ -154,8 +157,7 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.authorizeTokenAccess(token);
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
@@ -167,6 +169,7 @@ contract ConstantFlowAgreementV1 is
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
             newCtx = _changeFlowToApp(
+                receiver,
                 token, flowParams, oldFlowData,
                 ctx, currentContext, FlowChangeType.UPDATE_FLOW);
         } else {
@@ -192,8 +195,7 @@ contract ConstantFlowAgreementV1 is
         FlowParams memory flowParams;
         require(sender != address(0), "CFA: sender is zero");
         require(receiver != address(0), "CFA: receiver is zero");
-        AgreementLibrary.authorizeTokenAccess(token);
-        AgreementLibrary.Context memory currentContext = AgreementLibrary.decodeCtx(ctx);
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         flowParams.flowId = _generateFlowId(sender, receiver);
         flowParams.sender = sender;
         flowParams.receiver = receiver;
@@ -201,12 +203,17 @@ contract ConstantFlowAgreementV1 is
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
         require(exist, "CFA: flow does not exist");
 
-        (int256 availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
+        int256 availableBalance;
+        (availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
 
         // delete should only be called by sender or receiver
         // unless it is a liquidation (availale balance < 0)
         if (currentContext.msgSender != sender && currentContext.msgSender != receiver) {
-            require(availableBalance < 0, "CFA: account is not critical");
+            // liquidation should only for sender that is critical, unless sender or receiver is a jailed app
+            if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(sender)) &&
+                !ISuperfluid(msg.sender).isAppJailed(ISuperApp(receiver))) {
+                require(availableBalance < 0, "CFA: sender account is not critical");
+            }
         }
 
         if (availableBalance < 0) {
@@ -218,14 +225,53 @@ contract ConstantFlowAgreementV1 is
                 currentContext.msgSender);
         }
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-            newCtx = _changeFlowToApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext, FlowChangeType.DELETE_FLOW);
-        } else {
-            newCtx = _changeFlowToNonApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext);
+        newCtx = ctx;
+        if (currentContext.msgSender == sender) {
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
+                newCtx = _changeFlowToApp(
+                    receiver,
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        } else if (currentContext.msgSender == receiver) {
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
+                newCtx = _changeFlowToApp(
+                    sender,
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
+                newCtx = _changeFlowToApp(
+                    address(0),
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        } else /* liquidations */ {
+            // if the sender is an app, and becomes critical
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
+                newCtx = ISuperfluid(msg.sender).jailApp(
+                    newCtx,
+                    ISuperApp(sender),
+                    SuperAppDefinitions.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT);
+            }
+            // always attempt to call receiver callback
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
+                newCtx = _changeFlowToApp(
+                    receiver,
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
         }
     }
 
@@ -387,7 +433,7 @@ contract ConstantFlowAgreementV1 is
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
         bytes memory ctx,
-        AgreementLibrary.Context memory currentContext
+        ISuperfluid.Context memory currentContext
     )
         private
         returns (bytes memory newCtx)
@@ -420,14 +466,15 @@ contract ConstantFlowAgreementV1 is
         bytes cbdata;
         FlowData newFlowData;
         uint256 appAllowance;
-        AgreementLibrary.Context appContext;
+        ISuperfluid.Context appContext;
     }
     function _changeFlowToApp(
+        address appToCallback,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData,
         bytes memory ctx,
-        AgreementLibrary.Context memory currentContext,
+        ISuperfluid.Context memory currentContext,
         FlowChangeType optype
     )
         private
@@ -437,11 +484,13 @@ contract ConstantFlowAgreementV1 is
         // apply callbacks
         _StackVars_changeFlowToApp memory vars;
 
-        {
+        // call callback
+        if (appToCallback != address(0)) {
             AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
                 token,
-                flowParams.receiver,
-                flowParams.flowId
+                appToCallback,
+                flowParams.flowId,
+                abi.encode(flowParams.sender, flowParams.receiver)
             );
 
             // call the before callback
@@ -461,8 +510,9 @@ contract ConstantFlowAgreementV1 is
                     currentContext.timestamp,
                     token, flowParams, oldFlowData);
 
-            // each app level get a same amount of allowance
-            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel + 1));
+            // - each app level can at least "relay" the same amount of input flow rate to others
+            // - each app level get a same amount of allowance
+            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.cbLevel + 1));
 
             // call the after callback
             cbStates.appAllowanceGranted = vars.appAllowance;
@@ -478,11 +528,13 @@ contract ConstantFlowAgreementV1 is
                 cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
             }
             (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+        } else {
+            (,,vars.newFlowData) = _changeFlow(
+                    currentContext.timestamp,
+                    token, flowParams, oldFlowData);
         }
 
-        // FIXME
-        // !!REVISIT the re-entrace assumptions from this point on
-        //
+        // REVIEW the re-entrace assumptions from this point on
 
         // NOTE: vars.appContext.appAllowanceUsed will be adjusted by callAppAfterCallback
         // and its range will be [0, currentContext.appAllowance]
@@ -497,37 +549,71 @@ contract ConstantFlowAgreementV1 is
             int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
                 .sub(oldFlowData.owedDeposit.toInt256());
 
-            vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
-                    .add(appAllowanceDelta)
-                    .toUint256();
-            vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
-                    .add(appAllowanceDelta)
-                    .toUint256();
-            token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
-
-            // update sender and receiver deposit (for sender) and owed deposit (for receiver)
-            _updateAccountFlowState(
-                token,
-                flowParams.sender,
-                0, // flow rate delta
-                appAllowanceDelta, // deposit delta
-                0, // owed deposit delta
-                currentContext.timestamp
-            );
-            _updateAccountFlowState(
-                token,
-                flowParams.receiver,
-                0, // flow rate delta
-                0, // deposit delta
-                appAllowanceDelta, // owed deposit delta
-                currentContext.timestamp
-            );
+            // update flow data and account state with the allowance delta
+            {
+                vars.newFlowData.deposit = vars.newFlowData.deposit.toInt256()
+                        .add(appAllowanceDelta)
+                        .toUint256();
+                vars.newFlowData.owedDeposit = vars.newFlowData.owedDeposit.toInt256()
+                        .add(appAllowanceDelta)
+                        .toUint256();
+                token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
+                // update sender and receiver deposit (for sender) and owed deposit (for receiver)
+                _updateAccountFlowState(
+                    token,
+                    flowParams.sender,
+                    0, // flow rate delta
+                    appAllowanceDelta, // deposit delta
+                    0, // owed deposit delta
+                    currentContext.timestamp
+                );
+                _updateAccountFlowState(
+                    token,
+                    flowParams.receiver,
+                    0, // flow rate delta
+                    0, // deposit delta
+                    appAllowanceDelta, // owed deposit delta
+                    currentContext.timestamp
+                );
+            }
 
             newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
                 ctx,
                 vars.newFlowData.deposit, // allowanceWantedMore
                 appAllowanceDelta // allowanceUsedDelta
             );
+
+            // if receiver doesn't have enough available balance to give back app allowance
+            // take it from the sender
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowParams.receiver))) {
+                int256 availableBalance;
+                (availableBalance,,) = token.realtimeBalanceOf(flowParams.receiver, currentContext.timestamp);
+                if (availableBalance < 0) {
+                    // app goes broke, send the app to jail
+                    if (optype == FlowChangeType.DELETE_FLOW) {
+                        newCtx = ISuperfluid(msg.sender).jailApp(
+                            newCtx,
+                            ISuperApp(flowParams.receiver),
+                            SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
+                        // calculate user's damange
+                        int256 userDamangeAmount = AgreementLibrary.min(
+                            // user will take the damage if the app is broke,
+                            -availableBalance,
+                            // but user's damage is limited to the amount of app allowance it gives to the app
+                            AgreementLibrary.max(0, -appAllowanceDelta));
+                        token.settleBalance(
+                            flowParams.sender,
+                            -userDamangeAmount
+                        );
+                        token.settleBalance(
+                            flowParams.receiver,
+                            userDamangeAmount
+                        );
+                    } else {
+                        revert("CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
+                    }
+                }
+            }
         }
     }
 
@@ -555,8 +641,9 @@ contract ConstantFlowAgreementV1 is
             //int256 oldDeposit;
 
             // STEP 1: calculate old and new deposit required for the flow
-            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(token.getHost()).getGovernance());
-            uint256 liquidationPeriod = gov.getLiquidationPeriod(token);
+            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
+            uint256 liquidationPeriod = gov.getConfigAsUint256(
+                ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
 
             //oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod, false).toInt256();
             depositDelta = _calculateDeposit(flowParams.flowRate, liquidationPeriod, false).toInt256();
@@ -610,7 +697,7 @@ contract ConstantFlowAgreementV1 is
 
     function _requireAvailableBalance(
         ISuperfluidToken token,
-        AgreementLibrary.Context memory currentContext
+        ISuperfluid.Context memory currentContext
     )
         private view
     {

@@ -204,6 +204,9 @@ function syncAccountExpectedBalanceDeltas({
 class MFASupport {
 
     static async setup({ testenv, mfa, roles }) {
+        roles.mfaSender = testenv.getAddress(mfa.sender);
+        roles.mfa = testenv.getAddress("mfa");
+
         Object.keys(mfa.receivers).forEach(async receiverAlias => {
             const mfaReceiverName = "mfa.receiver." + receiverAlias;
             roles[mfaReceiverName] = testenv.getAddress(receiverAlias);
@@ -213,17 +216,20 @@ class MFASupport {
         const receivers = Object.keys(mfa.receivers).filter(i=>mfa.receivers[i].proportion>0);
         return {
             userData: web3.eth.abi.encodeParameters(
-                ["uint256", "address[]", "uint256[]"],
+                ["address", "uint256", "address[]", "uint256[]"],
                 [
+                    testenv.getAddress(mfa.sender),
                     mfa.ratioPct,
                     receivers.map(i=>testenv.getAddress(i)),
                     receivers.map(i=>mfa.receivers[i].proportion)
-                ])
+                ]
+            )
         };
     }
 
     static async updateFlowExpectations({
         testenv,
+        superToken,
         mfa,
         flowRate,
         roles,
@@ -241,21 +247,24 @@ class MFASupport {
                 .mul(toBN(testenv.configs.LIQUIDATION_PERIOD)),
             true /* rounding down */);
 
+        // expected unwindng of mfa receiver flows
         Object.keys(mfa.receivers).forEach(receiverAlias => {
             const receiverAddress = testenv.getAddress(receiverAlias);
             if (!(receiverAddress in expectedNetFlowDeltas)) {
                 expectedNetFlowDeltas[receiverAddress] = toBN(0);
             }
         });
-
         await Promise.all(Object.keys(mfa.receivers).map(async receiverAlias => {
             const mfaReceiverName = "mfa.receiver." + receiverAlias;
             const mfaFlowName = "mfa.flow." + receiverAlias;
             const receiverAddress = testenv.getAddress(receiverAlias);
             const notTouched = mfa.receivers[receiverAlias].proportion === 0;
 
+            // skip if it's been deleted by one of the mfa receivers
+            if (receiverAddress == roles.receiver) return;
+
             await addFlowInfo1(mfaFlowName, {
-                sender: roles.receiver,
+                sender: roles.mfa,
                 receiver: roles[mfaReceiverName],
                 notTouched
             });
@@ -275,7 +284,7 @@ class MFASupport {
                 const mfaFlowRateDelta = toBN(mfaFlowRate)
                     .sub(toBN(getAccountFlowInfo1(mfaReceiverName).flowRate));
                 expectedNetFlowDeltas[receiverAddress].iadd(mfaFlowRateDelta);
-                expectedNetFlowDeltas[roles.receiver].isub(mfaFlowRateDelta);
+                expectedNetFlowDeltas[roles.mfa].isub(mfaFlowRateDelta);
             }
 
             expectedFlowInfo[mfaFlowName] = {
@@ -290,10 +299,34 @@ class MFASupport {
             //     mfaFlowRate.toString(),
             //     mfaFlowDepositAllowance.toString());
         }));
+
+        // expected unwindng of mfa sender flow if the flow being deleted is not sending to the mfa
+        if (roles.mfa != roles.receiver) {
+            const mfaSenderFlow = getFlowInfo({
+                testenv,
+                superToken: superToken.address,
+                sender: roles.mfaSender,
+                receiver: roles.mfa
+            });
+            //console.log("!!!!", mfaSenderFlow);
+            if (!(roles.mfaSender in expectedNetFlowDeltas)) expectedNetFlowDeltas[roles.mfaSender] = toBN(0);
+            if (!(roles.mfa in expectedNetFlowDeltas)) expectedNetFlowDeltas[roles.mfa] = toBN(0);
+            expectedNetFlowDeltas[roles.mfaSender].iadd(toBN(mfaSenderFlow.flowRate));
+            expectedNetFlowDeltas[roles.mfa].isub(toBN(mfaSenderFlow.flowRate));
+            await addFlowInfo1("mfa.sender", {
+                sender: roles.mfaSender,
+                receiver: roles.mfa,
+            });
+            expectedFlowInfo["mfa.sender"] = {
+                flowRate: "0",
+                deposit: toBN(0),
+                owedDeposit: toBN(0)
+            };
+        }
     }
 
     static async postCheck({ testenv, roles }) {
-        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.receiver));
+        assert.isFalse(await testenv.contracts.superfluid.isAppJailed(roles.mfa), "MFA app was jailed");
     }
 }
 
@@ -502,7 +535,7 @@ async function _shouldChangeFlow({
     if (fn === "deleteFlow") {
         assert.isDefined(by);
         const agentAddress = testenv.getAddress(by);
-        let rewardAddress = await governance.getRewardAddress(superToken.address);
+        let rewardAddress = await governance.getRewardAddress();
         if (rewardAddress === testenv.constants.ZERO_ADDRESS) {
             rewardAddress = agentAddress;
         }
@@ -547,6 +580,7 @@ async function _shouldChangeFlow({
     if (mfa) {
         await MFASupport.updateFlowExpectations({
             testenv,
+            superToken,
             mfa,
             flowRate,
             roles,
@@ -636,6 +670,11 @@ async function _shouldChangeFlow({
     /**************************************************************************
     * load results and test expectations
     **************************************************************************/
+
+    // make sure app is not jailed
+    if (mfa) {
+        await MFASupport.postCheck({ testenv, roles });
+    }
 
     // caculate additional expected balance changes per liquidation rules
     if (fn === "deleteFlow") {
@@ -751,11 +790,6 @@ async function _shouldChangeFlow({
         account: roles[role]
     }));
     console.log("--------");
-
-    // make sure app is not jailed
-    if (mfa) {
-        await MFASupport.postCheck({ testenv, roles });
-    }
 
     //console.log("!!! 2", JSON.stringify(testenv.data, null, 4));
     console.log(`======== ${fn} ends ========`);

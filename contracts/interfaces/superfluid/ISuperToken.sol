@@ -288,6 +288,34 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     ) external override(IERC777);
 
     /**************************************************************************
+     * SuperToken custom token functions
+     *************************************************************************/
+
+    /**
+     * @dev Mint new tokens for the account
+     *
+     * Modifiers:
+     *  - onlySelf
+     */
+    function selfMint(
+        address account,
+        uint256 amount,
+        bytes memory userData
+    ) external;
+
+   /**
+    * @dev Burn existing tokens for the account
+    *
+    * Modifiers:
+    *  - onlySelf
+    */
+   function selfBurn(
+       address account,
+       uint256 amount,
+       bytes memory userData
+   ) external;
+
+    /**************************************************************************
      * SuperToken extra functions
      *************************************************************************/
 
@@ -419,7 +447,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * NOTE: solidity-coverage not supporting it
     *************************************************************************/
 
-    /// @dev The msg.sender must be host contract
-    //modifier onlyHost() virtual;
+    /// @dev The msg.sender must be the contract itself
+    //modifier onlySelf() virtual
 
 }

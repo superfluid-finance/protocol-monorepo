@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.5;
+pragma solidity 0.7.6;
 
 import {
     ISuperfluid,
@@ -151,6 +151,10 @@ contract AgreementMock is AgreementBase {
         host.ctxUseAllowance("", 0, 0);
     }
 
+    function tryJailApp(ISuperfluid host) external {
+        host.jailApp("", ISuperApp(address(0)), 0);
+    }
+
     function doRevert(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
         revert(reason);
     }
@@ -179,7 +183,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
         cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
@@ -199,7 +204,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
         cbStates.selector = ISuperApp.afterAgreementCreated.selector;
@@ -218,7 +224,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
@@ -238,7 +245,8 @@ contract AgreementMock is AgreementBase {
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
-            0 /* agreementId */
+            0 /* agreementId */,
+            "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         cbStates.selector = ISuperApp.afterAgreementTerminated.selector;

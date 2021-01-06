@@ -329,6 +329,9 @@ interface ISuperfluidToken {
      * NOTE: solidity-coverage not supporting it
      *************************************************************************/
 
+     /// @dev The msg.sender must be host contract
+     //modifier onlyHost() virtual;
+
     /// @dev The msg.sender must be a listed agreement.
     //modifier onlyAgreement() virtual;
 

@@ -8,6 +8,8 @@ import {
     ERC20WithTokenInfo
 } from "../tokens/ERC20WithTokenInfo.sol";
 
+import { UUPSProxy } from "../../upgradability/UUPSProxy.sol";
+
 
 interface ISuperTokenFactory {
 
@@ -71,6 +73,13 @@ interface ISuperTokenFactory {
     )
         external;
 
-    event SuperTokenCreated(ISuperToken token);
+    function initializeCustomSuperToken(
+        UUPSProxy customSuperTokenProxy
+    )
+        external;
+
+    event SuperTokenLogicCreated(ISuperToken indexed tokenLogic);
+
+    event SuperTokenCreated(ISuperToken indexed token);
 
 }

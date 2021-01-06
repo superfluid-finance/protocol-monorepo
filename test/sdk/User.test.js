@@ -1,7 +1,10 @@
 const { toBN } = require("@decentral.ee/web3-helpers");
-const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
-var should = require("should");
+
+const chai = require("chai");
+const chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+const expect = chai.expect;
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
     const t = new TestEnvironment(accounts.slice(0, 4));
@@ -35,24 +38,101 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         });
     });
 
-    describe.only("new flows", () => {
-        it("should fail without recipient", async () => {
-            (
-                await alice.flow({
+    describe.only("details", () => {
+        it("shows user details", async () => {
+            await alice.flow({
+                recipient: bob.address,
+                flowRate: "38580246913580" // 100 / mo
+            });
+            await bob.flow({
+                recipient: carol.address,
+                flowRate: "19290123456790" // 50 / mo
+            });
+            assert.deepEqual(await alice.details(), {
+                cfa: {
+                    flows: {
+                        inFlows: [],
+                        outFlows: [
+                            {
+                                sender: alice.address,
+                                receiver: bob.address,
+                                flowRate: "38580246913580"
+                            }
+                        ]
+                    },
+                    netFlow: "-38580246913580"
+                }
+            });
+            assert.deepEqual(await bob.details(), {
+                cfa: {
+                    flows: {
+                        inFlows: [
+                            {
+                                sender: alice.address,
+                                receiver: bob.address,
+                                flowRate: "38580246913580"
+                            }
+                        ],
+                        outFlows: [
+                            {
+                                sender: bob.address,
+                                receiver: carol.address,
+                                flowRate: "19290123456790"
+                            }
+                        ]
+                    },
+                    netFlow: "19290123456790"
+                }
+            });
+            console.log(JSON.stringify(await bob.details()));
+        });
+    });
+    describe("new flows", () => {
+        it("fail without recipient", async () => {
+            // This method fails
+            // await alice.flow({
+            //     recipient: null,
+            //     flowRate: "0"
+            // });
+            //
+            // assert.fail(/^You must provide a recipient and flowRate*/);
+
+            // This method also fails
+            // try {
+            //     await alice.flow({
+            //         recipient: null,
+            //         flowRate: "0"
+            //     });
+            // } catch (e) {
+            //     assert.equal(e, /^You must provide a recipient and flowRate*/);
+            // }
+
+            // This also fails
+
+            // await expect(
+            //     await alice.flow({
+            //         recipient: bob.address,
+            //         flowRate: null
+            //     })
+            // ).to.throw(/^You must provide a recipient and flowRate*/);
+
+            await expect(
+                alice.flow({
                     recipient: null,
                     flowRate: "0"
                 })
-            ).should.throwError(/^You must provide a recipient and flowRate*/);
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
-        it("should fail without flowRate", async () => {
-            (
-                await alice.flow({
-                    recipient: bob.address,
+        it("fail without flowRate", async () => {
+            // Using https://github.com/domenic/chai-as-promised
+            await expect(
+                alice.flow({
+                    recipient: adminAddress,
                     flowRate: null
                 })
-            ).should.throwError(/^You must provide a recipient and flowRate*/);
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
-        it("should create a new flow", async () => {
+        it("create a new flow", async () => {
             const tx = await alice.flow({
                 recipient: bob.address,
                 flowRate: "38580246913580" // 100 / mo
@@ -88,6 +168,17 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 "38580246913580"
             );
         });
+        it("create a new flow with onTransaction", async () => {
+            let txHash;
+            const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "38580246913580", // 100 / mo
+                onTransaction: hash => {
+                    txHash = hash;
+                }
+            });
+            assert.equal(txHash, tx.receipt.transactionHash);
+        });
     });
     describe("existing flows", () => {
         beforeEach(async () => {
@@ -104,7 +195,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
             assert.equal(flow.flowRate, "38580246913580");
         });
-        it("should modify an existing flow", async () => {
+        it("modify an existing flow", async () => {
             const tx = await alice.flow({
                 recipient: bob.address,
                 flowRate: "19290123456790" // 50 / mo
@@ -119,225 +210,54 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
             assert.equal(flow.flowRate, "19290123456790");
         });
-
-        it("should stop an existing flow", async () => {
+        it("modify an existing flow with onTransaction", async () => {
+            let txHash;
             const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "19290123456790", // 100 / mo
+                onTransaction: hash => {
+                    txHash = hash;
+                }
+            });
+            assert.equal(txHash, tx.receipt.transactionHash);
+        });
+        it("stop an existing flow", async () => {
+            const ethBefore = await web3.eth.getBalance(alice.address);
+            await alice.flow({
                 recipient: bob.address,
                 flowRate: "0" // 0 / mo
             });
-
-            const flow = await sf.cfa.getFlow({
-                superToken: superToken.address,
-                sender: alice.address,
-                receiver: bob.address
+            const ethAfter = await web3.eth.getBalance(alice.address);
+            assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
+            assert.equal(
+                (
+                    await sf.cfa.getNetFlow({
+                        superToken: superToken.address,
+                        account: alice.address
+                    })
+                ).toString(),
+                "0"
+            );
+            assert.equal(
+                (
+                    await sf.cfa.getNetFlow({
+                        superToken: superToken.address,
+                        account: bob.address
+                    })
+                ).toString(),
+                "0"
+            );
+        });
+        it("stop an existing flow with onTransaction", async () => {
+            let txHash;
+            const tx = await alice.flow({
+                recipient: bob.address,
+                flowRate: "0", // 100 / mo
+                onTransaction: hash => {
+                    txHash = hash;
+                }
             });
-            const block = await web3.eth.getBlock(tx.receipt.blockNumber);
-            assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
-            assert.equal(flow.flowRate, "0");
+            assert.equal(txHash, tx.receipt.transactionHash);
         });
     });
-    //
-    // it("createFlow with onTransaction", async () => {
-    //     let txHash = "";
-    //     const tx = await sf.cfa.createFlow({
-    //         superToken: superToken.address,
-    //         sender: alice,
-    //         receiver: bob,
-    //         flowRate: "38580246913580", // 100 / mo
-    //         onTransaction: hash => { txHash = hash; }
-    //     });
-    //     assert.equal(txHash, tx.receipt.transactionHash);
-    // });
-    //
-    // it("updateFlow", async () => {
-    //     await sf.cfa.createFlow({
-    //         superToken: superToken.address,
-    //         sender: alice,
-    //         receiver: bob,
-    //         flowRate: "38580246913580" // 100 / mo
-    //     });
-    //     await sf.cfa.updateFlow({
-    //         superToken: superToken.address,
-    //         sender: alice,
-    //         receiver: bob,
-    //         flowRate: "19290123456790", // 100 / mo
-    //     });
-    //     // validate account net flows
-    //     assert.equal((await sf.cfa.getNetFlow({
-    //         superToken: superToken.address,
-    //         account: alice,
-    //     })).toString(), "-19290123456790");
-    //     assert.equal((await sf.cfa.getNetFlow({
-    //         superToken: superToken.address,
-    //         account: bob,
-    //     })).toString(), "19290123456790");
-    // });
-    //
-    // it("updateFlow with onTransaction", async () => {
-    //     let txHash = "";
-    //     await sf.cfa.createFlow({
-    //         superToken: superToken.address,
-    //         sender: alice,
-    //         receiver: bob,
-    //         flowRate: "38580246913580" // 100 / mo
-    //     });
-    //     const tx = await sf.cfa.updateFlow({
-    //         superToken: superToken.address,
-    //         sender: alice,
-    //         receiver: bob,
-    //         flowRate: "19290123456790", // 100 / mo
-    //         onTransaction: hash => { txHash = hash; }
-    //     });
-    //     assert.equal(txHash, tx.receipt.transactionHash);
-    // });
-    //
-    // describe("deleteFlow", () => {
-    //     beforeEach(async () => {
-    //         await sf.cfa.createFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //             flowRate: "38580246913580" // 100 / mo
-    //         });
-    //     });
-    //
-    //     it("by sender", async () => {
-    //         const ethBefore = await web3.eth.getBalance(alice);
-    //         await sf.cfa.deleteFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //         });
-    //         const ethAfter = await web3.eth.getBalance(alice);
-    //         assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
-    //         assert.equal((await sf.cfa.getNetFlow({
-    //             superToken: superToken.address,
-    //             account: alice,
-    //         })).toString(), "0");
-    //         assert.equal((await sf.cfa.getNetFlow({
-    //             superToken: superToken.address,
-    //             account: bob,
-    //         })).toString(), "0");
-    //     });
-    //
-    //     it("by receiver", async () => {
-    //         const ethBefore = await web3.eth.getBalance(bob);
-    //         await sf.cfa.deleteFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //             by: bob,
-    //         });
-    //         const ethAfter = await web3.eth.getBalance(bob);
-    //         assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
-    //         assert.equal((await sf.cfa.getNetFlow({
-    //             superToken: superToken.address,
-    //             account: alice,
-    //         })).toString(), "0");
-    //         assert.equal((await sf.cfa.getNetFlow({
-    //             superToken: superToken.address,
-    //             account: bob,
-    //         })).toString(), "0");
-    //     });
-    //
-    //     it("by wrong person", async () => {
-    //         await expectRevert(sf.cfa.deleteFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //             by: admin
-    //         }), "CFA: sender account is not critical");
-    //     });
-    //
-    //     it("by sender with onTransaction", async () => {
-    //         let txHash = "";
-    //         const tx = await sf.cfa.deleteFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //             onTransaction: hash => { txHash = hash; }
-    //         });
-    //         assert.equal(txHash, tx.receipt.transactionHash);
-    //     });
-    // });
-    //
-    // describe("listFlows", () => {
-    //     it("normally", async () => {
-    //         await sf.cfa.createFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //             flowRate: "38580246913580" // 100 / mo
-    //         });
-    //         await sf.cfa.createFlow({
-    //             superToken: superToken.address,
-    //             sender: bob,
-    //             receiver: carol,
-    //             flowRate: "19290123456790" // 100 / mo
-    //         });
-    //         assert.deepEqual(await sf.cfa.listFlows({
-    //             superToken: superToken.address,
-    //             account: alice,
-    //         }), {
-    //             inFlows: [],
-    //             outFlows: [{
-    //                 sender: alice,
-    //                 receiver: bob,
-    //                 flowRate: "38580246913580"
-    //             }]
-    //         });
-    //         assert.deepEqual(await sf.cfa.listFlows({
-    //             superToken: superToken.address,
-    //             account: bob,
-    //         }), {
-    //             inFlows: [{
-    //                 sender: alice,
-    //                 receiver: bob,
-    //                 flowRate: "38580246913580"
-    //             }],
-    //             outFlows: [{
-    //                 sender: bob,
-    //                 receiver: carol,
-    //                 flowRate: "19290123456790"
-    //             }],
-    //         });
-    //     });
-    //
-    //     it("onlyInFlows and onlyOutFlows", async () => {
-    //         await sf.cfa.createFlow({
-    //             superToken: superToken.address,
-    //             sender: alice,
-    //             receiver: bob,
-    //             flowRate: "38580246913580" // 100 / mo
-    //         });
-    //         await sf.cfa.createFlow({
-    //             superToken: superToken.address,
-    //             sender: bob,
-    //             receiver: carol,
-    //             flowRate: "19290123456790" // 100 / mo
-    //         });
-    //         assert.deepEqual(await sf.cfa.listFlows({
-    //             superToken: superToken.address,
-    //             account: bob,
-    //             onlyOutFlows: true
-    //         }), {
-    //             outFlows: [{
-    //                 sender: bob,
-    //                 receiver: carol,
-    //                 flowRate: "19290123456790"
-    //             }],
-    //         });
-    //         assert.deepEqual(await sf.cfa.listFlows({
-    //             superToken: superToken.address,
-    //             account: bob,
-    //             onlyInFlows: true
-    //         }), {
-    //             inFlows: [{
-    //                 sender: alice,
-    //                 receiver: bob,
-    //                 flowRate: "38580246913580"
-    //             }],
-    //         });
-    //     });
-    // });
 });

@@ -14,21 +14,24 @@ module.exports = class User {
                 superToken: this.token,
                 account: this.address
             });
-            const netFlow = await this.sf.cfa.getNetFlow({ superToken: this.token, account: this.address });
+            const netFlow = (
+                await this.sf.cfa.getNetFlow({ superToken: this.token, account: this.address })
+            ).toString();
             return { cfa: { flows, netFlow } };
         } catch (e) {
             throw getErrorResponse(e, "user", "details");
         }
     }
 
-    async flow({ recipient, flowRate }) {
+    async flow({ recipient, flowRate, ...options }) {
         try {
             if (!recipient || !flowRate) throw "You must provide a recipient and flowRate";
             if (flowRate === "0")
                 return await this.sf.cfa.deleteFlow({
                     superToken: this.token,
                     sender: this.address,
-                    receiver: recipient
+                    receiver: recipient,
+                    ...options
                 });
 
             const existingFlow = await this.sf.cfa.getFlow({
@@ -41,15 +44,15 @@ module.exports = class User {
                     superToken: this.token,
                     sender: this.address,
                     receiver: recipient,
-                    flowRate
+                    flowRate,
+                    ...options
                 });
             return await this.sf.cfa.createFlow({
                 superToken: this.token,
                 sender: this.address,
                 receiver: recipient,
-                flowRate
-                // userData,
-                // onTransaction = () => null,
+                flowRate,
+                ...options
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "flow");

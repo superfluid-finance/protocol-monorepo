@@ -38,7 +38,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
         });
     });
 
-    describe.only("details", () => {
+    describe("details", () => {
         it("shows user details", async () => {
             await alice.flow({
                 recipient: bob.address,

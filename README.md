@@ -11,6 +11,12 @@ protocol.
 For technical document, references and tutorials, etc, please refer to the
 [docs site](http://docs.superfluid.finance/).
 
+# Integration
+
+It is recommended that you use our JS SDK to interact with the protocol.
+
+Please see [/packages/js-sdk](./packages/js-sdk) for documentation.
+
 # Installation
 
 To install, using its npm package is recommended.
@@ -29,8 +35,6 @@ sudo apt-get install jq
 
 git clone https://github.com/superfluid-finance/ethereum-contracts
 cd ethereum-contracts
-cp .env.template .env
-# Add your github token
 npm ci
 ```
 
@@ -75,9 +79,3 @@ $ truffle run test-coverage
 ```
 
 This step is not integrated with the unit test because of the time it consumes to execute.
-
-# Integration
-
-It is recommended that you use our JS SDK to interact with the protocol.
-
-Please see [/packages/js-sdk](./packages/js-sdk) for documentation.

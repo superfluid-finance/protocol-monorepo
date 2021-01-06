@@ -1,47 +1,39 @@
 {
     "name": "@superfluid-finance/superfluid-monorepo",
     "private": true,
-    "version": "0.2.0-latest",
     "description": "Superfluid Protocol monorepo",
     "repository": "github:superfluid-finance/superfluid-monorepo",
     "license": "MIT",
-    "dependencies": {},
-    "devDependencies": {
-        "eslint": "^7.16.0",
-        "husky": "^4.3.6",
-        "npm-run-all": "^4.1.5"
-    },
-    "scripts": {
-        "build": "run-s build:*",
-        "build:contracts": "rm -f build/contracts/*;truffle compile",
-        "build:abi": "scripts/build-abi-js.sh",
-        "pretest": "run-s lint build",
-        "test": "run-s test:*",
-        "test:contracts": "truffle test test/contracts.test.js && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
-        "test:apps": "truffle test test test/apps.test.js",
-        "test:sdk": "truffle test test/sdk.test.js",
-        "test:deployment": "truffle test test/deployment.test.js",
-        "test-coverage": "npm run build && truffle run coverage --file test/contracts.test.js",
-        "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
-        "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
-        "lint": "run-s lint:*",
-        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
-        "pre-commit": "run-s pre-commit:*",
-        "pre-commit:lint": "npm run lint",
-        "pre-commit:focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "npm run pre-commit"
-        }
-    },
-    "publishConfig": {
-        "registry": "https://npm.pkg.github.com/"
-    },
     "workspaces": {
         "packages": [
             "packages/*"
         ]
+    },
+    "devDependencies": {
+        "babel-eslint": "^10.1.0",
+        "eslint": "^7.16.0",
+        "eslint-config-prettier": "^6.9.0",
+        "eslint-plugin-prettier": "^3.1.2",
+        "husky": "^4.2.5",
+        "lint-staged": "^10.5.3",
+        "prettier": "^1.19.1",
+        "prettier-eslint": "^9.0.0"
+    },
+    "scripts": {
+        "build": "yarn workspaces run build",
+        "lint": "yarn workspaces run lint"
+    },
+    "lint-staged": {
+        "**/*.+(js|jsx|ts|tsx|json|css)": [
+            "yarn lint"
+        ]
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com/"
     }
 }

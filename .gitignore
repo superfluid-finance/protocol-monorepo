@@ -1,15 +1,22 @@
 /data
+**/data
 /node_modules
+**/node_modules
 /build
+**/build
+/dist
+**/dist
+/.env
+**/.env
+*.env
+
 /coverage.json
 /coverage
-/.env
-/data
+
 *.ignore.*
 yarn.lock
 .DS_Store
 
-*.env
 
 .vscode/
 .npmrc

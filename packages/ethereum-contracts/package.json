@@ -13,9 +13,7 @@
         "!/build/contracts/*Mock.json",
         "!/build/contracts/*Tester.json",
         "scripts/**/*.js",
-        "scripts/**/*.sh",
-        "js-sdk/**/*.json",
-        "js-sdk/**/*.js"
+        "scripts/**/*.sh"
     ],
     "dependencies": {
         "@openzeppelin/contracts": "3.3.0-solc-0.7",
@@ -52,9 +50,7 @@
         "test-coverage": "npm run build && truffle run coverage --file test/contracts.test.js",
         "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
         "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
-        "lint": "run-s lint:*",
-        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
-        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "lint": "solhint -w 0 src/contracts/*.sol src/contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint": "npm run lint",
         "pre-commit:focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }"

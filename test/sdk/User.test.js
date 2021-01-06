@@ -179,6 +179,24 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             });
             assert.equal(txHash, tx.receipt.transactionHash);
         });
+        it("create a new flow with User object argument", async () => {
+            const tx = await alice.flow({
+                // "bob" rather than "bob.address"
+                recipient: bob,
+                flowRate: "38580246913580", // 100 / mo
+                onTransaction: hash => {
+                    txHash = hash;
+                }
+            });
+            const flow = await sf.cfa.getFlow({
+                superToken: superToken.address,
+                sender: alice.address,
+                receiver: bob.address
+            });
+            const block = await web3.eth.getBlock(tx.receipt.blockNumber);
+            assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
+            assert.equal(flow.flowRate, "38580246913580");
+        });
     });
     describe("existing flows", () => {
         beforeEach(async () => {

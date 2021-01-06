@@ -2,6 +2,8 @@
 
 **NB!** The SDK is still under development, its API and interfaces can change.
 
+# Usage
+
 ## Overview
 
 ```js
@@ -18,7 +20,7 @@ const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI.address });
 
 // Constant Flow Agreement
 await bob.flow({
-    recipient: bob.address,
+    recipient: "0x123...",
     flowRate: "38580246913580" // 100 tokens / mo
 });
 
@@ -51,8 +53,6 @@ await bob.flow({
     -   `sf.agreements.cfa` : Constant flow agreement truffle contract instance.
     -   `sf.agreements.ida` : Instant distribution agreement truffle contract instance.
 -   `sf.cfa`: The constant flow agreement helper class instance.
-
-# Usage
 
 ## Initialization
 
@@ -143,11 +143,22 @@ Example:
 
 ```js
 const tx = await alice.flow({
-    recipient: bob.address,
+    recipient: bob,
     flowRate: "38580246913580", // 100 / mo
     // OPTIONS: See ConstantFlowAgreementV1Helper for more
     onTransaction: hash => {
         txHash = hash;
     }
 });
+```
+
+# Development
+
+Contributions and suggestions welcome!
+
+Since testing takes a while, we recommend specifying a test-suite. For example:
+
+```bash
+# Only run tests in User.test.js
+nodemon -x npx truffle test ./test/sdk/User.test.js
 ```

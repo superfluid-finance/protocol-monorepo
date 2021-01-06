@@ -12,3 +12,4 @@ yarn.lock
 *.env
 
 .vscode/
+.npmrc

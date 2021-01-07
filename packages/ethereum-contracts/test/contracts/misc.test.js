@@ -7,11 +7,11 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 //     toWad
 // } = require("@decentral.ee/web3-helpers");
 
-const DEFAULT_ADMIN_ROLE = "0x0000000000000000000000000000000000000000000000000000000000000000";
-const ZERO_ADDRESS = "0x"+"0".repeat(40);
+const DEFAULT_ADMIN_ROLE =
+    "0x0000000000000000000000000000000000000000000000000000000000000000";
+const ZERO_ADDRESS = "0x" + "0".repeat(40);
 
 contract("Miscellaneous for test coverages", accounts => {
-
     const admin = accounts[0];
     const alice = accounts[1];
 
@@ -24,9 +24,15 @@ contract("Miscellaneous for test coverages", accounts => {
             const proxiable = await UUPSProxiableMock.at(proxy.address);
             const uuid1 = web3.utils.sha3("UUPSProxiableMock1");
             const mock = await UUPSProxiableMock.new(uuid1, 1);
-            await expectRevert(proxy.initializeProxy(ZERO_ADDRESS), "UUPSProxy: zero address");
+            await expectRevert(
+                proxy.initializeProxy(ZERO_ADDRESS),
+                "UUPSProxy: zero address"
+            );
             await proxy.initializeProxy(mock.address);
-            await expectRevert(proxy.initializeProxy(mock.address), "UUPSProxy: already initialized");
+            await expectRevert(
+                proxy.initializeProxy(mock.address),
+                "UUPSProxy: already initialized"
+            );
             assert.equal(await proxiable.proxiableUUID(), uuid1);
         });
 
@@ -40,7 +46,10 @@ contract("Miscellaneous for test coverages", accounts => {
             const mock2 = await UUPSProxiableMock.new(uuid2, 1);
 
             assert.equal(await mock1a.getCodeAddress(), ZERO_ADDRESS);
-            await expectRevert(mock1a.updateCode(mock1a.address), "UUPSProxiable: not upgradable");
+            await expectRevert(
+                mock1a.updateCode(mock1a.address),
+                "UUPSProxiable: not upgradable"
+            );
             await proxiable.updateCode(mock1a.address);
 
             await proxy.initializeProxy(mock1a.address);
@@ -51,7 +60,10 @@ contract("Miscellaneous for test coverages", accounts => {
             assert.equal(await proxiable.proxiableUUID(), uuid1);
             assert.equal(await proxiable.waterMark(), 2);
 
-            await expectRevert(proxiable.updateCode(mock2.address), "UUPSProxiable: not compatible logic");
+            await expectRevert(
+                proxiable.updateCode(mock2.address),
+                "UUPSProxiable: not compatible logic"
+            );
         });
     });
 
@@ -62,7 +74,8 @@ contract("Miscellaneous for test coverages", accounts => {
             const resolver = await TestResolver.new({ from: admin });
             await expectRevert(
                 resolver.set("alice", alice, { from: alice }),
-                "Caller is not an admin");
+                "Caller is not an admin"
+            );
             await resolver.grantRole(DEFAULT_ADMIN_ROLE, alice);
             await resolver.set("alice", alice, { from: alice });
             assert.equal(await resolver.get("alice"), alice);
@@ -71,14 +84,24 @@ contract("Miscellaneous for test coverages", accounts => {
 
     describe("FullUpgradableSuperTokenProxy", () => {
         const IERC20 = artifacts.require("IERC20");
-        const FullUpgradableSuperTokenProxy = artifacts.require("FullUpgradableSuperTokenProxy");
+        const FullUpgradableSuperTokenProxy = artifacts.require(
+            "FullUpgradableSuperTokenProxy"
+        );
 
         it("initialization checks", async () => {
-            const proxy = await FullUpgradableSuperTokenProxy.new({ from: admin });
+            const proxy = await FullUpgradableSuperTokenProxy.new({
+                from: admin
+            });
             const token = await IERC20.at(proxy.address);
-            await expectRevert(token.transfer(alice, 1, { from: admin }), "Not initialized");
+            await expectRevert(
+                token.transfer(alice, 1, { from: admin }),
+                "Not initialized"
+            );
             await proxy.initialize({ from: admin });
-            await expectRevert(proxy.initialize({ from: admin }), "Already initialized");
+            await expectRevert(
+                proxy.initialize({ from: admin }),
+                "Already initialized"
+            );
         });
     });
 
@@ -95,14 +118,8 @@ contract("Miscellaneous for test coverages", accounts => {
             const UtilsTester = artifacts.require("UtilsTester");
             const tester = await UtilsTester.new();
 
-            assert.equal(
-                (await tester.getInt96Max()).toString(),
-                MAX_INT96
-            );
-            assert.equal(
-                (await tester.getInt96Min()).toString(),
-                MIN_INT96
-            );
+            assert.equal((await tester.getInt96Max()).toString(), MAX_INT96);
+            assert.equal((await tester.getInt96Min()).toString(), MIN_INT96);
 
             // testInt96SafeMathMul
             assert.equal(
@@ -110,22 +127,29 @@ contract("Miscellaneous for test coverages", accounts => {
                 "0"
             );
             assert.equal(
-                (await tester.testInt96SafeMathMul(2, MAX_INT96_DIV_2)).toString(),
+                (
+                    await tester.testInt96SafeMathMul(2, MAX_INT96_DIV_2)
+                ).toString(),
                 MAX_INT96_MINUS_1
             );
             await expectRevert(
                 tester.testInt96SafeMathMul(MAX_INT96_DIV_2_PLUS_1, 2),
-                "testInt96SafeMathMul overflow");
+                "testInt96SafeMathMul overflow"
+            );
             assert.equal(
-                (await tester.testInt96SafeMathMul(2, MIN_INT96_DIV_2)).toString(),
+                (
+                    await tester.testInt96SafeMathMul(2, MIN_INT96_DIV_2)
+                ).toString(),
                 MIN_INT96
             );
             await expectRevert(
                 tester.testInt96SafeMathMul(MIN_INT96_DIV_2_MINUS_1, 2),
-                "testInt96SafeMathMul overflow");
+                "testInt96SafeMathMul overflow"
+            );
             await expectRevert(
                 tester.testInt96SafeMathMul("-1", MIN_INT96),
-                "testInt96SafeMathMul overflow");
+                "testInt96SafeMathMul overflow"
+            );
 
             // testInt96SafeMathAdd
             assert.equal(
@@ -133,12 +157,15 @@ contract("Miscellaneous for test coverages", accounts => {
                 MAX_INT96
             );
             assert.equal(
-                (await tester.testInt96SafeMathAdd(MAX_INT96_MINUS_1, "1")).toString(),
+                (
+                    await tester.testInt96SafeMathAdd(MAX_INT96_MINUS_1, "1")
+                ).toString(),
                 MAX_INT96
             );
             await expectRevert(
                 tester.testInt96SafeMathAdd(MAX_INT96, "1"),
-                "testInt96SafeMathAdd overflow");
+                "testInt96SafeMathAdd overflow"
+            );
 
             // testInt96SafeMathSub
             assert.equal(
@@ -146,17 +173,21 @@ contract("Miscellaneous for test coverages", accounts => {
                 MIN_INT96
             );
             assert.equal(
-                (await tester.testInt96SafeMathSub(MIN_INT96_PLUS_1, "1")).toString(),
+                (
+                    await tester.testInt96SafeMathSub(MIN_INT96_PLUS_1, "1")
+                ).toString(),
                 MIN_INT96
             );
             await expectRevert(
                 tester.testInt96SafeMathSub(MIN_INT96, "1"),
-                "testInt96SafeMathSub overflow");
+                "testInt96SafeMathSub overflow"
+            );
         });
 
         it("UInt128SafeMath", async () => {
             const MAX_UINT128 = "340282366920938463463374607431768211455";
-            const MAX_UINT128_MINUS_1 = "340282366920938463463374607431768211454";
+            const MAX_UINT128_MINUS_1 =
+                "340282366920938463463374607431768211454";
             const UtilsTester = artifacts.require("UtilsTester");
             const tester = await UtilsTester.new();
 
@@ -166,17 +197,22 @@ contract("Miscellaneous for test coverages", accounts => {
             );
 
             assert.equal(
-                (await tester.testUInt128SafeMathAdd(MAX_UINT128_MINUS_1, "1")).toString(),
+                (
+                    await tester.testUInt128SafeMathAdd(
+                        MAX_UINT128_MINUS_1,
+                        "1"
+                    )
+                ).toString(),
                 MAX_UINT128
             );
             await expectRevert(
                 tester.testUInt128SafeMathAdd("1", MAX_UINT128),
-                "testUInt128SafeMathAdd overflow");
+                "testUInt128SafeMathAdd overflow"
+            );
             await expectRevert(
                 tester.testInt128SafeMathSub("0", "1"),
-                "testInt96SafeMathSub overflow");
+                "testInt96SafeMathSub overflow"
+            );
         });
-
     });
-
 });

@@ -1,7 +1,6 @@
 module.exports = {
-    "globals": {
-    },
-    "rules": {
+    globals: {},
+    rules: {
         "no-console": "off"
     }
 };

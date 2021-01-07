@@ -5,17 +5,14 @@ const assert = require("assert").strict;
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
 
-const {
-    hasCode
-} = require("./utils");
-
+const { hasCode } = require("./utils");
 
 /**
  * @dev Deploy ERC1820 to the network.
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */
-module.exports = async function (callback) {
+module.exports = async function(callback) {
     global.web3 = web3;
 
     try {
@@ -23,11 +20,15 @@ module.exports = async function (callback) {
             nonce: 0,
             gasPrice: 100000000000,
             value: 0,
-            data: "0x" + require("../contracts/introspection/ERC1820Registry.json").bin,
+            data:
+                "0x" +
+                require("../contracts/introspection/ERC1820Registry.json").bin,
             gasLimit: 800000,
             v: 27,
-            r: "0x1820182018201820182018201820182018201820182018201820182018201820",
-            s: "0x1820182018201820182018201820182018201820182018201820182018201820"
+            r:
+                "0x1820182018201820182018201820182018201820182018201820182018201820",
+            s:
+                "0x1820182018201820182018201820182018201820182018201820182018201820"
         };
         const tx = new Transaction(rawTransaction);
         const res = {
@@ -36,11 +37,20 @@ module.exports = async function (callback) {
             ),
             rawTx: "0x" + tx.serialize().toString("hex"),
             contractAddr: ethUtils.toChecksumAddress(
-                "0x" + ethUtils.generateAddress(tx.getSenderAddress(), ethUtils.toBuffer(0)).toString("hex")
-            ),
+                "0x" +
+                    ethUtils
+                        .generateAddress(
+                            tx.getSenderAddress(),
+                            ethUtils.toBuffer(0)
+                        )
+                        .toString("hex")
+            )
         };
         assert.equal("0xa990077c3205cbDf861e17Fa532eeB069cE9fF96", res.sender);
-        assert.equal("0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24", res.contractAddr);
+        assert.equal(
+            "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24",
+            res.contractAddr
+        );
 
         console.log("Checking ERC1820 deployment at", res.contractAddr);
         if (!(await hasCode(res.contractAddr))) {

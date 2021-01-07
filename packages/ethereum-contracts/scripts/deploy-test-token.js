@@ -1,18 +1,16 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
-const Superfluid = require("..");
+const Superfluid = require("@superfluid-finance/js-sdk");
 const { parseColonArgs } = require("./utils");
 
 const TestResolver = artifacts.require("TestResolver");
 const TestToken = artifacts.require("TestToken");
-
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
  *
  * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}
  */
-module.exports = async function (callback, argv) {
-
+module.exports = async function(callback, argv) {
     try {
         global.web3 = web3;
 
@@ -35,7 +33,10 @@ module.exports = async function (callback, argv) {
         // deploy test token and its super token
         const name = `tokens.${tokenName}`;
         let testTokenAddress = await testResolver.get(name);
-        if (reset || testTokenAddress === "0x0000000000000000000000000000000000000000") {
+        if (
+            reset ||
+            testTokenAddress === "0x0000000000000000000000000000000000000000"
+        ) {
             const testToken = await web3tx(TestToken.new, "TestToken.new")(
                 tokenName + " Fake Token",
                 tokenName,

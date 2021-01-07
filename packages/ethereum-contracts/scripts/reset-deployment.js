@@ -1,18 +1,15 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const TestResolver = artifacts.require("TestResolver");
-const SuperfluidSDK = require("..");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
-const {
-    parseColonArgs,
-    rl
-} = require("./utils");
+const { parseColonArgs, rl } = require("./utils");
 
 /**
  * @dev Reset the superfluid framework deployment.
  *
  * Usage: npx truffle exec scripts/reset-deployment.js : {VERSION}
  */
-module.exports = async function (callback, argv) {
+module.exports = async function(callback, argv) {
     try {
         global.web3 = web3;
 
@@ -22,7 +19,7 @@ module.exports = async function (callback, argv) {
         }
         const version = args.pop();
 
-        if (version != await rl("Please confirm the version: ")) {
+        if (version != (await rl("Please confirm the version: "))) {
             console.error("Mismatched versions");
             callback();
         }
@@ -42,10 +39,12 @@ module.exports = async function (callback, argv) {
         console.log("Resolver address", testResolver.address);
 
         await web3tx(testResolver.set, "Clear Superfluid deployment")(
-            `Superfluid.${version}`, "0x" + "0".repeat(40)
+            `Superfluid.${version}`,
+            "0x" + "0".repeat(40)
         );
         await web3tx(testResolver.set, "Clear TestGovernance deployment")(
-            `TestGovernance.${version}`, "0x" + "0".repeat(40)
+            `TestGovernance.${version}`,
+            "0x" + "0".repeat(40)
         );
 
         callback();
@@ -53,4 +52,3 @@ module.exports = async function (callback, argv) {
         callback(err);
     }
 };
-

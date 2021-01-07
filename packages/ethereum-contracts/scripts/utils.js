@@ -7,8 +7,8 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 // Prepare readline.question for promisification
-rl.question[promisify.custom] = (question) => {
-    return new Promise((resolve) => {
+rl.question[promisify.custom] = question => {
+    return new Promise(resolve => {
         rl.question(question, resolve);
     });
 };
@@ -60,5 +60,5 @@ module.exports = {
     hasCode,
     codeChanged,
     isProxiable,
-    rl: promisify(rl.question),
+    rl: promisify(rl.question)
 };

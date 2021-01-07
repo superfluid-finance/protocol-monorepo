@@ -4,15 +4,16 @@
  * Usage: npx truffle exec scripts/deploy-all.js
  */
 
-
-module.exports = async function (callback) {
+module.exports = async function(callback) {
     // otherwise other scripts do not see the artifacts exported from the truffle framework
     global.artifacts = artifacts;
     const deployFramework = require("./deploy-framework");
     const deployTestToken = require("./deploy-test-token");
     const deploySuperToken = require("./deploy-super-token");
 
-    const errorHandler = err => { if (err) throw err; };
+    const errorHandler = err => {
+        if (err) throw err;
+    };
 
     try {
         global.web3 = web3;
@@ -33,8 +34,12 @@ module.exports = async function (callback) {
         }
 
         if (process.env.TEST_RESOLVER_ADDRESS) {
-            console.log("=============== TEST ENVIRONMENT RESOLVER ======================");
-            console.log(`export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`);
+            console.log(
+                "=============== TEST ENVIRONMENT RESOLVER ======================"
+            );
+            console.log(
+                `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
+            );
         }
 
         callback();

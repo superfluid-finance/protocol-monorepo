@@ -1,14 +1,13 @@
-const SuperfluidSDK = require("..");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const TestResolver = artifacts.require("TestResolver");
 const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
-
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
-module.exports = async function (callback, argv) {
+module.exports = async function(callback, argv) {
     try {
         global.web3 = web3;
 

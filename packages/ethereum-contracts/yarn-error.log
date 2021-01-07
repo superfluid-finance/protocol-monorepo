@@ -1,5 +1,5 @@
 Arguments: 
-  /home/dev/.nvm/versions/node/v12.18.0/bin/node /usr/share/yarn/bin/yarn.js pre-commit
+  /home/dev/.nvm/versions/node/v12.18.0/bin/node /usr/share/yarn/bin/yarn.js add @superfluid-finance/js-sdk0.2.0 -D
 
 PATH: 
   /home/dev/.nvm/versions/node/v12.18.0/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
@@ -14,12 +14,17 @@ Platform:
   linux x64
 
 Trace: 
-  SyntaxError: /home/dev/repos/ethereum-contracts/packages/ethereum-contracts/package.json: Unexpected token ] in JSON at position 1752
-      at JSON.parse (<anonymous>)
-      at /usr/share/yarn/lib/cli.js:1625:59
-      at Generator.next (<anonymous>)
-      at step (/usr/share/yarn/lib/cli.js:310:30)
-      at /usr/share/yarn/lib/cli.js:321:13
+  Error: https://registry.yarnpkg.com/@superfluid-finance%2fjs-sdk0.2.0: Not found
+      at Request.params.callback [as _callback] (/usr/share/yarn/lib/cli.js:66988:18)
+      at Request.self.callback (/usr/share/yarn/lib/cli.js:140749:22)
+      at Request.emit (events.js:315:20)
+      at Request.<anonymous> (/usr/share/yarn/lib/cli.js:141721:10)
+      at Request.emit (events.js:315:20)
+      at IncomingMessage.<anonymous> (/usr/share/yarn/lib/cli.js:141643:12)
+      at Object.onceWrapper (events.js:421:28)
+      at IncomingMessage.emit (events.js:327:22)
+      at endReadableNT (_stream_readable.js:1221:12)
+      at processTicksAndRejections (internal/process/task_queues.js:84:21)
 
 npm manifest: 
   {
@@ -42,7 +47,7 @@ npm manifest:
       "scripts": {
           "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
           "build": "run-s build:*",
-          "build:contracts": "rm -f build/contracts/*;truffle compile",
+          "build:contracts": "rm -f build/contracts/*;truffle compile /src",
           "build:abi": "scripts/build-abi-js.sh",
           "pretest": "run-s lint build",
           "test": "run-s test:*",
@@ -52,12 +57,12 @@ npm manifest:
           "test-coverage": "npm run build && truffle run coverage --file test/contracts.test.js",
           "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
           "lint": "solhint -w 0 src/contracts/*.sol src/contracts/*/*.sol && echo '✔  Your .sol files look good.'",
-          "focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
+          "focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
           "pre-commit": "lint-staged"
       },
       "lint-staged": {
           "**/*.+(js|jsx|ts|tsx|json|sol)": [
-              "yarn lint",
+              "yarn lint"
           ]
       },
       "dependencies": {

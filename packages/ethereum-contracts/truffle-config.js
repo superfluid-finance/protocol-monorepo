@@ -26,7 +26,7 @@ require("dotenv").config();
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 module.exports = {
-
+    contracts_directory: './src/contracts',
     plugins: [
         //"truffle-security",
         "solidity-coverage",

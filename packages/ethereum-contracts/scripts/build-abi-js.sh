@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 
 which jq &>/dev/null || { echo "Install jq utility!" && exit 1; }
 
-CONTRACTS=( $(jq -r .[] ./js-sdk/contracts.json) )
+CONTRACTS=( $(jq -r .[] ../js-sdk/src/contracts.json) )
 
 {
     echo "if (typeof module === \"undefined\") module = {};"

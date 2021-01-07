@@ -18,7 +18,7 @@
     "scripts": {
         "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
         "build": "run-s build:*",
-        "build:contracts": "rm -f build/contracts/*;truffle compile",
+        "build:contracts": "rm -f build/contracts/*;truffle compile /src",
         "build:abi": "scripts/build-abi-js.sh",
         "pretest": "run-s lint build",
         "test": "run-s test:*",

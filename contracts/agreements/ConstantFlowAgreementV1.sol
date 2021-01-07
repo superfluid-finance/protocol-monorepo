@@ -47,6 +47,7 @@ contract ConstantFlowAgreementV1 is
         address sender;
         address receiver;
         int96 flowRate;
+        bytes userData;
     }
 
     /**************************************************************************
@@ -124,6 +125,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
         flowParams.flowRate = flowRate;
+        flowParams.userData = currentContext.userData;
         require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
         require(flowParams.flowRate > 0, "CFA: invalid flow rate");
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
@@ -162,6 +164,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.sender = currentContext.msgSender;
         flowParams.receiver = receiver;
         flowParams.flowRate = flowRate;
+        flowParams.userData = currentContext.userData;
         require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
         require(flowParams.flowRate > 0, "CFA: invalid flow rate");
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
@@ -200,6 +203,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.sender = sender;
         flowParams.receiver = receiver;
         flowParams.flowRate = 0;
+        flowParams.userData = currentContext.userData;
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
         require(exist, "CFA: flow does not exist");
 
@@ -692,7 +696,8 @@ contract ConstantFlowAgreementV1 is
             flowParams.receiver,
             flowParams.flowRate,
             totalSenderFlowRate,
-            totalReceiverFlowRate);
+            totalReceiverFlowRate,
+            flowParams.userData);
     }
 
     function _requireAvailableBalance(

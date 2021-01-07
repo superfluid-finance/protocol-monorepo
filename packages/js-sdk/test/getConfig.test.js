@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const SuperfluidSDK = require("../..");
+const SuperfluidSDK = require("../../src");
 
 contract("SuperfluidSDK JS SDK", () => {
     it("getConfig", async () => {

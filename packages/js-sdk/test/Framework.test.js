@@ -1,8 +1,8 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
-const deployTestToken = require("../../scripts/deploy-test-token");
-const deploySuperToken = require("../../scripts/deploy-super-token");
-const SuperfluidSDK = require("../..");
+const deployTestToken = require("@superfluid-finance/ethereum-contracts/deploy-test-token");
+const deploySuperToken = require("@superfluid-finance/ethereum-contracts/deploy-super-token");
+const SuperfluidSDK = require("../../src");
 
 contract("Framework class", accounts => {
     const t = new TestEnvironment(accounts.slice(0, 1));

@@ -1,6 +1,6 @@
 const _ = require("lodash");
-const deployFramework = require("../scripts/deploy-framework");
-const SuperfluidSDK = require("..");
+const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
+const SuperfluidSDK = require("../src");
 
 const IERC1820Registry = artifacts.require("IERC1820Registry");
 const SuperfluidMock = artifacts.require("SuperfluidMock");
@@ -213,7 +213,9 @@ module.exports = class TestEnvironment {
         await web3tx(
             this.contracts.superToken.upgrade,
             `Upgrade ${amount.toString()} for account ${alias}`
-        )(amount, { from: account });
+        )(amount, {
+            from: account
+        });
         this.updateAccountBalanceSnapshot(
             this.contracts.superToken.address,
             account,

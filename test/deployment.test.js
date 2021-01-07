@@ -155,12 +155,56 @@ contract("deployment test (outside truffle environment)", () => {
             "cfa deployment not required");
     });
 
-    it("Deploy/upgrade/reset Super Token", async () => {
+    it("Test Token deployment", async () => {
         const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         await deployFramework(errorHandler);
-        await deployTestToken(errorHandler, [":", "TEST"]);
-        await deploySuperToken(errorHandler, [":", "TEST"]);
+
+        // first deployment
+        assert.equal(await testResolver.get("tokens.TEST7262"), ZERO_ADDRESS);
+        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        const address1 = await testResolver.get("tokens.TEST7262");
+        assert.notEqual(address1, ZERO_ADDRESS);
+
+        // second deployment
+        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        const address2 = await testResolver.get("tokens.TEST7262");
+        assert.equal(address2, address1);
+
+        // new deployment after framework reset
+        process.env.RESET = 1;
+        await deployFramework(errorHandler);
+        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        const address3 = await testResolver.get("tokens.TEST7262");
+        assert.equal(address3, address2);
+    });
+
+    it("Super Token deployment", async () => {
+        const testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+        delete process.env.RESET;
+        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+        await deployFramework(errorHandler);
+
+        // deploy test token first
+        await deployTestToken(errorHandler, [":", "TEST7262"]);
+
+        // first deployment
+        assert.equal(await testResolver.get("supertokens.test.TEST7262x"), ZERO_ADDRESS);
+        await deploySuperToken(errorHandler, [":", "TEST7262"]);
+        const address1 = await testResolver.get("supertokens.test.TEST7262x");
+        assert.notEqual(address1, ZERO_ADDRESS);
+
+        // second deployment
+        await deploySuperToken(errorHandler, [":", "TEST7262"]);
+        const address2 = await testResolver.get("supertokens.test.TEST7262x");
+        assert.equal(address1, address2);
+
+        // new deployment after framework reset
+        process.env.RESET = 1;
+        await deployFramework(errorHandler);
+        await deploySuperToken(errorHandler, [":", "TEST7262"]);
+        const address3 = await testResolver.get("supertokens.test.TEST7262x");
+        assert.notEqual(address3, address2);
     });
 });

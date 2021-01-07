@@ -1,14 +1,10 @@
-const {
-    expectRevert
-} = require("@openzeppelin/test-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("../TestEnvironment");
 const deployTestToken = require("../../scripts/deploy-test-token");
 const deploySuperToken = require("../../scripts/deploy-super-token");
 const SuperfluidSDK = require("../..");
 
-
 contract("Framework class", accounts => {
-
     const t = new TestEnvironment(accounts.slice(0, 1));
     const { admin } = t.aliases;
 
@@ -30,7 +26,7 @@ contract("Framework class", accounts => {
                 ISuperToken,
                 ISuperTokenFactory,
                 IConstantFlowAgreementV1,
-                IInstantDistributionAgreementV1,
+                IInstantDistributionAgreementV1
             } = sf.contracts;
 
             assert.isDefined(IERC20.abi);
@@ -127,10 +123,7 @@ contract("Framework class", accounts => {
             const superMisoToken = await sf.createERC20Wrapper(misoToken, {
                 from: admin
             });
-            assert.equal(
-                await superMisoToken.getUnderlyingToken.call(),
-                misoAddress);
+            assert.equal(await superMisoToken.getUnderlyingToken.call(), misoAddress);
         });
     });
-
 });

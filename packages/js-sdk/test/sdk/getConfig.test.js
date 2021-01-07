@@ -1,9 +1,7 @@
 const { assert } = require("chai");
 const SuperfluidSDK = require("../..");
 
-
 contract("SuperfluidSDK JS SDK", () => {
-
     it("getConfig", async () => {
         delete process.env.TEST_RESOLVER_ADDRESS;
         // goerli
@@ -18,5 +16,4 @@ contract("SuperfluidSDK JS SDK", () => {
         assert.equal(testConfig.resolverAddress, "0x42");
         delete process.env.TEST_RESOLVER_ADDRESS;
     });
-
 });

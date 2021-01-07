@@ -4,12 +4,10 @@ const getConfig = require("./getConfig");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-
 /**
  * @dev Superfluid Framework class
  */
 module.exports = class Framework {
-
     /**
      * @dev Create new Superfluid framework object
      * @param {Web3.Provider} web3Provider web3 provider object
@@ -39,20 +37,24 @@ module.exports = class Framework {
         // load contracts
         this.contracts = {};
         if (!isTruffle) {
-            console.debug("Using Superfluid SDK outside of the truffle environment");
+            console.debug(
+                "Using Superfluid SDK outside of the truffle environment"
+            );
             const SuperfluidABI = require("../build/abi");
             if (!web3Provider) throw new Error("web3Provider is required");
             // load contracts from ABI
             contractNames.forEach(i => {
-                const c = this.contracts[i] = TruffleContract({
+                const c = (this.contracts[i] = TruffleContract({
                     contractName: i,
                     abi: SuperfluidABI[i]
-                });
+                }));
                 c.setProvider(web3Provider);
             });
             this.web3 = new Web3(web3Provider);
         } else {
-            console.debug("Using Superfluid SDK within the truffle environment");
+            console.debug(
+                "Using Superfluid SDK within the truffle environment"
+            );
             // load contracts from truffle artifacts
             contractNames.forEach(i => {
                 this.contracts[i] = global.artifacts.require(i);
@@ -64,13 +66,12 @@ module.exports = class Framework {
         this._tokens = tokens;
     }
 
-
     /**
      * @dev Initialize the framework object
      * @return {Promise}
      */
     async initialize() {
-        const chainId = this.chainId || await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+        const chainId = this.chainId || (await this.web3.eth.net.getId()); // TODO use eth.getChainId;
         console.log("chainId", chainId);
 
         const config = getConfig(chainId);
@@ -81,42 +82,68 @@ module.exports = class Framework {
 
         // load superfluid host contract
         console.debug("Resolving contracts with version", this.version);
-        const superfluidAddress = await this.resolver.get.call(`Superfluid.${this.version}`);
+        const superfluidAddress = await this.resolver.get.call(
+            `Superfluid.${this.version}`
+        );
         this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
-        console.debug(`Superfluid host contract: TruffleContract .host @${superfluidAddress}`);
+        console.debug(
+            `Superfluid host contract: TruffleContract .host @${superfluidAddress}`
+        );
 
         // load agreements
-        const cfav1Type = this.web3.utils.sha3("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
-        const idav1Type = this.web3.utils.sha3("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
+        const cfav1Type = this.web3.utils.sha3(
+            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+        );
+        const idav1Type = this.web3.utils.sha3(
+            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+        );
         const cfaAddress = await this.host.getAgreementClass.call(cfav1Type);
         const idaAddress = await this.host.getAgreementClass.call(idav1Type);
         this.agreements = {
-            cfa : await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
-            ida : await this.contracts.IInstantDistributionAgreementV1.at(idaAddress),
+            cfa: await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
+            ida: await this.contracts.IInstantDistributionAgreementV1.at(
+                idaAddress
+            )
         };
 
         // load agreement helpers
         this.cfa = new (require("./ConstantFlowAgreementV1Helper"))(this);
-        this.ida = new (require("./InstantDistributionAgreementV1Helper"))(this);
-        console.debug(`ConstantFlowAgreementV1: TruffleContract .agreements.cfa @${cfaAddress} | Helper .cfa`);
-        console.debug(`InstantDistributionAgreementV1: TruffleContract .agreements.ida @${idaAddress} | Helper .ida`);
+        this.ida = new (require("./InstantDistributionAgreementV1Helper"))(
+            this
+        );
+        console.debug(
+            `ConstantFlowAgreementV1: TruffleContract .agreements.cfa @${cfaAddress} | Helper .cfa`
+        );
+        console.debug(
+            `InstantDistributionAgreementV1: TruffleContract .agreements.ida @${idaAddress} | Helper .ida`
+        );
 
         // load tokens
         this.tokens = {};
         if (this._tokens) {
             for (let i = 0; i < this._tokens.length; ++i) {
                 const tokenSymbol = this._tokens[i];
-                const tokenAddress = await this.resolver.get(`tokens.${tokenSymbol}`);
+                const tokenAddress = await this.resolver.get(
+                    `tokens.${tokenSymbol}`
+                );
                 if (tokenAddress === ZERO_ADDRESS) {
                     throw new Error(`Token ${tokenSymbol} is not registered`);
                 }
-                const superTokenAddress = await this.resolver.get(`supertokens.${this.version}.${tokenSymbol}x`);
+                const superTokenAddress = await this.resolver.get(
+                    `supertokens.${this.version}.${tokenSymbol}x`
+                );
                 if (superTokenAddress === ZERO_ADDRESS) {
-                    throw new Error(`Token ${tokenSymbol} doesn't have a super token wrapper`);
+                    throw new Error(
+                        `Token ${tokenSymbol} doesn't have a super token wrapper`
+                    );
                 }
-                const superToken = await this.contracts.ISuperToken.at(superTokenAddress);
+                const superToken = await this.contracts.ISuperToken.at(
+                    superTokenAddress
+                );
                 const superTokenSymbol = await superToken.symbol();
-                this.tokens[tokenSymbol] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
+                this.tokens[
+                    tokenSymbol
+                ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
                 this.tokens[superTokenSymbol] = superToken;
                 console.debug(
                     `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
@@ -137,29 +164,29 @@ module.exports = class Framework {
      * @param {address} upgradability (optional) send transaction from
      * @return {Promise<Transaction>} web3 transaction object
      */
-    async createERC20Wrapper(tokenInfo, { from, upgradability } = {} ) {
+    async createERC20Wrapper(tokenInfo, { from, upgradability } = {}) {
         const tokenName = await tokenInfo.name.call();
         const tokenSymbol = await tokenInfo.symbol.call();
         const superTokenSymbol = `${tokenSymbol}x`;
         const factory = await this.contracts.ISuperTokenFactory.at(
             await this.host.getSuperTokenFactory()
         );
-        upgradability = typeof(upgradability) === "undefined" ? 1 : upgradability;
+        upgradability =
+            typeof upgradability === "undefined" ? 1 : upgradability;
         const tx = await factory.createERC20Wrapper(
             tokenInfo.address,
             upgradability,
             `Super ${tokenName}`,
             superTokenSymbol,
-            ...(from && [{ from }] || []) // don't mind this silly js stuff, thanks to web3.js
+            ...((from && [{ from }]) || []) // don't mind this silly js stuff, thanks to web3.js
         );
         const wrapperAddress = tx.logs[0].args.token;
-        const u = [
-            "Non upgradable",
-            "Semi upgrdable",
-            "Full upgradable"
-        ][upgradability];
-        console.log(`${u} super token ${superTokenSymbol} created at ${wrapperAddress}`);
+        const u = ["Non upgradable", "Semi upgrdable", "Full upgradable"][
+            upgradability
+        ];
+        console.log(
+            `${u} super token ${superTokenSymbol} created at ${wrapperAddress}`
+        );
         return this.contracts.ISuperToken.at(wrapperAddress);
     }
-
 };

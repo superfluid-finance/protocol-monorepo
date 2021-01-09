@@ -30,11 +30,19 @@ protocol.
 For technical document, references and tutorials, etc, refer to the
 [docs site](http://docs.superfluid.finance/).
 
-## Usage
+## Packages
 
-To build with Superfluid, you can use the Javascript SDK package here `@superfluid-finance/js-sdk`.
+#### `@superfluid-finance/js-sdk`
 
-If you're interest in peeking under the hood, then check out the contracts package `@superfluid-finance/ethereum-contracts`.
+To build with Superfluid, you can use the Javascript SDK package.
+
+#### `@superfluid-finance/ethereum-contracts`
+
+If you're interest in peeking under the hood, then check out the contracts package.
+
+## Examples
+
+See `/examples` for some Superfluid app examples.
 
 ## Contributing
 

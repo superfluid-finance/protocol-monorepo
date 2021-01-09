@@ -15,7 +15,10 @@ module.exports = class User {
                 account: this.address
             });
             const netFlow = (
-                await this.sf.cfa.getNetFlow({ superToken: this.token, account: this.address })
+                await this.sf.cfa.getNetFlow({
+                    superToken: this.token,
+                    account: this.address
+                })
             ).toString();
             return { cfa: { flows, netFlow } };
         } catch (e) {
@@ -25,7 +28,8 @@ module.exports = class User {
 
     async flow({ recipient, flowRate, ...options }) {
         try {
-            if (!recipient || !flowRate) throw "You must provide a recipient and flowRate";
+            if (!recipient || !flowRate)
+                throw "You must provide a recipient and flowRate";
             const recipientAddress = recipient.address || recipient;
             if (flowRate === "0")
                 return await this.sf.cfa.deleteFlow({

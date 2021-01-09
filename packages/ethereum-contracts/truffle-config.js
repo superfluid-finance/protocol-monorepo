@@ -26,7 +26,6 @@ require("dotenv").config();
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 module.exports = {
-
     plugins: [
         //"truffle-security",
         "solidity-coverage",
@@ -44,20 +43,21 @@ module.exports = {
      */
 
     networks: {
-    // Useful for testing. The `development` name is special - truffle uses it by default
-    // if it's defined here and no other network is specified at the command line.
-    // You should run a client (like ganache-cli, geth or parity) in a separate terminal
-    // tab if you use this network and you must also set the `host`, `port` and `network_id`
-    // options below to some value.
+        // Useful for testing. The `development` name is special - truffle uses it by default
+        // if it's defined here and no other network is specified at the command line.
+        // You should run a client (like ganache-cli, geth or parity) in a separate terminal
+        // tab if you use this network and you must also set the `host`, `port` and `network_id`
+        // options below to some value.
 
         rinkeby: {
-            provider: () => new HDWalletProvider(
-                process.env.RINKEBY_MNEMONIC,
-                process.env.RINKEBY_PROVIDER_URL,
-                0, //address_index
-                10, // num_addresses
-                true // shareNonce
-            ),
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.RINKEBY_MNEMONIC,
+                    process.env.RINKEBY_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
             network_id: 4, // Rinkeby's id
             gas: 8e6,
             gasPrice: 10e9, // 10 GWEI
@@ -67,13 +67,14 @@ module.exports = {
         },
 
         ropsten: {
-            provider: () => new HDWalletProvider(
-                process.env.ROPSTEN_MNEMONIC,
-                process.env.ROPSTEN_PROVIDER_URL,
-                0, //address_index
-                10, // num_addresses
-                true // shareNonce
-            ),
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.ROPSTEN_MNEMONIC,
+                    process.env.ROPSTEN_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
             network_id: 3, // Ropsten's id
             gas: 8e6,
             gasPrice: 10e9, // 10 GWEI
@@ -83,13 +84,14 @@ module.exports = {
         },
 
         goerli: {
-            provider: () => new HDWalletProvider(
-                process.env.GOERLI_MNEMONIC,
-                process.env.GOERLI_PROVIDER_URL,
-                0, //address_index
-                10, // num_addresses
-                true // shareNonce
-            ),
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.GOERLI_MNEMONIC,
+                    process.env.GOERLI_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
             network_id: 5, // Goerli's id
             gas: 8e6,
             gasPrice: +process.env.GOERLI_GAS_PRICE || 100e9, // 100 GWEI, goerli is busy!
@@ -99,14 +101,15 @@ module.exports = {
         },
 
         mumbai: {
-            provider: () => new HDWalletProvider(
-                process.env.MUMBAI_MNEMONIC,
-                process.env.MUMBAI_PROVIDER_URL,
-                0, //address_index
-                10, // num_addresses
-                true // shareNonce
-            ),
-            network_id:  80001, // matic mumbai id
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.MUMBAI_MNEMONIC,
+                    process.env.MUMBAI_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
+            network_id: 80001, // matic mumbai id
             gas: 8e6,
             gasPrice: +process.env.MUMBAI_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
@@ -115,14 +118,15 @@ module.exports = {
         },
 
         artis_tau1: {
-            provider: () => new HDWalletProvider(
-                process.env.ARTIS_MNEMONIC,
-                process.env.ARTIS_PROVIDER_URL,
-                0, //address_index
-                10, // num_addresses
-                true // shareNonce
-            ),
-            network_id: 0x03C401, // artis tau1 network
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.ARTIS_MNEMONIC,
+                    process.env.ARTIS_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
+            network_id: 0x03c401, // artis tau1 network
             gas: 8e6,
             gasPrice: +process.env.ARTIS_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
@@ -131,13 +135,14 @@ module.exports = {
         },
 
         mainnet: {
-            provider: () => new HDWalletProvider(
-                process.env.MAINNET_MNEMONIC,
-                process.env.MAINNET_PROVIDER_URL,
-                0, //address_index
-                10, // num_addresses
-                true // shareNonce
-            ),
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.MAINNET_MNEMONIC,
+                    process.env.MAINNET_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
             network_id: 1, // mainnet's id
             gas: 8e6,
             gasPrice: +process.env.MAINNET_GAS_PRICE || 1e9, // default 1 gwei
@@ -149,9 +154,9 @@ module.exports = {
         coverage: {
             host: "localhost",
             network_id: "*",
-            port: 8555,         // <-- If you change this, also set the port option in .solcover.js.
+            port: 8555, // <-- If you change this, also set the port option in .solcover.js.
             gas: 0xfffffffffff, // <-- Use this high gas value
-            gasPrice: 0x01      // <-- Use this low gas price
+            gasPrice: 0x01 // <-- Use this low gas price
         },
 
         ganache: {
@@ -202,19 +207,19 @@ module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.7.6",   // Fetch exact version from solc-bin (default: truffle's version)
-            settings: {          // See the solidity docs for advice about optimization and evmVersion
+            version: "0.7.6", // Fetch exact version from solc-bin (default: truffle's version)
+            settings: {
+                // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
                     enabled: true,
                     runs: 200
-                },
+                }
                 // evmVersion: "petersburg" use default
             }
-        },
+        }
     },
 
     api_keys: {
         etherscan: process.env.ETHERSCAN_API_KEY
     }
-
 };

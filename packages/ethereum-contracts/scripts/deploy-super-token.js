@@ -51,8 +51,10 @@ module.exports = async function(callback, argv) {
         } else {
             console.log("The superToken already registered.");
             const superToken = await ISuperToken.at(superTokenAddress);
-            if (await superToken.getHost() !== sf.host.address) {
-                console.log("But the superToken uses a different host, redeploying is required.");
+            if ((await superToken.getHost()) !== sf.host.address) {
+                console.log(
+                    "But the superToken uses a different host, redeploying is required."
+                );
                 doDeploy = true;
             }
         }

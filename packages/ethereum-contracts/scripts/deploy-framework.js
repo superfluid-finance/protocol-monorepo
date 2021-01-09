@@ -292,10 +292,15 @@ module.exports = async function(
             }
         );
 
-        if (superfluidNewLogicAddress !== ZERO_ADDRESS ||
+        if (
+            superfluidNewLogicAddress !== ZERO_ADDRESS ||
             agreementsToUpdate.length > 0 ||
-            superTokenFactoryNewLogicAddress !== ZERO_ADDRESS) {
-            await web3tx(governance.updateContracts, "superfluid.updateContracts")(
+            superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
+        ) {
+            await web3tx(
+                governance.updateContracts,
+                "superfluid.updateContracts"
+            )(
                 superfluid.address,
                 superfluidNewLogicAddress,
                 agreementsToUpdate,

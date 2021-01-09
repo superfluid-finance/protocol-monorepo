@@ -8,7 +8,12 @@ const expect = chai.expect;
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
     const t = new TestEnvironment(accounts.slice(0, 4));
-    const { admin: adminAddress, alice: aliceAddress, bob: bobAddress, carol: carolAddress } = t.aliases;
+    const {
+        admin: adminAddress,
+        alice: aliceAddress,
+        bob: bobAddress,
+        carol: carolAddress
+    } = t.aliases;
 
     let sf;
     let superToken;
@@ -31,7 +36,10 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
 
     describe("initialize", () => {
         it("user", async () => {
-            const admin = sf.user({ address: adminAddress, token: superToken.address });
+            const admin = sf.user({
+                address: adminAddress,
+                token: superToken.address
+            });
             assert.equal(admin.address, adminAddress);
             assert.equal(admin.token, superToken.address);
             assert.equal(admin.sf, sf);

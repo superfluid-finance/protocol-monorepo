@@ -1,6 +1,6 @@
 const { toBN } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
-const TestEnvironment = require("./TestEnvironment");
+const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
     const t = new TestEnvironment(accounts.slice(0, 4));

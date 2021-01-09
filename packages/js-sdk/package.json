@@ -10,7 +10,8 @@
         "src/**/*.js"
     ],
     "scripts": {
-        "test": "truffle test --network ganache",
+        "build": "cp ../ethereum-contracts/build/abi.js ./src",
+        "test": "yarn build && truffle test --network ganache",
         "lint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "lint-staged"
@@ -24,12 +25,12 @@
         "@openzeppelin/contracts": "3.3.0-solc-0.7",
         "@truffle/contract": "4.3.4",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.0.7",
-        "@superfluid-finance/ethereum-contracts": "0.2.0-latest"
+        "ethereumjs-util": "7.0.7"
     },
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.3.5",
         "@openzeppelin/test-helpers": "^0.5.10",
+        "@superfluid-finance/ethereum-contracts": "0.2.0-latest",
         "@truffle/hdwallet-provider": "^1.2.1",
         "dotenv": "^8.2.0",
         "ganache-time-traveler": "^1.0.15",

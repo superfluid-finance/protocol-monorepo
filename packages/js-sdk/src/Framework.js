@@ -4,6 +4,7 @@ const getConfig = require("./getConfig");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
 const User = require("./User");
+const SuperfluidABI = require("../src/abi");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -43,7 +44,6 @@ module.exports = class Framework {
             console.debug(
                 "Using Superfluid SDK outside of the truffle environment"
             );
-            const SuperfluidABI = require("../build/abi");
             if (!web3Provider) throw new Error("web3Provider is required");
             // load contracts from ABI
             contractNames.forEach(i => {

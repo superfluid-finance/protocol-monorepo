@@ -1,5 +1,5 @@
 const { toBN } = require("@decentral.ee/web3-helpers");
-const TestEnvironment = require("../TestEnvironment");
+const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");

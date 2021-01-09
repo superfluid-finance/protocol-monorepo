@@ -23,7 +23,6 @@
 
 ### 📖 [Docs](https://docs.superfluid.finance)
 
-
 # Usage
 
 Here is a quick look at using the SDK.
@@ -175,11 +174,13 @@ const tx = await alice.flow({
 });
 ```
 
-# Development
+# Contributing
 
 Contributions and suggestions welcome!
 
-Since testing takes a while, we recommend specifying a test-suite. For example:
+## Testing
+
+Since testing can take a while, we recommend specifying a test-suite. For example:
 
 ```bash
 # Only run tests in User.test.js

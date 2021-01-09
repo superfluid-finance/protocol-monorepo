@@ -148,7 +148,7 @@ contract InstantDistributionAgreementV1 is
 
         token.createAgreement(iId, _encodeIndexData(IndexData(0, 0, 0)));
 
-        emit IndexCreated(token, publisher, indexId);
+        emit IndexCreated(token, publisher, indexId, context.userData);
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -194,7 +194,7 @@ contract InstantDistributionAgreementV1 is
         require(exist, "IDA: E_NO_INDEX");
         require(indexValue >= idata.indexValue, "IDA: E_INDEX_GROW");
 
-        _updateIndex(token, publisher, indexId, iId, idata, indexValue);
+        _updateIndex(token, publisher, indexId, iId, idata, indexValue, context.userData);
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -219,7 +219,7 @@ contract InstantDistributionAgreementV1 is
             amount /
             uint256(idata.totalUnitsApproved + idata.totalUnitsPending)
         ).toUint128();
-        _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta);
+        _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -231,7 +231,8 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         bytes32 iId,
         IndexData memory idata,
-        uint128 indexValue
+        uint128 indexValue,
+        bytes memory userData
     )
         private
     {
@@ -246,7 +247,14 @@ contract InstantDistributionAgreementV1 is
         idata.indexValue = indexValue;
         token.updateAgreementData(iId, _encodeIndexData(idata));
 
-        emit IndexUpdated(token, publisher, indexId, indexValue, idata.totalUnitsPending, idata.totalUnitsApproved);
+        emit IndexUpdated(
+            token,
+            publisher,
+            indexId,
+            indexValue,
+            idata.totalUnitsPending,
+            idata.totalUnitsApproved,
+            userData);
 
         // check account solvency
         require(!token.isAccountCriticalNow(publisher), "IDA: E_LOW_BALANCE");
@@ -355,8 +363,8 @@ contract InstantDistributionAgreementV1 is
         }
 
         // can index up to three words, hence splitting into two events from publisher or subscriber's view.
-        emit IndexSubscribed(token, publisher, indexId, subscriber);
-        emit SubscriptionApproved(token, subscriber, publisher, indexId);
+        emit IndexSubscribed(token, publisher, indexId, subscriber, context.userData);
+        emit SubscriptionApproved(token, subscriber, publisher, indexId, context.userData);
     }
 
     /// @dev IInstantDistributionAgreementV1.updateSubscription implementation
@@ -472,8 +480,8 @@ contract InstantDistributionAgreementV1 is
             AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         }
 
-        emit IndexUnitsUpdated(token, publisher, indexId, subscriber, units);
-        emit SubscriptionUnitsUpdated(token, subscriber, publisher, indexId, units);
+        emit IndexUnitsUpdated(token, publisher, indexId, subscriber, units, context.userData);
+        emit SubscriptionUnitsUpdated(token, subscriber, publisher, indexId, units, context.userData);
     }
 
     /// @dev IInstantDistributionAgreementV1.getSubscription implementation
@@ -630,8 +638,8 @@ contract InstantDistributionAgreementV1 is
         vars.cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
         AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
 
-        emit IndexUnsubscribed(token, publisher, indexId, subscriber);
-        emit SubscriptionDeleted(token, subscriber, publisher, indexId);
+        emit IndexUnsubscribed(token, publisher, indexId, subscriber, context.userData);
+        emit SubscriptionDeleted(token, subscriber, publisher, indexId, context.userData);
     }
 
     function claim(

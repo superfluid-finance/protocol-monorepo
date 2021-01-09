@@ -292,12 +292,16 @@ module.exports = async function(
             }
         );
 
-        await web3tx(governance.updateContracts, "superfluid.updateContracts")(
-            superfluid.address,
-            superfluidNewLogicAddress,
-            agreementsToUpdate,
-            superTokenFactoryNewLogicAddress
-        );
+        if (superfluidNewLogicAddress !== ZERO_ADDRESS ||
+            agreementsToUpdate.length > 0 ||
+            superTokenFactoryNewLogicAddress !== ZERO_ADDRESS) {
+            await web3tx(governance.updateContracts, "superfluid.updateContracts")(
+                superfluid.address,
+                superfluidNewLogicAddress,
+                agreementsToUpdate,
+                superTokenFactoryNewLogicAddress
+            );
+        }
 
         callback();
     } catch (err) {

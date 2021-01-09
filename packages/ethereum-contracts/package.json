@@ -5,9 +5,9 @@
     "repository": "github:superfluid-finance/ethereum-contracts",
     "license": "MIT",
     "files": [
-        "/contracts/**/*.sol",
-        "/contracts/**/*.json",
-        "!/contracts/mocks/*",
+        "/src/contracts/**/*.sol",
+        "/src/contracts/**/*.json",
+        "!/src/contracts/mocks/*",
         "/build/abi.js",
         "/build/contracts/*.json",
         "!/build/contracts/*Mock.json",

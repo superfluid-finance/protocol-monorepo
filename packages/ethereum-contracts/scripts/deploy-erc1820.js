@@ -1,5 +1,4 @@
 // Adapted from https://github.com/0xjac/ERC1820/blob/master/js/deployment.js
-
 const assert = require("assert").strict;
 
 const Transaction = require("ethereumjs-tx").Transaction;
@@ -21,8 +20,7 @@ module.exports = async function(callback) {
             gasPrice: 100000000000,
             value: 0,
             data:
-                "0x" +
-                require("../contracts/introspection/ERC1820Registry.json").bin,
+                "0x" + require("../src/introspection/ERC1820Registry.json").bin,
             gasLimit: 800000,
             v: 27,
             r:

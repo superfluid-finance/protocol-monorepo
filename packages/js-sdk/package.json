@@ -6,20 +6,11 @@
     "license": "MIT",
     "main": "src/index.js",
     "files": [
-        "/contracts/**/*.sol",
-        "/contracts/**/*.json",
-        "!/contracts/mocks/*",
-        "/build/abi.js",
-        "/build/contracts/*.json",
-        "!/build/contracts/*Mock.json",
-        "!/build/contracts/*Tester.json",
-        "scripts/**/*.js",
-        "scripts/**/*.sh",
-        "js-sdk/**/*.json",
-        "js-sdk/**/*.js"
+        "src/**/*.json",
+        "src/**/*.js"
     ],
     "scripts": {
-        "test": "truffle test",
+        "test": "truffle test --network ganache",
         "lint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "lint-staged"

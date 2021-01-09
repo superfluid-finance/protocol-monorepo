@@ -1,0 +1,66 @@
+{
+    "name": "@superfluid-finance/ethereum-contracts",
+    "version": "0.2.0-latest",
+    "description": " Ethereum contracts implementation for the Superfluid Protocol",
+    "repository": "github:superfluid-finance/superfluid-monorepo",
+    "license": "MIT",
+    "files": [
+        "/src/contracts/**/*.sol",
+        "/src/contracts/**/*.json",
+        "!/src/contracts/mocks/*",
+        "/build/abi.js",
+        "/build/contracts/*.json",
+        "!/build/contracts/*Mock.json",
+        "!/build/contracts/*Tester.json",
+        "scripts/**/*.js",
+        "scripts/**/*.sh",
+        "test/TestEnvironment"
+    ],
+    "scripts": {
+        "dev": "nodemon -e sol,js -i build -x 'npm run test 2>&1'",
+        "build": "run-s build:*",
+        "build:contracts": "rm -f build/contracts/*;truffle compile /src",
+        "build:abi": "scripts/build-abi-js.sh",
+        "pretest": "run-s lint build",
+        "test": "run-s test:*",
+        "test:contracts": "truffle test test/contracts.test.js --network ganache && cat build/eth-gas-report.txt | tee build/contracts-eth-gas-report.txt",
+        "test:apps": "truffle test test test/apps.test.js --network ganache",
+        "test:deployment": "truffle test test/deployment.test.js --network ganache",
+        "test-coverage": "npm run build && truffle run coverage --file test/contracts.test.js",
+        "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
+        "lint": "run-s lint:*",
+        "lint:sol": "solhint -w 0 src/contracts/*.sol src/contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
+        "focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
+        "pre-commit": "lint-staged"
+    },
+    "lint-staged": {
+        "**/*.+(sol)": [
+            "yarn lint"
+        ],
+        "**/*.+(js|jsx|ts|tsx)": [
+            "eslint . --max-warnings=0 --report-unused-disable-directives --fix"
+        ]
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "3.3.0-solc-0.7",
+        "@truffle/contract": "4.3.4",
+        "ethereumjs-tx": "2.1.2",
+        "ethereumjs-util": "7.0.7"
+    },
+    "devDependencies": {
+        "@decentral.ee/web3-helpers": "^0.3.5",
+        "@openzeppelin/test-helpers": "^0.5.10",
+        "@truffle/hdwallet-provider": "^1.2.1",
+        "@superfluid-finance/js-sdk": "0.2.0-latest",
+        "dotenv": "^8.2.0",
+        "ganache-time-traveler": "^1.0.15",
+        "npm-run-all": "^4.1.5",
+        "readline": "^1.3.0",
+        "solhint": "^3.3.2",
+        "solidity-coverage": "^0.7.13",
+        "truffle": "^5.1.49",
+        "truffle-flattener": "^1.5.0",
+        "truffle-plugin-verify": "^0.5.4"
+    }
+}

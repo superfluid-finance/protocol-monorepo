@@ -1,0 +1,3 @@
+{
+    "ignorePatterns": ["coverage", "coverage.json", "build"]
+}

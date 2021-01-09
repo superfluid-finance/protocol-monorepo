@@ -1,0 +1,24 @@
+{
+    "name": "flowlottery-superapp",
+    "version": "1.0.0",
+    "description": "Flow lottery - a superfluid SuperApp demo",
+    "main": "scripts/demo.js",
+    "scripts": {
+        "build": "truffle compile --all",
+        "pretest": "rm -rf build;mkdir -p build/contracts;cp node_modules/@superfluid-finance/ethereum-contracts/build/contracts/* build/contracts/",
+        "test": "truffle test",
+        "deploy": "npm run build && RELEASE_VERSION=0.1.2-preview-20201014 npx truffle --network goerli exec scripts/deploy.js"
+    },
+    "author": "Superfluid",
+    "license": "MIT",
+    "devDependencies": {
+        "@decentral.ee/web3-helpers": "^0.3.2",
+        "@openzeppelin/contracts": "^3.2.1-solc-0.7",
+        "@openzeppelin/test-helpers": "^0.5.7",
+        "@superfluid-finance/ethereum-contracts": "0.1.2-preview-20201014-fix5",
+        "@truffle/contract": "^4.2.25",
+        "@truffle/hdwallet-provider": "^1.1.0",
+        "dotenv": "^8.2.0",
+        "truffle": "^5.1.48"
+    }
+}

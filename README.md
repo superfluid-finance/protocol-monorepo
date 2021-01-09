@@ -1,5 +1,23 @@
-Superfluid Protocol
-===================
+<h1 align="center">Welcome to superfluid-monorepo 👋</h1>
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+    <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
+  </a>
+</p>
+
+> Contracts and resources for the Superfluid Protocol
+
+### 🏠 [Homepage](https://superfluid.finance)
+
+### ✨ [Superfluid App](https://app.superfluid.finance/)
+
+### 📖 [Docs](https://docs.superfluid.finance)
 
 The Superfluid Protocol is a framework that realizes the real-time finance vision
 where user accounts are connected together, and transactions can happen between
@@ -9,66 +27,57 @@ This repository implements the superfluid protocol as Ethereum contracts. It als
 contains a Javascript SDK for developing Web3 applications using the superfluid
 protocol.
 
-For technical document, references and tutorials, etc, please refer to the
+For technical document, references and tutorials, etc, refer to the
 [docs site](http://docs.superfluid.finance/).
 
-Installation
-============
+## Usage
 
-To install, using its npm package is recommended.
+To build with Superfluid, you can use the Javascript SDK package here `@superfluid-finance/js-sdk`.
 
+If you're interest in peeking under the hood, then check out the contracts package `@superfluid-finance/ethereum-contracts`.
+
+## Contributing
+
+Contributions, issues, and feature suggestions are welcome!
+
+### Installation
+
+Interested in contributing, or just troubleshooting? Great! Let's get the party started using yarn.
+
+```bash
+git clone https://github.com/superfluid-finance/ethereum-contracts
+cd ethereum-contracts
+yarn install
 ```
-$ npm install @superfluid-finance/ethereum-contracts
+
+Now you are ready to make changes, run tests, and maybe even `yarn link` your way to a solution :)
+
+### Testing
+
+Superfluid relies on a persistent 1820 registry contract, so you'll need to make sure its deployed before you can run tests. For this example, we'll deploy the 1820 contract on ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
+
+```bash
+# Start Ganache on 127.0.0.1:8545
+ganache-cli
+
+# In a new terminal
+cd packages/ethereum-contracts
+yarn build
+npx truffle exec scripts/deploy-erc1820.js --network ganache
+
+# Now run your tests
+yarn test
 ```
 
-Development
-===========
+See the individual packages for more specific details about testing.
 
-To develop the project, pull the repository from GitHub and install its
-dependencies. You will need npm installed.
-
-```
-$ git clone https://github.com/superfluid-finance/ethereum-contracts
-$ cd ethereum-contracts
-$ npm ci
-```
-
-Linting
--------
+### Linting
 
 Javascripts are linted using [eslint](https://eslint.org/).
 
 Solidity are linted using [solhint](https://protofire.github.io/solhint/)
 
-Testing
--------
-
-For any feature development, test driven development is recommended:
-
-```
-$ npm run dev
-```
-
-This will detect any code changes then run lint, build and test suite.
-
-**NB!**: Since these tests take long time to execute, it is quite possible
-that you want to use the [execlusive tests](https://mochajs.org/#exclusive-tests)
-feature from MochaJS to speed up isolated feature development.
-
-There are three major test suite:
-
-- Contracts (test/contracts.test.js)
-- Deployment (test/deployment.test.js)
-- SDK (test/sdk.test.js)
-
-Each contracts test suite is named as `test/{Type}/{ContractName}.test.js`.
-
-Deployment test is for testing the deployment script.
-
-SDK test is to test the JS SDK.
-
-Code Coverage
---------------
+### Code Coverage
 
 To run the coverage tests please use:
 
@@ -76,57 +85,4 @@ To run the coverage tests please use:
 $ truffle run test-coverage
 ```
 
-This step is not integraded with the unit test because of the time it consumes to execute.
-
-Integration
-===========
-
-It is recommended that you use our JS SDK to interact with the protocol.
-
-**NB!** The SDK is still under development, its API and interfaces can change.
-
-Initialize the SDK
-------------------
-
-
-```
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
-const sf = new SuperfluidSDK.Framework({
-    version: "preview-20200928", // This is for using different protocol release
-    web3Provider: web3.currentProvider, // your web3 provider
-    tokens: ["fDAI"]
-});
-
-await sf.initialize();
-
-sf.tokens.fDAI;
-sf.tokens.fDAIx;
-
-```
-
-What's In the Bag
---------------------
-
-* `sf.host` : The [truffle contract instance](https://www.trufflesuite.com/docs/truffle/getting-started/interacting-with-your-contracts)
-to interact with the host contract (Superfluid.sol).
-* `sf.contracts` : The [truffle contract](https://www.trufflesuite.com/docs/truffle/reference/contract-abstractions) objects loaded by the SDK:
-  - `IERC20` : The ERC20 Interface.
-  - `TokenInfo` : A customary ERC20 token info interface (name/symbol/decimals).
-  - `ERC20WithTokenInfo` : A combination of IERC20 and TokenInfo.
-  - `TestToken` : A ERC20 Test token.
-  - `IResolver` : A simple resolver interface to locate different versions of the contracts.
-  - `ISuperfluid` : The Superfluid host contract interface.
-  - `ISuperToken` : The Super token contract interface.
-  - `IConstantFlowAgreementV1` : The constant flow agreement (v1) contract interface.
-  - `IInstantDistributionAgreementV1` : The instant distribution agreement (v1) contract interface.
-* Token factory functions:
-  - `sf.createERC20Wrapper`
-* `sf.resolver`: The resolver used by the SDK.
-  - In test nets, there are some test tokens can be located with the resolver:
-    - `fDAI` : The fake DAI. `sf.resolver.get("tokens.fDAI")`.
-    - `fUSDC` : The fake USDC. `sf.resolver.get("tokens.fUSDC")`.
-    - `fTUSD` : The fake TUSD. `sf.resolver.get("tokens.fTUSD")`.
-* `sf.agreements`:
-  - `sf.agreements.cfa` : Constant flow agreement truffle contract instance.
-  - `sf.agreements.ida` : Instant distribution agreement truffle contract instance.
-* `sf.cfa`: The constant flow agreement helper class instance.
+This step is not integrated with the unit test because of the time it consumes to execute.

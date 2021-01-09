@@ -1,6 +1,7 @@
 const Web3 = require("web3");
 const TruffleContract = require("@truffle/contract");
 const getConfig = require("./getConfig");
+const SuperfluidABI = require("@superfluid-finance/ethereum-contracts/build/abi");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
@@ -40,7 +41,6 @@ module.exports = class Framework {
             console.debug(
                 "Using Superfluid SDK outside of the truffle environment"
             );
-            const SuperfluidABI = require("../build/abi");
             if (!web3Provider) throw new Error("web3Provider is required");
             // load contracts from ABI
             contractNames.forEach(i => {

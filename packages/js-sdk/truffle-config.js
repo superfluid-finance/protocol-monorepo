@@ -11,6 +11,10 @@ module.exports = {
         __dirname,
         "../ethereum-contracts/build/contracts"
     ),
+    migrations_directory: path.join(
+        __dirname,
+        "../ethereum-contracts/src/migrations"
+    ),
 
     // Set default mocha options here, use special reporters etc.
     //mocha: {

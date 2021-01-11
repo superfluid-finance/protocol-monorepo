@@ -87,7 +87,7 @@ jobs:
                 network: [goerli, rinkeby, ropsten, mumbai]
 
         # only deploy for master branch push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/monorepo-reorg'
 
         steps:
             - uses: actions/checkout@v2
@@ -130,7 +130,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
         # only publish npm package for master branch push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/monorepo-reorg'
 
         steps:
             - uses: actions/checkout@v2
@@ -147,4 +147,5 @@ jobs:
 
             - name: Publish package
               run: |
-                  .github/workflows/npm-publish.sh
+                  .github/workflows/npm-publish.sh packages/ethereum-contracts
+                  .github/workflows/npm-publish.sh packages/js-sdk

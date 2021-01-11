@@ -11,29 +11,27 @@
     ],
     "scripts": {
         "test": "truffle test",
-        "lint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
+        "lint": "run-s lint:*",
+        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
+        "lint:focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
-        "pre-commit:focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }"
+        "pre-commit:focused-tests": "yarn lint:focused-tests"
     },
     "lint-staged": {
         "**/*.+(js|jsx|ts|tsx)": [
-            "eslint . --max-warnings=0 --report-unused-disable-directives --fix"
+            "yarn lint:js"
         ]
     },
     "dependencies": {
-        "@openzeppelin/contracts": "3.3.0-solc-0.7",
-        "@truffle/contract": "4.3.4",
-        "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.0.7"
+        "@truffle/contract": "4.3.4"
     },
     "devDependencies": {
+        "@superfluid-finance/ethereum-contracts": "0.2.0-latest",
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
-        "@truffle/hdwallet-provider": "1.2.1",
         "chai-as-promised": "7.1.1",
-        "dotenv": "8.2.0",
         "truffle": "5.1.49"
     }
 }

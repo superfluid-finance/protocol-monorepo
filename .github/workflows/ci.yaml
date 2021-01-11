@@ -105,6 +105,7 @@ jobs:
 
             - name: Deploy
               run: |
+                  cd packages/ethereum-contracts
                   npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
               env:
                   RELEASE_VERSION: master

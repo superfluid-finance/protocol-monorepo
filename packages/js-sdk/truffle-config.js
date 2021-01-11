@@ -11,6 +11,6 @@ module.exports = {
     ),
     migrations_directory: path.join(
         __dirname,
-        "../ethereum-contracts/src/migrations"
+        "../ethereum-contracts/migrations"
     )
 };

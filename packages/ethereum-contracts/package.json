@@ -5,8 +5,8 @@
     "repository": "github:superfluid-finance/superfluid-monorepo",
     "license": "MIT",
     "files": [
-        "/src/**/*",
-        "!/src/contracts/mocks/*",
+        "/contracts/**/*",
+        "!/contracts/mocks/*",
         "/build/contracts/*.json",
         "!/build/contracts/*Mock.json",
         "!/build/contracts/*Tester.json",
@@ -17,7 +17,7 @@
     "scripts": {
         "dev": "nodemon -e sol,js -i build -x 'yarn test 2>&1'",
         "build": "run-s build:*",
-        "build:contracts": "rm -f build/contracts/*;truffle compile /src/",
+        "build:contracts": "rm -f build/contracts/*;truffle compile",
         "build:abi": "scripts/build-abi-js.sh; cp -f build/abi.js ../js-sdk/src/",
         "pretest": "run-s lint build",
         "test": "run-s test:*",
@@ -27,7 +27,7 @@
         "test-coverage": "yarn build && truffle run coverage --file test/contracts.test.js",
         "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
         "lint": "run-s lint:*",
-        "lint:sol": "solhint -w 0 src/contracts/*.sol src/contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "lint:focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",

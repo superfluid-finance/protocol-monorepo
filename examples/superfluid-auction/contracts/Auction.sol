@@ -8,15 +8,15 @@ import {
     ISuperToken,
     ISuperAgreement,
     SuperAppDefinitions
-} from "@superfluid-finance/superfluid-monorepo/packages/ethereum-contracts/src/contracts/interfaces/superfluid/ISuperfluid.sol";//"@superfluid-finance/ethereum-monorepo/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";//"@superfluid-finance/ethereum-monorepo/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {
     IConstantFlowAgreementV1
-} from "@superfluid-finance/superfluid-monorepo/packages/ethereum-contracts/src/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {
     SuperAppBase
-} from "@superfluid-finance/superfluid-monorepo/packages/ethereum-contracts/src/contracts/apps/SuperAppBase.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
 
 contract Auction is SuperAppBase {

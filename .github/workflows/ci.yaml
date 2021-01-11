@@ -34,7 +34,7 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
-            - name: npm install, build, and test
+            - name: install, lint, build, and test
               run: |
                   yarn install --frozen-lockfile
                   yarn run lint
@@ -147,6 +147,4 @@ jobs:
 
             - name: Publish package
               run: |
-                  npm ci
-                  npm run build
                   .github/workflows/npm-publish.sh

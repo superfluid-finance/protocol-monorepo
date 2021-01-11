@@ -7,6 +7,7 @@
     "scripts": {
         "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
         "build": "yarn workspace @superfluid-finance/ethereum-contracts build",
+        "test": "yarn workspaces run test ",
         "lint": "yarn workspaces run lint"
     },
     "devDependencies": {

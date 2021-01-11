@@ -1,4 +1,23 @@
-# Superfluid Protocol
+<h1 align="center">Welcome to superfluid protocol-monorepo 👋</h1>
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+    <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
+  </a>
+</p>
+
+> Contracts and resources for the Superfluid Protocol
+
+### 🏠 [Homepage](https://superfluid.finance)
+
+### ✨ [Superfluid App](https://app.superfluid.finance/)
+
+### 📖 [Docs](https://docs.superfluid.finance)
 
 The Superfluid Protocol is a framework that realizes the real-time finance vision
 where user accounts are connected together, and transactions can happen between
@@ -8,69 +27,68 @@ This repository implements the superfluid protocol as Ethereum contracts. It als
 contains a Javascript SDK for developing Web3 applications using the superfluid
 protocol.
 
-For technical document, references and tutorials, etc, please refer to the
+For technical document, references and tutorials, etc, refer to the
 [docs site](http://docs.superfluid.finance/).
 
-# Integration
+## Packages
 
-It is recommended that you use our JS SDK to interact with the protocol.
+#### `@superfluid-finance/js-sdk`
 
-Please see [/packages/js-sdk](./packages/js-sdk) for documentation.
+To build with Superfluid, you can use the Javascript SDK package.
 
-# Installation
+#### `@superfluid-finance/ethereum-contracts`
 
-To install, using its npm package is recommended.
+If you're interest in peeking under the hood, then check out the contracts package.
 
-```
-$ npm install @superfluid-finance/ethereum-contracts
-```
+## Examples
 
-# Development
+See `/examples` for some Superfluid app examples.
 
-To develop the project, pull the repository from GitHub and install its
-dependencies. You will need npm and jq installed.
+## Contributing
+
+Contributions, issues, and feature suggestions are welcome!
+
+### Installation
+
+Interested in contributing, or just troubleshooting? Great! Let's get the party started using yarn.
 
 ```bash
-sudo apt-get install jq
-
 git clone https://github.com/superfluid-finance/ethereum-contracts
 cd ethereum-contracts
-npm ci
+yarn install
+yarn build
 ```
 
-## Linting
+Now you are ready to make changes, run tests, and maybe even `yarn link` your way to a solution :)
 
-Javascript is linted using [eslint](https://eslint.org/).
+### Testing
 
-Solidity is linted using [solhint](https://protofire.github.io/solhint/)
+Superfluid relies on a persistent 1820 registry contract, so you'll need to make sure its deployed before you can run tests. For this example, we'll deploy the 1820 contract on ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
 
-## Testing
+```bash
+# Start Ganache on 127.0.0.1:8545
+ganache-cli
 
-For any feature development, test driven development is recommended:
+# Build the contracts + prepare the SDK
+yarn build
 
+# Deploy the 1820 contract
+cd packages/ethereum-contracts
+npx truffle exec scripts/deploy-erc1820.js --network ganache
+
+# Now you can run tests in the specific package
+yarn test
 ```
-$ npm run dev
-```
 
-This will detect any code changes then run lint, build and test suite.
+See the individual packages for more specific details about testing.
 
-**NB!**: Since these tests take long time to execute, it is quite possible
-that you want to use the [execlusive tests](https://mochajs.org/#exclusive-tests)
-feature from MochaJS to speed up isolated feature development.
+### Linting
 
-There are three major test suite:
+Javascripts are linted using [eslint](https://eslint.org/).
 
--   Contracts (test/contracts.test.js)
--   Deployment (test/deployment.test.js)
--   SDK (test/sdk.test.js)
+Solidity are linted using [solhint](https://protofire.github.io/solhint/)
 
-Each contracts test suite is named as `test/{Type}/{ContractName}.test.js`.
-
-Deployment test is for testing the deployment script.
-
-SDK test is to test the JS SDK.
-
-## Code Coverage
+### Code Coverage
 
 To run the coverage tests please use:
 

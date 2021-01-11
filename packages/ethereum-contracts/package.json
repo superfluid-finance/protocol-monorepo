@@ -32,15 +32,9 @@
         "lint:sol": "solhint -w 0 src/contracts/*.sol src/contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
-        "pre-commit": "lint-staged"
-    },
-    "lint-staged": {
-        "**/*.+(sol)": [
-            "yarn lint"
-        ],
-        "**/*.+(js|jsx|ts|tsx)": [
-            "eslint . --max-warnings=0 --report-unused-disable-directives --fix"
-        ]
+        "pre-commit": "run-s pre-commit:*",
+        "pre-commit:lint": "yarn run lint",
+        "pre-commit:focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }"
     },
     "dependencies": {
         "@openzeppelin/contracts": "3.3.0-solc-0.7",

@@ -8,7 +8,7 @@ import {
     ISuperToken,
     ISuperAgreement,
     SuperAppDefinitions
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";//"@superfluid-finance/ethereum-monorepo/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {
     IConstantFlowAgreementV1
@@ -17,7 +17,6 @@ import {
 import {
     SuperAppBase
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
-
 
 contract Auction is SuperAppBase {
 

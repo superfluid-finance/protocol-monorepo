@@ -1,7 +1,7 @@
 {
     "name": "@superfluid-finance/js-sdk",
     "version": "0.2.0-latest",
-    "description": " Ethereum contracts implementation for the Superfluid Protocol",
+    "description": "Javascript SDK for building with Superfluid Protocol",
     "repository": "github:superfluid-finance/superfluid-monorepo",
     "license": "MIT",
     "main": "src/index.js",

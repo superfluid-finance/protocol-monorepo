@@ -63,23 +63,6 @@ Now you are ready to make changes, run tests, and maybe even `yarn link` your wa
 
 ### Testing
 
-Superfluid relies on a persistent 1820 registry contract, so you'll need to make sure its deployed before you can run tests. For this example, we'll deploy the 1820 contract on ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
-
-```bash
-# Start Ganache on 127.0.0.1:8545
-ganache-cli
-
-# Build the contracts + prepare the SDK
-yarn build
-
-# Deploy the 1820 contract
-cd packages/ethereum-contracts
-npx truffle exec scripts/deploy-erc1820.js --network ganache
-
-# Now you can run tests in the specific package
-yarn test
-```
-
 See the individual packages for more specific details about testing.
 
 ### Linting

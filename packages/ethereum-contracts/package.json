@@ -2,7 +2,7 @@
     "name": "@superfluid-finance/ethereum-contracts",
     "version": "0.2.0-latest",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
-    "repository": "github:superfluid-finance/superfluid-monorepo",
+    "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "files": [
         "/src/**/*",
@@ -61,5 +61,8 @@
         "truffle": "5.1.49",
         "truffle-flattener": "^1.5.0",
         "truffle-plugin-verify": "^0.5.4"
+    },
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com/"
     }
 }

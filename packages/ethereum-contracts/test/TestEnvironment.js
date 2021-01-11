@@ -21,7 +21,8 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 module.exports = class TestEnvironment {
-    constructor(accounts) {
+    constructor(accounts, { isTruffle }) {
+        this.isTruffle = isTruffle;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -67,6 +68,7 @@ module.exports = class TestEnvironment {
         await deployFramework(this.errorHandler, {
             newTestResolver: true,
             useMocks: true,
+            isTruffle: this.isTruffle,
             ...deployOpts
         });
 

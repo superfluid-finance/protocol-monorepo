@@ -3,7 +3,7 @@ const assert = require("assert").strict;
 
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
-
+const ERC1820Registry = require("./introspection/ERC1820Registry.json");
 const { hasCode } = require("./utils");
 
 /**
@@ -19,7 +19,7 @@ module.exports = async function(callback) {
             nonce: 0,
             gasPrice: 100000000000,
             value: 0,
-            data: "0x" + require("./introspection/ERC1820Registry.json").bin,
+            data: "0x" + ERC1820Registry.bin,
             gasLimit: 800000,
             v: 27,
             r:

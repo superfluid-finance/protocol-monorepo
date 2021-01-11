@@ -5,15 +5,23 @@ const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts
 const SuperfluidSDK = require("../src");
 
 contract("Framework class", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 1));
+    const t = new TestEnvironment(accounts.slice(0, 1), { isTruffle: true });
     const { admin } = t.aliases;
 
     before(async () => {
         await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"]);
-        await deployTestToken(t.errorHandler, [":", "fUSDC"]);
-        await deploySuperToken(t.errorHandler, [":", "fDAI"]);
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"]);
+        await deployTestToken(t.errorHandler, [":", "fDAI"], {
+            isTruffle: true
+        });
+        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
+            isTruffle: true
+        });
+        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
+            isTruffle: true
+        });
+        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
+            isTruffle: true
+        });
     });
 
     describe("initialization", () => {

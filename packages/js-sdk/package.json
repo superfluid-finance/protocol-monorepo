@@ -10,7 +10,6 @@
         "src/**/*.js"
     ],
     "scripts": {
-        "build": "cp ../ethereum-contracts/build/abi.js ./src",
         "test": "yarn build && truffle test --network ganache",
         "lint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",

@@ -36,9 +36,10 @@ jobs:
 
             - name: npm install, build, and test
               run: |
-                  npm ci
-                  npm run build
-                  npm run test
+                  yarn install --frozen-lockfile
+                  yarn run lint
+                  yarn run build
+                  yarn run test
 
     coverage:
         name: Run coverage test
@@ -58,9 +59,9 @@ jobs:
 
             - name: Run coverage test
               run: |
-                  npm ci
-                  npm run lint
-                  npm run test-coverage
+                  yarn install --frozen-lockfile
+                  cd packages/ethereum-contracts
+                  yarn run test-coverage
 
             - name: Create coverage artifact
               uses: actions/upload-artifact@v2
@@ -98,8 +99,9 @@ jobs:
 
             - name: Build
               run: |
-                  npm ci
-                  npm run build
+                  yarn install --frozen-lockfile
+                  cd packages/ethereum-contracts
+                  yarn run build
 
             - name: Deploy
               run: |
@@ -140,8 +142,8 @@ jobs:
 
             - name: Build package
               run: |
-                  npm ci
-                  npm run build
+                  yarn install --frozen-lockfile
+                  yarn run build
 
             - name: Publish package
               run: |

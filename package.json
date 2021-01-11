@@ -6,7 +6,7 @@
     "license": "MIT",
     "scripts": {
         "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
-        "build": "yarn workspace @superfluid-finance/ethereum-contracts build && yarn workspace @superfluid-finance/js-sdk build",
+        "build": "yarn workspace @superfluid-finance/ethereum-contracts build",
         "lint": "yarn workspaces run lint"
     },
     "devDependencies": {

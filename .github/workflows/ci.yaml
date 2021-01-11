@@ -34,11 +34,12 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
-            - name: npm install, build, and test
+            - name: install, lint, build, and test
               run: |
-                  npm ci
-                  npm run build
-                  npm run test
+                  yarn install --frozen-lockfile
+                  yarn run lint
+                  yarn run build
+                  yarn run test
 
     coverage:
         name: Run coverage test
@@ -58,9 +59,9 @@ jobs:
 
             - name: Run coverage test
               run: |
-                  npm ci
-                  npm run lint
-                  npm run test-coverage
+                  yarn install --frozen-lockfile
+                  cd packages/ethereum-contracts
+                  yarn run test-coverage
 
             - name: Create coverage artifact
               uses: actions/upload-artifact@v2
@@ -86,7 +87,7 @@ jobs:
                 network: [goerli, rinkeby, ropsten, mumbai]
 
         # only deploy for master branch push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/monorepo-reorg'
 
         steps:
             - uses: actions/checkout@v2
@@ -98,11 +99,13 @@ jobs:
 
             - name: Build
               run: |
-                  npm ci
-                  npm run build
+                  yarn install --frozen-lockfile
+                  cd packages/ethereum-contracts
+                  yarn run build
 
             - name: Deploy
               run: |
+                  cd packages/ethereum-contracts
                   npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
               env:
                   RELEASE_VERSION: master
@@ -128,7 +131,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
         # only publish npm package for master branch push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/monorepo-reorg'
 
         steps:
             - uses: actions/checkout@v2
@@ -140,11 +143,10 @@ jobs:
 
             - name: Build package
               run: |
-                  npm ci
-                  npm run build
+                  yarn install --frozen-lockfile
+                  yarn run build
 
             - name: Publish package
               run: |
-                  npm ci
-                  npm run build
-                  .github/workflows/npm-publish.sh
+                  .github/workflows/npm-publish.sh packages/ethereum-contracts
+                  .github/workflows/npm-publish.sh packages/js-sdk

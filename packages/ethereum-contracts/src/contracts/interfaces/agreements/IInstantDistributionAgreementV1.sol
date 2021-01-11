@@ -59,7 +59,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     event IndexCreated(
         ISuperfluidToken indexed token,
         address indexed publisher,
-        uint32 indexed indexId);
+        uint32 indexed indexId,
+        bytes userData);
 
     /**
      * @dev Query the data of a index.
@@ -113,7 +114,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         uint32 indexed indexId,
         uint128 indexValue,
         uint128 totalUnitsPending,
-        uint128 totalUnitsApproved);
+        uint128 totalUnitsApproved,
+        bytes userData);
 
     /**
      * @dev Distribute tokens through the index.
@@ -187,13 +189,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
-        address subscriber);
+        address subscriber,
+        bytes userData);
 
     event SubscriptionApproved(
         ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
-        uint32 indexId);
+        uint32 indexId,
+        bytes userData);
 
     /**
      * @dev Update the nuber of units of a subscription.
@@ -226,14 +230,16 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         address indexed publisher,
         uint32 indexed indexId,
         address subscriber,
-        uint128 units);
+        uint128 units,
+        bytes userData);
 
     event SubscriptionUnitsUpdated(
         ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
         uint32 indexId,
-        uint128 units);
+        uint128 units,
+        bytes userData);
 
     /**
      * @dev Get data of a subscription
@@ -334,13 +340,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
-        address subscriber);
+        address subscriber,
+        bytes userData);
 
     event SubscriptionDeleted(
         ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
-        uint32 indexId);
+        uint32 indexId,
+        bytes userData);
 
     /**
     * @dev Claim pending distributions.

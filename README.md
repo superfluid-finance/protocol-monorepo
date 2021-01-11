@@ -56,6 +56,7 @@ Interested in contributing, or just troubleshooting? Great! Let's get the party 
 git clone https://github.com/superfluid-finance/ethereum-contracts
 cd ethereum-contracts
 yarn install
+yarn build
 ```
 
 Now you are ready to make changes, run tests, and maybe even `yarn link` your way to a solution :)
@@ -68,12 +69,14 @@ Superfluid relies on a persistent 1820 registry contract, so you'll need to make
 # Start Ganache on 127.0.0.1:8545
 ganache-cli
 
-# In a new terminal
-cd packages/ethereum-contracts
+# Build the contracts + prepare the SDK
 yarn build
+
+# Deploy the 1820 contract
+cd packages/ethereum-contracts
 npx truffle exec scripts/deploy-erc1820.js --network ganache
 
-# Now run your tests
+# Now you can run tests in the specific package
 yarn test
 ```
 

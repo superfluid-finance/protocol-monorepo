@@ -1,5 +1,6 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const TestResolver = artifacts.require("TestResolver");
+const ISuperToken = artifacts.require("ISuperToken");
 const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 
 /**
@@ -44,7 +45,20 @@ module.exports = async function(callback, argv) {
         const superTokenAddress = await sf.resolver.get(name);
         console.log("SuperToken namt at the resolver: ", name);
         console.log("SuperToken address: ", superTokenAddress);
+        let doDeploy = false;
         if (superTokenAddress == ZERO_ADDRESS) {
+            doDeploy = true;
+        } else {
+            console.log("The superToken already registered.");
+            const superToken = await ISuperToken.at(superTokenAddress);
+            if ((await superToken.getHost()) !== sf.host.address) {
+                console.log(
+                    "But the superToken uses a different host, redeploying is required."
+                );
+                doDeploy = true;
+            }
+        }
+        if (doDeploy) {
             console.log("Creating the wrapper...");
             const superToken = await sf.createERC20Wrapper(tokenInfo);
             console.log("Wrapper created at", superToken.address);
@@ -52,8 +66,6 @@ module.exports = async function(callback, argv) {
             const testResolver = await TestResolver.at(sf.resolver.address);
             await testResolver.set(name, superToken.address);
             console.log("Resolver set done.");
-        } else {
-            console.log("SuperToken already registered.");
         }
 
         callback();

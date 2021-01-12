@@ -1,0 +1,119 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Dividend Rights Token - A Superfluid Demo</title>
+  <meta name="description" content="The HTML5 Herald">
+  <meta name="author" content="SitePoint">
+
+</head>
+
+<body>
+  <a href="https://goerli.etherscan.io/address/0xD805De805F34b88107CB253d684fA27Ec1EBb352">DAIx</a><br/>
+  <a href="https://goerli.etherscan.io/address/0xfafaE8496024eE644b7a60bF827760302101330F">DRT</a><br/>
+  <h1>Subscriber</h1>
+  <label>Balance: </label> <span id="balance">0</span><br/>
+  <label>Units: </label> <span id="units">0</span><br/>
+  <label>Approved: </label> <span id="approved">no</span><br/>
+  <label>Pending Distribution: </label> <span id="pendingDistribution">0</span><br/>
+  <button onclick="approve()">Approve</button><br/>
+  <button onclick="claim()">Claim</button><br/>
+  <hr/>
+  <h1>Issuer</h1>
+  <label>Issuer address: </label> <span id="issuer"></span><br/>
+  <label>Distribution Amount: </label> <input type="number" id="amount" value=100><br/>
+  <button onclick="distribute()">Distribute</button><br/>
+
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="abi.js"></script>
+  <script>
+    let web3, daix, user, host, ida, drt;
+
+    async function main() {
+        await ethereum.enable();
+        web3 = new Web3(ethereum);
+        user = (await web3.eth.getAccounts())[0];
+        daix = new web3.eth.Contract(
+            Contracts.IERC20,
+            "0xD805De805F34b88107CB253d684fA27Ec1EBb352");
+        host = new web3.eth.Contract(
+            Contracts.ISuperfluid,
+            "0xC00100DC36c41D7b2189084AAa3E793cA7Cc0dDD");
+        ida = new web3.eth.Contract(
+            Contracts.IInstantDistributionAgreementV1,
+            "0x1866B09e73DA7107c762B32Dc74e68De95F3127c");
+        drt = new web3.eth.Contract(
+            Contracts.DividendRightsToken,
+            "0xfafaE8496024eE644b7a60bF827760302101330F");
+        document.getElementById("issuer").innerHTML = await drt.methods.owner().call();
+        setInterval(refreshBalance, 10000);
+        refreshSubscription();
+        refreshBalance();
+    }
+
+    async function approve() {
+        await host.methods.callAgreement(
+            ida._address,
+            ida.methods.approveSubscription(
+                daix._address,
+                drt._address,
+                0,
+                "0x"
+            ).encodeABI(),
+        ).send({ from: user });
+        await refreshSubscription();
+        await refreshBalance();
+    }
+
+    async function claim() {
+        await host.methods.callAgreement(
+            ida._address,
+            ida.methods.claim(
+                daix._address,
+                drt._address,
+                0,
+                "0x"
+            ).encodeABI(),
+        ).send({ from: user });
+        await refreshSubscription();
+        await refreshBalance();
+    }
+
+    async function distribute() {
+        const amount = document.getElementById("amount").value;
+        console.log("amount", amount);
+        if (web3.utils.fromWei(await daix.methods.allowance(user, drt._address).call(), "ether")
+            < 100) {
+            console.log("daix approve");
+            await daix.methods.approve(drt._address, "1"+"0".repeat(42)).send({ from: user });
+        }
+        await drt.methods.distribute(web3.utils.toWei(amount.toString(), "ether")).send({ from: user });
+        await refreshSubscription();
+        await refreshBalance();
+    }
+
+    async function refreshBalance() {
+        document.getElementById("balance").innerHTML = Number(await web3.utils.fromWei(
+            await daix.methods.balanceOf(user).call(),
+            "ether")).toFixed(4);
+    }
+
+    async function refreshSubscription() {
+        const sub = await ida.methods.getSubscription(
+            daix._address,
+            drt._address, // publisher
+            0, // indexId
+            user
+        ).call();
+        console.log(sub);
+        document.getElementById("approved").innerHTML = sub.approved ? "yes" : "no";
+        document.getElementById("units").innerHTML = sub.units.toString();
+        document.getElementById("pendingDistribution").innerHTML = web3.utils.fromWei(sub.pendingDistribution.toString(), "ether");
+    }
+
+    main();
+  </script>
+</body>
+</html>

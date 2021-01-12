@@ -53,8 +53,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         _acceptedToken = acceptedToken;
 
         // NOTE: this may be incorrect
-        uint256 configWord = 1 << 0;
-            // SuperAppDefinitions.TYPE_APP_FINAL;
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL;
 
         _host.registerApp(configWord);
     }
@@ -67,11 +66,12 @@ contract LotterySuperApp is Ownable, SuperAppBase {
      *************************************************************************/
 
     /// @dev Take entrance fee from the user and issue a ticket
-    function participate(bytes calldata ctx) external {
+    function participate(bytes calldata ctx) external returns (bytes memory newCtx) {
         // msg sender is encoded in the Context
         address sender = _host.decodeCtx(ctx).msgSender;
         _acceptedToken.transferFrom(sender, address(this), _ENTRANCE_FEE);
         tickets[sender]++;
+        return ctx;
     }
 
     function currentWinner()
@@ -179,9 +179,9 @@ contract LotterySuperApp is Ownable, SuperAppBase {
                     address(this),
                     oldWinner,
                     new bytes(0)
-                ),
-                newCtx,
-                "0x"
+                ), // call data
+                new bytes(0), // user data
+                newCtx // ctx
             );
         }
 
@@ -195,9 +195,9 @@ contract LotterySuperApp is Ownable, SuperAppBase {
                     _winner,
                     _cfa.getNetFlow(_acceptedToken, address(this)),
                     new bytes(0)
-                ),
-                newCtx,
-                "0x"
+                ), // call data
+                new bytes(0), // user data
+                newCtx // ctx
             );
         }
 
@@ -210,11 +210,12 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
     function beforeAgreementCreated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata ctx
     )
-        external view
+        external view override
         onlyHost
         onlyExpected(superToken, agreementClass)
         returns (bytes memory cbdata)
@@ -224,12 +225,13 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
     function afterAgreementCreated(
         ISuperToken /* superToken */,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata cbdata
+        bytes calldata /*agreementData*/,
+        bytes calldata cbdata,
+        bytes calldata ctx
     )
-        external
+        external override
         onlyHost
         returns (bytes memory newCtx)
     {
@@ -238,11 +240,12 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
     function beforeAgreementUpdated(
         ISuperToken superToken,
-        bytes calldata ctx,
         address agreementClass,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata ctx
     )
-        external view
+        external view override
         onlyHost
         onlyExpected(superToken, agreementClass)
         returns (bytes memory cbdata)
@@ -252,12 +255,13 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
     function afterAgreementUpdated(
         ISuperToken /* superToken */,
-        bytes calldata ctx,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata cbdata
+        bytes calldata /*agreementData*/,
+        bytes calldata cbdata,
+        bytes calldata ctx
     )
-        external
+        external override
         onlyHost
         returns (bytes memory newCtx)
     {
@@ -266,11 +270,12 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
     function beforeAgreementTerminated(
         ISuperToken superToken,
-        bytes calldata /*ctx*/,
         address agreementClass,
-        bytes32 /*agreementId*/
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
     )
-        external view
+        external view override
         onlyHost
         returns (bytes memory cbdata)
     {
@@ -282,12 +287,13 @@ contract LotterySuperApp is Ownable, SuperAppBase {
     ///
     function afterAgreementTerminated(
         ISuperToken /* superToken */,
-        bytes calldata ctx,
         address /* agreementClass */,
         bytes32 /* agreementId */,
-        bytes calldata cbdata
+        bytes calldata /*agreementData*/,
+        bytes calldata cbdata,
+        bytes calldata ctx
     )
-        external
+        external override
         onlyHost
         returns (bytes memory newCtx)
     {

@@ -26,18 +26,23 @@ contract("LotterySuperApp", accounts => {
         const web3Provider = web3.currentProvider;
 
         await deployFramework(errorHandler, { from: admin });
+        await deployTestToken(errorHandler, [":", "fDAI"], {
+            web3Provider,
+            from: admin
+        });
+        await deploySuperToken(errorHandler, [":", "fDAI"], {
+            web3Provider,
+            from: admin
+        });
 
         sf = new SuperfluidSDK.Framework({
-            web3Provider
+            web3Provider,
+            tokens: ["fDAI"]
         });
         await sf.initialize();
 
         if (!dai) {
-            await deployTestToken(errorHandler, [":", "fDAI"], {
-                web3Provider,
-                from: admin
-            });
-            const daiAddress = await sf.resolver.get("tokens.fDAI");
+            const daiAddress = await sf.tokens.fDAI.address;
             dai = await sf.contracts.TestToken.at(daiAddress);
             for (let i = 0; i < accounts.length; ++i) {
                 await web3tx(dai.mint, `Account ${i} mints many dai`)(
@@ -48,13 +53,7 @@ contract("LotterySuperApp", accounts => {
             }
         }
 
-        await deploySuperToken(errorHandler, [":", "fDAI"], {
-            web3Provider,
-            from: admin
-        });
-
-        const daixWrapper = await sf.getERC20Wrapper(dai);
-        daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
+        daix = sf.tokens.fDAIx;
 
         app = await web3tx(LotterySuperApp.new, "Deploy LotterySuperApp")(
             sf.host.address,
@@ -84,7 +83,7 @@ contract("LotterySuperApp", accounts => {
     function createPlayBatchCall(upgradeAmount = 0) {
         return [
             [
-                2, // upgrade 100 daix to play the game
+                101, // upgrade 100 daix to play the game
                 daix.address,
                 web3.eth.abi.encodeParameters(
                     ["uint256"],
@@ -92,7 +91,7 @@ contract("LotterySuperApp", accounts => {
                 )
             ],
             [
-                0, // approve the ticket fee
+                1, // approve the ticket fee
                 daix.address,
                 web3.eth.abi.encodeParameters(
                     ["address", "uint256"],
@@ -100,21 +99,27 @@ contract("LotterySuperApp", accounts => {
                 )
             ],
             [
-                5, // callAppAction to participate
+                202, // callAppAction to participate
                 app.address,
                 app.contract.methods.participate("0x").encodeABI()
             ],
             [
-                4, // create constant flow (10/mo)
+                201, // create constant flow (10/mo)
                 sf.agreements.cfa.address,
-                sf.agreements.cfa.contract.methods
-                    .createFlow(
-                        daix.address,
-                        app.address,
-                        MINIMUM_GAME_FLOW_RATE.toString(),
-                        "0x"
-                    )
-                    .encodeABI()
+                web3.eth.abi.encodeParameters(
+                    ["bytes", "bytes"],
+                    [
+                        sf.agreements.cfa.contract.methods
+                            .createFlow(
+                                daix.address,
+                                app.address,
+                                MINIMUM_GAME_FLOW_RATE.toString(),
+                                "0x"
+                            )
+                            .encodeABI(), // callData
+                        "0x" // userData
+                    ]
+                )
             ]
         ];
     }
@@ -129,7 +134,7 @@ contract("LotterySuperApp", accounts => {
         )(createPlayBatchCall(100), { from: bob });
         await expectRevert(
             sf.host.batchCall(createPlayBatchCall(0), { from: bob }),
-            "Flow already exist"
+            "CFA: flow already exist"
         );
         assert.equal((await app.currentWinner.call()).player, bob);
         assert.equal(
@@ -150,6 +155,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, bob, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: bob }
         );
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
@@ -238,6 +244,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, bob, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: bob }
         );
         assert.equal((await app.currentWinner.call()).player, carol);
@@ -266,6 +273,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, carol, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: carol }
         );
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
@@ -329,6 +337,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, carol, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: carol }
         );
         assert.equal((await app.currentWinner.call()).player, bob);
@@ -337,6 +346,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, bob, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: bob }
         );
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
@@ -375,6 +385,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, bob, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: bob }
         );
         await web3tx(sf.host.callAgreement, "Carol quiting the game")(
@@ -382,6 +393,7 @@ contract("LotterySuperApp", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, carol, app.address, "0x")
                 .encodeABI(),
+            "0x",
             { from: carol }
         );
     });
@@ -410,6 +422,7 @@ contract("LotterySuperApp", accounts => {
                 sf.agreements.cfa.contract.methods
                     .deleteFlow(daix.address, dan, app.address, "0x")
                     .encodeABI(),
+                "0x",
                 { from: dan }
             );
             await web3tx(

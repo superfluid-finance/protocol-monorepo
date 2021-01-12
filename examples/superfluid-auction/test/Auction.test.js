@@ -43,18 +43,22 @@ contract("Auction", accounts => {
         const web3Provider = web3.currentProvider;
 
         await deployFramework(errorHandler, { from: admin });
-
-        sf = new SuperfluidSDK.Framework({
-            web3Provider
-            // version
-        });
-        await sf.initialize();
-
         await deployTestToken(errorHandler, [":", "fDAI"], {
             web3Provider,
             from: admin
         });
-        const daiAddress = await sf.resolver.get("tokens.fDAI");
+        await deploySuperToken(errorHandler, [":", "fDAI"], {
+            web3Provider,
+            from: admin
+        });
+
+        sf = new SuperfluidSDK.Framework({
+            web3Provider,
+            tokens: ["fDAI"]
+        });
+        await sf.initialize();
+
+        const daiAddress = await sf.tokens.fDAI.address;
         dai = await sf.contracts.TestToken.at(daiAddress);
         for (let i = 0; i < accounts.length; ++i) {
             await web3tx(dai.mint, `Account ${i} mints many dai`)(
@@ -64,21 +68,10 @@ contract("Auction", accounts => {
             );
         }
 
-        console.log(sf.host.address);
+        daix = sf.tokens.fDAIx;
 
-        await deployERC1820(errorHandler, {
-            web3Provider
-        });
-        await deploySuperToken(errorHandler, [":", "fDAI"], {
-            web3Provider,
-            from: admin
-        });
-
-        const daixWrapper = await sf.host.getERC20Wrapper(dai);
-        daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
-
-        var testUnderlaying = await daix.getUnderlayingToken();
-        console.log("Under: ", testUnderlaying, " DAIx: ", daix.address);
+        var testUnderlying = await daix.getUnderlyingToken();
+        console.log("Under: ", testUnderlying, " DAIx: ", daix.address);
 
         app = await web3tx(Auction.new, "Deploy Auction")(
             sf.host.address,
@@ -119,6 +112,7 @@ contract("Auction", accounts => {
                     "0x"
                 )
                 .encodeABI(),
+            "0x", // user data
             {
                 from: from.toString()
             }
@@ -137,6 +131,7 @@ contract("Auction", accounts => {
                     "0x"
                 )
                 .encodeABI(),
+            "0x", // user data
             {
                 from: from.toString()
             }
@@ -149,6 +144,7 @@ contract("Auction", accounts => {
             sf.agreements.cfa.contract.methods
                 .deleteFlow(daix.address, from, to, "0x")
                 .encodeABI(),
+            "0x", // user data
             {
                 from
             }
@@ -240,6 +236,7 @@ contract("Auction", accounts => {
         // console.log("flow of: " + users[who] + " exists? " + value);
         return value;
     }
+
     it("Case #1 - Alice joins auction, then leaves", async () => {
         minStep = 0;
         await upgrade([alice]);
@@ -427,7 +424,7 @@ contract("Auction", accounts => {
         await checkBalance(app.address);
     });
 
-    it("Case #8 - Fuzzy testing", async () => {
+    it.skip("Case #8 - Fuzzy testing", async () => {
         accounts = [alice, bob, chris, dave, emma, frank];
         minStep = 0;
         await upgrade(accounts);

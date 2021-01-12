@@ -4,7 +4,7 @@
  * Usage: npx truffle exec scripts/deploy-all.js
  */
 
-module.exports = async function(callback) {
+module.exports = async function(callback, { isTruffle }) {
     // otherwise other scripts do not see the artifacts exported from the truffle framework
     global.artifacts = artifacts;
     const deployFramework = require("./deploy-framework");
@@ -19,17 +19,21 @@ module.exports = async function(callback) {
         global.web3 = web3;
 
         console.log("==== Deploying superfluid framework...");
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { isTruffle });
         console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         for (let i = 0; i < tokens.length; ++i) {
             console.log(`==== Deploying test token ${tokens[i]}...`);
-            await deployTestToken(errorHandler, [":", tokens[i]]);
+            await deployTestToken(errorHandler, [":", tokens[i]], {
+                isTruffle
+            });
             console.log(`==== Test token ${tokens[i]} deployed.`);
 
             console.log(`==== Creating super token for ${tokens[i]}...`);
-            await deploySuperToken(errorHandler, [":", tokens[i]]);
+            await deploySuperToken(errorHandler, [":", tokens[i]], {
+                isTruffle
+            });
             console.log(`==== Super token for ${tokens[i]} deployed.`);
         }
 

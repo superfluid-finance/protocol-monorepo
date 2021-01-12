@@ -5,8 +5,8 @@
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "files": [
-        "/src/**/*",
-        "!/src/contracts/mocks/*",
+        "/contracts/**/*",
+        "!/contracts/mocks/*",
         "/build/contracts/*.json",
         "!/build/contracts/*Mock.json",
         "!/build/contracts/*Tester.json",
@@ -17,22 +17,19 @@
     "scripts": {
         "dev": "nodemon -e sol,js -i build -x 'yarn test 2>&1'",
         "build": "run-s build:*",
-        "build:contracts": "rm -f build/contracts/*;truffle compile /src/",
-        "build:abi": "scripts/build-abi-js.sh; cp -f build/abi.js ../js-sdk/src/",
-        "pretest": "run-s lint build",
+        "build:contracts": "rm -f build/contracts/*;truffle compile",
         "test": "run-s test:*",
         "test:contracts": "truffle test test/contracts.test.js",
-        "test:apps": "truffle test test/apps.test.js",
         "test:deployment": "truffle test test/deployment.test.js",
         "test-coverage": "yarn build && truffle run coverage --file test/contracts.test.js",
         "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
         "lint": "run-s lint:*",
-        "lint:sol": "solhint -w 0 src/contracts/*.sol src/contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
-        "lint:focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
+        "check-no-focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
-        "pre-commit:focused-tests": "yarn lint:focused-tests"
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests"
     },
     "lint-staged": {
         "**/*.+(sol)": [

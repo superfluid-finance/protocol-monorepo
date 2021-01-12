@@ -10,7 +10,10 @@ const DEFAULT_ADMIN_ROLE =
 const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE");
 
 contract("Superfluid Super Upgrader Contract", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 6));
+    const t = new TestEnvironment(accounts.slice(0, 6), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { admin, alice, bob, carol, dan, eve } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
 

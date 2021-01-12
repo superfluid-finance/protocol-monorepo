@@ -15,7 +15,10 @@ const ERC777SenderRecipientMock = artifacts.require(
 const TestEnvironment = require("../../TestEnvironment");
 
 contract("SuperToken's Non Standard Functions", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 4));
+    const t = new TestEnvironment(accounts.slice(0, 4), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 

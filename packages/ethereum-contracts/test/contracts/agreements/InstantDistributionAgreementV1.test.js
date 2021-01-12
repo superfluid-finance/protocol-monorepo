@@ -7,7 +7,10 @@ const TestEnvironment = require("../../TestEnvironment");
 const DEFAULT_INDEX_ID = 42;
 
 contract("Instance Distribution Agreement v1", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 5));
+    const t = new TestEnvironment(accounts.slice(0, 5), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { alice, bob, carol, dan } = t.aliases;
     const { INIT_BALANCE } = t.configs;
 

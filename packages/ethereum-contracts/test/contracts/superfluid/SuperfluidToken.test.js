@@ -14,7 +14,10 @@ const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
 
 contract("SuperfluidToken implementation", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 3));
+    const t = new TestEnvironment(accounts.slice(0, 3), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { admin, alice, bob } = t.aliases;
     const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
 

@@ -18,7 +18,10 @@ const { ZERO_ADDRESS } = constants;
 const TestEnvironment = require("../../TestEnvironment");
 
 contract("SuperToken's ERC20 compliance", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 4));
+    const t = new TestEnvironment(accounts.slice(0, 4), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { alice, bob, carol } = t.aliases;
     const initialSupply = toBN(100);
 

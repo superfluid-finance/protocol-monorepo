@@ -1,16 +1,27 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const TestResolver = artifacts.require("TestResolver");
-const ISuperToken = artifacts.require("ISuperToken");
+
+const loadContracts = require("./loadContracts");
 const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
+ * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
-module.exports = async function(callback, argv) {
+module.exports = async function(
+    callback,
+    argv,
+    { isTruffle, web3Provider, from } = {}
+) {
     try {
         global.web3 = web3;
+
+        const { TestResolver, ISuperToken } = loadContracts({
+            isTruffle,
+            web3Provider: web3Provider || web3.currentProvider,
+            from
+        });
 
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
         const version = process.env.RELEASE_VERSION || "test";
@@ -25,8 +36,10 @@ module.exports = async function(callback, argv) {
 
         global.artifacts = artifacts;
         const sf = new SuperfluidSDK.Framework({
-            isTruffle: true,
-            version
+            isTruffle,
+            web3Provider: web3Provider || web3.currentProvider,
+            version,
+            from
         });
         await sf.initialize();
 
@@ -60,7 +73,7 @@ module.exports = async function(callback, argv) {
         }
         if (doDeploy) {
             console.log("Creating the wrapper...");
-            const superToken = await sf.createERC20Wrapper(tokenInfo);
+            const superToken = await sf.createERC20Wrapper(tokenInfo, { from });
             console.log("Wrapper created at", superToken.address);
             console.log("Resolver setting new address...");
             const testResolver = await TestResolver.at(sf.resolver.address);

@@ -1,0 +1,14 @@
+/data
+/node_modules
+/build
+/coverage.json
+/coverage
+/.env
+/data
+*.ignore.*
+yarn.lock
+.DS_Store
+
+*.env
+
+.vscode/

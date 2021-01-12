@@ -68,8 +68,8 @@ jobs:
               with:
                   name: coverage
                   path: |
-                      coverage/
-                      coverage.json
+                      packages/ethereum-contracts/coverage/
+                      packages/ethereum-contracts/coverage.json
 
     deploy-master-to-testnets:
         name: Deploy master branch to testnets

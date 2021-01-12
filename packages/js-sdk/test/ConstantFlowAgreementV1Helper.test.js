@@ -3,7 +3,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 4));
+    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const { admin, alice, bob, carol } = t.aliases;
 
     let sf;

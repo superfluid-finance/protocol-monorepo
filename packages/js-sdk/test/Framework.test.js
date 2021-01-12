@@ -5,15 +5,23 @@ const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts
 const SuperfluidSDK = require("../src");
 
 contract("Framework class", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 1));
+    const t = new TestEnvironment(accounts.slice(0, 1), { isTruffle: true });
     const { admin } = t.aliases;
 
     before(async () => {
         await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"]);
-        await deployTestToken(t.errorHandler, [":", "fUSDC"]);
-        await deploySuperToken(t.errorHandler, [":", "fDAI"]);
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"]);
+        await deployTestToken(t.errorHandler, [":", "fDAI"], {
+            isTruffle: true
+        });
+        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
+            isTruffle: true
+        });
+        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
+            isTruffle: true
+        });
+        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
+            isTruffle: true
+        });
     });
 
     describe("initialization", () => {
@@ -130,7 +138,9 @@ contract("Framework class", accounts => {
             });
 
             it("failed due to no super token wrapper", async () => {
-                await deployTestToken(t.errorHandler, [":", "SASHIMI"]);
+                await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
+                    from: admin
+                });
                 const sf = new SuperfluidSDK.Framework({
                     web3Provider: web3.currentProvider,
                     tokens: ["SASHIMI"]
@@ -154,7 +164,9 @@ contract("Framework class", accounts => {
         });
 
         it("create new super token", async () => {
-            await deployTestToken(t.errorHandler, [":", "MISO"]);
+            await deployTestToken(t.errorHandler, [":", "MISO"], {
+                from: admin
+            });
             const misoAddress = await sf.resolver.get("tokens.MISO");
             const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
             const superMisoToken = await sf.createERC20Wrapper(misoToken, {

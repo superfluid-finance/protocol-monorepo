@@ -7,7 +7,7 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 contract("ConstantFlowAgreementV1 helper class", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 4));
+    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const {
         admin: adminAddress,
         alice: aliceAddress,

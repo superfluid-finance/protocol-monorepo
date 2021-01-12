@@ -22,7 +22,10 @@ const MAXIMUM_FLOW_RATE = toBN(2)
 const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
 contract("Using ConstantFlowAgreement v1", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 5));
+    const t = new TestEnvironment(accounts.slice(0, 5), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { admin, alice, bob, dan } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
     const { LIQUIDATION_PERIOD } = t.configs;

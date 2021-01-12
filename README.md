@@ -50,7 +50,7 @@ Contributions, issues, and feature suggestions are welcome!
 
 ### Installation
 
-Interested in contributing, or just troubleshooting? Great! Let's get the party started using yarn.
+Interested in contributing, or just troubleshooting? Great! Let's get this party started.
 
 ```bash
 git clone https://github.com/superfluid-finance/ethereum-contracts
@@ -59,34 +59,29 @@ yarn install
 yarn build
 ```
 
-Now you are ready to make changes, run tests, and maybe even `yarn link` your way to a solution :)
+Now you are ready to make changes, run tests, and troubleshoot. If you want to see changes reflected in your own project, we use `rsync` to keep things up to date. I wouldn't waste time trying `npm link` or `yarn link`.
 
-### Testing
-
-Superfluid relies on a persistent 1820 registry contract, so you'll need to make sure its deployed before you can run tests. For this example, we'll deploy the 1820 contract on ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
+If you're editing contracts, start auto-compiling them in `/packages/ethereum-contracts`.
 
 ```bash
-# Start Ganache on 127.0.0.1:8545
-ganache-cli
-
-# Build the contracts + prepare the SDK
-yarn build
-
-# Deploy the 1820 contract
-cd packages/ethereum-contracts
-npx truffle exec scripts/deploy-erc1820.js --network ganache
-
-# Now you can run tests in the specific package
-yarn test
+truffle watch
 ```
+
+Now in your own project, lets auto-sync the superfluid packages. See `/examples` for example projects using this method.
+
+```bash
+nodemon --watch ../path/to/superfluid/packages -ext js,ts,tsx,sol --exec rsync -rtvu --delete ../path/to/superfluid/packages ./node_modules/@superfluid-finance/
+```
+
+### Testing
 
 See the individual packages for more specific details about testing.
 
 ### Linting
 
-Javascripts are linted using [eslint](https://eslint.org/).
+Javascript is linted using [eslint](https://eslint.org/).
 
-Solidity are linted using [solhint](https://protofire.github.io/solhint/)
+Solidity is linted using [solhint](https://protofire.github.io/solhint/)
 
 ### Code Coverage
 

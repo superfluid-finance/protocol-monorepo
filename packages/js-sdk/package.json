@@ -1,7 +1,7 @@
 {
     "name": "@superfluid-finance/js-sdk",
     "version": "0.2.0-latest",
-    "description": " Ethereum contracts implementation for the Superfluid Protocol",
+    "description": "Javascript SDK for building with Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "main": "src/index.js",
@@ -10,14 +10,14 @@
         "src/**/*.js"
     ],
     "scripts": {
+        "build": "scripts/build-abi-js.sh",
         "test": "truffle test",
         "lint": "run-s lint:*",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
-        "lint:focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
-        "focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
+        "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
-        "pre-commit:focused-tests": "yarn lint:focused-tests"
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests"
     },
     "lint-staged": {
         "**/*.+(js|jsx|ts|tsx)": [

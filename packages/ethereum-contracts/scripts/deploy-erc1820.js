@@ -3,15 +3,16 @@ const assert = require("assert").strict;
 
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
-
+const ERC1820Registry = require("./ERC1820Registry.json");
 const { hasCode } = require("./utils");
 
 /**
  * @dev Deploy ERC1820 to the network.
+ * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */
-module.exports = async function(callback) {
+module.exports = async function(callback, { from }) {
     global.web3 = web3;
 
     try {
@@ -19,8 +20,7 @@ module.exports = async function(callback) {
             nonce: 0,
             gasPrice: 100000000000,
             value: 0,
-            data:
-                "0x" + require("../src/introspection/ERC1820Registry.json").bin,
+            data: "0x" + ERC1820Registry.bin,
             gasLimit: 800000,
             v: 27,
             r:
@@ -53,7 +53,7 @@ module.exports = async function(callback) {
         console.log("Checking ERC1820 deployment at", res.contractAddr);
         if (!(await hasCode(res.contractAddr))) {
             console.log("Deploying...");
-            const account = (await web3.eth.getAccounts())[0];
+            const account = from || (await web3.eth.getAccounts())[0];
             console.log("Step 1: send ETH");
             await web3.eth.sendTransaction({
                 from: account,

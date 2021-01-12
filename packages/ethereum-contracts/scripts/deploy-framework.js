@@ -1,24 +1,15 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const deployERC1820 = require("../scripts/deploy-erc1820");
 
-const TestResolver = artifacts.require("TestResolver");
-const Superfluid = artifacts.require("Superfluid");
-const SuperfluidMock = artifacts.require("SuperfluidMock");
-const SuperTokenFactory = artifacts.require("SuperTokenFactory");
-const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
-const TestGovernance = artifacts.require("TestGovernance");
-const ISuperfluidGovernance = artifacts.require("ISuperfluidGovernance");
-const Proxy = artifacts.require("UUPSProxy");
-const Proxiable = artifacts.require("UUPSProxiable");
-const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
-const InstantDistributionAgreementV1 = artifacts.require(
-    "InstantDistributionAgreementV1"
-);
-
+const loadContracts = require("./loadContracts");
 const { ZERO_ADDRESS, hasCode, codeChanged, isProxiable } = require("./utils");
 
 let reset;
 let testResolver;
+
+// TODO: add check about whether 1820 is deployed, and surface error to user.
+// TODO: Add 1820 deployment here, and remove migrations
 
 async function deployAndRegisterContractIf(
     Contract,
@@ -69,15 +60,41 @@ async function deployNewLogicContractIfNew(
  * @param newTestResolver Force to create a new resolver
  * @param useMocks Use mock contracts instead
  * @param nonUpgradable Deploy contracts configured to be non-upgradable
+ * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
 module.exports = async function(
     callback,
-    { newTestResolver, useMocks, nonUpgradable } = {}
+    {
+        newTestResolver,
+        useMocks,
+        nonUpgradable,
+        isTruffle,
+        web3Provider,
+        from
+    } = {}
 ) {
     try {
         global.web3 = web3;
+        const {
+            TestResolver,
+            Superfluid,
+            SuperfluidMock,
+            SuperTokenFactory,
+            SuperTokenFactoryMock,
+            TestGovernance,
+            ISuperfluidGovernance,
+            UUPSProxy,
+            UUPSProxiable,
+            ConstantFlowAgreementV1,
+            InstantDistributionAgreementV1
+        } = loadContracts({
+            isTruffle,
+            useMocks,
+            web3Provider: web3Provider || web3.currentProvider,
+            from
+        });
 
         const CFAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
@@ -101,6 +118,8 @@ module.exports = async function(
         if (nonUpgradable)
             console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
 
+        await deployERC1820(() => null, { from });
+
         const config = SuperfluidSDK.getConfig(chainId);
 
         if (!newTestResolver && config.resolverAddress) {
@@ -123,7 +142,8 @@ module.exports = async function(
                     accounts[0], // rewardAddress
                     3600 // liquidationPeriod
                 );
-            }
+            },
+            accounts
         );
 
         // deploy new superfluid host contract
@@ -143,7 +163,7 @@ module.exports = async function(
                 );
                 if (!nonUpgradable) {
                     const proxy = await web3tx(
-                        Proxy.new,
+                        UUPSProxy.new,
                         "Create Superfluid proxy"
                     )();
                     await web3tx(
@@ -172,7 +192,8 @@ module.exports = async function(
                     }
                 }
                 return superfluid;
-            }
+            },
+            accounts
         );
 
         // replace with new governance
@@ -238,7 +259,9 @@ module.exports = async function(
                 SuperfluidLogic,
                 await superfluid.getCodeAddress(),
                 async () => {
-                    if (!(await isProxiable(Proxiable, superfluid.address))) {
+                    if (
+                        !(await isProxiable(UUPSProxiable, superfluid.address))
+                    ) {
                         throw new Error("Superfluid is non-upgradable");
                     }
                     const superfluidLogic = await web3tx(
@@ -253,7 +276,7 @@ module.exports = async function(
             const cfaNewLogicAddress = await deployNewLogicContractIfNew(
                 ConstantFlowAgreementV1,
                 await (
-                    await Proxiable.at(
+                    await UUPSProxiable.at(
                         await superfluid.getAgreementClass.call(CFAv1_TYPE)
                     )
                 ).getCodeAddress(),
@@ -266,7 +289,7 @@ module.exports = async function(
             const idaNewLogicAddress = await deployNewLogicContractIfNew(
                 InstantDistributionAgreementV1,
                 await (
-                    await Proxiable.at(
+                    await UUPSProxiable.at(
                         await superfluid.getAgreementClass.call(IDAv1_TYPE)
                     )
                 ).getCodeAddress(),

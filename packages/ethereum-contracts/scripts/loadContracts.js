@@ -29,7 +29,7 @@ const contractNames = [
     "InstantDistributionAgreementV1"
 ];
 
-const loadContracts = ({ isTruffle, web3Provider }) => {
+const loadContracts = ({ isTruffle, web3Provider, from }) => {
     try {
         let contracts = {};
         // if (!isTruffle) {
@@ -51,13 +51,12 @@ const loadContracts = ({ isTruffle, web3Provider }) => {
                         directoryPath,
                         fileName
                     ));
-                    // console.log(name);
-                    // console.log(fileName);
                     const c = (contracts[name] = TruffleContract(
                         builtContract,
                         name
                     ));
                     c.setProvider(web3Provider);
+                    from && c.defaults({ from });
                 });
             } catch (e) {
                 throw Error(

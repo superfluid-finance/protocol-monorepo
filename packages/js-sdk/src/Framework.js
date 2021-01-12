@@ -35,18 +35,19 @@ module.exports = class Framework {
         resolverAddress,
         tokens
     }) {
-        const contractNames = require("./contracts.json");
+        // TODO: remove this line if unnecessary
+        // const contractNames = require("./contracts.json");
 
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;
-        console.log({ isTruffle });
         this.web3 = isTruffle ? global.web3 : new Web3(web3Provider);
         this._tokens = tokens;
+
         // load contracts
         this.contracts = loadContracts({
             isTruffle,
-            web3Provider: web3.currentProvider
+            web3Provider
         });
     }
 

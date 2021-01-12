@@ -11,14 +11,15 @@ const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 module.exports = async function(
     callback,
     argv,
-    { isTruffle, web3Provider } = {}
+    { isTruffle, web3Provider, from } = {}
 ) {
     try {
         global.web3 = web3;
 
         const { TestResolver, ISuperToken } = loadContracts({
             isTruffle,
-            web3Provider: web3Provider || web3.currentProvider
+            web3Provider: web3Provider || web3.currentProvider,
+            from
         });
 
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
@@ -34,8 +35,10 @@ module.exports = async function(
 
         global.artifacts = artifacts;
         const sf = new SuperfluidSDK.Framework({
-            isTruffle: true,
-            version
+            isTruffle,
+            web3Provider: web3Provider || web3.currentProvider,
+            version,
+            from
         });
         await sf.initialize();
 
@@ -69,7 +72,7 @@ module.exports = async function(
         }
         if (doDeploy) {
             console.log("Creating the wrapper...");
-            const superToken = await sf.createERC20Wrapper(tokenInfo);
+            const superToken = await sf.createERC20Wrapper(tokenInfo, { from });
             console.log("Wrapper created at", superToken.address);
             console.log("Resolver setting new address...");
             const testResolver = await TestResolver.at(sf.resolver.address);

@@ -10,6 +10,7 @@ const Auction = artifacts.require("Auction");
 
 const traveler = require("ganache-time-traveler");
 const TEST_TRAVEL_TIME = 3600 * 2; // 1 hours
+// TODO: remove version
 const version = "0.1.2-preview-20201014";
 
 contract("Auction", accounts => {
@@ -37,15 +38,20 @@ contract("Auction", accounts => {
     let wallet;
     const markup = 110000;
     var minStep;
+
     beforeEach(async function() {
-        await deployFramework(errorHandler);
+        const web3Provider = web3.currentProvider;
+        await deployFramework(errorHandler, { from: admin });
         sf = new SuperfluidSDK.Framework({
-            web3Provider: web3.currentProvider
+            web3Provider
             // version
         });
         await sf.initialize();
 
-        await deployTestToken(errorHandler, [":", "fDAI"]);
+        await deployTestToken(errorHandler, [":", "fDAI"], {
+            web3Provider,
+            from: admin
+        });
         const daiAddress = await sf.resolver.get("tokens.fDAI");
         dai = await sf.contracts.TestToken.at(daiAddress);
         for (let i = 0; i < accounts.length; ++i) {
@@ -58,10 +64,15 @@ contract("Auction", accounts => {
 
         console.log(sf.host.address);
 
-        await deployERC1820(errorHandler);
-        await deploySuperToken(errorHandler, [":", "fDAI"]);
+        await deployERC1820(errorHandler, {
+            web3Provider
+        });
+        await deploySuperToken(errorHandler, [":", "fDAI"], {
+            web3Provider,
+            from: admin
+        });
 
-        const daixWrapper = await sf.getERC20Wrapper(dai);
+        const daixWrapper = await sf.host.getERC20Wrapper(dai);
         daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
 
         var testUnderlaying = await daix.getUnderlayingToken();

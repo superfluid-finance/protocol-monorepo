@@ -12,14 +12,14 @@ const { parseColonArgs } = require("./utils");
 module.exports = async function(
     callback,
     argv,
-    { isTruffle, web3Provider } = {}
+    { isTruffle, web3Provider, from } = {}
 ) {
     try {
         global.web3 = web3;
-
         const { TestResolver, TestToken } = loadContracts({
             isTruffle,
-            web3Provider: web3Provider || web3.currentProvider
+            web3Provider: web3Provider || web3.currentProvider,
+            from
         });
 
         const reset = !!process.env.RESET_TOKEN;

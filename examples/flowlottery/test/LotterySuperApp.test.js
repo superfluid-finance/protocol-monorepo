@@ -1,8 +1,4 @@
-const {
-    web3tx,
-    toWad,
-    toBN,
-} = require("@decentral.ee/web3-helpers");
+const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
@@ -10,13 +6,13 @@ const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts
 const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
 const LotterySuperApp = artifacts.require("LotterySuperApp");
 
-
 contract("LotterySuperApp", accounts => {
+    const errorHandler = err => {
+        if (err) throw err;
+    };
 
-    const errorHandler = err => { if (err) throw err; };
-
-    const ZERO_ADDRESS = "0x"+"0".repeat(40);
-    const MINIMUM_GAME_FLOW_RATE = toWad(10).div(toBN(3600*24*30));
+    const ZERO_ADDRESS = "0x" + "0".repeat(40);
+    const MINIMUM_GAME_FLOW_RATE = toWad(10).div(toBN(3600 * 24 * 30));
 
     accounts = accounts.slice(0, 4);
     const [admin, bob, carol, dan] = accounts;
@@ -26,14 +22,18 @@ contract("LotterySuperApp", accounts => {
     let daix;
     let app;
 
-    beforeEach(async function () {
+    beforeEach(async function() {
         await deployFramework(errorHandler);
 
-        sf = new SuperfluidSDK.Framework({ web3Provider: web3.currentProvider });
+        sf = new SuperfluidSDK.Framework({
+            web3Provider: web3.currentProvider
+        });
         await sf.initialize();
 
         if (!dai) {
-            await deployTestToken(errorHandler, [":", "fDAI"]);
+            await deployTestToken(errorHandler, [":", "fDAI"], {
+                web3Provider: web3.currentProvider
+            });
             const daiAddress = await sf.resolver.get("tokens.fDAI");
             dai = await sf.contracts.TestToken.at(daiAddress);
             for (let i = 0; i < accounts.length; ++i) {
@@ -45,7 +45,9 @@ contract("LotterySuperApp", accounts => {
             }
         }
 
-        await deploySuperToken(errorHandler, [":", "fDAI"]);
+        await deploySuperToken(errorHandler, [":", "fDAI"], {
+            web3Provider: web3.currentProvider
+        });
 
         const daixWrapper = await sf.getERC20Wrapper(dai);
         daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
@@ -57,16 +59,21 @@ contract("LotterySuperApp", accounts => {
         );
 
         for (let i = 0; i < accounts.length; ++i) {
-            await web3tx(dai.approve, `Account ${i} approves daix`)(daix.address, toWad(100), { from: accounts[i] });
+            await web3tx(
+                dai.approve,
+                `Account ${i} approves daix`
+            )(daix.address, toWad(100), { from: accounts[i] });
         }
-    });   
+    });
 
     async function printRealtimeBalance(label, account) {
         const b = await daix.realtimeBalanceOfNow.call(account);
-        console.log(`${label} realtime balance`,
+        console.log(
+            `${label} realtime balance`,
             b.availableBalance.toString(),
             b.deposit.toString(),
-            b.owedDeposit.toString());
+            b.owedDeposit.toString()
+        );
         return b;
     }
 
@@ -77,14 +84,16 @@ contract("LotterySuperApp", accounts => {
                 daix.address,
                 web3.eth.abi.encodeParameters(
                     ["uint256"],
-                    [toWad(upgradeAmount).toString()])
+                    [toWad(upgradeAmount).toString()]
+                )
             ],
             [
                 0, // approve the ticket fee
                 daix.address,
                 web3.eth.abi.encodeParameters(
                     ["address", "uint256"],
-                    [app.address, toWad("1").toString()])
+                    [app.address, toWad("1").toString()]
+                )
             ],
             [
                 5, // callAppAction to participate
@@ -94,13 +103,15 @@ contract("LotterySuperApp", accounts => {
             [
                 4, // create constant flow (10/mo)
                 sf.agreements.cfa.address,
-                sf.agreements.cfa.contract.methods.createFlow(
-                    daix.address,
-                    app.address,
-                    MINIMUM_GAME_FLOW_RATE.toString(),
-                    "0x"
-                ).encodeABI()
-            ]               
+                sf.agreements.cfa.contract.methods
+                    .createFlow(
+                        daix.address,
+                        app.address,
+                        MINIMUM_GAME_FLOW_RATE.toString(),
+                        "0x"
+                    )
+                    .encodeABI()
+            ]
         ];
     }
 
@@ -108,59 +119,68 @@ contract("LotterySuperApp", accounts => {
         let appRealtimeBalance;
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
         // bob is the first player
-        await web3tx(sf.host.batchCall, "Bob joining the game")(
-            createPlayBatchCall(100),
-            { from: bob }
+        await web3tx(
+            sf.host.batchCall,
+            "Bob joining the game"
+        )(createPlayBatchCall(100), { from: bob });
+        await expectRevert(
+            sf.host.batchCall(createPlayBatchCall(0), { from: bob }),
+            "Flow already exist"
         );
-        await expectRevert(sf.host.batchCall(
-            createPlayBatchCall(0),
-            { from: bob }
-        ), "Flow already exist");
         assert.equal((await app.currentWinner.call()).player, bob);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         // bob quits the game
         await web3tx(sf.host.callAgreement, "Bob quiting the game")(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                bob,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, bob, app.address, "0x")
+                .encodeABI(),
             { from: bob }
         );
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         await printRealtimeBalance("Carol", carol);
         // bob is the only player again
-        await web3tx(sf.host.batchCall, "Bob joining the game again")(
-            createPlayBatchCall(),
-            { from: bob }
-        );
+        await web3tx(
+            sf.host.batchCall,
+            "Bob joining the game again"
+        )(createPlayBatchCall(), { from: bob });
         assert.equal((await app.currentWinner.call()).player, bob);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
-    })
+    });
 
     it("Happy game case", async () => {
         let appRealtimeBalance;
@@ -169,80 +189,98 @@ contract("LotterySuperApp", accounts => {
         //
         // Round 1: +bob, +carol, -bob, - carol
         //
-        await web3tx(sf.host.batchCall, "Bob joining the game")(
-            createPlayBatchCall(100),
-            { from: bob }
-        );
+        await web3tx(
+            sf.host.batchCall,
+            "Bob joining the game"
+        )(createPlayBatchCall(100), { from: bob });
         assert.equal((await app.currentWinner.call()).player, bob);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         // carol enters the game
-        await web3tx(sf.host.batchCall, "Carol joining the game too")(
-            createPlayBatchCall(100),
-            { from: carol }
-        );
+        await web3tx(
+            sf.host.batchCall,
+            "Carol joining the game too"
+        )(createPlayBatchCall(100), { from: carol });
         let winner = (await app.currentWinner.call()).player;
         console.log("Winner", winner);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, winner)).toString(),
-            MINIMUM_GAME_FLOW_RATE.toString());
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, winner)
+            ).toString(),
+            MINIMUM_GAME_FLOW_RATE.toString()
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         await printRealtimeBalance("Carol", carol);
         // bob quits the game
         await web3tx(sf.host.callAgreement, "Bob quiting the game")(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                bob,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, bob, app.address, "0x")
+                .encodeABI(),
             { from: bob }
         );
         assert.equal((await app.currentWinner.call()).player, carol);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, carol)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, carol)
+            ).toString(),
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         await printRealtimeBalance("Carol", carol);
         // carol quits the game
         await web3tx(sf.host.callAgreement, "Carol quiting the game too")(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                carol,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, carol, app.address, "0x")
+                .encodeABI(),
             { from: carol }
         );
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, carol)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, carol)
+            ).toString(),
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         await printRealtimeBalance("Carol", carol);
@@ -250,128 +288,130 @@ contract("LotterySuperApp", accounts => {
         // Round 2: +bob, +carol, -carol, -bob
         //
         // bob join the game again
-        await web3tx(sf.host.batchCall, "Bob joining the game again")(
-            createPlayBatchCall(),
-            { from: bob }
-        );
+        await web3tx(
+            sf.host.batchCall,
+            "Bob joining the game again"
+        )(createPlayBatchCall(), { from: bob });
         assert.equal((await app.currentWinner.call()).player, bob);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, carol)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, carol)
+            ).toString(),
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         await printRealtimeBalance("Carol", carol);
         // carol join the game again too
-        await web3tx(sf.host.batchCall, "Carol joining the game again too")(
-            createPlayBatchCall(),
-            { from: carol }
-        );
-        await web3tx(sf.host.callAgreement, "Carol quiting the game first this time")(
+        await web3tx(
+            sf.host.batchCall,
+            "Carol joining the game again too"
+        )(createPlayBatchCall(), { from: carol });
+        await web3tx(
+            sf.host.callAgreement,
+            "Carol quiting the game first this time"
+        )(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                carol,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, carol, app.address, "0x")
+                .encodeABI(),
             { from: carol }
         );
         assert.equal((await app.currentWinner.call()).player, bob);
         await web3tx(sf.host.callAgreement, "Bob quiting the game too")(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                bob,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, bob, app.address, "0x")
+                .encodeABI(),
             { from: bob }
         );
         assert.equal((await app.currentWinner.call()).player, ZERO_ADDRESS);
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, app.address)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, app.address)
+            ).toString(),
+            "0"
+        );
         assert.equal(
             (await sf.agreements.cfa.getNetFlow(daix.address, bob)).toString(),
-            "0");
+            "0"
+        );
         assert.equal(
-            (await sf.agreements.cfa.getNetFlow(daix.address, carol)).toString(),
-            "0");
+            (
+                await sf.agreements.cfa.getNetFlow(daix.address, carol)
+            ).toString(),
+            "0"
+        );
         appRealtimeBalance = await printRealtimeBalance("App", app.address);
         await printRealtimeBalance("Bob", bob);
         await printRealtimeBalance("Carol", carol);
         //
         // Round 3: +carol, +bob, -bob, - carol
         //
-        await web3tx(sf.host.batchCall, "Carol joining the game first")(
-            createPlayBatchCall(),
-            { from: carol }
-        );
-        await web3tx(sf.host.batchCall, "Bob joining the game again")(
-            createPlayBatchCall(),
-            { from: bob }
-        );
+        await web3tx(
+            sf.host.batchCall,
+            "Carol joining the game first"
+        )(createPlayBatchCall(), { from: carol });
+        await web3tx(
+            sf.host.batchCall,
+            "Bob joining the game again"
+        )(createPlayBatchCall(), { from: bob });
         await web3tx(sf.host.callAgreement, "Bob quiting the game")(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                bob,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, bob, app.address, "0x")
+                .encodeABI(),
             { from: bob }
         );
         await web3tx(sf.host.callAgreement, "Carol quiting the game")(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(
-                daix.address,
-                carol,
-                app.address,
-                "0x"
-            ).encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, carol, app.address, "0x")
+                .encodeABI(),
             { from: carol }
         );
-    })
+    });
 
     it("Test randomness", async () => {
         const counters = {};
         counters[carol] = { name: "carol", count: 0 };
         counters[bob] = { name: "bob", count: 0 };
         counters[dan] = { name: "dan", count: 0 };
-        await web3tx(sf.host.batchCall, "Carol joining the game")(
-            createPlayBatchCall(100),
-            { from: carol }
-        );
-        await web3tx(sf.host.batchCall, "Bob joining the game too")(
-            createPlayBatchCall(100),
-            { from: bob }
-        );
-        await web3tx(sf.host.batchCall, "Dan joining the game too")(
-            createPlayBatchCall(100),
-            { from: dan }
-        );
+        await web3tx(
+            sf.host.batchCall,
+            "Carol joining the game"
+        )(createPlayBatchCall(100), { from: carol });
+        await web3tx(
+            sf.host.batchCall,
+            "Bob joining the game too"
+        )(createPlayBatchCall(100), { from: bob });
+        await web3tx(
+            sf.host.batchCall,
+            "Dan joining the game too"
+        )(createPlayBatchCall(100), { from: dan });
         for (let i = 0; i < 20; ++i) {
             counters[(await app.currentWinner.call()).player].count++;
             await web3tx(sf.host.callAgreement, "Dan quiting the game")(
                 sf.agreements.cfa.address,
-                sf.agreements.cfa.contract.methods.deleteFlow(
-                    daix.address,
-                    dan,
-                    app.address,
-                    "0x"
-                ).encodeABI(),
+                sf.agreements.cfa.contract.methods
+                    .deleteFlow(daix.address, dan, app.address, "0x")
+                    .encodeABI(),
                 { from: dan }
             );
-            await web3tx(sf.host.batchCall, "Dan joining the game too")(
-                createPlayBatchCall(),
-                { from: dan }
-            );
+            await web3tx(
+                sf.host.batchCall,
+                "Dan joining the game too"
+            )(createPlayBatchCall(), { from: dan });
         }
         console.log("Winning counters", counters);
         assert.isTrue(counters[bob].count > 0);
@@ -379,4 +419,3 @@ contract("LotterySuperApp", accounts => {
         assert.isTrue(counters[dan].count > 0);
     });
 });
-

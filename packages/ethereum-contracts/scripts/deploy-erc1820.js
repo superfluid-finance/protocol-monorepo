@@ -8,6 +8,7 @@ const { hasCode } = require("./utils");
 
 /**
  * @dev Deploy ERC1820 to the network.
+ * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */

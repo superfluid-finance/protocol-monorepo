@@ -5,6 +5,7 @@ const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
+ * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */

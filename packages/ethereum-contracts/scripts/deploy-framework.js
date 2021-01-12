@@ -60,6 +60,7 @@ async function deployNewLogicContractIfNew(
  * @param newTestResolver Force to create a new resolver
  * @param useMocks Use mock contracts instead
  * @param nonUpgradable Deploy contracts configured to be non-upgradable
+ * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */

@@ -13,4 +13,4 @@ CONTRACTS=( $(jq -r .[] ./src/contracts.json) )
         echo "    $i: $(jq -c '.abi' ../ethereum-contracts/build/contracts/$i.json),"
     done
     echo "};"
-} > scripts/abi.js
+} > src/abi.js

@@ -28,7 +28,7 @@ contract("LotterySuperApp", accounts => {
         await deployFramework(errorHandler, { from: admin });
 
         sf = new SuperfluidSDK.Framework({
-            web3Providerr
+            web3Provider
         });
         await sf.initialize();
 

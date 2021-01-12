@@ -11,7 +11,7 @@ const { hasCode } = require("./utils");
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */
-module.exports = async function(callback) {
+module.exports = async function(callback, { from }) {
     global.web3 = web3;
 
     try {
@@ -52,7 +52,7 @@ module.exports = async function(callback) {
         console.log("Checking ERC1820 deployment at", res.contractAddr);
         if (!(await hasCode(res.contractAddr))) {
             console.log("Deploying...");
-            const account = (await web3.eth.getAccounts())[0];
+            const account = from || (await web3.eth.getAccounts())[0];
             console.log("Step 1: send ETH");
             await web3.eth.sendTransaction({
                 from: account,

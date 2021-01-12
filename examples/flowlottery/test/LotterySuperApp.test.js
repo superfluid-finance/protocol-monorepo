@@ -3,7 +3,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const LotterySuperApp = artifacts.require("LotterySuperApp");
 
 contract("LotterySuperApp", accounts => {

@@ -1,5 +1,6 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const deployERC1820 = require("../scripts/deploy-erc1820");
 
 const loadContracts = require("./loadContracts");
 const { ZERO_ADDRESS, hasCode, codeChanged, isProxiable } = require("./utils");
@@ -14,8 +15,7 @@ async function deployAndRegisterContractIf(
     Contract,
     resolverKey,
     cond,
-    deployFunc,
-    accounts
+    deployFunc
 ) {
     let contractDeployed;
     const contractName = Contract.contractName;
@@ -115,6 +115,8 @@ module.exports = async function(
         if (useMocks) console.log("**** !ATTN! USING MOCKS CONTRACTS ****");
         if (nonUpgradable)
             console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
+
+        await deployERC1820(() => null, { from });
 
         const config = SuperfluidSDK.getConfig(chainId);
 

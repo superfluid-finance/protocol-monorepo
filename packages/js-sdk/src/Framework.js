@@ -1,5 +1,4 @@
 const Web3 = require("web3");
-const TruffleContract = require("@truffle/contract");
 
 const loadContracts = require("@superfluid-finance/ethereum-contracts/scripts/loadContracts");
 
@@ -7,7 +6,6 @@ const getConfig = require("./getConfig");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
 const User = require("./User");
-const SuperfluidABI = require("../src/abi");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 

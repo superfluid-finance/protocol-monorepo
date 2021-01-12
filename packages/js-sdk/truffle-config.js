@@ -8,9 +8,5 @@ module.exports = {
     contracts_build_directory: path.join(
         __dirname,
         "../ethereum-contracts/build/contracts"
-    ),
-    migrations_directory: path.join(
-        __dirname,
-        "../ethereum-contracts/migrations"
     )
 };

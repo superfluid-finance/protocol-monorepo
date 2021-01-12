@@ -2,7 +2,7 @@
     "name": "@superfluid-finance/js-sdk",
     "version": "0.2.0-latest",
     "description": "Javascript SDK for building with Superfluid Protocol",
-    "repository": "github:superfluid-finance/superfluid-monorepo",
+    "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "main": "src/index.js",
     "files": [
@@ -33,5 +33,8 @@
         "@openzeppelin/test-helpers": "0.5.10",
         "chai-as-promised": "7.1.1",
         "truffle": "5.1.49"
+    },
+    "publishConfig": {
+        "registry": "https://npm.pkg.github.com/"
     }
 }

@@ -87,7 +87,7 @@ jobs:
                 network: [goerli, rinkeby, ropsten, mumbai]
 
         # only deploy for master branch push
-        if: github.ref == 'refs/heads/monorepo-reorg'
+        if: github.ref == 'refs/heads/master'
 
         steps:
             - uses: actions/checkout@v2
@@ -109,13 +109,13 @@ jobs:
                   npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
               env:
                   RELEASE_VERSION: master
-                  GOERLI_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+                  GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-                  RINKEBY_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+                  RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
-                  ROPSTEN_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+                  ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
-                  MUMBAI_MNEMONIC: ${{ secrets.SUPERFLUID_ADMIN_MNEMONIC  }}
+                  MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
 
     npm-publish-master:
@@ -131,7 +131,7 @@ jobs:
             GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
         # only publish npm package for master branch push
-        if: github.ref == 'refs/heads/monorepo-reorg'
+        if: github.ref == 'refs/heads/master'
 
         steps:
             - uses: actions/checkout@v2
@@ -148,5 +148,7 @@ jobs:
 
             - name: Publish package
               run: |
+                  cp .npmrc.template packages/ethereum-contracts/.npmrc
                   .github/workflows/npm-publish.sh packages/ethereum-contracts
+                  cp .npmrc.template packages/js-sdk/.npmrc
                   .github/workflows/npm-publish.sh packages/js-sdk

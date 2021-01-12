@@ -45,7 +45,11 @@ There are two major test suite:
 yarn test
 ```
 
-If you're looking to combine contracts here with some in your repo, then there is one extra step you must pay attention to. Superfluid relies on a persistent 1820 registry contract, which must be deployed before you can interact with the protocol. Here's an example for deploying the 1820 contract to a local Ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
+If you're looking to use the contracts here with your own, check out the apps in `/examples`.
+
+One thing to keep in mind is that Superfluid relies on a persistent 1820 registry contract. This must be deployed before you can interact with the protocol. If you follow the examples and tutorials, you don't need to worry about it.
+
+In case your curious, or really hacking away, here is an example for deploying the 1820 contract to a local Ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
 
 ```bash
 # Start Ganache on 127.0.0.1:8545

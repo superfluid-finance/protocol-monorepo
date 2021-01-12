@@ -2,7 +2,7 @@
     "name": "@superfluid-finance/protocol-monorepo",
     "private": true,
     "description": "Superfluid Protocol monorepo",
-    "repository": "github:superfluid-finance/superfluid-monorepo",
+    "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "scripts": {
         "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",

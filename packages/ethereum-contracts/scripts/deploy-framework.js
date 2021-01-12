@@ -91,6 +91,7 @@ module.exports = async function(
             InstantDistributionAgreementV1
         } = loadContracts({
             isTruffle,
+            useMocks,
             web3Provider: web3Provider || web3.currentProvider,
             from
         });

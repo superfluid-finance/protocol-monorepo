@@ -6,8 +6,8 @@
     "license": "MIT",
     "scripts": {
         "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
-        "build": "yarn workspace @superfluid-finance/ethereum-contracts build",
-        "test": "yarn workspaces run test ",
+        "build": "yarn workspaces run build",
+        "test": "yarn workspaces run test",
         "lint": "yarn workspaces run lint"
     },
     "devDependencies": {
@@ -28,7 +28,8 @@
     },
     "workspaces": {
         "packages": [
-            "packages/*"
+            "packages/ethereum-contracts",
+            "packages/js-sdk"
         ]
     },
     "publishConfig": {

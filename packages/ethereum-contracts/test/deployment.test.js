@@ -9,7 +9,7 @@ const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers").constants;
 
-contract("deployment test (outside truffle environment)", () => {
+contract("deployment test (outside truffle environment)", accounts => {
     const errorHandler = err => {
         if (err) throw err;
     };
@@ -90,7 +90,7 @@ contract("deployment test (outside truffle environment)", () => {
     });
 
     it("Superfluid fresh deployment", async () => {
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { from: accounts[0] });
         const s = await getSuperfluidAddresses();
         assert.notEqual(
             s.superfluidCode,
@@ -138,11 +138,11 @@ contract("deployment test (outside truffle environment)", () => {
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
 
         console.log("==== First deployment");
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { from: accounts[0] });
         const s1 = await getSuperfluidAddresses();
 
         console.log("==== Deploy again without logic contract changes");
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { from: accounts[0] });
         const s2 = await getSuperfluidAddresses();
         assert.equal(
             s1.superfluid.address,
@@ -175,7 +175,7 @@ contract("deployment test (outside truffle environment)", () => {
 
         console.log("==== Reset all");
         process.env.RESET = 1;
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { from: accounts[0] });
         const s3 = await getSuperfluidAddresses();
         assert.notEqual(
             s3.superfluidCode,
@@ -210,7 +210,10 @@ contract("deployment test (outside truffle environment)", () => {
 
         console.log("==== Deploy again with mock logic contract");
         delete process.env.RESET;
-        await deployFramework(errorHandler, { useMocks: true });
+        await deployFramework(errorHandler, {
+            from: accounts[0],
+            useMocks: true
+        });
         const s4 = await getSuperfluidAddresses();
         assert.equal(
             s3.superfluid.address,
@@ -249,23 +252,29 @@ contract("deployment test (outside truffle environment)", () => {
         )();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { from: accounts[0] });
 
         // first deployment
         assert.equal(await testResolver.get("tokens.TEST7262"), ZERO_ADDRESS);
-        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        await deployTestToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
         const address1 = await testResolver.get("tokens.TEST7262");
         assert.notEqual(address1, ZERO_ADDRESS);
 
         // second deployment
-        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        await deployTestToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
         const address2 = await testResolver.get("tokens.TEST7262");
         assert.equal(address2, address1);
 
         // new deployment after framework reset
         process.env.RESET = 1;
-        await deployFramework(errorHandler);
-        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployTestToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
         const address3 = await testResolver.get("tokens.TEST7262");
         assert.equal(address3, address2);
     });
@@ -277,29 +286,37 @@ contract("deployment test (outside truffle environment)", () => {
         )();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        await deployFramework(errorHandler);
+        await deployFramework(errorHandler, { from: accounts[0] });
 
         // deploy test token first
-        await deployTestToken(errorHandler, [":", "TEST7262"]);
+        await deployTestToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
 
         // first deployment
         assert.equal(
             await testResolver.get("supertokens.test.TEST7262x"),
             ZERO_ADDRESS
         );
-        await deploySuperToken(errorHandler, [":", "TEST7262"]);
+        await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
         const address1 = await testResolver.get("supertokens.test.TEST7262x");
         assert.notEqual(address1, ZERO_ADDRESS);
 
         // second deployment
-        await deploySuperToken(errorHandler, [":", "TEST7262"]);
+        await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
         const address2 = await testResolver.get("supertokens.test.TEST7262x");
         assert.equal(address1, address2);
 
         // new deployment after framework reset
         process.env.RESET = 1;
-        await deployFramework(errorHandler);
-        await deploySuperToken(errorHandler, [":", "TEST7262"]);
+        await deployFramework(errorHandler, { from: accounts[0] });
+        await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
         const address3 = await testResolver.get("supertokens.test.TEST7262x");
         assert.notEqual(address3, address2);
     });

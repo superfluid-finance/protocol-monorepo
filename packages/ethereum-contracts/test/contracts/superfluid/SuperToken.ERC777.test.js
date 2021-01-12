@@ -19,7 +19,10 @@ const {
 } = require("./ERC777.behavior");
 
 contract("SuperToken's ERC777 implementation", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 6));
+    const t = new TestEnvironment(accounts.slice(0, 6), {
+        isTruffle: true,
+        useMocks: true
+    });
     const [
         ,
         holder,

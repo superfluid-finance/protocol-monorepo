@@ -11,7 +11,10 @@ const TestEnvironment = require("../../TestEnvironment");
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
 contract("Superfluid Host Contract", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 3));
+    const t = new TestEnvironment(accounts.slice(0, 3), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 

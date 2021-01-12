@@ -4,13 +4,13 @@ cd "$(dirname "$0")/.."
 
 which jq &>/dev/null || { echo "Install jq utility!" && exit 1; }
 
-CONTRACTS=( $(jq -r .[] ../js-sdk/src/contracts.json) )
+CONTRACTS=( $(jq -r .[] ./src/contracts.json) )
 
 {
     echo "if (typeof module === \"undefined\") module = {};"
     echo "Superfluid_ABI = module.exports = {"
     for i in "${CONTRACTS[@]}";do
-        echo "    $i: $(jq -c '.abi' build/contracts/$i.json),"
+        echo "    $i: $(jq -c '.abi' ../ethereum-contracts/build/contracts/$i.json),"
     done
     echo "};"
-} > build/abi.js
+} > scripts/abi.js

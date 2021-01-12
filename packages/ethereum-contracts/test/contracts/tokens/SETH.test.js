@@ -9,7 +9,10 @@ const SETHProxy = artifacts.require("SETHProxy");
 const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
 contract("Super ETH (SETH) Contract", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 2));
+    const t = new TestEnvironment(accounts.slice(0, 2), {
+        isTruffle: true,
+        useMocks: true
+    });
     const { alice } = t.aliases;
 
     let superTokenFactory;

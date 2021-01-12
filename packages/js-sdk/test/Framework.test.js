@@ -138,7 +138,9 @@ contract("Framework class", accounts => {
             });
 
             it("failed due to no super token wrapper", async () => {
-                await deployTestToken(t.errorHandler, [":", "SASHIMI"]);
+                await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
+                    from: admin
+                });
                 const sf = new SuperfluidSDK.Framework({
                     web3Provider: web3.currentProvider,
                     tokens: ["SASHIMI"]
@@ -162,7 +164,9 @@ contract("Framework class", accounts => {
         });
 
         it("create new super token", async () => {
-            await deployTestToken(t.errorHandler, [":", "MISO"]);
+            await deployTestToken(t.errorHandler, [":", "MISO"], {
+                from: admin
+            });
             const misoAddress = await sf.resolver.get("tokens.MISO");
             const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
             const superMisoToken = await sf.createERC20Wrapper(misoToken, {

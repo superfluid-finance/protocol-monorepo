@@ -1,4 +1,3 @@
-const fs = require("fs-extra");
 const path = require("path");
 
 const TruffleContract = require("@truffle/contract");
@@ -17,19 +16,22 @@ const contractNames = [
     "IInstantDistributionAgreementV1",
     "TestResolver",
     "Superfluid",
-    "SuperfluidMock",
-    // TODO: Fix so the following can load via truffle artifacts
-    "SuperTokenFactory ",
-    "SuperTokenFactoryMock ",
-    "TestGovernance ",
-    "ISuperfluidGovernance ",
-    "Proxy",
-    "Proxiable ",
+    "SuperTokenFactory",
+    "TestGovernance",
+    "ISuperfluidGovernance",
+    "UUPSProxy",
+    "UUPSProxiable",
     "ConstantFlowAgreementV1",
     "InstantDistributionAgreementV1"
 ];
 
-const loadContracts = ({ isTruffle, web3Provider, from }) => {
+const mockContractNames = ["SuperfluidMock", "SuperTokenFactoryMock"];
+
+const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
+    const allContractNames = [
+        ...contractNames,
+        ...(useMocks ? mockContractNames : [])
+    ];
     try {
         let contracts = {};
         if (!isTruffle) {
@@ -44,12 +46,10 @@ const loadContracts = ({ isTruffle, web3Provider, from }) => {
                     __dirname,
                     "../build/contracts"
                 );
-                const fileObjs = fs.readdirSync(directoryPath);
-                fileObjs.forEach(fileName => {
-                    const name = fileName.split(".")[0];
+                allContractNames.forEach(name => {
                     const builtContract = require(path.join(
                         directoryPath,
-                        fileName
+                        name + ".json"
                     ));
                     const c = (contracts[name] = TruffleContract(
                         builtContract,
@@ -69,8 +69,8 @@ const loadContracts = ({ isTruffle, web3Provider, from }) => {
                     "Using Superfluid scripts within the truffle environment"
                 );
                 // load contracts from truffle artifacts
-                contractNames.forEach(name => {
-                    console.log(name);
+                allContractNames.forEach(name => {
+                    //console.log(name);
                     contracts[name] = artifacts.require(name);
                 });
             } catch (e) {

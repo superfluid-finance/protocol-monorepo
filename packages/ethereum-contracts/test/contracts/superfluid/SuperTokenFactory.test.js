@@ -11,7 +11,10 @@ const TestEnvironment = require("../../TestEnvironment");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 
 contract("SuperTokenFactory Contract", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 1));
+    const t = new TestEnvironment(accounts.slice(0, 1), {
+        isTruffle: true,
+        useMocks: true
+    });
     //const { admin, alice, bob } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
 

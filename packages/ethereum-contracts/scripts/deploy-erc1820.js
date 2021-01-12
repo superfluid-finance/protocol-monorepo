@@ -3,7 +3,7 @@ const assert = require("assert").strict;
 
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
-const ERC1820Registry = require("./introspection/ERC1820Registry.json");
+const ERC1820Registry = require("./ERC1820Registry.json");
 const { hasCode } = require("./utils");
 
 /**

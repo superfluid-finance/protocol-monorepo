@@ -21,7 +21,7 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 module.exports = class TestEnvironment {
-    constructor(accounts, { isTruffle }) {
+    constructor(accounts, { isTruffle } = {}) {
         this.isTruffle = isTruffle;
         this.aliases = {
             admin: accounts[0],

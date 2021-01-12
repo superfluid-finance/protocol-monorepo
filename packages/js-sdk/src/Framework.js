@@ -1,5 +1,8 @@
 const Web3 = require("web3");
 const TruffleContract = require("@truffle/contract");
+
+const loadContracts = require("@superfluid-finance/ethereum-contracts/scripts/loadContracts");
+
 const getConfig = require("./getConfig");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
@@ -37,36 +40,14 @@ module.exports = class Framework {
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;
-
-        // load contracts
-        this.contracts = {};
-        if (!isTruffle) {
-            console.debug(
-                "Using Superfluid SDK outside of the truffle environment"
-            );
-            if (!web3Provider) throw new Error("web3Provider is required");
-            // load contracts from ABI
-            contractNames.forEach(i => {
-                const c = (this.contracts[i] = TruffleContract({
-                    contractName: i,
-                    abi: SuperfluidABI[i]
-                }));
-                c.setProvider(web3Provider);
-            });
-            this.web3 = new Web3(web3Provider);
-        } else {
-            console.debug(
-                "Using Superfluid SDK within the truffle environment"
-            );
-            // load contracts from truffle artifacts
-            contractNames.forEach(i => {
-                this.contracts[i] = global.artifacts.require(i);
-            });
-            // assuming web3 is available when truffle artifacts available
-            this.web3 = global.web3;
-        }
-
+        console.log({ isTruffle });
+        this.web3 = isTruffle ? global.web3 : new Web3(web3Provider);
         this._tokens = tokens;
+        // load contracts
+        this.contracts = loadContracts({
+            isTruffle,
+            web3Provider: web3.currentProvider
+        });
     }
 
     /**

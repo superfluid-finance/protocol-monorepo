@@ -1,6 +1,6 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const TestResolver = artifacts.require("TestResolver");
-const ISuperToken = artifacts.require("ISuperToken");
+
+const loadContracts = require("./loadContracts");
 const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 
 /**
@@ -8,9 +8,18 @@ const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
-module.exports = async function(callback, argv) {
+module.exports = async function(
+    callback,
+    argv,
+    { isTruffle, web3Provider } = {}
+) {
     try {
         global.web3 = web3;
+
+        const { TestResolver, ISuperToken } = loadContracts({
+            isTruffle,
+            web3Provider: web3Provider || web3.currentProvider
+        });
 
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
         const version = process.env.RELEASE_VERSION || "test";

@@ -40,8 +40,8 @@ contract("Auction", accounts => {
     beforeEach(async function() {
         await deployFramework(errorHandler);
         sf = new SuperfluidSDK.Framework({
-            web3Provider: web3.currentProvider,
-            version
+            web3Provider: web3.currentProvider
+            // version
         });
         await sf.initialize();
 
@@ -49,7 +49,11 @@ contract("Auction", accounts => {
         const daiAddress = await sf.resolver.get("tokens.fDAI");
         dai = await sf.contracts.TestToken.at(daiAddress);
         for (let i = 0; i < accounts.length; ++i) {
-            await web3tx(dai.mint, `Account ${i} mints many dai`)(accounts[i], toWad(10000000), { from: accounts[i] });
+            await web3tx(dai.mint, `Account ${i} mints many dai`)(
+                accounts[i],
+                toWad(10000000),
+                { from: accounts[i] }
+            );
         }
 
         console.log(sf.host.address);
@@ -73,7 +77,10 @@ contract("Auction", accounts => {
 
         users[app.address] = "App";
         for (let i = 0; i < accounts.length; ++i) {
-            await web3tx(dai.approve, `Account ${i} approves daix`)(daix.address, toWad(100), { from: accounts[i] });
+            await web3tx(
+                dai.approve,
+                `Account ${i} approves daix`
+            )(daix.address, toWad(100), { from: accounts[i] });
         }
     });
 
@@ -92,7 +99,12 @@ contract("Auction", accounts => {
         return await sf.host.callAgreement(
             sf.agreements.cfa.address,
             sf.agreements.cfa.contract.methods
-                .createFlow(daix.address, to.toString(), amount.toString(), "0x")
+                .createFlow(
+                    daix.address,
+                    to.toString(),
+                    amount.toString(),
+                    "0x"
+                )
                 .encodeABI(),
             {
                 from: from.toString()
@@ -105,7 +117,12 @@ contract("Auction", accounts => {
         return await sf.host.callAgreement(
             sf.agreements.cfa.address,
             sf.agreements.cfa.contract.methods
-                .updateFlow(daix.address, to.toString(), amount.toString(), "0x")
+                .updateFlow(
+                    daix.address,
+                    to.toString(),
+                    amount.toString(),
+                    "0x"
+                )
                 .encodeABI(),
             {
                 from: from.toString()
@@ -116,7 +133,9 @@ contract("Auction", accounts => {
     async function closeStream(from, to) {
         return await sf.host.callAgreement(
             sf.agreements.cfa.address,
-            sf.agreements.cfa.contract.methods.deleteFlow(daix.address, from, to, "0x").encodeABI(),
+            sf.agreements.cfa.contract.methods
+                .deleteFlow(daix.address, from, to, "0x")
+                .encodeABI(),
             {
                 from
             }
@@ -125,7 +144,10 @@ contract("Auction", accounts => {
 
     async function upgrade(accounts) {
         for (let i = 0; i < accounts.length; ++i) {
-            await web3tx(daix.upgrade, `${users[accounts[i]]} upgrades many DAIx`)(toWad(100), { from: accounts[i] });
+            await web3tx(
+                daix.upgrade,
+                `${users[accounts[i]]} upgrades many DAIx`
+            )(toWad(100), { from: accounts[i] });
             await checkBalance(accounts[i]);
         }
     }
@@ -143,9 +165,12 @@ contract("Auction", accounts => {
             bid = await app.bidders.call(bidder);
             string += `#${++count}\t${
                 users[bidder.toString()]
-            }\t\t${bid.flowRate.toString()}\t\t${await sf.agreements.cfa.getNetFlow.call(daix.address, bidder)}\t\t${
-                users[bid.next.toString()]
-            }\t\t${users[bid.prev.toString()]}\n`;
+            }\t\t${bid.flowRate.toString()}\t\t${await sf.agreements.cfa.getNetFlow.call(
+                daix.address,
+                bidder
+            )}\t\t${users[bid.next.toString()]}\t\t${
+                users[bid.prev.toString()]
+            }\n`;
             previous = bidder;
             bidder = bid.next;
         } while (bidder.substring(4, 7) !== "000");
@@ -153,7 +178,9 @@ contract("Auction", accounts => {
     }
 
     async function send(who, amount) {
-        console.log(users[who] + " sends a stream of " + amount + "DAI to the app");
+        console.log(
+            users[who] + " sends a stream of " + amount + "DAI to the app"
+        );
         minStep = Number((await app.minStep.call()).toString()) / 100000;
         if (amount < minStep) amount += Math.ceil(minStep);
         try {
@@ -165,7 +192,9 @@ contract("Auction", accounts => {
     }
 
     async function update(who, amount) {
-        console.log(users[who] + " updates their stream to " + amount + "DAI to the app");
+        console.log(
+            users[who] + " updates their stream to " + amount + "DAI to the app"
+        );
         minStep = Number((await app.minStep.call()).toString()) / 100000;
         if (amount < minStep) amount += Math.ceil(minStep);
         try {
@@ -187,7 +216,14 @@ contract("Auction", accounts => {
     }
 
     async function flowExists(who) {
-        var value = (await sf.agreements.cfa.getFlow.call(daix.address, who, app.address))[1].toString() !== "0";
+        var value =
+            (
+                await sf.agreements.cfa.getFlow.call(
+                    daix.address,
+                    who,
+                    app.address
+                )
+            )[1].toString() !== "0";
         // console.log("flow of: " + users[who] + " exists? " + value);
         return value;
     }
@@ -395,7 +431,8 @@ contract("Auction", accounts => {
         for (var i = 0; i < 100; i++) {
             var account = accounts[Math.floor(Math.random() * accounts.length)];
             if (await flowExists(account)) {
-                if (i % 3) await update(account, Math.floor(Math.random() * 100 + 1));
+                if (i % 3)
+                    await update(account, Math.floor(Math.random() * 100 + 1));
                 else await close(account);
             } else await send(account, Math.floor(Math.random() * 100 + 1));
 

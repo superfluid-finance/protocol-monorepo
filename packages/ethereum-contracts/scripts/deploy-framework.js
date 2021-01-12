@@ -68,16 +68,11 @@ async function deployNewLogicContractIfNew(
  */
 module.exports = async function(
     callback,
-    { newTestResolver, useMocks, nonUpgradable, isTruffle } = {}
+    { newTestResolver, useMocks, nonUpgradable, isTruffle, web3Provider } = {}
 ) {
     try {
         global.web3 = web3;
 
-        // TODO: remove web3Provider
-        const contracts = loadContracts({
-            isTruffle,
-            web3Provider: web3.currentProvider
-        });
         const {
             TestResolver,
             Superfluid,
@@ -90,7 +85,10 @@ module.exports = async function(
             UUPSProxiable,
             ConstantFlowAgreementV1,
             InstantDistributionAgreementV1
-        } = contracts;
+        } = loadContracts({
+            isTruffle,
+            web3Provider: web3Provider || web3.currentProvider
+        });
 
         const CFAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"

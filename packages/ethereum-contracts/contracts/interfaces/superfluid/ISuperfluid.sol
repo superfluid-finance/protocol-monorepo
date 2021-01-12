@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.7.0;
 // This is required by the batchCall and decodeCtx
-pragma abicoder v2;
+pragma experimental ABIEncoderV2;
 
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";

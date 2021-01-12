@@ -10,9 +10,9 @@ import {
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 
+import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
-import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "../tokens/FullUpgradableSuperTokenProxy.sol";
 
@@ -136,11 +136,13 @@ abstract contract SuperTokenFactoryBase is
     }
 
     function initializeCustomSuperToken(
-        UUPSProxy customSuperTokenProxy
+        address customSuperTokenProxy
     )
         external override
     {
-        customSuperTokenProxy.initializeProxy(address(_superTokenLogic));
+        // odd solidity stuff..
+        address payable a = address(uint160(customSuperTokenProxy));
+        UUPSProxy(a).initializeProxy(address(_superTokenLogic));
     }
 
 }

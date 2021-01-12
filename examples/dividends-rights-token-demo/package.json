@@ -1,7 +1,7 @@
 {
-    "name": "superapp-demo",
+    "name": "dividend-rights-token",
     "version": "1.0.0",
-    "description": "SuperApp demo - a simple money stream lottery",
+    "description": "Dividend Rights Token - a superfluid superapp demo",
     "main": "scripts/demo.js",
     "scripts": {
         "build": "truffle compile --all",
@@ -14,12 +14,12 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.3.2",
         "@openzeppelin/contracts": "^3.2.1-solc-0.7",
-        "@openzeppelin/test-helpers": "^0.5.6",
+        "@openzeppelin/test-helpers": "^0.5.7",
+        "@truffle/contract": "^4.2.25",
+        "@truffle/hdwallet-provider": "^1.1.0",
         "@superfluid-finance/ethereum-contracts": "0.2.0-latest",
         "@superfluid-finance/js-sdk": "0.2.0-latest",
-        "@truffle/contract": "^4.2.23",
-        "@truffle/hdwallet-provider": "^1.1.0",
         "dotenv": "^8.2.0",
-        "truffle": "^5.1.46"
+        "truffle": "^5.1.48"
     }
 }

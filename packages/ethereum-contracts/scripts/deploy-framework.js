@@ -14,7 +14,8 @@ async function deployAndRegisterContractIf(
     Contract,
     resolverKey,
     cond,
-    deployFunc
+    deployFunc,
+    accounts
 ) {
     let contractDeployed;
     const contractName = Contract.contractName;
@@ -26,7 +27,10 @@ async function deployAndRegisterContractIf(
         console.log(`${resolverKey} deployed to`, contractDeployed.address);
         await web3tx(testResolver.set, `Resolver set ${resolverKey}`)(
             resolverKey,
-            contractDeployed.address
+            contractDeployed.address,
+            {
+                from: accounts[0]
+            }
         );
     } else {
         console.log(`${contractName} does not need new deployment.`);
@@ -82,8 +86,8 @@ module.exports = async function(
             SuperTokenFactoryMock,
             TestGovernance,
             ISuperfluidGovernance,
-            Proxy,
-            Proxiable,
+            UUPSProxy,
+            UUPSProxiable,
             ConstantFlowAgreementV1,
             InstantDistributionAgreementV1
         } = contracts;
@@ -115,7 +119,12 @@ module.exports = async function(
         if (!newTestResolver && config.resolverAddress) {
             testResolver = await TestResolver.at(config.resolverAddress);
         } else {
-            testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+            testResolver = await web3tx(
+                TestResolver.new,
+                "TestResolver.new"
+            )({
+                from: accounts[0]
+            });
             // make it available for the sdk for testing purpose
             process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
         }
@@ -130,9 +139,13 @@ module.exports = async function(
             async () => {
                 return await web3tx(TestGovernance.new, "TestGovernance.new")(
                     accounts[0], // rewardAddress
-                    3600 // liquidationPeriod
+                    3600, // liquidationPeriod
+                    {
+                        from: accounts[0]
+                    }
                 );
-            }
+            },
+            accounts
         );
 
         // deploy new superfluid host contract
@@ -146,19 +159,21 @@ module.exports = async function(
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
-                )(nonUpgradable);
+                )(nonUpgradable, {
+                    from: accounts[0]
+                });
                 console.log(
                     `Superfluid new code address ${superfluidLogic.address}`
                 );
                 if (!nonUpgradable) {
                     const proxy = await web3tx(
-                        Proxy.new,
+                        UUPSProxy.new,
                         "Create Superfluid proxy"
-                    )();
+                    )({ from: accounts[0] });
                     await web3tx(
                         proxy.initializeProxy,
                         "proxy.initializeProxy"
-                    )(superfluidLogic.address);
+                    )(superfluidLogic.address, { from: accounts[0] });
                     superfluidAddress = proxy.address;
                 } else {
                     superfluidAddress = superfluidLogic.address;
@@ -167,7 +182,7 @@ module.exports = async function(
                 await web3tx(
                     superfluid.initialize,
                     "Superfluid.initialize"
-                )(governance.address);
+                )(governance.address, { from: accounts[0] });
                 if (!nonUpgradable) {
                     if (
                         await codeChanged(
@@ -181,7 +196,8 @@ module.exports = async function(
                     }
                 }
                 return superfluid;
-            }
+            },
+            accounts
         );
 
         // replace with new governance
@@ -192,7 +208,7 @@ module.exports = async function(
             await web3tx(
                 currentGovernance.replaceGovernance,
                 "governance.replaceGovernance"
-            )(superfluid.address, governance.address);
+            )(superfluid.address, governance.address, { from: accounts[0] });
         }
 
         // list CFA v1
@@ -200,7 +216,9 @@ module.exports = async function(
             const agreement = await web3tx(
                 ConstantFlowAgreementV1.new,
                 "ConstantFlowAgreementV1.new"
-            )();
+            )({
+                from: accounts[0]
+            });
             console.log(
                 "New ConstantFlowAgreementV1 address",
                 agreement.address
@@ -212,7 +230,7 @@ module.exports = async function(
             await web3tx(
                 governance.registerAgreementClass,
                 "Governance registers CFA"
-            )(superfluid.address, cfa.address);
+            )(superfluid.address, cfa.address, { from: accounts[0] });
         }
 
         // list IDA v1
@@ -220,7 +238,9 @@ module.exports = async function(
             const agreement = await web3tx(
                 InstantDistributionAgreementV1.new,
                 "InstantDistributionAgreementV1.new"
-            )();
+            )({
+                from: accounts[0]
+            });
             console.log(
                 "New InstantDistributionAgreementV1 address",
                 agreement.address
@@ -232,7 +252,7 @@ module.exports = async function(
             await web3tx(
                 governance.registerAgreementClass,
                 "Governance registers IDA"
-            )(superfluid.address, ida.address);
+            )(superfluid.address, ida.address, { from: accounts[0] });
         }
 
         let superfluidNewLogicAddress = ZERO_ADDRESS;
@@ -247,13 +267,17 @@ module.exports = async function(
                 SuperfluidLogic,
                 await superfluid.getCodeAddress(),
                 async () => {
-                    if (!(await isProxiable(Proxiable, superfluid.address))) {
+                    if (
+                        !(await isProxiable(UUPSProxiable, superfluid.address))
+                    ) {
                         throw new Error("Superfluid is non-upgradable");
                     }
                     const superfluidLogic = await web3tx(
                         SuperfluidLogic.new,
                         "SuperfluidLogic.new"
-                    )(nonUpgradable);
+                    )(nonUpgradable, {
+                        from: accounts[0]
+                    });
                     return superfluidLogic.address;
                 }
             );
@@ -262,7 +286,7 @@ module.exports = async function(
             const cfaNewLogicAddress = await deployNewLogicContractIfNew(
                 ConstantFlowAgreementV1,
                 await (
-                    await Proxiable.at(
+                    await UUPSProxiable.at(
                         await superfluid.getAgreementClass.call(CFAv1_TYPE)
                     )
                 ).getCodeAddress(),
@@ -275,7 +299,7 @@ module.exports = async function(
             const idaNewLogicAddress = await deployNewLogicContractIfNew(
                 InstantDistributionAgreementV1,
                 await (
-                    await Proxiable.at(
+                    await UUPSProxiable.at(
                         await superfluid.getAgreementClass.call(IDAv1_TYPE)
                     )
                 ).getCodeAddress(),
@@ -296,7 +320,9 @@ module.exports = async function(
                 const superTokenLogic = await web3tx(
                     SuperTokenFactoryLogic.new,
                     "SuperTokenFactoryLogic.new"
-                )(superfluid.address);
+                )(superfluid.address, {
+                    from: accounts[0]
+                });
                 return superTokenLogic.address;
             }
         );
@@ -313,7 +339,8 @@ module.exports = async function(
                 superfluid.address,
                 superfluidNewLogicAddress,
                 agreementsToUpdate,
-                superTokenFactoryNewLogicAddress
+                superTokenFactoryNewLogicAddress,
+                { from: accounts[0] }
             );
         }
 

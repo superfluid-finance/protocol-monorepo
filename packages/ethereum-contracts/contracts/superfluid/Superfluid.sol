@@ -447,7 +447,7 @@ contract Superfluid is
     function callAgreement(
         ISuperAgreement agreementClass,
         bytes memory callData,
-        bytes calldata userData
+        bytes memory userData
     )
         public override
         cleanCtx
@@ -646,12 +646,12 @@ contract Superfluid is
                     abi.decode(operations[i].data, (uint256)));
             } else if (opeartionType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
-                this.callAgreement(
+                callAgreement(
                     ISuperAgreement(operations[i].target),
                     callData,
                     userData);
             } else if (opeartionType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
-                this.callAppAction(
+                callAppAction(
                     ISuperApp(operations[i].target),
                     operations[i].data);
             } else {

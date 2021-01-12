@@ -6,7 +6,7 @@
         "build": "truffle compile --all",
         "test": "truffle test",
         "deploy": "npm run build && RELEASE_VERSION=preview-20200928 npx truffle --network goerli exec scripts/deploy.js",
-        "copy-watch": "nodemon --watch \"../../packages\" -ext \"js,ts,tsx,sol\" --exec rsync -rtvu --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
+        "copy-watch": "nodemon --watch \"../../packages\" --ext \"js,ts,tsx,sol\" --exec rsync --archive --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
     },
     "author": "Superfluid",
     "license": "MIT",

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.7.1;
+pragma solidity 0.7.6;
+pragma abicoder v2;
 
 import {
     ISuperfluid,
     ISuperToken,
     ISuperAgreement,
-    ISuperApp,
     SuperAppDefinitions
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
@@ -13,11 +13,16 @@ import {
     IConstantFlowAgreementV1
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
+import {
+    SuperAppBase
+} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
+
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 
 
-contract LotterySuperApp is Ownable, ISuperApp { 
+contract LotterySuperApp is Ownable, SuperAppBase {
 
     /// @dev Entrance fee for the game (hardcoded to $1)
     uint256 constant private _ENTRANCE_FEE = 1e18;
@@ -47,8 +52,9 @@ contract LotterySuperApp is Ownable, ISuperApp {
         _cfa = cfa;
         _acceptedToken = acceptedToken;
 
-        uint256 configWord =
-            SuperAppDefinitions.TYPE_APP_FINAL;
+        // NOTE: this may be incorrect
+        uint256 configWord = 1 << 0;
+            // SuperAppDefinitions.TYPE_APP_FINAL;
 
         _host.registerApp(configWord);
     }
@@ -63,7 +69,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
     /// @dev Take entrance fee from the user and issue a ticket
     function participate(bytes calldata ctx) external {
         // msg sender is encoded in the Context
-        (,,address sender,,) = _host.decodeCtx(ctx);
+        address sender = _host.decodeCtx(ctx).msgSender;
         _acceptedToken.transferFrom(sender, address(this), _ENTRANCE_FEE);
         tickets[sender]++;
     }
@@ -91,7 +97,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         private view
         returns (bytes memory cbdata)
     {
-        (,,address sender,,) = _host.decodeCtx(ctx);
+        address sender = _host.decodeCtx(ctx).msgSender;
         require(tickets[sender] > 0, _ERR_STR_NO_TICKET);
         cbdata = abi.encode(sender);
     }
@@ -114,7 +120,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         _playersSet.add(player);
 
         // charge one ticket
-        tickets[player]--; 
+        tickets[player]--;
 
         return _draw(player, ctx);
     }
@@ -126,7 +132,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         private
         returns (bytes memory newCtx)
     {
-        (,,address player,,) = _host.decodeCtx(ctx);
+        address player = _host.decodeCtx(ctx).msgSender;
 
         _playersSet.remove(player);
 
@@ -163,7 +169,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
 
         newCtx = ctx;
 
-        // delete flow to old winner 
+        // delete flow to old winner
         if (oldWinner != address(0)) {
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
@@ -174,7 +180,8 @@ contract LotterySuperApp is Ownable, ISuperApp {
                     oldWinner,
                     new bytes(0)
                 ),
-                newCtx
+                newCtx,
+                "0x"
             );
         }
 
@@ -189,7 +196,8 @@ contract LotterySuperApp is Ownable, ISuperApp {
                     _cfa.getNetFlow(_acceptedToken, address(this)),
                     new bytes(0)
                 ),
-                newCtx
+                newCtx,
+                "0x"
             );
         }
 
@@ -206,7 +214,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         address agreementClass,
         bytes32 /*agreementId*/
     )
-        external view override
+        external view
         onlyHost
         onlyExpected(superToken, agreementClass)
         returns (bytes memory cbdata)
@@ -221,7 +229,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         bytes32 agreementId,
         bytes calldata cbdata
     )
-        external override
+        external
         onlyHost
         returns (bytes memory newCtx)
     {
@@ -234,7 +242,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         address agreementClass,
         bytes32 /*agreementId*/
     )
-        external view override
+        external view
         onlyHost
         onlyExpected(superToken, agreementClass)
         returns (bytes memory cbdata)
@@ -249,7 +257,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         bytes32 agreementId,
         bytes calldata cbdata
     )
-        external override
+        external
         onlyHost
         returns (bytes memory newCtx)
     {
@@ -262,7 +270,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         address agreementClass,
         bytes32 /*agreementId*/
     )
-        external view override
+        external view
         onlyHost
         returns (bytes memory cbdata)
     {
@@ -279,7 +287,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         bytes32 /* agreementId */,
         bytes calldata cbdata
     )
-        external override
+        external
         onlyHost
         returns (bytes memory newCtx)
     {
@@ -293,7 +301,7 @@ contract LotterySuperApp is Ownable, ISuperApp {
         return address(superToken) == address(_acceptedToken);
     }
 
-    function _isCFAv1(address agreementClass) private pure returns (bool) {
+    function _isCFAv1(address agreementClass) private view returns (bool) {
         return ISuperAgreement(agreementClass).agreementType()
             == keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     }
@@ -310,4 +318,3 @@ contract LotterySuperApp is Ownable, ISuperApp {
     }
 
 }
-

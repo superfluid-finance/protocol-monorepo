@@ -23,16 +23,19 @@ contract("LotterySuperApp", accounts => {
     let app;
 
     beforeEach(async function() {
-        await deployFramework(errorHandler);
+        const web3Provider = web3.currentProvider;
+
+        await deployFramework(errorHandler, { from: admin });
 
         sf = new SuperfluidSDK.Framework({
-            web3Provider: web3.currentProvider
+            web3Providerr
         });
         await sf.initialize();
 
         if (!dai) {
             await deployTestToken(errorHandler, [":", "fDAI"], {
-                web3Provider: web3.currentProvider
+                web3Provider,
+                from: admin
             });
             const daiAddress = await sf.resolver.get("tokens.fDAI");
             dai = await sf.contracts.TestToken.at(daiAddress);
@@ -46,7 +49,8 @@ contract("LotterySuperApp", accounts => {
         }
 
         await deploySuperToken(errorHandler, [":", "fDAI"], {
-            web3Provider: web3.currentProvider
+            web3Provider,
+            from: admin
         });
 
         const daixWrapper = await sf.getERC20Wrapper(dai);

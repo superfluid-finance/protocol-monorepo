@@ -41,7 +41,9 @@ contract("Auction", accounts => {
 
     beforeEach(async function() {
         const web3Provider = web3.currentProvider;
+
         await deployFramework(errorHandler, { from: admin });
+
         sf = new SuperfluidSDK.Framework({
             web3Provider
             // version

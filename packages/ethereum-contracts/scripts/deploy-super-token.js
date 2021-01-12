@@ -17,6 +17,11 @@ module.exports = async function(
     try {
         global.web3 = web3;
 
+        if (!from) {
+            const accounts = await web3.eth.getAccounts();
+            from = accounts[0];
+        }
+
         const { TestResolver, ISuperToken } = loadContracts({
             isTruffle,
             web3Provider: web3Provider || web3.currentProvider,
@@ -34,7 +39,6 @@ module.exports = async function(
         }
         const tokenName = args.pop();
 
-        global.artifacts = artifacts;
         const sf = new SuperfluidSDK.Framework({
             isTruffle,
             web3Provider: web3Provider || web3.currentProvider,

@@ -17,6 +17,12 @@ module.exports = async function(
 ) {
     try {
         global.web3 = web3;
+
+        if (!from) {
+            const accounts = await web3.eth.getAccounts();
+            from = accounts[0];
+        }
+
         const { TestResolver, TestToken } = loadContracts({
             isTruffle,
             web3Provider: web3Provider || web3.currentProvider,

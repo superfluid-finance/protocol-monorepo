@@ -8,9 +8,6 @@ const { ZERO_ADDRESS, hasCode, codeChanged, isProxiable } = require("./utils");
 let reset;
 let testResolver;
 
-// TODO: add check about whether 1820 is deployed, and surface error to user.
-// TODO: Add 1820 deployment here, and remove migrations
-
 async function deployAndRegisterContractIf(
     Contract,
     resolverKey,
@@ -77,6 +74,12 @@ module.exports = async function(
 ) {
     try {
         global.web3 = web3;
+
+        if (!from) {
+            const accounts = await web3.eth.getAccounts();
+            from = accounts[0];
+        }
+
         const {
             TestResolver,
             Superfluid,
@@ -102,8 +105,6 @@ module.exports = async function(
         const IDAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
-
-        const accounts = await web3.eth.getAccounts();
 
         reset = !!process.env.RESET;
         const version = process.env.RELEASE_VERSION || "test";
@@ -139,11 +140,10 @@ module.exports = async function(
                 await codeChanged(TestGovernance, contractAddress),
             async () => {
                 return await web3tx(TestGovernance.new, "TestGovernance.new")(
-                    accounts[0], // rewardAddress
+                    from, // let rewardAddress the same as default from address
                     3600 // liquidationPeriod
                 );
-            },
-            accounts
+            }
         );
 
         // deploy new superfluid host contract
@@ -192,8 +192,7 @@ module.exports = async function(
                     }
                 }
                 return superfluid;
-            },
-            accounts
+            }
         );
 
         // replace with new governance

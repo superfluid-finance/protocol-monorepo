@@ -1,22 +1,20 @@
 /**
  * @dev Deploy the superfluid framework and test tokens for local testing
  *
- * Usage: npx truffle exec scripts/deploy-all.js
+ * Usage: npx truffle exec scripts/deploy-test-environment.js
  */
 
-module.exports = async function(callback, { isTruffle }) {
-    // otherwise other scripts do not see the artifacts exported from the truffle framework
-    global.artifacts = artifacts;
-    const deployFramework = require("./deploy-framework");
-    const deployTestToken = require("./deploy-test-token");
-    const deploySuperToken = require("./deploy-super-token");
-
+module.exports = async function(callback, { isTruffle, from } = {}) {
     const errorHandler = err => {
         if (err) throw err;
     };
 
     try {
         global.web3 = web3;
+
+        const deployFramework = require("./deploy-framework");
+        const deployTestToken = require("./deploy-test-token");
+        const deploySuperToken = require("./deploy-super-token");
 
         console.log("==== Deploying superfluid framework...");
         await deployFramework(errorHandler, { isTruffle });
@@ -26,13 +24,15 @@ module.exports = async function(callback, { isTruffle }) {
         for (let i = 0; i < tokens.length; ++i) {
             console.log(`==== Deploying test token ${tokens[i]}...`);
             await deployTestToken(errorHandler, [":", tokens[i]], {
-                isTruffle
+                isTruffle,
+                from
             });
             console.log(`==== Test token ${tokens[i]} deployed.`);
 
             console.log(`==== Creating super token for ${tokens[i]}...`);
             await deploySuperToken(errorHandler, [":", tokens[i]], {
-                isTruffle
+                isTruffle,
+                from
             });
             console.log(`==== Super token for ${tokens[i]} deployed.`);
         }

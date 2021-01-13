@@ -1,3 +1,5 @@
+const Web3 = require("web3");
+
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const loadContracts = require("./loadContracts");
@@ -5,7 +7,9 @@ const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
- * @param from address to deploy contracts from
+ * @param isTruffle (optional) Whether the script is used within the truffle framework
+ * @param web3Provider (optional) The web3 provider to be used instead
+ * @param from (optional) Address to deploy contracts from, use accounts[0] by default
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
@@ -15,18 +19,26 @@ module.exports = async function(
     { isTruffle, web3Provider, from } = {}
 ) {
     try {
-        global.web3 = web3;
+        this.web3 = web3Provider ? new Web3(web3Provider) : global.web3;
+        if (!this.web3) throw new Error("No web3 is available");
 
         if (!from) {
             const accounts = await web3.eth.getAccounts();
             from = accounts[0];
         }
 
-        const { TestResolver, ISuperToken } = loadContracts({
+        const {
+            TestResolver,
+            UUPSProxiable,
+            ISuperfluidGovernance,
+            ISuperToken
+        } = loadContracts({
             isTruffle,
-            web3Provider: web3Provider || web3.currentProvider,
+            web3Provider: this.web3.currentProvider,
             from
         });
+
+        console.log("Deploying super token");
 
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
         const version = process.env.RELEASE_VERSION || "test";
@@ -38,6 +50,7 @@ module.exports = async function(
             throw new Error("Not enough arguments");
         }
         const tokenName = args.pop();
+        console.log("Underlying token name", tokenName);
 
         const sf = new SuperfluidSDK.Framework({
             isTruffle,
@@ -73,6 +86,26 @@ module.exports = async function(
                     "But the superToken uses a different host, redeploying is required."
                 );
                 doDeploy = true;
+            } else {
+                const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
+                    await sf.host.getSuperTokenFactory.call()
+                );
+                const superTokenLogic1 = superTokenFactory.getSuperTokenLogic();
+                const superTokenLogic2 = await (
+                    await UUPSProxiable.at(superTokenAddress)
+                ).getCodeAddress();
+                if (superTokenLogic1 !== superTokenLogic2) {
+                    console.log("SuperToken logic needs to be updated.");
+                    console.log("Updating supertoken's logic....");
+                    const gov = await ISuperfluidGovernance.at(
+                        await sf.host.getGovernance()
+                    );
+                    gov.updateSuperTokenLogic(
+                        sf.host.address,
+                        superTokenAddress
+                    );
+                    console.log("SuperToken's logic has been updated.");
+                }
             }
         }
         if (doDeploy) {

@@ -104,7 +104,7 @@ contract ConstantFlowAgreementV1 is
         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
         uint256 liquidationPeriod = gov.getConfigAsUint256(host, token, _LIQUIDATION_PERIOD_CONFIG_KEY);
         require(uint256(flowRate).mul(liquidationPeriod) <= uint256(type(int96).max), "CFA: flow rate too big");
-        return _calculateDeposit(flowRate, liquidationPeriod, false);
+        return _calculateDeposit(flowRate, liquidationPeriod);
     }
 
     /// @dev IConstantFlowAgreementV1.createFlow implementation
@@ -650,11 +650,11 @@ contract ConstantFlowAgreementV1 is
                 ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
 
             //oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod, false).toInt256();
-            depositDelta = _calculateDeposit(flowParams.flowRate, liquidationPeriod, false).toInt256();
+            depositDelta = _calculateDeposit(flowParams.flowRate, liquidationPeriod).toInt256();
 
             // for app allowance, rounding down the number instead,
             // in order not to give the downstream app chance to create larger flow rate
-            appAllowance = _calculateDeposit(flowParams.flowRate, liquidationPeriod, true);
+            appAllowance = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
 
             // STEP 2: calculate deposit delta
             depositDelta = depositDelta
@@ -761,12 +761,12 @@ contract ConstantFlowAgreementV1 is
      * Deposit Calculation Pure Functions
      *************************************************************************/
 
-     function _clipDepositNumberRoundingDown(uint256 deposit)
-         internal pure
-         returns(uint256)
-     {
-         return ((deposit >> 32)) << 32;
-     }
+    function _clipDepositNumberRoundingDown(uint256 deposit)
+        internal pure
+        returns(uint256)
+    {
+        return ((deposit >> 32)) << 32;
+    }
 
     function _clipDepositNumber(uint256 deposit)
         internal pure
@@ -779,8 +779,7 @@ contract ConstantFlowAgreementV1 is
 
     function _calculateDeposit(
         int96 flowRate,
-        uint256 liquidationPeriod,
-        bool roundingDown
+        uint256 liquidationPeriod
     )
         internal pure
         returns(uint256 deposit)
@@ -788,7 +787,6 @@ contract ConstantFlowAgreementV1 is
         if (flowRate == 0) return 0;
         assert(liquidationPeriod <= uint256(type(int96).max));
         deposit = uint256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow"));
-        if (roundingDown) return _clipDepositNumberRoundingDown(deposit);
         return _clipDepositNumber(deposit);
     }
 

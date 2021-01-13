@@ -665,10 +665,13 @@ async function _shouldChangeFlow({
         const mainFlowDepositUnclipped = toBN(flowRate).mul(
             toBN(testenv.configs.LIQUIDATION_PERIOD)
         );
-        const mainFlowDeposit = clipDepositNumber(mainFlowDepositUnclipped);
+        const mainFlowDeposit = clipDepositNumber(
+            mainFlowDepositUnclipped,
+            false /* rounding up */
+        );
         const mainFlowAppAllowance = clipDepositNumber(
             mainFlowDepositUnclipped,
-            true /* rounding down */
+            false /* rounding up */
         );
         const newAppAllowanceUsed = Object.values(expectedFlowInfo)
             .map(i => i.deposit)

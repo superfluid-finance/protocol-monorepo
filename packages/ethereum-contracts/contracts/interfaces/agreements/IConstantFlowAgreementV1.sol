@@ -43,6 +43,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param receiver Flow receiver address.
      * @param flowRate New flow rate in amount per second.
      *
+     * # App callbacks
+     *
+     * - AgreementCreated
+     *   - agreementId - can be used in getFlowByID
+     *   - agreementData - abi.encode(address flowSender, address flowReceiver)
+     *
      * NOTE:
      * - A deposit is taken as safety margin for the solvency agents.
      * - A extra gas fee may be taken to pay for solvency agent liquidations.
@@ -61,6 +67,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param token Super token address.
      * @param receiver Flow receiver address.
      * @param flowRate New flow rate in amount per second.
+     *
+     * # App callbacks
+     *
+     * - AgreementUpdated
+     *   - agreementId - can be used in getFlowByID
+     *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
      * NOTE:
      * - Only the flow sender may update the flow rate.
@@ -157,6 +169,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param token Super token address.
      * @param ctx Context bytes.
      * @param receiver Flow receiver address.
+     *
+     * # App callbacks
+     *
+     * - AgreementTerminated
+     *   - agreementId - can be used in getFlowByID
+     *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
      * NOTE:
      * - Both flow sender and receiver may delete the flow.

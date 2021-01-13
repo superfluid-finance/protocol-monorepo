@@ -391,7 +391,7 @@ interface ISuperfluid {
      * @dev Batch operation data
      */
     struct Operation {
-        // Operation
+        // Operation. Defined in BatchOperation (Definitions.sol)
         uint32 opeartionType;
         // Operation target
         address target;

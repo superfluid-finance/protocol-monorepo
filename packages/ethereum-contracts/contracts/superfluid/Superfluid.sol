@@ -365,13 +365,23 @@ contract Superfluid is
     {
         (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
         if (success) {
-            newCtx = abi.decode(returnedData, (bytes));
-            if (!_isCtxValid(newCtx)) {
+            // the non static callback should not return empty ctx
+            if (returnedData.length == 0) {
                 if (!isTermination) {
-                    revert("SF: APP_RULE_CTX_IS_READONLY");
+                    revert("SF: APP_RULE_CTX_IS_EMPTY");
                 } else {
                     newCtx = ctx;
-                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_EMPTY);
+                }
+            } else {
+                newCtx = abi.decode(returnedData, (bytes));
+                if (!_isCtxValid(newCtx)) {
+                    if (!isTermination) {
+                        revert("SF: APP_RULE_CTX_IS_READONLY");
+                    } else {
+                        newCtx = ctx;
+                        _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
+                    }
                 }
             }
         } else {
@@ -714,6 +724,10 @@ contract Superfluid is
         // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
         (success, returnedData) = target.call(callData);
+
+        if (success) {
+            require(returnedData.length > 0, "SF: APP_RULE_CTX_IS_EMPTY");
+        }
     }
 
     function _callCallback(

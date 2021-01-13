@@ -854,6 +854,7 @@ contract("Superfluid Host Contract", accounts => {
                         .encodeABI(),
                     "0x"
                 );
+                assert.isTrue(await superfluid.isAppJailed(app.address));
                 await expectEvent.inTransaction(
                     tx.tx,
                     superfluid.contract,
@@ -880,6 +881,7 @@ contract("Superfluid Host Contract", accounts => {
                         .encodeABI(),
                     "0x"
                 );
+                assert.isTrue(await superfluid.isAppJailed(app.address));
                 await expectEvent.inTransaction(
                     tx.tx,
                     superfluid.contract,
@@ -906,6 +908,7 @@ contract("Superfluid Host Contract", accounts => {
                         .encodeABI(),
                     "0x"
                 );
+                assert.isTrue(await superfluid.isAppJailed(app.address));
                 await expectEvent.inTransaction(
                     tx.tx,
                     superfluid.contract,
@@ -913,6 +916,47 @@ contract("Superfluid Host Contract", accounts => {
                     {
                         app: app.address,
                         reason: "20" // APP_RULE_CTX_IS_READONLY
+                    }
+                );
+            });
+
+            it("#6.10 should give explicit error message when empty ctx returne by the callback", async () => {
+                const SuperAppMock2 = artifacts.require("SuperAppMock2");
+                const app2 = await SuperAppMock2.new(superfluid.address);
+                await expectRevert(
+                    superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementCreatedCallback(
+                                app2.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    ),
+                    "SF: APP_RULE_CTX_IS_EMPTY"
+                );
+                const tx = await web3tx(
+                    superfluid.callAgreement,
+                    "callAgreement"
+                )(
+                    agreement.address,
+                    agreement.contract.methods
+                        .callAppAfterAgreementTerminatedCallback(
+                            app2.address,
+                            "0x"
+                        )
+                        .encodeABI(),
+                    "0x"
+                );
+                assert.isTrue(await superfluid.isAppJailed(app2.address));
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    superfluid.contract,
+                    "Jail",
+                    {
+                        app: app2.address,
+                        reason: "22" // APP_RULE_CTX_IS_EMPTY
                     }
                 );
             });
@@ -982,6 +1026,7 @@ contract("Superfluid Host Contract", accounts => {
                             .encodeABI(),
                         "0x"
                     );
+                    assert.isTrue(await superfluid.isAppJailed(app.address));
                     await expectEvent.inTransaction(
                         tx.tx,
                         superfluid.contract,
@@ -1110,12 +1155,12 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
+            // TODO app level
             // TODO app callback masks
             // TODO app allowance
-            // TODO app level
         });
 
-        describe("#7 (WIP) callAgreement", () => {
+        describe("#7 callAgreement", () => {
             it("#7.1 only listed agreement allowed", async () => {
                 const reason = "SF: only listed agreeement allowed";
                 // call to an non agreement
@@ -1149,11 +1194,9 @@ contract("Superfluid Host Contract", accounts => {
                     "CallUtils: invalid callData"
                 );
             });
-
-            // TODO agreement return result
         });
 
-        describe("#8 (WIP) callAppAction", () => {
+        describe("#8 callAppAction", () => {
             let agreement;
             let app;
 
@@ -1338,7 +1381,17 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
-            // TODO try/catch action not returning ctx
+            it("#8.11 should give explicit error message when empty ctx returned by the action", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionReturnEmptyCtx("0x")
+                            .encodeABI()
+                    ),
+                    "SF: APP_RULE_CTX_IS_EMPTY"
+                );
+            });
         });
 
         describe("#9 Contextual Call Proxies", () => {

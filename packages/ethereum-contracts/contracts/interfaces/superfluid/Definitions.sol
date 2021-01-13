@@ -43,6 +43,7 @@ library SuperAppDefinitions {
     uint256 constant internal APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT = 12;
     uint256 constant internal APP_RULE_CTX_IS_READONLY = 20;
     uint256 constant internal APP_RULE_CTX_IS_NOT_CLEAN = 21;
+    uint256 constant internal APP_RULE_CTX_IS_EMPTY = 22;
 }
 
 /**

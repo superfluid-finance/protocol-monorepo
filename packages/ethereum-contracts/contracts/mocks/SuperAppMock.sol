@@ -6,7 +6,8 @@ import {
     ISuperfluid,
     ISuperToken,
     ISuperApp,
-    ISuperAgreement
+    ISuperAgreement,
+    SuperAppDefinitions
 } from "../superfluid/Superfluid.sol";
 import { AgreementMock } from "./AgreementMock.sol";
 
@@ -82,6 +83,13 @@ contract SuperAppMock is ISuperApp {
         returns (bytes memory newCtx)
     {
         return abi.encode(42);
+    }
+
+    function actionReturnEmptyCtx(bytes calldata ctx)
+        external view
+        validCtx(ctx)
+    // solhint-disable-next-line no-empty-blocks
+    {
     }
 
     function actionPingAgreement(AgreementMock agreement, uint256 ping, bytes calldata ctx)
@@ -201,7 +209,8 @@ contract SuperAppMock is ISuperApp {
         Revert, // 2
         RevertWithReason, // 3
         AlteringCtx, // 4
-        BurnGas // 5
+        BurnGas, // 5
+        ReturnEmptyCtx // 6
     }
 
     struct NextCallbackAction {
@@ -259,6 +268,8 @@ contract SuperAppMock is ISuperApp {
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.BurnGas) {
             uint256 gasToBurn = abi.decode(_nextCallbackAction.data, (uint256));
             _burnGas(gasToBurn);
+        } else if (_nextCallbackAction.actionType == NextCallbackActionType.ReturnEmptyCtx) {
+            return new bytes(0);
         } else assert(false);
     }
 
@@ -368,4 +379,41 @@ contract SuperAppMock is ISuperApp {
         _;
     }
 
+}
+
+// This one returns empty CTX
+contract SuperAppMock2 {
+
+    ISuperfluid private _host;
+
+    constructor(ISuperfluid host) {
+        _host = host;
+        _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
+    }
+
+    function afterAgreementCreated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
+    )
+        external
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
+    function afterAgreementTerminated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
+    )
+        external
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
 }

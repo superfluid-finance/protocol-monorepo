@@ -705,6 +705,8 @@ contract Superfluid is
         private
         returns(bool success, bytes memory returnedData)
     {
+        assert(target != address(0));
+
         // STEP 1 : replace placeholder ctx with actual ctx
         callData = _replacePlaceholderCtx(callData, ctx);
 
@@ -724,6 +726,8 @@ contract Superfluid is
         private
         returns(bool success, bytes memory returnedData)
     {
+        assert(address(app) != address(0));
+
         callData = _replacePlaceholderCtx(callData, ctx);
 
         uint256 gasLeftBefore = gasleft();

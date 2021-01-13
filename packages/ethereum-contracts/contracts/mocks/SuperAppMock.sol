@@ -163,6 +163,7 @@ contract SuperAppMock is ISuperApp {
             agreement,
             abi.encodeWithSelector(
                 AgreementMock.pingMe.selector,
+                address(this), // expectedMsgSender
                 42,
                 new bytes(0)
             ),
@@ -415,5 +416,46 @@ contract SuperAppMock2 {
         external
         // solhint-disable-next-line no-empty-blocks
     {
+    }
+}
+
+// A second level app that calls other app
+contract SuperAppMock3 {
+
+    ISuperfluid private _host;
+    SuperAppMock private _app;
+    AgreementMock private _agreement;
+
+    constructor(ISuperfluid host, SuperAppMock app, AgreementMock agreement) {
+        _host = host;
+        _host.registerApp(SuperAppDefinitions.APP_LEVEL_SECOND);
+        _app = app;
+        _agreement = agreement;
+    }
+
+    function allowCompositeApp() external {
+        _host.allowCompositeApp(_app);
+    }
+
+    function afterAgreementCreated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external
+        returns (bytes memory newCtx)
+    {
+        (newCtx, ) = _host.callAgreementWithContext(
+            _agreement,
+            abi.encodeWithSelector(
+                AgreementMock.callAppAfterAgreementCreatedCallback.selector,
+                _app,
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            ctx);
     }
 }

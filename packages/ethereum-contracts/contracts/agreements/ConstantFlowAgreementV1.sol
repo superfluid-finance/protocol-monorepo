@@ -513,7 +513,7 @@ contract ConstantFlowAgreementV1 is
 
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of allowance
-            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.cbLevel + 1));
+            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel + 1));
 
             // call the after callback
             cbStates.appAllowanceGranted = vars.appAllowance;

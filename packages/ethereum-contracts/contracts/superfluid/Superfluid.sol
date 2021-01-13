@@ -42,6 +42,16 @@ contract Superfluid is
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public NON_UPGRADABLE_DEPLOYMENT;
 
+    /**
+     * @dev Maximum number of level of apps can be composed together
+     *
+     * NOTE:
+     * - TODO Composite app feature is currently disabled. Hence app cannot
+     *   will not be able to call other app.
+     */
+    // solhint-disable-next-line var-name-mixedcase
+    uint immutable public MAX_APP_LEVEL = 1;
+
     // solhint-disable-next-line var-name-mixedcase
     uint64 immutable public CALLBACK_GAS_LIMIT = 3000000;
 
@@ -98,6 +108,7 @@ contract Superfluid is
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Governance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     function getGovernance() external view override returns (ISuperfluidGovernance) {
         return _gov;
     }
@@ -316,8 +327,10 @@ contract Superfluid is
     )
         external override
     {
-        require(isApp(ISuperApp(msg.sender)), "SF: sender is not an app");
+        ISuperApp sourceApp = ISuperApp(msg.sender);
+        require(isApp(sourceApp), "SF: sender is not an app");
         require(isApp(targetApp), "SF: target is not an app");
+        require(getAppLevel(sourceApp) > getAppLevel(targetApp), "SF: source app should have higher app level");
         _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
     }
 
@@ -391,6 +404,7 @@ contract Superfluid is
 
     function appCallbackPush(
         bytes calldata ctx,
+        ISuperApp app,
         uint256 appAllowanceGranted,
         int256 appAllowanceUsed
     )
@@ -398,13 +412,19 @@ contract Superfluid is
         onlyAgreement
         returns (bytes memory appCtx)
     {
-        Context memory appContext = decodeCtx(ctx);
-        appContext.cbLevel++;
-        appContext.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
-        appContext.appAllowanceGranted = appAllowanceGranted;
-        appContext.appAllowanceWanted = 0;
-        appContext.appAllowanceUsed = appAllowanceUsed;
-        appCtx = _updateContext(appContext);
+        Context memory context = decodeCtx(ctx);
+        if (isApp(ISuperApp(context.msgSender))) {
+            require(!isAppJailed(app),
+                "SF: APP_RULE_COMPOSITE_APP_IS_JAILED");
+            require(_compositeApps[ISuperApp(context.msgSender)][app],
+                "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED");
+        }
+        context.appLevel++;
+        context.callType = ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK;
+        context.appAllowanceGranted = appAllowanceGranted;
+        context.appAllowanceWanted = 0;
+        context.appAllowanceUsed = appAllowanceUsed;
+        appCtx = _updateContext(context);
     }
 
     function appCallbackPop(
@@ -464,12 +484,12 @@ contract Superfluid is
         isAgreement(agreementClass)
         returns(bytes memory returnedData)
     {
-        //Build context data
-        bytes memory ctx;
         // beaware of the endiness
         bytes4 agreementSelector = CallUtils.parseSelector(callData);
-        ctx = _updateContext(Context({
-            cbLevel: 0,
+
+        //Build context data
+        bytes memory  ctx = _updateContext(Context({
+            appLevel: isApp(ISuperApp(msg.sender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
             /* solhint-disable-next-line not-rely-on-time */
             timestamp: block.timestamp,
@@ -499,12 +519,8 @@ contract Superfluid is
         returns(bytes memory returnedData)
     {
         //Build context data
-        //TODO: Where we get the gas reservation?
-        bool success;
-
-        bytes memory ctx;
-        ctx = _updateContext(Context({
-            cbLevel: 0,
+        bytes memory ctx = _updateContext(Context({
+            appLevel: isApp(ISuperApp(msg.sender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
             /* solhint-disable-next-line not-rely-on-time */
             timestamp: block.timestamp,
@@ -515,6 +531,7 @@ contract Superfluid is
             appAllowanceWanted: 0,
             appAllowanceUsed: 0
         }));
+        bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
         if (success) {
             ctx = abi.decode(returnedData, (bytes));
@@ -576,7 +593,6 @@ contract Superfluid is
         Context memory context = decodeCtx(ctx);
         address oldSender = context.msgSender;
 
-        // FIXME max app level check
         context.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
@@ -608,7 +624,7 @@ contract Superfluid is
             allowanceIO,
             context.appAllowanceUsed
         ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256));
-        (context.cbLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
+        (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
         context.appAllowanceGranted = allowanceIO & type(uint128).max;
         context.appAllowanceWanted = allowanceIO >> 128;
     }
@@ -687,7 +703,8 @@ contract Superfluid is
         private
         returns (bytes memory ctx)
     {
-        uint256 callInfo = ContextDefinitions.encodeCallInfo(context.cbLevel, context.callType);
+        require(context.appLevel <= MAX_APP_LEVEL, "SF: APP_RULE_MAX_APP_LEVEL_REACHED");
+        uint256 callInfo = ContextDefinitions.encodeCallInfo(context.appLevel, context.callType);
         uint256 allowanceIO =
             context.appAllowanceGranted.toUint128() |
             (uint256(context.appAllowanceWanted.toUint128()) << 128);

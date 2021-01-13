@@ -487,7 +487,7 @@ contract("Superfluid Host Contract", accounts => {
                 );
                 await web3tx(
                     app2.allowCompositeApp,
-                    "app.allowCompositeApp(app2)"
+                    "app2.allowCompositeApp(app)"
                 )(app.address);
                 assert.isTrue(
                     await superfluid.isCompositeAppAllowed.call(
@@ -961,6 +961,18 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
+            it("#6.11 callback will not be called for jailed apps", async () => {
+                await superfluid.jailApp(app.address);
+                await app.setNextCallbackAction(1 /* assert */, "0x");
+                await web3tx(superfluid.callAgreement, "callAgreement")(
+                    agreement.address,
+                    agreement.contract.methods
+                        .callAppAfterAgreementCreatedCallback(app.address, "0x")
+                        .encodeABI(),
+                    "0x"
+                );
+            });
+
             describe("callback gas limit", () => {
                 it("#6.20 beforeCreated callback burn all gas", async () => {
                     await app.setNextCallbackAction(
@@ -1145,7 +1157,72 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            // TODO app level
+            describe("composite app rules", () => {
+                const SuperAppMock3 = artifacts.require("SuperAppMock3");
+
+                it("#6.30 composite app must be whitelisted", async () => {
+                    // assuming MAX_APP_LEVEL = 1
+                    const app3 = await SuperAppMock3.new(
+                        superfluid.address,
+                        app.address,
+                        agreement.address
+                    );
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app3.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                    );
+                    await web3tx(
+                        app3.allowCompositeApp,
+                        "app3.allowCompositeApp(app)"
+                    )();
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app3.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_MAX_APP_LEVEL_REACHED"
+                    );
+                });
+
+                it("#6.31 composite app cannot be jailed", async () => {
+                    // assuming MAX_APP_LEVEL = 1
+                    const app3 = await SuperAppMock3.new(
+                        superfluid.address,
+                        app.address,
+                        agreement.address
+                    );
+                    await superfluid.jailApp(app.address);
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app3.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_COMPOSITE_APP_IS_JAILED"
+                    );
+                });
+            });
+
             // TODO app allowance
             // TODO app callback masks
         });

@@ -414,7 +414,7 @@ contract Superfluid is
     {
         Context memory context = decodeCtx(ctx);
         if (isApp(ISuperApp(context.msgSender))) {
-            require(!isAppJailed(ISuperApp(context.msgSender)),
+            require(!isAppJailed(app),
                 "SF: APP_RULE_COMPOSITE_APP_IS_JAILED");
             require(_compositeApps[ISuperApp(context.msgSender)][app],
                 "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED");

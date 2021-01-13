@@ -74,6 +74,7 @@ library AgreementLibrary {
         inputs.agreementId = agreementId;
         inputs.agreementData = agreementData;
         (bool isSuperApp, bool isJailed, uint256 noopMask) = host.getAppManifest(ISuperApp(account));
+        // skip the callbacks if the app is already jailed
         inputs.noopMask = isSuperApp && !isJailed ? noopMask : type(uint256).max;
     }
 

@@ -1528,7 +1528,7 @@ contract("Superfluid Host Contract", accounts => {
                                 ["bytes", "bytes"],
                                 [
                                     agreement.contract.methods
-                                        .pingMe(42, "0x")
+                                        .pingMe(admin, 42, "0x")
                                         .encodeABI(),
                                     "0x" // user data
                                 ]
@@ -1541,7 +1541,7 @@ contract("Superfluid Host Contract", accounts => {
                                 ["bytes", "bytes"],
                                 [
                                     agreement.contract.methods
-                                        .pingMe(43, "0x")
+                                        .pingMe(admin, 43, "0x")
                                         .encodeABI(),
                                     "0x" // user data
                                 ]
@@ -1604,7 +1604,7 @@ contract("Superfluid Host Contract", accounts => {
                                 ["bytes", "bytes"],
                                 [
                                     agreement.contract.methods
-                                        .pingMe(42, "0x")
+                                        .pingMe(admin, 42, "0x")
                                         .encodeABI(),
                                     "0x" // user data
                                 ]
@@ -1614,7 +1614,7 @@ contract("Superfluid Host Contract", accounts => {
                             202, // call app action
                             app.address,
                             app.contract.methods
-                                .actionCallActionNoop("0x")
+                                .actionExpectMsgSender(admin, "0x")
                                 .encodeABI()
                         ]
                     ],

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
+pragma abicoder v2;
 
 import {
     ISuperfluid,
@@ -37,6 +38,17 @@ contract SuperAppMock is ISuperApp {
     event NoopEvent();
 
     function actionNoop(bytes calldata ctx) external validCtx(ctx) returns (bytes memory newCtx) {
+        emit NoopEvent();
+        return ctx;
+    }
+
+    function actionExpectMsgSender(address expectedMsgSender, bytes calldata ctx)
+        external
+        validCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
+        assert(context.msgSender == expectedMsgSender);
         emit NoopEvent();
         return ctx;
     }

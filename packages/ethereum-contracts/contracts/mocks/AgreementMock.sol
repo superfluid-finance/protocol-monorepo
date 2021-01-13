@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.7.6;
+pragma abicoder v2;
 
 import {
     ISuperfluid,
@@ -161,11 +162,13 @@ contract AgreementMock is AgreementBase {
 
     event Pong(uint256 ping);
 
-    function pingMe(uint256 ping, bytes calldata ctx)
+    function pingMe(address expectedMsgSender, uint256 ping, bytes calldata ctx)
         external
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
+        assert(context.msgSender == expectedMsgSender);
         emit Pong(ping);
         return ctx;
     }

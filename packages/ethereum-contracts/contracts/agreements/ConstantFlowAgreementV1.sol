@@ -500,13 +500,10 @@ contract ConstantFlowAgreementV1 is
             // call the before callback
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-                cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
             } else if (optype == FlowChangeType.UPDATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-                cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
             } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
-                cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
             }
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
@@ -523,13 +520,10 @@ contract ConstantFlowAgreementV1 is
             cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-                cbStates.selector = ISuperApp.afterAgreementCreated.selector;
             } else if (optype == FlowChangeType.UPDATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-                cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
             } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-                cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
             }
             (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         } else {

@@ -57,7 +57,6 @@ library AgreementLibrary {
         uint256 appAllowanceGranted;
         int256 appAllowanceUsed;
         uint256 noopBit;
-        bytes4 selector;
     }
 
     function createCallbackInputs(
@@ -88,7 +87,7 @@ library AgreementLibrary {
         if ((inputs.noopMask & inputs.noopBit) == 0) {
             bytes memory appCtx = _pushCallbackStack(ctx, inputs);
             bytes memory callData = abi.encodeWithSelector(
-                inputs.selector,
+                _selectorFromNoopBit(inputs.noopBit),
                 inputs.token,
                 address(this) /* agreementClass */,
                 inputs.agreementId,
@@ -117,7 +116,7 @@ library AgreementLibrary {
             appCtx = _pushCallbackStack(ctx, inputs);
 
             bytes memory callData = abi.encodeWithSelector(
-                inputs.selector,
+                _selectorFromNoopBit(inputs.noopBit),
                 inputs.token,
                 address(this) /* agreementClass */,
                 inputs.agreementId,
@@ -139,6 +138,25 @@ library AgreementLibrary {
                 max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
 
             appCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
+        }
+    }
+
+    function _selectorFromNoopBit(uint256 noopBit)
+        private pure
+        returns (bytes4 selector)
+    {
+        if (noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP) {
+            return ISuperApp.beforeAgreementCreated.selector;
+        } else if (noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP) {
+            return ISuperApp.beforeAgreementUpdated.selector;
+        } else if (noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP) {
+            return ISuperApp.beforeAgreementTerminated.selector;
+        } else if (noopBit == SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP) {
+            return ISuperApp.afterAgreementCreated.selector;
+        } else if (noopBit == SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP) {
+            return ISuperApp.afterAgreementUpdated.selector;
+        } else /* if (noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP) */ {
+            return ISuperApp.afterAgreementTerminated.selector;
         }
     }
 

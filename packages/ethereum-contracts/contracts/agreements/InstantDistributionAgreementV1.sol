@@ -320,7 +320,6 @@ contract InstantDistributionAgreementV1 is
 
         if (!vars.exist) {
             vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-            vars.cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
             vars.sdata = SubscriptionData({
@@ -335,11 +334,9 @@ contract InstantDistributionAgreementV1 is
             token.createAgreement(vars.sId, _encodeSubscriptionData(vars.sdata));
 
             vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            vars.cbStates.selector = ISuperApp.afterAgreementCreated.selector;
             AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         } else {
             vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            vars.cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
             int balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
@@ -358,7 +355,6 @@ contract InstantDistributionAgreementV1 is
             token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
 
             vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            vars.cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
             AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         }
 
@@ -402,11 +398,9 @@ contract InstantDistributionAgreementV1 is
         // before-hook callback
         if (vars.exist) {
             vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            vars.cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
         } else {
             vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-            vars.cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
         }
 
@@ -472,11 +466,9 @@ contract InstantDistributionAgreementV1 is
         // after-hook callback
         if (vars.exist) {
             vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            vars.cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
             AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         } else {
             vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            vars.cbStates.selector = ISuperApp.afterAgreementCreated.selector;
             AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         }
 
@@ -605,7 +597,6 @@ contract InstantDistributionAgreementV1 is
         newCtx = ctx;
 
         vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
-        vars.cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
         int256 balanceDelta = int256(vars.idata.indexValue - vars.sdata.indexValue) * int256(vars.sdata.units);
@@ -635,7 +626,6 @@ contract InstantDistributionAgreementV1 is
         token.settleBalance(subscriber, balanceDelta);
 
         vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        vars.cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
         AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber, context.userData);
@@ -677,7 +667,6 @@ contract InstantDistributionAgreementV1 is
 
         if (pendingDistribution > 0) {
             vars.cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            vars.cbStates.selector = ISuperApp.beforeAgreementUpdated.selector;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(vars.cbStates, newCtx);
 
             // adjust publisher's deposits
@@ -690,7 +679,6 @@ contract InstantDistributionAgreementV1 is
             token.settleBalance(subscriber, int256(pendingDistribution));
 
             vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            vars.cbStates.selector = ISuperApp.afterAgreementUpdated.selector;
             AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
         } else {
             // nothing to be recorded in this case

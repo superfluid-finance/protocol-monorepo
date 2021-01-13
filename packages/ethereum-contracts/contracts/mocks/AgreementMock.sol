@@ -187,7 +187,6 @@ contract AgreementMock is AgreementBase {
             "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-        cbStates.selector = ISuperApp.beforeAgreementCreated.selector;
         bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
         emit AppBeforeCallbackResult(cbdata);
         newCtx = ctx;
@@ -208,7 +207,6 @@ contract AgreementMock is AgreementBase {
             "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-        cbStates.selector = ISuperApp.afterAgreementCreated.selector;
         (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
     }
@@ -228,7 +226,6 @@ contract AgreementMock is AgreementBase {
             "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
-        cbStates.selector = ISuperApp.beforeAgreementTerminated.selector;
         bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
         emit AppBeforeCallbackResult(cbdata);
         newCtx = ctx;
@@ -249,7 +246,6 @@ contract AgreementMock is AgreementBase {
             "" /* agreementData */
         );
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        cbStates.selector = ISuperApp.afterAgreementTerminated.selector;
         (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
     }

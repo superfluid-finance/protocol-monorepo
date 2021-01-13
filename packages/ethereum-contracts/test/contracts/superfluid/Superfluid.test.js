@@ -1064,7 +1064,7 @@ contract("Superfluid Host Contract", accounts => {
                 });
 
                 it("#6.24 beforeCreated try to burn just enough gas", async () => {
-                    const actionOverhead = 15000; /* some action overhead */
+                    const actionOverhead = 20000; /* some action overhead */
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(
                             5 /* BurnGas */,
@@ -1086,32 +1086,19 @@ contract("Superfluid Host Contract", accounts => {
                         "0x"
                     );
                     console.log("Gas used", tx.receipt.gasUsed);
+                    let gasLowerBound = tx.receipt.gasUsed;
+                    let gasUpperBound = gasLowerBound + 300000;
+                    console.log("Current bound", gasLowerBound, gasUpperBound);
 
                     // binary search proof if there is a price can trigger unexpected revert
-                    const extraGas = 300000;
-                    let gap = 10000; // initial gap
-                    let gas = Math.ceil(tx.receipt.gasUsed + extraGas);
-                    // make sure the initial gap works
-                    await setNextAction();
-                    tx = await superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppBeforeAgreementCreatedCallback(
-                                app.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x",
-                        {
-                            gas
-                        }
-                    );
-                    console.log("Gas used", tx.receipt.gasUsed);
-                    gap = Math.floor(gap / 2); // next gap
-                    // make sure to find another successful gas limit
+                    let gas;
                     let errorCount = 0;
                     let successCount = 0;
-                    while (gap > 0) {
+                    while (gasLowerBound <= gasUpperBound) {
+                        const gap = Math.floor(
+                            (gasUpperBound - gasLowerBound) / 2
+                        );
+                        gas = gasLowerBound + gap;
                         console.log("Trying with new gas limit", gas);
                         try {
                             await setNextAction();
@@ -1128,12 +1115,14 @@ contract("Superfluid Host Contract", accounts => {
                                     gas
                                 }
                             );
+                            console.log("Gas used", tx.receipt.gasUsed);
                             console.log(
                                 "No error, decreasing gas with gap",
-                                gap
+                                gasLowerBound,
+                                gas,
+                                gasUpperBound
                             );
-                            console.log("Gas used", tx.receipt.gasUsed);
-                            gas -= gap;
+                            gasUpperBound = gas;
                             ++errorCount;
                         } catch (error) {
                             // with error, check error and increase gas
@@ -1141,14 +1130,15 @@ contract("Superfluid Host Contract", accounts => {
                                 error.message.match("SF: need more gas")
                             );
                             console.log(
-                                "Expected error, increasing gas with gap",
-                                gap
+                                "Caught error, increasing gas with gap",
+                                gasLowerBound,
+                                gas,
+                                gasUpperBound
                             );
-                            gas += gap;
+                            gasLowerBound = gas;
                             ++successCount;
                         }
-                        //  decrease gap to half
-                        gap = Math.floor(gap / 2);
+                        if (gap === 0) break;
                     }
                     assert.isTrue(errorCount > 0, "expect some errors");
                     assert.isTrue(successCount > 0, "expect some success");
@@ -1156,8 +1146,8 @@ contract("Superfluid Host Contract", accounts => {
             });
 
             // TODO app level
-            // TODO app callback masks
             // TODO app allowance
+            // TODO app callback masks
         });
 
         describe("#7 callAgreement", () => {

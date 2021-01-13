@@ -1,3 +1,5 @@
+const Web3 = require("web3");
+
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const Superfluid = require("@superfluid-finance/js-sdk");
 
@@ -6,7 +8,9 @@ const { parseColonArgs } = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
- * @param from address to deploy contracts from
+ * @param isTruffle (optional) Whether the script is used within the truffle framework
+ * @param web3Provider (optional) The web3 provider to be used instead
+ * @param from (optional) Address to deploy contracts from, use accounts[0] by default
  *
  * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}
  */
@@ -16,7 +20,8 @@ module.exports = async function(
     { isTruffle, web3Provider, from } = {}
 ) {
     try {
-        global.web3 = web3;
+        this.web3 = web3Provider ? new Web3(web3Provider) : global.web3;
+        if (!this.web3) throw new Error("No web3 is available");
 
         if (!from) {
             const accounts = await web3.eth.getAccounts();
@@ -25,9 +30,11 @@ module.exports = async function(
 
         const { TestResolver, TestToken } = loadContracts({
             isTruffle,
-            web3Provider: web3Provider || web3.currentProvider,
+            web3Provider: this.web3.currentProvider,
             from
         });
+
+        console.log("Deploying test token");
 
         const reset = !!process.env.RESET_TOKEN;
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;

@@ -1,6 +1,6 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
-const Proxiable = artifacts.require("UUPSProxiable");
+const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
@@ -35,7 +35,7 @@ contract("SuperTokenFactory Contract", accounts => {
         });
 
         it("#1.2 proxiable info", async () => {
-            const proxiable = await Proxiable.at(factory.address);
+            const proxiable = await UUPSProxiable.at(factory.address);
             assert.equal(
                 await proxiable.proxiableUUID.call(),
                 web3.utils.sha3(

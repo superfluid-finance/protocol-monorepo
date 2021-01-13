@@ -1,11 +1,13 @@
 //const { assert } = require("chai");
 const { web3tx } = require("@decentral.ee/web3-helpers");
+const { expectRevert } = require("@openzeppelin/test-helpers");
 const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
 const deployTestEnvironment = require("../scripts/deploy-test-environment");
+const { codeChanged } = require("../scripts/utils");
 const TestResolver = artifacts.require("TestResolver");
-const Proxiable = artifacts.require("UUPSProxiable");
+const UUPSProxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers").constants;
@@ -51,12 +53,16 @@ contract("deployment test (outside truffle environment)", accounts => {
             await ISuperTokenFactory.at(superTokenFactory)
         ).getSuperTokenLogic();
         const cfa = await (
-            await Proxiable.at(await superfluid.getAgreementClass(cfav1Type))
+            await UUPSProxiable.at(
+                await superfluid.getAgreementClass(cfav1Type)
+            )
         ).getCodeAddress.call();
         const ida = await (
-            await Proxiable.at(await superfluid.getAgreementClass(idav1Type))
+            await UUPSProxiable.at(
+                await superfluid.getAgreementClass(idav1Type)
+            )
         ).getCodeAddress.call();
-        return {
+        const s = {
             superfluid,
             superfluidCode,
             gov,
@@ -66,10 +72,46 @@ contract("deployment test (outside truffle environment)", accounts => {
             cfa,
             ida
         };
+        // validate addresses
+        assert.notEqual(
+            s.superfluidCode,
+            ZERO_ADDRESS,
+            "superfluidCode not set"
+        );
+        assert.notEqual(s.gov, ZERO_ADDRESS, "gov not set");
+        assert.notEqual(
+            s.superTokenFactory,
+            ZERO_ADDRESS,
+            "superTokenFactory not set"
+        );
+        assert.notEqual(
+            s.superTokenFactoryLogic,
+            ZERO_ADDRESS,
+            "superTokenFactoryLogic not set"
+        );
+        assert.notEqual(
+            s.superTokenLogic,
+            ZERO_ADDRESS,
+            "superTokenLogic not set"
+        );
+        assert.notEqual(s.cfa, ZERO_ADDRESS, "cfa not registered");
+        assert.notEqual(s.ida, ZERO_ADDRESS, "ida not registered");
+        assert.isTrue(
+            await s.superfluid.isAgreementClassListed.call(
+                await s.superfluid.getAgreementClass(cfav1Type)
+            )
+        );
+        assert.isTrue(
+            await s.superfluid.isAgreementClassListed.call(
+                await s.superfluid.getAgreementClass(idav1Type)
+            )
+        );
+        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(cfav1Type));
+        assert.isTrue(await s.superfluid.isAgreementTypeListed.call(idav1Type));
+        return s;
     }
 
     it("codeChanged function", async () => {
-        const { codeChanged } = require("../scripts/utils");
         {
             // with constructor param
             const a1 = await web3tx(Superfluid.new, "Superfluid.new 1")(true);
@@ -91,47 +133,58 @@ contract("deployment test (outside truffle environment)", accounts => {
     });
 
     context("scripts/deploy-framework.js", () => {
-        it("fresh deployment", async () => {
+        const SuperfluidMock = artifacts.require("SuperfluidMock");
+        const SuperTokenFactory = artifacts.require("SuperTokenFactory");
+        const SuperTokenFactoryMock = artifacts.require(
+            "SuperTokenFactoryMock"
+        );
+
+        it("fresh deployment (default, nonUpgradable=false, useMocks=false)", async () => {
             await deployFramework(errorHandler, { from: accounts[0] });
             const s = await getSuperfluidAddresses();
-            assert.notEqual(
-                s.superfluidCode,
-                ZERO_ADDRESS,
-                "superfluidCode not set"
+            // check if it useMocks=false
+            assert.isFalse(await codeChanged(Superfluid, s.superfluidCode));
+            assert.isFalse(
+                await codeChanged(SuperTokenFactory, s.superTokenFactoryLogic)
             );
-            assert.notEqual(s.gov, ZERO_ADDRESS, "gov not set");
-            assert.notEqual(
-                s.superTokenFactory,
-                ZERO_ADDRESS,
-                "superTokenFactory not set"
-            );
-            assert.notEqual(
-                s.superTokenFactoryLogic,
-                ZERO_ADDRESS,
-                "superTokenFactoryLogic not set"
-            );
-            assert.notEqual(
-                s.superTokenLogic,
-                ZERO_ADDRESS,
-                "superTokenLogic not set"
-            );
-            assert.notEqual(s.cfa, ZERO_ADDRESS, "cfa not registered");
-            assert.notEqual(s.ida, ZERO_ADDRESS, "ida not registered");
-            assert.isTrue(
-                await s.superfluid.isAgreementClassListed.call(
-                    await s.superfluid.getAgreementClass(cfav1Type)
+        });
+
+        it("fresh deployment (useMocks=true)", async () => {
+            await deployFramework(errorHandler, {
+                useMocks: true,
+                from: accounts[0]
+            });
+            const s = await getSuperfluidAddresses();
+            // check if it useMocks=true
+            assert.isFalse(await codeChanged(SuperfluidMock, s.superfluidCode));
+            assert.isFalse(
+                await codeChanged(
+                    SuperTokenFactoryMock,
+                    s.superTokenFactoryLogic
                 )
             );
-            assert.isTrue(
-                await s.superfluid.isAgreementClassListed.call(
-                    await s.superfluid.getAgreementClass(idav1Type)
-                )
-            );
-            assert.isTrue(
-                await s.superfluid.isAgreementTypeListed.call(cfav1Type)
-            );
-            assert.isTrue(
-                await s.superfluid.isAgreementTypeListed.call(idav1Type)
+        });
+
+        it("nonUpgradable deployment", async () => {
+            // use the same resolver for the entire test
+            const testResolver = await web3tx(
+                TestResolver.new,
+                "TestResolver.new"
+            )();
+            process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+
+            await deployFramework(errorHandler, {
+                nonUpgradable: true,
+                useMocks: false,
+                from: accounts[0]
+            });
+            await expectRevert(
+                deployFramework(errorHandler, {
+                    nonUpgradable: true,
+                    useMocks: true, // force an update attempt
+                    from: accounts[0]
+                }),
+                "SF: non upgradable"
             );
         });
 
@@ -293,6 +346,7 @@ contract("deployment test (outside truffle environment)", accounts => {
         )();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+
         await deployFramework(errorHandler, { from: accounts[0] });
 
         // deploy test token first
@@ -308,15 +362,41 @@ contract("deployment test (outside truffle environment)", accounts => {
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
             from: accounts[0]
         });
+        const s1 = await getSuperfluidAddresses();
         const address1 = await testResolver.get("supertokens.test.TEST7262x");
         assert.notEqual(address1, ZERO_ADDRESS);
+        assert.equal(
+            s1.superTokenLogic,
+            await (await UUPSProxiable.at(address1)).getCodeAddress()
+        );
 
         // second deployment
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
             from: accounts[0]
         });
+        const s2 = await getSuperfluidAddresses();
         const address2 = await testResolver.get("supertokens.test.TEST7262x");
         assert.equal(address1, address2);
+        assert.equal(
+            s2.superTokenLogic,
+            await (await UUPSProxiable.at(address2)).getCodeAddress()
+        );
+
+        // new deployment after framework update
+        await deployFramework(errorHandler, {
+            useMocks: true,
+            from: accounts[0]
+        });
+        await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            from: accounts[0]
+        });
+        const s3 = await getSuperfluidAddresses();
+        const address3 = await testResolver.get("supertokens.test.TEST7262x");
+        assert.equal(address1, address2);
+        assert.equal(
+            s3.superTokenLogic,
+            await (await UUPSProxiable.at(address3)).getCodeAddress()
+        );
 
         // new deployment after framework reset
         process.env.RESET = 1;
@@ -324,8 +404,13 @@ contract("deployment test (outside truffle environment)", accounts => {
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
             from: accounts[0]
         });
-        const address3 = await testResolver.get("supertokens.test.TEST7262x");
-        assert.notEqual(address3, address2);
+        const s4 = await getSuperfluidAddresses();
+        const address4 = await testResolver.get("supertokens.test.TEST7262x");
+        assert.notEqual(address4, address3);
+        assert.equal(
+            s4.superTokenLogic,
+            await (await UUPSProxiable.at(address4)).getCodeAddress()
+        );
     });
 
     it("scripts/deploy-test-environment.js", async () => {

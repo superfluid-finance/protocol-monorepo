@@ -1,5 +1,7 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const Web3 = require("web3");
+
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const { web3tx } = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
 const loadContracts = require("./loadContracts");
@@ -54,10 +56,12 @@ async function deployNewLogicContractIfNew(
 
 /**
  * @dev Deploy the superfluid framework
- * @param newTestResolver Force to create a new resolver
- * @param useMocks Use mock contracts instead
- * @param nonUpgradable Deploy contracts configured to be non-upgradable
- * @param from address to deploy contracts from
+ * @param newTestResolver (optional) Force to create a new resolver
+ * @param useMocks (optional) Use mock contracts instead
+ * @param nonUpgradable (optional) Deploy contracts configured to be non-upgradable
+ * @param isTruffle (optional) Whether the script is used within the truffle framework
+ * @param web3Provider (optional) The web3 provider to be used instead
+ * @param from (optional) Address to deploy contracts from, use accounts[0] by default
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
@@ -73,7 +77,8 @@ module.exports = async function(
     } = {}
 ) {
     try {
-        global.web3 = web3;
+        this.web3 = web3Provider ? new Web3(web3Provider) : global.web3;
+        if (!this.web3) throw new Error("No web3 is available");
 
         if (!from) {
             const accounts = await web3.eth.getAccounts();
@@ -95,9 +100,11 @@ module.exports = async function(
         } = loadContracts({
             isTruffle,
             useMocks,
-            web3Provider: web3Provider || web3.currentProvider,
+            web3Provider: this.web3.currentProvider,
             from
         });
+
+        console.log("Deploying superfluid framework");
 
         const CFAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"

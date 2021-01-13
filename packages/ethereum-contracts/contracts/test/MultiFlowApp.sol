@@ -90,28 +90,29 @@ contract MultiFlowApp is SuperAppBase {
 
         newCtx = ctx;
 
+        // in case of mfa, we underutlize the app allowance for simplicity
+        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(superToken, appAllowanceGranted - 1);
+        appAllowanceGranted = _cfa.getDepositRequiredForFlowRate(superToken, safeFlowRate);
+
         // scale the flow rate and app allowance numbers
-        flowRate = flowRate * configuration.ratioPct / 100;
         appAllowanceGranted = appAllowanceGranted * configuration.ratioPct / 100;
+        flowRate = flowRate * configuration.ratioPct / 100;
 
         for(uint256 i = 0; i < configuration.receivers.length; i++) {
-            bytes memory callData;
-            {
-                ReceiverData memory receiverData = configuration.receivers[i];
-                uint256 targetAllowance = appAllowanceGranted * receiverData.proportion / sum;
-                int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
-                    superToken,
-                    targetAllowance
-                );
-                flowRate -= targetFlowRate;
-                callData = abi.encodeWithSelector(
-                    selector,
-                    superToken,
-                    receiverData.to,
-                    targetFlowRate,
-                    new bytes(0)
-                );
-            }
+            ReceiverData memory receiverData = configuration.receivers[i];
+            uint256 targetAllowance = appAllowanceGranted * receiverData.proportion / sum;
+            int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
+                superToken,
+                targetAllowance
+            );
+            flowRate -= targetFlowRate;
+            bytes memory callData = abi.encodeWithSelector(
+                selector,
+                superToken,
+                receiverData.to,
+                targetFlowRate,
+                new bytes(0)
+            );
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
                 callData,

@@ -93,6 +93,7 @@ contract SuperAppMock is ISuperApp {
             agreement,
             abi.encodeWithSelector(
                 AgreementMock.pingMe.selector,
+                address(this), // expectedMsgSender
                 ping,
                 new bytes(0)
             ),

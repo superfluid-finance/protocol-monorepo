@@ -306,6 +306,7 @@ contract("Superfluid Host Contract", accounts => {
                 mocks.push(t.contracts.cfa.address);
                 mocks.push(t.contracts.ida.address);
                 for (let i = 0; i < 254; ++i) {
+                    process.stdout.write(".");
                     const typeN = web3.utils.sha3("type." + i);
                     const mock = await AgreementMock.new(typeN, 1);
                     await governance.registerAgreementClass(
@@ -314,6 +315,7 @@ contract("Superfluid Host Contract", accounts => {
                     );
                     mocks.push(await superfluid.getAgreementClass(typeN));
                 }
+                process.stdout.write("\n");
 
                 const agreements = await superfluid.mapAgreementClasses.call(
                     MAX_UINT256
@@ -325,6 +327,7 @@ contract("Superfluid Host Contract", accounts => {
                         `agreement no.${i} mismatch`
                     );
                 }
+
                 const badMock = await AgreementMock.new(
                     web3.utils.sha3("type.bad"),
                     1

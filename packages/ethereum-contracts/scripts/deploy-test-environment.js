@@ -1,3 +1,9 @@
+const Web3 = require("web3");
+
+const deployFramework = require("./deploy-framework");
+const deployTestToken = require("./deploy-test-token");
+const deploySuperToken = require("./deploy-super-token");
+
 /**
  * @dev Deploy the superfluid framework and test tokens for local testing
  * @param isTruffle (optional) Whether the script is used within the truffle framework
@@ -15,12 +21,15 @@ module.exports = async function(
     };
 
     try {
-        const deployFramework = require("./deploy-framework");
-        const deployTestToken = require("./deploy-test-token");
-        const deploySuperToken = require("./deploy-super-token");
+        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
+        if (!this.web3) throw new Error("No web3 is available");
 
         console.log("==== Deploying superfluid framework...");
-        await deployFramework(errorHandler, { isTruffle, web3Provider, from });
+        await deployFramework(errorHandler, {
+            isTruffle,
+            web3Provider: this.web3.currentProvider,
+            from
+        });
         console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
@@ -28,7 +37,7 @@ module.exports = async function(
             console.log(`==== Deploying test token ${tokens[i]}...`);
             await deployTestToken(errorHandler, [":", tokens[i]], {
                 isTruffle,
-                web3Provider,
+                web3Provider: this.web3.currentProvider,
                 from
             });
             console.log(`==== Test token ${tokens[i]} deployed.`);
@@ -36,7 +45,7 @@ module.exports = async function(
             console.log(`==== Creating super token for ${tokens[i]}...`);
             await deploySuperToken(errorHandler, [":", tokens[i]], {
                 isTruffle,
-                web3Provider,
+                web3Provider: this.web3.currentProvider,
                 from
             });
             console.log(`==== Super token for ${tokens[i]} deployed.`);

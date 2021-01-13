@@ -42,7 +42,7 @@ async function deployNewLogicContractIfNew(
 ) {
     let newCodeAddress = ZERO_ADDRESS;
     const contractName = LogicContract.contractName;
-    if (await codeChanged(LogicContract, codeAddress)) {
+    if (await codeChanged(this.web3, LogicContract, codeAddress)) {
         console.log(`${contractName} logic code has changed`);
         newCodeAddress = await deployFunc();
         console.log(`${contractName} new logic code address ${newCodeAddress}`);
@@ -77,11 +77,11 @@ module.exports = async function(
     } = {}
 ) {
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : global.web3;
+        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
         if (!this.web3) throw new Error("No web3 is available");
 
         if (!from) {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await this.web3.eth.getAccounts();
             from = accounts[0];
         }
 
@@ -106,16 +106,16 @@ module.exports = async function(
 
         console.log("Deploying superfluid framework");
 
-        const CFAv1_TYPE = web3.utils.sha3(
+        const CFAv1_TYPE = this.web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
         );
-        const IDAv1_TYPE = web3.utils.sha3(
+        const IDAv1_TYPE = this.web3.utils.sha3(
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
 
         reset = !!process.env.RESET;
         const version = process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        const chainId = await this.web3.eth.net.getId(); // MAYBE? use eth.getChainId;
         console.log("reset: ", reset);
         console.log("network ID: ", chainId);
         console.log("release version:", version);
@@ -126,7 +126,12 @@ module.exports = async function(
         if (nonUpgradable)
             console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
 
-        await deployERC1820(() => null, { from });
+        await deployERC1820(
+            err => {
+                if (err) throw err;
+            },
+            { web3: this.web3, from }
+        );
 
         const config = SuperfluidSDK.getConfig(chainId);
 
@@ -144,7 +149,7 @@ module.exports = async function(
             TestGovernance,
             `TestGovernance.${version}`,
             async contractAddress =>
-                await codeChanged(TestGovernance, contractAddress),
+                await codeChanged(this.web3, TestGovernance, contractAddress),
             async () => {
                 return await web3tx(TestGovernance.new, "TestGovernance.new")(
                     from, // let rewardAddress the same as default from address
@@ -158,7 +163,8 @@ module.exports = async function(
         let superfluid = await deployAndRegisterContractIf(
             SuperfluidLogic,
             `Superfluid.${version}`,
-            async contractAddress => !(await hasCode(contractAddress)),
+            async contractAddress =>
+                !(await hasCode(this.web3, contractAddress)),
             async () => {
                 let superfluidAddress;
                 const superfluidLogic = await web3tx(
@@ -189,6 +195,7 @@ module.exports = async function(
                 if (!nonUpgradable) {
                     if (
                         await codeChanged(
+                            this.web3,
                             SuperfluidLogic,
                             await superfluid.getCodeAddress()
                         )

@@ -20,11 +20,11 @@ module.exports = async function(
     { isTruffle, web3Provider, from } = {}
 ) {
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : global.web3;
+        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
         if (!this.web3) throw new Error("No web3 is available");
 
         if (!from) {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await this.web3.eth.getAccounts();
             from = accounts[0];
         }
 
@@ -37,7 +37,7 @@ module.exports = async function(
         console.log("Deploying test token");
 
         const reset = !!process.env.RESET_TOKEN;
-        const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
+        const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         const config = Superfluid.getConfig(chainId);
         console.log("reset: ", reset);
         console.log("chain ID: ", chainId);

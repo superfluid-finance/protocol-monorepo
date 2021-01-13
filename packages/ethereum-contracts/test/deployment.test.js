@@ -115,7 +115,7 @@ contract("deployment test (outside truffle environment)", accounts => {
         {
             // with constructor param
             const a1 = await web3tx(Superfluid.new, "Superfluid.new 1")(true);
-            assert.isFalse(await codeChanged(Superfluid, a1.address));
+            assert.isFalse(await codeChanged(web3, Superfluid, a1.address));
         }
         {
             // without constructor param
@@ -127,7 +127,7 @@ contract("deployment test (outside truffle environment)", accounts => {
                 "ConstantFlowAgreementV1.new 1"
             )();
             assert.isFalse(
-                await codeChanged(ConstantFlowAgreementV1, a1.address)
+                await codeChanged(web3, ConstantFlowAgreementV1, a1.address)
             );
         }
     });
@@ -143,9 +143,15 @@ contract("deployment test (outside truffle environment)", accounts => {
             await deployFramework(errorHandler, { from: accounts[0] });
             const s = await getSuperfluidAddresses();
             // check if it useMocks=false
-            assert.isFalse(await codeChanged(Superfluid, s.superfluidCode));
             assert.isFalse(
-                await codeChanged(SuperTokenFactory, s.superTokenFactoryLogic)
+                await codeChanged(web3, Superfluid, s.superfluidCode)
+            );
+            assert.isFalse(
+                await codeChanged(
+                    web3,
+                    SuperTokenFactory,
+                    s.superTokenFactoryLogic
+                )
             );
         });
 
@@ -156,9 +162,12 @@ contract("deployment test (outside truffle environment)", accounts => {
             });
             const s = await getSuperfluidAddresses();
             // check if it useMocks=true
-            assert.isFalse(await codeChanged(SuperfluidMock, s.superfluidCode));
+            assert.isFalse(
+                await codeChanged(web3, SuperfluidMock, s.superfluidCode)
+            );
             assert.isFalse(
                 await codeChanged(
+                    web3,
                     SuperTokenFactoryMock,
                     s.superTokenFactoryLogic
                 )

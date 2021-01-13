@@ -11,8 +11,6 @@ function normalizeFlowRate(fr) {
  * Usage: npx truffle exec scripts/inspect-account.js : 0xACC1 0xACC2 ...
  */
 module.exports = async function(callback, argv) {
-    global.web3 = web3;
-
     try {
         const args = parseColonArgs(argv || process.argv);
         if (args.length < 1) {

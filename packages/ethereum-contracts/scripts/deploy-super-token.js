@@ -19,11 +19,11 @@ module.exports = async function(
     { isTruffle, web3Provider, from } = {}
 ) {
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : global.web3;
+        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
         if (!this.web3) throw new Error("No web3 is available");
 
         if (!from) {
-            const accounts = await web3.eth.getAccounts();
+            const accounts = await this.web3.eth.getAccounts();
             from = accounts[0];
         }
 
@@ -40,7 +40,7 @@ module.exports = async function(
 
         console.log("Deploying super token");
 
-        const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
+        const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         const version = process.env.RELEASE_VERSION || "test";
         console.log("network ID: ", chainId);
         console.log("release version:", version);
@@ -54,7 +54,7 @@ module.exports = async function(
 
         const sf = new SuperfluidSDK.Framework({
             isTruffle,
-            web3Provider: web3Provider || web3.currentProvider,
+            web3Provider: this.web3.currentProvider,
             version,
             from
         });

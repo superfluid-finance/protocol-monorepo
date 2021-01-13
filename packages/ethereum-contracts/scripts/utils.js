@@ -26,12 +26,12 @@ function parseColonArgs(argv) {
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-async function hasCode(address) {
+async function hasCode(web3, address) {
     const code = await web3.eth.getCode(address);
     return code.length > 3;
 }
 
-async function codeChanged(contract, address) {
+async function codeChanged(web3, contract, address) {
     const bytecodeFromCompiler = contract.bytecode;
     const code = await web3.eth.getCode(address);
 

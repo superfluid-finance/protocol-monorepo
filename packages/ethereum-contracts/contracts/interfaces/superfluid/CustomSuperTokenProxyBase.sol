@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPLv3
 pragma solidity >= 0.7.0;
 
 import { ISuperToken } from "./ISuperToken.sol";

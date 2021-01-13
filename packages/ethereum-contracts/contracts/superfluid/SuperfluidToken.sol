@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: AGPLv3
 /* solhint-disable not-rely-on-time */
 pragma solidity 0.7.6;
 

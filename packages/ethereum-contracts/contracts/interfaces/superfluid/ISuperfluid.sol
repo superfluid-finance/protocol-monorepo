@@ -36,8 +36,14 @@ interface ISuperfluid {
      * Governance
      *************************************************************************/
 
+    /**
+     * @dev Get the current governace of the Superfluid host
+     */
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
+    /**
+     * @dev Replace the current governance with a new one
+     */
     function replaceGovernance(ISuperfluidGovernance newGov) external;
 
     /**************************************************************************
@@ -230,6 +236,7 @@ interface ISuperfluid {
 
     function appCallbackPush(
         bytes calldata ctx,
+        ISuperApp app,
         uint256 appAllowanceGranted,
         int256 appAllowanceUsed
     )
@@ -330,7 +337,7 @@ interface ISuperfluid {
         // Call context
         //
         // callback level
-        uint8 cbLevel;
+        uint8 appLevel;
         // type of call
         uint8 callType;
         // the system timestsamp

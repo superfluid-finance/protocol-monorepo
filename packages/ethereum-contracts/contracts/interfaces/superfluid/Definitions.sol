@@ -10,9 +10,20 @@ library SuperAppDefinitions {
     / App manifest config word
     /**************************************************************************/
 
+    /*
+     * App level is a way to allow the app to whitelist what other app it can
+     * interact with (aka. composite app feature).
+     *
+     * For more details, refer to the technical paper of superfluid protocol.
+     */
     uint256 constant internal APP_LEVEL_MASK = 0xFF;
+
+    // The app is at the final level, hence it doesn't want to interact with any other app
     uint256 constant internal APP_LEVEL_FINAL = 1 << 0;
+
+    // The app is at the second level, it may interact with other final level apps if whitelisted
     uint256 constant internal APP_LEVEL_SECOND = 1 << 1;
+
     function getAppLevel(uint256 configWord) internal pure returns (uint8) {
         return uint8(configWord & APP_LEVEL_MASK);
     }
@@ -44,6 +55,9 @@ library SuperAppDefinitions {
     uint256 constant internal APP_RULE_CTX_IS_READONLY = 20;
     uint256 constant internal APP_RULE_CTX_IS_NOT_CLEAN = 21;
     uint256 constant internal APP_RULE_CTX_IS_EMPTY = 22;
+    uint256 constant internal APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED = 30;
+    uint256 constant internal APP_RULE_COMPOSITE_APP_IS_JAILED = 31;
+    uint256 constant internal APP_RULE_MAX_APP_LEVEL_REACHED = 40;
 }
 
 /**
@@ -56,7 +70,7 @@ library ContextDefinitions {
     /**************************************************************************/
 
     // app level
-    uint256 constant internal CALL_INFO_APP_CALLBACK_LEVEL_MASK = 0xFF;
+    uint256 constant internal CALL_INFO_APP_LEVEL_MASK = 0xFF;
 
     // call type
     uint256 constant internal CALL_INFO_CALL_TYPE_SHIFT = 32;
@@ -67,17 +81,17 @@ library ContextDefinitions {
 
     function decodeCallInfo(uint256 callInfo)
         internal pure
-        returns (uint8 cbLevel, uint8 callType)
+        returns (uint8 appLevel, uint8 callType)
     {
-        cbLevel = uint8(callInfo & CALL_INFO_APP_CALLBACK_LEVEL_MASK);
+        appLevel = uint8(callInfo & CALL_INFO_APP_LEVEL_MASK);
         callType = uint8((callInfo & CALL_INFO_CALL_TYPE_MASK) >> CALL_INFO_CALL_TYPE_SHIFT);
     }
 
-    function encodeCallInfo(uint8 cbLevel, uint8 callType)
+    function encodeCallInfo(uint8 appLevel, uint8 callType)
         internal pure
         returns (uint256 callInfo)
     {
-        return uint256(cbLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
+        return uint256(appLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
     }
 
 }

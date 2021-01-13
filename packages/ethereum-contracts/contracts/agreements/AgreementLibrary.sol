@@ -84,8 +84,10 @@ library AgreementLibrary {
         internal
         returns(bytes memory cbdata)
     {
+        // this will check composit app whitelisting, do not skip!
+        // otherwise an app could be trapped into an agreement
+        bytes memory appCtx = _pushCallbackStack(ctx, inputs);
         if ((inputs.noopMask & inputs.noopBit) == 0) {
-            bytes memory appCtx = _pushCallbackStack(ctx, inputs);
             bytes memory callData = abi.encodeWithSelector(
                 _selectorFromNoopBit(inputs.noopBit),
                 inputs.token,
@@ -99,9 +101,8 @@ library AgreementLibrary {
                 callData,
                 inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                 appCtx);
-
-            _popCallbackStatck(ctx, 0);
         }
+        _popCallbackStatck(ctx, 0);
     }
 
     function callAppAfterCallback(
@@ -112,9 +113,10 @@ library AgreementLibrary {
         internal
         returns (ISuperfluid.Context memory appContext, bytes memory appCtx)
     {
+        // this will check composit app whitelisting, do not skip!
+        // otherwise an app could be trapped into an agreement
+        appCtx = _pushCallbackStack(ctx, inputs);
         if ((inputs.noopMask & inputs.noopBit) == 0) {
-            appCtx = _pushCallbackStack(ctx, inputs);
-
             bytes memory callData = abi.encodeWithSelector(
                 _selectorFromNoopBit(inputs.noopBit),
                 inputs.token,
@@ -171,6 +173,7 @@ library AgreementLibrary {
         // pass app allowance and current allowance used to the app,
         appCtx = ISuperfluid(msg.sender).appCallbackPush(
             ctx,
+            ISuperApp(inputs.account),
             inputs.appAllowanceGranted,
             inputs.appAllowanceUsed);
     }

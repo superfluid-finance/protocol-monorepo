@@ -468,7 +468,7 @@ contract("Superfluid Host Contract", accounts => {
             it("#4.5 allowCompositeApp", async () => {
                 const app2 = await SuperAppMock.new(
                     superfluid.address,
-                    1 /* APP_TYPE_FINAL_LEVEL */,
+                    2 /* APP_LEVEL_SECOND */,
                     false
                 );
                 await expectRevert(
@@ -486,13 +486,13 @@ contract("Superfluid Host Contract", accounts => {
                     )
                 );
                 await web3tx(
-                    app.allowCompositeApp,
+                    app2.allowCompositeApp,
                     "app.allowCompositeApp(app2)"
-                )(app2.address);
+                )(app.address);
                 assert.isTrue(
                     await superfluid.isCompositeAppAllowed.call(
-                        app.address,
-                        app2.address
+                        app2.address,
+                        app.address
                     )
                 );
             });
@@ -621,7 +621,7 @@ contract("Superfluid Host Contract", accounts => {
                     )
                 );
                 await expectRevert.unspecified(
-                    superfluid.appCallbackPush("0x", 0, 0)
+                    superfluid.appCallbackPush("0x", ZERO_ADDRESS, 0, 0)
                 );
                 await expectRevert.unspecified(
                     superfluid.appCallbackPop("0x", 0)

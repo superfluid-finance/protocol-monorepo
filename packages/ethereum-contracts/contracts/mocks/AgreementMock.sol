@@ -141,7 +141,7 @@ contract AgreementMock is AgreementBase {
     }
 
     function tryAppCallbackPush(ISuperfluid host) external {
-        host.appCallbackPush("", 0, 0);
+        host.appCallbackPush("", ISuperApp(address(0)), 0, 0);
     }
 
     function tryAppCallbackPop(ISuperfluid host) external {

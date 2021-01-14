@@ -36,11 +36,10 @@ jobs:
 
             - name: Install, lint, build, and test
               run: |
-                  true
-                  #yarn install --frozen-lockfile
-                  #yarn lint
-                  #yarn build
-                  #yarn test
+                  yarn install --frozen-lockfile
+                  yarn lint
+                  yarn build
+                  yarn test
 
     coverage:
         name: Run coverage test
@@ -60,10 +59,9 @@ jobs:
 
             - name: Run coverage test
               run: |
-                  true
-                  #yarn install --frozen-lockfile
-                  #cd packages/ethereum-contracts
-                  #yarn test-coverage
+                  yarn install --frozen-lockfile
+                  cd packages/ethereum-contracts
+                  yarn test-coverage
 
             - name: Create coverage artifact
               uses: actions/upload-artifact@v2

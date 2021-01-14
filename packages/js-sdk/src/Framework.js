@@ -33,9 +33,6 @@ module.exports = class Framework {
         resolverAddress,
         tokens
     }) {
-        // TODO: remove this line if unnecessary
-        // const contractNames = require("./contracts.json");
-
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;

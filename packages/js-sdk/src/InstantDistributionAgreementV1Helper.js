@@ -90,7 +90,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         publisher,
         sender,
-        units,
         userData = "0x",
         onTransaction = () => null
     }) {

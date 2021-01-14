@@ -90,7 +90,7 @@ module.exports = class User {
 
     async giveShares({ recipient, shares, poolId: indexId }) {
         try {
-            if (!recipient || !amount || !indexId)
+            if (!recipient || !shares || !indexId)
                 throw "You must provide a recipient, share amount, and poolId";
             const recipientAddress = recipient.address || recipient;
 
@@ -101,7 +101,7 @@ module.exports = class User {
             });
             if (!exist) throw "This pool has not been created yet";
 
-            return await sf.ida.updateSupscription({
+            return await this.sf.ida.updateSupscription({
                 superToken: this.token,
                 indexId,
                 subscriber: recipientAddress,
@@ -120,7 +120,7 @@ module.exports = class User {
             await this.sf.ida.distribute({
                 superToken: this.token,
                 indexId,
-                amount: amount,
+                amount,
                 sender: this.address
             });
         } catch (e) {

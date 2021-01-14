@@ -1,10 +1,9 @@
-const { toBN, toWad } = require("@decentral.ee/web3-helpers");
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 contract("InstantDistributionAgreementV1Helper helper class", accounts => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const { admin, alice, bob, carol } = t.aliases;
+    const { alice, bob, carol } = t.aliases;
 
     let sf;
     let superToken;
@@ -258,7 +257,6 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
     describe("details", () => {
         it("getIndex", async () => {
             const indexId = 1;
-            const units = 100;
             const halfUnits = 50;
             const publisher = alice;
 

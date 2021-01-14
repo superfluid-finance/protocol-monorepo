@@ -60,9 +60,10 @@ jobs:
 
             - name: Run coverage test
               run: |
-                  yarn install --frozen-lockfile
-                  cd packages/ethereum-contracts
-                  yarn test-coverage
+                  true # skip for now
+                  #yarn install --frozen-lockfile
+                  #cd packages/ethereum-contracts
+                  #yarn test-coverage
 
             - name: Create coverage artifact
               uses: actions/upload-artifact@v2

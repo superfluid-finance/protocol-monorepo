@@ -23,6 +23,6 @@ fi
 
 echo "Publishing pacakge, version $PUBLISHING_VERSION"
 
-npm publish --dry-run
+npm publish
 
 git checkout package.json

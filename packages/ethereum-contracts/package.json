@@ -1,9 +1,9 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "0.2.0-latest",
+    "version": "0.2.0-rc1",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
-    "license": "MIT",
+    "license": "AGPLv3",
     "files": [
         "/contracts/**/*",
         "!/contracts/mocks/*",
@@ -49,7 +49,7 @@
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
         "@truffle/hdwallet-provider": "1.2.1",
-        "@superfluid-finance/js-sdk": "0.2.0-latest",
+        "@superfluid-finance/js-sdk": "0.2.0-rc1",
         "dotenv": "8.2.0",
         "ganache-time-traveler": "1.0.15",
         "readline": "1.3.0",
@@ -58,8 +58,5 @@
         "truffle": "5.1.49",
         "truffle-flattener": "^1.5.0",
         "truffle-plugin-verify": "^0.5.4"
-    },
-    "publishConfig": {
-        "registry": "https://npm.pkg.github.com/"
     }
 }

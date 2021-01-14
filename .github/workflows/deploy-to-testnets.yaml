@@ -11,7 +11,7 @@ on:
 jobs:
 
     deploy-to-testnets:
-        name: Deploy to testnets
+        name: Deploy to testnets (release version: ${{ github.event.inputs.release_version}})
 
         runs-on: ubuntu-latest
 
@@ -42,7 +42,7 @@ jobs:
                   cd packages/ethereum-contracts
                   npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
               env:
-                  RELEASE_VERSION: v1
+                  RELEASE_VERSION: ${{ github.event.inputs.release_version}}
                   GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
                   RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

@@ -156,4 +156,4 @@ jobs:
                   rm -f packages/js-sdk/.npmrc
                   .github/workflows/npm-publish.sh packages/js-sdk/
               env:
-                  GITHUB_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPMJS_TOKEN }}

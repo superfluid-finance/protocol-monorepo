@@ -23,6 +23,6 @@ fi
 
 echo "Publishing pacakge, version $PUBLISHING_VERSION"
 
-npm publish
+npm publish --access public
 
 git checkout package.json

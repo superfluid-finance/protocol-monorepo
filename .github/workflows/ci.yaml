@@ -134,6 +134,16 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: 12.x
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Publish package to NpmJS Registry
+              run: |
+                  rm -f packages/ethereum-contracts/.npmrc
+                  .github/workflows/npm-publish.sh packages/ethereum-contracts/
+                  rm -f packages/js-sdk/.npmrc
+                  .github/workflows/npm-publish.sh packages/js-sdk/
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
             - name: Build package
               run: |
@@ -148,12 +158,3 @@ jobs:
                   .github/workflows/npm-publish.sh packages/js-sdk/
               env:
                   GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-
-            - name: Publish package to NpmJS Registry
-              run: |
-                  rm -f packages/ethereum-contracts/.npmrc
-                  .github/workflows/npm-publish.sh packages/ethereum-contracts/
-                  rm -f packages/js-sdk/.npmrc
-                  .github/workflows/npm-publish.sh packages/js-sdk/
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

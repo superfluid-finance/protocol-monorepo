@@ -6,7 +6,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      * @dev Create new helper class
      * @param {Framework} sf Superfluid Framework object
      *
-     * NOTE: You should call async function Framework.initialize to initialize the object.
+     * NOTE: You should first call async function Framework.initialize to initialize the object.
      */
     constructor(sf) {
         this._sf = sf;

@@ -114,7 +114,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         publisher,
         subscriber,
         sender,
-        units,
         userData = "0x",
         onTransaction = () => null
     }) {
@@ -136,5 +135,69 @@ module.exports = class InstantDistributionAgreementV1Helper {
             .on("transactionHash", onTransaction);
         console.debug("Subscription deleted.");
         return tx;
+    }
+
+    async distribute({
+        superToken,
+        indexId,
+        amount,
+        sender,
+        userData = "0x",
+        onTransaction = () => null
+    }) {
+        const tx = await this._sf.host
+            .callAgreement(
+                this._ida.address,
+                this._ida.contract.methods
+                    .distribute(superToken, indexId, amount, "0x")
+                    .encodeABI(),
+                userData,
+                { from: sender }
+            )
+            .on("transactionHash", onTransaction);
+        console.debug("Distribution complete.");
+        return tx;
+    }
+
+    async claim({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        sender,
+        userData = "0x",
+        onTransaction = () => null
+    }) {
+        const tx = await this._sf.host
+            .callAgreement(
+                this._ida.address,
+                this._ida.contract.methods
+                    .claim(superToken, publisher, indexId, subscriber, "0x")
+                    .encodeABI(),
+                userData,
+                { from: sender }
+            )
+            .on("transactionHash", onTransaction);
+        console.debug("Claim complete.");
+        return tx;
+    }
+
+    async getIndex({ superToken, publisher, indexId }) {
+        const result = await this._ida.getIndex(superToken, publisher, indexId);
+        return this.constructor._sanitizeIndexInfo(result);
+    }
+
+    static _sanitizeIndexInfo({
+        exist,
+        indexValue,
+        totalUnitsApproved,
+        totalUnitsPending
+    }) {
+        return {
+            exist,
+            indexValue: indexValue.toString(),
+            totalUnitsApproved: totalUnitsApproved.toString(),
+            totalUnitsPending: totalUnitsPending.toString()
+        };
     }
 };

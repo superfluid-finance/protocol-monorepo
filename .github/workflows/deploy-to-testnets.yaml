@@ -11,7 +11,7 @@ on:
 jobs:
 
     deploy-to-testnets:
-        name: Deploy to testnets (release version: ${{ github.event.inputs.release_version}})
+        name: Deploy to testnets
 
         runs-on: ubuntu-latest
 
@@ -37,7 +37,7 @@ jobs:
                   cd packages/ethereum-contracts
                   yarn build
 
-            - name: Deploy to prod-testnets
+            - name: Deploy to testnets
               run: |
                   cd packages/ethereum-contracts
                   npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js

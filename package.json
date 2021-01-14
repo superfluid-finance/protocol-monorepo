@@ -31,8 +31,5 @@
             "packages/ethereum-contracts",
             "packages/js-sdk"
         ]
-    },
-    "publishConfig": {
-        "registry": "https://npm.pkg.github.com/"
     }
 }

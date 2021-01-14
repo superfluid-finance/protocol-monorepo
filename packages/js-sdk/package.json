@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.2.0-latest",
+    "version": "0.2.0",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
@@ -28,13 +28,10 @@
         "@truffle/contract": "4.3.4"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "0.2.0-latest",
+        "@superfluid-finance/ethereum-contracts": "0.2.0",
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
         "chai-as-promised": "7.1.1",
         "truffle": "5.1.49"
-    },
-    "publishConfig": {
-        "registry": "https://npm.pkg.github.com/"
     }
 }

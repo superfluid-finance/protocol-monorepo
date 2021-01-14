@@ -1,5 +1,5 @@
 {
-    "name": "superapp-demo",
+    "name": "tradeable-cashflow",
     "version": "1.0.0",
     "description": "SuperApp demo - a simple money stream lottery",
     "main": "scripts/demo.js",
@@ -15,8 +15,8 @@
         "@decentral.ee/web3-helpers": "^0.3.2",
         "@openzeppelin/contracts": "^3.2.1-solc-0.7",
         "@openzeppelin/test-helpers": "^0.5.6",
-        "@superfluid-finance/ethereum-contracts": "0.2.0-latest",
-        "@superfluid-finance/js-sdk": "0.2.0-latest",
+        "@superfluid-finance/ethereum-contracts": "^0.2.0",
+        "@superfluid-finance/js-sdk": "^0.2.0",
         "@truffle/contract": "^4.2.23",
         "@truffle/hdwallet-provider": "^1.1.0",
         "dotenv": "^8.2.0",

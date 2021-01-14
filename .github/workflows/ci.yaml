@@ -34,12 +34,12 @@ jobs:
               with:
                   node-version: ${{ matrix.node-version }}
 
-            - name: install, lint, build, and test
+            - name: Install, lint, build, and test
               run: |
                   yarn install --frozen-lockfile
-                  yarn run lint
-                  yarn run build
-                  yarn run test
+                  yarn lint
+                  yarn build
+                  yarn test
 
     coverage:
         name: Run coverage test
@@ -61,7 +61,7 @@ jobs:
               run: |
                   yarn install --frozen-lockfile
                   cd packages/ethereum-contracts
-                  yarn run test-coverage
+                  yarn test-coverage
 
             - name: Create coverage artifact
               uses: actions/upload-artifact@v2
@@ -71,12 +71,15 @@ jobs:
                       packages/ethereum-contracts/coverage/
                       packages/ethereum-contracts/coverage.json
 
-    deploy-master-to-testnets:
-        name: Deploy master branch to testnets
+    deploy-master:
+        name: Deploy master branch to dev-testnets
 
         needs: [build, coverage]
 
         runs-on: ubuntu-latest
+
+        # only deploy for master branch push
+        if: github.ref == 'refs/heads/master'
 
         env:
             GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
@@ -84,10 +87,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                network: [goerli, rinkeby, ropsten, mumbai]
-
-        # only deploy for master branch push
-        if: github.ref == 'refs/heads/master'
+                network: [goerli]
 
         steps:
             - uses: actions/checkout@v2
@@ -101,9 +101,9 @@ jobs:
               run: |
                   yarn install --frozen-lockfile
                   cd packages/ethereum-contracts
-                  yarn run build
+                  yarn build
 
-            - name: Deploy
+            - name: Deploy to prod-testnets
               run: |
                   cd packages/ethereum-contracts
                   npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
@@ -111,24 +111,16 @@ jobs:
                   RELEASE_VERSION: master
                   GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-                  RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-                  RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
-                  ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-                  ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
-                  MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-                  MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
 
     npm-publish-master:
         name: NPM publish master branch package
 
         # TODO make this happen faster
 
-        needs: [build, coverage, deploy-master-to-testnets]
+        needs: [build, coverage, deploy-master]
 
         runs-on: ubuntu-latest
 
-        env:
-            GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
         # only publish npm package for master branch push
         if: github.ref == 'refs/heads/master'
@@ -140,15 +132,27 @@ jobs:
               uses: actions/setup-node@v1
               with:
                   node-version: 12.x
+                  registry-url: https://registry.npmjs.org/
+
+            - name: Publish package to NpmJS Registry
+              run: |
+                  rm -f packages/ethereum-contracts/.npmrc
+                  .github/workflows/npm-publish.sh packages/ethereum-contracts/
+                  rm -f packages/js-sdk/.npmrc
+                  .github/workflows/npm-publish.sh packages/js-sdk/
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
             - name: Build package
               run: |
                   yarn install --frozen-lockfile
-                  yarn run build
+                  yarn build
 
-            - name: Publish package
+            - name: Publish package to Superfluid Registry
               run: |
                   cp .npmrc.template packages/ethereum-contracts/.npmrc
-                  .github/workflows/npm-publish.sh packages/ethereum-contracts
+                  .github/workflows/npm-publish.sh packages/ethereum-contracts/
                   cp .npmrc.template packages/js-sdk/.npmrc
-                  .github/workflows/npm-publish.sh packages/js-sdk
+                  .github/workflows/npm-publish.sh packages/js-sdk/
+              env:
+                  GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

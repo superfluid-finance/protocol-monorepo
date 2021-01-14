@@ -4,9 +4,9 @@ on:
     workflow_dispatch:
         inputs:
             release_version:
-            description: 'Protocol Release Version (test/master/v1/etc.)'
-            required: true
-            default: 'test'
+                description: 'Protocol Release Version (test/master/v1/etc.)'
+                required: true
+                default: 'test'
 
 jobs:
 

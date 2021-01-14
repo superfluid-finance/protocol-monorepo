@@ -144,7 +144,5 @@ jobs:
 
             - name: Publish package
               run: |
-                  cp .npmrc.template packages/ethereum-contracts/.npmrc
                   .github/workflows/npm-publish.sh packages/ethereum-contracts
-                  cp .npmrc.template packages/js-sdk/.npmrc
                   .github/workflows/npm-publish.sh packages/js-sdk

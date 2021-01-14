@@ -91,9 +91,17 @@ module.exports = async function(
                     await sf.host.getSuperTokenFactory.call()
                 );
                 const superTokenLogic1 = await superTokenFactory.getSuperTokenLogic();
+                console.log(
+                    "Latest SuperToken logic address",
+                    superTokenLogic1
+                );
                 const superTokenLogic2 = await (
                     await UUPSProxiable.at(superTokenAddress)
                 ).getCodeAddress();
+                console.log(
+                    "Current SuperToken logic address",
+                    superTokenLogic1
+                );
                 if (superTokenLogic1 !== superTokenLogic2) {
                     console.log("SuperToken logic needs to be updated.");
                     console.log("Updating supertoken's logic....");

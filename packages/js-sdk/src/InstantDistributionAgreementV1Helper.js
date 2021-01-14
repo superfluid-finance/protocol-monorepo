@@ -187,6 +187,14 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return this.constructor._sanitizeIndexInfo(result);
     }
 
+    async listSubscriptions({ superToken, subscriber }) {
+        const result = await this._ida.listSubscriptions(
+            superToken,
+            subscriber
+        );
+        return this.constructor._sanitizeSubscriptionInfo(result);
+    }
+
     static _sanitizeIndexInfo({
         exist,
         indexValue,
@@ -198,6 +206,14 @@ module.exports = class InstantDistributionAgreementV1Helper {
             indexValue: indexValue.toString(),
             totalUnitsApproved: totalUnitsApproved.toString(),
             totalUnitsPending: totalUnitsPending.toString()
+        };
+    }
+
+    static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }) {
+        return {
+            publishers,
+            indexIds: indexIds.map(id => id.toString()),
+            unitsList: unitsList.map(units => units.toString())
         };
     }
 };

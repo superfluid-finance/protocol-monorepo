@@ -20,7 +20,11 @@ module.exports = class User {
                     account: this.address
                 })
             ).toString();
-            return { cfa: { flows, netFlow } };
+            const subscriptions = await this.sf.ida.listSubscriptions({
+                superToken: this.token,
+                subscriber: this.address
+            });
+            return { cfa: { flows, netFlow }, ida: { subscriptions } };
         } catch (e) {
             throw getErrorResponse(e, "user", "details");
         }
@@ -61,6 +65,66 @@ module.exports = class User {
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "flow");
+        }
+    }
+
+    async createPool({ poolId: indexId }) {
+        try {
+            if (!indexId) throw "You must provide a poolId";
+            const { exist } = await this.sf.ida.getIndex({
+                superToken: this.token,
+                publisher: this.address,
+                indexId
+            });
+            if (exist) throw "This pool has already been created";
+
+            return await this.sf.ida.createIndex({
+                superToken: this.token,
+                indexId,
+                sender: this.address
+            });
+        } catch (e) {
+            throw getErrorResponse(e, "user", "createPool");
+        }
+    }
+
+    async giveShares({ recipient, shares, poolId: indexId }) {
+        try {
+            if (!recipient || !amount || !indexId)
+                throw "You must provide a recipient, share amount, and poolId";
+            const recipientAddress = recipient.address || recipient;
+
+            const { exist } = await this.sf.ida.getIndex({
+                superToken: this.token,
+                publisher: this.address,
+                indexId
+            });
+            if (!exist) throw "This pool has not been created yet";
+
+            return await sf.ida.updateSupscription({
+                superToken: this.token,
+                indexId,
+                subscriber: recipientAddress,
+                units: shares,
+                sender: this.address
+            });
+        } catch (e) {
+            throw getErrorResponse(e, "user", "giveShares");
+        }
+    }
+
+    async distributeToPool({ poolId: indexId, amount }) {
+        try {
+            if (!indexId || !amount)
+                throw "You must provide a poolId and amount";
+            await this.sf.ida.distribute({
+                superToken: this.token,
+                indexId,
+                amount: amount,
+                sender: this.address
+            });
+        } catch (e) {
+            throw getErrorResponse(e, "user", "distributeToPool");
         }
     }
 };

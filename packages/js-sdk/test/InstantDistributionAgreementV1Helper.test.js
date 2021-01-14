@@ -19,44 +19,87 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
         ({ superToken } = t.contracts);
     });
 
-    it("createIndex", async () => {
-        const indexId = 1;
-        await sf.ida.createIndex({
-            superToken: superToken.address,
-            indexId,
-            sender: alice
+    describe("index", async () => {
+        it("createIndex", async () => {
+            const indexId = 1;
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                indexId,
+                sender: alice
+            });
+
+            const index = await sf.agreements.ida.getIndex(
+                superToken.address,
+                alice,
+                indexId
+            );
+            assert.equal(index.exist, true);
         });
 
-        const index = await sf.agreements.ida.getIndex(
-            superToken.address,
-            alice,
-            indexId
-        );
-        assert.equal(index.exist, true);
-    });
+        it("updateIndex", async () => {
+            const indexId = 1;
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                indexId,
+                sender: alice
+            });
 
-    it("updateIndex", async () => {
-        const indexId = 1;
-        await sf.ida.createIndex({
-            superToken: superToken.address,
-            indexId,
-            sender: alice
+            const indexValue = 100;
+            await sf.ida.updateIndex({
+                superToken: superToken.address,
+                indexId,
+                indexValue,
+                sender: alice
+            });
+
+            const index = await sf.agreements.ida.getIndex(
+                superToken.address,
+                alice,
+                indexId
+            );
+            assert.equal(index.indexValue, indexValue);
         });
 
-        const indexValue = 100;
-        await sf.ida.updateIndex({
-            superToken: superToken.address,
-            indexId,
-            indexValue,
-            sender: alice
-        });
-
-        const index = await sf.agreements.ida.getIndex(
-            superToken.address,
-            alice,
-            indexId
-        );
-        assert.equal(index.indexValue, indexValue);
+        // it("claim", async () => {
+        //     const indexId = 1;
+        //     const subscriber = bob;
+        //     const publisher = alice;
+        //
+        //     await sf.ida.createIndex({
+        //         superToken: superToken.address,
+        //         indexId,
+        //         sender: publisher
+        //     });
+        //
+        //     await sf.ida.updateSupscription({
+        //         superToken: superToken.address,
+        //         indexId,
+        //         subscriber,
+        //         units: toWad("0.001").toString(),
+        //         sender: publisher
+        //     });
+        //
+        //     await sf.ida.updateIndex({
+        //         superToken: superToken.address,
+        //         indexId,
+        //         indexValue: toWad("0.001").toString(),
+        //         sender: publisher
+        //     });
+        //
+        //     const balanceBefore = await superToken.balanceOf(subscriber);
+        //     assert.equal(balanceBefore.toString(), toWad("100.1").toString());
+        //
+        //     await sf.ida.claim({
+        //         superToken: superToken.address,
+        //         publisher,
+        //         indexId,
+        //         subscriber,
+        //         sender: subscriber
+        //     });
+        //
+        //     const balanceAfter = await superToken.balanceOf(subscriber);
+        //     assert.equal(balanceAfter.toString(), toWad(110).toString());
+        // });
     });
 
     describe("subscriptions", () => {
@@ -141,13 +184,13 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
         });
     });
 
-    describe.only("distribution", () => {
+    describe("distribution", () => {
         const indexId = 1;
         const publisher = alice;
         const subscriber1 = bob;
-        const subscriber1Units = toWad("0.009");
+        const subscriber1Units = toWad("9");
         const subscriber2 = carol;
-        const subscriber2Units = toWad("0.001");
+        const subscriber2Units = toWad("1");
         beforeEach(async () => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
@@ -178,7 +221,7 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
                 sender: publisher
             });
             const balance = await superToken.balanceOf(subscriber2);
-            assert.equal(balance.toString(), amount.toString());
+            assert.equal(balance.toString(), toWad(100).toString());
         });
 
         it("distribute - multiple subscribers", async () => {
@@ -207,45 +250,8 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             });
             const balance1 = await superToken.balanceOf(subscriber1);
             const balance2 = await superToken.balanceOf(subscriber2);
-            console.log(balance1.toString());
-            console.log(balance2.toString());
-            console.log(subscriber1Units.toString());
-            console.log(subscriber2Units.toString());
-            assert.equal(balance1.toString(), subscriber1Units.toString());
-            assert.equal(balance2.toString(), subscriber2Units.toString());
-        });
-
-        it.skip("claim", async () => {
-            const amount = toBN(100).toString();
-
-            await sf.ida.updateSupscription({
-                superToken: superToken.address,
-                indexId,
-                subscriber: subscriber2,
-                units: subscriber2Units.toString(),
-                sender: publisher
-            });
-
-            await sf.ida.distribute({
-                superToken: superToken.address,
-                indexId,
-                amount,
-                sender: publisher
-            });
-
-            const balanceBefore = await superToken.balanceOf(subscriber1);
-            assert.equal(balanceBefore.toString(), "0");
-
-            await sf.ida.claim({
-                superToken: superToken.address,
-                publisher,
-                indexId,
-                subscriber: subscriber2,
-                sender: subscriber2
-            });
-
-            const balanceAfter = await superToken.balanceOf(subscriber1);
-            assert.equal(balanceAfter.toString(), subscriber2Units.toString());
+            assert.equal(balance1.toString(), toWad(190).toString());
+            assert.equal(balance2.toString(), toWad(110).toString());
         });
     });
 
@@ -299,6 +305,46 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
                 totalUnitsPending: halfUnits.toString()
             };
             assert.deepEqual(index, indexDetails);
+        });
+
+        it("listSubscriptions", async () => {
+            const indexId = "1";
+            const units = toWad(100);
+            const publisher = alice;
+            const subscriber = bob;
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                indexId,
+                sender: publisher
+            });
+
+            await sf.ida.updateSupscription({
+                superToken: superToken.address,
+                indexId,
+                subscriber,
+                units: units.toString(),
+                sender: publisher
+            });
+
+            await sf.ida.approveSupscription({
+                superToken: superToken.address,
+                indexId,
+                publisher,
+                sender: subscriber
+            });
+
+            const {
+                publishers,
+                indexIds,
+                unitsList
+            } = await sf.ida.listSubscriptions({
+                superToken: superToken.address,
+                subscriber
+            });
+
+            assert.deepEqual(publishers, [publisher]);
+            assert.deepEqual(indexIds, [indexId]);
+            assert.deepEqual(unitsList, [units.toString()]);
         });
     });
 });

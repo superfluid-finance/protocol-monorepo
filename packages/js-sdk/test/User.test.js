@@ -1,4 +1,4 @@
-const { toBN } = require("@decentral.ee/web3-helpers");
+const { toBN, toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 const chai = require("chai");
@@ -6,7 +6,17 @@ const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-contract("ConstantFlowAgreementV1 helper class", accounts => {
+const emptyIda = {
+    ida: {
+        subscriptions: {
+            indexIds: [],
+            publishers: [],
+            unitsList: []
+        }
+    }
+};
+
+contract("User helper class", accounts => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const {
         admin: adminAddress,
@@ -69,7 +79,8 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                         ]
                     },
                     netFlow: "-38580246913580"
-                }
+                },
+                ...emptyIda
             });
             assert.deepEqual(await bob.details(), {
                 cfa: {
@@ -90,40 +101,14 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                         ]
                     },
                     netFlow: "19290123456790"
-                }
+                },
+                ...emptyIda
             });
             console.log(JSON.stringify(await bob.details()));
         });
     });
     describe("new flows", () => {
         it("fail without recipient", async () => {
-            // This method fails
-            // await alice.flow({
-            //     recipient: null,
-            //     flowRate: "0"
-            // });
-            //
-            // assert.fail(/^You must provide a recipient and flowRate*/);
-
-            // This method also fails
-            // try {
-            //     await alice.flow({
-            //         recipient: null,
-            //         flowRate: "0"
-            //     });
-            // } catch (e) {
-            //     assert.equal(e, /^You must provide a recipient and flowRate*/);
-            // }
-
-            // This also fails
-
-            // await expect(
-            //     await alice.flow({
-            //         recipient: bob.address,
-            //         flowRate: null
-            //     })
-            // ).to.throw(/^You must provide a recipient and flowRate*/);
-
             await expect(
                 alice.flow({
                     recipient: null,
@@ -281,6 +266,54 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 }
             });
             assert.equal(txHash, tx.receipt.transactionHash);
+        });
+    });
+    describe("pools", () => {
+        const poolId = 1;
+        beforeEach(async () => {
+            await alice.createPool({ poolId });
+        });
+        it("create a new ppol", async () => {
+            const { exist } = await sf.ida.getIndex({
+                superToken: superToken.address,
+                publisher: aliceAddress,
+                indexId: poolId
+            });
+            assert.equal(exist, true);
+        });
+        it("giveShares", async () => {
+            await alice.giveShares({
+                poolId,
+                shares: 100,
+                recipient: bobAddress
+            });
+            const { totalUnitsPending } = await sf.ida.getIndex({
+                superToken: superToken.address,
+                publisher: aliceAddress,
+                indexId: poolId
+            });
+            assert.equal(totalUnitsPending, 100);
+        });
+        it("distributeToPool", async () => {
+            await alice.giveShares({
+                poolId,
+                shares: 100,
+                recipient: bobAddress
+            });
+
+            await sf.ida.approveSupscription({
+                superToken: superToken.address,
+                indexId: poolId,
+                publisher: aliceAddress,
+                sender: bobAddress
+            });
+
+            await alice.distributeToPool({
+                poolId,
+                amount: toWad(100).toString()
+            });
+            const balance = await superToken.balanceOf(bobAddress);
+            assert.equal(balance.toString(), toWad(200).toString());
         });
     });
 });

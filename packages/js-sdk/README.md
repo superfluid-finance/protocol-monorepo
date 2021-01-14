@@ -183,6 +183,6 @@ Contributions and suggestions welcome!
 Since testing can take a while, we recommend specifying a test-suite. For example:
 
 ```bash
-# Only run tests in User.test.js
-nodemon -x npx truffle test ./test/sdk/User.test.js
+# Only run User.test.js
+nodemon -x npx truffle test ./test/User.test.js
 ```

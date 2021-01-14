@@ -59,46 +59,46 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             assert.equal(index.indexValue, indexValue);
         });
 
-        // it("claim", async () => {
-        //     const indexId = 1;
-        //     const subscriber = bob;
-        //     const publisher = alice;
-        //
-        //     await sf.ida.createIndex({
-        //         superToken: superToken.address,
-        //         indexId,
-        //         sender: publisher
-        //     });
-        //
-        //     await sf.ida.updateSupscription({
-        //         superToken: superToken.address,
-        //         indexId,
-        //         subscriber,
-        //         units: toWad("0.001").toString(),
-        //         sender: publisher
-        //     });
-        //
-        //     await sf.ida.updateIndex({
-        //         superToken: superToken.address,
-        //         indexId,
-        //         indexValue: toWad("0.001").toString(),
-        //         sender: publisher
-        //     });
-        //
-        //     const balanceBefore = await superToken.balanceOf(subscriber);
-        //     assert.equal(balanceBefore.toString(), toWad("100.1").toString());
-        //
-        //     await sf.ida.claim({
-        //         superToken: superToken.address,
-        //         publisher,
-        //         indexId,
-        //         subscriber,
-        //         sender: subscriber
-        //     });
-        //
-        //     const balanceAfter = await superToken.balanceOf(subscriber);
-        //     assert.equal(balanceAfter.toString(), toWad(110).toString());
-        // });
+        it("claim", async () => {
+            const indexId = 1;
+            const subscriber = bob;
+            const publisher = alice;
+
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                indexId,
+                sender: publisher
+            });
+
+            await sf.ida.updateSupscription({
+                superToken: superToken.address,
+                indexId,
+                subscriber,
+                units: toWad("0.001").toString(),
+                sender: publisher
+            });
+
+            await sf.ida.updateIndex({
+                superToken: superToken.address,
+                indexId,
+                indexValue: "1000",
+                sender: publisher
+            });
+
+            const balanceBefore = await superToken.balanceOf(subscriber);
+            assert.equal(balanceBefore.toString(), toWad("100").toString());
+
+            await sf.ida.claim({
+                superToken: superToken.address,
+                publisher,
+                indexId,
+                subscriber,
+                sender: subscriber
+            });
+
+            const balanceAfter = await superToken.balanceOf(subscriber);
+            assert.equal(balanceAfter.toString(), toWad("101").toString());
+        });
     });
 
     describe("subscriptions", () => {

@@ -1,14 +1,14 @@
 name: Deploy Superfluid Protocol to Testnets
 
 on: 
-  workflow_dispatch:
-    inputs:
-      release_version:
-        description: 'Protocol Release Version (test/master/v1/etc.)'
-        required: true
-        default: 'test'
+    workflow_dispatch:
+        inputs:
+            release_version:
+            description: 'Protocol Release Version (test/master/v1/etc.)'
+            required: true
+            default: 'test'
 
-  jobs:
+jobs:
 
     deploy-to-testnets:
         name: Deploy to testnets

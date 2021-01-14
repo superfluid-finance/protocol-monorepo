@@ -117,7 +117,7 @@ jobs:
 
         # TODO make this happen faster
 
-        needs: [build, coverage, deploy-master-to-testnets]
+        needs: [build, coverage, deploy-master]
 
         runs-on: ubuntu-latest
 

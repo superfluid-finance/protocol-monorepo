@@ -90,7 +90,7 @@ module.exports = async function(
                 const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
                     await sf.host.getSuperTokenFactory.call()
                 );
-                const superTokenLogic1 = superTokenFactory.getSuperTokenLogic();
+                const superTokenLogic1 = await superTokenFactory.getSuperTokenLogic();
                 const superTokenLogic2 = await (
                     await UUPSProxiable.at(superTokenAddress)
                 ).getCodeAddress();
@@ -104,6 +104,11 @@ module.exports = async function(
                         sf.host.address,
                         superTokenAddress
                     );
+                    const superTokenLogic3 = await (
+                        await UUPSProxiable.at(superTokenAddress)
+                    ).getCodeAddress();
+                    if (superTokenLogic3 != superTokenLogic1)
+                        throw new Error("SuperToken logic not updated");
                     console.log("SuperToken's logic has been updated.");
                 }
             }

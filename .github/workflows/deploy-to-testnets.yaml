@@ -1,4 +1,4 @@
-name: Deploy Superfluid Protocol to Testnets
+name: Deploy to Testnets
 
 on: 
     workflow_dispatch:

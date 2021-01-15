@@ -1,3 +1,5 @@
+name: Publish master branch
+
 on:
     push:
         branches: ["master"]

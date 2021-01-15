@@ -21,7 +21,6 @@ contract("Superfluid Host Contract", accounts => {
     context("Upgradable deployment", () => {
         let governance;
         let superfluid;
-        let superToken;
 
         async function reset() {
             await t.reset();
@@ -30,11 +29,6 @@ contract("Superfluid Host Contract", accounts => {
 
         before(async () => {
             await reset();
-        });
-
-        beforeEach(async function() {
-            await t.createNewToken({ doUpgrade: false });
-            ({ superToken } = t.contracts);
         });
 
         describe("#1 upgradability", () => {
@@ -425,7 +419,7 @@ contract("Superfluid Host Contract", accounts => {
             });
 
             it("#4.1 basic app info", async () => {
-                assert.isFalse(await superfluid.isApp(superToken.address));
+                assert.isFalse(await superfluid.isApp(governance.address));
                 assert.isTrue(await superfluid.isApp(app.address));
                 assert.isFalse(await superfluid.isAppJailed(app.address));
                 assert.equal(await superfluid.getAppLevel(app.address), 1);
@@ -528,7 +522,7 @@ contract("Superfluid Host Contract", accounts => {
                 await testCtxFunc(
                     "ctxFunc2",
                     [
-                        superToken.address,
+                        governance.address,
                         t.contracts.ida.address,
                         "0x2020",
                         "0x" /* agreementData */,
@@ -539,7 +533,7 @@ contract("Superfluid Host Contract", accounts => {
                 await testCtxFunc(
                     "ctxFunc2",
                     [
-                        superToken.address,
+                        governance.address,
                         t.contracts.ida.address,
                         "0x2020",
                         "0xdead" /* agreementData */,
@@ -927,6 +921,10 @@ contract("Superfluid Host Contract", accounts => {
                         .encodeABI(),
                     "0x"
                 );
+            });
+
+            it("#6.12 testIsValidAbiEncodedBytes", async () => {
+                await superfluid.testIsValidAbiEncodedBytes();
             });
 
             describe("#6.2x callback gas limit", () => {
@@ -1358,7 +1356,7 @@ contract("Superfluid Host Contract", accounts => {
                 );
                 // call to an unregisterred mock agreement
                 await expectRevert(
-                    superfluid.callAppAction(superToken.address, "0x"),
+                    superfluid.callAppAction(governance.address, "0x"),
                     reason
                 );
             });
@@ -1590,6 +1588,9 @@ contract("Superfluid Host Contract", accounts => {
 
         describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
+                await t.createNewToken({ doUpgrade: false });
+                const { superToken } = t.contracts;
+
                 await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                     toWad("10"),
                     {

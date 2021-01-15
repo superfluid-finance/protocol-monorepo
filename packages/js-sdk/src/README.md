@@ -9,7 +9,7 @@
 ```js
 const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
 const sf = new SuperfluidSDK.Framework({
-    version: "preview-20200928", // Protocol release version
+    version: "v1", // Protocol release version
     web3Provider: web3.currentProvider, // your web3 provider
     tokens: ["fDAI"]
 });
@@ -69,7 +69,7 @@ Example:
 ```js
 const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
 const sf = new SuperfluidSDK.Framework({
-    version: "preview-20200928", // Protocol release version
+    version: "v1", // Protocol release version
     web3Provider: web3.currentProvider, // your web3 provider
     tokens: ["fDAI"]
 });

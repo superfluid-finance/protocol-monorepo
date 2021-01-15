@@ -9,10 +9,6 @@ jobs:
     npm-publish-master:
         name: NPM publish master branch package
 
-        # TODO make this happen faster
-
-        needs: [build, coverage]
-
         runs-on: ubuntu-latest
 
         steps:
@@ -24,6 +20,11 @@ jobs:
                   node-version: 12.x
                   registry-url: https://registry.npmjs.org/
 
+            - name: Build package
+              run: |
+                  yarn install --frozen-lockfile
+                  yarn build
+
             - name: Publish package to NpmJS Registry
               run: |
                   rm -f packages/ethereum-contracts/.npmrc
@@ -32,11 +33,6 @@ jobs:
                   .github/workflows/npm-publish.sh packages/js-sdk/
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-            - name: Build package
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn build
 
             - name: Publish package to Superfluid Registry
               run: |

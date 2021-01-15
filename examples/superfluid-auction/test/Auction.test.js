@@ -11,7 +11,7 @@ const Auction = artifacts.require("Auction");
 const traveler = require("ganache-time-traveler");
 const TEST_TRAVEL_TIME = 3600 * 2; // 1 hours
 // TODO: remove version
-const version = "0.1.2-preview-20201014";
+const version = "v1";
 
 contract("Auction", accounts => {
     const errorHandler = err => {
@@ -83,17 +83,26 @@ contract("Auction", accounts => {
 
         users[app.address] = "App";
         for (let i = 0; i < accounts.length; ++i) {
-            await web3tx(
-                dai.approve,
-                `Account ${i} approves daix`
-            )(daix.address, toWad(100), { from: accounts[i] });
+            await dai.approve(daix.address, toWad(1000), {
+                from: accounts[i]
+            });
         }
+
+        console.log("Giving the app one dollar so it doesn't break?");
+        await checkBalance(app.address);
+
+        await daix.upgrade((1 * 1e18).toString(), {
+            from: bob
+        });
+        await daix.transfer(app.address, (1 * 1e18).toString(), { from: bob });
+        await checkBalance(app.address);
     });
 
     async function checkBalance(who = alice) {
-        console.log("Balance of ", users[who]);
+        console.log("Balance of ", users[who] || who);
         console.log("DAIx: ", (await daix.balanceOf(who)).toString());
     }
+
     async function checkBalances(accounts) {
         for (let i = 0; i < accounts.length; ++i) {
             await checkBalance(accounts[i]);
@@ -277,7 +286,6 @@ contract("Auction", accounts => {
         await send(alice, 15);
 
         console.log("go forward in time");
-        await traveler.advanceTimeAndBlock(TEST_TRAVEL_TIME);
 
         await send(bob, 40);
 
@@ -424,7 +432,7 @@ contract("Auction", accounts => {
         await checkBalance(app.address);
     });
 
-    it.skip("Case #8 - Fuzzy testing", async () => {
+    it("Case #8 - Fuzzy testing", async () => {
         accounts = [alice, bob, chris, dave, emma, frank];
         minStep = 0;
         await upgrade(accounts);

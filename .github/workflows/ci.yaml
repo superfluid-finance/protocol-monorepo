@@ -1,8 +1,8 @@
-name: Dev CI/CD
+name: CI
 
 on:
     push:
-        branches: ["*"]
+        branches-ignore: ["master"]
 
 jobs:
     build:
@@ -71,15 +71,15 @@ jobs:
                       packages/ethereum-contracts/coverage/
                       packages/ethereum-contracts/coverage.json
 
-    deploy-master:
-        name: Deploy master branch to dev-testnets
+    deploy-dev:
+        name: Deploy dev branch to dev-testnets
 
         needs: [build, coverage]
 
         runs-on: ubuntu-latest
 
         # only deploy for master branch push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/dev'
 
         env:
             GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
@@ -112,47 +112,3 @@ jobs:
                   GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
                   GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
-    npm-publish-master:
-        name: NPM publish master branch package
-
-        # TODO make this happen faster
-
-        needs: [build, coverage, deploy-master]
-
-        runs-on: ubuntu-latest
-
-
-        # only publish npm package for master branch push
-        if: github.ref == 'refs/heads/master'
-
-        steps:
-            - uses: actions/checkout@v2
-
-            - name: Use Node.js 12.x
-              uses: actions/setup-node@v1
-              with:
-                  node-version: 12.x
-                  registry-url: https://registry.npmjs.org/
-
-            - name: Publish package to NpmJS Registry
-              run: |
-                  rm -f packages/ethereum-contracts/.npmrc
-                  .github/workflows/npm-publish.sh packages/ethereum-contracts/
-                  rm -f packages/js-sdk/.npmrc
-                  .github/workflows/npm-publish.sh packages/js-sdk/
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-            - name: Build package
-              run: |
-                  yarn install --frozen-lockfile
-                  yarn build
-
-            - name: Publish package to Superfluid Registry
-              run: |
-                  cp .npmrc.template packages/ethereum-contracts/.npmrc
-                  .github/workflows/npm-publish.sh packages/ethereum-contracts/
-                  cp .npmrc.template packages/js-sdk/.npmrc
-                  .github/workflows/npm-publish.sh packages/js-sdk/
-              env:
-                  GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

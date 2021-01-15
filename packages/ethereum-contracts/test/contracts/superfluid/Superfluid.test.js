@@ -21,7 +21,6 @@ contract("Superfluid Host Contract", accounts => {
     context("Upgradable deployment", () => {
         let governance;
         let superfluid;
-        let superToken;
 
         async function reset() {
             await t.reset();
@@ -30,11 +29,6 @@ contract("Superfluid Host Contract", accounts => {
 
         before(async () => {
             await reset();
-        });
-
-        beforeEach(async function() {
-            await t.createNewToken({ doUpgrade: false });
-            ({ superToken } = t.contracts);
         });
 
         describe("#1 upgradability", () => {
@@ -425,7 +419,7 @@ contract("Superfluid Host Contract", accounts => {
             });
 
             it("#4.1 basic app info", async () => {
-                assert.isFalse(await superfluid.isApp(superToken.address));
+                assert.isFalse(await superfluid.isApp(governance.address));
                 assert.isTrue(await superfluid.isApp(app.address));
                 assert.isFalse(await superfluid.isAppJailed(app.address));
                 assert.equal(await superfluid.getAppLevel(app.address), 1);
@@ -518,20 +512,17 @@ contract("Superfluid Host Contract", accounts => {
                     assert.equal(result, expectedResult);
                 };
 
-                // trivial case
-                await testCtxFunc("ctxFunc1", [42], "0x");
-                // with 32 bytes boundary padding
-                await testCtxFunc("ctxFunc1", [42], "0xdeadbeef");
-                // 32 bytes
-                await testCtxFunc("ctxFunc1", [42], "0x" + "dead".repeat(16));
-                // 40 bytes
-                await testCtxFunc("ctxFunc1", [42], "0x" + "dead".repeat(20));
+                // test the boundary conditions
+                for (let i = 0; i < 33; ++i) {
+                    // with 32 bytes boundary padding
+                    await testCtxFunc("ctxFunc1", [42], "0x" + "d".repeat(i));
+                }
 
                 // more complicated ABI
                 await testCtxFunc(
                     "ctxFunc2",
                     [
-                        superToken.address,
+                        governance.address,
                         t.contracts.ida.address,
                         "0x2020",
                         "0x" /* agreementData */,
@@ -542,7 +533,7 @@ contract("Superfluid Host Contract", accounts => {
                 await testCtxFunc(
                     "ctxFunc2",
                     [
-                        superToken.address,
+                        governance.address,
                         t.contracts.ida.address,
                         "0x2020",
                         "0xdead" /* agreementData */,
@@ -920,47 +911,6 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
-            it("#6.10 should give explicit error message when empty ctx returne by the callback", async () => {
-                const SuperAppMock2 = artifacts.require("SuperAppMock2");
-                const app2 = await SuperAppMock2.new(superfluid.address);
-                await expectRevert(
-                    superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementCreatedCallback(
-                                app2.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    ),
-                    "SF: APP_RULE_CTX_IS_EMPTY"
-                );
-                const tx = await web3tx(
-                    superfluid.callAgreement,
-                    "callAgreement"
-                )(
-                    agreement.address,
-                    agreement.contract.methods
-                        .callAppAfterAgreementTerminatedCallback(
-                            app2.address,
-                            "0x"
-                        )
-                        .encodeABI(),
-                    "0x"
-                );
-                assert.isTrue(await superfluid.isAppJailed(app2.address));
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    superfluid.contract,
-                    "Jail",
-                    {
-                        app: app2.address,
-                        reason: "22" // APP_RULE_CTX_IS_EMPTY
-                    }
-                );
-            });
-
             it("#6.11 callback will not be called for jailed apps", async () => {
                 await superfluid.jailApp(app.address);
                 await app.setNextCallbackAction(1 /* assert */, "0x");
@@ -973,7 +923,11 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
-            describe("callback gas limit", () => {
+            it("#6.12 testIsValidAbiEncodedBytes", async () => {
+                await superfluid.testIsValidAbiEncodedBytes();
+            });
+
+            describe("#6.2x callback gas limit", () => {
                 it("#6.20 beforeCreated callback burn all gas", async () => {
                     await app.setNextCallbackAction(
                         5 /* BurnGas */,
@@ -1157,7 +1111,7 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            describe("composite app rules", () => {
+            describe("#6.3x composite app rules", () => {
                 const SuperAppMock3 = artifacts.require("SuperAppMock3");
 
                 it("#6.30 composite app must be whitelisted", async () => {
@@ -1219,6 +1173,105 @@ contract("Superfluid Host Contract", accounts => {
                             "0x"
                         ),
                         "SF: APP_RULE_COMPOSITE_APP_IS_JAILED"
+                    );
+                });
+            });
+
+            describe("#6.4x invalid ctx returned by the callback", () => {
+                const SuperAppMock2 = artifacts.require(
+                    "SuperAppMockReturningEmptyCtx"
+                );
+                const SuperAppMock3 = artifacts.require(
+                    "SuperAppMockReturningInvalidCtx"
+                );
+
+                it("#6.40 should give explicit error message in non-termination callbacks", async () => {
+                    const app2 = await SuperAppMock2.new(superfluid.address);
+                    await expectRevert(
+                        web3tx(
+                            superfluid.callAgreement,
+                            "to SuperAppMockReturningEmptyCtx"
+                        )(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app2.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                    );
+
+                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    await expectRevert(
+                        web3tx(
+                            superfluid.callAgreement,
+                            "to SuperAppMockReturningInvalidCtx"
+                        )(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app3.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                    );
+                });
+
+                it("#6.41 should jail the app in termination callbacks", async () => {
+                    const app2 = await SuperAppMock2.new(superfluid.address);
+                    let tx = await web3tx(
+                        superfluid.callAgreement,
+                        "callAgreement"
+                    )(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementTerminatedCallback(
+                                app2.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    assert.isTrue(await superfluid.isAppJailed(app2.address));
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app2.address,
+                            reason: "22" // APP_RULE_CTX_IS_EMPTY
+                        }
+                    );
+
+                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    tx = await web3tx(
+                        superfluid.callAgreement,
+                        "callAgreement"
+                    )(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementTerminatedCallback(
+                                app3.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    assert.isTrue(await superfluid.isAppJailed(app2.address));
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app3.address,
+                            reason: "22" // APP_RULE_CTX_IS_EMPTY
+                        }
                     );
                 });
             });
@@ -1303,7 +1356,7 @@ contract("Superfluid Host Contract", accounts => {
                 );
                 // call to an unregisterred mock agreement
                 await expectRevert(
-                    superfluid.callAppAction(superToken.address, "0x"),
+                    superfluid.callAppAction(governance.address, "0x"),
                     reason
                 );
             });
@@ -1535,6 +1588,9 @@ contract("Superfluid Host Contract", accounts => {
 
         describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
+                await t.createNewToken({ doUpgrade: false });
+                const { superToken } = t.contracts;
+
                 await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                     toWad("10"),
                     {

@@ -518,14 +518,11 @@ contract("Superfluid Host Contract", accounts => {
                     assert.equal(result, expectedResult);
                 };
 
-                // trivial case
-                await testCtxFunc("ctxFunc1", [42], "0x");
-                // with 32 bytes boundary padding
-                await testCtxFunc("ctxFunc1", [42], "0xdeadbeef");
-                // 32 bytes
-                await testCtxFunc("ctxFunc1", [42], "0x" + "dead".repeat(16));
-                // 40 bytes
-                await testCtxFunc("ctxFunc1", [42], "0x" + "dead".repeat(20));
+                // test the boundary conditions
+                for (let i = 0; i < 33; ++i) {
+                    // with 32 bytes boundary padding
+                    await testCtxFunc("ctxFunc1", [42], "0x" + "d".repeat(i));
+                }
 
                 // more complicated ABI
                 await testCtxFunc(
@@ -920,47 +917,6 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
-            it("#6.10 should give explicit error message when empty ctx returne by the callback", async () => {
-                const SuperAppMock2 = artifacts.require("SuperAppMock2");
-                const app2 = await SuperAppMock2.new(superfluid.address);
-                await expectRevert(
-                    superfluid.callAgreement(
-                        agreement.address,
-                        agreement.contract.methods
-                            .callAppAfterAgreementCreatedCallback(
-                                app2.address,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x"
-                    ),
-                    "SF: APP_RULE_CTX_IS_EMPTY"
-                );
-                const tx = await web3tx(
-                    superfluid.callAgreement,
-                    "callAgreement"
-                )(
-                    agreement.address,
-                    agreement.contract.methods
-                        .callAppAfterAgreementTerminatedCallback(
-                            app2.address,
-                            "0x"
-                        )
-                        .encodeABI(),
-                    "0x"
-                );
-                assert.isTrue(await superfluid.isAppJailed(app2.address));
-                await expectEvent.inTransaction(
-                    tx.tx,
-                    superfluid.contract,
-                    "Jail",
-                    {
-                        app: app2.address,
-                        reason: "22" // APP_RULE_CTX_IS_EMPTY
-                    }
-                );
-            });
-
             it("#6.11 callback will not be called for jailed apps", async () => {
                 await superfluid.jailApp(app.address);
                 await app.setNextCallbackAction(1 /* assert */, "0x");
@@ -973,7 +929,7 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
-            describe("callback gas limit", () => {
+            describe("#6.2x callback gas limit", () => {
                 it("#6.20 beforeCreated callback burn all gas", async () => {
                     await app.setNextCallbackAction(
                         5 /* BurnGas */,
@@ -1157,7 +1113,7 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            describe("composite app rules", () => {
+            describe("#6.3x composite app rules", () => {
                 const SuperAppMock3 = artifacts.require("SuperAppMock3");
 
                 it("#6.30 composite app must be whitelisted", async () => {
@@ -1219,6 +1175,105 @@ contract("Superfluid Host Contract", accounts => {
                             "0x"
                         ),
                         "SF: APP_RULE_COMPOSITE_APP_IS_JAILED"
+                    );
+                });
+            });
+
+            describe("#6.4x invalid ctx returned by the callback", () => {
+                const SuperAppMock2 = artifacts.require(
+                    "SuperAppMockReturningEmptyCtx"
+                );
+                const SuperAppMock3 = artifacts.require(
+                    "SuperAppMockReturningInvalidCtx"
+                );
+
+                it("#6.40 should give explicit error message in non-termination callbacks", async () => {
+                    const app2 = await SuperAppMock2.new(superfluid.address);
+                    await expectRevert(
+                        web3tx(
+                            superfluid.callAgreement,
+                            "to SuperAppMockReturningEmptyCtx"
+                        )(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app2.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                    );
+
+                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    await expectRevert(
+                        web3tx(
+                            superfluid.callAgreement,
+                            "to SuperAppMockReturningInvalidCtx"
+                        )(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppAfterAgreementCreatedCallback(
+                                    app3.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                    );
+                });
+
+                it("#6.41 should jail the app in termination callbacks", async () => {
+                    const app2 = await SuperAppMock2.new(superfluid.address);
+                    let tx = await web3tx(
+                        superfluid.callAgreement,
+                        "callAgreement"
+                    )(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementTerminatedCallback(
+                                app2.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    assert.isTrue(await superfluid.isAppJailed(app2.address));
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app2.address,
+                            reason: "22" // APP_RULE_CTX_IS_EMPTY
+                        }
+                    );
+
+                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    tx = await web3tx(
+                        superfluid.callAgreement,
+                        "callAgreement"
+                    )(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementTerminatedCallback(
+                                app3.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    assert.isTrue(await superfluid.isAppJailed(app2.address));
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app3.address,
+                            reason: "22" // APP_RULE_CTX_IS_EMPTY
+                        }
                     );
                 });
             });

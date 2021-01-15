@@ -23,7 +23,7 @@ library CallUtils {
     }
 
     /**
-    * @notice Helper method to parse data and extract the method signature (selector).
+    * @dev Helper method to parse data and extract the method signature (selector).
     *
     * Copied from: https://github.com/argentlabs/argent-contracts/
     * blob/master/contracts/modules/common/Utils.sol#L54-L60
@@ -34,6 +34,32 @@ library CallUtils {
         assembly {
             selector := mload(add(callData, 0x20))
         }
+    }
+
+    /**
+     * @dev Pad length to 32 bytes word boundary
+     */
+    function padLength32(uint256 len) internal pure returns (uint256 paddedLen) {
+        return ((len / 32) +  (((len & 0xFF) > 0) /* rounding? */ ? 1 : 0)) * 32;
+    }
+
+    /**
+     * @dev It the data encoded correctly with abi.encode(bytesData)
+     *
+     * Expected ABI Encode Layout:
+     * | word 1      | word 2           | word 3           | the rest...
+     * | data length | bytesData offset | bytesData length | bytesData + padLength32 zeros |
+     */
+    function isValidAbiEncodedBytes(bytes memory data) internal pure returns (bool) {
+        if (data.length < 64) return false;
+        uint bytesOffset;
+        uint bytesLen;
+        // bytes offset is always expected to be 32
+        assembly { bytesOffset := mload(add(data, 32)) }
+        if (bytesOffset != 32) return false;
+        assembly { bytesLen := mload(add(data, 64)) }
+        // the data length should be bytesData.length + 64 + padded bytes length
+        return data.length == 64 + padLength32(bytesLen);
     }
 
 }

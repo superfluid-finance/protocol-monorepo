@@ -71,15 +71,15 @@ jobs:
                       packages/ethereum-contracts/coverage/
                       packages/ethereum-contracts/coverage.json
 
-    deploy-master:
-        name: Deploy master branch to dev-testnets
+    deploy-dev:
+        name: Deploy dev branch to dev-testnets
 
         needs: [build, coverage]
 
         runs-on: ubuntu-latest
 
         # only deploy for master branch push
-        if: github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/dev'
 
         env:
             GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
@@ -117,7 +117,7 @@ jobs:
 
         # TODO make this happen faster
 
-        needs: [build, coverage, deploy-master]
+        needs: [build, coverage]
 
         runs-on: ubuntu-latest
 

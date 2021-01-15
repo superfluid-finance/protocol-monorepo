@@ -265,7 +265,7 @@ contract SuperAppMock is ISuperApp {
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.RevertWithReason) {
             revert(abi.decode(_nextCallbackAction.data, (string)));
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.AlteringCtx) {
-            return abi.encode(42);
+            return new bytes(42);
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.BurnGas) {
             uint256 gasToBurn = abi.decode(_nextCallbackAction.data, (uint256));
             _burnGas(gasToBurn);

@@ -1,4 +1,4 @@
-name: Deploy to Testnets
+name: Deploy to testnets
 
 on: 
     workflow_dispatch:

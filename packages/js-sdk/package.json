@@ -1,0 +1,37 @@
+{
+    "name": "@superfluid-finance/js-sdk",
+    "version": "0.2.0",
+    "description": "Javascript SDK for building with Superfluid Protocol",
+    "repository": "github:superfluid-finance/protocol-monorepo",
+    "license": "MIT",
+    "main": "src/index.js",
+    "files": [
+        "src/**/*.json",
+        "src/**/*.js"
+    ],
+    "scripts": {
+        "build": "scripts/build-abi-js.sh",
+        "test": "truffle test",
+        "lint": "run-s lint:*",
+        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
+        "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
+        "pre-commit": "run-s pre-commit:*",
+        "pre-commit:lint-staged": "lint-staged",
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests"
+    },
+    "lint-staged": {
+        "**/*.+(js|jsx|ts|tsx)": [
+            "yarn lint:js"
+        ]
+    },
+    "dependencies": {
+        "@truffle/contract": "4.3.4"
+    },
+    "devDependencies": {
+        "@superfluid-finance/ethereum-contracts": "0.2.0",
+        "@decentral.ee/web3-helpers": "0.3.5",
+        "@openzeppelin/test-helpers": "0.5.10",
+        "chai-as-promised": "7.1.1",
+        "truffle": "5.1.49"
+    }
+}

@@ -1,6 +1,7 @@
 #!/bin/bash -e
 
-cd "$(dirname "$0")"/../..
+[ -f "$1"/package.json ] || { echo "Invalid package directory: $1"; exit 1; }
+cd "$1"
 
 git diff --quiet || { echo "There are unstaged local changes"; exit 1; }
 git diff --cached --quiet || { echo "There are staged local changes"; exit 1; }
@@ -18,11 +19,10 @@ if echo "$VERSION" | fgrep -q -- "-latest";then
         mv package.json.new package.json
 else
     PUBLISHING_VERSION=VERSION
-    echo "Publishing pacakge"
 fi
 
-echo "Publishing pacakge $PUBLISHING_VERSION"
+echo "Publishing pacakge, version $PUBLISHING_VERSION"
 
-npm publish
+npm publish --access public
 
 git checkout package.json

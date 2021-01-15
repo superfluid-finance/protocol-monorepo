@@ -361,7 +361,15 @@ contract Superfluid is
     {
         (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
         if (success) {
-            cbdata = abi.decode(returnedData, (bytes));
+            if (CallUtils.isValidAbiEncodedBytes(returnedData)) {
+                cbdata = abi.decode(returnedData, (bytes));
+            } else {
+                if (!isTermination) {
+                    revert("SF: APP_RULE_CTX_IS_MALFORMATED");
+                } else {
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
+                }
+            }
         }
     }
 
@@ -379,14 +387,7 @@ contract Superfluid is
         (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);
         if (success) {
             // the non static callback should not return empty ctx
-            if (returnedData.length == 0) {
-                if (!isTermination) {
-                    revert("SF: APP_RULE_CTX_IS_EMPTY");
-                } else {
-                    newCtx = ctx;
-                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_EMPTY);
-                }
-            } else {
+            if (CallUtils.isValidAbiEncodedBytes(returnedData)) {
                 newCtx = abi.decode(returnedData, (bytes));
                 if (!_isCtxValid(newCtx)) {
                     if (!isTermination) {
@@ -395,6 +396,13 @@ contract Superfluid is
                         newCtx = ctx;
                         _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
                     }
+                }
+            } else {
+                if (!isTermination) {
+                    revert("SF: APP_RULE_CTX_IS_MALFORMATED");
+                } else {
+                    newCtx = ctx;
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
                 }
             }
         } else {
@@ -797,7 +805,6 @@ contract Superfluid is
         returns (bytes memory dataWithCtx)
     {
         // 1.a ctx needs to be padded to align with 32 bytes bundary
-        uint256 paddedLength = (ctx.length / 32 + 1) * 32;
         uint256 dataLen = data.length;
 
         // double check if the ctx is a placeholder ctx
@@ -817,7 +824,7 @@ contract Superfluid is
             data,
             // bytes with padded length
             uint256(ctx.length),
-            ctx, new bytes(paddedLength - ctx.length) // ctx padding
+            ctx, new bytes(CallUtils.padLength32(ctx.length) - ctx.length) // ctx padding
         );
     }
 

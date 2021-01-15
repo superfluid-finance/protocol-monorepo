@@ -3,7 +3,7 @@ const Web3 = require("web3");
 const loadContracts = require("@superfluid-finance/ethereum-contracts/scripts/loadContracts");
 
 const getConfig = require("./getConfig");
-const GasMeter = require("../utils/gasMetering/gasMetering");
+const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
 const User = require("./User");

@@ -112,9 +112,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 }
             )
             .on("transactionHash", onTransaction);
-        console.debug("Flow updated.");
         this._sf._pushTxForGasReport(tx, "updateFlow");
-
+        console.debug("Flow updated.");
         return tx;
     }
 

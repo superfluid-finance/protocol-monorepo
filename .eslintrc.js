@@ -8,7 +8,7 @@ module.exports = {
     plugins: ["prettier"],
     rules: {
         "max-len": ["error", 120, { code: 80, ignoreUrls: true }],
-        indent: ["error", 4],
+        indent: ["error", 4, { "SwitchCase": 1 }],
         "linebreak-style": ["error", "unix"],
         quotes: ["error", "double"],
         semi: ["error", "always"],

@@ -11,7 +11,7 @@
     ],
     "scripts": {
         "build": "scripts/build-abi-js.sh",
-        "test": "truffle test",
+        "test": "mkdir -p build;truffle test",
         "lint": "run-s lint:*",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",

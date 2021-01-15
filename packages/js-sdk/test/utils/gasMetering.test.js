@@ -1,18 +1,18 @@
 const { expect } = require("chai");
-const {
-    BN
-} = require("@openzeppelin/test-helpers");
-const GasMetering = require("../../utils/gasMetering/gasMetering");
+const { BN } = require("@openzeppelin/test-helpers");
+const GasMetering = require("../../src/utils/gasMetering/gasMetering");
 
-describe("GasMetering", function () {
-
+describe("GasMetering", function() {
     beforeEach(async () => {
         this.tx = {
-            tx: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+            tx:
+                "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
             receipt: {
-                transactionHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                transactionHash:
+                    "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                 transactionIndex: 0,
-                blockHash: "0x362333884391810d9a675c8639b4062abeb990604b25ff9ef3db6199d8901874",
+                blockHash:
+                    "0x362333884391810d9a675c8639b4062abeb990604b25ff9ef3db6199d8901874",
                 blockNumber: 35,
                 from: "0xf17f52151ebef6c7334fad080c5704d77216b732",
                 to: "0x9fbda871d559710256a2502a2517b794b482db40",
@@ -40,7 +40,6 @@ describe("GasMetering", function () {
         expect(record.gas).to.be.bignumber.equal(new BN(100000));
         const expectedCost = new BN(100000).mul(new BN(this.gasPrice));
         expect(record.cost).to.be.bignumber.equal(expectedCost);
-
     });
 
     it("should calculate totals", async () => {
@@ -59,7 +58,6 @@ describe("GasMetering", function () {
         const avgCost = expectedCost.div(new BN(2));
         expect(totals.avgCost).to.be.bignumber.equal(avgCost);
         expect(totals.gasPrice).to.be.bignumber.equal(new BN(this.gasPrice));
-
     });
 
     it("should format correctly", async () => {
@@ -78,21 +76,22 @@ describe("GasMetering", function () {
                 totalCost: "0.0002 ETH",
                 avgCost: "0.0001 ETH"
             },
-            executedTxs: [{
-                action: "SomeAction",
-                txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
-                gas: "100000",
-                cost: "0.0001 ETH"
-            },
-            {
-                action: "SomeAction2",
-                txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
-                gas: "100000",
-                cost: "0.0001 ETH"
-            }]
+            executedTxs: [
+                {
+                    action: "SomeAction",
+                    txHash:
+                        "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                    gas: "100000",
+                    cost: "0.0001 ETH"
+                },
+                {
+                    action: "SomeAction2",
+                    txHash:
+                        "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                    gas: "100000",
+                    cost: "0.0001 ETH"
+                }
+            ]
         });
-
     });
-
-
 });

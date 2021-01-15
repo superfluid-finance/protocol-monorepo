@@ -70,12 +70,12 @@ contract Auction is SuperAppBase {
         (,int96 flowRate,,) = cfa.getFlowByID(superToken, agreementId);
         require(flowRate * precision >= minStep, "Bid must be higher than minimum step");
         if(winner == address(this)) _setNewWinner(user, flowRate);
-        else if(flowRate * precision >= bidders[winner].flowRate * precision + minStep){  //if flowRate > winnerFlowRate, but not by minStep, still goes in second place. WEIRD
-            newCtx = _cancelBack(_ctx,  winner);
+        else if(flowRate * precision >= bidders[winner].flowRate * precision + minStep){  //if flowRate > winnerFlowRate, but not by minStep, still goes in second place
+            newCtx = _cancelBack(newCtx,  winner);
             _setNewWinner(user, flowRate);
         } else {
             _placeInList(user, flowRate);
-            newCtx = _cancelBack(_ctx,  user);
+            newCtx = _cancelBack(newCtx,  user);
         }
     }
 
@@ -86,13 +86,13 @@ contract Auction is SuperAppBase {
         address user = host.decodeCtx(_ctx).msgSender;
         (,int96 flowRate,,) = cfa.getFlowByID(superToken,agreementId);
         require(flowRate * precision >= minStep, "Bid must be higher than minimum step");
+        newCtx = _ctx;
 
         if(user == winner) {   //I've seen people do keccak256 here not sure if I need to.
             int96 altMinStep = bidders[bidders[user].next].flowRate * (markup - precision);
             //require(flowRate * precision >= altMinStep, "Bid must be higher than minimum step");
             if(flowRate * precision > bidders[bidders[user].next].flowRate * precision + altMinStep) {
                 // user is still the winner. adjust minStep, nothing else changes.
-                newCtx = _ctx;
                 bidders[user].flowRate = flowRate;
                 minStep = flowRate * (markup - precision);
             } else {
@@ -100,10 +100,10 @@ contract Auction is SuperAppBase {
                 minStep = altMinStep;
                 winner = bidders[user].next;
                 bidders[winner].prev = address(this);
-                newCtx = _stopCancelBack(_ctx, winner);
+                newCtx = _stopCancelBack(newCtx, winner);
                 // find a place for old winner in list
                 _placeInList(user, flowRate);
-                newCtx = _cancelBack(_ctx, user);
+                newCtx = _cancelBack(newCtx, user);
             }
         } else {
             // unlink it from the list
@@ -111,14 +111,14 @@ contract Auction is SuperAppBase {
             bidders[bidders[user].next].prev = bidders[user].prev;
             // check if he should be winner
             if(flowRate * precision >= bidders[winner].flowRate * precision + minStep){  //if flowRate > winnerFlowRate, but not by minStep, still goes in second place. WEIRD
-                newCtx = _stopCancelBack(_ctx, user);
-                newCtx = _cancelBack(_ctx,  winner);
+                newCtx = _stopCancelBack(newCtx, user);
+                newCtx = _cancelBack(newCtx,  winner);
                 _setNewWinner(user, flowRate);
             } else{
                 // place it in the list again
                 _placeInList(user,flowRate);
                 // adjust _cancelBack amount
-                newCtx = _updateCancelBack(_ctx,  user); // have to do this in all cases I think
+                newCtx = _updateCancelBack(newCtx,  user); // have to do this in all cases I think
             }
         }
     }
@@ -130,7 +130,7 @@ contract Auction is SuperAppBase {
         minStep = flowRate * (markup - precision);
     }
 
-    function _cancelBack(bytes calldata ctx, address bidder)
+    function _cancelBack(bytes memory ctx, address bidder)
         private
         returns (bytes memory newCtx)
     {
@@ -148,7 +148,7 @@ contract Auction is SuperAppBase {
           );
     }
 
-    function _updateCancelBack(bytes calldata ctx, address bidder)
+    function _updateCancelBack(bytes memory ctx, address bidder)
         private
         returns (bytes memory newCtx)
     {
@@ -166,7 +166,7 @@ contract Auction is SuperAppBase {
           );
     }
 
-    function _stopCancelBack(bytes calldata _ctx, address bidder)
+    function _stopCancelBack(bytes memory _ctx, address bidder)
         private
         returns (bytes memory newCtx)
     {

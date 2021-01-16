@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "AGPLv3",
@@ -48,7 +48,7 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
-        "@superfluid-finance/js-sdk": "^0.2.1",
+        "@superfluid-finance/js-sdk": "^0.2.2",
         "@truffle/hdwallet-provider": "1.2.1",
         "dotenv": "8.2.0",
         "ganache-time-traveler": "1.0.15",

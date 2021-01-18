@@ -3,7 +3,7 @@
     "version": "0.2.2",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
-    "license": "AGPLv3",
+    "license": "AGPL-3.0",
     "files": [
         "/contracts/**/*",
         "!/contracts/mocks/*",

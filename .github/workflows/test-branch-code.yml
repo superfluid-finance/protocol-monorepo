@@ -1,0 +1,69 @@
+name: Test branch code
+
+on:
+  push:
+    branches-ignore: ["master", "dev"]
+
+jobs:
+  build:
+    name: Build and run related tests
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Show contexts
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+
+      - name: Check changeset
+        run: |
+          # fetch the latest commit of the dev branch
+          git fetch --depth=1 origin refs/heads/dev:refs/remotes/origin/dev
+          # compare the source branch with the dev branch
+          git diff --name-only ${{ github.ref }} refs/remotes/origin/dev > changed-files.list
+          echo Changed files:
+          echo ---
+          cat changed-files.list
+          echo ---
+          if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+            echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+            echo Ethereum contracts will be built.
+          fi
+          if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+            echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
+            echo JS SDK will be built.
+          fi
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1 || env.BUILD_JS_SDK == 1
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint and build
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1 || env.BUILD_JS_SDK == 1
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build
+
+      - name: Test ethereum-contracts if necessasry
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts test
+
+      - name: Test js-sdk if necessasry
+        if: env.BUILD_JS_SDK == 1
+        run: |
+          yarn workspace @superfluid-finance/js-sdk test

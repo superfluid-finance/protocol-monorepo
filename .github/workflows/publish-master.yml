@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: Build package
-        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1 || env.PUBLISHED_JS_SDK_VERSION == 1
+        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1 || env.PUBLISH_JS_SDK == 1
         run: |
           yarn install --frozen-lockfile
           yarn build
@@ -54,5 +54,5 @@ jobs:
         run: .github/workflows/npm-publish.sh packages/ethereum-contracts/
 
       - name: Publish js-sdk package
-        if: env.PUBLISHED_JS_SDK_VERSION == 1
+        if: env.PUBLISH_JS_SDK == 1
         run: .github/workflows/npm-publish.sh packages/js-sdk/

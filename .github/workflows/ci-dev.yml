@@ -41,67 +41,67 @@ jobs:
           yarn build
           yarn test
 
-    coverage:
-      name: Run coverage test
+  coverage:
+    name: Run coverage test
 
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Use Node.js 12.x
-          uses: actions/setup-node@v1
-          with:
-            node-version: 12.x
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
 
-        - name: Run coverage test
-          run: |
-            yarn install --frozen-lockfile
-            cd packages/ethereum-contracts
-            yarn test-coverage
+      - name: Run coverage test
+        run: |
+          yarn install --frozen-lockfile
+          cd packages/ethereum-contracts
+          yarn test-coverage
 
-        - name: Create coverage artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: coverage
-            path: |
-              packages/ethereum-contracts/coverage/
-              packages/ethereum-contracts/coverage.json
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: |
+            packages/ethereum-contracts/coverage/
+            packages/ethereum-contracts/coverage.json
 
-    deploy-dev:
-      name: Deploy dev branch to dev-testnets
+  deploy-dev:
+    name: Deploy dev branch to dev-testnets
 
-      needs: [build, coverage]
+    needs: [build, coverage]
 
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-      # only deploy for master branch push
-      if: github.ref == 'refs/heads/dev'
+    # only deploy for master branch push
+    if: github.ref == 'refs/heads/dev'
 
-      strategy:
-        fail-fast: false
-        matrix:
-          network: [goerli]
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [goerli]
 
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Use Node.js 12.x
-          uses: actions/setup-node@v1
-          with:
-            node-version: 12.x
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
 
-        - name: Build
-          run: |
-            yarn install --frozen-lockfile
-            cd packages/ethereum-contracts
-            yarn build
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          cd packages/ethereum-contracts
+          yarn build
 
-        - name: Deploy to ${{ matrix.network }}
-          run: |
-            cd packages/ethereum-contracts
-            npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
-          env:
-            RELEASE_VERSION: master
-            GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-            GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+      - name: Deploy to ${{ matrix.network }}
+        run: |
+          cd packages/ethereum-contracts
+          npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+        env:
+          RELEASE_VERSION: master
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}

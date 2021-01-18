@@ -9,7 +9,7 @@
         "build": "yarn workspaces run build",
         "test": "yarn workspaces run test",
         "lint": "yarn workspaces run lint",
-        "lerna:version": "lerna version --sign-git-commit --no-push"
+        "lerna:version": "lerna version --sign-git-commit --no-git-tag-version --no-push"
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",

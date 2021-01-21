@@ -2,7 +2,7 @@ name: Publish master branch
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "process_176_setup_branching_policy"]
 
 jobs:
   npm-publish-master:

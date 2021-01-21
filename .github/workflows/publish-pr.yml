@@ -10,6 +10,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    if: !github.event.pull_request.draft
+
     steps:
       - uses: actions/checkout@v2
 
@@ -25,7 +27,6 @@ jobs:
           echo "  .state" ${{ github.event.pull_request.state }}
           echo "  .locked" ${{ github.event.pull_request.locked }}
           echo "  .draft" ${{ github.event.pull_request.draft }}
-          false
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -35,13 +36,16 @@ jobs:
 
       - name: Publish to github
         run: |
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "@superfluid-finance:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}" > .npmrc
+          SHORT_REV=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
+          export PR_NUMBER="${{ github.event.pull_request.number }}.$SHORT_REV"
+          //git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "
+          @superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
+          " > .npmrc
           ./tasks/publish-pr.sh
         env:
           SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-          PR_NUMBER: "${{ github.event.pull_request.number }}.${{ github.event.pull_request.head.sha }}"
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1

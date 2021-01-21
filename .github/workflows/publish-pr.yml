@@ -20,19 +20,19 @@ jobs:
         with:
           node-version: 12.x
 
-      - name: Show context
-        run: |
-          echo github.event_name: ${{ github.event_name }}
-          echo github.sha: ${{ github.sha }}
-          echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
-          echo github.base_ref: ${{ github.base_ref }}
-          echo "github.event.pull_request"
-          echo "  .number" ${{ github.event.pull_request.number }}
-          echo "  .state" ${{ github.event.pull_request.state }}
-          echo "  .locked" ${{ github.event.pull_request.locked }}
-          echo "  .draft" ${{ github.event.pull_request.draft }}
+      # - name: Show context
+      #   run: |
+      #     echo github.event_name: ${{ github.event_name }}
+      #     echo github.sha: ${{ github.sha }}
+      #     echo github.repository: ${{ github.repository }}
+      #     echo github.ref: ${{ github.ref }}
+      #     echo github.head_ref: ${{ github.head_ref }}
+      #     echo github.base_ref: ${{ github.base_ref }}
+      #     echo "github.event.pull_request"
+      #     echo "  .number" ${{ github.event.pull_request.number }}
+      #     echo "  .state" ${{ github.event.pull_request.state }}
+      #     echo "  .locked" ${{ github.event.pull_request.locked }}
+      #     echo "  .draft" ${{ github.event.pull_request.draft }}
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.ref }} dev
@@ -66,17 +66,23 @@ jobs:
           comment-author: "github-actions[bot]"
 
       - name: Create comment
-        if: ${{ steps.fc.outputs.comment-id == 0 }}
-        id: comment_msg
-        run: |
-          pr_number=${{ github.event.pull_request.number }}
-          msg="### 📦 PR Packages%0A"
-          msg+="Install this PR by running \`yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/\`"
-          echo "::set-output name=msg::$msg"
-
-      - name: Create comment
-        if: ${{ steps.fc.outputs.comment-id == 0 }}
+        # if: ${{ steps.fc.outputs.comment-id == 0 }}
         uses: peter-evans/create-or-update-comment@v1
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body: ${{ steps.comment_msg.outputs.msg }}
+          body: |
+            ### 📦 PR Packages
+
+            Install this PR by running \`yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/\`
+            echo "::set-output name=msg::$msg"
+
+            To use the Github package registry, create a token with **read:packages** permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for more help.
+
+            Next add these lines to your \`~/.npmrc\` file, replacing TOKEN with your personal access token.
+
+            \`\`\`
+            @superfluid-finance:registry=https://npm.pkg.github.com
+            //npm.pkg.github.com/:_authToken=TOKEN
+            \`\`\`
+
+            See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you need help.

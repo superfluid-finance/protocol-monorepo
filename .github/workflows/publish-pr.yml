@@ -20,8 +20,10 @@ jobs:
 
       - name: Show Context
         run: |
-          echo github.event.pull_request: ${{ github.event.pull_request }}
-          echo github.event.pull_request.number: ${{ github.event.pull_request.number }}
+          echo "github.event.pull_request"
+          echo "  .number" ${{ github.event.pull_request.number }}
+          echo "  .state" ${{ github.event.pull_request.state }}
+          echo "  .locked" ${{ github.event.pull_request.locked }}
           false
 
       - name: Install dependencies

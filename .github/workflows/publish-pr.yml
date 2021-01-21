@@ -35,21 +35,7 @@ jobs:
           echo "  .draft" ${{ github.event.pull_request.draft }}
 
       - name: Check changeset
-        run: |
-          tasks/check-changeset.sh ${{ github.head_ref }} dev
-          if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
-            BUILD_ANYTHING=1
-            BUILD_ETHEREUM_CONTRACTS=1
-            BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
-          fi
-          if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
-            BUILD_ANYTHING=1
-            BUILD_JS_SDK=1
-            echo JS SDK will be tested.
-          fi
-          echo "BUILD_ANYTHING=1" >> $GITHUB_ENV
-          echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
-          echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
+        run: tasks/check-changeset.sh ${{ github.ref }} dev
 
       - name: Install dependencies
         if: env.BUILD_ANYTHING == 1

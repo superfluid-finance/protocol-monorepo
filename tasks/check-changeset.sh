@@ -11,3 +11,20 @@ echo Changed files:
 echo ---
 cat changed-files.list
 echo ---
+
+# set BUILD_* variables to GITHUB_ENV
+if [ ! -z "$GITHUB_ENV "];then
+    if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+        BUILD_ANYTHING=1
+        BUILD_ETHEREUM_CONTRACTS=1
+        BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
+    fi
+    if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+        BUILD_ANYTHING=1
+        BUILD_JS_SDK=1
+        echo JS SDK will be tested.
+    fi
+    echo "BUILD_ANYTHING=1" >> $GITHUB_ENV
+    echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+    echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
+fi

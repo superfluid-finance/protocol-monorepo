@@ -73,16 +73,17 @@ jobs:
           body: |
             ### 📦 PR Packages
 
-            Install this PR by running \`yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/\`
-            echo "::set-output name=msg::$msg"
+            Install this PR by running
 
-            To use the Github package registry, create a token with **read:packages** permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for more help.
+            ```bash
+            yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/`
+            ```
 
-            Next add these lines to your \`~/.npmrc\` file, replacing TOKEN with your personal access token.
+            NOTE: To use the Github package registry, create a token with "read:packages" permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for help.
 
-            \`\`\`
+            Next add these lines to your `~/.npmrc` file, replacing TOKEN with your personal access token. See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you get stuck.
+
+            ```
             @superfluid-finance:registry=https://npm.pkg.github.com
             //npm.pkg.github.com/:_authToken=TOKEN
-            \`\`\`
-
-            See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you need help.
+            ```

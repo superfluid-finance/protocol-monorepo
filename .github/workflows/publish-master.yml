@@ -51,8 +51,8 @@ jobs:
 
       - name: Publish ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
-        run: .github/workflows/npm-publish.sh packages/ethereum-contracts/
+        run: tasks/publish-master.sh packages/ethereum-contracts/
 
       - name: Publish js-sdk package
         if: env.PUBLISH_JS_SDK == 1
-        run: .github/workflows/npm-publish.sh packages/js-sdk/
+        run: tasks/publish-master.sh packages/js-sdk/

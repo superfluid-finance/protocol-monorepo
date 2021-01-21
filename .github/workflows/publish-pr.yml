@@ -34,29 +34,29 @@ jobs:
       #     echo "  .locked" ${{ github.event.pull_request.locked }}
       #     echo "  .draft" ${{ github.event.pull_request.draft }}
 
-      # - name: Check changeset
-      #   run: tasks/check-changeset.sh ${{ github.ref }} dev
-      #
-      # - name: Install dependencies
-      #   if: env.BUILD_ANYTHING == 1
-      #   run: yarn install --frozen-lockfile
-      #
-      # - name: Build
-      #   if: env.BUILD_ANYTHING == 1
-      #   run: yarn build
-      #
-      # - name: Publish to github
-      #   if: env.BUILD_ANYTHING == 1
-      #   run: |
-      #     export SHORT_REV=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
-      #     export PR_NUMBER="${{ github.event.pull_request.number }}"
-      #     echo "
-      #     @superfluid-finance:registry=https://npm.pkg.github.com
-      #     //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
-      #     " > .npmrc
-      #     ./tasks/publish-pr.sh
-      #   env:
-      #     SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.ref }} dev
+
+      - name: Install dependencies
+        if: env.BUILD_ANYTHING == 1
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        if: env.BUILD_ANYTHING == 1
+        run: yarn build
+
+      - name: Publish to github
+        if: env.BUILD_ANYTHING == 1
+        run: |
+          export SHORT_REV=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
+          export PR_NUMBER="${{ github.event.pull_request.number }}"
+          echo "
+          @superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
+          " > .npmrc
+          ./tasks/publish-pr.sh
+        env:
+          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1
@@ -76,10 +76,12 @@ jobs:
             Install this PR by running
 
             ```bash
-            yarn add @superfluid-finance/js-sdk@PR${{ github.event.pull_request.number }} --registry https://npm.pkg.github.com/`
+            yarn add @superfluid-finance/js-sdk@PR${{ github.event.pull_request.number }} --registry https://npm.pkg.github.com/
             ```
 
-            NOTE: To use the Github package registry, create a token with "read:packages" permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for help.
+            <details><summary>:octocat: Click to show how to use Github packages</summary>
+
+            To use the Github package registry, create a token with "read:packages" permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for help.
 
             Next add these lines to your `~/.npmrc` file, replacing TOKEN with your personal access token. See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you get stuck.
 
@@ -87,3 +89,4 @@ jobs:
             @superfluid-finance:registry=https://npm.pkg.github.com
             //npm.pkg.github.com/:_authToken=TOKEN
             ```
+            </details>

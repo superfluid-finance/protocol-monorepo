@@ -1,0 +1,50 @@
+name: Publish Pull Request
+
+on: pull_request
+
+jobs:
+  publish-canary:
+    name: Publish PR packages to Github
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Build
+        run: yarn build
+
+      - name: Publish to github
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "@superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}" > .npmrc
+          ./tasks/publish-pr
+        env:
+          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          PR_NUMBER: "${{ github.event.pull_request.number }}.${{ github.event.pull_request.head.sha }}"
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v1
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+
+      - name: Create comment
+        if: ${{ steps.fc.outputs.comment-id == 0 }}
+        id: comment_msg
+        run: |
+          pr_number=${{ github.event.pull_request.number }}
+          msg="### 📦 PR Packages%0A"
+          msg+="Install this PR by running \`yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/\`"
+          echo "::set-output name=msg::$msg"
+      - name: Create comment
+        if: ${{ steps.fc.outputs.comment-id == 0 }}
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.comment_msg.outputs.msg }}

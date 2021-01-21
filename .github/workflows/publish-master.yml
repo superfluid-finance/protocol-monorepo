@@ -2,7 +2,7 @@ name: Publish master branch
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "process_176_setup_branching_policy"]
 
 jobs:
 
@@ -10,6 +10,10 @@ jobs:
     name: NPM publish master branch package
 
     runs-on: ubuntu-latest
+
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v2
@@ -20,25 +24,35 @@ jobs:
           node-version: 12.x
           registry-url: https://registry.npmjs.org/
 
+      - name: Check package versions
+        run: |
+          PUBLISHED_ETHEREUM_CONTRACTS_VERSION=`npm show @superfluid-finance/ethereum-contracts version`
+          NEW_ETHEREUM_CONTRACTS_VERSION=`jq -r .version packages/ethereum-contracts/package.json`
+          if [ "$PUBLISHED_ETHEREUM_CONTRACTS_VERSION" != "$NEW_ETHEREUM_CONTRACTS_VERSION" ];then
+            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+            echo "ethereum-contracts changed: $PUBLISHED_ETHEREUM_CONTRACTS_VERSION -> $NEW_ETHEREUM_CONTRACTS_VERSION"
+          else
+            echo ethereum-contracts unchanged: $PUBLISHED_ETHEREUM_CONTRACTS_VERSION
+          fi
+          PUBLISHED_JS_SDK_VERSION=`npm show @superfluid-finance/js-sdk version`
+          NEW_JS_SDK_VERSION=`jq -r .version packages/js-sdk/package.json`
+          if [ "$PUBLISHED_JS_SDK_VERSION" != "$NEW_JS_SDK_VERSION" ];then
+            echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
+            echo "js-sdk changed: $PUBLISHED_JS_SDK_VERSION -> $NEW_JS_SDK_VERSION"
+          else
+            echo js-sdk unchanged: $PUBLISHED_JS_SDK_VERSION
+          fi
+
       - name: Build package
+        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1 || env.PUBLISH_JS_SDK == 1
         run: |
           yarn install --frozen-lockfile
           yarn build
 
-      - name: Publish package to NpmJS Registry
-        run: |
-          rm -f packages/ethereum-contracts/.npmrc
-          .github/workflows/npm-publish.sh packages/ethereum-contracts/
-          rm -f packages/js-sdk/.npmrc
-          .github/workflows/npm-publish.sh packages/js-sdk/
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      - name: Publish ethereum-contracts package
+        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
+        run: .github/workflows/npm-publish.sh packages/ethereum-contracts/
 
-      - name: Publish package to Superfluid Registry
-        run: |
-          cp .npmrc.template packages/ethereum-contracts/.npmrc
-          .github/workflows/npm-publish.sh packages/ethereum-contracts/
-          cp .npmrc.template packages/js-sdk/.npmrc
-          .github/workflows/npm-publish.sh packages/js-sdk/
-        env:
-          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+      - name: Publish js-sdk package
+        if: env.PUBLISH_JS_SDK == 1
+        run: .github/workflows/npm-publish.sh packages/js-sdk/

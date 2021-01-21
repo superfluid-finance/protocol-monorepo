@@ -1,10 +1,10 @@
-name: NPM publish PR packages to Github
+name: Publish Pull Request
 
 on: pull_request
 
 jobs:
   publish-canary:
-    name: NPM publish PR packages to Github
+    name: Publish PR packages to Github
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -26,6 +26,7 @@ jobs:
         env:
           SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+
       - name: Create comment msg
         id: comment_msg
         run: |
@@ -33,3 +34,9 @@ jobs:
           msg="### 📦 PR Packages%0A"
           msg+="Install this PR by running \`yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/\`"
           echo "::set-output name=msg::$msg"
+      - name: Create comment
+        if: ${{ steps.fc.outputs.comment-id == 0 }}
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: ${{ steps.comment_msg.outputs.msg }}

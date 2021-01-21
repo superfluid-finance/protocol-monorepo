@@ -1,4 +1,4 @@
-name: Test branch code
+name: Test Pull Request
 
 on:
   push:

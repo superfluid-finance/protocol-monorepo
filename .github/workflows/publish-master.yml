@@ -5,9 +5,8 @@ on:
     branches: ["master", "process_176_setup_branching_policy"]
 
 jobs:
-
   npm-publish-master:
-    name: NPM publish master branch package
+    name: NPM publish master branch
 
     runs-on: ubuntu-latest
 

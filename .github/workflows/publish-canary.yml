@@ -1,4 +1,4 @@
-name: Publish dev branch
+name: Publish Canary
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-canary:
-    name: NPM publish dev branch packages
+    name: NPM publish dev branch
 
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 

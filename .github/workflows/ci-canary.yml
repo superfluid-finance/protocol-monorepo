@@ -1,4 +1,4 @@
-name: CI of dev branch
+name: CI Canary
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build and run all tests
+    name: Build and test dev branch
 
     runs-on: ubuntu-latest
 
@@ -69,7 +69,7 @@ jobs:
             packages/ethereum-contracts/coverage.json
 
   deploy-dev:
-    name: Deploy dev branch to dev-testnets
+    name: Deploy Canary to dev-testnets
 
     needs: [build, coverage]
 

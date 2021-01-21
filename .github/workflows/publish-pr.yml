@@ -35,7 +35,7 @@ jobs:
           echo "  .draft" ${{ github.event.pull_request.draft }}
 
       - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.ref }} dev
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Install dependencies
         if: env.BUILD_ANYTHING == 1

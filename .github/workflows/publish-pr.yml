@@ -24,6 +24,7 @@ jobs:
           echo "  .number" ${{ github.event.pull_request.number }}
           echo "  .state" ${{ github.event.pull_request.state }}
           echo "  .locked" ${{ github.event.pull_request.locked }}
+          echo "  .draft" ${{ github.event.pull_request.draft }}
           false
 
       - name: Install dependencies

@@ -265,7 +265,7 @@ contract SuperAppMock is ISuperApp {
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.RevertWithReason) {
             revert(abi.decode(_nextCallbackAction.data, (string)));
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.AlteringCtx) {
-            return abi.encode(42);
+            return new bytes(42);
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.BurnGas) {
             uint256 gasToBurn = abi.decode(_nextCallbackAction.data, (uint256));
             _burnGas(gasToBurn);
@@ -382,8 +382,8 @@ contract SuperAppMock is ISuperApp {
 
 }
 
-// This one returns empty CTX
-contract SuperAppMock2 {
+// Bad super app! This one returns empty ctx
+contract SuperAppMockReturningEmptyCtx {
 
     ISuperfluid private _host;
 
@@ -400,7 +400,7 @@ contract SuperAppMock2 {
         bytes calldata /*cbdata*/,
         bytes calldata /*ctx*/
     )
-        external
+        external pure
         // solhint-disable-next-line no-empty-blocks
     {
     }
@@ -413,13 +413,52 @@ contract SuperAppMock2 {
         bytes calldata /*cbdata*/,
         bytes calldata /*ctx*/
     )
-        external
+        external pure
         // solhint-disable-next-line no-empty-blocks
     {
     }
 }
 
-// A second level app that calls other app
+// Bad super app! This one returns invalid ctx
+contract SuperAppMockReturningInvalidCtx {
+
+    ISuperfluid private _host;
+
+    constructor(ISuperfluid host) {
+        _host = host;
+        _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
+    }
+
+    function afterAgreementCreated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
+    )
+        external pure
+        returns (uint256)
+    {
+        return 42;
+    }
+
+    function afterAgreementTerminated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
+    )
+        external pure
+        returns (uint256)
+    {
+        return 42;
+    }
+}
+
+// Bad super app! A second level app that calls other app
 contract SuperAppMock3 {
 
     ISuperfluid private _host;

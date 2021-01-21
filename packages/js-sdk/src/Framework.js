@@ -35,7 +35,6 @@ module.exports = class Framework {
     }) {
         this.chainId = chainId;
         this.version = version || "test";
-        console.log("this is some change to remove");
         this.resolverAddress = resolverAddress;
         this.web3 = isTruffle ? global.web3 : new Web3(web3Provider);
         this._tokens = tokens;

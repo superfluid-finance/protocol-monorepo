@@ -4,4 +4,4 @@
 # It is run when a branch is merged to dev.
 # https://github.com/lerna/lerna/tree/master/commands/publish#--canary
 
-yarn lerna publish --canary --preid canary --dist-tag dev --yes
+yarn lerna publish --canary --preid dev --dist-tag dev --yes

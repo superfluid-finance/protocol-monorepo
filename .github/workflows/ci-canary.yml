@@ -79,6 +79,16 @@ jobs:
         env:
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
+      - name: Publish to github
+        run: |
+          echo "
+          @superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
+          " > .npmrc
+          ./tasks/publish-canary.sh
+        env:
+          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+
   coverage:
     name: Run coverage test
 

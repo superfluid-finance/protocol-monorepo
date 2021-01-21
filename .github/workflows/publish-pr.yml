@@ -2,7 +2,7 @@ name: Publish Pull Request
 
 on:
   pull_request:
-    types: [synchronize]
+    types: [opened, ready_for_review, synchronize]
 
 jobs:
   publish-canary:
@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 12.x
 
-      - name: Show Context
+      - name: Show context
         run: |
           echo "github.event.pull_request"
           echo "  .number" ${{ github.event.pull_request.number }}

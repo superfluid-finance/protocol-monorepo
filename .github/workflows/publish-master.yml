@@ -42,8 +42,8 @@ jobs:
           else
             echo js-sdk unchanged: $PUBLISHED_JS_SDK_VERSION
           fi
-          echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::NEW_ETHEREUM_CONTRACTS_VERSION"
-          echo "::set-output name=NEW_JS_SDK_VERSION::NEW_JS_SDK_VERSION"
+          echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::$NEW_ETHEREUM_CONTRACTS_VERSION"
+          echo "::set-output name=NEW_JS_SDK_VERSION::$NEW_JS_SDK_VERSION"
 
       - name: Build package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1 || env.PUBLISH_JS_SDK == 1
@@ -66,8 +66,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: js-sdk#v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
-          release_name: js-sdk v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
+          tag_name: js-sdk@v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
+          release_name: js-sdk@v${{ steps.check_versions.outputs.NEW_JS_SDK_VERSION }}
           body: |
             Changes in this Release
             ## Changed
@@ -84,7 +84,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ethereum-contracts@v${{ steps.check_versions.outputs.NEW_ETHEREUM_CONTRACTS_VERSION }}
-          release_name: ethereum-contracts v${{ steps.check_versions.outputs.NEW_ETHEREUM_CONTRACTS_VERSION }}
+          release_name: ethereum-contracts@v${{ steps.check_versions.outputs.NEW_ETHEREUM_CONTRACTS_VERSION }}
           body: |
             Changes in this Release
             ## Changed

@@ -6,7 +6,7 @@ on:
 
 jobs:
   publish-canary:
-    name: NPM publish PR branch to Github
+    name: NPM publish PR to Github
 
     runs-on: ubuntu-latest
 

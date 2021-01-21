@@ -55,3 +55,17 @@ jobs:
       - name: Publish js-sdk package
         if: env.PUBLISH_JS_SDK == 1
         run: tasks/publish-master.sh packages/js-sdk/
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Canary Release ${{ github.ref }}
+          body: |
+            Changes in this Release
+            - First Change
+            - Second Change
+          draft: true

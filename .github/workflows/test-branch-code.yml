@@ -38,11 +38,11 @@ jobs:
           echo ---
           if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
             echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
-            echo Ethereum contracts will be built.
+            echo Ethereum contracts will be tested.
           fi
           if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
             echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
-            echo JS SDK will be built.
+            echo JS SDK will be tested.
           fi
 
       - name: Use Node.js ${{ matrix.node-version }}
@@ -54,7 +54,7 @@ jobs:
       - name: Install, lint and build
         if: env.BUILD_ETHEREUM_CONTRACTS == 1 || env.BUILD_JS_SDK == 1
         run: |
-          yarn install --frozen-lockfile
+          yarn install --frozen-lockfilepull_request
           yarn lint
           yarn build
 
@@ -64,6 +64,7 @@ jobs:
           yarn workspace @superfluid-finance/ethereum-contracts test
 
       - name: Test js-sdk if necessasry
-        if: env.BUILD_JS_SDK == 1
+        # NOTE: js-sdk devDepends on ethereum-contracts
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1 || env.BUILD_JS_SDK == 1
         run: |
           yarn workspace @superfluid-finance/js-sdk test

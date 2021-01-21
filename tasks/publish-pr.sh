@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # This publishes a "PR" version of our packages to Github.
 # It is run when a new PR is made.

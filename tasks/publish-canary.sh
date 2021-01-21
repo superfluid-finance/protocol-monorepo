@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # This publishes a "canary" version of our packages to npm.
 # It is run when a branch is merged to dev.

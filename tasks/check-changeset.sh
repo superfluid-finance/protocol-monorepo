@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 SOURCE_REF=$1
 BASE_REF=$2

@@ -57,7 +57,7 @@ jobs:
         run: tasks/publish-master.sh packages/js-sdk/
 
       - name: Create js-sdk release draft
-        if: env.PUBLISH_JS_SDK == 1
+        # if: env.PUBLISH_JS_SDK == 1
         id: create_release_js_sdk
         uses: actions/create-release@v1
         env:
@@ -74,7 +74,7 @@ jobs:
           draft: true
 
       - name: Create contracts release draft
-        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
+        # if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
         id: create_release_ethereum_contracts
         uses: actions/create-release@v1
         env:

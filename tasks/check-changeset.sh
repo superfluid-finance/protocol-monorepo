@@ -13,7 +13,7 @@ cat changed-files.list
 echo ---
 
 # set BUILD_* variables to GITHUB_ENV
-if [ ! -z "$GITHUB_ENV "];then
+if ! [ -z "$GITHUB_ENV "];then
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ANYTHING=1
         BUILD_ETHEREUM_CONTRACTS=1

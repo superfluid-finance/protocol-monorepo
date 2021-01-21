@@ -38,7 +38,7 @@ jobs:
         run: |
           SHORT_REV=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
           export PR_NUMBER="${{ github.event.pull_request.number }}.$SHORT_REV"
-          //git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          # git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           echo "
           @superfluid-finance:registry=https://npm.pkg.github.com
           //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}

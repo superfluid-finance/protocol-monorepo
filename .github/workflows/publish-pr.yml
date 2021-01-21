@@ -22,19 +22,45 @@ jobs:
 
       - name: Show context
         run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
           echo "github.event.pull_request"
           echo "  .number" ${{ github.event.pull_request.number }}
           echo "  .state" ${{ github.event.pull_request.state }}
           echo "  .locked" ${{ github.event.pull_request.locked }}
           echo "  .draft" ${{ github.event.pull_request.draft }}
 
+      - name: Check changeset
+        run: |
+          task/check-changeset.sh ${{ github.ref }} refs/remotes/origin/dev
+          if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+            BUILD_ANYTHING=1
+            BUILD_ETHEREUM_CONTRACTS=1
+            BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
+          fi
+          if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+            BUILD_ANYTHING=1
+            BUILD_JS_SDK=1
+            echo JS SDK will be tested.
+          fi
+          echo "BUILD_ANYTHING=1" >> $GITHUB_ENV
+          echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+          echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
+
       - name: Install dependencies
+        if: env.BUILD_ANYTHING == 1
         run: yarn install --frozen-lockfile
 
       - name: Build
+        if: env.BUILD_ANYTHING == 1
         run: yarn build
 
       - name: Publish to github
+        if: env.BUILD_ANYTHING == 1
         run: |
           export SHORT_REV=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
           export PR_NUMBER="${{ github.event.pull_request.number }}"

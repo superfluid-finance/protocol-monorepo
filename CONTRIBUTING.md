@@ -1,0 +1,107 @@
+# Contributing
+
+Interested in contributing, or just troubleshooting? Great! Let's get this party started.
+
+Before interacting with the Superfluid community, please read and understand our Code of Conduct (TODO).
+
+## Local Development
+
+### Installing Dependencies
+
+Before you do anything, you should run `yarn install` in the root directory of your local-copy of the protocol-monorepo to install the necessary dependencies.
+
+```bash
+cd protocol-monorepo
+yarn install
+```
+
+You'll also want to upgrade your Superfluid App to the canary, so you have the most recent changes.
+
+```bash
+cd superfluid-app # wherever your superfluid-app happens to be
+yarn upgrade @superfluid-finance/ethereum-contracts@dev @superfluid-finance/js-sdk@dev
+```
+
+### Copy and Watch
+
+Now you are ready. If you're editing the Superfluid contracts, start the auto-compiler:
+
+```bash
+cd packages/ethereum-contracts
+truffle watch
+```
+
+Then, copy-and-watch the changes into your Superfluid App.
+
+```bash
+nodemon --watch ../path/to/superfluid/packages -ext js,ts,tsx,sol --exec rsync --archive --delete ../path/to/superfluid/packages ./node_modules/@superfluid-finance/
+```
+
+For example, if your Superfluid App and protocol-monorepo are located in the same directory:
+
+```bash
+📦projects
+ ┣ 📂superfluid-app
+ ┗ 📂protocol-monorepo
+   ┗ 📂packages
+
+cd superfluid-app
+nodemon --watch ../protocol-monorepo/packages --ext js,ts,tsx,sol --exec rsync --archive --delete ../protocol-monorepo/packages/ ./node_modules/@superfluid-finance/
+```
+
+See [examples/](examples/) if you want to see more examples of this method.
+
+## Code Coverage
+
+We are using `solidity-coverage`. Use this command to run the coverage tests in the contracts package:
+
+```bash
+truffle run test-coverage
+```
+
+> Note: This step is not integrated with the unit test because of the time it consumes to execute.
+
+## Testing
+
+See the individual packages for specific details on testing.
+
+## Linting
+
+We are using [eslint](https://eslint.org/) for Javascript and [solhint](https://protofire.github.io/solhint/) for Solidity.
+
+## Releases
+
+### Master `@latest`
+
+To publish a new version of Superfluid to NPM run the following command:
+
+```bash
+yarn lerna:version
+```
+
+Packages are versioned independently, so you can choose which packages to release, and commit only those changes. Now its time to publish:
+
+```bash
+scripts/publish-master.sh
+```
+
+There should already be a draft release created in Github for each package. Add in your changes and publish it.
+
+### Canary `@dev`
+
+Whenever anything is merged to `dev`, new packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-finance/packages?repo_name=protocol-monorepo). A Github release should not be created.
+
+Canary packages can be install using the `@dev` tag
+
+```bash
+yarn install @superfluid-finance/ethereum-contracts@dev
+
+# or specify the version
+yarn install @superfluid-finance/ethereum-contracts@0.2.4-dev.265
+```
+
+### Pull Request `@PRxxx`
+
+Pull request packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-finance/packages?repo_name=protocol-monorepo). A Github releases should not be created.
+
+See the bot message in the PR for how to install these packages.

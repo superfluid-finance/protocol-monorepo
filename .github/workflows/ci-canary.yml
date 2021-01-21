@@ -1,4 +1,4 @@
-name: CI of dev branch
+name: CI Canary
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build and run all tests
+    name: Build and test dev branch
 
     runs-on: ubuntu-latest
 
@@ -41,6 +41,54 @@ jobs:
           yarn build
           yarn test
 
+      - name: Publish to npm
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
+          ./tasks/publish-canary.sh
+        env:
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+  publish:
+    name: NPM publish dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish to npm
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
+          ./tasks/publish-canary.sh
+        env:
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Publish to github
+        run: |
+          echo "
+          @superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
+          " > .npmrc
+          ./tasks/publish-canary.sh
+        env:
+          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+
   coverage:
     name: Run coverage test
 
@@ -69,7 +117,7 @@ jobs:
             packages/ethereum-contracts/coverage.json
 
   deploy-dev:
-    name: Deploy dev branch to dev-testnets
+    name: Deploy Canary to dev-testnets
 
     needs: [build, coverage]
 

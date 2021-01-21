@@ -1,4 +1,4 @@
-name: Test branch code
+name: Test Pull Request
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
           echo github.base_ref: ${{ github.base_ref }}
 
       - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.ref }} dev
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
         if: env.BUILD_ANYTHING == 1

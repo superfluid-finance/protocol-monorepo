@@ -56,16 +56,36 @@ jobs:
         if: env.PUBLISH_JS_SDK == 1
         run: tasks/publish-master.sh packages/js-sdk/
 
-      - name: Create Release
-        id: create_release
+      - name: Create js-sdk release draft
+        # if: env.PUBLISH_JS_SDK == 1
+        id: create_release_js_sdk
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Canary Release ${{ github.ref }}
+          tag_name: js-sdk#v$env.NEW_JS_SDK_VERSION
+          release_name: js-sdk v$env.NEW_JS_SDK_VERSION
           body: |
             Changes in this Release
-            - First Change
-            - Second Change
+            ## Changed
+            ## Added
+            ## Fixes
+            ## Breaking
+          draft: true
+
+      - name: Create contracts release draft
+        # if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
+        id: create_release_ethereum_contracts
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ethereum-contracts@v$NEW_ETHEREUM_CONTRACTS_VERSION
+          release_name: ethereum-contracts v$NEW_ETHEREUM_CONTRACTS_VERSION
+          body: |
+            Changes in this Release
+            ## Changed
+            ## Added
+            ## Fixes
+            ## Breaking
           draft: true

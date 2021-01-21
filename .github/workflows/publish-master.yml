@@ -63,8 +63,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: js-sdk#v$env.NEW_JS_SDK_VERSION
-          release_name: js-sdk v$env.NEW_JS_SDK_VERSION
+          tag_name: js-sdk#v${{ env.NEW_JS_SDK_VERSION }}
+          release_name: js-sdk v${{ env.NEW_JS_SDK_VERSION }}
           body: |
             Changes in this Release
             ## Changed
@@ -80,8 +80,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ethereum-contracts@v$NEW_ETHEREUM_CONTRACTS_VERSION
-          release_name: ethereum-contracts v$NEW_ETHEREUM_CONTRACTS_VERSION
+          tag_name: ethereum-contracts@v${{ NEW_ETHEREUM_CONTRACTS_VERSION }}
+          release_name: ethereum-contracts v${{ NEW_ETHEREUM_CONTRACTS_VERSION }}
           body: |
             Changes in this Release
             ## Changed

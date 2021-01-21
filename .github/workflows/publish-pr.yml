@@ -17,14 +17,6 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Get PR number
-        id: pr_number
-        run: |
-          ls -R
-          pr_number=$(ls pr-packages)
-          echo $pr_number
-          echo "::set-output name=pr_number::$pr_number"
-
       - name: Publish to github
         run: |
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
@@ -33,12 +25,11 @@ jobs:
           ./tasks/publish-pr
         env:
           SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-          PR_NUMBER: ${pr_number}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
       - name: Create comment msg
         id: comment_msg
         run: |
-          pr_number=${{ steps.pr_number.outputs.pr_number }}
-          package_version=${{ steps.package_version.outputs.package_version }}
+          pr_number=${{ github.event.pull_request.number }}
           msg="### 📦 PR Packages%0A"
           msg+="Install this PR by running \`yarn add @superfluid-finance/js-sdk@$pr_number --registry https://npm.pkg.github.com/\`"
           echo "::set-output name=msg::$msg"

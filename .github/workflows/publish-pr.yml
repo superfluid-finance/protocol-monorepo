@@ -25,7 +25,7 @@ jobs:
           ./tasks/publish-pr
         env:
           SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: "${{ github.event.pull_request.number }}.${{ github.event.pull_request.head.sha }}"
 
       - name: Create comment msg
         id: comment_msg

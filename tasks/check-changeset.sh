@@ -24,7 +24,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_JS_SDK=1
         echo JS SDK will be tested.
     fi
-    echo "BUILD_ANYTHING=1" >> $GITHUB_ENV
-    echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
-    echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
+    echo "BUILD_ANYTHING=${BUILD_ANYTHING}" >> $GITHUB_ENV
+    echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
+    echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
 fi

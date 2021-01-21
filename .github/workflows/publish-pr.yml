@@ -1,0 +1,73 @@
+name: NPM publish PR packages to Github
+
+on: pull_request
+
+jobs:
+  publish-canary:
+    name: NPM publish PR packages to Github
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - name: Build
+        run: yarn build
+
+      # - name: Get PR number
+      #   id: pr_number
+      #   run: |
+      #     ls -R
+      #     pr_number=$(ls pr-packages)
+      #     echo $pr_number
+      #     echo "::set-output name=pr_number::$pr_number"
+
+      # - name: Get package version
+      #   id: package_version
+      #   run: |
+      #     sha="${{ github.event.pull_request.head.sha }}"
+      #     package_version=$pr_number-${$sha:0:7}
+      #     echo $package_version
+      #     echo "::set-output name=pr_number::$pr_number"
+
+      - name: Publish to github
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "@superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc
+          ./tasks/publish-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Create comment msg
+      #   id: comment_msg
+      #   run: |
+      #     pr_number=${{ steps.pr_number.outputs.pr_number }}
+      #     package_version=${{ steps.package_version.outputs.package_version }}
+      #     msg="### 📦 PR Packages%0A"
+      #     msg+="Install this PR by running \`yarn add @superfluid-finance/js-sdk@$package_version --registry https://npm.pkg.github.com/\`"
+      #     echo "::set-output name=msg::$msg"
+      #
+      # - name: Find Comment
+      #   uses: peter-evans/find-comment@v1
+      #   id: fc
+      #   with:
+      #     issue-number: ${{ steps.pr_number.outputs.pr_number }}
+      #     comment-author: "github-actions[bot]"
+      #
+      # - name: Create comment
+      #   if: ${{ steps.fc.outputs.comment-id == 0 }}
+      #   uses: peter-evans/create-or-update-comment@v1
+      #   with:
+      #     issue-number: ${{ steps.pr_number.outputs.pr_number }}
+      #     body: ${{ steps.comment_msg.outputs.msg }}
+      #
+      # - name: Update comment
+      #   if: ${{ steps.fc.outputs.comment-id != 0 }}
+      #   uses: peter-evans/create-or-update-comment@v1
+      #   with:
+      #     comment-id: ${{ steps.fc.outputs.comment-id }}
+      #     body: ${{ steps.comment_msg.outputs.msg }}
+      #     edit-mode: replace

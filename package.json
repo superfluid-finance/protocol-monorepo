@@ -1,8 +1,12 @@
 {
     "name": "@superfluid-finance/protocol-monorepo",
-    "private": true,
     "description": "Superfluid Protocol monorepo",
-    "repository": "github:superfluid-finance/protocol-monorepo",
+    "repository": {
+        "type": "git",
+        "url": "github:superfluid-finance/protocol-monorepo"
+    },
+    "private": true,
+    "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
         "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
@@ -13,12 +17,13 @@
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",
-        "npm-run-all": "^4.1.5",
         "eslint": "^7.16.0",
         "eslint-config-prettier": "^6.9.0",
         "eslint-plugin-prettier": "^3.1.2",
         "husky": "^4.2.5",
+        "lerna": "^3.22.1",
         "lint-staged": "^10.5.3",
+        "npm-run-all": "^4.1.5",
         "prettier": "^1.19.1",
         "prettier-eslint": "^9.0.0"
     },

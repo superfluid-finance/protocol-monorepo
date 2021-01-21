@@ -28,7 +28,7 @@ jobs:
 
       - name: Check changeset
         run: |
-          task/check-changeset.sh ${{ github.ref }} refs/remotes/origin/dev
+          tasks/check-changeset.sh ${{ github.head_ref }} refs/remotes/origin/dev
           if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
             BUILD_ANYTHING=1
             BUILD_ETHEREUM_CONTRACTS=1

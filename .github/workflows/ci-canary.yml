@@ -65,6 +65,7 @@ jobs:
         run: yarn build
 
       - name: Publish to npm
+        # "git fetch" Gets the latest canary tag
         run: |
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
@@ -74,6 +75,7 @@ jobs:
 
       - name: Publish to github
         run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
           echo "
           @superfluid-finance:registry=https://npm.pkg.github.com
           //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}

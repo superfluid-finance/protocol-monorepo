@@ -1,0 +1,58 @@
+name: Create PR Artifact
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, synchronize]
+
+jobs:
+  create_pr_artifact:
+    name: Create PR Artifact
+
+    runs-on: ubuntu-latest
+
+    if: ${{ !github.event.pull_request.draft }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Show context
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+          echo "github.event.pull_request"
+          echo "  .number" ${{ github.event.pull_request.number }}
+          echo "  .state" ${{ github.event.pull_request.state }}
+          echo "  .locked" ${{ github.event.pull_request.locked }}
+          echo "  .draft" ${{ github.event.pull_request.draft }}
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
+      - name: Install dependencies
+        if: env.BUILD_ANYTHING == 1
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        if: env.BUILD_ANYTHING == 1
+        run: yarn build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        if: env.BUILD_ANYTHING == 1
+        with:
+          name: PR#${{ github.event.number }}
+          path: |
+            node_modules/
+            lerna.json
+            package.json
+            packages/
+          retention-days: 1

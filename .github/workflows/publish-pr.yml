@@ -1,11 +1,13 @@
-name: Publish Pull Request
+name: Publish PR packages
 
 on:
-  pull_request:
-    types: [opened, ready_for_review, synchronize]
+  workflow_run:
+    workflows: ["Create PR Artifact"]
+    types:
+      - completed
 
 jobs:
-  publish-canary:
+  publish_pr_packages:
     name: NPM publish PR to Github
 
     runs-on: ubuntu-latest
@@ -34,22 +36,25 @@ jobs:
           echo "  .locked" ${{ github.event.pull_request.locked }}
           echo "  .draft" ${{ github.event.pull_request.draft }}
 
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          workflow_conclusion: success
 
-      - name: Install dependencies
-        if: env.BUILD_ANYTHING == 1
-        run: yarn install --frozen-lockfile
-
-      - name: Build
-        if: env.BUILD_ANYTHING == 1
-        run: yarn build
+      - name: Get PR number
+        id: pr_number
+        run: |
+          ls -R
+          pr_number=$(ls | egrep 'PR#' | sed 's/PR#//g')
+          echo $pr_number
+          echo "::set-output name=pr_number::$pr_number"
 
       - name: Publish to github
-        if: env.BUILD_ANYTHING == 1
         run: |
-          export SHORT_REV=$(git rev-parse --short ${{ github.event.pull_request.head.sha }})
-          export PR_NUMBER="${{ github.event.pull_request.number }}"
+          cd $(ls | egrep 'PR#')
+          export SHORT_REV=$(git rev-parse --short HEAD)
+          export PR_NUMBER="${{ steps.pr_number.outputs.pr_number }}"
           echo "
           @superfluid-finance:registry=https://npm.pkg.github.com
           //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
@@ -62,21 +67,21 @@ jobs:
         uses: peter-evans/find-comment@v1
         id: fc
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr_number.outputs.pr_number }}
           comment-author: "github-actions[bot]"
 
       - name: Create comment
         if: ${{ steps.fc.outputs.comment-id == 0 }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.pr_number.outputs.pr_number }}
           body: |
             ### 📦 PR Packages
 
             Install this PR:
 
             ```bash
-            yarn add @superfluid-finance/js-sdk@PR${{ github.event.pull_request.number }} --registry https://npm.pkg.github.com/
+            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr_number.outputs.pr_number }} --registry https://npm.pkg.github.com/
             ```
 
             <details><summary>:octocat: Click to learn how to use Github packages</summary>

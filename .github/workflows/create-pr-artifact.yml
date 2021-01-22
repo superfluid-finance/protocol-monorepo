@@ -45,14 +45,23 @@ jobs:
         # if: env.BUILD_ANYTHING == 1
         run: yarn build
 
+      - name: Create packages
+        run: |
+          dirName="bin/${{ github.event.number }}"
+          mkdir -p $dirName
+          for d in packages/*/ ; do
+            (cd "$d" && tgz=$(npm pack) && cp $tgz "../../$dirName/")
+          done
+          cd $dirName
+          sha="${{ github.event.pull_request.head.sha }}"
+          for f in * ; do
+            mv -- "$f" "${f%.tgz}-${sha:0:7}.tgz"
+          done
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         # if: env.BUILD_ANYTHING == 1
         with:
-          name: PR#${{ github.event.number }}
-          path: |
-            node_modules/
-            lerna.json
-            package.json
-            packages/
+          name: pr-packages
+          path: bin
           retention-days: 1

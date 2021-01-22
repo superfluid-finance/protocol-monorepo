@@ -38,11 +38,11 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Install dependencies
-        # if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ANYTHING == 1
         run: yarn install --frozen-lockfile
 
       - name: Build
-        # if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ANYTHING == 1
         run: yarn build
 
       - name: Create packages
@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2
-        # if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ANYTHING == 1
         with:
           name: pr-packages
           path: bin

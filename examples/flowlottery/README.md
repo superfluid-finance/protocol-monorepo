@@ -10,7 +10,9 @@
 
 > Example Superfluid App using Constant Flow Agreements
 
-Bootstrapped using `create-eth-app` [link](https://github.com/paulrberg/create-eth-app)
+Bootstrapped using [`create-eth-app`](https://github.com/paulrberg/create-eth-app)
+
+<img width="500" src="screenshot.png"/>
 
 ## How it works
 
@@ -22,13 +24,16 @@ Get a deep dive, including how we built it, in the blog post [Hacking on Superfl
 
 ## Usage
 
-If you want to run the app using the deployed goerli contracts, skip the "Install Contracts" section and just run the frontend.
+To run the frontend using the deployed goerli contracts, skip the "Install Contracts" section and just run the frontend.
 
 ## Install Contracts
+
+If you want to test + deploy contracts locally using ganache, run these commands:
 
 ```bash
 yarn install
 yarn build
+yarn deploy
 ```
 
 ## Install Frontend

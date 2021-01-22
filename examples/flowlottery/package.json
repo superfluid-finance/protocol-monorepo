@@ -6,7 +6,8 @@
     "scripts": {
         "build": "truffle compile --all",
         "test": "truffle test",
-        "deploy": "npm run build && RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js",
+        "deploy": "npm run build && RELEASE_VERSION=v1 npx truffle --network ganache exec scripts/deploy.js",
+        "deploy:goerli": "npm run build && RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js",
         "copy-watch": "nodemon --watch \"../../packages\" --ext \"js,ts,tsx,sol\" --exec rsync --archive --delete \"../../packages/\" \"./node_modules/@superfluid-finance/\""
     },
     "author": "Superfluid",
@@ -15,8 +16,8 @@
         "@decentral.ee/web3-helpers": "^0.3.2",
         "@openzeppelin/contracts": "^3.2.1-solc-0.7",
         "@openzeppelin/test-helpers": "^0.5.7",
-        "@superfluid-finance/ethereum-contracts": "^0.2.0",
-        "@superfluid-finance/js-sdk": "^0.2.0",
+        "@superfluid-finance/ethereum-contracts": "^0.2.2",
+        "@superfluid-finance/js-sdk": "^0.2.2",
         "@truffle/contract": "^4.2.25",
         "@truffle/hdwallet-provider": "^1.1.0",
         "dotenv": "^8.2.0",

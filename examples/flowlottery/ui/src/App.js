@@ -31,7 +31,7 @@ const LotterySuperApp = TruffleContract(require("./LotterySuperApp.json"));
 
 const { wad4human } = require("@decentral.ee/web3-helpers");
 
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 function WalletButton({ provider, userAddress, loadWeb3Modal }) {
   return (
@@ -308,10 +308,9 @@ function App() {
         setDAIapproved(
           wad4human(await dai.allowance.call(userAddress, daix.address))
         );
-        const flow = (await sf.agreements.cfa.getNetFlow.call(
-          daix.address,
-          userAddress
-        )).toString();
+        const flow = (
+          await sf.agreements.cfa.getNetFlow.call(daix.address, userAddress)
+        ).toString();
         console.log("user address: ", userAddress);
         console.log("user DAI balance: ", daiBalance);
         console.log("user DAI allowance: ", daiApproved);
@@ -321,17 +320,21 @@ function App() {
         setUserNetFlow(flow);
         console.log("userNetFlow:", userNetFlow);
         setJoinedLottery(
-          (await sf.agreements.cfa.getFlow(
-            daix.address,
-            userAddress,
-            app.address
-          )).timestamp > 0
+          (
+            await sf.agreements.cfa.getFlow(
+              daix.address,
+              userAddress,
+              app.address
+            )
+          ).timestamp > 0
         );
-        var winnerFlow = (await sf.agreements.cfa.getFlow.call(
-          daix.address,
-          app.address,
-          winnerAddress
-        )).flowRate.toString();
+        var winnerFlow = (
+          await sf.agreements.cfa.getFlow.call(
+            daix.address,
+            app.address,
+            winnerAddress
+          )
+        ).flowRate.toString();
         var newList = getLatestFlows(
           await sf.agreements.cfa.getPastEvents("FlowUpdated", {
             fromBlock: 0,
@@ -372,12 +375,12 @@ function App() {
         for (var i = 1; i < newWinnerLog.length; i++) {
           if (typeof newWinnerLog[i] !== "undefined") {
             if (newWinnerLog[i].address === newWinnerLog[i - 1].address) {
-              var fromTimestamp = (await sf.web3.eth.getBlock(
-                newWinnerLog[i - 1].blockNumber
-              )).timestamp;
-              var toTimestamp = (await sf.web3.eth.getBlock(
-                newWinnerLog[i].blockNumber
-              )).timestamp;
+              var fromTimestamp = (
+                await sf.web3.eth.getBlock(newWinnerLog[i - 1].blockNumber)
+              ).timestamp;
+              var toTimestamp = (
+                await sf.web3.eth.getBlock(newWinnerLog[i].blockNumber)
+              ).timestamp;
               var flowRate = Math.max(
                 newWinnerLog[i].flowRate,
                 newWinnerLog[i - 1].flowRate

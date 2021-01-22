@@ -20,7 +20,7 @@
     "@ethersproject/contracts": "^5.0.1",
     "@ethersproject/providers": "^5.0.4",
     "@openzeppelin/test-helpers": "^0.5.6",
-    "@superfluid-finance/ethereum-contracts": "0.1.2-preview-20201014-fix5",
+    "@superfluid-finance/js-sdk": "0.2.2",
     "@testing-library/dom": "^6.12.2",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
@@ -31,8 +31,6 @@
     "apollo-boost": "^0.4.7",
     "apollo-client": "^2.6.8",
     "apollo-utilities": "^1.3.3",
-    "chalk": "^4.1.0",
-    "eslint": "^6.8.0",
     "eslint-plugin-flowtype": "^4.6.0",
     "graphql": "^14.6.0",
     "ipfs-http-client": "^45.0.0",
@@ -41,6 +39,10 @@
     "react-scripts": "3.4.1",
     "styled-components": "^5.1.1",
     "web3modal": "^1.9.0"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "chalk": "^4.1.0"
   },
   "eslintConfig": {
     "extends": "react-app"

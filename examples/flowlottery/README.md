@@ -1,42 +1,63 @@
-Flow Lottery Game
-=================
+<h1 align="center">Welcome to flowlottery-superapp 👋</h1>
+<p>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+  <a href="https://twitter.com/Superfluid_HQ" target="_blank">
+    <img alt="Twitter: Superfluid\_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
+  </a>
+</p>
 
-A game of chance built on Superfluid. Users join the game by sending a stream to our contract.
-All incoming streams are summed and the resulting reward stream is sent to the winner, until a new one is chosen!
+> Example Superfluid App using Constant Flow Agreements
 
-Read more about how to build this game from [this medium article](https://medium.com/superfluid-blog/hacking-on-superfluid-bbb9ade94f98).
+Bootstrapped using `create-eth-app` [link](https://github.com/paulrberg/create-eth-app)
 
-A version works for the goerli testnet is also deployed to [https://flowlottery.eth.link/](https://flowlottery.eth.link/).
+## How it works
 
-Development
-===========
+A game of chance built on Superfluid. Users join the game by sending a stream to our contract. All incoming streams are summed and the resulting reward stream is sent to the winner, until a new one is chosen!
 
-## Build contracts
+Get a deep dive, including how we built it, in the blog post [Hacking on Superfluid](https://medium.com/superfluid-blog/hacking-on-superfluid-bbb9ade94f98).
 
-```
-$ npm ci
-$ npm run test
-$ npm run build
-```
+### ✨ [Demo](https://flowlottery.eth.link/) on goerli
 
-## Deploy the SuperApp
+## Usage
 
-```
-$ npm run deploy
-```
+If you want to run the app using the deployed goerli contracts, skip the "Install Contracts" section and just run the frontend.
 
-## Test the UI
+## Install Contracts
 
-To use the already deployed the SuperApp:
-
-```
-$ cd ui
-$ npm ci
-$ npm start
+```bash
+yarn install
+yarn build
 ```
 
-## Hack It
+## Install Frontend
 
-- `contracts/LotterySuperApp.sol`: The flow lottery SuperApp.
-- `test/LotterySuperApp.test.js`: The test cases.
-- `ui`: The flow lottery dapp UI.
+```bash
+
+cd ui
+yarn
+yarn start
+```
+
+## Run tests
+
+```bash
+yarn test
+```
+
+## Author
+
+👤 **Francesco Renzi**
+
+-   Website: [https://superfluid.finance](https://superfluid.finance)
+    -   Twitter: [@FrancescoRenziA](https://twitter.com/FrancescoRenziA)
+    -   GitHub: [@kobuta23](https://github.com/kobuta23)
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+---
+
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_

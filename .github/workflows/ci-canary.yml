@@ -41,17 +41,10 @@ jobs:
           yarn build
           yarn test
 
-      - name: Publish to npm
-        run: |
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
-          ./tasks/publish-canary.sh
-        env:
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
   publish:
     name: NPM publish dev branch
 
+    needs: [build]
     if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest

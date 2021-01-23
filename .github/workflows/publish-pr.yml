@@ -1,0 +1,90 @@
+name: Publish PR Packages
+
+on:
+  workflow_run:
+    workflows: ["Create PR Artifact"]
+    types:
+      - completed
+
+jobs:
+  publish_pr_packages:
+    name: NPM publish PR to Github
+
+    runs-on: ubuntu-latest
+
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Show context
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
+          workflow_conclusion: success
+
+      - name: Get PR number
+        id: pr_number
+        run: |
+          ls -R
+          pr_number=$(ls pr-packages)
+          echo $pr_number
+          echo "::set-output name=pr_number::$pr_number"
+
+      - name: Publish to github
+        run: |
+          pr_number="${{ steps.pr_number.outputs.pr_number }}"
+          tasks/npmrc-use-github.sh > pr-packages/$pr_number/.npmrc # using GITHUB_TOKEN
+          cd pr-packages/$pr_number
+          for f in * ; do
+            npm --userconfig .npmrc publish $f --tag "PR$pr_number"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v1
+        id: fc
+        with:
+          issue-number: ${{ steps.pr_number.outputs.pr_number }}
+          comment-author: "github-actions[bot]"
+
+      - name: Create comment
+        if: ${{ steps.fc.outputs.comment-id == 0 }}
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ steps.pr_number.outputs.pr_number }}
+          body: |
+            ### 📦 PR Packages
+
+            Install this PR:
+
+            ```bash
+            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr_number.outputs.pr_number }} --registry https://npm.pkg.github.com/
+            ```
+
+            <details><summary>:octocat: Click to learn how to use Github packages</summary>
+
+            To use the Github package registry, create a token with "read:packages" permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for help.
+
+            Next add these lines to your `~/.npmrc` file, replacing TOKEN with your personal access token. See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you get stuck.
+
+            ```
+            @superfluid-finance:registry=https://npm.pkg.github.com
+            //npm.pkg.github.com/:_authToken=TOKEN
+            ```
+            </details>

@@ -1,4 +1,4 @@
-name: Test branch code
+name: CI Feature Branches
 
 on:
   push:
@@ -27,34 +27,18 @@ jobs:
           echo github.base_ref: ${{ github.base_ref }}
 
       - name: Check changeset
-        run: |
-          # fetch the latest commit of the dev branch
-          git fetch --depth=1 origin refs/heads/dev:refs/remotes/origin/dev
-          # compare the source branch with the dev branch
-          git diff --name-only ${{ github.ref }} refs/remotes/origin/dev > changed-files.list
-          echo Changed files:
-          echo ---
-          cat changed-files.list
-          echo ---
-          if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
-            echo "BUILD_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
-            echo Ethereum contracts will be built.
-          fi
-          if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
-            echo "BUILD_JS_SDK=1" >> $GITHUB_ENV
-            echo JS SDK will be built.
-          fi
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        if: env.BUILD_ETHEREUM_CONTRACTS == 1 || env.BUILD_JS_SDK == 1
+        if: env.BUILD_ANYTHING == 1
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint and build
-        if: env.BUILD_ETHEREUM_CONTRACTS == 1 || env.BUILD_JS_SDK == 1
+        if: env.BUILD_ANYTHING == 1
         run: |
-          yarn install --frozen-lockfile
+          yarn install --frozen-lockfilepull_request
           yarn lint
           yarn build
 

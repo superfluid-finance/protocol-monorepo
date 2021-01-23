@@ -10,9 +10,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-
     strategy:
       matrix:
         node-version: [10.x, 12.x]
@@ -103,7 +100,7 @@ jobs:
           tasks/npm-publish.sh packages/ethereum-contracts dev
           tasks/npm-publish.sh packages/js-sdk dev
         env:
-          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
   deploy-dev:

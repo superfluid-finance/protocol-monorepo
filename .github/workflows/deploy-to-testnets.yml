@@ -15,9 +15,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-
     strategy:
       fail-fast: false
       matrix:

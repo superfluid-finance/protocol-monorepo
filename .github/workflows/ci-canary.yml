@@ -56,13 +56,13 @@ jobs:
           node-version: 12.x
 
       - name: Run coverage test
+        if: false # FIXME
         run: |
           yarn install --frozen-lockfile
           cd packages/ethereum-contracts
           yarn test-coverage
 
       - name: Create coverage artifact
-        if: false # FIXME
         uses: actions/upload-artifact@v2
         with:
           name: coverage

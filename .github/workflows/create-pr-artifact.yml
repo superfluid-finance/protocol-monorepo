@@ -80,8 +80,8 @@ jobs:
       - name: Publish to github (testing)
         run: |
           pr_number=${{ github.event.number }}
+          tasks/npm-use-github.sh > bin/$pr_number/.npmrc # using GITHUB_TOKEN
           cd bin/$pr_number
-          ./tasks/npm-use-github.sh > .npmrc # using GITHUB_TOKEN
           for f in * ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done

@@ -30,4 +30,4 @@ if ! [ -z "$GITHUB_ENV" ];then
     echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
 fi
 
-echo "BUILD_ANYTHING=1" >> $GITHUB_ENV # FIXME
+echo "BUILD_ANYTHING=1" >> $GITHUB_ENV # FIXME testing

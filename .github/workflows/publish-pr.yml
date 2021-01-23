@@ -50,7 +50,7 @@ jobs:
           pr_number="${{ steps.pr_number.outputs.pr_number }}"
           tasks/npmrc-use-github.sh > pr-packages/$pr_number/.npmrc # using GITHUB_TOKEN
           cd pr-packages/$pr_number
-          for f in * ; do
+          for f in `ls` ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
         env:

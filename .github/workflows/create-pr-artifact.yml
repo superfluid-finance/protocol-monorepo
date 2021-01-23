@@ -72,3 +72,14 @@ jobs:
           name: pr-packages
           path: bin
           retention-days: 1
+
+      - name: Publish to github (testing)
+        run: |
+          pr_number=${{ github.event.number }}
+          cd bin/$pr_number
+          ./tasks/npm-use-github.sh > .npmrc # using GITHUB_TOKEN
+          for f in * ; do
+            npm --userconfig .npmrc publish $f --tag "PR$pr_number"
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

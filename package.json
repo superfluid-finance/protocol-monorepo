@@ -12,8 +12,7 @@
         "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
         "build": "yarn workspaces run build",
         "test": "yarn workspaces run test",
-        "lint": "yarn workspaces run lint",
-        "lerna:version": "lerna version --sign-git-commit --no-git-tag-version --no-push"
+        "lint": "yarn workspaces run lint"
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",

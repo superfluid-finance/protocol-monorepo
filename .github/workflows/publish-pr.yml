@@ -49,15 +49,12 @@ jobs:
         run: |
           pr_number="${{ steps.pr_number.outputs.pr_number }}"
           cd pr-packages/$pr_number
-          echo "
-          @superfluid-finance:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
-          " > .npmrc
+          ./tasks/npm-use-github.sh > .npmrc # using GITHUB_TOKEN
           for f in * ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
         env:
-          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1

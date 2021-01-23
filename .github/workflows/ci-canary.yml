@@ -68,50 +68,50 @@ jobs:
             packages/ethereum-contracts/coverage/
             packages/ethereum-contracts/coverage.json
 
-    publish:
-      name: NPM publish dev branch
+  publish:
+    name: NPM publish dev branch
 
-      if: github.repository == 'superfluid-finance/protocol-monorepo'
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
-      needs: [build, coverage]
+    needs: [build, coverage]
 
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-      steps:
-        - uses: actions/checkout@v2
+    steps:
+      - uses: actions/checkout@v2
 
-        - name: Use Node.js 12.x
-          uses: actions/setup-node@v1
-          with:
-            node-version: 12.x
-            registry-url: https://registry.npmjs.org/
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: https://registry.npmjs.org/
 
-        - name: Install dependencies
-          run: yarn install --frozen-lockfile
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-        - name: Build
-          run: yarn build
+      - name: Build
+        run: yarn build
 
-        - name: Publish to npm
-          # "git fetch" Gets the latest canary tag
-          run: |
-            # publish-canary.sh needs tags to infer the revision number in preid
-            git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-            echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
-            ./tasks/publish-canary.sh
-          env:
-            NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+      - name: Publish to npm
+        # "git fetch" Gets the latest canary tag
+        run: |
+          # publish-canary.sh needs tags to infer the revision number in preid
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
+          ./tasks/publish-canary.sh
+        env:
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
-        - name: Publish to github
-          run: |
-            git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-            echo "
-            @superfluid-finance:registry=https://npm.pkg.github.com
-            //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
-            " > .npmrc
-            ./tasks/publish-canary.sh
-          env:
-            SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+      - name: Publish to github
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          echo "
+          @superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
+          " > .npmrc
+          ./tasks/publish-canary.sh
+        env:
+          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
   deploy-dev:
     name: Deploy Canary to dev-testnets

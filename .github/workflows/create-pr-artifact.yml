@@ -46,6 +46,7 @@ jobs:
         run: yarn build
 
       - name: Create packages
+        if: env.BUILD_ANYTHING == 1
         run: |
           dirName="bin/${{ github.event.number }}"
           mkdir -p $dirName

@@ -1,4 +1,4 @@
-name: Publish PR packages
+name: Publish PR Packages
 
 on:
   workflow_run:

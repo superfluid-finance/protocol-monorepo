@@ -50,7 +50,7 @@ jobs:
         run: |
           prNumber=${{ github.event.number }}
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          dirName="bin/"
+          dirName="bin/${prNumber}"
           mkdir -p $dirName
           # create temporary version
           yarn lerna version prepatch --yes --no-git-tag-version --preid PR$prNumber.0+${shortRev}
@@ -75,7 +75,8 @@ jobs:
 
       - name: Publish to github (testing)
         run: |
-          cd bin/${{ github.event.number }}
+          pr_number=${{ github.event.number }}
+          cd bin/$pr_number
           echo "
           @superfluid-finance:registry=https://npm.pkg.github.com
           //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}

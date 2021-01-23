@@ -59,7 +59,7 @@ jobs:
           //npm.pkg.github.com/:_authToken=${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
           " > .npmrc
           for f in * ; do
-            echo npm publish $f --tag "PR$pr_number" --registry "https://npm.pkg.github.com"
+            npm publish $f --tag "PR$pr_number" --registry "https://npm.pkg.github.com"
           done
 
       - name: Find Comment

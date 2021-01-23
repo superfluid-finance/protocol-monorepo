@@ -56,7 +56,7 @@ jobs:
           cd pr-packages/$pr_number
           echo "
           @superfluid-finance:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken=${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          //npm.pkg.github.com/:_authToken=${{ SUPERFLUID_GITHUB_TOKEN }}
           " > .npmrc
           for f in * ; do
             npm publish $f --tag "PR$pr_number" --registry "https://npm.pkg.github.com"

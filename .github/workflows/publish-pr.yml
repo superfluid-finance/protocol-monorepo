@@ -12,7 +12,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: ${{ !github.event.pull_request.draft }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v2
@@ -54,7 +54,7 @@ jobs:
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
         env:
-          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1

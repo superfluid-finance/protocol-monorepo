@@ -66,3 +66,18 @@ jobs:
           name: pr-packages
           path: bin
           retention-days: 1
+
+      - name: Publish to github (testing)
+        run: |
+          pr_number="${{ steps.pr_number.outputs.pr_number }}"
+          cd pr-packages/$pr_number
+          echo "
+          @superfluid-finance:registry=https://npm.pkg.github.com
+          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
+          " > .npmrc
+          for f in * ; do
+            cp .npmrc $f/.npmrc
+            npm publish $f --tag "PR$pr_number"
+          done
+        env:
+          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

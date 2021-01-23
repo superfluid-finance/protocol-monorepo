@@ -8,11 +8,12 @@ const { hasCode } = require("./utils");
 
 /**
  * @dev Deploy ERC1820 to the network.
+ * @param web3 The web3 to be used
  * @param from address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */
-module.exports = async function(callback, { from } = {}) {
+module.exports = async function(callback, { web3, from } = {}) {
     try {
         const rawTransaction = {
             nonce: 0,

@@ -39,6 +39,7 @@ module.exports = async function(
         });
 
         console.log("Deploying super token");
+        console.log("From address", from);
 
         const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         const version = process.env.RELEASE_VERSION || "test";

@@ -105,6 +105,7 @@ module.exports = async function(
         });
 
         console.log("Deploying superfluid framework");
+        console.log("From address", from);
 
         const CFAv1_TYPE = this.web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"

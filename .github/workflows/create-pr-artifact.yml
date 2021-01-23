@@ -48,11 +48,17 @@ jobs:
       - name: Create packages
         if: env.BUILD_ANYTHING == 1
         run: |
-          dirName="bin/${{ github.event.number }}"
+          prNumber=${{ github.event.number }}
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          dirName="bin/"
           mkdir -p $dirName
-          for d in packages/*/ ; do
-            (cd "$d" && tgz=$(npm pack) && cp $tgz "../../$dirName/")
-          done
+          # create temporary version
+          yarn lerna version --yes --no-git-tag-version --preid PR$prNumber.0+${shortRev}
+          for d in packages/*/ ; do (
+            cd "$d"
+            tgz=$(npm pack)
+            cp $tgz "../../$dirName/"
+          ) done
           cd $dirName
           sha="${{ github.event.pull_request.head.sha }}"
           for f in * ; do

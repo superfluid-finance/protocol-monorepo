@@ -74,8 +74,10 @@ jobs:
       - name: Create empty artifact
         if: env.BUILD_ANYTHING != 1
         run: |
-          mkdir bin
-          touch bin/.empty
+          prNumber=${{ github.event.number }}
+          dirName="bin/${prNumber}"
+          mkdir -p $dirName
+          touch $dirName/.empty
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2

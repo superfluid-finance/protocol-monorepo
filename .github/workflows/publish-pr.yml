@@ -30,11 +30,6 @@ jobs:
           echo github.ref: ${{ github.ref }}
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
-          echo "github.event.pull_request"
-          echo "  .number" ${{ github.event.pull_request.number }}
-          echo "  .state" ${{ github.event.pull_request.state }}
-          echo "  .locked" ${{ github.event.pull_request.locked }}
-          echo "  .draft" ${{ github.event.pull_request.draft }}
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
@@ -53,16 +48,13 @@ jobs:
       - name: Publish to github
         run: |
           pr_number="${{ steps.pr_number.outputs.pr_number }}"
+          tasks/npmrc-use-github.sh > pr-packages/$pr_number/.npmrc # using GITHUB_TOKEN
           cd pr-packages/$pr_number
-          echo "
-          @superfluid-finance:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
-          " > .npmrc
           for f in * ; do
-            npm publish $f --tag "PR$pr_number" --registry "https://npm.pkg.github.com"
+            npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
         env:
-          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1

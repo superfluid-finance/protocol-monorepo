@@ -92,26 +92,19 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Publish to npm
-        # "git fetch" Gets the latest canary tag
+      - name: Setup canary package versions locally
         run: |
-          # publish-canary.sh needs tags to infer the revision number in preid
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "//registry.npmjs.org/:_authToken=${NPMJS_TOKEN}" > .npmrc
-          ./tasks/publish-canary.sh
-        env:
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          preId=dev.${shortRev}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
 
-      - name: Publish to github
+      - name: Publish to npm
         run: |
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-          echo "
-          @superfluid-finance:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
-          " > .npmrc
-          ./tasks/publish-canary.sh
+          tasks/npm-publish.sh packages/ethereum-contracts dev
+          tasks/npm-publish.sh packages/js-sdk dev
         env:
-          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
   deploy-dev:
     name: Deploy Canary to dev-testnets

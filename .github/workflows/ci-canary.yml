@@ -102,8 +102,8 @@ jobs:
 
       - name: Publish to npm
         run: |
-          tasks/npm-publish.sh packages/ethereum-contracts
-          tasks/npm-publish.sh packages/js-sdk
+          tasks/npm-publish.sh packages/ethereum-contracts dev
+          tasks/npm-publish.sh packages/js-sdk dev
         env:
           GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

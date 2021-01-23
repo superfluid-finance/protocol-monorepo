@@ -1,0 +1,144 @@
+name: CI Canary
+
+on:
+  push:
+    branches: ["dev"]
+
+jobs:
+  build:
+    name: Build and test of dev branch
+
+    runs-on: ubuntu-latest
+
+    env:
+      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Show contexts
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint, build, and test
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build
+          yarn test
+
+  coverage:
+    name: Run coverage test of dev branch
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Run coverage test
+        run: |
+          yarn install --frozen-lockfile
+          cd packages/ethereum-contracts
+          yarn test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: |
+            packages/ethereum-contracts/coverage/
+            packages/ethereum-contracts/coverage.json
+
+  publish:
+    name: NPM publish dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    needs: [build, coverage]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Setup canary package versions locally
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          preId=dev.${shortRev}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+
+      - name: Publish to npm
+        run: |
+          tasks/npm-publish.sh packages/ethereum-contracts dev
+          tasks/npm-publish.sh packages/js-sdk dev
+        env:
+          GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+  deploy-dev:
+    name: Deploy Canary to dev-testnets
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    needs: [build, coverage]
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        network: [goerli]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          cd packages/ethereum-contracts
+          yarn build
+
+      - name: Deploy to ${{ matrix.network }}
+        run: |
+          cd packages/ethereum-contracts
+          npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+        env:
+          RELEASE_VERSION: master
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}

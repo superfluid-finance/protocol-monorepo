@@ -45,15 +45,19 @@ jobs:
         if: env.BUILD_ANYTHING == 1
         run: yarn build
 
+      - name: Setup PR package versions locally
+        run: |
+          prNumber=${{ github.event.number }}
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          preId=PR${prNumber}.0+${shortRev}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+
       - name: Create packages
         if: env.BUILD_ANYTHING == 1
         run: |
           prNumber=${{ github.event.number }}
-          shortRev=$(git rev-parse --short ${{ github.sha }})
           dirName="bin/${prNumber}"
           mkdir -p $dirName
-          # create temporary version
-          yarn lerna version prepatch --yes --no-git-tag-version --preid PR${prNumber}.0+${shortRev}
           for d in packages/*/ ; do (
             cd "$d"
             tgz=$(npm pack)

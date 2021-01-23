@@ -10,10 +10,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-      GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}
-
     steps:
       - uses: actions/checkout@v2
 
@@ -54,10 +50,16 @@ jobs:
       - name: Publish ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
         run: tasks/npm-publish.sh packages/ethereum-contracts/ latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Publish js-sdk package
         if: env.PUBLISH_JS_SDK == 1
         run: tasks/npm-publish.sh packages/js-sdk/ latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
       - name: Create js-sdk release draft
         if: env.PUBLISH_JS_SDK == 1

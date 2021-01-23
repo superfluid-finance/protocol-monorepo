@@ -75,8 +75,7 @@ jobs:
           //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
           " > .npmrc
           for f in * ; do
-            cp .npmrc $f/.npmrc
-            npm publish $f --tag "PR$pr_number"
+            npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
         env:
           SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

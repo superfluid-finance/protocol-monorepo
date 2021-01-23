@@ -2,7 +2,7 @@ name: CI Canary
 
 on:
   push:
-    branches: ["dev", "bug_na_fix_publish_pr_5"]
+    branches: ["dev"]
 
 jobs:
   build:
@@ -35,7 +35,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint, build, and test
-        if: false # FIXME
         run: |
           yarn install --frozen-lockfile
           yarn lint
@@ -56,7 +55,6 @@ jobs:
           node-version: 12.x
 
       - name: Run coverage test
-        if: false # FIXME
         run: |
           yarn install --frozen-lockfile
           cd packages/ethereum-contracts

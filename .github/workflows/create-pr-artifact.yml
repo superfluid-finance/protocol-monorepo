@@ -46,6 +46,7 @@ jobs:
         run: yarn build
 
       - name: Setup PR package versions locally
+        if: env.BUILD_ANYTHING == 1
         run: |
           prNumber=${{ github.event.number }}
           shortRev=$(git rev-parse --short ${{ github.sha }})

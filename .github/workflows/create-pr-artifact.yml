@@ -49,7 +49,7 @@ jobs:
         run: |
           prNumber=${{ github.event.number }}
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          preId=PR${prNumber}.0+${shortRev}
+          preId=PR${prNumber}.${shortRev}
           yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
 
       - name: Create packages

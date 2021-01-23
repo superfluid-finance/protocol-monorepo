@@ -18,6 +18,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_ANYTHING=1
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
+        echo Ethereum contracts will be tested.
     fi
     if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ANYTHING=1

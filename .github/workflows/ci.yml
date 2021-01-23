@@ -1,4 +1,4 @@
-name: Test Pull Request
+name: CI Feature Branches
 
 on:
   push:

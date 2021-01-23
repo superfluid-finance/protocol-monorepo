@@ -53,7 +53,7 @@ jobs:
           dirName="bin/"
           mkdir -p $dirName
           # create temporary version
-          yarn lerna version --yes --no-git-tag-version --preid PR$prNumber.0+${shortRev}
+          yarn lerna version prepatch --yes --no-git-tag-version --preid PR$prNumber.0+${shortRev}
           for d in packages/*/ ; do (
             cd "$d"
             tgz=$(npm pack)

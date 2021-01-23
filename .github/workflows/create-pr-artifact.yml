@@ -53,7 +53,7 @@ jobs:
           dirName="bin/${prNumber}"
           mkdir -p $dirName
           # create temporary version
-          yarn lerna version prepatch --yes --no-git-tag-version --preid PR$prNumber.0+${shortRev}
+          yarn lerna version prepatch --yes --no-git-tag-version --preid PR${prNumber}.0+${shortRev}
           for d in packages/*/ ; do (
             cd "$d"
             tgz=$(npm pack)
@@ -72,17 +72,3 @@ jobs:
           name: pr-packages
           path: bin
           retention-days: 1
-
-      - name: Publish to github (testing)
-        run: |
-          pr_number=${{ github.event.number }}
-          cd bin/$pr_number
-          echo "
-          @superfluid-finance:registry=https://npm.pkg.github.com
-          //npm.pkg.github.com/:_authToken=${SUPERFLUID_GITHUB_TOKEN}
-          " > .npmrc
-          for f in * ; do
-            npm --userconfig .npmrc publish $f --tag "PR$pr_number"
-          done
-        env:
-          SUPERFLUID_GITHUB_TOKEN: ${{ secrets.SUPERFLUID_GITHUB_TOKEN }}

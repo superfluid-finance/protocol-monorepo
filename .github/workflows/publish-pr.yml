@@ -48,7 +48,7 @@ jobs:
       - name: Publish to github
         run: |
           pr_number="${{ steps.pr_number.outputs.pr_number }}"
-          tasks/npm-use-github.sh > pr-packages/$pr_number/.npmrc # using GITHUB_TOKEN
+          tasks/npmrc-use-github.sh > pr-packages/$pr_number/.npmrc # using GITHUB_TOKEN
           cd pr-packages/$pr_number
           for f in * ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"

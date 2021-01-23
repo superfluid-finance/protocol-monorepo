@@ -75,7 +75,7 @@ jobs:
         if: env.BUILD_ANYTHING != 1
         run: |
           mkdir bin
-          touhc bin/.empty
+          touch bin/.empty
 
       - name: Upload artifact
         uses: actions/upload-artifact@v2

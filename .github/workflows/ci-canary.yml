@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    name: Build and test dev branch
+    name: Build and test of dev branch
 
     runs-on: ubuntu-latest
 
@@ -42,7 +42,7 @@ jobs:
           yarn test
 
   coverage:
-    name: Run coverage test
+    name: Run coverage test of dev branch
 
     runs-on: ubuntu-latest
 

@@ -16,6 +16,7 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../utils/ERC777Helper.sol";
 
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
@@ -39,6 +40,7 @@ contract SuperToken is
     using SignedSafeMath for int256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
+    using SafeERC20 for IERC20;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
 
@@ -95,7 +97,7 @@ contract SuperToken is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _underlyingToken = underlyingToken;
+        _underlyingToken = IERC20(address(underlyingToken));
         _underlyingDecimals = underlyingDecimals;
 
         _name = n;
@@ -544,7 +546,7 @@ contract SuperToken is
     ) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
         (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
-        _underlyingToken.transferFrom(account, address(this), underlyingAmount);
+        _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
         _mint(operator, to, actualAmount,
             // if `to` is diffferent from `account`, we requireReceptionAck
             account != to, userData, operatorData);
@@ -562,7 +564,7 @@ contract SuperToken is
         (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
          // _burn will check the (actual) amount availability again
         _burn(operator, account, actualAmount, data, operatorData);
-        _underlyingToken.transfer(account, underlyingAmount);
+        _underlyingToken.safeTransfer(account, underlyingAmount);
         emit TokenDowngraded(account, actualAmount);
     }
 

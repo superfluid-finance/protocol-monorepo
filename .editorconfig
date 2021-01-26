@@ -30,5 +30,5 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[.github/workflows/*.yaml]
+[.github/workflows/*.yml]
 indent_size = 2

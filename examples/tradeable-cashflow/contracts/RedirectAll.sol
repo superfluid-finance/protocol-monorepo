@@ -30,11 +30,11 @@ contract RedirectAll is SuperAppBase {
         IConstantFlowAgreementV1 cfa,
         ISuperToken acceptedToken,
         address receiver) {
-        assert(address(host) != address(0));
-        assert(address(cfa) != address(0));
-        assert(address(acceptedToken) != address(0));
-        assert(address(receiver) != address(0));
-        assert(!_host.isApp(ISuperApp(receiver)));
+        require(address(host) != address(0), "host is zero address");
+        require(address(cfa) != address(0), "cfa is zero address");
+        require(address(acceptedToken) != address(0), "acceptedToken is zero address");
+        require(address(receiver) != address(0), "receiver is zero address");
+        require(!host.isApp(ISuperApp(receiver)), "receiver is an app");
 
         _host = host;
         _cfa = cfa;
@@ -79,24 +79,11 @@ contract RedirectAll is SuperAppBase {
       newCtx = ctx;
       // @dev This will give me the new flowRate, as it is called in after callbacks
       int96 netFlowRate = _cfa.getNetFlow(_acceptedToken, address(this));
-      (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver);
+      (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver); //CHECK: unclear what happens if flow doesn't exist.
       int96 inFlowRate = netFlowRate + outFlowRate;
 
       // @dev If inFlowRate === 0, then delete existing flow.
-      if (outFlowRate != int96(0)){
-        (newCtx, ) = _host.callAgreementWithContext(
-            _cfa,
-            abi.encodeWithSelector(
-                _cfa.updateFlow.selector,
-                _acceptedToken,
-                _receiver,
-                inFlowRate,
-                new bytes(0) // placeholder
-            ),
-            "0x",
-            newCtx
-        );
-      } else if (inFlowRate == int96(0)) {
+      if (inFlowRate == int96(0)) {
         // @dev if inFlowRate is zero, delete outflow.
           (newCtx, ) = _host.callAgreementWithContext(
               _cfa,
@@ -110,6 +97,19 @@ contract RedirectAll is SuperAppBase {
               "0x",
               newCtx
           );
+        } else if (outFlowRate != int96(0)){
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.updateFlow.selector,
+                _acceptedToken,
+                _receiver,
+                inFlowRate,
+                new bytes(0) // placeholder
+            ),
+            "0x",
+            newCtx
+        );
       } else {
       // @dev If there is no existing outflow, then create new flow to equal inflow
           (newCtx, ) = _host.callAgreementWithContext(
@@ -134,29 +134,32 @@ contract RedirectAll is SuperAppBase {
         require(!_host.isApp(ISuperApp(newReceiver)), "New receiver can not be a superApp");
         if (newReceiver == _receiver) return ;
         // @dev delete flow to old receiver
-        _host.callAgreement(
-            _cfa,
-            abi.encodeWithSelector(
-                _cfa.deleteFlow.selector,
-                _acceptedToken,
-                address(this),
-                _receiver,
-                new bytes(0)
-            ),
-            "0x"
-        );
-        // @dev create flow to new receiver
-        _host.callAgreement(
-            _cfa,
-            abi.encodeWithSelector(
-                _cfa.createFlow.selector,
-                _acceptedToken,
-                newReceiver,
-                _cfa.getNetFlow(_acceptedToken, address(this)),
-                new bytes(0)
-            ),
-            "0x"
-        );
+        (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver); //CHECK: unclear what happens if flow doesn't exist.
+        if(outFlowRate > 0){
+          _host.callAgreement(
+              _cfa,
+              abi.encodeWithSelector(
+                  _cfa.deleteFlow.selector,
+                  _acceptedToken,
+                  address(this),
+                  _receiver,
+                  new bytes(0)
+              ),
+              "0x"
+          );
+          // @dev create flow to new receiver
+          _host.callAgreement(
+              _cfa,
+              abi.encodeWithSelector(
+                  _cfa.createFlow.selector,
+                  _acceptedToken,
+                  newReceiver,
+                  _cfa.getNetFlow(_acceptedToken, address(this)),
+                  new bytes(0)
+              ),
+              "0x"
+          );
+        }
         // @dev set global receiver to new receiver
         _receiver = newReceiver;
 

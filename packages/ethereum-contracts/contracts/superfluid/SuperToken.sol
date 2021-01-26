@@ -546,16 +546,21 @@ contract SuperToken is
     ) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
 
-        uint256 underlyingAmount = _toUnderlyingAmount(amount);
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
+
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualUpgradedAmount = amountAfter.sub(amountBefore);
+        require(
+            underlyingAmount == actualUpgradedAmount,
+            "SuperToken: inflationary/deflationary tokens not supported");
 
-        _mint(operator, to, actualUpgradedAmount,
+        _mint(operator, to, adjustedAmount,
             // if `to` is diffferent from `account`, we requireReceptionAck
             account != to, userData, operatorData);
-        emit TokenUpgraded(account, actualUpgradedAmount);
+
+        emit TokenUpgraded(account, adjustedAmount);
     }
 
     function _downgrade(
@@ -566,16 +571,20 @@ contract SuperToken is
         bytes memory operatorData) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
 
-        // - in case of downcasting of decimals, actual amount can be smaller than requested amount
-        uint256 underlyingAmount = _toUnderlyingAmount(amount);
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
+
+         // _burn will check the (actual) amount availability again
+         _burn(operator, account, adjustedAmount, data, operatorData);
+
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransfer(account, underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
-        uint256 actualDowngradedAmount = amountAfter.sub(amountBefore);
+        uint256 actualDowngradedAmount = amountBefore.sub(amountAfter);
+        require(
+            underlyingAmount == actualDowngradedAmount,
+            "SuperToken: inflationary/deflationary tokens not supported");
 
-         // _burn will check the (actual) amount availability again
-        _burn(operator, account, actualDowngradedAmount, data, operatorData);
-        emit TokenDowngraded(account, actualDowngradedAmount);
+        emit TokenDowngraded(account, adjustedAmount);
     }
 
     /**
@@ -583,7 +592,7 @@ contract SuperToken is
      */
     function _toUnderlyingAmount(uint256 amount)
         private view
-        returns (uint256 underlyingAmount)
+        returns (uint256 underlyingAmount, uint256 adjustedAmount)
     {
         uint256 factor;
         if (_underlyingDecimals < _STANDARD_DECIMALS) {
@@ -591,13 +600,16 @@ contract SuperToken is
             // one can upgrade less "granualar" amount of tokens
             factor = 10 ** (_STANDARD_DECIMALS - _underlyingDecimals);
             underlyingAmount = amount / factor;
+            // remove precision errors
+            adjustedAmount = underlyingAmount * factor;
         } else if (_underlyingDecimals > _STANDARD_DECIMALS) {
             // if underlying has more decimals
             // one can upgrade more "granualar" amount of tokens
             factor = 10 ** (_underlyingDecimals - _STANDARD_DECIMALS);
             underlyingAmount = amount * factor;
+            adjustedAmount = amount;
         } else {
-            underlyingAmount = amount;
+            underlyingAmount = adjustedAmount = amount;
         }
     }
 

@@ -3,6 +3,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
+const SuperTokenMockFactory = artifacts.require("SuperTokenMockFactory");
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
@@ -31,7 +32,9 @@ contract("SuperTokenFactory Contract", accounts => {
         });
 
         it("#1.1 storage layout", async () => {
-            await factory.validateStorageLayout.call();
+            const T = artifacts.require("SuperTokenFactoryStorageLayoutTester");
+            const tester = await T.new(superfluid.address);
+            await tester.validateStorageLayout.call();
         });
 
         it("#1.2 proxiable info", async () => {
@@ -85,11 +88,16 @@ contract("SuperTokenFactory Contract", accounts => {
 
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
-                const SuperTokenFactory42Mock = artifacts.require(
-                    "SuperTokenFactory42Mock"
+                const SuperTokenFactoryMock42 = artifacts.require(
+                    "SuperTokenFactoryMock42"
                 );
-                const factory2Logic = await SuperTokenFactory42Mock.new(
-                    superfluid.address
+                const f = await web3tx(
+                    SuperTokenMockFactory.new,
+                    "SuperTokenMockFactory.new"
+                )();
+                const factory2Logic = await SuperTokenFactoryMock42.new(
+                    superfluid.address,
+                    f.address
                 );
                 await web3tx(
                     governance.updateContracts,

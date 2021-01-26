@@ -7,9 +7,7 @@ import {
     ISuperfluid
 } from "../superfluid/SuperTokenFactory.sol";
 
-
-contract SuperTokenFactoryMock is SuperTokenFactoryBase
-{
+contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
     constructor(
         ISuperfluid host
@@ -29,33 +27,67 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
         require (slot == 0 && offset == 2, "_superTokenLogic changed location");
     }
 
+    function createSuperTokenLogic(ISuperfluid)
+        external pure override
+        returns (address)
+    {
+        return address(0);
+    }
+}
+
+// spliting this off because the contract is getting bigger
+contract SuperTokenMockFactory {
+
+    function create(ISuperfluid host, uint256 waterMark)
+        external
+        returns (address logic)
+    {
+        SuperTokenMock superToken = new SuperTokenMock(host, waterMark);
+        return address(superToken);
+    }
+}
+
+contract SuperTokenFactoryMock is SuperTokenFactoryBase
+{
+    SuperTokenMockFactory immutable private _f;
+
+    constructor(
+        ISuperfluid host,
+        SuperTokenMockFactory f
+    )
+        SuperTokenFactoryBase(host)
+    {
+        _f = f;
+    }
+
     function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        SuperTokenMock superToken = new SuperTokenMock(host, 0);
-        return address(superToken);
+        return _f.create(host, 0);
     }
 
 }
 
-contract SuperTokenFactory42Mock is SuperTokenFactoryBase
+contract SuperTokenFactoryMock42 is SuperTokenFactoryBase
 {
 
+    SuperTokenMockFactory immutable private _f;
+
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        SuperTokenMockFactory f
     )
         SuperTokenFactoryBase(host)
-        // solhint-disable-next-line no-empty-blocks
     {
+        _f = f;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        SuperTokenMock superToken = new SuperTokenMock(host, 42);
-        return address(superToken);
+        return _f.create(host, 42);
     }
 
 }

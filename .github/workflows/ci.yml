@@ -1,0 +1,53 @@
+name: CI Feature Branches
+
+on:
+  push:
+    branches-ignore: ["master", "dev"]
+
+jobs:
+  build:
+    name: Build and run related tests
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Show contexts
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: env.BUILD_ANYTHING == 1
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint and build
+        if: env.BUILD_ANYTHING == 1
+        run: |
+          yarn install --frozen-lockfilepull_request
+          yarn lint
+          yarn build
+
+      - name: Test ethereum-contracts if necessasry
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts test
+
+      - name: Test js-sdk if necessasry
+        if: env.BUILD_JS_SDK == 1
+        run: |
+          yarn workspace @superfluid-finance/js-sdk test

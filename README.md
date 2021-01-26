@@ -42,53 +42,8 @@ If you're interest in peeking under the hood, then check out the contracts packa
 
 ## Examples
 
-See `/examples` for some Superfluid app examples.
+See [examples/](examples/) for some Superfluid app examples.
 
 ## Contributing
 
-Contributions, issues, and feature suggestions are welcome!
-
-### Installation
-
-Interested in contributing, or just troubleshooting? Great! Let's get this party started.
-
-```bash
-git clone https://github.com/superfluid-finance/ethereum-contracts
-cd ethereum-contracts
-yarn install
-yarn build
-```
-
-Now you are ready to make changes, run tests, and troubleshoot. If you want to see changes reflected in your own project, we use `rsync` to keep things up to date. I wouldn't waste time trying `npm link` or `yarn link`.
-
-If you're editing contracts, start auto-compiling them in `/packages/ethereum-contracts`.
-
-```bash
-truffle watch
-```
-
-Now in your own project, lets auto-sync the superfluid packages. See `/examples` for example projects using this method.
-
-```bash
-nodemon --watch ../path/to/superfluid/packages -ext js,ts,tsx,sol --exec rsync -rtvu --delete ../path/to/superfluid/packages ./node_modules/@superfluid-finance/
-```
-
-### Testing
-
-See the individual packages for more specific details about testing.
-
-### Linting
-
-Javascript is linted using [eslint](https://eslint.org/).
-
-Solidity is linted using [solhint](https://protofire.github.io/solhint/)
-
-### Code Coverage
-
-To run the coverage tests please use:
-
-```
-$ truffle run test-coverage
-```
-
-This step is not integrated with the unit test because of the time it consumes to execute.
+Contributions, issues, and feature suggestions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.

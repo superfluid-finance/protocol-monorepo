@@ -39,6 +39,7 @@ module.exports = async function(
         });
 
         console.log("Deploying super token");
+        console.log("From address", from);
 
         const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         const version = process.env.RELEASE_VERSION || "test";
@@ -100,7 +101,7 @@ module.exports = async function(
                 ).getCodeAddress();
                 console.log(
                     "Current SuperToken logic address",
-                    superTokenLogic1
+                    superTokenLogic2
                 );
                 if (superTokenLogic1 !== superTokenLogic2) {
                     console.log("SuperToken logic needs to be updated.");
@@ -108,14 +109,18 @@ module.exports = async function(
                     const gov = await ISuperfluidGovernance.at(
                         await sf.host.getGovernance()
                     );
-                    gov.updateSuperTokenLogic(
+                    await gov.updateSuperTokenLogic(
                         sf.host.address,
                         superTokenAddress
                     );
                     const superTokenLogic3 = await (
                         await UUPSProxiable.at(superTokenAddress)
                     ).getCodeAddress();
-                    if (superTokenLogic3 != superTokenLogic1)
+                    console.log(
+                        "Updated SuperToken logic address",
+                        superTokenLogic3
+                    );
+                    if (superTokenLogic3 !== superTokenLogic1)
                         throw new Error("SuperToken logic not updated");
                     console.log("SuperToken's logic has been updated.");
                 }

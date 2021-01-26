@@ -25,7 +25,11 @@ const contractNames = [
     "InstantDistributionAgreementV1"
 ];
 
-const mockContractNames = ["SuperfluidMock", "SuperTokenFactoryMock"];
+const mockContractNames = [
+    "SuperfluidMock",
+    "SuperTokenMockFactory",
+    "SuperTokenFactoryMock"
+];
 
 const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
     const allContractNames = [

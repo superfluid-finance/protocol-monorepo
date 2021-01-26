@@ -9,7 +9,7 @@
         "!/contracts/mocks/*",
         "/build/contracts/*.json",
         "!/build/contracts/*Mock*.json",
-        "!/build/contracts/*Tester.json",
+        "!/build/contracts/*Tester*.json",
         "/build/abi.js",
         "scripts/**/*",
         "test/TestEnvironment.js"

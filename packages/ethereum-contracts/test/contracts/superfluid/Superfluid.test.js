@@ -429,10 +429,14 @@ contract("Superfluid Host Contract", accounts => {
                 assert.equal(manifest.noopMask, 0);
             });
 
-            it("#4.2 app registration only in constructor", async () => {
+            it("#4.2 app registration rules", async () => {
+                await expectRevert(
+                    superfluid.registerApp(1, { from: admin }),
+                    "SF: APP_RULE_NO_REGISTRATION_FOR_EOA"
+                );
                 await expectRevert(
                     app.tryRegisterApp(0),
-                    "SF: app registration only in constructor"
+                    "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR"
                 );
             });
 

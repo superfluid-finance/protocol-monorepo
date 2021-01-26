@@ -545,12 +545,17 @@ contract SuperToken is
         bytes memory operatorData
     ) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
-        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
+
+        uint256 underlyingAmount = _toUnderlyingAmount(amount);
+        uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
-        _mint(operator, to, actualAmount,
+        uint256 amountAfter = _underlyingToken.balanceOf(address(this));
+        uint256 actualUpgradedAmount = amountAfter.sub(amountBefore);
+
+        _mint(operator, to, actualUpgradedAmount,
             // if `to` is diffferent from `account`, we requireReceptionAck
             account != to, userData, operatorData);
-        emit TokenUpgraded(account, actualAmount);
+        emit TokenUpgraded(account, actualUpgradedAmount);
     }
 
     function _downgrade(
@@ -560,30 +565,39 @@ contract SuperToken is
         bytes memory data,
         bytes memory operatorData) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
+
         // - in case of downcasting of decimals, actual amount can be smaller than requested amount
-        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
-         // _burn will check the (actual) amount availability again
-        _burn(operator, account, actualAmount, data, operatorData);
+        uint256 underlyingAmount = _toUnderlyingAmount(amount);
+        uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransfer(account, underlyingAmount);
-        emit TokenDowngraded(account, actualAmount);
+        uint256 amountAfter = _underlyingToken.balanceOf(address(this));
+        uint256 actualDowngradedAmount = amountAfter.sub(amountBefore);
+
+         // _burn will check the (actual) amount availability again
+        _burn(operator, account, actualDowngradedAmount, data, operatorData);
+        emit TokenDowngraded(account, actualDowngradedAmount);
     }
 
+    /**
+     * @dev Handle decimal differences between underlying token and super token
+     */
     function _toUnderlyingAmount(uint256 amount)
         private view
-        returns (uint256 underlyingAmount, uint256 actualAmount)
+        returns (uint256 underlyingAmount)
     {
         uint256 factor;
         if (_underlyingDecimals < _STANDARD_DECIMALS) {
+            // if underlying has less decimals
+            // one can upgrade less "granualar" amount of tokens
             factor = 10 ** (_STANDARD_DECIMALS - _underlyingDecimals);
             underlyingAmount = amount / factor;
-            // remove precision errors
-            actualAmount = underlyingAmount * factor;
         } else if (_underlyingDecimals > _STANDARD_DECIMALS) {
+            // if underlying has more decimals
+            // one can upgrade more "granualar" amount of tokens
             factor = 10 ** (_underlyingDecimals - _STANDARD_DECIMALS);
             underlyingAmount = amount * factor;
-            actualAmount = amount;
         } else {
-            underlyingAmount = actualAmount = amount;
+            underlyingAmount = amount;
         }
     }
 

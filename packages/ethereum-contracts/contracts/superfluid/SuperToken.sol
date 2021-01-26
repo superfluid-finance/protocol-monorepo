@@ -97,7 +97,7 @@ contract SuperToken is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _underlyingToken = IERC20(address(underlyingToken));
+        _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
 
         _name = n;

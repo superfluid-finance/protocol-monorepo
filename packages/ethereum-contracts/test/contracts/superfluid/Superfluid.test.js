@@ -33,7 +33,9 @@ contract("Superfluid Host Contract", accounts => {
 
         describe("#1 upgradability", () => {
             it("#1.1 storage layout", async () => {
-                await superfluid.validateStorageLayout.call();
+                const T = artifacts.require("SuperfluidUpgradabilityTester");
+                const tester = await T.new();
+                await tester.validateStorageLayout.call();
             });
 
             it("#1.2 proxiable info", async () => {
@@ -82,6 +84,12 @@ contract("Superfluid Host Contract", accounts => {
                     ),
                     "SF: cannot downgrade to non upgradable"
                 );
+            });
+
+            it("#1.6 context struct layout", async () => {
+                const T = artifacts.require("SuperfluidUpgradabilityTester");
+                const tester = await T.new();
+                await tester.validateContextStructLayout.call();
             });
         });
 

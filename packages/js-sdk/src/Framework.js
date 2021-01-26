@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 
-const loadContracts = require("@superfluid-finance/ethereum-contracts/scripts/loadContracts");
+const loadContracts = require("./utils/loadContracts");
 
 const getConfig = require("./getConfig");
 const { getErrorResponse } = require("./utils/error");

@@ -273,11 +273,13 @@ contract Superfluid is
         external override
     {
         ISuperApp app = ISuperApp(msg.sender);
+        // solhint-disable-next-line avoid-tx-origin
+        require(msg.sender != tx.origin, "SF: APP_RULE_NO_REGISTRATION_FOR_EOA");
         {
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(app) }
-            require(cs == 0, "SF: app registration only in constructor");
+            require(cs == 0, "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR");
         }
         require(
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&

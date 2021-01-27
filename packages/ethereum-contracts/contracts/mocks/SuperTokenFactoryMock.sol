@@ -17,6 +17,7 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     {
     }
 
+    // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
         uint256 slot;
         uint256 offset;
@@ -27,6 +28,7 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
         require (slot == 0 && offset == 2, "_superTokenLogic changed location");
     }
 
+    // dummy impl
     function createSuperTokenLogic(ISuperfluid)
         external pure override
         returns (address)

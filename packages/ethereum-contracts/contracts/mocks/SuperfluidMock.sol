@@ -10,19 +10,14 @@ import {
 import { CallUtils } from "../utils/CallUtils.sol";
 
 
-contract SuperfluidMock is Superfluid {
+contract SuperfluidUpgradabilityTester is Superfluid {
 
-
-    constructor(bool nonUpgradable)
-        Superfluid(nonUpgradable)
+    constructor() Superfluid(false)
     // solhint-disable-next-line no-empty-blocks
     {
     }
 
-    /**
-     * Upgradability
-     */
-
+    // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout()
         external pure
     {
@@ -49,6 +44,82 @@ contract SuperfluidMock is Superfluid {
 
         assembly { slot:= _ctxStamp.slot offset := _ctxStamp.offset }
         require (slot == 6 && offset == 0, "_ctxStamp changed location");
+    }
+
+    // @dev Make sure the context struct layout never change over the course of the development
+    function validateContextStructLayout()
+        external pure
+    {
+        // context.appLevel
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 0)), 42) }
+            require(context.appLevel == 42, "appLevel changed location");
+        }
+        // context.callType
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 1)), 42) }
+            require(context.callType == 42, "callType changed location");
+        }
+        // context.timestamp
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 2)), 42) }
+            require(context.timestamp == 42, "timestamp changed location");
+        }
+        // context.msgSender
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 3)), 42) }
+            require(context.msgSender == address(42), "msgSender changed location");
+        }
+        // context.agreementSelector
+        {
+            Context memory context;
+            // be aware of the bytes4 endianness
+            assembly { mstore(add(context, mul(32, 4)), shl(224, 0xdeadbeef)) }
+            require(context.agreementSelector == bytes4(uint32(0xdeadbeef)), "agreementSelector changed location");
+        }
+        // context.userData
+        {
+            Context memory context;
+            context.userData = new bytes(42);
+            uint256 dataOffset;
+            assembly { dataOffset := mload(add(context, mul(32, 5))) }
+            require(dataOffset != 0, "userData offset is zero");
+            uint256 dataLen;
+            assembly { dataLen := mload(dataOffset) }
+            require(dataLen == 42, "userData changed location");
+        }
+        // context.appAllowanceGranted
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 6)), 42) }
+            require(context.appAllowanceGranted == 42, "appAllowanceGranted changed location");
+        }
+        // context.appAllowanceGranted
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 7)), 42) }
+            require(context.appAllowanceWanted == 42, "appAllowanceWanted changed location");
+        }
+        // context.appAllowanceGranted
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 8)), 42) }
+            require(context.appAllowanceUsed == 42, "appAllowanceUsed changed location");
+        }
+    }
+}
+
+contract SuperfluidMock is Superfluid {
+
+
+    constructor(bool nonUpgradable)
+        Superfluid(nonUpgradable)
+    // solhint-disable-next-line no-empty-blocks
+    {
     }
 
     function ctxFunc1(uint256 n, bytes calldata ctx)

@@ -16,14 +16,7 @@ contract SuperTokenStorageLayoutTester is SuperToken {
     {
     }
 
-    function getLastSuperTokenStorageSlot() external pure returns (uint slot) {
-        assembly { slot:= _reserve19.slot }
-    }
-
-    /**
-     * Upgradability
-     */
-
+    // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
         uint256 slot;
         uint256 offset;
@@ -73,6 +66,10 @@ contract SuperTokenStorageLayoutTester is SuperToken {
 
         assembly { slot:= _reserve19.slot offset := _reserve19.offset }
         require (slot == 31 && offset == 0, "_reserve19 changed location");
+    }
+
+    function getLastSuperTokenStorageSlot() external pure returns (uint slot) {
+        assembly { slot:= _reserve19.slot }
     }
 }
 

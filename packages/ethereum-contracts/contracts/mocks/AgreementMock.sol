@@ -173,7 +173,16 @@ contract AgreementMock is AgreementBase {
         return ctx;
     }
 
-    event AppBeforeCallbackResult(bytes cbdata);
+    event AppBeforeCallbackResult(
+        uint8 appLevel,
+        uint8 callType,
+        bytes4 agreementSelector,
+        bytes cbdata);
+
+    event AppAfterCallbackResult(
+        uint8 appLevel,
+        uint8 callType,
+        bytes4 agreementSelector);
 
     function callAppBeforeAgreementCreatedCallback(
         ISuperApp app,
@@ -183,6 +192,7 @@ contract AgreementMock is AgreementBase {
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
@@ -191,7 +201,11 @@ contract AgreementMock is AgreementBase {
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
         bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
-        emit AppBeforeCallbackResult(cbdata);
+        emit AppBeforeCallbackResult(
+            context.appLevel,
+            context.callType,
+            context.agreementSelector,
+            cbdata);
         newCtx = ctx;
     }
 
@@ -203,6 +217,7 @@ contract AgreementMock is AgreementBase {
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
@@ -212,6 +227,10 @@ contract AgreementMock is AgreementBase {
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
         (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
+        emit AppAfterCallbackResult(
+            context.appLevel,
+            context.callType,
+            context.agreementSelector);
     }
 
     function callAppBeforeAgreementTerminatedCallback(
@@ -222,6 +241,7 @@ contract AgreementMock is AgreementBase {
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
@@ -230,7 +250,11 @@ contract AgreementMock is AgreementBase {
         );
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
-        emit AppBeforeCallbackResult(cbdata);
+        emit AppBeforeCallbackResult(
+            context.appLevel,
+            context.callType,
+            context.agreementSelector,
+            cbdata);
         newCtx = ctx;
     }
 
@@ -242,6 +266,7 @@ contract AgreementMock is AgreementBase {
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
             address(app) /* account */,
@@ -251,6 +276,10 @@ contract AgreementMock is AgreementBase {
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
+        emit AppAfterCallbackResult(
+            context.appLevel,
+            context.callType,
+            context.agreementSelector);
     }
 
     modifier validCtx(bytes memory ctx) {

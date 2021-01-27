@@ -1,0 +1,51 @@
+name: Publish Release Package
+
+on:
+  release:
+    types: [created]
+
+  workflow_dispatch:
+
+
+jobs:
+  publish-release:
+    name: Publish release package
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Parse Tag
+        run: |
+          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/ethereum-contracts@";then
+            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+          fi
+          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@";then
+            echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
+          fi
+
+      - name: Build package
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Publish ethereum-contracts package
+        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
+        run: tasks/npm-publish.sh packages/ethereum-contracts/ latest --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+      - name: Publish js-sdk package
+        if: env.PUBLISH_JS_SDK == 1
+        run: tasks/npm-publish.sh packages/js-sdk/ latest --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

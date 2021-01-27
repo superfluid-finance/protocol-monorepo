@@ -1,12 +1,12 @@
-name: Publish Master Branch
+name: Create Release Draft
 
 on:
   push:
-    branches: ["master"]
+    branches: ["release", "process_na_new_release_flow"]
 
 jobs:
-  npm-publish-master:
-    name: NPM publish master branch
+  create-release-draft:
+    name: Create Release Draft
 
     runs-on: ubuntu-latest
 
@@ -41,26 +41,6 @@ jobs:
           echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::$NEW_ETHEREUM_CONTRACTS_VERSION"
           echo "::set-output name=NEW_JS_SDK_VERSION::$NEW_JS_SDK_VERSION"
 
-      - name: Build package
-        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1 || env.PUBLISH_JS_SDK == 1
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-
-      - name: Publish ethereum-contracts package
-        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
-        run: tasks/npm-publish.sh packages/ethereum-contracts/ latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-      - name: Publish js-sdk package
-        if: env.PUBLISH_JS_SDK == 1
-        run: tasks/npm-publish.sh packages/js-sdk/ latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
       - name: Create js-sdk release draft
         if: env.PUBLISH_JS_SDK == 1
         id: create_release_js_sdk
@@ -78,7 +58,7 @@ jobs:
             ## Breaking
           draft: true
 
-      - name: Create contracts release draft
+      - name: Create ethereum-contracts release draft
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
         id: create_release_ethereum_contracts
         uses: actions/create-release@v1

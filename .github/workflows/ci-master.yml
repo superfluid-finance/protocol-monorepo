@@ -2,7 +2,7 @@ name: CI Master
 
 on:
   push:
-    branches: ["master", "process_na_new_release_flow"]
+    branches: ["master"]
 
 jobs:
   build:

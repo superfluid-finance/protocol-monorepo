@@ -1,14 +1,79 @@
-name: Publish Master Branch
+name: CI Master
 
 on:
   push:
     branches: ["master"]
 
 jobs:
-  npm-publish-master:
-    name: NPM publish master branch
+  build:
+    name: Build and test of master branch
 
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Show contexts
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint, build, and test
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build
+          yarn test
+
+  coverage:
+    name: Run coverage test of master branch
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Run coverage test
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          cd packages/ethereum-contracts
+          yarn test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: |
+            packages/ethereum-contracts/coverage/
+            packages/ethereum-contracts/coverage.json
+
+  create-release-draft:
+    name: Create Release Draft
+
+    runs-on: ubuntu-latest
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    needs: [build, coverage]
 
     steps:
       - uses: actions/checkout@v2
@@ -41,26 +106,6 @@ jobs:
           echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::$NEW_ETHEREUM_CONTRACTS_VERSION"
           echo "::set-output name=NEW_JS_SDK_VERSION::$NEW_JS_SDK_VERSION"
 
-      - name: Build package
-        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1 || env.PUBLISH_JS_SDK == 1
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-
-      - name: Publish ethereum-contracts package
-        if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
-        run: tasks/npm-publish.sh packages/ethereum-contracts/ latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-      - name: Publish js-sdk package
-        if: env.PUBLISH_JS_SDK == 1
-        run: tasks/npm-publish.sh packages/js-sdk/ latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
       - name: Create js-sdk release draft
         if: env.PUBLISH_JS_SDK == 1
         id: create_release_js_sdk
@@ -78,7 +123,7 @@ jobs:
             ## Breaking
           draft: true
 
-      - name: Create contracts release draft
+      - name: Create ethereum-contracts release draft
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
         id: create_release_ethereum_contracts
         uses: actions/create-release@v1

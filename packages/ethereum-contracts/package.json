@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "0.2.3",
+    "version": "0.2.2",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "AGPL-3.0",

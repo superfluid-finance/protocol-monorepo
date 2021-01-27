@@ -49,7 +49,7 @@ table th {
   table caption {
     font-size: 1.3em;
   }
-  
+
   table thead {
     border: none;
     clip: rect(0 0 0 0);
@@ -60,20 +60,20 @@ table th {
     position: absolute;
     width: 1px;
   }
-  
+
   table tr {
     border-bottom: 3px solid #ddd;
     display: block;
     margin-bottom: .625em;
   }
-  
+
   table td {
     border-bottom: 1px solid #ddd;
     display: block;
     font-size: .8em;
     text-align: right;
   }
-  
+
   table td::before {
     /*
     * aria-label has no advantage, it won't be read inside a table
@@ -84,7 +84,7 @@ table th {
     font-weight: bold;
     text-transform: uppercase;
   }
-  
+
   table td:last-child {
     border-bottom: 0;
   }
@@ -94,19 +94,8 @@ table th {
 
 </head>
 <body>
-  <h2>{{TITLE}}</h2>
-  <div class="table-wrapper">
-      <table class="fl-table">
-          <thead>
-          <tr>
-              {{HEADERS-TX}}
-          </tr>
-          </thead>
-          <tbody>
-              {{BODY-TX}}
-          <tbody>
-      </table>
-  </div>
+  <h1>{{TITLE}}</h1>
+
   <h2>Stats</h2>
   <div class="table-wrapper">
       <table class="fl-table">
@@ -117,6 +106,20 @@ table th {
           </thead>
           <tbody>
               {{BODY-STATS}}
+          <tbody>
+      </table>
+  </div>
+
+  <h2>Records</h2>
+  <div class="table-wrapper">
+      <table class="fl-table">
+          <thead>
+          <tr>
+              {{HEADERS-TX}}
+          </tr>
+          </thead>
+          <tbody>
+              {{BODY-TX}}
           <tbody>
       </table>
   </div>

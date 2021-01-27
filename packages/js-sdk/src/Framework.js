@@ -51,6 +51,7 @@ module.exports = class Framework {
             if (gasReportType !== "HTML" && gasReportType !== "JSON") {
                 throw new Error("Unsuported gas report type: " + gasReportType);
             }
+            console.debug("Enabling gas report type:", gasReportType);
             this._gasReportType = gasReportType;
         }
     }

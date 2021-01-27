@@ -42,39 +42,53 @@ describe("GasMetering", function() {
         expect(record.cost).to.be.bignumber.equal(expectedCost);
     });
 
-    it("should calculate totals", async () => {
+    it("should calculate aggregates", async () => {
         const gasMeter = new GasMetering("JSON", this.gasPrice, "USD", "400");
 
         gasMeter.pushTx(this.tx, "SomeAction");
+        gasMeter.pushTx(this.tx, "SomeAction");
         gasMeter.pushTx(this.tx, "SomeAction2");
-        const totals = gasMeter.totals;
-        expect(totals.totalGas).to.be.bignumber.equal(new BN(200000));
-        expect(totals.totalTx).to.be.bignumber.equal(new BN(2));
+        const bucket = gasMeter.aggregates.SomeAction;
+        expect(bucket.totalGas).to.be.bignumber.equal(new BN(200000));
+        expect(bucket.totalTx).to.be.bignumber.equal(new BN(2));
         const expectedCost = new BN(200000).mul(new BN(this.gasPrice));
-        expect(totals.totalCost).to.be.bignumber.equal(expectedCost);
+        expect(bucket.totalCost).to.be.bignumber.equal(expectedCost);
         const avgGas = new BN(200000).div(new BN(2));
-
-        expect(totals.avgGas).to.be.bignumber.equal(avgGas);
+        expect(bucket.avgGas).to.be.bignumber.equal(avgGas);
         const avgCost = expectedCost.div(new BN(2));
-        expect(totals.avgCost).to.be.bignumber.equal(avgCost);
-        expect(totals.gasPrice).to.be.bignumber.equal(new BN(this.gasPrice));
+        expect(bucket.avgCost).to.be.bignumber.equal(avgCost);
     });
 
     it("should format correctly", async () => {
         const gasMeter = new GasMetering("JSON", this.gasPrice, "USD", "400");
 
         gasMeter.pushTx(this.tx, "SomeAction");
+        gasMeter.pushTx(this.tx, "SomeAction");
         gasMeter.pushTx(this.tx, "SomeAction2");
         const result = gasMeter._format();
 
         expect(result).to.be.deep.equal({
-            totals: {
-                totalTx: "2",
-                totalGas: "200000",
-                avgGas: "100000",
-                gasPrice: "1 GWEI",
-                totalCost: "0.0002 ETH",
-                avgCost: "0.0001 ETH"
+            aggregates: {
+                SomeAction: {
+                    action: "SomeAction",
+                    totalTx: "2",
+                    totalGas: "200000",
+                    avgGas: "100000",
+                    maxGas: "100000",
+                    minGas: "100000",
+                    totalCost: "0.0002 ETH",
+                    avgCost: "0.0001 ETH"
+                },
+                SomeAction2: {
+                    action: "SomeAction2",
+                    avgCost: "0.0001 ETH",
+                    avgGas: "100000",
+                    maxGas: "100000",
+                    minGas: "100000",
+                    totalCost: "0.0001 ETH",
+                    totalGas: "100000",
+                    totalTx: "1"
+                }
             },
             executedTxs: [
                 {
@@ -82,6 +96,15 @@ describe("GasMetering", function() {
                     txHash:
                         "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
+                    gasPrice: "1 GWEI",
+                    cost: "0.0001 ETH"
+                },
+                {
+                    action: "SomeAction",
+                    txHash:
+                        "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                    gas: "100000",
+                    gasPrice: "1 GWEI",
                     cost: "0.0001 ETH"
                 },
                 {
@@ -89,6 +112,7 @@ describe("GasMetering", function() {
                     txHash:
                         "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
+                    gasPrice: "1 GWEI",
                     cost: "0.0001 ETH"
                 }
             ]

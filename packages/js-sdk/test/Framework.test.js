@@ -191,7 +191,7 @@ contract("Framework class", accounts => {
         });
 
         after(() => {
-            sf.generateGasReport("TestFramework");
+            sf.generateGasReport("Framework.test");
         });
     });
 });

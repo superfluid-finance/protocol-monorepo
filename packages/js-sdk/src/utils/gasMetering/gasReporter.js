@@ -3,7 +3,7 @@ const path = require("path");
 class GasMeterReporter {
     constructor({ fileSystem, fileName }) {
         this.fs = fileSystem ? fileSystem : fs;
-        this.filePath = path.join(process.cwd(), "build");
+        this.filePath = path.join(process.cwd(), "reports");
         this.fileName = fileName ? fileName : "gasReport";
     }
 }
@@ -48,10 +48,12 @@ class GasMeterHTMLReporter extends GasMeterReporter {
 
     generateReport(report) {
         const htmlStub = require("./htmlStub");
+        const statHeaders = this._generateHeaders(
+            Object.values(report.aggregates)[0]
+        );
+        const statBody = this._generateBody(Object.values(report.aggregates));
         const txHeaders = this._generateHeaders(report.executedTxs[0]);
         const txTableBody = this._generateBody(report.executedTxs);
-        const statHeaders = this._generateHeaders(report.totals);
-        const statBody = this._generateBody([report.totals]);
         const result = htmlStub
             .replace("{{HEADERS-TX}}", txHeaders)
             .replace("{{BODY-TX}}", txTableBody)

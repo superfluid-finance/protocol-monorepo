@@ -13,6 +13,8 @@ class Formatter {
             case "totalTx":
             case "gas":
             case "totalGas":
+            case "minGas":
+            case "maxGas":
             case "avgGas":
                 value = value.toString(10);
                 break;
@@ -53,30 +55,25 @@ module.exports = class GasMeter {
         }
         this.gasPrice = new BN(gasPrice);
         this.records = [];
-        this.totals = {
-            totalTx: new BN("0"),
-            totalGas: new BN("0"),
-            avgGas: new BN("0"),
-            gasPrice: this.gasPrice,
-            totalCost: new BN("0"),
-            avgCost: new BN("0")
-        };
+        this.aggregates = {};
     }
 
     _format() {
-        const formattedTotals = {};
-        Object.keys(this.totals).forEach(key => {
-            formattedTotals[key] = Formatter.formatBigNumber(
-                key,
-                this.totals[key],
-                this.fiatCurr
-            );
+        const formattedAggregates = {};
+        Object.keys(this.aggregates).forEach(actionName => {
+            const bucket = this.aggregates[actionName];
+            formattedAggregates[actionName] = {};
+            Object.keys(bucket).forEach(key => {
+                formattedAggregates[actionName][
+                    key
+                ] = Formatter.formatBigNumber(key, bucket[key], this.fiatCurr);
+            });
         });
         const formattedRecords = this.records.map(x => {
             return Formatter.formatObject(x, this.fiatCurr);
         });
         return {
-            totals: { ...formattedTotals },
+            aggregates: { ...formattedAggregates },
             executedTxs: [...formattedRecords]
         };
     }
@@ -88,16 +85,29 @@ module.exports = class GasMeter {
             action: actionName,
             txHash: tx.tx,
             gas: gas,
+            gasPrice: this.gasPrice,
             cost: cost
         });
-        this.totals = {
-            totalTx: this.totals.totalTx.add(new BN("1")),
-            totalGas: this.totals.totalGas.add(gas),
-            gasPrice: this.gasPrice,
-            totalCost: this.totals.totalCost.add(cost)
-        };
-        this.totals.avgCost = this.totals.totalCost.div(this.totals.totalTx);
-        this.totals.avgGas = this.totals.totalGas.div(this.totals.totalTx);
+        if (!(actionName in this.aggregates)) {
+            this.aggregates[actionName] = {
+                action: actionName,
+                avgGas: new BN("0"),
+                avgCost: new BN("0"),
+                minGas: new BN("10000000000000000000000"),
+                maxGas: new BN("0"),
+                totalTx: new BN("0"),
+                totalGas: new BN("0"),
+                totalCost: new BN("0")
+            };
+        }
+        const bucket = this.aggregates[actionName];
+        bucket.totalTx = bucket.totalTx.add(new BN("1"));
+        bucket.totalGas = bucket.totalGas.add(gas);
+        bucket.totalCost = bucket.totalCost.add(cost);
+        bucket.avgCost = bucket.totalCost.div(bucket.totalTx);
+        bucket.avgGas = bucket.totalGas.div(bucket.totalTx);
+        bucket.minGas = BN.min(bucket.minGas, gas);
+        bucket.maxGas = BN.max(bucket.maxGas, gas);
     }
 
     generateReport(name) {

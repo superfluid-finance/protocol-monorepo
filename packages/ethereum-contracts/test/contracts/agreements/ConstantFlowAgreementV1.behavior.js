@@ -1,5 +1,6 @@
 const _ = require("lodash");
 const { BN } = require("@openzeppelin/test-helpers");
+const { expectEvent } = require("@openzeppelin/test-helpers");
 const { web3tx, toBN } = require("@decentral.ee/web3-helpers");
 
 function clipDepositNumber(deposit, roundingDown = false) {
@@ -794,6 +795,16 @@ async function _shouldChangeFlow({
                         expectedRewardAmount
                     )
                 );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "AgreementLiquidated",
+                    {
+                        penaltyAccount: roles.sender,
+                        rewardAccount: roles.reward,
+                        rewardAmount: expectedRewardAmount.toString()
+                    }
+                );
             } else {
                 const expectedRewardAmount = toBN(flows.main.flowInfo1.deposit);
                 const expectedBailoutAmount = toBN(
@@ -827,6 +838,25 @@ async function _shouldChangeFlow({
                     getAccountExpectedBalanceDelta("sender").add(
                         expectedBailoutAmount
                     )
+                );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "AgreementLiquidated",
+                    {
+                        penaltyAccount: roles.sender,
+                        rewardAccount: roles.agent,
+                        rewardAmount: expectedRewardAmount.toString()
+                    }
+                );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "Bailout",
+                    {
+                        bailoutAccount: roles.reward,
+                        bailoutAmount: expectedBailoutAmount.toString()
+                    }
                 );
             }
             console.log("--------");
@@ -897,6 +927,37 @@ async function _shouldChangeFlow({
             superToken: superToken.address,
             account: roles[role]
         })
+    );
+    console.log("--------");
+
+    // validate FlowUpdated event
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.agreements.cfa.contract,
+        "FlowUpdated",
+        {
+            token: superToken.address,
+            sender: roles.sender,
+            receiver: roles.receiver,
+            flowRate: flowRate.toString(),
+            // we don't test total flow rates when using mfa
+            // since mfa mangles with flows in callbacks
+            ...(!mfa
+                ? {
+                      totalSenderFlowRate: getAccountFlowInfo({
+                          testenv,
+                          superToken: superToken.address,
+                          account: roles.sender
+                      }).flowRate.toString(),
+                      totalReceiverFlowRate: getAccountFlowInfo({
+                          testenv,
+                          superToken: superToken.address,
+                          account: mfa ? roles.mfa : roles.receiver
+                      }).flowRate.toString()
+                  }
+                : {}),
+            userData: userData ? userData : null
+        }
     );
     console.log("--------");
 

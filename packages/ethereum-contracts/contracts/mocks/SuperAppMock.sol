@@ -36,10 +36,17 @@ contract SuperAppMock is ISuperApp {
     * Test App Actions
     **************************************************************************/
 
-    event NoopEvent();
+    event NoopEvent(
+        uint8 appLevel,
+        uint8 callType,
+        bytes4 agreementSelector);
 
     function actionNoop(bytes calldata ctx) external validCtx(ctx) returns (bytes memory newCtx) {
-        emit NoopEvent();
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
+        emit NoopEvent(
+            context.appLevel,
+            context.callType,
+            context.agreementSelector);
         return ctx;
     }
 
@@ -50,7 +57,10 @@ contract SuperAppMock is ISuperApp {
     {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         assert(context.msgSender == expectedMsgSender);
-        emit NoopEvent();
+        emit NoopEvent(
+            context.appLevel,
+            context.callType,
+            context.agreementSelector);
         return ctx;
     }
 
@@ -235,7 +245,6 @@ contract SuperAppMock is ISuperApp {
         returns (bytes memory cbdata)
     {
         if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
-            //emit NoopEvent();
             return "Noop";
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.Assert) {
             assert(false);
@@ -254,8 +263,12 @@ contract SuperAppMock is ISuperApp {
         private
         returns (bytes memory newCtx)
     {
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
-            emit NoopEvent();
+            emit NoopEvent(
+                context.appLevel,
+                context.callType,
+                context.agreementSelector);
             return ctx;
         } else if (_nextCallbackAction.actionType == NextCallbackActionType.Assert) {
             assert(false);

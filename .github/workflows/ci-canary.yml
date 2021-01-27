@@ -54,6 +54,7 @@ jobs:
       - name: Run coverage test
         run: |
           yarn install --frozen-lockfile
+          yarn build
           cd packages/ethereum-contracts
           yarn test-coverage
 

@@ -35,6 +35,7 @@ module.exports = async function(
         });
 
         console.log("Deploying test token");
+        console.log("From address", from);
 
         const reset = !!process.env.RESET_TOKEN;
         const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;

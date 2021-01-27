@@ -16,6 +16,7 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../utils/ERC777Helper.sol";
 
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
@@ -39,6 +40,7 @@ contract SuperToken is
     using SignedSafeMath for int256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
+    using SafeERC20 for IERC20;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
 
@@ -543,12 +545,22 @@ contract SuperToken is
         bytes memory operatorData
     ) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
-        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
-        _underlyingToken.transferFrom(account, address(this), underlyingAmount);
-        _mint(operator, to, actualAmount,
+
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
+
+        uint256 amountBefore = _underlyingToken.balanceOf(address(this));
+        _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
+        uint256 amountAfter = _underlyingToken.balanceOf(address(this));
+        uint256 actualUpgradedAmount = amountAfter.sub(amountBefore);
+        require(
+            underlyingAmount == actualUpgradedAmount,
+            "SuperToken: inflationary/deflationary tokens not supported");
+
+        _mint(operator, to, adjustedAmount,
             // if `to` is diffferent from `account`, we requireReceptionAck
             account != to, userData, operatorData);
-        emit TokenUpgraded(account, actualAmount);
+
+        emit TokenUpgraded(account, adjustedAmount);
     }
 
     function _downgrade(
@@ -558,30 +570,46 @@ contract SuperToken is
         bytes memory data,
         bytes memory operatorData) private {
         require(address(_underlyingToken) != address(0), "SuperToken: no underlying token");
-        // - in case of downcasting of decimals, actual amount can be smaller than requested amount
-        (uint256 underlyingAmount, uint256 actualAmount) = _toUnderlyingAmount(amount);
+
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
+
          // _burn will check the (actual) amount availability again
-        _burn(operator, account, actualAmount, data, operatorData);
-        _underlyingToken.transfer(account, underlyingAmount);
-        emit TokenDowngraded(account, actualAmount);
+         _burn(operator, account, adjustedAmount, data, operatorData);
+
+        uint256 amountBefore = _underlyingToken.balanceOf(address(this));
+        _underlyingToken.safeTransfer(account, underlyingAmount);
+        uint256 amountAfter = _underlyingToken.balanceOf(address(this));
+        uint256 actualDowngradedAmount = amountBefore.sub(amountAfter);
+        require(
+            underlyingAmount == actualDowngradedAmount,
+            "SuperToken: inflationary/deflationary tokens not supported");
+
+        emit TokenDowngraded(account, adjustedAmount);
     }
 
+    /**
+     * @dev Handle decimal differences between underlying token and super token
+     */
     function _toUnderlyingAmount(uint256 amount)
         private view
-        returns (uint256 underlyingAmount, uint256 actualAmount)
+        returns (uint256 underlyingAmount, uint256 adjustedAmount)
     {
         uint256 factor;
         if (_underlyingDecimals < _STANDARD_DECIMALS) {
+            // if underlying has less decimals
+            // one can upgrade less "granualar" amount of tokens
             factor = 10 ** (_STANDARD_DECIMALS - _underlyingDecimals);
             underlyingAmount = amount / factor;
             // remove precision errors
-            actualAmount = underlyingAmount * factor;
+            adjustedAmount = underlyingAmount * factor;
         } else if (_underlyingDecimals > _STANDARD_DECIMALS) {
+            // if underlying has more decimals
+            // one can upgrade more "granualar" amount of tokens
             factor = 10 ** (_underlyingDecimals - _STANDARD_DECIMALS);
             underlyingAmount = amount * factor;
-            actualAmount = amount;
+            adjustedAmount = amount;
         } else {
-            underlyingAmount = actualAmount = amount;
+            underlyingAmount = adjustedAmount = amount;
         }
     }
 

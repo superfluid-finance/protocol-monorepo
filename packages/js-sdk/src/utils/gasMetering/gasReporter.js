@@ -4,6 +4,9 @@ class GasMeterReporter {
     constructor({ fileSystem, fileName }) {
         this.fs = fileSystem ? fileSystem : fs;
         this.filePath = path.join(process.cwd(), "reports");
+        if (!fs.existsSync(this.filePath)) {
+            fs.mkdirSync(this.filePath);
+        }
         this.fileName = fileName ? fileName : "gasReport";
     }
 }

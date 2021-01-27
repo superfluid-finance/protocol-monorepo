@@ -102,17 +102,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
     }
 
-    async function shouldTestLiquidations({
+    function shouldTestLiquidationByAgent({
         titlePrefix,
         sender,
         receiver,
-        by,
-        allowCriticalAccount
+        by
     }) {
-        const liquidationType =
-            by === sender ? "liquidate by agent" : "self liquidate";
-
-        it(`${titlePrefix}.1 should ${liquidationType} when critical but solvent`, async () => {
+        it(`${titlePrefix}.a should be liquidated by agent when critical but solvent`, async () => {
             assert.isFalse(
                 await superToken.isAccountCriticalNow(t.aliases[sender])
             );
@@ -143,8 +139,16 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             await verifyAll();
         });
+    }
 
-        it(`${titlePrefix}.2 should ${liquidationType} when insolvent`, async () => {
+    function shouldTestSelfLiquidation({
+        titlePrefix,
+        sender,
+        receiver,
+        by,
+        allowCriticalAccount
+    }) {
+        it(`${titlePrefix}.b can self liquidate when insolvent`, async () => {
             assert.isFalse(
                 await superToken.isAccountCriticalNow(t.aliases[sender])
             );
@@ -517,7 +521,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         "set reward address to admin"
                     )(admin);
                 });
-                shouldTestLiquidations({
+                shouldTestLiquidationByAgent({
+                    titlePrefix: "#1.3.6",
+                    sender,
+                    receiver,
+                    by: sender
+                });
+                shouldTestSelfLiquidation({
                     titlePrefix: "#1.3.6",
                     sender,
                     receiver,
@@ -532,7 +542,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         "set reward address to zero"
                     )(ZERO_ADDRESS);
                 });
-                shouldTestLiquidations({
+                shouldTestLiquidationByAgent({
+                    titlePrefix: "#1.3.7",
+                    sender,
+                    receiver,
+                    by: sender
+                });
+                shouldTestSelfLiquidation({
                     titlePrefix: "#1.3.7",
                     sender,
                     receiver,
@@ -599,7 +615,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         "set reward address to admin"
                     )(admin);
                 });
-                shouldTestLiquidations({
+                shouldTestLiquidationByAgent({
+                    titlePrefix: "#1.4.4",
+                    sender,
+                    receiver,
+                    by: agent
+                });
+                shouldTestSelfLiquidation({
                     titlePrefix: "#1.4.4",
                     sender,
                     receiver,
@@ -614,7 +636,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         "set reward address to zero"
                     )(ZERO_ADDRESS);
                 });
-                shouldTestLiquidations({
+                shouldTestLiquidationByAgent({
+                    titlePrefix: "#1.4.5",
+                    sender,
+                    receiver,
+                    by: agent
+                });
+                shouldTestSelfLiquidation({
                     titlePrefix: "#1.4.5",
                     sender,
                     receiver,

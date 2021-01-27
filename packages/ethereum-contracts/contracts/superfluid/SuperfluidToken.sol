@@ -369,7 +369,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
                 msg.sender, id,
                 penaltyAccount,
                 liquidator /* rewardAccount */,
-                bailoutAmount
+                rewardAmount
             );
             emit Bailout(
                 rewardAccount,

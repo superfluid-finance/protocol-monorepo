@@ -23,6 +23,7 @@ jobs:
       - name: Show context
         run: |
           echo github.event_name: ${{ github.event_name }}
+          echo github.event.number: ${{ github.event.number }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
           echo github.ref: ${{ github.ref }}
@@ -70,9 +71,16 @@ jobs:
             mv -- "$f" "${f%.tgz}-${sha:0:7}.tgz"
           done
 
+      - name: Create empty artifact
+        if: env.BUILD_ANYTHING != 1
+        run: |
+          prNumber=${{ github.event.number }}
+          dirName="bin/${prNumber}"
+          mkdir -p $dirName
+          touch $dirName/.empty
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
-        if: env.BUILD_ANYTHING == 1
         with:
           name: pr-packages
           path: bin

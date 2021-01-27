@@ -37,7 +37,9 @@ contract("SuperToken's Non Standard Functions", accounts => {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            await superToken.validateStorageLayout.call();
+            const T = artifacts.require("SuperTokenStorageLayoutTester");
+            const tester = await T.new(superfluid.address);
+            await tester.validateStorageLayout.call();
         });
 
         it("#1.2 proxiable info", async () => {
@@ -530,7 +532,9 @@ contract("SuperToken's Non Standard Functions", accounts => {
         });
 
         it("#3.1 Custom token storage should not overlap with super token", async () => {
-            const a = await superToken.getLastSuperTokenStorageSlot();
+            const T = artifacts.require("SuperTokenStorageLayoutTester");
+            const tester = await T.new(superfluid.address);
+            const a = await tester.getLastSuperTokenStorageSlot();
             const b = await customToken.getFirstCustomTokenStorageSlot();
             console.log("lastSuperTokenStorageSlot", a.toString());
             console.log("firstCustomTokenStorageSlot", b.toString());

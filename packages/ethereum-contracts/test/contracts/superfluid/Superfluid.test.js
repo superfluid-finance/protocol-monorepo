@@ -567,7 +567,7 @@ contract("Superfluid Host Contract", accounts => {
             });
         });
 
-        describe.only("#6 (WIP) Agreement Framework", () => {
+        describe("#6 Agreement Framework", () => {
             let agreement;
             let app;
             let gasLimit;
@@ -1293,8 +1293,39 @@ contract("Superfluid Host Contract", accounts => {
                 });
             });
 
-            // TODO app allowance
-            // TODO app callback masks
+            it("#6.50 test noops masks", async () => {
+                const tests = [
+                    [0, "callAppBeforeAgreementCreatedCallback"],
+                    [1, "callAppAfterAgreementCreatedCallback"],
+                    [2, "callAppBeforeAgreementUpdatedCallback"],
+                    [3, "callAppAfterAgreementUpdatedCallback"],
+                    [4, "callAppBeforeAgreementTerminatedCallback"],
+                    [5, "callAppAfterAgreementTerminatedCallback"]
+                ];
+                for (let i = 0; i < tests.length; ++i) {
+                    console.log("testing noop mask for", tests[i][1]);
+                    let app2 = await SuperAppMock.new(
+                        superfluid.address,
+                        /* APP_TYPE_FINAL_LEVEL */
+                        toBN(1).add(
+                            // *_NOOP:  1 << (32 + n)
+                            toBN(1).shln(32 + tests[i][0])
+                        ),
+                        false
+                    );
+                    await app2.setNextCallbackAction(1 /* assert */, "0x");
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods[tests[i][1]](
+                            app2.address,
+                            "0x"
+                        ).encodeABI(),
+                        "0x"
+                    );
+                }
+            });
+
+            // TODO app allowance functions
         });
 
         describe("#7 callAgreement", () => {
@@ -1378,7 +1409,6 @@ contract("Superfluid Host Contract", accounts => {
                 );
             });
 
-            // TODO decode ctx
             it("#8.2 actionNoop", async () => {
                 const tx = await superfluid.callAppAction(
                     app.address,
@@ -1387,7 +1417,12 @@ contract("Superfluid Host Contract", accounts => {
                 await expectEvent.inTransaction(
                     tx.tx,
                     app.contract,
-                    "NoopEvent"
+                    "NoopEvent",
+                    {
+                        appLevel: "0",
+                        callType: "2" /* CALL_INFO_CALL_TYPE_APP_ACTION */,
+                        agreementSelector: "0x00000000"
+                    }
                 );
             });
 
@@ -1809,9 +1844,7 @@ contract("Superfluid Host Contract", accounts => {
                         [
                             202, // call app action
                             app.address,
-                            app.contract.methods
-                                .actionNoop(admin, "0x")
-                                .encodeABI()
+                            app.contract.methods.actionNoop("0x").encodeABI()
                         ]
                     ],
                     {

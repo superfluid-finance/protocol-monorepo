@@ -1,7 +1,7 @@
 /**
- * More information about configuration can be found at:
+ * This truffle-config is only used for testing the js-sdk.
  *
- * truffleframework.com/docs/advanced/configuration
+ * See the @superfluid-finance/ethereum-contracts package for a good example.
  **/
 const path = require("path");
 module.exports = {

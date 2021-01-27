@@ -6,6 +6,9 @@ module.exports = {
         es2020: true
     },
     plugins: ["prettier"],
+    globals: {
+        artifacts: "writable"
+    },
     rules: {
         "max-len": ["error", 120, { code: 80, ignoreUrls: true }],
         indent: ["error", 4, { "SwitchCase": 1 }],

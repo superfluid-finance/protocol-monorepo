@@ -1,29 +1,7 @@
-const path = require("path");
-
 const TruffleContract = require("@truffle/contract");
 
-const contractNames = [
-    "IERC20",
-    "TokenInfo",
-    "ERC20WithTokenInfo",
-    "TestToken",
-    "IResolver",
-    "ISuperfluid",
-    "ISuperToken",
-    "ISuperTokenFactory",
-    "ISuperAgreement",
-    "IConstantFlowAgreementV1",
-    "IInstantDistributionAgreementV1",
-    "TestResolver",
-    "Superfluid",
-    "SuperTokenFactory",
-    "TestGovernance",
-    "ISuperfluidGovernance",
-    "UUPSProxy",
-    "UUPSProxiable",
-    "ConstantFlowAgreementV1",
-    "InstantDistributionAgreementV1"
-];
+const contractNames = require("../contracts.json");
+const abis = require("../abi");
 
 const mockContractNames = [
     "SuperfluidMock",
@@ -39,25 +17,17 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
     try {
         let contracts = {};
         if (!isTruffle) {
-            // if (true) {
             try {
                 console.debug(
-                    "Using Superfluid scripts in an external or non-truffle environment"
+                    "Using SDK in an external or non-truffle environment"
                 );
                 if (!web3Provider) throw new Error("web3Provider is required");
                 // load contracts from ABI
-                const directoryPath = path.join(
-                    __dirname,
-                    "../build/contracts"
-                );
                 allContractNames.forEach(name => {
-                    const builtContract = require(path.join(
-                        directoryPath,
-                        name + ".json"
-                    ));
-                    const c = (contracts[name] = TruffleContract(
-                        builtContract
-                    ));
+                    const c = (contracts[name] = TruffleContract({
+                        contractName: name,
+                        abi: abis[name]
+                    }));
                     c.setProvider(web3Provider);
                     from && c.defaults({ from });
                 });
@@ -68,12 +38,9 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
             }
         } else {
             try {
-                console.debug(
-                    "Using Superfluid scripts within the truffle environment"
-                );
+                console.debug("Using SDK within the truffle environment");
                 // load contracts from truffle artifacts
                 allContractNames.forEach(name => {
-                    //console.log(name);
                     contracts[name] = artifacts.require(name);
                 });
             } catch (e) {
@@ -82,9 +49,7 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
         }
         return contracts;
     } catch (e) {
-        throw Error(
-            `@superfluid-finance/ethereum-contracts loadContracts(): ${e}`
-        );
+        throw Error(`@superfluid-finance/js-sdk loadContracts(): ${e}`);
     }
 };
 

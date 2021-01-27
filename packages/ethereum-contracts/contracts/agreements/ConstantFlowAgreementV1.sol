@@ -643,12 +643,18 @@ contract ConstantFlowAgreementV1 is
             uint256 liquidationPeriod = gov.getConfigAsUint256(
                 ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
 
-            //oldDeposit = _calculateDeposit(oldFlowData.flowRate, liquidationPeriod, false).toInt256();
-            depositDelta = _calculateDeposit(flowParams.flowRate, liquidationPeriod).toInt256();
-
-            // for app allowance, rounding down the number instead,
-            // in order not to give the downstream app chance to create larger flow rate
+            // rounding up the number for app allowance too
+            // CAFEAT:
+            // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
+            // - The app may be jailed due to negative balance if it does this without its own balance.
+            // Rule of thumbs:
+            // - App can use app allowance to create a flow that has the same incoming flow rate
+            // - But due to deposit clipping, there is no guarantee that the sum of the out going flow
+            //   deposit can be covered by the allowance always.
+            // - It is advisable for the app to check the allowance usages carefully, and if possible
+            //   Always have some its own balances to cover the deposits.
             appAllowance = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+            depositDelta = appAllowance.toInt256();
 
             // STEP 2: calculate deposit delta
             depositDelta = depositDelta

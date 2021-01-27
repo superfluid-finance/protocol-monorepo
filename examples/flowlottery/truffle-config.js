@@ -27,5 +27,8 @@ module.exports = {
         solc: {
             version: "0.7.6" // Fetch exact version from solc-bin (default: truffle's version)
         }
+    },
+    mocha: {
+        timeout: 1000000
     }
 };

@@ -2,7 +2,7 @@ name: Create Release Draft
 
 on:
   push:
-    branches: ["release"]
+    branches: ["master"]
 
 jobs:
   create-release-draft:

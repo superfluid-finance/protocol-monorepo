@@ -7,7 +7,7 @@
 ## Overview
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const sf = new SuperfluidSDK.Framework({
     version: "v1", // Protocol release version
     web3Provider: web3.currentProvider, // your web3 provider
@@ -16,7 +16,7 @@ const sf = new SuperfluidSDK.Framework({
 
 await sf.initialize();
 
-const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI.address });
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 
 // Constant Flow Agreement
 await bob.flow({
@@ -67,7 +67,7 @@ During initialization, the resolver will be used to fetch the correct set of con
 Example:
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const sf = new SuperfluidSDK.Framework({
     version: "v1", // Protocol release version
     web3Provider: web3.currentProvider, // your web3 provider

@@ -2,7 +2,7 @@ name: Create Release Draft
 
 on:
   push:
-    branches: ["release", "process_na_new_release_flow"]
+    branches: ["release"]
 
 jobs:
   create-release-draft:

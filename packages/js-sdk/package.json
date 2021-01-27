@@ -30,7 +30,7 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
-        "@superfluid-finance/ethereum-contracts": "^0.2.2",
+        "@superfluid-finance/ethereum-contracts": "^0.2.3",
         "chai-as-promised": "7.1.1",
         "truffle": "5.1.49"
     }

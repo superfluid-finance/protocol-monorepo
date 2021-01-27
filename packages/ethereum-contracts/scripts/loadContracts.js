@@ -56,8 +56,7 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
                         name + ".json"
                     ));
                     const c = (contracts[name] = TruffleContract(
-                        builtContract,
-                        name
+                        builtContract
                     ));
                     c.setProvider(web3Provider);
                     from && c.defaults({ from });

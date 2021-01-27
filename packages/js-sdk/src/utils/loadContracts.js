@@ -19,12 +19,13 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
         if (!isTruffle) {
             try {
                 console.debug(
-                    "Using Superfluid scripts in an external or non-truffle environment"
+                    "Using SDK in an external or non-truffle environment"
                 );
                 if (!web3Provider) throw new Error("web3Provider is required");
                 // load contracts from ABI
                 allContractNames.forEach(name => {
                     const c = (contracts[name] = TruffleContract({
+                        contractName: name,
                         abi: abis[name]
                     }));
                     c.setProvider(web3Provider);
@@ -37,9 +38,7 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
             }
         } else {
             try {
-                console.debug(
-                    "Using Superfluid scripts within the truffle environment"
-                );
+                console.debug("Using SDK within the truffle environment");
                 // load contracts from truffle artifacts
                 allContractNames.forEach(name => {
                     contracts[name] = artifacts.require(name);

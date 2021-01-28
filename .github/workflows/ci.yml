@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # a push event from the origin repo, or a PR from external repo
-    if: ${{ github.event_name == 'push' || github.repository != 'superfluid-finance/protocol-monorepo' }}
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
     strategy:
       matrix:

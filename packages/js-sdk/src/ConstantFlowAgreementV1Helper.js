@@ -60,6 +60,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 }
             )
             .on("transactionHash", onTransaction);
+        this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
         return tx;
     }
@@ -111,6 +112,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 }
             )
             .on("transactionHash", onTransaction);
+        this._sf._pushTxForGasReport(tx, "updateFlow");
         console.debug("Flow updated.");
         return tx;
     }
@@ -159,6 +161,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 }
             )
             .on("transactionHash", onTransaction);
+        this._sf._pushTxForGasReport(tx, "deleteFlow");
         console.debug("Flow deleted.");
         return tx;
     }

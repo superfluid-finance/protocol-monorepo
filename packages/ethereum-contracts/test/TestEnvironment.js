@@ -73,8 +73,11 @@ module.exports = class TestEnvironment {
             ...deployOpts
         });
 
+        this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
+
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
+            gasReportType: this.gasReportType,
             isTruffle: this.isTruffle
         });
         await this.sf.initialize();
@@ -117,6 +120,12 @@ module.exports = class TestEnvironment {
             this.contracts.governance.setRewardAddress,
             "reset reward address to admin"
         )(this.aliases.admin);
+    }
+
+    async report({ title }) {
+        if (this.gasReportType) {
+            await this.sf.generateGasReport(title + ".gasReport");
+        }
     }
 
     /// create a new test token

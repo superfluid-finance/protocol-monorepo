@@ -113,6 +113,16 @@ contract("Framework class", accounts => {
             testLoadedContracts(sf);
         });
 
+        it("Fail generating gas report without setting gas report type", async () => {
+            const sf = new SuperfluidSDK.Framework({ isTruffle: true });
+            await sf.initialize();
+            try {
+                sf.generateGasReport("name");
+            } catch (e) {
+                assert.equal(e.message, "No gas metering configured");
+            }
+        });
+
         describe("and load tokens", () => {
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
@@ -158,8 +168,10 @@ contract("Framework class", accounts => {
 
         beforeEach(async () => {
             sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider
+                web3Provider: web3.currentProvider,
+                gasReportType: "HTML"
             });
+
             await sf.initialize();
         });
 
@@ -176,6 +188,10 @@ contract("Framework class", accounts => {
                 await superMisoToken.getUnderlyingToken.call(),
                 misoAddress
             );
+        });
+
+        after(() => {
+            sf.generateGasReport("Framework.test");
         });
     });
 });

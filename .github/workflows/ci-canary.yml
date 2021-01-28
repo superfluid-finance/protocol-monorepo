@@ -130,7 +130,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
-          cd packages/ethereum-contracts
 
       - name: Deploy to ${{ matrix.network }}
         run: |

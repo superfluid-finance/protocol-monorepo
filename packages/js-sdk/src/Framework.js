@@ -61,7 +61,12 @@ module.exports = class Framework {
      * @return {Promise}
      */
     async initialize() {
+        // NOTE: querying network type first,
+        // Somehow web3.eth.net.getId may send bogus number if this was not done first
+        // It could be a red-herring issue, but it makes it more stable.
+        const networkType = await this.web3.eth.net.getNetworkType();
         const chainId = this.chainId || (await this.web3.eth.net.getId()); // TODO use eth.getChainId;
+        console.log("networkType", networkType);
         console.log("chainId", chainId);
 
         const config = getConfig(chainId);

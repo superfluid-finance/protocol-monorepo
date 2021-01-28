@@ -2,7 +2,7 @@ name: Create PR Artifact
 
 on:
   pull_request:
-    types: [opened, ready_for_review, synchronize]
+    types: [opened, reopened, ready_for_review, synchronize]
 
 jobs:
   create_pr_artifact:

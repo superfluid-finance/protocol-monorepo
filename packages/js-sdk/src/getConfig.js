@@ -12,6 +12,10 @@ const DEFAULT_CONFIG = {
         // ropsten
         resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a"
     },
+    42: {
+        // kovan
+        resolverAddress: "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B"
+    },
     80001: {
         // (matic) mumbai testnet
         resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3"

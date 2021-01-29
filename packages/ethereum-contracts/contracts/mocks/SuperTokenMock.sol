@@ -8,20 +8,15 @@ import {
 } from "../superfluid/SuperToken.sol";
 
 
-contract SuperTokenMock is SuperToken {
+contract SuperTokenStorageLayoutTester is SuperToken {
 
-    uint256 immutable public waterMark;
-
-    constructor(ISuperfluid host, uint256 w)
+    constructor(ISuperfluid host)
         SuperToken(host)
+    // solhint-disable-next-line no-empty-blocks
     {
-        waterMark = w;
     }
 
-    /**
-     * Upgradability
-     */
-
+    // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
         uint256 slot;
         uint256 offset;
@@ -75,6 +70,17 @@ contract SuperTokenMock is SuperToken {
 
     function getLastSuperTokenStorageSlot() external pure returns (uint slot) {
         assembly { slot:= _reserve19.slot }
+    }
+}
+
+contract SuperTokenMock is SuperToken {
+
+    uint256 immutable public waterMark;
+
+    constructor(ISuperfluid host, uint256 w)
+        SuperToken(host)
+    {
+        waterMark = w;
     }
 
     /**

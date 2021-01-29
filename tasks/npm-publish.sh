@@ -2,10 +2,14 @@
 
 D="$(dirname "$0")"
 
-echo "Publishing $1 @$2 to NPMJS registry"
-$D/npmrc-use-npmjs.sh > .npmrc
-npm publish --tag $2 $1
+PACKAGE_DIR="$1"
+TAG="$2"
+shift 2
 
-echo "Publishing $1 @$2 to Github Packages"
+echo "Publishing ${PACKAGE_DIR} @${TAG} to NPMJS registry"
+$D/npmrc-use-npmjs.sh > .npmrc
+npm publish --tag ${TAG} ${PACKAGE_DIR} "$@"
+
+echo "Publishing ${PACKAGE_DIR} @${TAG} to Github Packages"
 $D/npmrc-use-github.sh > .npmrc
-npm publish --tag $2 $1
+npm publish --tag ${TAG} ${PACKAGE_DIR} "$@"

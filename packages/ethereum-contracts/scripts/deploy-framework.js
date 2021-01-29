@@ -90,6 +90,7 @@ module.exports = async function(
             Superfluid,
             SuperfluidMock,
             SuperTokenFactory,
+            SuperTokenMockFactory,
             SuperTokenFactoryMock,
             TestGovernance,
             ISuperfluidGovernance,
@@ -105,6 +106,7 @@ module.exports = async function(
         });
 
         console.log("Deploying superfluid framework");
+        console.log("From address", from);
 
         const CFAv1_TYPE = this.web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
@@ -320,10 +322,22 @@ module.exports = async function(
             SuperTokenFactoryLogic,
             await superfluid.getSuperTokenFactoryLogic.call(),
             async () => {
-                const superTokenLogic = await web3tx(
-                    SuperTokenFactoryLogic.new,
-                    "SuperTokenFactoryLogic.new"
-                )(superfluid.address);
+                let superTokenLogic;
+                if (useMocks) {
+                    const f = await web3tx(
+                        SuperTokenMockFactory.new,
+                        "SuperTokenMockFactory.new"
+                    )();
+                    superTokenLogic = await web3tx(
+                        SuperTokenFactoryMock.new,
+                        "SuperTokenFactoryMock.new"
+                    )(superfluid.address, f.address);
+                } else {
+                    superTokenLogic = await web3tx(
+                        SuperTokenFactory.new,
+                        "SuperTokenFactory.new"
+                    )(superfluid.address);
+                }
                 return superTokenLogic.address;
             }
         );

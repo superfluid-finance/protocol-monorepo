@@ -85,20 +85,20 @@ contract("Super ETH (SETH) Contract", accounts => {
         assert.equal((await seth.balanceOf(alice)).toString(), "0");
     });
 
-    it("#1.2 upgrade by ETH", async () => {
-        await web3tx(
-            seth.upgradeByETH,
-            "seth.upgradeByETH by alice"
-        )({
-            from: alice,
-            value: toWad(1)
-        });
+    it.only("#1.2 upgrade by ETH", async () => {
+        await web3tx(seth.upgradeByETHTo, "seth.upgradeByETHTo by alice")(
+            alice,
+            {
+                from: alice,
+                value: toWad(1)
+            }
+        );
         assert.equal(
             (await seth.balanceOf(alice)).toString(),
             toWad(1).toString()
         );
         assert.equal(
-            (await web3.eth.getBalance(seth.address)).toString(),
+            (await weth.balanceOf(seth.address)).toString(),
             toWad(1).toString()
         );
 
@@ -114,6 +114,6 @@ contract("Super ETH (SETH) Contract", accounts => {
             }
         );
         assert.equal((await seth.balanceOf(alice)).toString(), "0");
-        assert.equal((await web3.eth.getBalance(seth.address)).toString(), "0");
+        assert.equal((await weth.balanceOf(seth.address)).toString(), "0");
     });
 });

@@ -2,8 +2,8 @@
 pragma solidity 0.7.6;
 
 import {
-    CustomSuperTokenProxyBase,
-    ISuperToken
+    ISuperToken,
+    CustomSuperTokenProxyBase
 }
 from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
 
@@ -24,7 +24,7 @@ interface IWETH {
  * @author Superfluid
  */
 abstract contract SETHProxyBase is CustomSuperTokenProxyBase {
-    function upgradeByETH() external virtual payable;
+    function upgradeByETHTo(address to) external virtual payable;
     function downgradeToETH(uint wad) external virtual;
 }
 
@@ -41,7 +41,7 @@ abstract contract SETH is SETHProxyBase, ISuperToken { }
  *
  * @author Superfluid
  */
-contract SETHProxy is SETHProxyBase, UUPSProxy {
+contract SETHProxy is SETHProxyBase {
 
     IWETH immutable private _weth;
 
@@ -49,12 +49,25 @@ contract SETHProxy is SETHProxyBase, UUPSProxy {
         _weth = weth;
     }
 
-    function upgradeByETH() external override payable {
-        ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
+    function _implementation() internal override view returns (address)
+    {
+        if (msg.data.length > 0) {
+            return UUPSProxy._implementation();
+        } else {
+            // do not provide receive() fallback otherwise it can't
+            // withdraw WETH
+            return address(0);
+        }
+    }
+
+    function upgradeByETHTo(address to) external override payable {
+        _weth.deposit{ value: msg.value }();
+        ISuperToken(address(this)).selfMint(to, msg.value, new bytes(0));
     }
 
     function downgradeToETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
+        _weth.withdraw(wad);
         msg.sender.transfer(wad);
     }
 }

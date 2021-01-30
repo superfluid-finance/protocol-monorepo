@@ -1,14 +1,17 @@
-const { BN } = require("@openzeppelin/test-helpers");
-const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 const { GasMeterJSONReporter, GasMeterHTMLReporter } = require("./gasReporter");
 
 class Formatter {
-    static formatBigNumber(key, value) {
+    constructor(web3) {
+        this.web3 = web3;
+        this.BN = this.web3.utils.BN;
+    }
+
+    formatBigNumber(key, value) {
         switch (key) {
             case "cost":
             case "totalCost":
             case "avgCost":
-                value = `${web3.utils.fromWei(value)} ETH`;
+                value = `${this.web3.utils.fromWei(value)} ETH`;
                 break;
             case "totalTx":
             case "gas":
@@ -19,18 +22,18 @@ class Formatter {
                 value = value.toString(10);
                 break;
             case "gasPrice":
-                value = `${web3.utils.fromWei(value, "gwei")} GWEI`;
+                value = `${this.web3.utils.fromWei(value, "gwei")} GWEI`;
                 break;
         }
         return value;
     }
 
-    static formatObject(x) {
+    formatObject(x) {
         const result = {};
         Object.keys(x).forEach(key => {
             var value = x[key];
-            if (BN.isBN(value)) {
-                value = Formatter.formatBigNumber(key, value);
+            if (this.BN.isBN(value)) {
+                value = this.formatBigNumber(key, value);
             }
             result[key] = value;
         });
@@ -40,6 +43,8 @@ class Formatter {
 
 module.exports = class GasMeter {
     constructor(web3, outputFormat, gasPrice) {
+        this.web3 = web3;
+        this.BN = this.web3.utils.BN;
         switch (outputFormat) {
             case "JSON":
                 this.reporter = new GasMeterJSONReporter({});
@@ -53,9 +58,10 @@ module.exports = class GasMeter {
             default:
                 throw new Error(`Unsuported report type ${outputFormat}`);
         }
-        this.gasPrice = new BN(gasPrice);
+        this.gasPrice = new this.BN(gasPrice);
         this.records = [];
         this.aggregates = {};
+        this.formatter = new Formatter(this.web3);
     }
 
     _format() {
@@ -66,11 +72,15 @@ module.exports = class GasMeter {
             Object.keys(bucket).forEach(key => {
                 formattedAggregates[actionName][
                     key
-                ] = Formatter.formatBigNumber(key, bucket[key], this.fiatCurr);
+                ] = this.formatter.formatBigNumber(
+                    key,
+                    bucket[key],
+                    this.fiatCurr
+                );
             });
         });
         const formattedRecords = this.records.map(x => {
-            return Formatter.formatObject(x, this.fiatCurr);
+            return this.formatter.formatObject(x, this.fiatCurr);
         });
         return {
             aggregates: { ...formattedAggregates },
@@ -79,7 +89,7 @@ module.exports = class GasMeter {
     }
 
     pushTx(tx, actionName) {
-        const gas = new BN(tx.receipt.gasUsed);
+        const gas = new this.BN(tx.receipt.gasUsed);
         const cost = gas.mul(this.gasPrice);
         this.records.push({
             action: actionName,
@@ -91,23 +101,23 @@ module.exports = class GasMeter {
         if (!(actionName in this.aggregates)) {
             this.aggregates[actionName] = {
                 action: actionName,
-                avgGas: new BN("0"),
-                avgCost: new BN("0"),
-                minGas: new BN("10000000000000000000000"),
-                maxGas: new BN("0"),
-                totalTx: new BN("0"),
-                totalGas: new BN("0"),
-                totalCost: new BN("0")
+                avgGas: new this.BN("0"),
+                avgCost: new this.BN("0"),
+                minGas: new this.BN("10000000000000000000000"),
+                maxGas: new this.BN("0"),
+                totalTx: new this.BN("0"),
+                totalGas: new this.BN("0"),
+                totalCost: new this.BN("0")
             };
         }
         const bucket = this.aggregates[actionName];
-        bucket.totalTx = bucket.totalTx.add(new BN("1"));
+        bucket.totalTx = bucket.totalTx.add(new this.BN("1"));
         bucket.totalGas = bucket.totalGas.add(gas);
         bucket.totalCost = bucket.totalCost.add(cost);
         bucket.avgCost = bucket.totalCost.div(bucket.totalTx);
         bucket.avgGas = bucket.totalGas.div(bucket.totalTx);
-        bucket.minGas = BN.min(bucket.minGas, gas);
-        bucket.maxGas = BN.max(bucket.maxGas, gas);
+        bucket.minGas = this.BN.min(bucket.minGas, gas);
+        bucket.maxGas = this.BN.max(bucket.maxGas, gas);
     }
 
     generateReport(name) {

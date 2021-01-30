@@ -1,0 +1,17 @@
+{
+  "name": "api",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@ethersproject/providers": "^5.0.19",
+    "@redwoodjs/api": "0.23.1-pat-prisma",
+    "@redwoodjs/core": "0.23.1-pat-prisma",
+    "@superfluid-finance/js-sdk": "^0.2.4-PR231.388bdfc.0",
+    "eth-sig-util": "^3.0.0",
+    "ethereumjs-util": "^7.0.7",
+    "jsonwebtoken": "^8.5.1"
+  },
+  "devDependencies": {
+    "@prisma/cli": "2.12.1"
+  }
+}

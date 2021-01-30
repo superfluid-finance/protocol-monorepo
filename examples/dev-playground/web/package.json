@@ -1,0 +1,32 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "browserslist": {
+    "development": [
+      "last 1 version"
+    ],
+    "production": [
+      "defaults",
+      "not IE 11",
+      "not IE_Mob 11"
+    ]
+  },
+  "dependencies": {
+    "@apollo/client": "^3.3.7",
+    "@oneclickdapp/ethereum-auth": "^0.2.0",
+    "@redwoodjs/auth": "^0.23.1-canary.26",
+    "@redwoodjs/forms": "^0.23.1-canary.25",
+    "@redwoodjs/router": "^0.23.1-canary.25",
+    "@redwoodjs/web": "0.23.1-canary.26",
+    "@superfluid-finance/js-sdk": "^0.2.3",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "9.8.6",
+    "postcss-loader": "4.0.2",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat"
+  }
+}

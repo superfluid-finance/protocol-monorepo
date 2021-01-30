@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
@@ -10,7 +10,7 @@
         "src/**/*.js"
     ],
     "scripts": {
-        "build": "scripts/build-abi-js.sh",
+        "build": "tasks/build-abi-js.sh",
         "test": "truffle test",
         "lint": "run-s lint:*",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",

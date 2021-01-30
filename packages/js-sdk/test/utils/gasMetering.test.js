@@ -31,7 +31,13 @@ describe("GasMetering", function() {
     });
 
     it("should add transaction log", async () => {
-        const gasMeter = new GasMetering("JSON", this.gasPrice, "USD", "400");
+        const gasMeter = new GasMetering(
+            web3,
+            "JSON",
+            this.gasPrice,
+            "USD",
+            "400"
+        );
 
         gasMeter.pushTx(this.tx, "SomeAction");
         const record = gasMeter.records[0];
@@ -43,7 +49,13 @@ describe("GasMetering", function() {
     });
 
     it("should calculate aggregates", async () => {
-        const gasMeter = new GasMetering("JSON", this.gasPrice, "USD", "400");
+        const gasMeter = new GasMetering(
+            web3,
+            "JSON",
+            this.gasPrice,
+            "USD",
+            "400"
+        );
 
         gasMeter.pushTx(this.tx, "SomeAction");
         gasMeter.pushTx(this.tx, "SomeAction");
@@ -60,7 +72,13 @@ describe("GasMetering", function() {
     });
 
     it("should format correctly", async () => {
-        const gasMeter = new GasMetering("JSON", this.gasPrice, "USD", "400");
+        const gasMeter = new GasMetering(
+            web3,
+            "JSON",
+            this.gasPrice,
+            "USD",
+            "400"
+        );
 
         gasMeter.pushTx(this.tx, "SomeAction");
         gasMeter.pushTx(this.tx, "SomeAction");

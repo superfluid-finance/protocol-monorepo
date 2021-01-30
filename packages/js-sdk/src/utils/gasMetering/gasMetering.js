@@ -39,7 +39,7 @@ class Formatter {
 }
 
 module.exports = class GasMeter {
-    constructor(outputFormat, gasPrice) {
+    constructor(web3, outputFormat, gasPrice) {
         switch (outputFormat) {
             case "JSON":
                 this.reporter = new GasMeterJSONReporter({});

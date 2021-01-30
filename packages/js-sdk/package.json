@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",

@@ -23,7 +23,7 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-
+import { IWrapped777 } from "../interfaces/tokens/IWrapped777.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -32,7 +32,8 @@ import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 contract SuperToken is
     UUPSProxiable,
     SuperfluidToken,
-    ISuperToken
+    ISuperToken,
+    IWrapped777
 {
 
     using SafeMath for uint256;
@@ -473,6 +474,40 @@ contract SuperToken is
 
     function _setupDefaultOperators(address[] memory operators) internal {
         _operators.setupDefaultOperators(operators);
+    }
+
+    /**************************************************************************
+     * Wrapped ERC-777 functions
+     *************************************************************************/
+
+    function token() external view returns(IERC20) {
+        return address(_underlyingToken);
+    }
+    
+    function wrap(uint256 amount) external returns (uint256) {
+        _upgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
+        return amount;
+    }
+    
+    function wrapTo(uint256 amount, address recipient) external returns (uint256) {
+        _upgrade(msg.sender, msg.sender, recipient, amount, "", "");
+        return amount;
+    }
+    
+    function gulp(address recipient) external returns (uint256) {
+        uint256 amount = _underlyingToken.balanceOf(msg.sender);
+        _upgrade(msg.sender, msg.sender, recipient, amount, "", "");
+        return amount;
+    }
+
+    function unwrap(uint256 amount) external returns (uint256 unwrappedAmount) {
+        _downgrade(msg.sender, msg.sender, amount, "", "");
+        return amount;
+    }
+
+    function unwrapTo(uint256 amount, address recipient) external returns (uint256 unwrappedAmount){
+        _downgrade(msg.sender, recipient, amount, "", "");
+        return amount;
     }
 
     /**************************************************************************

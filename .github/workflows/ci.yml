@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # a push event from the origin repo, or a PR from external repo
-    # if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
-    if: false
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
     steps:
       - name: Show contexts

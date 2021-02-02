@@ -656,15 +656,15 @@ contract Superfluid is
        external override
     {
         for(uint256 i = 0; i < operations.length; i++) {
-            uint32 opeartionType = operations[i].opeartionType;
-            if (opeartionType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
+            uint32 operationType = operations[i].operationType;
+            if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
                 (address spender, uint256 amount) =
                     abi.decode(operations[i].data, (address, uint256));
                 ISuperToken(operations[i].target).operationApprove(
                     msg.sender,
                     spender,
                     amount);
-            } else if (opeartionType == BatchOperation.OPERATION_TYPE_ERC20_TRANSFER_FROM) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_TRANSFER_FROM) {
                 (address sender, address receiver, uint256 amount) =
                     abi.decode(operations[i].data, (address, address, uint256));
                 ISuperToken(operations[i].target).operationTransferFrom(
@@ -672,21 +672,21 @@ contract Superfluid is
                     sender,
                     receiver,
                     amount);
-            } else if (opeartionType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
                     msg.sender,
                     abi.decode(operations[i].data, (uint256)));
-            } else if (opeartionType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE) {
                 ISuperToken(operations[i].target).operationDowngrade(
                     msg.sender,
                     abi.decode(operations[i].data, (uint256)));
-            } else if (opeartionType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
                 callAgreement(
                     ISuperAgreement(operations[i].target),
                     callData,
                     userData);
-            } else if (opeartionType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
                 callAppAction(
                     ISuperApp(operations[i].target),
                     operations[i].data);

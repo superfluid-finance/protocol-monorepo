@@ -28,7 +28,7 @@
 Here is a quick look at using the SDK.
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const sf = new SuperfluidSDK.Framework({
     version: "v1", // Protocol release version
     web3Provider: web3.currentProvider, // your web3 provider
@@ -89,7 +89,7 @@ During initialization, the resolver will be used to fetch the correct set of con
 Example:
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const sf = new SuperfluidSDK.Framework({
     version: "v1", // Protocol release version
     web3Provider: web3.currentProvider, // your web3 provider

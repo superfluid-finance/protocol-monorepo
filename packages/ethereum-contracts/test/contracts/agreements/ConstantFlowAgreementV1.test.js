@@ -41,6 +41,10 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         ({ superfluid, governance, cfa } = t.contracts);
     });
 
+    after(async () => {
+        await t.report({ title: "ConstantFlowAgreement.test" });
+    });
+
     beforeEach(async function() {
         await t.resetForTestCase();
         await t.createNewToken();

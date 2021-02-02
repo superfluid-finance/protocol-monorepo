@@ -17,6 +17,7 @@
         "build": "tasks/build-abi-js.sh && webpack",
         "test": "truffle test",
         "watch": "webpack --watch",
+        "generate-stats": "webpack --profile --json > stats.json",
         "lint": "run-s lint:*",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
@@ -33,12 +34,9 @@
         "@truffle/contract": "4.3.4"
     },
     "devDependencies": {
-        "@babel/core": "^7.12.10",
-        "@babel/preset-env": "^7.12.11",
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
         "@superfluid-finance/ethereum-contracts": "^0.2.3",
-        "babel-loader": "^8.2.2",
         "chai-as-promised": "7.1.1",
         "truffle": "5.1.49",
         "webpack": "^5.20.0",

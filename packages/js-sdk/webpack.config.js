@@ -10,15 +10,15 @@ module.exports = {
         libraryTarget: "umd",
         umdNamedDefine: true
     },
-    module: {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-                loader: "babel-loader"
-            }
-        ]
-    },
+    // module: {
+    //     rules: [
+    //         {
+    //             test: /\.js$/,
+    //             exclude: /node_modules/,
+    //             loader: "babel-loader"
+    //         }
+    //     ]
+    // },
     resolve: {
         fallback: {
             // Webpack 5, we must explicitly exclude @truffle/contract polyfills

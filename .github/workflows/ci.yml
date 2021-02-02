@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     # a push event from the origin repo, or a PR from external repo
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
+    # if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
+    if: false
 
     steps:
-
       - name: Show contexts
         run: |
           echo github.event_name: ${{ github.event_name }}
@@ -25,8 +25,8 @@ jobs:
           echo github.base_ref: ${{ github.base_ref }}
           echo github.event.pull_request.head.repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}
 
-  build:
-    name: Build and run related tests
+  test-ethereum-contracts:
+    name: Build and test ethereum-contracts (Feature Branch)
 
     runs-on: ubuntu-latest
 
@@ -60,7 +60,72 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
 
+  test-js-sdk:
+    name: Build and test js-sdk (Feature Branch)
+
+    runs-on: ubuntu-latest
+
+    needs: [check]
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: env.BUILD_ANYTHING == 1
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint and build
+        if: env.BUILD_ANYTHING == 1
+        run: |
+          yarn install --frozen-lockfilepull_request
+          yarn lint
+          yarn build
+
       - name: Test js-sdk if necessasry
         if: env.BUILD_JS_SDK == 1
         run: |
           yarn workspace @superfluid-finance/js-sdk test
+
+  build:
+    name: Build and run related tests
+
+    runs-on: ubuntu-latest
+
+    needs: [test-ethereum-contracts, test-js-sdk]
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: env.BUILD_ANYTHING == 1
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, lint and build
+        if: env.BUILD_ANYTHING == 1
+        run: |
+          yarn install --frozen-lockfilepull_request
+          yarn lint
+          yarn build
+
+      - name: Test ethereum-contracts if necessasry
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts test

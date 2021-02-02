@@ -3,7 +3,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
 const WETH9Mock = artifacts.require("WETH9Mock");
-const SETH = artifacts.require("SETH");
+const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
 
 const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
@@ -28,7 +28,7 @@ contract("Super ETH (SETH) Contract", accounts => {
 
     beforeEach(async () => {
         weth = await WETH9Mock.new();
-        seth = await SETH.at((await SETHProxy.new()).address);
+        seth = await ISETH.at((await SETHProxy.new()).address);
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,
             "initializeCustomSuperToken"

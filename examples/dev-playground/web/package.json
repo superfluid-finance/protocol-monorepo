@@ -14,12 +14,13 @@
   },
   "dependencies": {
     "@apollo/client": "^3.3.7",
+    "@ethersproject/providers": "^5.0.19",
     "@oneclickdapp/ethereum-auth": "^0.2.0",
     "@redwoodjs/auth": "^0.23.1-canary.26",
     "@redwoodjs/forms": "^0.23.1-canary.25",
     "@redwoodjs/router": "^0.23.1-canary.25",
     "@redwoodjs/web": "0.23.1-canary.26",
-    "@superfluid-finance/js-sdk": "^0.2.3",
+    "@superfluid-finance/js-sdk": "^0.2.4",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"

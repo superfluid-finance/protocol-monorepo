@@ -1,10 +1,10 @@
 import FlowsLayout from 'src/layouts/FlowsLayout'
 import NewFlow from 'src/components/NewFlow'
 
-const NewFlowPage = () => {
+const NewFlowPage = ({ to }) => {
   return (
     <FlowsLayout>
-      <NewFlow />
+      <NewFlow to={to} />
     </FlowsLayout>
   )
 }

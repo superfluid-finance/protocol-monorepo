@@ -9,7 +9,7 @@ import {
 
 const FlowForm = (props) => {
   const onSubmit = (data) => {
-    props.onSave(data, props?.flow?.id)
+    props.onSave(data)
   }
 
   return (
@@ -21,39 +21,6 @@ const FlowForm = (props) => {
           titleClassName="rw-form-error-title"
           listClassName="rw-form-error-list"
         />
-
-        <Label
-          name="flowRate"
-          className="rw-label"
-          errorClassName="rw-label rw-label-error"
-        >
-          Flow rate
-        </Label>
-        <TextField
-          name="flowRate"
-          defaultValue={props.flow?.flowRate}
-          className="rw-input"
-          errorClassName="rw-input rw-input-error"
-          validation={{ required: true }}
-        />
-        <FieldError name="flowRate" className="rw-field-error" />
-
-        <Label
-          name="recipientAddress"
-          className="rw-label"
-          errorClassName="rw-label rw-label-error"
-        >
-          Recipient address
-        </Label>
-        <TextField
-          name="recipientAddress"
-          defaultValue={props.flow?.recipientAddress}
-          className="rw-input"
-          errorClassName="rw-input rw-input-error"
-          validation={{ required: true }}
-        />
-        <FieldError name="recipientAddress" className="rw-field-error" />
-
         <Label
           name="ownerAddress"
           className="rw-label"
@@ -62,33 +29,86 @@ const FlowForm = (props) => {
           Owner address
         </Label>
         <TextField
+          readOnly
           name="ownerAddress"
           defaultValue={props.flow?.ownerAddress}
           className="rw-input"
           errorClassName="rw-input rw-input-error"
-          validation={{ required: true }}
+          validation={{
+            required: true,
+            pattern: {
+              value: /^0x([A-Fa-f0-9]{40})$/,
+            },
+          }}
         />
         <FieldError name="ownerAddress" className="rw-field-error" />
-
         <Label
-          name="userId"
+          name="recipientAddress"
           className="rw-label"
           errorClassName="rw-label rw-label-error"
         >
-          User id
+          Recipient address
         </Label>
         <TextField
-          name="userId"
-          defaultValue={props.flow?.userId}
+          readOnly={props.flow?.recipientAddress}
+          name="recipientAddress"
+          defaultValue={props.flow?.recipientAddress}
           className="rw-input"
           errorClassName="rw-input rw-input-error"
-          validation={{ required: true }}
+          validation={{
+            required: true,
+            pattern: {
+              value: /^0x([A-Fa-f0-9]{40})$/,
+            },
+          }}
         />
-        <FieldError name="userId" className="rw-field-error" />
+        <FieldError name="recipientAddress" className="rw-field-error" />
+
+        <Label
+          name="tokenAddress"
+          className="rw-label"
+          errorClassName="rw-label rw-label-error"
+        >
+          Token address
+        </Label>
+        <TextField
+          name="tokenAddress"
+          defaultValue={props.flow?.tokenAddress}
+          className="rw-input"
+          errorClassName="rw-input rw-input-error"
+          validation={{
+            required: true,
+            pattern: {
+              value: /^0x([A-Fa-f0-9]{40})$/,
+            },
+          }}
+        />
+        <FieldError name="tokenAddress" className="rw-field-error" />
+
+        <Label
+          name="flowRate"
+          className="rw-label"
+          errorClassName="rw-label rw-label-error"
+        >
+          Flow rate (tokens per second)
+        </Label>
+        <TextField
+          name="flowRate"
+          defaultValue={props.flow?.flowRate}
+          className="rw-input"
+          errorClassName="rw-input rw-input-error"
+          validation={{
+            required: true,
+            pattern: {
+              value: /^[0-9]+$/,
+            },
+          }}
+        />
+        <FieldError name="flowRate" className="rw-field-error" />
 
         <div className="rw-button-group">
           <Submit disabled={props.loading} className="rw-button rw-button-blue">
-            Save
+            Submit
           </Submit>
         </div>
       </Form>

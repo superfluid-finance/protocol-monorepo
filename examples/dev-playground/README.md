@@ -16,8 +16,6 @@
 
 ```sh
 yarn install
-yarn rw db save
-yarn rw db up
 ```
 
 ## Usage

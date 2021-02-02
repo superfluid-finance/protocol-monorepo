@@ -73,6 +73,12 @@ const User = ({ user }) => {
       </div>
       <nav className="rw-button-group">
         <Link
+          to={routes.newFlow({ to: user.address })}
+          className="rw-button rw-button-green"
+        >
+          Flow
+        </Link>
+        <Link
           to={routes.editUser({ id: user.id })}
           className="rw-button rw-button-blue"
         >

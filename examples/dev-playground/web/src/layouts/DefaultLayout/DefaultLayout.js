@@ -54,7 +54,7 @@ const DefaultLayout = ({ children }) => {
             </div>
             {loginButton}
           </div>
-          {children}
+          {React.cloneElement(children, { useAuth })}
         </div>
       </div>
     </div>

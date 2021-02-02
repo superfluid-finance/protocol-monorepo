@@ -1,5 +1,7 @@
 const path = require("path");
+/* eslint-disable no-unused-vars */
 const webpack = require("webpack");
+/* eslint-enable no-unused-vars */
 module.exports = {
     mode: "development",
     entry: "./src/index.js",

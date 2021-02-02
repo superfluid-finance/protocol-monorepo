@@ -180,7 +180,7 @@ Contributions and suggestions welcome!
 
 ## Testing
 
-Since testing can take a while, we recommend specifying a test-suite. For example:
+Since testing can take a long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want. For example:
 
 ```bash
 # Only run User.test.js

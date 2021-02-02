@@ -80,13 +80,13 @@ beforeEach(async () => {
 });
 ```
 
-Awesome, now that have the basics, check out the apps over in [/examples](/examples).
+Awesome, now that have the basics, check out the apps over in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples).
 
 ## Troubleshooting
 
 One thing to keep in mind is that Superfluid relies on a persistent 1820 registry contract. This must be deployed before you can interact with the protocol. If you follow the examples using the `TestEnvironment` helper, you don't need to worry about it.
 
-If you want to see examples for manually deploying contracts, check out [./scripts](scripts) folder.
+If you want to see examples for manually deploying contracts, check out the [scripts folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/scripts).
 
 In case your curious, or really hacking away, you might want to deploy the registry manually. Here is an example for how to deploy the 1820 contract to a local Ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
 
@@ -119,7 +119,12 @@ There are two major test suite:
 yarn test
 ```
 
-Since these tests take long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want.
+Since testing can take a long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want. For example:
+
+```bash
+# Only run deployment.test.js
+nodemon -x npx truffle test ./test/deployment.test.js
+```
 
 ## Show your support
 

@@ -17,7 +17,7 @@
         "build": "tasks/build-abi-js.sh && webpack",
         "test": "truffle test",
         "watch": "webpack --watch",
-        "generate-stats": "webpack --profile --json > stats.json",
+        "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
         "lint": "run-s lint:*",
         "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
@@ -40,6 +40,7 @@
         "chai-as-promised": "7.1.1",
         "truffle": "5.1.49",
         "webpack": "^5.20.0",
+        "webpack-bundle-analyzer": "^4.4.0",
         "webpack-cli": "^4.5.0"
     }
 }

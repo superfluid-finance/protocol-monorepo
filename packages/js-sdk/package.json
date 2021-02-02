@@ -9,6 +9,10 @@
         "src/**/*.json",
         "src/**/*.js"
     ],
+    "browser": {
+        "fs": false,
+        "path": false
+    },
     "scripts": {
         "build": "tasks/build-abi-js.sh && webpack",
         "test": "truffle test",

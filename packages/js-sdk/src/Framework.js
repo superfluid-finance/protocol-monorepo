@@ -1,5 +1,3 @@
-const Web3 = require("web3");
-
 const loadContracts = require("./utils/loadContracts");
 
 const getConfig = require("./getConfig");
@@ -39,7 +37,7 @@ module.exports = class Framework {
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;
-        this.web3 = isTruffle ? global.web3 : new Web3(web3Provider);
+        this.web3 = isTruffle ? global.web3 : web3Provider;
         this._tokens = tokens;
 
         // load contracts

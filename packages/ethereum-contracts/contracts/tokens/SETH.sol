@@ -6,48 +6,47 @@ import {
     CustomSuperTokenProxyBase
 }
 from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
-
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 
 /**
  * @dev Wrapped ETH interface
  */
-interface IWETH {
+interface IWETH is IERC20 {
     function deposit() external payable;
     function withdraw(uint wad) external;
 }
 
+
 /**
- * @dev Super ETH (SETH) specific functions
+ * @dev Super ETH (SETH) custom token functions
  *
  * @author Superfluid
  */
-abstract contract SETHProxyBase is CustomSuperTokenProxyBase {
-    function upgradeByETHTo(address to) external virtual payable;
-    function downgradeToETH(uint wad) external virtual;
+interface ISETHCustom {
+    function upgradeByETH() external payable;
+    function upgradeByETHTo(address to) external payable;
+    function upgradeByWETH(IWETH weth, uint wad) external;
+    function downgradeToETH(uint wad) external;
+    function downgradeToWETH(IWETH weth, uint wad) external;
 }
 
 /**
- * @dev Super ETH (SETH) custom super totken interface
+ * @dev Super ETH (SETH) full interface
  *
  * @author Superfluid
  */
 // solhint-disable-next-line no-empty-blocks
-abstract contract SETH is SETHProxyBase, ISuperToken { }
+interface ISETH is ISETHCustom, ISuperToken { }
+
 
 /**
  * @dev Super ETH (SETH) custom super totken implementation
  *
  * @author Superfluid
  */
-contract SETHProxy is SETHProxyBase {
-
-    IWETH immutable private _weth;
-
-    constructor(IWETH weth) {
-        _weth = weth;
-    }
+contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
 
     function _implementation() internal override view returns (address)
     {
@@ -60,14 +59,30 @@ contract SETHProxy is SETHProxyBase {
         }
     }
 
+    function upgradeByETH() external override payable {
+        ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
+    }
+
     function upgradeByETHTo(address to) external override payable {
-        _weth.deposit{ value: msg.value }();
         ISuperToken(address(this)).selfMint(to, msg.value, new bytes(0));
+    }
+
+    function upgradeByWETH(IWETH weth, uint wad) external override {
+        weth.transferFrom(msg.sender, address(this), wad);
+        // this will trigger receive() which is overriden to a no-op
+        weth.withdraw(wad);
+        ISuperToken(address(this)).selfMint(msg.sender, wad, new bytes(0));
     }
 
     function downgradeToETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
-        _weth.withdraw(wad);
         msg.sender.transfer(wad);
     }
+
+    function downgradeToWETH(IWETH weth, uint wad) external override {
+        ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
+        weth.deposit{ value: wad }();
+        weth.transfer(msg.sender, wad);
+    }
+
 }

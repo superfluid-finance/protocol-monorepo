@@ -31,7 +31,9 @@ module.exports = async function(
             TestResolver,
             UUPSProxiable,
             ISuperfluidGovernance,
-            ISuperToken
+            ISuperToken,
+            ISETH,
+            SETHProxy
         } = loadContracts({
             isTruffle,
             web3Provider: this.web3.currentProvider,
@@ -60,17 +62,40 @@ module.exports = async function(
             from
         });
         await sf.initialize();
+        const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
+            await sf.host.getSuperTokenFactory.call()
+        );
 
-        const tokenAddress = await sf.resolver.get(`tokens.${tokenName}`);
-        const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
-        const tokenInfoName = await tokenInfo.name.call();
-        const tokenInfoSymbol = await tokenInfo.symbol.call();
-        const tokenInfoDecimals = await tokenInfo.decimals.call();
-        console.log("Token address", tokenAddress);
-        console.log("Token name", tokenName);
-        console.log("Token info name()", tokenInfoName);
-        console.log("Token info symbol()", tokenInfoSymbol);
-        console.log("Token info decimals()", tokenInfoDecimals.toString());
+        let deploymentFn;
+        if (tokenName == "SETH") {
+            deploymentFn = async () => {
+                console.log("Creating SETH Proxy...");
+                const sethProxy = await SETHProxy.new();
+                const seth = await ISETH.at(sethProxy.address);
+                console.log("Intialize SETH as a custom super token...");
+                await superTokenFactory.initializeCustomSuperToken(
+                    seth.address,
+                    { from }
+                );
+                console.log("Intialize SETH token info...");
+                await seth.initialize(ZERO_ADDRESS, 18, "Super ETH", "SETH");
+                return seth;
+            };
+        } else {
+            const tokenAddress = await sf.resolver.get(`tokens.${tokenName}`);
+            const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
+            const tokenInfoName = await tokenInfo.name.call();
+            const tokenInfoSymbol = await tokenInfo.symbol.call();
+            const tokenInfoDecimals = await tokenInfo.decimals.call();
+            console.log("Token address", tokenAddress);
+            console.log("Token name", tokenName);
+            console.log("Token info name()", tokenInfoName);
+            console.log("Token info symbol()", tokenInfoSymbol);
+            console.log("Token info decimals()", tokenInfoDecimals.toString());
+            deploymentFn = async () => {
+                return await sf.createERC20Wrapper(tokenInfo, { from });
+            };
+        }
 
         const name = `supertokens.${version}.${tokenName}x`;
         const superTokenAddress = await sf.resolver.get(name);
@@ -88,9 +113,6 @@ module.exports = async function(
                 );
                 doDeploy = true;
             } else {
-                const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
-                    await sf.host.getSuperTokenFactory.call()
-                );
                 const superTokenLogic1 = await superTokenFactory.getSuperTokenLogic();
                 console.log(
                     "Latest SuperToken logic address",
@@ -128,7 +150,7 @@ module.exports = async function(
         }
         if (doDeploy) {
             console.log("Creating the wrapper...");
-            const superToken = await sf.createERC20Wrapper(tokenInfo, { from });
+            const superToken = await deploymentFn();
             console.log("Wrapper created at", superToken.address);
             console.log("Resolver setting new address...");
             const testResolver = await TestResolver.at(sf.resolver.address);

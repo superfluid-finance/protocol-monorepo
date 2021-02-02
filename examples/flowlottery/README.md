@@ -28,27 +28,25 @@ To run the frontend using the deployed goerli contracts, skip the "Install Contr
 
 ## Install Contracts
 
-If you want to test + deploy contracts locally using ganache, run these commands:
-
 ```bash
 yarn install
 yarn build
-yarn deploy
-```
-
-## Install Frontend
-
-```bash
-
-cd ui
-yarn
-yarn start
 ```
 
 ## Run tests
 
 ```bash
 yarn test
+```
+
+## Install Frontend
+
+> Note: Breaking changes to the JS-SDK means that the UI is currently not functioning properly.
+
+```bash
+cd ui
+yarn
+yarn start
 ```
 
 ## Author

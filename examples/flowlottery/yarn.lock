@@ -277,20 +277,20 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@superfluid-finance/ethereum-contracts@^0.2.3-dev.ec8220f.0":
-  version "0.2.3-dev.ec8220f.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-0.2.3-dev.ec8220f.0.tgz#59987c8e1679bb1e1ea0242b12698a0710d8a077"
-  integrity sha512-oXJOI5EejnT2ieyDgnsQorjwjZjbIakARe7lm57HVAWlVLbFQvq0+P23cweV0xJHawH/Xs27sQe2FgnO907p8Q==
+"@superfluid-finance/ethereum-contracts@^0.2.3":
+  version "0.2.3"
+  resolved "https://npm.pkg.github.com/download/@superfluid-finance/ethereum-contracts/0.2.3/112b1478f8cf8b3e92514cedad9aa888c64662f5cd7bf80628041366f6e47ebc#5cf8b923fa85e2fe27746c8597d44e0abe38a131"
+  integrity sha512-Kby8PhwQNBF/IWGCPUHbmsIKlDNttoTG728lH9CcOoB0yMVCCkbRkWXu6knsqsiEk4bWptkkRSxEpCIuGDMs0w==
   dependencies:
     "@openzeppelin/contracts" "3.3.0-solc-0.7"
     "@truffle/contract" "4.3.4"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.0.7"
 
-"@superfluid-finance/js-sdk@^0.2.3-dev.ec8220f.0":
-  version "0.2.3-dev.ec8220f.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.2.3-dev.ec8220f.0.tgz#553282ddf53ee608fbc1dd11d531f893f0b1624d"
-  integrity sha512-GaaTSNqn7dRFwktmZwBniTqo8iE8+iIbHNZKT9jjd6yTa5eN+w8xJrApBp/72FlhPEZlLBGHmZ197tw+QNf7hg==
+"@superfluid-finance/js-sdk@^0.2.4":
+  version "0.2.4"
+  resolved "https://npm.pkg.github.com/download/@superfluid-finance/js-sdk/0.2.4/352a3fe80a84b7aa1222960146b940bd2ccf095353793766bc755bbb82d6af25#34ec0ef315b7e1ce22b5329ea18a0f0071991580"
+  integrity sha512-VjyLAmg9nXTQE84qWlq9HryH1eqhEVhYT/boISO/fj6NxWIB6AY9dE+kjwMxw1XEDKeH5zIkn9sMz0hKXhCMAA==
   dependencies:
     "@truffle/contract" "4.3.4"
 

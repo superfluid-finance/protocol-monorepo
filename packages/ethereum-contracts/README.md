@@ -31,15 +31,15 @@ yarn install
 
 ## Usage
 
-If you're building a dapp using the deployed contracts (goerli or mainnet) then head directly over to the `@superfluid-finance/js-sdk`, also located in this repo.
+If you're building a dapp using the deployed contracts (goerli or mainnet) then you should instead use [`@superfluid-finance/js-sdk`](/packages/js-sdk).
 
-If you're building a Super App, then great! This is definitely the place to be. The contracts can be imported into your Solidity file like this:
+If you're building a Super App, then great! This is definitely the place to be. The contracts can be imported into your `.sol` file like this:
 
 ```js
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
 
-And in your tests, use the `TestEnvironment` helper to deploy the Superfluid Framework.
+For writing tests, you can use the `TestEnvironment` helper to deploy all the necessary contracts.
 
 ```js
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
@@ -50,18 +50,22 @@ contract("My Test", accounts => {
         admin: adminAddress,
         alice: aliceAddress,
     } = t.aliases;
-    //...
+
+    before(async () => {
+        // Deploys a fresh set of Superfluid contracts
+        await t.reset();
+    });
 ```
 
-This also exposes the `SuperfluidSDK`, so you can easily deploy tokens and User objects.
+The `TestEnvironment` also exposes the `@superfluid-finance/js-sdk`, so you can skip the initialization skip. Here is a quick-start example:
 
 ```js
 let sf;
 let superToken;
 
 before(async () => {
-    // Initialize the SuperfluidSDK
     await t.reset();
+    // @superfluid-finance/js-sdk will be available here
     sf = t.sf;
 });
 
@@ -76,15 +80,15 @@ beforeEach(async () => {
 });
 ```
 
-Awesome, now that have the basics, check out the apps over in [examples/](examples/).
+Awesome, now that have the basics, check out the apps over in [/examples](/examples).
 
 ## Troubleshooting
 
 One thing to keep in mind is that Superfluid relies on a persistent 1820 registry contract. This must be deployed before you can interact with the protocol. If you follow the examples using the `TestEnvironment` helper, you don't need to worry about it.
 
-There are also many scripts available to manually deploy things, or adapt to your needs.
+If you want to see examples for manually deploying contracts, check out [./scripts](scripts) folder.
 
-In case your curious, or really hacking away, you might want to deploy the registry manually. Here is an example for deploying the 1820 contract to a local Ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
+In case your curious, or really hacking away, you might want to deploy the registry manually. Here is an example for how to deploy the 1820 contract to a local Ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
 
 ```bash
 # Start Ganache on 127.0.0.1:8545
@@ -105,10 +109,6 @@ yarn test
 
 ### Testing
 
-**NB!**: Since these tests take long time to execute, it is quite possible
-that you want to use the [execlusive tests](https://mochajs.org/#exclusive-tests)
-feature from MochaJS to speed up isolated feature development.
-
 There are two major test suite:
 
 -   Contracts (test/contracts.test.js) tests the contracts
@@ -118,6 +118,8 @@ There are two major test suite:
 ```bash
 yarn test
 ```
+
+Since these tests take long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want.
 
 ## Show your support
 

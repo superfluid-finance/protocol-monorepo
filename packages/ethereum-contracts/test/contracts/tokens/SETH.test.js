@@ -28,7 +28,8 @@ contract("Super ETH (SETH) Contract", accounts => {
 
     beforeEach(async () => {
         weth = await WETH9Mock.new();
-        seth = await ISETH.at((await SETHProxy.new()).address);
+        const sethProxy = await SETHProxy.new(weth.address);
+        seth = await ISETH.at(sethProxy.address);
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,
             "initializeCustomSuperToken"
@@ -97,13 +98,9 @@ contract("Super ETH (SETH) Contract", accounts => {
             }
         );
 
-        await web3tx(seth.upgradeByWETH, "seth.upgrade by alice")(
-            weth.address,
-            toWad(1),
-            {
-                from: alice
-            }
-        );
+        await web3tx(seth.upgradeByWETH, "seth.upgrade by alice")(toWad(1), {
+            from: alice
+        });
         assert.equal((await weth.balanceOf(alice)).toString(), "0");
         assert.equal(
             (await seth.balanceOf(alice)).toString(),
@@ -164,14 +161,13 @@ contract("Super ETH (SETH) Contract", accounts => {
         });
 
         await expectRevert(
-            seth.downgradeToWETH(weth.address, toWad(1).addn(1), {
+            seth.downgradeToWETH(toWad(1).addn(1), {
                 from: alice
             }),
             "SuperfluidToken: burn amount exceeds balance"
         );
 
         await web3tx(seth.downgradeToWETH, "seth.downgradeToWETH by alice")(
-            weth.address,
             toWad(1),
             {
                 from: alice
@@ -221,7 +217,6 @@ contract("Super ETH (SETH) Contract", accounts => {
         assert.equal((await weth.balanceOf(alice)).toString(), "0");
 
         await web3tx(seth.downgradeToWETH, "seth.downgradeToWETH by alice")(
-            weth.address,
             toWad("0.5"),
             {
                 from: alice

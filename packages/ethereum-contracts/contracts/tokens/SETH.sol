@@ -27,9 +27,9 @@ interface IWETH is IERC20 {
 interface ISETHCustom {
     function upgradeByETH() external payable;
     function upgradeByETHTo(address to) external payable;
-    function upgradeByWETH(IWETH weth, uint wad) external;
+    function upgradeByWETH(uint wad) external;
     function downgradeToETH(uint wad) external;
-    function downgradeToWETH(IWETH weth, uint wad) external;
+    function downgradeToWETH(uint wad) external;
 }
 
 /**
@@ -47,6 +47,12 @@ interface ISETH is ISETHCustom, ISuperToken { }
  * @author Superfluid
  */
 contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
+
+    IWETH immutable private _weth;
+
+    constructor(IWETH weth) {
+        _weth = weth;
+    }
 
     function _implementation() internal override view returns (address)
     {
@@ -67,10 +73,10 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
         ISuperToken(address(this)).selfMint(to, msg.value, new bytes(0));
     }
 
-    function upgradeByWETH(IWETH weth, uint wad) external override {
-        weth.transferFrom(msg.sender, address(this), wad);
+    function upgradeByWETH(uint wad) external override {
+        _weth.transferFrom(msg.sender, address(this), wad);
         // this will trigger receive() which is overriden to a no-op
-        weth.withdraw(wad);
+        _weth.withdraw(wad);
         ISuperToken(address(this)).selfMint(msg.sender, wad, new bytes(0));
     }
 
@@ -79,10 +85,10 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
         msg.sender.transfer(wad);
     }
 
-    function downgradeToWETH(IWETH weth, uint wad) external override {
+    function downgradeToWETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
-        weth.deposit{ value: wad }();
-        weth.transfer(msg.sender, wad);
+        _weth.deposit{ value: wad }();
+        _weth.transfer(msg.sender, wad);
     }
 
 }

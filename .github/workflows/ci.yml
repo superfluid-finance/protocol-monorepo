@@ -95,36 +95,12 @@ jobs:
           yarn workspace @superfluid-finance/js-sdk test
 
   build:
-    name: Build and run related tests
+    name: Build and run related tests (Feature Branch)
 
     runs-on: ubuntu-latest
 
     needs: [test-ethereum-contracts, test-js-sdk]
 
-    strategy:
-      matrix:
-        node-version: [12.x]
-
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        if: env.BUILD_ANYTHING == 1
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install, lint and build
-        if: env.BUILD_ANYTHING == 1
-        run: |
-          yarn install --frozen-lockfilepull_request
-          yarn lint
-          yarn build
-
-      - name: Test ethereum-contracts if necessasry
-        if: env.BUILD_ETHEREUM_CONTRACTS == 1
-        run: |
-          yarn workspace @superfluid-finance/ethereum-contracts test
+      - name: Report status
+        run: true

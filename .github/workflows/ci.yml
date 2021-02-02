@@ -11,6 +11,8 @@ jobs:
     # a push event from the origin repo, or a PR from external repo
     if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
+    steps:
+
   build:
     name: Build and run related tests
 

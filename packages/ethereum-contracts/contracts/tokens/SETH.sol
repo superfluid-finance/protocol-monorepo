@@ -40,6 +40,24 @@ interface ISETHCustom {
 // solhint-disable-next-line no-empty-blocks
 interface ISETH is ISETHCustom, ISuperToken { }
 
+/**
+ * SETH receive fallback logic contract
+ */
+contract SETHReceiveLogic {
+
+    IWETH immutable private _weth;
+
+    constructor(IWETH weth) {
+        _weth = weth;
+    }
+
+    receive() external payable {
+        if (msg.sender != address(_weth)) {
+            // if non weth contract sends us eth, we upgrade some SETH to them
+            ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
+        } // else it is weth, it is already implemented in upgrade (ByWETH)
+    }
+}
 
 /**
  * @dev Super ETH (SETH) custom super totken implementation
@@ -49,9 +67,11 @@ interface ISETH is ISETHCustom, ISuperToken { }
 contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
 
     IWETH immutable private _weth;
+    SETHReceiveLogic private _receiveLogic;
 
     constructor(IWETH weth) {
         _weth = weth;
+        _receiveLogic = new SETHReceiveLogic(weth);
     }
 
     function _implementation() internal override view returns (address)
@@ -61,7 +81,7 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
         } else {
             // do not provide receive() fallback otherwise it can't
             // withdraw WETH
-            return address(0);
+            return address(_receiveLogic);
         }
     }
 

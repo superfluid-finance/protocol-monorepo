@@ -94,7 +94,7 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/js-sdk test
 
-  build:
+  wait-for-tests:
     name: Build and run related tests (Feature Branch)
 
     runs-on: ubuntu-latest

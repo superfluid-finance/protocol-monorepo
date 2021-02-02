@@ -415,7 +415,7 @@ contract("LotterySuperApp", accounts => {
             sf.host.batchCall,
             "Dan joining the game too"
         )(createPlayBatchCall(100), { from: dan });
-        for (let i = 0; i < 20; ++i) {
+        for (let i = 0; i < 5; ++i) {
             counters[(await app.currentWinner.call()).player].count++;
             await web3tx(sf.host.callAgreement, "Dan quiting the game")(
                 sf.agreements.cfa.address,

@@ -33,9 +33,12 @@
         "@truffle/contract": "4.3.4"
     },
     "devDependencies": {
+        "@babel/core": "^7.12.10",
+        "@babel/preset-env": "^7.12.11",
         "@decentral.ee/web3-helpers": "0.3.5",
         "@openzeppelin/test-helpers": "0.5.10",
         "@superfluid-finance/ethereum-contracts": "^0.2.3",
+        "babel-loader": "^8.2.2",
         "chai-as-promised": "7.1.1",
         "truffle": "5.1.49",
         "webpack": "^5.20.0",

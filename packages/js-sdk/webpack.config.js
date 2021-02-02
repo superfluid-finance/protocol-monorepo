@@ -9,11 +9,27 @@ module.exports = {
         library: "@superfluid-finance/js-sdk",
         libraryTarget: "umd",
         umdNamedDefine: true
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                loader: "babel-loader"
+            }
+        ]
+    },
+    resolve: {
+        fallback: {
+            // Webpack 5, we must explicitly exclude @truffle/contract polyfills
+            os: false,
+            url: false,
+            assert: false,
+            path: false,
+            stream: false,
+            https: false,
+            http: false,
+            crypto: false
+        }
     }
-    // plugins: [new webpack.PrefetchPlugin('ethers')],
-    // optimization: {
-    //   splitChunks: {
-    //     chunks: 'all'
-    //   }
-    // }
 };

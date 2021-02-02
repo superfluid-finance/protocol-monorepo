@@ -18,6 +18,8 @@
 yarn install
 ```
 
+copy `.env.template` to `.env` and add the required variables
+
 ## Usage
 
 ```sh

@@ -235,4 +235,17 @@ contract("Super ETH (SETH) Contract", accounts => {
             toWad("0").toString()
         );
     });
+
+     it.only("#1.7 - Direct send Ether", async() => {
+        await web3.eth.sendTransaction({to: seth.address, from: alice, value: toWad(1) });
+        assert.equal(
+            (await seth.balanceOf(alice)).toString(),
+            toWad(1).toString()
+        );
+        assert.equal(
+            (await web3.eth.getBalance(seth.address)).toString(),
+            toWad(1).toString()
+        );
+    }); 
+
 });

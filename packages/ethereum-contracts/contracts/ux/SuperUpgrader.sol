@@ -2,6 +2,7 @@
 pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {
     ISuperToken,
     IERC20
@@ -17,6 +18,8 @@ import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
  * - Risk taken by the user is that the underlying tokens are converted to the Super Tokens by the upgrader agents.
  */
 contract SuperUpgrader is AccessControl {
+
+    using SafeERC20 for IERC20;
     // Create a new role identifier for the backend role
     bytes32 public constant BACKEND_ROLE = keccak256("BACKEND_ROLE");
 
@@ -58,8 +61,9 @@ contract SuperUpgrader is AccessControl {
         ISuperToken superToken = ISuperToken(superTokenAddr);
         //get tokens from user
         IERC20 token = IERC20(superToken.getUnderlyingToken());
-        token.transferFrom(account, address(this), amount);
-        token.approve(address(superToken), amount);
+        token.safeTransferFrom(account, address(this), amount);
+        assert(token.approve(address(superToken), 0));
+        assert(token.approve(address(superToken), amount));
         //upgrade tokens and send back to user
         superToken.upgradeTo(account, amount, "");
     }

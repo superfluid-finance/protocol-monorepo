@@ -153,6 +153,7 @@ module.exports = class Framework {
         if (this._gasReportType) {
             const defaultGasPrice = await this.web3.eth.getGasPrice();
             this._gasMetering = new GasMeter(
+                this.web3,
                 this._gasReportType,
                 defaultGasPrice,
                 "USD",

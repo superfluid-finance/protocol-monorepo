@@ -40,7 +40,7 @@ library AgreementLibrary {
         internal view
         returns (ISuperfluid.Context memory)
     {
-        require(token.getHost() == msg.sender, "AgreementLibrary: unauthroized host");
+        require(token.getHost() == msg.sender, "AgreementLibrary: unauthoized host");
         return ISuperfluid(msg.sender).decodeCtx(ctx);
     }
 

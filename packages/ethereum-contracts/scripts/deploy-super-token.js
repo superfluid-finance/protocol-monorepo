@@ -67,7 +67,7 @@ module.exports = async function(
         );
 
         let deploymentFn;
-        if (tokenName == "SETH") {
+        if (tokenName == "ETH") {
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
                 const sethProxy = await SETHProxy.new(ZERO_ADDRESS);
@@ -78,7 +78,7 @@ module.exports = async function(
                     { from }
                 );
                 console.log("Intialize SETH token info...");
-                await seth.initialize(ZERO_ADDRESS, 18, "Super ETH", "SETH");
+                await seth.initialize(ZERO_ADDRESS, 18, "Super ETH", "ETHx");
                 return seth;
             };
         } else {

@@ -52,7 +52,7 @@ module.exports = async function(
         }
 
         // Creating SETH
-        await deploySuperToken(errorHandler, [":", "SETH"], {
+        await deploySuperToken(errorHandler, [":", "ETH"], {
             isTruffle,
             web3Provider: this.web3.currentProvider,
             from

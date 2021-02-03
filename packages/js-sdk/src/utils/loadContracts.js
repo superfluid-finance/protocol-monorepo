@@ -24,8 +24,36 @@ const loadContracts = ({ ethers, web3, useMocks, web3Provider, from }) => {
                 const { Contract } = require("@ethersproject/contracts");
                 allContractNames.forEach(name => {
                     contracts[name] = {
-                        at: address =>
-                            new Contract(address, abis[name], ethers),
+                        at: address => {
+                            const ethersContract = new Contract(
+                                address,
+                                abis[name],
+                                ethers
+                            );
+                            const web3EncodingAdapter = {};
+                            ethersContract.interface.fragments.forEach(
+                                fragment => {
+                                    web3EncodingAdapter[fragment.name] = (
+                                        ...arguments
+                                    ) => {
+                                        return {
+                                            encodeABI: () => {
+                                                return ethersContract.interface.encodeFunctionData(
+                                                    fragment,
+                                                    arguments
+                                                );
+                                            }
+                                        };
+                                    };
+                                }
+                            );
+                            ethersContract.contract = {
+                                methods: {
+                                    ...web3EncodingAdapter
+                                }
+                            };
+                            return ethersContract;
+                        },
                         abi: abis[name],
                         contractName: name
                     };

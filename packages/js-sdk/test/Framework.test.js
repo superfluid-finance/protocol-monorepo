@@ -106,31 +106,24 @@ contract("Framework class", accounts => {
         }
 
         it("with native truffle environment", async () => {
-            const sf = new SuperfluidSDK.Framework({ isTruffle: true });
+            const sf = new SuperfluidSDK.Framework({
+                isTruffle: true
+            });
             await sf.initialize();
             testLoadedContracts(sf);
         });
 
-        it("with native truffle environment using mode flag", async () => {
-            const sf = new SuperfluidSDK.Framework({ mode: "truffleNative" });
+        it("with non-native truffle environment", async () => {
+            const sf = new SuperfluidSDK.Framework({
+                web3: new Web3(web3.currentProvider)
+            });
             await sf.initialize();
             testLoadedContracts(sf);
         });
-
-        // it("with non-native truffle environment", async () => {
-        //     const web3Provider = new Web3(web3.givenProvider);
-        //     const sf = new SuperfluidSDK.Framework({
-        //         web3Provider
-        //     });
-        //     await sf.initialize();
-        //     testLoadedContracts(sf);
-        // });
 
         it("with Ethers.js environment", async () => {
-            const web3Provider = new Web3Provider(web3.currentProvider);
             const sf = new SuperfluidSDK.Framework({
-                web3Provider,
-                mode: "ethers"
+                ethers: new Web3Provider(web3.currentProvider)
             });
             await sf.initialize();
             testLoadedContracts(sf);

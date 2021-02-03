@@ -1,4 +1,4 @@
-const TruffleContract = require("@truffle/contract");
+const { TRUFFLE_NATIVE, TRUFFE_CONTRACT, ETHERS } = require("./constants");
 
 const contractNames = require("../contracts.json");
 const abis = require("../abi");
@@ -9,20 +9,43 @@ const mockContractNames = [
     "SuperTokenFactoryMock"
 ];
 
-const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
+const loadContracts = ({ mode, useMocks, web3Provider, from }) => {
     const allContractNames = [
         ...contractNames,
         ...(useMocks ? mockContractNames : [])
     ];
     try {
         let contracts = {};
-        if (!isTruffle) {
+        if (mode === ETHERS) {
+            console.debug(
+                "Using @superfluid-finance/js-sdk within the Ethers.js environment. Peer dependency @ethersproject/contract is required"
+            );
+            if (!web3Provider) throw new Error("web3Provider is required");
+            const { Contract } = require("@ethersproject/contracts");
+            allContractNames.forEach(name => {
+                contracts[name] = {
+                    at: address =>
+                        new Contract(address, abis[name], web3Provider)
+                };
+            });
+        } else if (mode === TRUFFLE_NATIVE) {
             try {
                 console.debug(
-                    "Using SDK in an external or non-truffle environment"
+                    "Using @superfluid-finance/js-sdk within a Truffle native environment. Truffle artifacts must be present."
+                );
+                allContractNames.forEach(name => {
+                    contracts[name] = artifacts.require(name);
+                });
+            } catch (e) {
+                throw Error(`could not load truffle artifacts. ${e}`);
+            }
+        } else {
+            try {
+                console.debug(
+                    "Using @superfluid-finance/js-sdk in a non-native Truffle environment. Peer dependency @trufflesuite/contract is required."
                 );
                 if (!web3Provider) throw new Error("web3Provider is required");
-                // load contracts from ABI
+                const TruffleContract = require("@truffle/contract");
                 allContractNames.forEach(name => {
                     const c = (contracts[name] = TruffleContract({
                         contractName: name,
@@ -35,16 +58,6 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
                 throw Error(
                     `could not load non-truffle environment contracts. ${e}`
                 );
-            }
-        } else {
-            try {
-                console.debug("Using SDK within the truffle environment");
-                // load contracts from truffle artifacts
-                allContractNames.forEach(name => {
-                    contracts[name] = artifacts.require(name);
-                });
-            } catch (e) {
-                throw Error(`could not load truffle artifacts. ${e}`);
             }
         }
         return contracts;

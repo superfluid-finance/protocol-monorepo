@@ -4,12 +4,14 @@ const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
+const {
+    TRUFFLE_NATIVE,
+    TRUFFE_CONTRACT,
+    ETHERS
+} = require("./utils/constants");
 const User = require("./User");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const TRUFFLE_NATIVE = "truffleNative";
-const TRUFFE_CONTRACT = "truffleContract";
-const ETHERS = "ethers";
 
 /**
  * @dev Superfluid Framework class
@@ -70,11 +72,19 @@ module.exports = class Framework {
      * @return {Promise}
      */
     async initialize() {
-        // NOTE: querying network type first,
-        // Somehow web3.eth.net.getId may send bogus number if this was not done first
-        // It could be a red-herring issue, but it makes it more stable.
-        const networkType = await this.web3.eth.net.getNetworkType();
-        const chainId = this.chainId || (await this.web3.eth.net.getId()); // TODO use eth.getChainId;
+        let networkType;
+        let chainId;
+        if (this.mode === ETHERS) {
+            const network = await this.web3.getNetwork();
+            networkType = network.name;
+            chainId = network.chainId;
+        } else {
+            // NOTE: querying network type first,
+            // Somehow web3.eth.net.getId may send bogus number if this was not done first
+            // It could be a red-herring issue, but it makes it more stable.
+            networkType = await this.web3.eth.net.getNetworkType();
+            chainId = this.chainId || (await this.web3.eth.net.getId()); // TODO use eth.getChainId;
+        }
         console.log("networkType", networkType);
         console.log("chainId", chainId);
 

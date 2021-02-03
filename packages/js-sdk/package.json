@@ -30,7 +30,9 @@
             "yarn lint:js"
         ]
     },
-    "dependencies": {
+    "dependencies": {},
+    "peerDependencies": {
+        "@ethersproject/contracts": "^5.0.10",
         "@truffle/contract": "4.3.4"
     },
     "devDependencies": {

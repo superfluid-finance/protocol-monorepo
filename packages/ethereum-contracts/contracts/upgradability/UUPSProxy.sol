@@ -29,7 +29,7 @@ contract UUPSProxy is Proxy {
     }
 
     /// @dev Proxy._implementation implementation
-    function _implementation() internal override view returns (address)
+    function _implementation() internal virtual override view returns (address)
     {
         return UUPSUtils.implementation();
     }

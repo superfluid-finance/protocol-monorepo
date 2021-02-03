@@ -90,9 +90,10 @@ module.exports = class Framework {
         console.log("networkType", networkType);
         console.log("chainId", chainId);
 
-        const config = getConfig(chainId);
+        this.config = getConfig(chainId);
 
-        const resolverAddress = this.resolverAddress || config.resolverAddress;
+        const resolverAddress =
+            this.resolverAddress || this.config.resolverAddress;
         console.debug("Resolver at", resolverAddress);
         this.resolver = await this.contracts.IResolver.at(resolverAddress);
 

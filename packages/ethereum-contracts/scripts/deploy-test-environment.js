@@ -33,30 +33,29 @@ module.exports = async function(
         console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
-        for (let i = 0; i < tokens.length; ++i) {
-            console.log(`==== Deploying test token ${tokens[i]}...`);
-            await deployTestToken(errorHandler, [":", tokens[i]], {
+        await Promise.all([
+            ...tokens.map(async token => {
+                console.log(`==== Deploying test token ${token}...`);
+                await deployTestToken(errorHandler, [":", token], {
+                    isTruffle,
+                    from
+                });
+                console.log(`==== Test token ${token} deployed.`);
+
+                console.log(`==== Creating super token for ${token}...`);
+                await deploySuperToken(errorHandler, [":", token], {
+                    isTruffle,
+                    from
+                });
+                console.log(`==== Super token for ${token} deployed.`);
+            }),
+            // Creating SETH
+            deploySuperToken(errorHandler, [":", "ETH"], {
                 isTruffle,
                 web3Provider: this.web3.currentProvider,
                 from
-            });
-            console.log(`==== Test token ${tokens[i]} deployed.`);
-
-            console.log(`==== Creating super token for ${tokens[i]}...`);
-            await deploySuperToken(errorHandler, [":", tokens[i]], {
-                isTruffle,
-                web3Provider: this.web3.currentProvider,
-                from
-            });
-            console.log(`==== Super token for ${tokens[i]} deployed.`);
-        }
-
-        // Creating SETH
-        await deploySuperToken(errorHandler, [":", "ETH"], {
-            isTruffle,
-            web3Provider: this.web3.currentProvider,
-            from
-        });
+            })
+        ]);
 
         if (process.env.TEST_RESOLVER_ADDRESS) {
             console.log(

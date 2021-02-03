@@ -55,7 +55,7 @@ module.exports = async function(
 
         const sf = new SuperfluidSDK.Framework({
             isTruffle,
-            web3Provider: this.web3.currentProvider,
+            web3: this.web3,
             version,
             from
         });

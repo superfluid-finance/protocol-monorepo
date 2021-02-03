@@ -99,14 +99,16 @@ contract("Framework class", accounts => {
             );
         }
 
-        // it("without truffle framework", async () => {
-        //     const web3Provider = new Web3(web3.currentProvider);
-        //     const sf = new SuperfluidSDK.Framework({
-        //         web3Provider
-        //     });
-        //     await sf.initialize();
-        //     testLoadedContracts(sf);
-        // });
+        // Intentionally commenting out this test, since using external web3 provider is going to be changed in #237
+        it("using truffle framework", async () => {
+            const Web3 = require("web3");
+            const web3_local = new Web3(web3.currentProvider);
+            const sf = new SuperfluidSDK.Framework({
+                web3: web3_local
+            });
+            await sf.initialize();
+            testLoadedContracts(sf);
+        });
 
         it("with truffle framework", async () => {
             const sf = new SuperfluidSDK.Framework({ isTruffle: true });

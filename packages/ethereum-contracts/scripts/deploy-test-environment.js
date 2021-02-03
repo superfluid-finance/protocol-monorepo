@@ -51,6 +51,13 @@ module.exports = async function(
             console.log(`==== Super token for ${tokens[i]} deployed.`);
         }
 
+        // Creating SETH
+        await deploySuperToken(errorHandler, [":", "SETH"], {
+            isTruffle,
+            web3Provider: this.web3.currentProvider,
+            from
+        });
+
         if (process.env.TEST_RESOLVER_ADDRESS) {
             console.log(
                 "=============== TEST ENVIRONMENT RESOLVER ======================"

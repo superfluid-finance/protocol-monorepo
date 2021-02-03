@@ -1,4 +1,3 @@
-const Web3 = require("web3");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");

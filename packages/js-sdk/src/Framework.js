@@ -115,7 +115,7 @@ module.exports = class Framework {
         this.tokens = {};
         if (this._tokens) {
             await Promise.all(
-                this._tokens.map(token => async token => {
+                this._tokens.map(async token => {
                     const tokenSymbol = token;
                     const tokenAddress = await this.resolver.get(
                         `tokens.${tokenSymbol}`

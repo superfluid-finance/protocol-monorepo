@@ -25,7 +25,9 @@ const loadContracts = ({ mode, useMocks, web3Provider, from }) => {
             allContractNames.forEach(name => {
                 contracts[name] = {
                     at: address =>
-                        new Contract(address, abis[name], web3Provider)
+                        new Contract(address, abis[name], web3Provider),
+                    abi: abis[name],
+                    contractName: name
                 };
             });
         } else if (mode === TRUFFLE_NATIVE) {

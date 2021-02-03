@@ -51,7 +51,7 @@ module.exports = class Framework {
             );
             this.mode = TRUFFLE_NATIVE;
         }
-        console.log(this.mode);
+
         this.web3 = this.mode === TRUFFLE_NATIVE ? global.web3 : web3Provider;
         this._tokens = tokens;
 

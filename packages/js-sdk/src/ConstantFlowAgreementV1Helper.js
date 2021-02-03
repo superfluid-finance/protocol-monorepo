@@ -247,7 +247,32 @@ module.exports = class ConstantFlowAgreementV1Helper {
         };
     }
 
-    static getLatestFlows(flows) {
+    async getFlowEvents({ token, receiver = null, sender = null }) {
+        const cfa = this._sf.agreements.cfa;
+        let flows;
+        if (cfa.getPastEvents) {
+            flows = await cfa.getPastEvents("FlowUpdated", {
+                fromBlock: 0,
+                toBlock: "latest",
+                filter: {
+                    token,
+                    receiver,
+                    sender
+                }
+            });
+        } else {
+            const filter = cfa.filters.FlowUpdated(
+                token,
+                sender,
+                receiver,
+                null,
+                null,
+                null,
+                null
+            );
+            flows = await cfa.queryFilter(filter);
+        }
+        console.log(flows);
         return Object.values(
             flows.reduce((acc, i) => {
                 acc[i.args.sender + ":" + i.args.receiver] = i;
@@ -275,40 +300,28 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
         const result = {};
         if (!onlyOutFlows) {
-            result.inFlows = this.constructor
-                .getLatestFlows(
-                    await this._sf.agreements.cfa.getPastEvents("FlowUpdated", {
-                        fromBlock: 0,
-                        toBlock: "latest",
-                        filter: {
-                            token: superTokenNorm,
-                            receiver: accountNorm
-                        }
-                    })
-                )
-                .map(f => ({
-                    sender: f.args.sender,
-                    receiver: f.args.receiver,
-                    flowRate: f.args.flowRate.toString()
-                }));
+            result.inFlows = (
+                await this.getFlowEvents({
+                    receiver: accountNorm,
+                    token: superTokenNorm
+                })
+            ).map(f => ({
+                sender: f.args.sender,
+                receiver: f.args.receiver,
+                flowRate: f.args.flowRate.toString()
+            }));
         }
         if (!onlyInFlows) {
-            result.outFlows = this.constructor
-                .getLatestFlows(
-                    await this._sf.agreements.cfa.getPastEvents("FlowUpdated", {
-                        fromBlock: 0,
-                        toBlock: "latest",
-                        filter: {
-                            token: superTokenNorm,
-                            sender: accountNorm
-                        }
-                    })
-                )
-                .map(f => ({
-                    sender: f.args.sender,
-                    receiver: f.args.receiver,
-                    flowRate: f.args.flowRate.toString()
-                }));
+            result.outFlows = (
+                await this.getFlowEvents({
+                    token: superTokenNorm,
+                    sender: accountNorm
+                })
+            ).map(f => ({
+                sender: f.args.sender,
+                receiver: f.args.receiver,
+                flowRate: f.args.flowRate.toString()
+            }));
         }
         return result;
     }

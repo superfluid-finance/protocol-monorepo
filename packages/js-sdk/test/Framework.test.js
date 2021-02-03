@@ -111,7 +111,7 @@ contract("Framework class", accounts => {
             testLoadedContracts(sf);
         });
 
-        it("with native truffle environment and mode option", async () => {
+        it("with native truffle environment using mode flag", async () => {
             const sf = new SuperfluidSDK.Framework({ mode: "truffleNative" });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -127,7 +127,7 @@ contract("Framework class", accounts => {
         });
 
         it("with Ethers.js environment", async () => {
-            const walletProvider = new Web3Provider(web3.currentProvider);
+            const web3Provider = new Web3Provider(web3.currentProvider);
             const sf = new SuperfluidSDK.Framework({
                 web3Provider,
                 mode: "ethers"

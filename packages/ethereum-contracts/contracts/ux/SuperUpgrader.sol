@@ -61,11 +61,15 @@ contract SuperUpgrader is AccessControl {
         ISuperToken superToken = ISuperToken(superTokenAddr);
         //get tokens from user
         IERC20 token = IERC20(superToken.getUnderlyingToken());
+        uint256 beforeBalance = token.balanceOf(address(this));
         token.safeTransferFrom(account, address(this), amount);
-        assert(token.approve(address(superToken), 0));
-        assert(token.approve(address(superToken), amount));
+        token.safeApprove(address(superToken), 0);
+        token.safeApprove(address(superToken), amount);
         //upgrade tokens and send back to user
-        superToken.upgradeTo(account, amount, "");
+        superToken.upgradeTo(
+            account,
+            token.balanceOf(address(this)).sub(beforeBalance),
+            "");
     }
 
     /**

@@ -22,7 +22,9 @@ const contractNames = [
     "UUPSProxy",
     "UUPSProxiable",
     "ConstantFlowAgreementV1",
-    "InstantDistributionAgreementV1"
+    "InstantDistributionAgreementV1",
+    "ISETH",
+    "SETHProxy"
 ];
 
 const mockContractNames = [

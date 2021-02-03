@@ -23,7 +23,7 @@ abstract contract CustomSuperTokenBaseMock is CustomSuperTokenProxyBase {
 // solhint-disable-next-line no-empty-blocks
 abstract contract CustomSuperTokenMock is CustomSuperTokenBaseMock, ISuperToken {}
 
-contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock, UUPSProxy {
+contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
 
     uint256 private _firstStorageSlot;
 

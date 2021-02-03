@@ -477,7 +477,7 @@ contract SuperToken is
     }
 
     /**************************************************************************
-     * Wrapped ERC-777 functions
+     * DeFi777 Wrapped ERC-777 functions
      *************************************************************************/
 
     function token() external view returns(IERC20) {
@@ -493,11 +493,15 @@ contract SuperToken is
         _upgrade(msg.sender, msg.sender, recipient, amount, "", "");
         return amount;
     }
-    
+
     function gulp(address recipient) external returns (uint256) {
-        uint256 amount = _underlyingToken.balanceOf(msg.sender);
-        _upgrade(msg.sender, msg.sender, recipient, amount, "", "");
-        return amount;
+        uint256 currentUnderlyingBalance = _underlyingToken.balanceOf(address(this));
+        (uint256 underlyingAmount, ) = _toUnderlyingAmount(_totalSupply);
+
+        uint256 amountToWithdraw = currentUnderlyingBalance.sub(underlyingAmount);
+        // TODO: ask if to upgrade the tokens or not
+        // transfer to recipient
+        _underlyingToken.safeTransfer(recipient, amountToWithdraw);
     }
 
     function unwrap(uint256 amount) external returns (uint256 unwrappedAmount) {

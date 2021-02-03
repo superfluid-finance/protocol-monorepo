@@ -114,37 +114,43 @@ module.exports = class Framework {
         // load tokens
         this.tokens = {};
         if (this._tokens) {
-            for (let i = 0; i < this._tokens.length; ++i) {
-                const tokenSymbol = this._tokens[i];
-                const tokenAddress = await this.resolver.get(
-                    `tokens.${tokenSymbol}`
-                );
-                if (tokenAddress === ZERO_ADDRESS) {
-                    throw new Error(`Token ${tokenSymbol} is not registered`);
-                }
-                const superTokenAddress = await this.resolver.get(
-                    `supertokens.${this.version}.${tokenSymbol}x`
-                );
-                if (superTokenAddress === ZERO_ADDRESS) {
-                    throw new Error(
-                        `Token ${tokenSymbol} doesn't have a super token wrapper`
+            await Promise.all(
+                this._tokens.map(token => async token => {
+                    const tokenSymbol = token;
+                    const tokenAddress = await this.resolver.get(
+                        `tokens.${tokenSymbol}`
                     );
-                }
-                const superToken = await this.contracts.ISuperToken.at(
-                    superTokenAddress
-                );
-                const superTokenSymbol = await superToken.symbol();
-                this.tokens[
-                    tokenSymbol
-                ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
-                this.tokens[superTokenSymbol] = superToken;
-                console.debug(
-                    `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
-                );
-                console.debug(
-                    `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
-                );
-            }
+                    if (tokenAddress === ZERO_ADDRESS) {
+                        throw new Error(
+                            `Token ${tokenSymbol} is not registered`
+                        );
+                    }
+                    const superTokenAddress = await this.resolver.get(
+                        `supertokens.${this.version}.${tokenSymbol}x`
+                    );
+                    if (superTokenAddress === ZERO_ADDRESS) {
+                        throw new Error(
+                            `Token ${tokenSymbol} doesn't have a super token wrapper`
+                        );
+                    }
+                    const superToken = await this.contracts.ISuperToken.at(
+                        superTokenAddress
+                    );
+                    const superTokenSymbol = await superToken.symbol();
+                    this.tokens[
+                        tokenSymbol
+                    ] = await this.contracts.ERC20WithTokenInfo.at(
+                        tokenAddress
+                    );
+                    this.tokens[superTokenSymbol] = superToken;
+                    console.debug(
+                        `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+                    );
+                    console.debug(
+                        `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
+                    );
+                })
+            );
         }
 
         this.utils = new (require("./Utils"))(this);

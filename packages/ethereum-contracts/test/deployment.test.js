@@ -314,18 +314,22 @@ contract("deployment test (outside truffle environment)", accounts => {
         });
     });
 
-    it("scripts/deploy-test-token.js", async () => {
+    it.only("scripts/deploy-test-token.js", async () => {
         const testResolver = await web3tx(
             TestResolver.new,
             "TestResolver.new"
         )();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployFramework(errorHandler, {
+            isTruffle: true,
+            from: accounts[0]
+        });
 
         // first deployment
         assert.equal(await testResolver.get("tokens.TEST7262"), ZERO_ADDRESS);
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            isTruffle: true,
             from: accounts[0]
         });
         const address1 = await testResolver.get("tokens.TEST7262");
@@ -333,6 +337,7 @@ contract("deployment test (outside truffle environment)", accounts => {
 
         // second deployment
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            isTruffle: true,
             from: accounts[0]
         });
         const address2 = await testResolver.get("tokens.TEST7262");
@@ -340,8 +345,12 @@ contract("deployment test (outside truffle environment)", accounts => {
 
         // new deployment after framework reset
         process.env.RESET = 1;
-        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployFramework(errorHandler, {
+            isTruffle: true,
+            from: accounts[0]
+        });
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            isTruffle: true,
             from: accounts[0]
         });
         const address3 = await testResolver.get("tokens.TEST7262");

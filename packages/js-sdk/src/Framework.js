@@ -1,5 +1,6 @@
-const loadContracts = require("./utils/loadContracts");
+const { id } = require("@ethersproject/hash");
 
+const loadContracts = require("./utils/loadContracts");
 const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
@@ -37,7 +38,7 @@ module.exports = class Framework {
         chainId,
         resolverAddress,
         tokens,
-        mode = "truffleContract",
+        mode = TRUFFE_CONTRACT,
         gasReportType
     }) {
         this.chainId = chainId;
@@ -50,11 +51,12 @@ module.exports = class Framework {
             );
             this.mode = TRUFFLE_NATIVE;
         }
+        console.log(this.mode);
         this.web3 = this.mode === TRUFFLE_NATIVE ? global.web3 : web3Provider;
         this._tokens = tokens;
 
         this.contracts = loadContracts({
-            mode,
+            mode: this.mode,
             web3Provider
         });
 
@@ -96,7 +98,7 @@ module.exports = class Framework {
 
         // load superfluid host contract
         console.debug("Resolving contracts with version", this.version);
-        const superfluidAddress = await this.resolver.get.call(
+        const superfluidAddress = await this.resolver.get(
             `Superfluid.${this.version}`
         );
         this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
@@ -105,14 +107,14 @@ module.exports = class Framework {
         );
 
         // load agreements
-        const cfav1Type = this.web3.utils.sha3(
+        const cfav1Type = id(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
         );
-        const idav1Type = this.web3.utils.sha3(
+        const idav1Type = id(
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
-        const cfaAddress = await this.host.getAgreementClass.call(cfav1Type);
-        const idaAddress = await this.host.getAgreementClass.call(idav1Type);
+        const cfaAddress = await this.host.getAgreementClass(cfav1Type);
+        const idaAddress = await this.host.getAgreementClass(idav1Type);
         this.agreements = {
             cfa: await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
             ida: await this.contracts.IInstantDistributionAgreementV1.at(

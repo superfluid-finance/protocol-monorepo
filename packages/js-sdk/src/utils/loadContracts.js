@@ -1,4 +1,4 @@
-const { TRUFFLE_NATIVE, TRUFFE_CONTRACT, ETHERS } = require("./constants");
+const { TRUFFLE_NATIVE, ETHERS } = require("./constants");
 
 const contractNames = require("../contracts.json");
 const abis = require("../abi");
@@ -18,7 +18,7 @@ const loadContracts = ({ mode, useMocks, web3Provider, from }) => {
         let contracts = {};
         if (mode === ETHERS) {
             console.debug(
-                "Using @superfluid-finance/js-sdk within the Ethers.js environment. Peer dependency @ethersproject/contract is required"
+                "Using @superfluid-finance/js-sdk within the Ethers.js environment. Peer dependency @ethersproject/contract is required."
             );
             if (!web3Provider) throw new Error("web3Provider is required");
             const { Contract } = require("@ethersproject/contracts");
@@ -42,7 +42,7 @@ const loadContracts = ({ mode, useMocks, web3Provider, from }) => {
         } else {
             try {
                 console.debug(
-                    "Using @superfluid-finance/js-sdk in a non-native Truffle environment. Peer dependency @trufflesuite/contract is required."
+                    "Using @superfluid-finance/js-sdk in a non-native Truffle environment. Peer dependency @truffle/contract is required."
                 );
                 if (!web3Provider) throw new Error("web3Provider is required");
                 const TruffleContract = require("@truffle/contract");

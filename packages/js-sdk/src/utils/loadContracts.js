@@ -22,13 +22,14 @@ const loadContracts = ({ ethers, web3, useMocks, web3Provider, from }) => {
                     "Using @superfluid-finance/js-sdk within the Ethers.js environment. Peer dependency @ethersproject/contract is required."
                 );
                 const { Contract } = require("@ethersproject/contracts");
+
                 allContractNames.forEach(name => {
                     contracts[name] = {
                         at: address => {
                             const ethersContract = new Contract(
                                 address,
                                 abis[name],
-                                ethers
+                                ethers.getSigner() || ethers
                             );
                             const web3EncodingAdapter = {};
                             ethersContract.interface.fragments.forEach(
@@ -52,6 +53,21 @@ const loadContracts = ({ ethers, web3, useMocks, web3Provider, from }) => {
                                     ...web3EncodingAdapter
                                 }
                             };
+                            Object.keys(ethersContract.functions).map(
+                                methodName => {
+                                    ethersContract[methodName] = (
+                                        ...arguments
+                                    ) => {
+                                        return {
+                                            on: () => {
+                                                console.debug(
+                                                    "@superfluid-finance/js-sdk Warning: 'onTransaction' is not yet implemented when using Ethers.js"
+                                                );
+                                            }
+                                        };
+                                    };
+                                }
+                            );
                             return ethersContract;
                         },
                         abi: abis[name],

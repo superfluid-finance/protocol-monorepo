@@ -7,7 +7,7 @@ const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
 const {
     TRUFFLE_NATIVE,
-    TRUFFE_CONTRACT,
+    TRUFFLE_CONTRACT,
     ETHERS
 } = require("./utils/constants");
 const User = require("./User");
@@ -33,31 +33,40 @@ module.exports = class Framework {
      */
     constructor({
         version,
-        web3,
         isTruffle,
+        web3,
+        ethers,
         chainId,
         resolverAddress,
         tokens,
-        mode = TRUFFE_CONTRACT,
         gasReportType
     }) {
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;
-        this.mode = mode;
-        if (isTruffle) {
-            console.warn(
-                "superfluid-finaince/js-sdk 'isTruffle' will soon be deprecated, please use 'mode' instead."
+        if (isTruffle && (ethers || web3))
+            throw Error(
+                "@superfluid-finaince/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
             );
-            this.mode = TRUFFLE_NATIVE;
-        }
+        if (!isTruffle && !ethers && !web3)
+            throw Error(
+                "@superfluid-finaince/js-sdk: You must provide a web3 or ethers instance."
+            );
+        if (ethers && web3)
+            throw Error(
+                "@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance. Please choose only one."
+            );
+        this.mode = TRUFFLE_CONTRACT;
+        if (isTruffle) this.mode = TRUFFLE_NATIVE;
+        if (ethers) this.mode = ETHERS;
 
-        this.web3 = this.mode === TRUFFLE_NATIVE ? global.web3 : web3Provider;
+        this.web3 = this.mode === TRUFFLE_NATIVE ? global.web3 : web3;
+        this.ethers = ethers;
         this._tokens = tokens;
 
         this.contracts = loadContracts({
-            mode: this.mode,
-            web3Provider
+            web3,
+            ethers
         });
 
         if (gasReportType) {
@@ -77,7 +86,7 @@ module.exports = class Framework {
         let networkType;
         let chainId;
         if (this.mode === ETHERS) {
-            const network = await this.web3.getNetwork();
+            const network = await this.ethers.getNetwork();
             networkType = network.name;
             chainId = network.chainId;
         } else {

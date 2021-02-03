@@ -1,5 +1,5 @@
 const TRUFFLE_NATIVE = "truffleNative";
-const TRUFFE_CONTRACT = "truffleContract";
+const TRUFFLE_CONTRACT = "truffleContract";
 const ETHERS = "ethers";
 
-module.exports = { TRUFFLE_NATIVE, TRUFFE_CONTRACT, ETHERS };
+module.exports = { TRUFFLE_NATIVE, TRUFFLE_CONTRACT, ETHERS };

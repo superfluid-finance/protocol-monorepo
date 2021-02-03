@@ -10,18 +10,20 @@ contract("Framework class", accounts => {
 
     before(async () => {
         await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"], {
-            isTruffle: true
-        });
-        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
-            isTruffle: true
-        });
-        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
-            isTruffle: true
-        });
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
-            isTruffle: true
-        });
+        await Promise.all([
+            deployTestToken(t.errorHandler, [":", "fDAI"], {
+                isTruffle: true
+            }),
+            deployTestToken(t.errorHandler, [":", "fUSDC"], {
+                isTruffle: true
+            }),
+            deploySuperToken(t.errorHandler, [":", "fDAI"], {
+                isTruffle: true
+            }),
+            deploySuperToken(t.errorHandler, [":", "fUSDC"], {
+                isTruffle: true
+            })
+        ]);
     });
 
     describe("initialization", () => {

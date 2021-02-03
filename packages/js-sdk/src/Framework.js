@@ -7,6 +7,9 @@ const { validateAddress } = require("./utils/general");
 const User = require("./User");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+const TRUFFLE_NATIVE = "truffleNative";
+const TRUFFE_CONTRACT = "truffleContract";
+const ETHERS = "ethers";
 
 /**
  * @dev Superfluid Framework class
@@ -32,19 +35,27 @@ module.exports = class Framework {
         chainId,
         resolverAddress,
         tokens,
+        mode = "truffleContract",
         gasReportType
     }) {
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;
-        this.web3 = isTruffle ? global.web3 : web3Provider;
+        this.mode = mode;
+        if (isTruffle) {
+            console.warn(
+                "superfluid-finaince/js-sdk 'isTruffle' will soon be deprecated, please use 'mode' instead."
+            );
+            this.mode = TRUFFLE_NATIVE;
+        }
+        this.web3 = this.mode === TRUFFLE_NATIVE ? global.web3 : web3Provider;
         this._tokens = tokens;
 
-        // load contracts
         this.contracts = loadContracts({
-            isTruffle,
+            mode,
             web3Provider
         });
+
         if (gasReportType) {
             if (gasReportType !== "HTML" && gasReportType !== "JSON") {
                 throw new Error("Unsuported gas report type: " + gasReportType);

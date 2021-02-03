@@ -178,6 +178,14 @@ const tx = await alice.flow({
 
 Contributions and suggestions welcome!
 
+## Module packaging
+
+Check the module size and dependencies:
+
+```bash
+yarn stats
+```
+
 ## Testing
 
 Since testing can take a long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want. For example:

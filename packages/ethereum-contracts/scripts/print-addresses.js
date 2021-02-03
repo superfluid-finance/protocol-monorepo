@@ -28,7 +28,7 @@ module.exports = async function(callback, argv) {
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         const sf = new SuperfluidSDK.Framework({
             version: process.env.RELEASE_VERSION || "test",
-            web3Provider: web3.currentProvider,
+            web3: this.web3,
             tokens
         });
         await sf.initialize();

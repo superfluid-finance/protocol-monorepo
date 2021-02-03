@@ -1,5 +1,3 @@
-const Web3 = require("web3");
-
 const loadContracts = require("./utils/loadContracts");
 
 const getConfig = require("./getConfig");
@@ -16,21 +14,21 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 module.exports = class Framework {
     /**
      * @dev Create new Superfluid framework object
-     * @param {Web3.Provider} web3Provider web3 provider object
-     * @param {boolean} isTruffle if the framework is used within truffle environment
-     * @param {string} version protocol contract version
-     * @param {string} chainId force chainId, instead relying on web3.eth.net.getId
-     * @param {string} resolverAddress force resolver address
-     * @param {string[]} tokens the tokens to be loaded, each element is an alias for the underlying token
-     * @param {string} gasReportType (optional) output type for gas reporting. Currently HTML only
+     * @param {string} version (Default: test) protocol release version.
+     * @param {Web3} web3  (Optional) Injected web3 instance (version has to be 1.x)
+     * @param {boolean} isTruffle (Default: false) if the framework is used within truffle environment.
+     * @param {string} chainId (Optional) force chainId, instead relying on web3.eth.net.getId
+     * @param {string} resolverAddress (Optional) force resolver address
+     * @param {string[]} tokens (Optional) the tokens to be loaded, each element is an alias for the underlying token
+     * @param {string} gasReportType (Optional) output type for gas reporting. Currently HTML only
      * @return {Framework} The Framework object
      *
      * NOTE: You should call async function Framework.initialize to initialize the object.
      */
     constructor({
-        web3Provider,
-        isTruffle,
         version,
+        web3,
+        isTruffle,
         chainId,
         resolverAddress,
         tokens,
@@ -39,13 +37,17 @@ module.exports = class Framework {
         this.chainId = chainId;
         this.version = version || "test";
         this.resolverAddress = resolverAddress;
-        this.web3 = isTruffle ? global.web3 : new Web3(web3Provider);
+        this.web3 = isTruffle ? global.web3 : web3;
         this._tokens = tokens;
+
+        // check web3 version
+        if (!this.web3.version.startsWith("1."))
+            throw new Error(`Unsupported web3 version ${web3.version}`);
 
         // load contracts
         this.contracts = loadContracts({
             isTruffle,
-            web3Provider
+            web3Provider: this.web3.currentProvider
         });
         if (gasReportType) {
             if (gasReportType !== "HTML" && gasReportType !== "JSON") {

@@ -99,9 +99,12 @@ contract("Framework class", accounts => {
             );
         }
 
-        it("without truffle framework", async () => {
+        // Intentionally commenting out this test, since using external web3 provider is going to be changed in #237
+        it("using truffle framework", async () => {
+            const Web3 = require("web3");
+            const web3_local = new Web3(web3.currentProvider);
             const sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider
+                web3: web3_local
             });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -126,7 +129,7 @@ contract("Framework class", accounts => {
         describe("and load tokens", () => {
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
+                    isTruffle: true,
                     tokens: ["fUSDC", "fDAI"]
                 });
                 await sf.initialize();
@@ -138,8 +141,8 @@ contract("Framework class", accounts => {
 
             it("failed due to unregistered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["fML"]
+                    tokens: ["fML"],
+                    isTruffle: true
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -152,7 +155,7 @@ contract("Framework class", accounts => {
                     from: admin
                 });
                 const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
+                    isTruffle: true,
                     tokens: ["SASHIMI"]
                 });
                 await expectRevert(
@@ -168,7 +171,7 @@ contract("Framework class", accounts => {
 
         beforeEach(async () => {
             sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider,
+                isTruffle: true,
                 gasReportType: "HTML"
             });
 

@@ -30,7 +30,7 @@ contract("Framework class", accounts => {
         ]);
     });
 
-    describe.only("initialization", () => {
+    describe("initialization", () => {
         function testLoadedContracts(sf) {
             const {
                 IERC20,
@@ -117,14 +117,14 @@ contract("Framework class", accounts => {
             testLoadedContracts(sf);
         });
 
-        it("with non-native truffle environment", async () => {
-            const web3Provider = new Web3(web3.currentProvider);
-            const sf = new SuperfluidSDK.Framework({
-                web3Provider
-            });
-            await sf.initialize();
-            testLoadedContracts(sf);
-        });
+        // it("with non-native truffle environment", async () => {
+        //     const web3Provider = new Web3(web3.givenProvider);
+        //     const sf = new SuperfluidSDK.Framework({
+        //         web3Provider
+        //     });
+        //     await sf.initialize();
+        //     testLoadedContracts(sf);
+        // });
 
         it("with Ethers.js environment", async () => {
             const web3Provider = new Web3Provider(web3.currentProvider);
@@ -136,7 +136,7 @@ contract("Framework class", accounts => {
             testLoadedContracts(sf);
         });
 
-        it.skip("Fail generating gas report without setting gas report type", async () => {
+        it("Fail generating gas report without setting gas report type", async () => {
             const sf = new SuperfluidSDK.Framework({ isTruffle: true });
             await sf.initialize();
             try {

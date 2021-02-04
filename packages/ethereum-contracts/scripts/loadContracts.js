@@ -73,7 +73,7 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         if (ethers) {
             try {
                 console.debug(
-                    `Using @superfluid-finance/js-sdk within the Ethers.js environment.
+                    `Using @superfluid-finance/ethereum-contracts within the Ethers.js environment.
                     Peer dependency @ethersproject/contract is required.`
                 );
                 allContractNames.forEach(name => {
@@ -100,7 +100,7 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         } else if (web3) {
             try {
                 console.debug(
-                    `Using @superfluid-finance/js-sdk in a non-native Truffle environment.
+                    `Using @superfluid-finance/ethereum-contracts in a non-native Truffle environment.
                     Peer dependency @truffle/contract is required.`
                 );
                 const TruffleContract = require("@truffle/contract");
@@ -123,7 +123,7 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         } else {
             try {
                 console.debug(
-                    `Using @superfluid-finance/js-sdk within a Truffle native environment.
+                    `Using @superfluid-finance/ethereum-contracts within a Truffle native environment.
                     Truffle artifacts must be present.`
                 );
                 allContractNames.forEach(name => {
@@ -135,7 +135,9 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         }
         return contracts;
     } catch (e) {
-        throw Error(`@superfluid-finance/js-sdk loadContracts(): ${e}`);
+        throw Error(
+            `@superfluid-finance/ethereum-contracts loadContracts(): ${e}`
+        );
     }
 };
 

@@ -78,7 +78,8 @@ module.exports = class TestEnvironment {
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
-            isTruffle: this.isTruffle
+            isTruffle: this.isTruffle,
+            version: process.env.RELEASE_VERSION || "test"
         });
         await this.sf.initialize();
 

@@ -107,7 +107,8 @@ contract("Framework class", accounts => {
 
         it("with native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
-                isTruffle: true
+                isTruffle: true,
+                version: "test"
             });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -115,7 +116,8 @@ contract("Framework class", accounts => {
 
         it("with non-native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
-                web3: new Web3(web3.currentProvider)
+                web3: new Web3(web3.currentProvider),
+                version: "test"
             });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -123,14 +125,18 @@ contract("Framework class", accounts => {
 
         it("with Ethers.js environment", async () => {
             const sf = new SuperfluidSDK.Framework({
-                ethers: new Web3Provider(web3.currentProvider)
+                ethers: new Web3Provider(web3.currentProvider),
+                version: "test"
             });
             await sf.initialize();
             testLoadedContracts(sf);
         });
 
         it("Fail generating gas report without setting gas report type", async () => {
-            const sf = new SuperfluidSDK.Framework({ isTruffle: true });
+            const sf = new SuperfluidSDK.Framework({
+                isTruffle: true,
+                version: "test"
+            });
             await sf.initialize();
             try {
                 sf.generateGasReport("name");
@@ -139,11 +145,19 @@ contract("Framework class", accounts => {
             }
         });
 
+        it("defaults to version v1", () => {
+            const sf = new SuperfluidSDK.Framework({
+                isTruffle: true
+            });
+            assert.equal(sf.version, "v1");
+        });
+
         describe("and load tokens", () => {
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
-                    tokens: ["fUSDC", "fDAI"]
+                    tokens: ["fUSDC", "fDAI"],
+                    version: "test"
                 });
                 await sf.initialize();
                 assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
@@ -155,7 +169,8 @@ contract("Framework class", accounts => {
             it("failed due to unregistered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     tokens: ["fML"],
-                    isTruffle: true
+                    isTruffle: true,
+                    version: "test"
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -170,7 +185,8 @@ contract("Framework class", accounts => {
                 });
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
-                    tokens: ["SASHIMI"]
+                    tokens: ["SASHIMI"],
+                    version: "test"
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -186,7 +202,8 @@ contract("Framework class", accounts => {
         beforeEach(async () => {
             sf = new SuperfluidSDK.Framework({
                 isTruffle: true,
-                gasReportType: "HTML"
+                gasReportType: "HTML",
+                version: "test"
             });
 
             await sf.initialize();

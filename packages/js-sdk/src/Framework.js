@@ -39,7 +39,7 @@ module.exports = class Framework {
         gasReportType
     }) {
         this.chainId = chainId;
-        this.version = version || "test";
+        this.version = version || "v1";
         this.resolverAddress = resolverAddress;
         if (isTruffle && (ethers || web3))
             throw Error(

@@ -5,8 +5,7 @@
     },
     "globals": {
         "Atomics": "readonly",
-        "SharedArrayBuffer": "readonly",
-        "webpack": "readonly"
+        "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
         "ecmaVersion": 2018,

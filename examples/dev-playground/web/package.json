@@ -20,7 +20,7 @@
     "@redwoodjs/forms": "^0.23.1-canary.25",
     "@redwoodjs/router": "^0.23.1-canary.25",
     "@redwoodjs/web": "0.23.1-canary.26",
-    "@superfluid-finance/js-sdk": "^0.2.5-PR236.d346c83.0",
+    "@superfluid-finance/js-sdk": "^0.3.1-PR238.d46ea44.0",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"

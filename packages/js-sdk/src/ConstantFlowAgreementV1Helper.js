@@ -43,11 +43,6 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Create flow from ${sender} to ${receiver} at ${flowRate} ...`
         );
-        console.log(
-            this._cfa.contract.methods
-                .createFlow(superTokenNorm, receiverNorm, flowRateNorm, "0x")
-                .encodeABI()
-        );
         const tx = await this._sf.host.callAgreement(
             this._cfa.address,
             this._cfa.contract.methods

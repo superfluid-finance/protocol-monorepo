@@ -20,7 +20,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .createIndex(superToken, indexId, "0x")
@@ -29,6 +29,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Index created.");
         return tx;
     }
@@ -41,7 +42,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .updateIndex(superToken, indexId, indexValue, "0x")
@@ -50,6 +51,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Index updated.");
         return tx;
     }
@@ -63,7 +65,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .updateSubscription(
@@ -78,6 +80,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Subscription updated.");
         return tx;
     }
@@ -90,7 +93,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .approveSubscription(superToken, publisher, indexId, "0x")
@@ -99,6 +102,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Subscription approved.");
         return tx;
     }
@@ -112,7 +116,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .deleteSubscription(
@@ -127,6 +131,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Subscription deleted.");
         return tx;
     }
@@ -139,7 +144,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .distribute(superToken, indexId, amount, "0x")
@@ -148,6 +153,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Distribution complete.");
         return tx;
     }
@@ -161,7 +167,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._ida.address,
             this._ida.contract.methods
                 .claim(superToken, publisher, indexId, subscriber, "0x")
@@ -170,6 +176,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             { from: sender }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         console.debug("Claim complete.");
         return tx;
     }

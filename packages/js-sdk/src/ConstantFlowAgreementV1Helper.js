@@ -43,7 +43,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Create flow from ${sender} to ${receiver} at ${flowRate} ...`
         );
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._cfa.address,
             this._cfa.contract.methods
                 .createFlow(superTokenNorm, receiverNorm, flowRateNorm, "0x")
@@ -54,6 +54,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
         return tx;
@@ -89,7 +90,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Update flow from ${sender} to ${receiver} to ${flowRate} ...`
         );
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._cfa.address,
             this._cfa.contract.methods
                 .updateFlow(superTokenNorm, receiverNorm, flowRateNorm, "0x")
@@ -100,6 +101,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         this._sf._pushTxForGasReport(tx, "updateFlow");
         console.debug("Flow updated.");
         return tx;
@@ -137,7 +139,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Delete flow from ${sender} to ${receiver} by ${by || byNorm} ...`
         );
-        const tx = await this._sf.host.callAgreement(
+        const tx = this._sf.host.callAgreement(
             this._cfa.address,
             this._cfa.contract.methods
                 .deleteFlow(superTokenNorm, senderNorm, receiverNorm, "0x")
@@ -148,6 +150,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             }
         );
         if (tx.on) await tx.on("transactionHash", onTransaction);
+        else await tx();
         this._sf._pushTxForGasReport(tx, "deleteFlow");
         console.debug("Flow deleted.");
         return tx;

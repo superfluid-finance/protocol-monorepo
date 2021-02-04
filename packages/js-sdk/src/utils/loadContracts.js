@@ -19,12 +19,12 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
     // Create adaptor for web3.js methods.encodeABI
     const web3EncodingAdapter = {};
     ethersContract.interface.fragments.forEach(fragment => {
-        web3EncodingAdapter[fragment.name] = (...arguments) => {
+        web3EncodingAdapter[fragment.name] = (...args) => {
             return {
                 encodeABI: () => {
                     return ethersContract.interface.encodeFunctionData(
                         fragment,
-                        arguments
+                        args
                     );
                 }
             };
@@ -38,7 +38,7 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
 
     // Create adaptor for .on("transactionHash"...
     Object.keys(ethersContract.functions).map(methodName => {
-        ethersContract[methodName] = async (...arguments) => {
+        ethersContract[methodName] = async (...args) => {
             return {
                 on: () => {
                     console.debug(

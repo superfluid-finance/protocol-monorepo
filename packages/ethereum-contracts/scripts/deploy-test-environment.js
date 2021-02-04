@@ -1,5 +1,3 @@
-const Web3 = require("web3");
-
 const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");

@@ -7,6 +7,51 @@ const mockContractNames = [
     "SuperTokenFactoryMock"
 ];
 
+const getAdaptedContract = ({ address, abi, ethers }) => {
+    const { Contract } = require("@ethersproject/contracts");
+
+    const ethersContract = new Contract(
+        address,
+        abi,
+        ethers.getSigner() || ethers
+    );
+
+    // Create adaptor for web3.js methods.encodeABI
+    const web3EncodingAdapter = {};
+    ethersContract.interface.fragments.forEach(fragment => {
+        web3EncodingAdapter[fragment.name] = (...arguments) => {
+            return {
+                encodeABI: () => {
+                    return ethersContract.interface.encodeFunctionData(
+                        fragment,
+                        arguments
+                    );
+                }
+            };
+        };
+    });
+    ethersContract.contract = {
+        methods: {
+            ...web3EncodingAdapter
+        }
+    };
+
+    // Create adaptor for .on("transactionHash"...
+    Object.keys(ethersContract.functions).map(methodName => {
+        ethersContract[methodName] = async (...arguments) => {
+            return {
+                on: () => {
+                    console.debug(
+                        "@superfluid-finance/js-sdk Warning: 'onTransaction' is not yet implemented when using Ethers.js"
+                    );
+                }
+            };
+        };
+    });
+
+    return ethersContract;
+};
+
 const loadContracts = ({ ethers, web3, useMocks, from }) => {
     const allContractNames = [
         ...contractNames,
@@ -20,56 +65,14 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
                 console.debug(
                     "Using @superfluid-finance/js-sdk within the Ethers.js environment. Peer dependency @ethersproject/contract is required."
                 );
-                const { Contract } = require("@ethersproject/contracts");
-
                 allContractNames.forEach(name => {
                     contracts[name] = {
-                        at: address => {
-                            const ethersContract = new Contract(
+                        at: address =>
+                            getAdaptedContract({
                                 address,
-                                abis[name],
-                                ethers.getSigner() || ethers
-                            );
-                            // Create adaptor for web3.js methods.encodeABI
-                            const web3EncodingAdapter = {};
-                            ethersContract.interface.fragments.forEach(
-                                fragment => {
-                                    web3EncodingAdapter[fragment.name] = (
-                                        ...arguments
-                                    ) => {
-                                        return {
-                                            encodeABI: () => {
-                                                return ethersContract.interface.encodeFunctionData(
-                                                    fragment,
-                                                    arguments
-                                                );
-                                            }
-                                        };
-                                    };
-                                }
-                            );
-                            ethersContract.contract = {
-                                methods: {
-                                    ...web3EncodingAdapter
-                                }
-                            };
-                            Object.keys(ethersContract.functions).map(
-                                methodName => {
-                                    ethersContract[methodName] = (
-                                        ...arguments
-                                    ) => {
-                                        return {
-                                            on: () => {
-                                                console.debug(
-                                                    "@superfluid-finance/js-sdk Warning: 'onTransaction' is not yet implemented when using Ethers.js"
-                                                );
-                                            }
-                                        };
-                                    };
-                                }
-                            );
-                            return ethersContract;
-                        },
+                                ethers,
+                                abi: abis[name]
+                            }),
                         abi: abis[name],
                         contractName: name
                     };

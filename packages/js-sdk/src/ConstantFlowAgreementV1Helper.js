@@ -43,17 +43,23 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Create flow from ${sender} to ${receiver} at ${flowRate} ...`
         );
-        const tx = await this._sf.host.callAgreement(
-            this._cfa.address,
-            this._cfa.contract.methods
-                .createFlow(superTokenNorm, receiverNorm, flowRateNorm, "0x")
-                .encodeABI(),
-            userData,
-            {
-                from: senderNorm
-            }
-        );
-        // .on("transactionHash", onTransaction);
+        const tx = await this._sf.host
+            .callAgreement(
+                this._cfa.address,
+                this._cfa.contract.methods
+                    .createFlow(
+                        superTokenNorm,
+                        receiverNorm,
+                        flowRateNorm,
+                        "0x"
+                    )
+                    .encodeABI(),
+                userData,
+                {
+                    from: senderNorm
+                }
+            )
+            .on("transactionHash", onTransaction);
         this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
         return tx;

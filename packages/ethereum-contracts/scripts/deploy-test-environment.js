@@ -32,25 +32,23 @@ module.exports = async function(
         console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
-        tokens.map(async token => {
-            console.log(`==== Deploying test token ${token}...`);
-            await deployTestToken(errorHandler, [":", token], {
-                ethers,
+        for (let i = 0; i < tokens.length; ++i) {
+            console.log(`==== Deploying test token ${tokens[i]}...`);
+            await deployTestToken(errorHandler, [":", tokens[i]], {
                 web3,
                 from
             });
-            console.log(`==== Test token ${token} deployed.`);
+            console.log(`==== Test token ${tokens[i]} deployed.`);
 
-            console.log(`==== Creating super token for ${token}...`);
-            await deploySuperToken(errorHandler, [":", token], {
-                ethers,
+            console.log(`==== Creating super token for ${tokens[i]}...`);
+            await deploySuperToken(errorHandler, [":", tokens[i]], {
                 web3,
                 from
             });
-            console.log(`==== Super token for ${token} deployed.`);
-        });
+            console.log(`==== Super token for ${tokens[i]} deployed.`);
+        }
         // Creating SETH
-        deploySuperToken(errorHandler, [":", "ETH"], {
+        await deploySuperToken(errorHandler, [":", "ETH"], {
             ethers,
             web3,
             from

@@ -10,7 +10,8 @@ module.exports = {
         beforeEach: true,
         afterEach: true,
         it: true,
-        assert: true
+        assert: true,
+        expect: true
     },
     rules: {
         "no-console": "off",

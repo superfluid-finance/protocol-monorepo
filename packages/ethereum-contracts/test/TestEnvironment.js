@@ -11,6 +11,7 @@ const InstantDistributionAgreementV1 = artifacts.require(
 const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
+const deployChi = require("../scripts/deploy-chi");
 
 const { BN } = require("@openzeppelin/test-helpers");
 const {
@@ -64,6 +65,8 @@ module.exports = class TestEnvironment {
     /// reset the system
     async reset(deployOpts = {}) {
         console.log("Aliases", this.aliases);
+
+        await deployChi(this.errorHandler, { web3 });
 
         // deploy framework
         await deployFramework(this.errorHandler, {

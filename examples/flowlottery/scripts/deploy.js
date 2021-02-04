@@ -14,23 +14,16 @@ module.exports = async function(callback, argv) {
         console.log("release version:", version);
 
         const sf = new SuperfluidSDK.Framework({
-            chainId: 5,
-            version: version,
-            web3Provider: web3.currentProvider
+            version,
+            web3Provider: web3.currentProvider,
+            tokens: ["fDAI"]
         });
         await sf.initialize();
-
-        const daiAddress = await sf.resolver.get("tokens.fDAI");
-        const dai = await sf.contracts.TestToken.at(daiAddress);
-        const daixWrapper = await sf.getERC20Wrapper(dai);
-        const daix = await sf.contracts.ISuperToken.at(
-            daixWrapper.wrapperAddress
-        );
 
         const app = await web3tx(LotterySuperApp.new, "Deploy LotterySuperApp")(
             sf.host.address,
             sf.agreements.cfa.address,
-            daix.address
+            sf.tokens.fDAIx.address
         );
         console.log("App deployed at", app.address);
         callback();

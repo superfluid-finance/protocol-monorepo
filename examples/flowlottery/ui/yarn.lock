@@ -1725,10 +1725,10 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@superfluid-finance/js-sdk@dev":
-  version "0.2.3-dev.ec8220f.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.2.3-dev.ec8220f.0.tgz#553282ddf53ee608fbc1dd11d531f893f0b1624d"
-  integrity sha512-GaaTSNqn7dRFwktmZwBniTqo8iE8+iIbHNZKT9jjd6yTa5eN+w8xJrApBp/72FlhPEZlLBGHmZ197tw+QNf7hg==
+"@superfluid-finance/js-sdk@^0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.2.4.tgz#34ec0ef315b7e1ce22b5329ea18a0f0071991580"
+  integrity sha512-VjyLAmg9nXTQE84qWlq9HryH1eqhEVhYT/boISO/fj6NxWIB6AY9dE+kjwMxw1XEDKeH5zIkn9sMz0hKXhCMAA==
   dependencies:
     "@truffle/contract" "4.3.4"
 

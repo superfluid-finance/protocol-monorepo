@@ -20,7 +20,6 @@ module.exports = async function(
     try {
         validateWeb3Arguments({ web3, ethers, isTruffle });
         this.web3 = web3 || global.web3;
-        this.ethers = ethers;
 
         if (!from) {
             const accounts = await this.web3.eth.getAccounts();
@@ -28,8 +27,8 @@ module.exports = async function(
         }
 
         const { TestResolver, TestToken } = loadContracts({
-            web3: this.web3,
-            ethers: this.ethers,
+            web3,
+            ethers,
             from
         });
 

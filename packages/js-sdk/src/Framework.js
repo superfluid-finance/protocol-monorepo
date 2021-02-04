@@ -79,7 +79,7 @@ module.exports = class Framework {
     async initialize() {
         let networkType;
         let chainId;
-        if (ethers) {
+        if (this.ethers) {
             const network = await this.ethers.getNetwork();
             networkType = network.name;
             chainId = network.chainId;

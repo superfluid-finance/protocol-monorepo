@@ -444,7 +444,9 @@ contract("deployment test (outside truffle environment)", accounts => {
         );
     });
 
-    it("scripts/deploy-test-environment.js", async () => {
-        await deployTestEnvironment(errorHandler);
+    it.only("scripts/deploy-test-environment.js", async () => {
+        await deployTestEnvironment(errorHandler, {
+            web3: new Web3(web3.currentProvider)
+        });
     });
 });

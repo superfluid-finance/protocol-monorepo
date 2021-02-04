@@ -22,9 +22,7 @@ module.exports = async function(
 ) {
     try {
         validateWeb3Arguments({ web3, ethers, isTruffle });
-        this.isTruffle = isTruffle;
         this.web3 = web3 || global.web3;
-        this.ethers = ethers;
 
         if (!from) {
             const accounts = await this.web3.eth.getAccounts();
@@ -39,8 +37,8 @@ module.exports = async function(
             ISETH,
             SETHProxy
         } = loadContracts({
-            web3: this.web3,
-            ethers: this.ethers,
+            web3,
+            ethers,
             from
         });
 
@@ -60,9 +58,9 @@ module.exports = async function(
         console.log("Underlying token name", tokenName);
 
         const sf = new SuperfluidSDK.Framework({
-            isTruffle: this.isTruffle,
-            web3: this.web3,
-            ethers: this.ethers,
+            isTruffle,
+            web3,
+            ethers,
             version,
             from
         });

@@ -24,13 +24,11 @@ module.exports = async function(
 
     try {
         validateWeb3Arguments({ web3, ethers, isTruffle });
-        this.web3 = web3 || global.web3;
-        this.ethers = ethers;
 
         console.log("==== Deploying superfluid framework...");
         await deployFramework(errorHandler, {
-            ethers: this.ethers,
-            web3: this.web3,
+            ethers,
+            web3,
             from
         });
         console.log("==== Superfluid framework deployed.");
@@ -40,24 +38,24 @@ module.exports = async function(
             ...tokens.map(async token => {
                 console.log(`==== Deploying test token ${token}...`);
                 await deployTestToken(errorHandler, [":", token], {
-                    ethers: this.ethers,
-                    web3: this.web3,
+                    ethers,
+                    web3,
                     from
                 });
                 console.log(`==== Test token ${token} deployed.`);
 
                 console.log(`==== Creating super token for ${token}...`);
                 await deploySuperToken(errorHandler, [":", token], {
-                    ethers: this.ethers,
-                    web3: this.web3,
+                    ethers,
+                    web3,
                     from
                 });
                 console.log(`==== Super token for ${token} deployed.`);
             }),
             // Creating SETH
             deploySuperToken(errorHandler, [":", "ETH"], {
-                ethers: this.ethers,
-                web3: this.web3,
+                ethers,
+                web3,
                 from
             })
         ]);

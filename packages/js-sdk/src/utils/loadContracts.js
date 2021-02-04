@@ -30,6 +30,7 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
                                 abis[name],
                                 ethers.getSigner() || ethers
                             );
+                            // Create adaptor for web3.js methods.encodeABI
                             const web3EncodingAdapter = {};
                             ethersContract.interface.fragments.forEach(
                                 fragment => {

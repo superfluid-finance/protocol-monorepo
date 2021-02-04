@@ -83,9 +83,7 @@ module.exports = async function(
 ) {
     try {
         validateWeb3Arguments({ web3, ethers, isTruffle });
-        this.isTruffle = isTruffle;
         this.web3 = web3 || global.web3;
-        this.ethers = ethers;
 
         if (!from) {
             const accounts = await this.web3.eth.getAccounts();
@@ -107,8 +105,8 @@ module.exports = async function(
             InstantDistributionAgreementV1
         } = loadContracts({
             useMocks,
-            web3: this.web3,
-            ethers: this.ethers,
+            web3,
+            ethers,
             from
         });
 
@@ -139,7 +137,7 @@ module.exports = async function(
             err => {
                 if (err) throw err;
             },
-            { web3: this.web3, from }
+            { web3, from }
         );
 
         const config = SuperfluidSDK.getConfig(chainId);

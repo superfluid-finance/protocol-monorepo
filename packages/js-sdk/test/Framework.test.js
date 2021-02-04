@@ -113,7 +113,7 @@ contract("Framework class", accounts => {
             testLoadedContracts(sf);
         });
 
-        it.only("with non-native truffle environment", async () => {
+        it("with non-native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
                 web3: new Web3(web3.currentProvider)
             });
@@ -165,7 +165,8 @@ contract("Framework class", accounts => {
 
             it("failed due to no super token wrapper", async () => {
                 await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
-                    from: admin
+                    from: admin,
+                    isTruffle: true
                 });
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,

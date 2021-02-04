@@ -51,7 +51,8 @@ module.exports = class Framework {
             );
         if (ethers && web3)
             throw Error(
-                "@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance. Please choose only one."
+                `@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance.
+                Please choose only one.`
             );
 
         this.web3 = isTruffle ? global.web3 : web3;

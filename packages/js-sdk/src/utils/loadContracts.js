@@ -16,7 +16,7 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
         ethers.getSigner() || ethers
     );
 
-    // Create adaptor for web3.js methods.encodeABI
+    // Create adapter for web3.js Contract.contract.methods.encodeABI
     const web3EncodingAdapter = {};
     ethersContract.interface.fragments.forEach(fragment => {
         web3EncodingAdapter[fragment.name] = (...args) => {
@@ -36,19 +36,6 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
         }
     };
 
-    // Create adaptor for .on("transactionHash"...
-    Object.keys(ethersContract.functions).map(methodName => {
-        ethersContract[methodName] = async (...args) => {
-            return {
-                on: () => {
-                    console.debug(
-                        "@superfluid-finance/js-sdk Warning: 'onTransaction' is not yet implemented when using Ethers.js"
-                    );
-                }
-            };
-        };
-    });
-
     return ethersContract;
 };
 
@@ -63,7 +50,8 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         if (ethers) {
             try {
                 console.debug(
-                    "Using @superfluid-finance/js-sdk within the Ethers.js environment. Peer dependency @ethersproject/contract is required."
+                    `Using @superfluid-finance/js-sdk within the Ethers.js environment.
+                    Peer dependency @ethersproject/contract is required.`
                 );
                 allContractNames.forEach(name => {
                     contracts[name] = {
@@ -85,7 +73,8 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         } else if (web3) {
             try {
                 console.debug(
-                    "Using @superfluid-finance/js-sdk in a non-native Truffle environment. Peer dependency @truffle/contract is required."
+                    `Using @superfluid-finance/js-sdk in a non-native Truffle environment.
+                    Peer dependency @truffle/contract is required.`
                 );
                 const TruffleContract = require("@truffle/contract");
                 allContractNames.forEach(name => {
@@ -104,7 +93,8 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         } else {
             try {
                 console.debug(
-                    "Using @superfluid-finance/js-sdk within a Truffle native environment. Truffle artifacts must be present."
+                    `Using @superfluid-finance/js-sdk within a Truffle native environment.
+                    Truffle artifacts must be present.`
                 );
                 allContractNames.forEach(name => {
                     contracts[name] = artifacts.require(name);

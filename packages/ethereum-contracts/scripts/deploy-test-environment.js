@@ -32,31 +32,29 @@ module.exports = async function(
         console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
-        await Promise.all([
-            ...tokens.map(async token => {
-                console.log(`==== Deploying test token ${token}...`);
-                await deployTestToken(errorHandler, [":", token], {
-                    ethers,
-                    web3,
-                    from
-                });
-                console.log(`==== Test token ${token} deployed.`);
-
-                console.log(`==== Creating super token for ${token}...`);
-                await deploySuperToken(errorHandler, [":", token], {
-                    ethers,
-                    web3,
-                    from
-                });
-                console.log(`==== Super token for ${token} deployed.`);
-            }),
-            // Creating SETH
-            deploySuperToken(errorHandler, [":", "ETH"], {
+        tokens.map(async token => {
+            console.log(`==== Deploying test token ${token}...`);
+            await deployTestToken(errorHandler, [":", token], {
                 ethers,
                 web3,
                 from
-            })
-        ]);
+            });
+            console.log(`==== Test token ${token} deployed.`);
+
+            console.log(`==== Creating super token for ${token}...`);
+            await deploySuperToken(errorHandler, [":", token], {
+                ethers,
+                web3,
+                from
+            });
+            console.log(`==== Super token for ${token} deployed.`);
+        });
+        // Creating SETH
+        deploySuperToken(errorHandler, [":", "ETH"], {
+            ethers,
+            web3,
+            from
+        });
 
         if (process.env.TEST_RESOLVER_ADDRESS) {
             console.log(

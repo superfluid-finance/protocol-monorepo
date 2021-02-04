@@ -60,11 +60,6 @@ function validateWeb3Arguments({ isTruffle, web3, ethers }) {
             `@superfluid-finaince/ethereum-contracts: Flag 'isTruffle' cannot be 'true'
             when using a web3/ethers instance.`
         );
-    // if (!isTruffle && !ethers && !web3)
-    //     throw Error(
-    //         `@superfluid-finaince/ethereum-contracts: You must provide a web3 or
-    //          ethers instance, or set 'isTruffle' to true.`
-    //     );
     if (ethers && web3)
         throw Error(
             `@superfluid-finaince/ethereum-contracts: You cannot provide both a web3 and

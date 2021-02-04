@@ -66,7 +66,11 @@ contract LotterySuperApp is Ownable, SuperAppBase {
      *************************************************************************/
 
     /// @dev Take entrance fee from the user and issue a ticket
-    function participate(bytes calldata ctx) external returns (bytes memory newCtx) {
+    function participate(bytes calldata ctx)
+        external
+        onlyHost
+        returns (bytes memory newCtx)
+    {
         // msg sender is encoded in the Context
         address sender = _host.decodeCtx(ctx).msgSender;
         _acceptedToken.transferFrom(sender, address(this), _ENTRANCE_FEE);

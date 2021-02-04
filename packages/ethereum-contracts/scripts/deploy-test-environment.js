@@ -4,6 +4,8 @@ const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
 
+const { validateWeb3Arguments } = require("./utils");
+
 /**
  * @dev Deploy the superfluid framework and test tokens for local testing
  * @param isTruffle (optional) Whether the script is used within the truffle framework
@@ -14,20 +16,21 @@ const deploySuperToken = require("./deploy-super-token");
  */
 module.exports = async function(
     callback,
-    { isTruffle, web3Provider, from } = {}
+    { isTruffle, web3, ethers, from } = {}
 ) {
     const errorHandler = err => {
         if (err) throw err;
     };
 
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
-        if (!this.web3) throw new Error("No web3 is available");
+        validateWeb3Arguments({ web3, ethers, isTruffle });
+        this.web3 = web3 || global.web3;
+        this.ethers = ethers;
 
         console.log("==== Deploying superfluid framework...");
         await deployFramework(errorHandler, {
-            isTruffle,
-            web3Provider: this.web3.currentProvider,
+            ethers: this.ethers,
+            web3: this.web3,
             from
         });
         console.log("==== Superfluid framework deployed.");
@@ -37,22 +40,24 @@ module.exports = async function(
             ...tokens.map(async token => {
                 console.log(`==== Deploying test token ${token}...`);
                 await deployTestToken(errorHandler, [":", token], {
-                    isTruffle,
+                    ethers: this.ethers,
+                    web3: this.web3,
                     from
                 });
                 console.log(`==== Test token ${token} deployed.`);
 
                 console.log(`==== Creating super token for ${token}...`);
                 await deploySuperToken(errorHandler, [":", token], {
-                    isTruffle,
+                    ethers: this.ethers,
+                    web3: this.web3,
                     from
                 });
                 console.log(`==== Super token for ${token} deployed.`);
             }),
             // Creating SETH
             deploySuperToken(errorHandler, [":", "ETH"], {
-                isTruffle,
-                web3Provider: this.web3.currentProvider,
+                ethers: this.ethers,
+                web3: this.web3,
                 from
             })
         ]);

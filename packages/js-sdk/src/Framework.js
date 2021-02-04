@@ -5,11 +5,7 @@ const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
-const {
-    TRUFFLE_NATIVE,
-    TRUFFLE_CONTRACT,
-    ETHERS
-} = require("./utils/constants");
+
 const User = require("./User");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -22,6 +18,7 @@ module.exports = class Framework {
      * @dev Create new Superfluid framework object
      * @param {string} version (Default: test) protocol release version.
      * @param {Web3} web3  (Optional) Injected web3 instance (version has to be 1.x)
+     * @param {Ethers} ethers  (Optional) Injected ethers instance
      * @param {boolean} isTruffle (Default: false) if the framework is used within truffle environment.
      * @param {string} chainId (Optional) force chainId, instead relying on web3.eth.net.getId
      * @param {string} resolverAddress (Optional) force resolver address
@@ -56,11 +53,8 @@ module.exports = class Framework {
             throw Error(
                 "@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance. Please choose only one."
             );
-        this.mode = TRUFFLE_CONTRACT;
-        if (isTruffle) this.mode = TRUFFLE_NATIVE;
-        if (ethers) this.mode = ETHERS;
 
-        this.web3 = this.mode === TRUFFLE_NATIVE ? global.web3 : web3;
+        this.web3 = isTruffle ? global.web3 : web3;
         this.ethers = ethers;
         this._tokens = tokens;
 
@@ -85,7 +79,7 @@ module.exports = class Framework {
     async initialize() {
         let networkType;
         let chainId;
-        if (this.mode === ETHERS) {
+        if (ethers) {
             const network = await this.ethers.getNetwork();
             networkType = network.name;
             chainId = network.chainId;

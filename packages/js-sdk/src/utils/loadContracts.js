@@ -1,5 +1,3 @@
-const { TRUFFLE_NATIVE, ETHERS } = require("./constants");
-
 const contractNames = require("../contracts.json");
 const abis = require("../abi");
 
@@ -9,11 +7,12 @@ const mockContractNames = [
     "SuperTokenFactoryMock"
 ];
 
-const loadContracts = ({ ethers, web3, useMocks, web3Provider, from }) => {
+const loadContracts = ({ ethers, web3, useMocks, from }) => {
     const allContractNames = [
         ...contractNames,
         ...(useMocks ? mockContractNames : [])
     ];
+    if (web3) console.log("is web3!");
     try {
         let contracts = {};
         if (ethers) {
@@ -90,7 +89,7 @@ const loadContracts = ({ ethers, web3, useMocks, web3Provider, from }) => {
                         contractName: name,
                         abi: abis[name]
                     }));
-                    c.setProvider(web3);
+                    c.setProvider(web3.currentProvider);
                     from && c.defaults({ from });
                 });
             } catch (e) {

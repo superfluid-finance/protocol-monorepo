@@ -113,7 +113,7 @@ contract("Framework class", accounts => {
             testLoadedContracts(sf);
         });
 
-        it("with non-native truffle environment", async () => {
+        it.only("with non-native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
                 web3: new Web3(web3.currentProvider)
             });

@@ -2,7 +2,7 @@ const { web3tx } = require("@decentral.ee/web3-helpers");
 const Superfluid = require("@superfluid-finance/js-sdk");
 
 const loadContracts = require("./loadContracts");
-const { parseColonArgs, validateWeb3Address } = require("./utils");
+const { parseColonArgs, validateWeb3Arguments } = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
@@ -18,8 +18,8 @@ module.exports = async function(
     { isTruffle, web3, ethers, from } = {}
 ) {
     try {
-        validateWeb3Arguments({ isTruffle, web3, ethers });
-        this.web3 = isTruffle ? global.web3 : web3;
+        validateWeb3Arguments({ web3, ethers, isTruffle });
+        this.web3 = web3 || global.web3;
         this.ethers = ethers;
 
         if (!from) {
@@ -28,9 +28,8 @@ module.exports = async function(
         }
 
         const { TestResolver, TestToken } = loadContracts({
-            isTruffle,
-            web3,
-            ethers,
+            web3: this.web3,
+            ethers: this.ethers,
             from
         });
 

@@ -164,7 +164,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                     .encodeABI(),
                 userData
             ],
-            sender: senderNorm,
+            sender: byNorm,
             method: this._sf.host.callAgreement,
             onTransaction
         });

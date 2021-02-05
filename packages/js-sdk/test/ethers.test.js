@@ -1,4 +1,4 @@
-const { toBN, toWad } = require("@decentral.ee/web3-helpers");
+const { toWad } = require("@decentral.ee/web3-helpers");
 
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 const SuperfluidSDK = require("../src");
@@ -134,7 +134,7 @@ contract("User helper class", accounts => {
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
         it("create a new flow", async () => {
-            const tx = await alice.flow({
+            await alice.flow({
                 recipient: bob.address,
                 flowRate: "38580246913580" // 100 / mo
             });
@@ -179,7 +179,7 @@ contract("User helper class", accounts => {
             assert.equal(txHash, tx.receipt.transactionHash);
         });
         it("create a new flow with User object argument", async () => {
-            const tx = await alice.flow({
+            await alice.flow({
                 // "bob" rather than "bob.address"
                 recipient: bob,
                 flowRate: "38580246913580" // 100 / mo
@@ -194,7 +194,7 @@ contract("User helper class", accounts => {
     });
     describe.skip("existing flows", () => {
         beforeEach(async () => {
-            const tx = await alice.flow({
+            await alice.flow({
                 recipient: bob.address,
                 flowRate: "38580246913580" // 100 / mo
             });
@@ -206,7 +206,7 @@ contract("User helper class", accounts => {
             assert.equal(flow.flowRate, "38580246913580");
         });
         it("modify an existing flow", async () => {
-            const tx = await alice.flow({
+            await alice.flow({
                 recipient: bob.address,
                 flowRate: "19290123456790" // 50 / mo
             });

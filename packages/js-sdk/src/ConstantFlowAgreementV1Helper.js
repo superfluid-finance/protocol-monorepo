@@ -1,3 +1,5 @@
+const { completeTransaction } = require("./utils/general");
+
 /**
  * @dev Constant flow agreement v1 helper class
  */
@@ -43,18 +45,24 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Create flow from ${sender} to ${receiver} at ${flowRate} ...`
         );
-        const tx = this._sf.host.callAgreement(
-            this._cfa.address,
-            this._cfa.contract.methods
-                .createFlow(superTokenNorm, receiverNorm, flowRateNorm, "0x")
-                .encodeABI(),
-            userData,
-            {
-                from: senderNorm
-            }
-        );
-        if (tx.on) await tx.on("transactionHash", onTransaction);
-        else await tx();
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
+                this._cfa.address,
+                this._cfa.contract.methods
+                    .createFlow(
+                        superTokenNorm,
+                        receiverNorm,
+                        flowRateNorm,
+                        "0x"
+                    )
+                    .encodeABI(),
+                userData
+            ],
+            sender: senderNorm,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
         return tx;
@@ -90,18 +98,26 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Update flow from ${sender} to ${receiver} to ${flowRate} ...`
         );
-        const tx = this._sf.host.callAgreement(
-            this._cfa.address,
-            this._cfa.contract.methods
-                .updateFlow(superTokenNorm, receiverNorm, flowRateNorm, "0x")
-                .encodeABI(),
-            userData,
-            {
-                from: senderNorm
-            }
-        );
-        if (tx.on) await tx.on("transactionHash", onTransaction);
-        else await tx();
+
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
+                this._cfa.address,
+                this._cfa.contract.methods
+                    .updateFlow(
+                        superTokenNorm,
+                        receiverNorm,
+                        flowRateNorm,
+                        "0x"
+                    )
+                    .encodeABI(),
+                userData
+            ],
+            sender: senderNorm,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
+
         this._sf._pushTxForGasReport(tx, "updateFlow");
         console.debug("Flow updated.");
         return tx;
@@ -139,18 +155,19 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Delete flow from ${sender} to ${receiver} by ${by || byNorm} ...`
         );
-        const tx = this._sf.host.callAgreement(
-            this._cfa.address,
-            this._cfa.contract.methods
-                .deleteFlow(superTokenNorm, senderNorm, receiverNorm, "0x")
-                .encodeABI(),
-            userData,
-            {
-                from: byNorm
-            }
-        );
-        if (tx.on) await tx.on("transactionHash", onTransaction);
-        else await tx();
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
+                this._cfa.address,
+                this._cfa.contract.methods
+                    .deleteFlow(superTokenNorm, senderNorm, receiverNorm, "0x")
+                    .encodeABI(),
+                userData
+            ],
+            sender: senderNorm,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         this._sf._pushTxForGasReport(tx, "deleteFlow");
         console.debug("Flow deleted.");
         return tx;

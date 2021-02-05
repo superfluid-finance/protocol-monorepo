@@ -1,9 +1,11 @@
-const Web3 = require("web3");
-
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const loadContracts = require("./loadContracts");
-const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
+const {
+    parseColonArgs,
+    ZERO_ADDRESS,
+    validateWeb3Arguments
+} = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
@@ -16,11 +18,11 @@ const { parseColonArgs, ZERO_ADDRESS } = require("./utils");
 module.exports = async function(
     callback,
     argv,
-    { isTruffle, web3Provider, from } = {}
+    { isTruffle, web3, ethers, from } = {}
 ) {
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
-        if (!this.web3) throw new Error("No web3 is available");
+        validateWeb3Arguments({ web3, ethers, isTruffle });
+        this.web3 = web3 || global.web3;
 
         if (!from) {
             const accounts = await this.web3.eth.getAccounts();
@@ -35,8 +37,8 @@ module.exports = async function(
             ISETH,
             SETHProxy
         } = loadContracts({
-            isTruffle,
-            web3Provider: this.web3.currentProvider,
+            web3,
+            ethers,
             from
         });
 
@@ -57,7 +59,8 @@ module.exports = async function(
 
         const sf = new SuperfluidSDK.Framework({
             isTruffle,
-            web3: this.web3,
+            web3,
+            ethers,
             version,
             from
         });

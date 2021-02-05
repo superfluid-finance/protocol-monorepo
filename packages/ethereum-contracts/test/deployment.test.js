@@ -1,4 +1,5 @@
-//const { assert } = require("chai");
+const Web3 = require("web3");
+
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const deployFramework = require("../scripts/deploy-framework");
@@ -321,11 +322,15 @@ contract("deployment test (outside truffle environment)", accounts => {
         )();
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployFramework(errorHandler, {
+            web3: new Web3(web3.currentProvider),
+            from: accounts[0]
+        });
 
         // first deployment
         assert.equal(await testResolver.get("tokens.TEST7262"), ZERO_ADDRESS);
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const address1 = await testResolver.get("tokens.TEST7262");
@@ -333,6 +338,7 @@ contract("deployment test (outside truffle environment)", accounts => {
 
         // second deployment
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const address2 = await testResolver.get("tokens.TEST7262");
@@ -340,8 +346,12 @@ contract("deployment test (outside truffle environment)", accounts => {
 
         // new deployment after framework reset
         process.env.RESET = 1;
-        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployFramework(errorHandler, {
+            web3: new Web3(web3.currentProvider),
+            from: accounts[0]
+        });
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const address3 = await testResolver.get("tokens.TEST7262");
@@ -356,10 +366,14 @@ contract("deployment test (outside truffle environment)", accounts => {
         delete process.env.RESET;
         process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
 
-        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployFramework(errorHandler, {
+            web3: new Web3(web3.currentProvider),
+            from: accounts[0]
+        });
 
         // deploy test token first
         await deployTestToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
 
@@ -369,6 +383,7 @@ contract("deployment test (outside truffle environment)", accounts => {
             ZERO_ADDRESS
         );
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const s1 = await getSuperfluidAddresses();
@@ -381,6 +396,7 @@ contract("deployment test (outside truffle environment)", accounts => {
 
         // second deployment
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const s2 = await getSuperfluidAddresses();
@@ -394,9 +410,11 @@ contract("deployment test (outside truffle environment)", accounts => {
         // new deployment after framework update
         await deployFramework(errorHandler, {
             useMocks: true,
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const s3 = await getSuperfluidAddresses();
@@ -409,8 +427,12 @@ contract("deployment test (outside truffle environment)", accounts => {
 
         // new deployment after framework reset
         process.env.RESET = 1;
-        await deployFramework(errorHandler, { from: accounts[0] });
+        await deployFramework(errorHandler, {
+            web3: new Web3(web3.currentProvider),
+            from: accounts[0]
+        });
         await deploySuperToken(errorHandler, [":", "TEST7262"], {
+            web3: new Web3(web3.currentProvider),
             from: accounts[0]
         });
         const s4 = await getSuperfluidAddresses();
@@ -423,6 +445,8 @@ contract("deployment test (outside truffle environment)", accounts => {
     });
 
     it("scripts/deploy-test-environment.js", async () => {
-        await deployTestEnvironment(errorHandler);
+        await deployTestEnvironment(errorHandler, {
+            web3: new Web3(web3.currentProvider)
+        });
     });
 });

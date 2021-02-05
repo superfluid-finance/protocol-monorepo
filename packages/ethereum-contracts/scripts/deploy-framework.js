@@ -1,11 +1,15 @@
-const Web3 = require("web3");
-
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
 const loadContracts = require("./loadContracts");
-const { ZERO_ADDRESS, hasCode, codeChanged, isProxiable } = require("./utils");
+const {
+    ZERO_ADDRESS,
+    hasCode,
+    codeChanged,
+    isProxiable,
+    validateWeb3Arguments
+} = require("./utils");
 
 let reset;
 let testResolver;
@@ -72,13 +76,14 @@ module.exports = async function(
         useMocks,
         nonUpgradable,
         isTruffle,
-        web3Provider,
+        web3,
+        ethers,
         from
     } = {}
 ) {
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
-        if (!this.web3) throw new Error("No web3 is available");
+        validateWeb3Arguments({ web3, ethers, isTruffle });
+        this.web3 = web3 || global.web3;
 
         if (!from) {
             const accounts = await this.web3.eth.getAccounts();
@@ -99,9 +104,9 @@ module.exports = async function(
             ConstantFlowAgreementV1,
             InstantDistributionAgreementV1
         } = loadContracts({
-            isTruffle,
             useMocks,
-            web3Provider: this.web3.currentProvider,
+            web3,
+            ethers,
             from
         });
 
@@ -132,7 +137,7 @@ module.exports = async function(
             err => {
                 if (err) throw err;
             },
-            { web3: this.web3, from }
+            { web3, from }
         );
 
         const config = SuperfluidSDK.getConfig(chainId);

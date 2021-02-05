@@ -1,9 +1,11 @@
-const loadContracts = require("./utils/loadContracts");
+const { id } = require("@ethersproject/hash");
 
+const loadContracts = require("./utils/loadContracts");
 const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
+
 const User = require("./User");
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
@@ -16,6 +18,7 @@ module.exports = class Framework {
      * @dev Create new Superfluid framework object
      * @param {string} version (Default: test) protocol release version.
      * @param {Web3} web3  (Optional) Injected web3 instance (version has to be 1.x)
+     * @param {Ethers} ethers  (Optional) Injected ethers instance
      * @param {boolean} isTruffle (Default: false) if the framework is used within truffle environment.
      * @param {string} chainId (Optional) force chainId, instead relying on web3.eth.net.getId
      * @param {string} resolverAddress (Optional) force resolver address
@@ -27,28 +30,40 @@ module.exports = class Framework {
      */
     constructor({
         version,
-        web3,
         isTruffle,
+        web3,
+        ethers,
         chainId,
         resolverAddress,
         tokens,
         gasReportType
     }) {
         this.chainId = chainId;
-        this.version = version || "test";
+        this.version = version || "v1";
         this.resolverAddress = resolverAddress;
+        if (isTruffle && (ethers || web3))
+            throw Error(
+                "@superfluid-finaince/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
+            );
+        if (!isTruffle && !ethers && !web3)
+            throw Error(
+                "@superfluid-finaince/js-sdk: You must provide a web3 or ethers instance."
+            );
+        if (ethers && web3)
+            throw Error(
+                `@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance.
+                Please choose only one.`
+            );
+
         this.web3 = isTruffle ? global.web3 : web3;
+        this.ethers = ethers;
         this._tokens = tokens;
 
-        // check web3 version
-        if (!this.web3.version.startsWith("1."))
-            throw new Error(`Unsupported web3 version ${web3.version}`);
-
-        // load contracts
         this.contracts = loadContracts({
-            isTruffle,
-            web3Provider: this.web3.currentProvider
+            web3,
+            ethers
         });
+
         if (gasReportType) {
             if (gasReportType !== "HTML" && gasReportType !== "JSON") {
                 throw new Error("Unsuported gas report type: " + gasReportType);
@@ -63,11 +78,19 @@ module.exports = class Framework {
      * @return {Promise}
      */
     async initialize() {
-        // NOTE: querying network type first,
-        // Somehow web3.eth.net.getId may send bogus number if this was not done first
-        // It could be a red-herring issue, but it makes it more stable.
-        const networkType = await this.web3.eth.net.getNetworkType();
-        const chainId = this.chainId || (await this.web3.eth.net.getId()); // TODO use eth.getChainId;
+        let networkType;
+        let chainId;
+        if (this.ethers) {
+            const network = await this.ethers.getNetwork();
+            networkType = network.name;
+            chainId = network.chainId;
+        } else {
+            // NOTE: querying network type first,
+            // Somehow web3.eth.net.getId may send bogus number if this was not done first
+            // It could be a red-herring issue, but it makes it more stable.
+            networkType = await this.web3.eth.net.getNetworkType();
+            chainId = this.chainId || (await this.web3.eth.net.getId()); // TODO use eth.getChainId;
+        }
         console.log("networkType", networkType);
         console.log("chainId", chainId);
 
@@ -80,7 +103,7 @@ module.exports = class Framework {
 
         // load superfluid host contract
         console.debug("Resolving contracts with version", this.version);
-        const superfluidAddress = await this.resolver.get.call(
+        const superfluidAddress = await this.resolver.get(
             `Superfluid.${this.version}`
         );
         this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
@@ -89,14 +112,14 @@ module.exports = class Framework {
         );
 
         // load agreements
-        const cfav1Type = this.web3.utils.sha3(
+        const cfav1Type = id(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
         );
-        const idav1Type = this.web3.utils.sha3(
+        const idav1Type = id(
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
-        const cfaAddress = await this.host.getAgreementClass.call(cfav1Type);
-        const idaAddress = await this.host.getAgreementClass.call(idav1Type);
+        const cfaAddress = await this.host.getAgreementClass(cfav1Type);
+        const idaAddress = await this.host.getAgreementClass(idav1Type);
         this.agreements = {
             cfa: await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
             ida: await this.contracts.IInstantDistributionAgreementV1.at(
@@ -119,37 +142,43 @@ module.exports = class Framework {
         // load tokens
         this.tokens = {};
         if (this._tokens) {
-            for (let i = 0; i < this._tokens.length; ++i) {
-                const tokenSymbol = this._tokens[i];
-                const tokenAddress = await this.resolver.get(
-                    `tokens.${tokenSymbol}`
-                );
-                if (tokenAddress === ZERO_ADDRESS) {
-                    throw new Error(`Token ${tokenSymbol} is not registered`);
-                }
-                const superTokenAddress = await this.resolver.get(
-                    `supertokens.${this.version}.${tokenSymbol}x`
-                );
-                if (superTokenAddress === ZERO_ADDRESS) {
-                    throw new Error(
-                        `Token ${tokenSymbol} doesn't have a super token wrapper`
+            await Promise.all(
+                this._tokens.map(async token => {
+                    const tokenSymbol = token;
+                    const tokenAddress = await this.resolver.get(
+                        `tokens.${tokenSymbol}`
                     );
-                }
-                const superToken = await this.contracts.ISuperToken.at(
-                    superTokenAddress
-                );
-                const superTokenSymbol = await superToken.symbol();
-                this.tokens[
-                    tokenSymbol
-                ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
-                this.tokens[superTokenSymbol] = superToken;
-                console.debug(
-                    `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
-                );
-                console.debug(
-                    `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
-                );
-            }
+                    if (tokenAddress === ZERO_ADDRESS) {
+                        throw new Error(
+                            `Token ${tokenSymbol} is not registered`
+                        );
+                    }
+                    const superTokenAddress = await this.resolver.get(
+                        `supertokens.${this.version}.${tokenSymbol}x`
+                    );
+                    if (superTokenAddress === ZERO_ADDRESS) {
+                        throw new Error(
+                            `Token ${tokenSymbol} doesn't have a super token wrapper`
+                        );
+                    }
+                    const superToken = await this.contracts.ISuperToken.at(
+                        superTokenAddress
+                    );
+                    const superTokenSymbol = await superToken.symbol();
+                    this.tokens[
+                        tokenSymbol
+                    ] = await this.contracts.ERC20WithTokenInfo.at(
+                        tokenAddress
+                    );
+                    this.tokens[superTokenSymbol] = superToken;
+                    console.debug(
+                        `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+                    );
+                    console.debug(
+                        `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
+                    );
+                })
+            );
         }
 
         this.utils = new (require("./Utils"))(this);

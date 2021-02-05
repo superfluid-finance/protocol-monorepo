@@ -1,7 +1,5 @@
 const path = require("path");
 
-const TruffleContract = require("@truffle/contract");
-
 const contractNames = [
     "IERC20",
     "TokenInfo",
@@ -33,25 +31,79 @@ const mockContractNames = [
     "SuperTokenFactoryMock"
 ];
 
-const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
+const getAdaptedContract = ({ address, abi, ethers }) => {
+    const { Contract } = require("@ethersproject/contracts");
+
+    const ethersContract = new Contract(
+        address,
+        abi,
+        ethers.getSigner() || ethers
+    );
+
+    // Create adaptor for web3.js methods.encodeABI
+    const web3EncodingAdapter = {};
+    ethersContract.interface.fragments.forEach(fragment => {
+        web3EncodingAdapter[fragment.name] = (...args) => {
+            return {
+                encodeABI: () => {
+                    return ethersContract.interface.encodeFunctionData(
+                        fragment,
+                        args
+                    );
+                }
+            };
+        };
+    });
+    ethersContract.contract = {
+        methods: {
+            ...web3EncodingAdapter
+        }
+    };
+    return ethersContract;
+};
+
+const loadContracts = ({ ethers, web3, useMocks, from }) => {
     const allContractNames = [
         ...contractNames,
         ...(useMocks ? mockContractNames : [])
     ];
+    const directoryPath = path.join(__dirname, "../build/contracts");
     try {
         let contracts = {};
-        if (!isTruffle) {
-            // if (true) {
+        if (ethers) {
             try {
                 console.debug(
-                    "Using Superfluid scripts in an external or non-truffle environment"
+                    `Using @superfluid-finance/ethereum-contracts within the Ethers.js environment.
+                    Peer dependency @ethersproject/contract is required.`
                 );
-                if (!web3Provider) throw new Error("web3Provider is required");
-                // load contracts from ABI
-                const directoryPath = path.join(
-                    __dirname,
-                    "../build/contracts"
+                allContractNames.forEach(name => {
+                    const builtContract = require(path.join(
+                        directoryPath,
+                        name + ".json"
+                    ));
+                    contracts[name] = {
+                        at: address =>
+                            getAdaptedContract({
+                                ethers,
+                                address,
+                                abi: builtContract.abi
+                            }),
+                        abi: builtContract.abi,
+                        contractName: name
+                    };
+                });
+            } catch (e) {
+                throw Error(
+                    `could not load ethers environment contracts. ${e}`
                 );
+            }
+        } else if (web3) {
+            try {
+                console.debug(
+                    `Using @superfluid-finance/ethereum-contracts in a non-native Truffle environment.
+                    Peer dependency @truffle/contract is required.`
+                );
+                const TruffleContract = require("@truffle/contract");
                 allContractNames.forEach(name => {
                     const builtContract = require(path.join(
                         directoryPath,
@@ -60,7 +112,7 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
                     const c = (contracts[name] = TruffleContract(
                         builtContract
                     ));
-                    c.setProvider(web3Provider);
+                    c.setProvider(web3.currentProvider);
                     from && c.defaults({ from });
                 });
             } catch (e) {
@@ -71,11 +123,10 @@ const loadContracts = ({ isTruffle, useMocks, web3Provider, from }) => {
         } else {
             try {
                 console.debug(
-                    "Using Superfluid scripts within the truffle environment"
+                    `Using @superfluid-finance/ethereum-contracts within a Truffle native environment.
+                    Truffle artifacts must be present.`
                 );
-                // load contracts from truffle artifacts
                 allContractNames.forEach(name => {
-                    //console.log(name);
                     contracts[name] = artifacts.require(name);
                 });
             } catch (e) {

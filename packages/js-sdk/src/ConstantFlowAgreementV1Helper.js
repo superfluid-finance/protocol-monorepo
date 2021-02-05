@@ -1,3 +1,5 @@
+const { completeTransaction } = require("./utils/general");
+
 /**
  * @dev Constant flow agreement v1 helper class
  */
@@ -43,8 +45,9 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Create flow from ${sender} to ${receiver} at ${flowRate} ...`
         );
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._cfa.address,
                 this._cfa.contract.methods
                     .createFlow(
@@ -54,12 +57,12 @@ module.exports = class ConstantFlowAgreementV1Helper {
                         "0x"
                     )
                     .encodeABI(),
-                userData,
-                {
-                    from: senderNorm
-                }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: senderNorm,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
         return tx;
@@ -95,8 +98,10 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Update flow from ${sender} to ${receiver} to ${flowRate} ...`
         );
-        const tx = await this._sf.host
-            .callAgreement(
+
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._cfa.address,
                 this._cfa.contract.methods
                     .updateFlow(
@@ -106,12 +111,13 @@ module.exports = class ConstantFlowAgreementV1Helper {
                         "0x"
                     )
                     .encodeABI(),
-                userData,
-                {
-                    from: senderNorm
-                }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: senderNorm,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
+
         this._sf._pushTxForGasReport(tx, "updateFlow");
         console.debug("Flow updated.");
         return tx;
@@ -149,18 +155,19 @@ module.exports = class ConstantFlowAgreementV1Helper {
         console.debug(
             `Delete flow from ${sender} to ${receiver} by ${by || byNorm} ...`
         );
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._cfa.address,
                 this._cfa.contract.methods
                     .deleteFlow(superTokenNorm, senderNorm, receiverNorm, "0x")
                     .encodeABI(),
-                userData,
-                {
-                    from: byNorm
-                }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: byNorm,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         this._sf._pushTxForGasReport(tx, "deleteFlow");
         console.debug("Flow deleted.");
         return tx;
@@ -247,7 +254,26 @@ module.exports = class ConstantFlowAgreementV1Helper {
         };
     }
 
-    static getLatestFlows(flows) {
+    async getFlowEvents({ token, receiver = null, sender = null }) {
+        let flows;
+        if (this._sf.agreements.cfa.getPastEvents) {
+            flows = await this._sf.agreements.cfa.getPastEvents("FlowUpdated", {
+                fromBlock: 0,
+                toBlock: "latest",
+                filter: {
+                    token,
+                    receiver,
+                    sender
+                }
+            });
+        } else {
+            const filter = this._sf.agreements.cfa.filters.FlowUpdated(
+                token,
+                sender,
+                receiver
+            );
+            flows = await this._sf.agreements.cfa.queryFilter(filter);
+        }
         return Object.values(
             flows.reduce((acc, i) => {
                 acc[i.args.sender + ":" + i.args.receiver] = i;
@@ -275,40 +301,28 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
         const result = {};
         if (!onlyOutFlows) {
-            result.inFlows = this.constructor
-                .getLatestFlows(
-                    await this._sf.agreements.cfa.getPastEvents("FlowUpdated", {
-                        fromBlock: 0,
-                        toBlock: "latest",
-                        filter: {
-                            token: superTokenNorm,
-                            receiver: accountNorm
-                        }
-                    })
-                )
-                .map(f => ({
-                    sender: f.args.sender,
-                    receiver: f.args.receiver,
-                    flowRate: f.args.flowRate.toString()
-                }));
+            result.inFlows = (
+                await this.getFlowEvents({
+                    receiver: accountNorm,
+                    token: superTokenNorm
+                })
+            ).map(f => ({
+                sender: f.args.sender,
+                receiver: f.args.receiver,
+                flowRate: f.args.flowRate.toString()
+            }));
         }
         if (!onlyInFlows) {
-            result.outFlows = this.constructor
-                .getLatestFlows(
-                    await this._sf.agreements.cfa.getPastEvents("FlowUpdated", {
-                        fromBlock: 0,
-                        toBlock: "latest",
-                        filter: {
-                            token: superTokenNorm,
-                            sender: accountNorm
-                        }
-                    })
-                )
-                .map(f => ({
-                    sender: f.args.sender,
-                    receiver: f.args.receiver,
-                    flowRate: f.args.flowRate.toString()
-                }));
+            result.outFlows = (
+                await this.getFlowEvents({
+                    token: superTokenNorm,
+                    sender: accountNorm
+                })
+            ).map(f => ({
+                sender: f.args.sender,
+                receiver: f.args.receiver,
+                flowRate: f.args.flowRate.toString()
+            }));
         }
         return result;
     }

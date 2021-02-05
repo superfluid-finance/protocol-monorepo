@@ -21,9 +21,10 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 module.exports = class TestEnvironment {
-    constructor(accounts, { isTruffle, useMocks } = {}) {
+    constructor(accounts, { isTruffle, useMocks, ethers } = {}) {
         this.useMocks = useMocks;
         this.isTruffle = isTruffle;
+        this.ethers = ethers;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -69,6 +70,7 @@ module.exports = class TestEnvironment {
         await deployFramework(this.errorHandler, {
             newTestResolver: true,
             useMocks: this.useMocks,
+            ethers: this.ethers,
             isTruffle: this.isTruffle,
             ...deployOpts
         });
@@ -78,31 +80,35 @@ module.exports = class TestEnvironment {
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
-            isTruffle: this.isTruffle
+            isTruffle: this.isTruffle,
+            ethers: this.ethers,
+            version: process.env.RELEASE_VERSION || "test"
         });
         await this.sf.initialize();
 
         // re-loading contracts with testing/mocking interfaces
         this.contracts = {};
-        // load singletons
-        this.contracts.erc1820 = await IERC1820Registry.at(
-            "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
-        );
-        // load host contract
-        this.contracts.superfluid = await SuperfluidMock.at(
-            this.sf.host.address
-        );
-        // load agreement contracts
-        this.contracts.cfa = await ConstantFlowAgreementV1.at(
-            this.sf.agreements.cfa.address
-        );
-        this.contracts.ida = await InstantDistributionAgreementV1.at(
-            this.sf.agreements.ida.address
-        );
-        // load governance contract
-        this.contracts.governance = await TestGovernance.at(
-            await this.sf.host.getGovernance()
-        );
+        await Promise.all([
+            // load singletons
+            (this.contracts.erc1820 = await IERC1820Registry.at(
+                "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
+            )),
+            // load host contract
+            (this.contracts.superfluid = await SuperfluidMock.at(
+                this.sf.host.address
+            )),
+            // load agreement contracts
+            (this.contracts.cfa = await ConstantFlowAgreementV1.at(
+                this.sf.agreements.cfa.address
+            )),
+            (this.contracts.ida = await InstantDistributionAgreementV1.at(
+                this.sf.agreements.ida.address
+            )),
+            // load governance contract
+            (this.contracts.governance = await TestGovernance.at(
+                await this.sf.host.getGovernance()
+            ))
+        ]);
 
         await this.resetForTestCase();
     }
@@ -112,14 +118,16 @@ module.exports = class TestEnvironment {
         // test data can be persisted here
         this.data = {};
 
-        await web3tx(
-            this.contracts.governance.setLiquidationPeriod,
-            "reset liquidation period"
-        )(this.configs.LIQUIDATION_PERIOD);
-        await web3tx(
-            this.contracts.governance.setRewardAddress,
-            "reset reward address to admin"
-        )(this.aliases.admin);
+        await Promise.all([
+            await web3tx(
+                this.contracts.governance.setLiquidationPeriod,
+                "reset liquidation period"
+            )(this.configs.LIQUIDATION_PERIOD),
+            await web3tx(
+                this.contracts.governance.setRewardAddress,
+                "reset reward address to admin"
+            )(this.aliases.admin)
+        ]);
     }
 
     async report({ title }) {

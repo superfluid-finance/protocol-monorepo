@@ -31,10 +31,16 @@
         ]
     },
     "dependencies": {
+        "@ethersproject/hash": "^5.0.11"
+    },
+    "peerDependencies": {
+        "@ethersproject/contracts": "^5.0.10",
         "@truffle/contract": "4.3.4"
     },
     "devDependencies": {
         "@decentral.ee/web3-helpers": "0.3.5",
+        "@ethersproject/contracts": "^5.0.10",
+        "@ethersproject/providers": "^5.0.21",
         "@openzeppelin/test-helpers": "0.5.10",
         "@superfluid-finance/ethereum-contracts": "^0.2.4",
         "chai-as-promised": "7.1.1",

@@ -54,11 +54,25 @@ async function isProxiable(Proxiable, address) {
     return codeAddress !== ZERO_ADDRESS;
 }
 
+function validateWeb3Arguments({ isTruffle, web3, ethers }) {
+    if (isTruffle && (ethers || web3))
+        throw Error(
+            `@superfluid-finaince/ethereum-contracts: Flag 'isTruffle' cannot be 'true'
+            when using a web3/ethers instance.`
+        );
+    if (ethers && web3)
+        throw Error(
+            `@superfluid-finaince/ethereum-contracts: You cannot provide both a web3 and
+            ethers instance. Please choose only one.`
+        );
+}
+
 module.exports = {
     ZERO_ADDRESS,
     parseColonArgs,
     hasCode,
     codeChanged,
     isProxiable,
+    validateWeb3Arguments,
     rl: promisify(rl.question)
 };

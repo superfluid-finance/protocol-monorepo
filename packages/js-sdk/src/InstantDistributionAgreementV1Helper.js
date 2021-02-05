@@ -1,3 +1,5 @@
+const { completeTransaction } = require("./utils/general");
+
 /**
  * @dev Instant distribution agreement v1 helper class
  */
@@ -20,16 +22,19 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .createIndex(superToken, indexId, "0x")
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Index created.");
         return tx;
     }
@@ -42,16 +47,19 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .updateIndex(superToken, indexId, indexValue, "0x")
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Index updated.");
         return tx;
     }
@@ -65,8 +73,9 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .updateSubscription(
@@ -77,10 +86,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
                         "0x"
                     )
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Subscription updated.");
         return tx;
     }
@@ -93,16 +104,19 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .approveSubscription(superToken, publisher, indexId, "0x")
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Subscription approved.");
         return tx;
     }
@@ -116,8 +130,9 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .deleteSubscription(
@@ -128,10 +143,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
                         "0x"
                     )
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Subscription deleted.");
         return tx;
     }
@@ -144,16 +161,19 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .distribute(superToken, indexId, amount, "0x")
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Distribution complete.");
         return tx;
     }
@@ -167,16 +187,19 @@ module.exports = class InstantDistributionAgreementV1Helper {
         userData = "0x",
         onTransaction = () => null
     }) {
-        const tx = await this._sf.host
-            .callAgreement(
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
                 this._ida.address,
                 this._ida.contract.methods
                     .claim(superToken, publisher, indexId, subscriber, "0x")
                     .encodeABI(),
-                userData,
-                { from: sender }
-            )
-            .on("transactionHash", onTransaction);
+                userData
+            ],
+            sender: sender,
+            method: this._sf.host.callAgreement,
+            onTransaction
+        });
         console.debug("Claim complete.");
         return tx;
     }

@@ -1,4 +1,5 @@
 const { promisify } = require("util");
+const stackTrace = require("stack-trace");
 const readline = require("readline");
 
 // promisify the readline
@@ -54,7 +55,7 @@ async function isProxiable(Proxiable, address) {
     return codeAddress !== ZERO_ADDRESS;
 }
 
-function validateWeb3Arguments({ isTruffle, web3, ethers }) {
+function extractWeb3Arguments({ isTruffle, web3, ethers }) {
     if (isTruffle && (ethers || web3))
         throw Error(
             `@superfluid-finaince/ethereum-contracts: Flag 'isTruffle' cannot be 'true'
@@ -65,6 +66,32 @@ function validateWeb3Arguments({ isTruffle, web3, ethers }) {
             `@superfluid-finaince/ethereum-contracts: You cannot provide both a web3 and
             ethers instance. Please choose only one.`
         );
+    return { isTruffle, web3, ethers };
+}
+
+/**
+ * @dev detect that if we are running inside the truffle exec
+ *
+ * NOTE:
+ * This has to be invoked within the same context of the caller, in order
+ * to use "web3", "artifacts" from the truffle execution context.
+ * The correct way of using this then should be:
+ * ```
+ * eval(`(${detectIsTruffle.toString()})()`)
+ * ```
+ */
+function detectIsTruffle() {
+    const trace = stackTrace.get();
+    //trace.forEach(callSite => console.log(callSite.getFileName()));
+    const topCallSite = trace[trace.length - 1];
+    const isTruffle = topCallSite
+        .getFileName()
+        .endsWith("truffle/build/commands.bundled.js");
+    if (isTruffle) {
+        global.web3 = web3;
+        global.artifacts = artifacts;
+    }
+    return isTruffle;
 }
 
 module.exports = {
@@ -73,6 +100,7 @@ module.exports = {
     hasCode,
     codeChanged,
     isProxiable,
-    validateWeb3Arguments,
+    extractWeb3Arguments,
+    detectIsTruffle,
     rl: promisify(rl.question)
 };

@@ -7,7 +7,7 @@ const { parseColonArgs, validateWeb3Arguments } = require("./utils");
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
  * @param isTruffle (optional) Whether the script is used within the truffle framework
- * @param web3Provider (optional) The web3 provider to be used instead
+ * @param {Web3} web3  (Optional) Injected web3 instance
  * @param from (optional) Address to deploy contracts from, use accounts[0] by default
  *
  * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}

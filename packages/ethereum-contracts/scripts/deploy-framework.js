@@ -64,7 +64,7 @@ async function deployNewLogicContractIfNew(
  * @param useMocks (optional) Use mock contracts instead
  * @param nonUpgradable (optional) Deploy contracts configured to be non-upgradable
  * @param isTruffle (optional) Whether the script is used within the truffle framework
- * @param web3Provider (optional) The web3 provider to be used instead
+ * @param {Web3} web3  (Optional) Injected web3 instance
  * @param from (optional) Address to deploy contracts from, use accounts[0] by default
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
@@ -83,7 +83,7 @@ module.exports = async function(
 ) {
     try {
         validateWeb3Arguments({ web3, ethers, isTruffle });
-        this.web3 = web3 || global.web3;
+        this.web3 = isTruffle ? global.web3 : web3;
 
         if (!from) {
             const accounts = await this.web3.eth.getAccounts();
@@ -127,6 +127,7 @@ module.exports = async function(
         console.log("network ID: ", chainId);
         console.log("release version:", version);
 
+        newTestResolver = newTestResolver || process.env.NEW_TEST_RESOLVER;
         useMocks = useMocks || process.env.USE_MOCKS;
         nonUpgradable = nonUpgradable || process.env.NON_UPGRADABLE;
         if (useMocks) console.log("**** !ATTN! USING MOCKS CONTRACTS ****");

@@ -44,7 +44,6 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
         ...contractNames,
         ...(useMocks ? mockContractNames : [])
     ];
-    if (web3) console.log("is web3!");
     try {
         let contracts = {};
         if (ethers) {

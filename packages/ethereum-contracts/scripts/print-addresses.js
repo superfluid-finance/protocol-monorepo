@@ -1,15 +1,23 @@
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const loadContracts = require("./loadContracts");
-const { parseColonArgs } = require("./utils");
+const {
+    parseColonArgs,
+    extractWeb3Arguments,
+    detectIsTruffle
+} = require("./utils");
 
 /**
  * @dev Inspect accounts and their agreements
  *
  * Usage: npx truffle exec scripts/print-addresses : output_file
  */
-module.exports = async function(callback, argv) {
+module.exports = async function(callback, argv, options = {}) {
     try {
+        options.isTruffle =
+            options.isTruffle || eval(`(${detectIsTruffle.toString()})()`);
+        const web3Arguments = extractWeb3Arguments(options);
+
         const args = parseColonArgs(argv || process.argv);
         if (args.length != 1) {
             throw new Error("Not enough arguments");
@@ -17,7 +25,9 @@ module.exports = async function(callback, argv) {
         const outputFilename = args.shift();
 
         const { UUPSProxiable, ISuperTokenFactory } = loadContracts({
-            web3Provider: this.web3.currentProvider
+            web3: web3 || options.web3,
+            ethers: options.ethers,
+            from: options.from
         });
 
         const getCodeAddress = async proxyAddress => {
@@ -27,11 +37,14 @@ module.exports = async function(callback, argv) {
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         const sf = new SuperfluidSDK.Framework({
+            ...web3Arguments,
             version: process.env.RELEASE_VERSION || "test",
-            web3: this.web3,
             tokens
         });
         await sf.initialize();
+        if (sf.config.nativeTokenSymbol) {
+            await sf.loadToken(sf.config.nativeTokenSymbol);
+        }
 
         let output = "";
         output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
@@ -60,6 +73,11 @@ module.exports = async function(callback, argv) {
                 sf.tokens[tokenName + "x"].address
             }\n`;
         });
+        if (sf.config.nativeTokenSymbol) {
+            output += `SUPER_TOKEN_${sf.config.nativeTokenSymbol.toUpperCase()}X=${
+                sf.tokens[sf.config.nativeTokenSymbol + "x"].address
+            }\n`;
+        }
 
         await fs.writeFile(outputFilename, output, callback);
     } catch (err) {

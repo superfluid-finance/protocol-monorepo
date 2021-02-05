@@ -142,43 +142,7 @@ module.exports = class Framework {
         // load tokens
         this.tokens = {};
         if (this._tokens) {
-            await Promise.all(
-                this._tokens.map(async token => {
-                    const tokenSymbol = token;
-                    const tokenAddress = await this.resolver.get(
-                        `tokens.${tokenSymbol}`
-                    );
-                    if (tokenAddress === ZERO_ADDRESS) {
-                        throw new Error(
-                            `Token ${tokenSymbol} is not registered`
-                        );
-                    }
-                    const superTokenAddress = await this.resolver.get(
-                        `supertokens.${this.version}.${tokenSymbol}x`
-                    );
-                    if (superTokenAddress === ZERO_ADDRESS) {
-                        throw new Error(
-                            `Token ${tokenSymbol} doesn't have a super token wrapper`
-                        );
-                    }
-                    const superToken = await this.contracts.ISuperToken.at(
-                        superTokenAddress
-                    );
-                    const superTokenSymbol = await superToken.symbol();
-                    this.tokens[
-                        tokenSymbol
-                    ] = await this.contracts.ERC20WithTokenInfo.at(
-                        tokenAddress
-                    );
-                    this.tokens[superTokenSymbol] = superToken;
-                    console.debug(
-                        `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
-                    );
-                    console.debug(
-                        `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
-                    );
-                })
-            );
+            await Promise.all(this._tokens.map(this.loadToken.bind(this)));
         }
 
         this.utils = new (require("./Utils"))(this);
@@ -192,6 +156,43 @@ module.exports = class Framework {
                 "500"
             );
         }
+    }
+
+    async loadToken(tokenSymbol) {
+        // load underlying token
+        //  but we don't need to load native tokens
+        if (tokenSymbol !== this.config.nativeTokenSymbol) {
+            const tokenAddress = await this.resolver.get(
+                `tokens.${tokenSymbol}`
+            );
+            if (tokenAddress === ZERO_ADDRESS) {
+                throw new Error(`Token ${tokenSymbol} is not registered`);
+            }
+            this.tokens[
+                tokenSymbol
+            ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
+            console.debug(
+                `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+            );
+        }
+
+        // load super token
+        const superTokenAddress = await this.resolver.get(
+            `supertokens.${this.version}.${tokenSymbol}x`
+        );
+        if (superTokenAddress === ZERO_ADDRESS) {
+            throw new Error(
+                `Token ${tokenSymbol} doesn't have a super token wrapper`
+            );
+        }
+        const superToken = await this.contracts.ISuperToken.at(
+            superTokenAddress
+        );
+        const superTokenSymbol = await superToken.symbol();
+        this.tokens[superTokenSymbol] = superToken;
+        console.debug(
+            `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
+        );
     }
 
     /**

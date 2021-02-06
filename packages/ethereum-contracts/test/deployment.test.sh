@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+ENVFILE=test.ignore.sh
+
 # Exit script as soon as a command fails.
 set -o errexit
 
@@ -7,6 +9,7 @@ set -o errexit
 trap cleanup EXIT
 
 cleanup() {
+    rm -f $ENVFILE
     # Kill the ganache instance that we started (if we started one and if it's still running).
     if [ -n "$ganache_pid" ] && ps -p $ganache_pid > /dev/null; then
         echo "Killing ganache instance"
@@ -38,7 +41,7 @@ fi
 # Test the scripts
 #
 
-# if any of the fails, exit
+# if any of them fail, exit
 set -e
 
 # unset potential interfering environment varibles
@@ -51,12 +54,10 @@ unset NON_UPGRADABLE
 
 export RELEASE_VERSION=test
 
-ENVFILE=test.ignore.sh
 > $ENVFILE
 npx truffle --network ganache exec scripts/deploy-test-environment.js | tee >(tail -n1 > $ENVFILE)
 # read the TEST_RESOLVER_ADDRESS variable
 source $ENVFILE
-rm -f $ENVFILE
 
 npx truffle --network ganache exec scripts/print-addresses.js : >(cat)
 

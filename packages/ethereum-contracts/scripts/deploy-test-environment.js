@@ -6,9 +6,9 @@ const { detectTruffleAndConfigure } = require("./utils");
 
 /**
  * @dev Deploy the superfluid framework and test tokens for local testing
- * @param isTruffle (optional) Whether the script is used within the truffle framework
- * @param {Web3} web3  (Optional) Injected web3 instance
- * @param from (optional) Address to deploy contracts from, use accounts[0] by default
+ * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
+ * @param {Web3} options.web3  Injected web3 instance
+ * @param {Address} options.from Address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-test-environment.js
  */

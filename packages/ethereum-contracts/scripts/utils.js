@@ -1,5 +1,4 @@
 const { promisify } = require("util");
-const stackTrace = require("stack-trace");
 const readline = require("readline");
 
 // promisify the readline
@@ -49,28 +48,20 @@ async function codeChanged(web3, contract, address) {
     return bytecodeFromCompiler.indexOf(codeTrimed) === -1;
 }
 
-async function isProxiable(Proxiable, address) {
-    const p = await Proxiable.at(address);
+async function getCodeAddress(UUPSProxiable, proxyAddress) {
+    const proxiable = await UUPSProxiable.at(proxyAddress);
+    return await proxiable.getCodeAddress();
+}
+
+async function isProxiable(UUPSProxiable, address) {
+    const p = await UUPSProxiable.at(address);
     const codeAddress = await p.getCodeAddress.call();
     return codeAddress !== ZERO_ADDRESS;
 }
 
-function extractWeb3Arguments({ isTruffle, web3, ethers }) {
-    if (isTruffle && (ethers || web3))
-        throw Error(
-            `@superfluid-finaince/ethereum-contracts: Flag 'isTruffle' cannot be 'true'
-            when using a web3/ethers instance.`
-        );
-    if (ethers && web3)
-        throw Error(
-            `@superfluid-finaince/ethereum-contracts: You cannot provide both a web3 and
-            ethers instance. Please choose only one.`
-        );
-    return { isTruffle, web3, ethers };
-}
-
 /**
- * @dev detect that if we are running inside the truffle exec
+ * @dev Detect if we are running inside the truffle exec and configure the options
+ * @param {Object} options the options object to be configured
  *
  * NOTE:
  * This has to be invoked within the same context of the caller, in order
@@ -80,18 +71,28 @@ function extractWeb3Arguments({ isTruffle, web3, ethers }) {
  * eval(`(${detectIsTruffle.toString()})()`)
  * ```
  */
-function detectIsTruffle() {
+async function detectTruffleAndConfigure(options) {
+    // if isTruffle already set explicitly
+    if ("isTruffle" in options) return;
+    const stackTrace = require("stack-trace");
     const trace = stackTrace.get();
-    //trace.forEach(callSite => console.log(callSite.getFileName()));
-    const topCallSite = trace[trace.length - 1];
-    const isTruffle = topCallSite
-        .getFileName()
-        .endsWith("truffle/build/commands.bundled.js");
-    if (isTruffle) {
+    //trace.forEach(callSite => console.debug(callSite.getFileName()));
+    options.isTruffle =
+        trace.filter(callSite =>
+            (callSite.getFileName() || "").endsWith(
+                "truffle/build/commands.bundled.js"
+            )
+        ).length > 0;
+    if (options.isTruffle) {
+        // set these globally so that it's available throughout the executions
         global.web3 = web3;
         global.artifacts = artifacts;
     }
-    return isTruffle;
+}
+
+/// @dev Extract the web3 options used to initialize the SDK
+function extractWeb3Options({ isTruffle, web3, ethers, from }) {
+    return { isTruffle, web3, ethers, from };
 }
 
 module.exports = {
@@ -99,8 +100,9 @@ module.exports = {
     parseColonArgs,
     hasCode,
     codeChanged,
+    getCodeAddress,
     isProxiable,
-    extractWeb3Arguments,
-    detectIsTruffle,
+    extractWeb3Options,
+    detectTruffleAndConfigure,
     rl: promisify(rl.question)
 };

@@ -3,7 +3,7 @@ const assert = require("assert").strict;
 
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
-const ERC1820Registry = require("./ERC1820Registry.json");
+const ERC1820Registry = require("../artifacts/ERC1820Registry.json");
 const { hasCode } = require("./utils");
 
 /**
@@ -65,7 +65,7 @@ module.exports = async function(callback, { web3, from } = {}) {
             await this.web3.eth.sendSignedTransaction(res.rawTx);
             console.log("Deployment done.");
         } else {
-            console.log("Code is already deployoed.");
+            console.log("ERC1820 is already deployoed.");
         }
         callback();
     } catch (err) {

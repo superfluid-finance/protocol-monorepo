@@ -139,7 +139,7 @@ contract("Framework class", accounts => {
             });
             await sf.initialize();
             try {
-                sf.generateGasReport("name");
+                sf.generateGasReport("noname");
             } catch (e) {
                 assert.equal(e.message, "No gas metering configured");
             }
@@ -211,6 +211,7 @@ contract("Framework class", accounts => {
 
         it("create new super token", async () => {
             await deployTestToken(t.errorHandler, [":", "MISO"], {
+                isTruffle: true,
                 from: admin
             });
             const misoAddress = await sf.resolver.get("tokens.MISO");

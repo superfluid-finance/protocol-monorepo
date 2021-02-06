@@ -11,8 +11,6 @@ const { parseColonArgs, rl } = require("./utils");
  */
 module.exports = async function(callback, argv) {
     try {
-        global.web3 = web3;
-
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
             throw new Error("Not enough arguments");

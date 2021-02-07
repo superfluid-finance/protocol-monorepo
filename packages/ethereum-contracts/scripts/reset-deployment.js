@@ -6,13 +6,12 @@ const { parseColonArgs, rl } = require("./utils");
 
 /**
  * @dev Reset the superfluid framework deployment.
+ * @param {Array} argv Overriding command line arguments
  *
  * Usage: npx truffle exec scripts/reset-deployment.js : {VERSION}
  */
 module.exports = async function(callback, argv) {
     try {
-        global.web3 = web3;
-
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
             throw new Error("Not enough arguments");

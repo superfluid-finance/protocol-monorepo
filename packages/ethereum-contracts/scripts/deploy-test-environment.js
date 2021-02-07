@@ -2,57 +2,40 @@ const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
 
-const { validateWeb3Arguments } = require("./utils");
+const { detectTruffleAndConfigure } = require("./utils");
 
 /**
  * @dev Deploy the superfluid framework and test tokens for local testing
- * @param isTruffle (optional) Whether the script is used within the truffle framework
- * @param web3Provider (optional) The web3 provider to be used instead
- * @param from (optional) Address to deploy contracts from, use accounts[0] by default
+ * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
+ * @param {Web3} options.web3  Injected web3 instance
+ * @param {Address} options.from Address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-test-environment.js
  */
-module.exports = async function(
-    callback,
-    { isTruffle, web3, ethers, from } = {}
-) {
+module.exports = async function(callback, options = {}) {
     const errorHandler = err => {
         if (err) throw err;
     };
 
     try {
-        validateWeb3Arguments({ web3, ethers, isTruffle });
+        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
         console.log("==== Deploying superfluid framework...");
-        await deployFramework(errorHandler, {
-            ethers,
-            web3,
-            from
-        });
+        await deployFramework(errorHandler, options);
         console.log("==== Superfluid framework deployed.");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         for (let i = 0; i < tokens.length; ++i) {
             console.log(`==== Deploying test token ${tokens[i]}...`);
-            await deployTestToken(errorHandler, [":", tokens[i]], {
-                web3,
-                from
-            });
+            await deployTestToken(errorHandler, [":", tokens[i]], options);
             console.log(`==== Test token ${tokens[i]} deployed.`);
 
             console.log(`==== Creating super token for ${tokens[i]}...`);
-            await deploySuperToken(errorHandler, [":", tokens[i]], {
-                web3,
-                from
-            });
+            await deploySuperToken(errorHandler, [":", tokens[i]], options);
             console.log(`==== Super token for ${tokens[i]} deployed.`);
         }
         // Creating SETH
-        await deploySuperToken(errorHandler, [":", "ETH"], {
-            ethers,
-            web3,
-            from
-        });
+        await deploySuperToken(errorHandler, [":", "ETH"], options);
 
         if (process.env.TEST_RESOLVER_ADDRESS) {
             console.log(

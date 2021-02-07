@@ -1,11 +1,5 @@
-const contractNames = require("../contracts.json");
-const abis = require("../abi");
-
-const mockContractNames = [
-    "SuperfluidMock",
-    "SuperTokenMockFactory",
-    "SuperTokenFactoryMock"
-];
+const contractNames = require("./contracts.json");
+const abis = require("./abi");
 
 const getAdaptedContract = ({ address, abi, ethers }) => {
     const { Contract } = require("@ethersproject/contracts");
@@ -39,12 +33,17 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
     return ethersContract;
 };
 
-const loadContracts = ({ ethers, web3, useMocks, from }) => {
-    const allContractNames = [
+const loadContracts = async ({
+    isTruffle,
+    ethers,
+    web3,
+    from,
+    additionalContracts
+}) => {
+    const allContractNames = new Set([
         ...contractNames,
-        ...(useMocks ? mockContractNames : [])
-    ];
-    if (web3) console.log("is web3!");
+        ...(additionalContracts || [])
+    ]);
     try {
         let contracts = {};
         if (ethers) {
@@ -65,6 +64,11 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
                         contractName: name
                     };
                 });
+                if (from) {
+                    throw new Error(
+                        "Ethers mode does not support default from address"
+                    );
+                }
             } catch (e) {
                 throw Error(
                     `could not load ethers environment contracts. ${e}`
@@ -72,36 +76,52 @@ const loadContracts = ({ ethers, web3, useMocks, from }) => {
             }
         } else if (web3) {
             try {
+                const TruffleContract = require("@truffle/contract");
                 console.debug(
                     `Using @superfluid-finance/js-sdk in a non-native Truffle environment.
                     Peer dependency @truffle/contract is required.`
                 );
-                const TruffleContract = require("@truffle/contract");
+                if (from) {
+                    console.log("Set default from address to", from);
+                } else {
+                    const accounts = await web3.eth.getAccounts();
+                    from = accounts[0];
+                    console.log(
+                        "Set default from address to the first account",
+                        from
+                    );
+                }
                 allContractNames.forEach(name => {
                     const c = (contracts[name] = TruffleContract({
                         contractName: name,
                         abi: abis[name]
                     }));
                     c.setProvider(web3.currentProvider);
-                    from && c.defaults({ from });
+                    c.defaults({ from });
                 });
             } catch (e) {
                 throw Error(
                     `could not load non-truffle environment contracts. ${e}`
                 );
             }
-        } else {
+        } else if (isTruffle) {
             try {
                 console.debug(
                     `Using @superfluid-finance/js-sdk within a Truffle native environment.
                     Truffle artifacts must be present.`
                 );
+                if (from) {
+                    console.log("Set Ddefault from address to", from);
+                }
                 allContractNames.forEach(name => {
-                    contracts[name] = artifacts.require(name);
+                    const c = (contracts[name] = artifacts.require(name));
+                    from && c.defaults({ from });
                 });
             } catch (e) {
                 throw Error(`could not load truffle artifacts. ${e}`);
             }
+        } else {
+            throw new Error("Unknown mode");
         }
         return contracts;
     } catch (e) {

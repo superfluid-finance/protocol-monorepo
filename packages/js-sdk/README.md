@@ -32,9 +32,10 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const { Web3Provider } = require("@ethersproject/providers");
 
 const sf = new SuperfluidSDK.Framework({
-    ethers: new Web3Provider(window.ethereum)
+    ethers: new Web3Provider(window.ethereum),
+    tokens: ["fDAI"]
 });
-await sf.initialize()
+await sf.initialize();
 
 const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 
@@ -89,13 +90,15 @@ Example:
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const { Web3Provider } = require("@ethersproject/providers");
+
 const sf = new SuperfluidSDK.Framework({
-    version: "v1", // Protocol release version
-    web3Provider: web3.currentProvider, // your web3 provider
+    ethers: new Web3Provider(window.ethereum),
     tokens: ["fDAI"]
 });
-
 await sf.initialize();
+
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 ```
 
 ## :bust_in_silhouette: User
@@ -105,12 +108,8 @@ Create a new User object to quickly create and modify agreements.
 Example:
 
 ```js
-// First initialize the SDK
-const sf = new SuperfluidSDK.Framework({...})
-await sf.initialize()
-
-const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI })
-const carol = sf.user({ address: "0x123...", token: sf.tokens.fDAI })
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI });
+const carol = sf.user({ address: "0x123...", token: sf.tokens.fDAI });
 ```
 
 ### `user.details()`

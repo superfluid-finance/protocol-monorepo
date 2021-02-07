@@ -21,10 +21,9 @@ const {
 } = require("@decentral.ee/web3-helpers");
 
 module.exports = class TestEnvironment {
-    constructor(accounts, { isTruffle, useMocks, ethers } = {}) {
-        this.useMocks = useMocks;
+    constructor(accounts, { isTruffle, useMocks } = {}) {
         this.isTruffle = isTruffle;
-        this.ethers = ethers;
+        this.useMocks = useMocks;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -70,7 +69,6 @@ module.exports = class TestEnvironment {
         await deployFramework(this.errorHandler, {
             newTestResolver: true,
             useMocks: this.useMocks,
-            ethers: this.ethers,
             isTruffle: this.isTruffle,
             ...deployOpts
         });
@@ -81,7 +79,6 @@ module.exports = class TestEnvironment {
         this.sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
             isTruffle: this.isTruffle,
-            ethers: this.ethers,
             version: process.env.RELEASE_VERSION || "test"
         });
         await this.sf.initialize();

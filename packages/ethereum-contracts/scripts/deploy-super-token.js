@@ -1,55 +1,28 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
-const loadContracts = require("./loadContracts");
 const {
     parseColonArgs,
     ZERO_ADDRESS,
-    validateWeb3Arguments
+    detectTruffleAndConfigure,
+    extractWeb3Options
 } = require("./utils");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.
- * @param isTruffle (optional) Whether the script is used within the truffle framework
- * @param web3Provider (optional) The web3 provider to be used instead
- * @param from (optional) Address to deploy contracts from, use accounts[0] by default
+ * @param {Array} argv Overriding command line arguments
+ * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
+ * @param {Web3} options.web3  Injected web3 instance
+ * @param {Address} options.from Address to deploy contracts from
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
-module.exports = async function(
-    callback,
-    argv,
-    { isTruffle, web3, ethers, from } = {}
-) {
+module.exports = async function(callback, argv, options = {}) {
     try {
-        validateWeb3Arguments({ web3, ethers, isTruffle });
-        this.web3 = web3 || global.web3;
-
-        if (!from) {
-            const accounts = await this.web3.eth.getAccounts();
-            from = accounts[0];
-        }
-
-        const {
-            TestResolver,
-            UUPSProxiable,
-            ISuperfluidGovernance,
-            ISuperToken,
-            ISETH,
-            SETHProxy
-        } = loadContracts({
-            web3,
-            ethers,
-            from
-        });
-
         console.log("Deploying super token");
-        console.log("From address", from);
 
-        const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+
         const version = process.env.RELEASE_VERSION || "test";
-        console.log("network ID: ", chainId);
-        console.log("release version:", version);
-
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
             throw new Error("Not enough arguments");
@@ -58,13 +31,21 @@ module.exports = async function(
         console.log("Underlying token name", tokenName);
 
         const sf = new SuperfluidSDK.Framework({
-            isTruffle,
-            web3,
-            ethers,
+            ...extractWeb3Options(options),
             version,
-            from
+            additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"]
         });
         await sf.initialize();
+
+        const {
+            TestResolver,
+            UUPSProxiable,
+            ISuperfluidGovernance,
+            ISuperToken,
+            ISETH,
+            SETHProxy
+        } = sf.contracts;
+
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
             await sf.host.getSuperTokenFactory.call()
         );
@@ -77,8 +58,7 @@ module.exports = async function(
                 const seth = await ISETH.at(sethProxy.address);
                 console.log("Intialize SETH as a custom super token...");
                 await superTokenFactory.initializeCustomSuperToken(
-                    seth.address,
-                    { from }
+                    seth.address
                 );
                 console.log("Intialize SETH token info...");
                 await seth.initialize(ZERO_ADDRESS, 18, "Super ETH", "ETHx");
@@ -96,7 +76,7 @@ module.exports = async function(
             console.log("Token info symbol()", tokenInfoSymbol);
             console.log("Token info decimals()", tokenInfoDecimals.toString());
             deploymentFn = async () => {
-                return await sf.createERC20Wrapper(tokenInfo, { from });
+                return await sf.createERC20Wrapper(tokenInfo);
             };
         }
 

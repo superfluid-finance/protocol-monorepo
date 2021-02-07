@@ -29,13 +29,12 @@ Here is a quick look at using the SDK.
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const sf = new SuperfluidSDK.Framework({
-    version: "v1", // Protocol release version
-    web3Provider: web3.currentProvider, // your web3 provider
-    tokens: ["fDAI"]
-});
+const { Web3Provider } = require("@ethersproject/providers");
 
-await sf.initialize();
+const sf = new SuperfluidSDK.Framework({
+    ethers: new Web3Provider(window.ethereum)
+});
+await sf.initialize()
 
 const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 

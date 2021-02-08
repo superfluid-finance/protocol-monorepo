@@ -1,4 +1,4 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -43,13 +43,22 @@ contract("Super ETH (SETH) Contract", accounts => {
     });
 
     it("#1.1 upgradeByETH", async () => {
-        await web3tx(
+        const tx = await web3tx(
             seth.upgradeByETH,
-            "seth.upgradeByETHTo by alice"
+            "seth.upgradeByETH by alice"
         )({
             from: alice,
             value: toWad(1)
         });
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenUpgraded",
+            {
+                account: alice,
+                amount: toWad(1).toString()
+            }
+        );
         assert.equal(
             (await seth.balanceOf(alice)).toString(),
             toWad(1).toString()
@@ -61,11 +70,20 @@ contract("Super ETH (SETH) Contract", accounts => {
     });
 
     it("#1.2 upgradeByETHTo", async () => {
-        await web3tx(seth.upgradeByETHTo, "seth.upgradeByETHTo by alice")(
-            alice,
+        const tx = await web3tx(
+            seth.upgradeByETHTo,
+            "seth.upgradeByETHTo bob by alice"
+        )(alice, {
+            from: bob,
+            value: toWad(1)
+        });
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenUpgraded",
             {
-                from: bob,
-                value: toWad(1)
+                account: alice,
+                amount: toWad(1).toString()
             }
         );
         assert.equal(
@@ -98,9 +116,21 @@ contract("Super ETH (SETH) Contract", accounts => {
             }
         );
 
-        await web3tx(seth.upgradeByWETH, "seth.upgrade by alice")(toWad(1), {
-            from: alice
-        });
+        const tx = await web3tx(seth.upgradeByWETH, "seth.upgrade by alice")(
+            toWad(1),
+            {
+                from: alice
+            }
+        );
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenUpgraded",
+            {
+                account: alice,
+                amount: toWad(1).toString()
+            }
+        );
         assert.equal((await weth.balanceOf(alice)).toString(), "0");
         assert.equal(
             (await seth.balanceOf(alice)).toString(),
@@ -134,6 +164,15 @@ contract("Super ETH (SETH) Contract", accounts => {
             from: alice
         });
         const aliceBalance2 = await web3.eth.getBalance(alice);
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenDowngraded",
+            {
+                account: alice,
+                amount: toWad(1).toString()
+            }
+        );
         assert.equal(
             toBN(aliceBalance2)
                 .sub(toBN(aliceBalance1))
@@ -167,10 +206,19 @@ contract("Super ETH (SETH) Contract", accounts => {
             "SuperfluidToken: burn amount exceeds balance"
         );
 
-        await web3tx(seth.downgradeToWETH, "seth.downgradeToWETH by alice")(
-            toWad(1),
+        const tx = await web3tx(
+            seth.downgradeToWETH,
+            "seth.downgradeToWETH by alice"
+        )(toWad(1), {
+            from: alice
+        });
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenDowngraded",
             {
-                from: alice
+                account: alice,
+                amount: toWad(1).toString()
             }
         );
         assert.equal(

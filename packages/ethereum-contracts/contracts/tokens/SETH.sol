@@ -87,10 +87,12 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
 
     function upgradeByETH() external override payable {
         ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
+        emit TokenUpgraded(msg.sender, msg.value);
     }
 
     function upgradeByETHTo(address to) external override payable {
         ISuperToken(address(this)).selfMint(to, msg.value, new bytes(0));
+        emit TokenUpgraded(to, msg.value);
     }
 
     function upgradeByWETH(uint wad) external override {
@@ -98,17 +100,30 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
         // this will trigger receive() which is overriden to a no-op
         _weth.withdraw(wad);
         ISuperToken(address(this)).selfMint(msg.sender, wad, new bytes(0));
+        emit TokenUpgraded(msg.sender, wad);
     }
 
     function downgradeToETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
         msg.sender.transfer(wad);
+        emit TokenDowngraded(msg.sender, wad);
     }
 
     function downgradeToWETH(uint wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
         _weth.deposit{ value: wad }();
         _weth.transfer(msg.sender, wad);
+        emit TokenDowngraded(msg.sender, wad);
     }
+
+    event TokenUpgraded(
+        address indexed account,
+        uint256 amount
+    );
+
+    event TokenDowngraded(
+        address indexed account,
+        uint256 amount
+    );
 
 }

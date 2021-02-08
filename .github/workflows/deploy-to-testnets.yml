@@ -4,9 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       release_version:
-        description: 'Protocol Release Version (test/master/v1/etc.)'
+        description: 'Protocol release version (test/master/v1/etc.)'
         required: true
         default: 'test'
+      only_network:
+        description: 'Only a specific network is to be deployed'
+        required: false
 
 jobs:
 
@@ -19,6 +22,8 @@ jobs:
       fail-fast: false
       matrix:
           network: [goerli, rinkeby, ropsten, mumbai]
+
+    if: ${{ github.event.inputs.only_network == '' || github.event.inputs.only_network == matrix.network }}
 
     steps:
       - uses: actions/checkout@v2
@@ -43,7 +48,7 @@ jobs:
             source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
           fi
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.release_version}}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
           GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
           RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

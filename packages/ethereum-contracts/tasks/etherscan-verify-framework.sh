@@ -26,13 +26,16 @@ echo IDA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${IDA_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run etherscan InstantDistributionAgreementV1@${IDA_LOGIC}
 
-echo FDAI
+echo fDAIx
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAI}
 
-echo FUSDC
+echo fUSDCx
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FUSDC}
 
-echo FTUSD
+echo fTUSDx
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FTUSD}
+
+echo ETHx
+npx truffle --network $TRUFFLE_NETWORK run etherscan SETHProxy@${SUPER_TOKEN_ETHX}
 
 set +x

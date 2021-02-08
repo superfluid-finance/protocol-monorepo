@@ -80,7 +80,7 @@ const Flow = ({ flow }) => {
           to={routes.editFlow({
             from: flow.ownerAddress,
             to: flow.recipientAddress,
-            tokenAddress: flow.tokenAddress,
+            token: flow.tokenAddress,
           })}
           className="rw-button rw-button-blue"
         >

@@ -73,6 +73,7 @@ const FlowForm = (props) => {
         </Label>
         <TextField
           name="tokenAddress"
+          readOnly={props.flow?.tokenAddress}
           defaultValue={props.flow?.tokenAddress}
           className="rw-input"
           errorClassName="rw-input rw-input-error"
@@ -94,6 +95,7 @@ const FlowForm = (props) => {
         </Label>
         <TextField
           name="flowRate"
+          placeholder="eg. 385802469135802"
           defaultValue={props.flow?.flowRate}
           className="rw-input"
           errorClassName="rw-input rw-input-error"

@@ -57,50 +57,35 @@ const Flow = ({ flow }) => {
         <table className="rw-table">
           <tbody>
             <tr>
-              <th>Id</th>
-              <td>{flow.id}</td>
-            </tr>
-            <tr>
-              <th>Created at</th>
-              <td>{timeTag(flow.createdAt)}</td>
-            </tr>
-            <tr>
-              <th>Updated at</th>
-              <td>{timeTag(flow.updatedAt)}</td>
-            </tr>
-            <tr>
-              <th>Flow rate</th>
-              <td>{flow.flowRate}</td>
+              <th>Owner address</th>
+              <td>{flow.ownerAddress}</td>
             </tr>
             <tr>
               <th>Recipient address</th>
               <td>{flow.recipientAddress}</td>
             </tr>
             <tr>
-              <th>Owner address</th>
-              <td>{flow.ownerAddress}</td>
+              <th>Token address</th>
+              <td>{flow.tokenAddress}</td>
             </tr>
             <tr>
-              <th>User id</th>
-              <td>{flow.userId}</td>
+              <th>Flow rate</th>
+              <td>{flow.flowRate}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <nav className="rw-button-group">
         <Link
-          to={routes.editFlow({ id: flow.id })}
+          to={routes.editFlow({
+            from: flow.ownerAddress,
+            to: flow.recipientAddress,
+            tokenAddress: flow.tokenAddress,
+          })}
           className="rw-button rw-button-blue"
         >
           Edit
         </Link>
-        <a
-          href="#"
-          className="rw-button rw-button-red"
-          onClick={() => onDeleteClick(flow.id)}
-        >
-          Delete
-        </a>
       </nav>
     </>
   )

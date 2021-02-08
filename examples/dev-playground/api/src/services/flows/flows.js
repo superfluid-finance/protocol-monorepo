@@ -12,9 +12,15 @@ export const flow = async ({
   tokenAddress,
 }) => {
   await sf.initialize()
-  const owner = sf.user({ address: ownerAddress, token: tokenAddress })
-  let flowRate = 0
-  const { cfa: { flows: { outFlows } } = {} } = await owner.details()
-  console.log(outFlows)
-  return { flowRate: 100 }
+  const flow = await sf.cfa.getFlow({
+    sender: ownerAddress,
+    superToken: tokenAddress,
+    receiver: recipientAddress,
+  })
+  return {
+    flowRate: flow.flowRate,
+    recipientAddress,
+    tokenAddress,
+    ownerAddress,
+  }
 }

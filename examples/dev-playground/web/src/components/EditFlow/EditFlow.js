@@ -6,7 +6,7 @@ import { useAuth } from '@redwoodjs/auth'
 import { Web3Provider } from '@ethersproject/providers'
 import SuperfluidSDK from '@superfluid-finance/js-sdk'
 
-const NewFlow = ({ to }) => {
+const EditFlow = ({ to, from, token }) => {
   const { currentUser } = useAuth()
   const { addMessage } = useFlash()
 
@@ -54,7 +54,8 @@ const NewFlow = ({ to }) => {
           <FlowForm
             flow={{
               recipientAddress: to,
-              ownerAddress: currentUser.address,
+              ownerAddress: from || currentUser.address,
+              tokenAddress: token,
             }}
             onSave={newFlow}
             loading={loading}
@@ -89,4 +90,4 @@ const NewFlow = ({ to }) => {
   )
 }
 
-export default NewFlow
+export default EditFlow

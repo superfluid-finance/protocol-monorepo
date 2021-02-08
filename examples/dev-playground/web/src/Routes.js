@@ -12,10 +12,10 @@ import { Router, Route, Private } from '@redwoodjs/router'
 const Routes = ({ useAuth }) => {
   return (
     <Router useAuth={useAuth}>
-      <Route path="/flows/{from}/{to}/edit" page={EditFlowPage} name="editFlow" />
       <Route path="/flows/{from}/{to}/{token}" page={FlowPage} name="flow" />
       <Route path="/flows" page={FlowsPage} name="flows" />
       <Private unauthenticated="login">
+        <Route path="/flows/{from}/{to}/{token}/edit" page={EditFlowPage} name="editFlow" />
         <Route path="/flows/{to}/new" page={NewFlowPage} name="newFlow" />
       </Private>
       <Route path="/" page={HomePage} name="home" />

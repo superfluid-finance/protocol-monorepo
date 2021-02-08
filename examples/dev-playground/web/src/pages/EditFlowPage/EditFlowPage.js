@@ -1,10 +1,10 @@
 import FlowsLayout from 'src/layouts/FlowsLayout'
-import EditFlowCell from 'src/components/EditFlowCell'
+import EditFlow from 'src/components/EditFlow'
 
-const EditFlowPage = ({ id }) => {
+const EditFlowPage = ({ from, to, token }) => {
   return (
     <FlowsLayout>
-      <EditFlowCell id={id} />
+      <EditFlow from={from} to={to} token={token} />
     </FlowsLayout>
   )
 }

@@ -2904,6 +2904,13 @@
   dependencies:
     "@ethersproject/hash" "^5.0.11"
 
+"@superfluid-finance/js-sdk@^0.3.2-PR258.2dc7b46.0":
+  version "0.3.2-PR258.2dc7b46.0"
+  resolved "https://npm.pkg.github.com/download/@superfluid-finance/js-sdk/0.3.2-PR258.2dc7b46.0/8145b32a8cec80b502aeeb43d77796d05e3c3cfb3092b01af3886aad00fb98ff#43723311c4b33ec77b0add3f06a19e2637da0cf7"
+  integrity sha512-Lq3V4Jy8ciAXDZ2HqJ6Lw4SAyRHNaYr2JqirgF/Lh1BlfA+N1gzcfWxTkf5tHsZ3QtDy46+LSiip0mpby7lYBw==
+  dependencies:
+    "@ethersproject/hash" "^5.0.11"
+
 "@svgr/babel-plugin-add-jsx-attribute@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@svgr/babel-plugin-add-jsx-attribute/-/babel-plugin-add-jsx-attribute-4.2.0.tgz#dadcb6218503532d6884b210e7f3c502caaa44b1"

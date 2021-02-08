@@ -8,6 +8,9 @@ export const QUERY = gql`
       tokenAddress: $token
     ) {
       flowRate
+      ownerAddress
+      recipientAddress
+      tokenAddress
     }
   }
 `

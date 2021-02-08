@@ -3,15 +3,15 @@ name: CI Feature Branches
 on:
   push:
     branches-ignore: ["master", "dev"]
-  pull_request:
+  workflow_run:
+    workflows: ["Is PR External"]
+    types:
+      - completed
 
 jobs:
   check:
 
     runs-on: ubuntu-latest
-
-    # a push event from the origin repo, or a PR from external repo
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
     steps:
       - name: Show contexts

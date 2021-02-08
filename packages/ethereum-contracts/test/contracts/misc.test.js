@@ -182,6 +182,45 @@ contract("Miscellaneous for test coverages", accounts => {
                 tester.testInt96SafeMathSub(MIN_INT96, "1"),
                 "testInt96SafeMathSub overflow"
             );
+            // testInt96SafeMathDiv
+            assert.equal(
+                (await tester.testInt96SafeMathDiv(MAX_INT96, "1")).toString(),
+                MAX_INT96
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MAX_INT96_MINUS_1, 2)
+                ).toString(),
+                MAX_INT96_DIV_2
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MAX_INT96, MAX_INT96)
+                ).toString(),
+                "1"
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MIN_INT96, MIN_INT96)
+                ).toString(),
+                "1"
+            );
+            await expectRevert(
+                tester.testInt96SafeMathDiv(1, 2),
+                "testInt96SafeMathDiv overflow"
+            );
+            await expectRevert(
+                tester.testInt96SafeMathDiv(MIN_INT96_DIV_2_MINUS_1, 2),
+                "testInt96SafeMathDiv overflow"
+            );
+            await expectRevert(
+                tester.testInt96SafeMathDiv("-1", MIN_INT96),
+                "testInt96SafeMathDiv overflow"
+            );
+            await expectRevert(
+                tester.testInt96SafeMathDiv("2", MIN_INT96),
+                "testInt96SafeMathDiv overflow"
+            );
         });
 
         it("UInt128SafeMath", async () => {

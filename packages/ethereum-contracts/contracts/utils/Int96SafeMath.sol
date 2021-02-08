@@ -47,14 +47,15 @@ library Int96SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    /* function div(int96 a, int96 b) internal pure returns (int96) {
+    function div(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
         require(b != 0, "Int96SafeMath: division by zero");
         require(!(b == -1 && a == _INT96_MIN), "Int96SafeMath: division overflow");
 
         int96 c = a / b;
+        require(c * b == a, errorMessage);
 
         return c;
-    } */
+    }
 
     /**
      * @dev Returns the subtraction of two signed integers, reverting on

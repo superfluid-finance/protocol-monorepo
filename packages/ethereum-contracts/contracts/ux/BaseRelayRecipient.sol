@@ -12,20 +12,15 @@ import "../interfaces/ux/IRelayRecipient.sol";
 abstract contract BaseRelayRecipient is IRelayRecipient {
 
     /*
-     * Forwarder singleton we accept calls from
-     */
-    address public trustedForwarder;
-
-    /*
      * require a function to be called through GSN only
      */
     modifier trustedForwarderOnly() {
-        require(msg.sender == address(trustedForwarder), "Function can only be called through the trusted Forwarder");
+        require(msg.sender == _trustedForwarder(), "Function can only be called through the trusted Forwarder");
         _;
     }
 
     function isTrustedForwarder(address forwarder) public override view returns(bool) {
-        return forwarder == trustedForwarder;
+        return forwarder == _trustedForwarder();
     }
 
     /**
@@ -34,7 +29,7 @@ abstract contract BaseRelayRecipient is IRelayRecipient {
      * otherwise, return `msg.sender`.
      * should be used in the contract anywhere instead of msg.sender
      */
-    function _msgSender() internal virtual view returns (address payable ret) {
+    function _getEIP2771MsgSender() internal virtual view returns (address payable ret) {
         if (msg.data.length >= 24 && isTrustedForwarder(msg.sender)) {
             // At this point we know that the sender is a trusted forwarder,
             // so we trust that the last bytes of msg.data are the verified sender address.
@@ -46,4 +41,10 @@ abstract contract BaseRelayRecipient is IRelayRecipient {
             return msg.sender;
         }
     }
+
+    /*
+     * Forwarder singleton we accept calls from
+     */
+    function _trustedForwarder() internal view virtual returns (address);
+
 }

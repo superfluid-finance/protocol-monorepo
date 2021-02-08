@@ -12,7 +12,8 @@ import { ISuperApp } from "./ISuperApp.sol";
 import {
     SuperAppDefinitions,
     ContextDefinitions,
-    BatchOperation
+    BatchOperation,
+    SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -407,10 +408,16 @@ interface ISuperfluid {
     }
 
     /**
-     * @dev Batch call function.
+     * @dev Batch call function
      * @param operations Array of batch operations.
      */
     function batchCall(Operation[] memory operations) external;
+
+    /**
+     * @dev Batch call function with biconomy forwarder
+     * @param operations Array of batch operations.
+     */
+    function biconomyBatchCall(Operation[] memory operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

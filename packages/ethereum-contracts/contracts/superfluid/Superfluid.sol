@@ -13,6 +13,7 @@ import {
     SuperAppDefinitions,
     ContextDefinitions,
     BatchOperation,
+    SuperfluidGovernanceConfigs,
     ISuperfluidToken,
     ISuperToken,
     ISuperTokenFactory,
@@ -21,6 +22,8 @@ import {
 
 import { CallUtils } from "../utils/CallUtils.sol";
 
+import { BaseRelayRecipient } from "../ux/BaseRelayRecipient.sol";
+
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
@@ -28,7 +31,8 @@ import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 
 contract Superfluid is
     UUPSProxiable,
-    ISuperfluid
+    ISuperfluid,
+    BaseRelayRecipient
 {
 
     using SafeMath for uint256;
@@ -484,12 +488,13 @@ contract Superfluid is
     * Contextless Call Proxies
     *************************************************************************/
 
-    function callAgreement(
+    function _callAgreement(
+        address msgSender,
         ISuperAgreement agreementClass,
         bytes memory callData,
         bytes memory userData
     )
-        public override
+        internal
         cleanCtx
         isAgreement(agreementClass)
         returns(bytes memory returnedData)
@@ -499,11 +504,11 @@ contract Superfluid is
 
         //Build context data
         bytes memory  ctx = _updateContext(Context({
-            appLevel: isApp(ISuperApp(msg.sender)) ? 1 : 0,
+            appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_AGREEMENT,
             /* solhint-disable-next-line not-rely-on-time */
             timestamp: block.timestamp,
-            msgSender: msg.sender,
+            msgSender: msgSender,
             agreementSelector: agreementSelector,
             userData: userData,
             appAllowanceGranted: 0,
@@ -519,22 +524,34 @@ contract Superfluid is
         _ctxStamp = 0;
     }
 
-    function callAppAction(
+    function callAgreement(
+        ISuperAgreement agreementClass,
+        bytes memory callData,
+        bytes memory userData
+    )
+        external override
+        returns(bytes memory returnedData)
+    {
+        return _callAgreement(msg.sender, agreementClass, callData, userData);
+    }
+
+    function _callAppAction(
+        address msgSender,
         ISuperApp app,
         bytes memory callData
     )
-        public override
+        internal
         cleanCtx
         isAppActive(app)
         returns(bytes memory returnedData)
     {
         //Build context data
         bytes memory ctx = _updateContext(Context({
-            appLevel: isApp(ISuperApp(msg.sender)) ? 1 : 0,
+            appLevel: isApp(ISuperApp(msgSender)) ? 1 : 0,
             callType: ContextDefinitions.CALL_INFO_CALL_TYPE_APP_ACTION,
             /* solhint-disable-next-line not-rely-on-time */
             timestamp: block.timestamp,
-            msgSender: msg.sender,
+            msgSender: msgSender,
             agreementSelector: 0,
             userData: "",
             appAllowanceGranted: 0,
@@ -551,6 +568,18 @@ contract Superfluid is
         }
         // clear the stamp
         _ctxStamp = 0;
+    }
+
+    function callAppAction(
+        ISuperApp app,
+        bytes memory callData
+    )
+        external override
+        cleanCtx
+        isAppActive(app)
+        returns(bytes memory returnedData)
+    {
+        return _callAppAction(msg.sender, app, callData);
     }
 
     /**************************************************************************
@@ -650,10 +679,11 @@ contract Superfluid is
     * Batch call
     **************************************************************************/
 
-    function batchCall(
-       Operation[] memory operations
+    function _batchCall(
+        address msgSender,
+        Operation[] memory operations
     )
-       external override
+       internal
     {
         for(uint256 i = 0; i < operations.length; i++) {
             uint32 operationType = operations[i].operationType;
@@ -661,39 +691,72 @@ contract Superfluid is
                 (address spender, uint256 amount) =
                     abi.decode(operations[i].data, (address, uint256));
                 ISuperToken(operations[i].target).operationApprove(
-                    msg.sender,
+                    msgSender,
                     spender,
                     amount);
             } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_TRANSFER_FROM) {
                 (address sender, address receiver, uint256 amount) =
                     abi.decode(operations[i].data, (address, address, uint256));
                 ISuperToken(operations[i].target).operationTransferFrom(
-                    msg.sender,
+                    msgSender,
                     sender,
                     receiver,
                     amount);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
-                    msg.sender,
+                    msgSender,
                     abi.decode(operations[i].data, (uint256)));
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE) {
                 ISuperToken(operations[i].target).operationDowngrade(
-                    msg.sender,
+                    msgSender,
                     abi.decode(operations[i].data, (uint256)));
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
-                callAgreement(
+                _callAgreement(
+                    msgSender,
                     ISuperAgreement(operations[i].target),
                     callData,
                     userData);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
-                callAppAction(
+                _callAppAction(
+                    msgSender,
                     ISuperApp(operations[i].target),
                     operations[i].data);
             } else {
                revert("SF: unknown batch call operation type");
             }
         }
+    }
+
+    function batchCall(
+       Operation[] memory operations
+    )
+       external override
+    {
+        _batchCall(msg.sender, operations);
+    }
+
+    function biconomyBatchCall(Operation[] memory operations)
+        external override
+    {
+        _batchCall(_getEIP2771MsgSender(), operations);
+    }
+
+    function _trustedForwarder()
+        internal view override
+        returns (address)
+    {
+        return _gov.getConfigAsAddress(
+            this,
+            ISuperfluidToken(address(0)),
+            SuperfluidGovernanceConfigs.BICONOMY_FORWARDER_ADDRESS_CONFIG_KEY);
+    }
+
+    function versionRecipient()
+        external override pure
+        returns (string memory)
+    {
+        return "v1";
     }
 
     /**************************************************************************

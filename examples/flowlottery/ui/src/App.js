@@ -100,19 +100,21 @@ function App() {
   async function joinLottery() {
     setDaiBalance(wad4human(await dai.balanceOf.call(userAddress)));
     setDaixBalance(wad4human(await daix.balanceOf.call(userAddress)));
-    var call;
+    let call = [];
     if (daixBalance < 2)
       call = [
         [
-          2, // upgrade 100 daix to play the game
+          1 + 100, // upgrade 100 daix to play the game
           daix.address,
           sf.web3.eth.abi.encodeParameters(
             ["uint256"],
             [sf.web3.utils.toWei("100", "ether").toString()]
           )
-        ],
+        ]
+      ];
+    call.push(...[
         [
-          0, // approve the ticket fee
+          1, // approve the ticket fee
           daix.address,
           sf.web3.eth.abi.encodeParameters(
             ["address", "uint256"],
@@ -120,93 +122,32 @@ function App() {
           )
         ],
         [
-          5, // callAppAction to participate
+          2 + 200, // callAppAction to participate
           app.address,
           app.contract.methods.participate("0x").encodeABI()
         ],
         [
-          4, // create constant flow (10/mo)
+          1 + 200, // create constant flow (10/mo)
           sf.agreements.cfa.address,
-          sf.agreements.cfa.contract.methods
-            .createFlow(
-              daix.address,
-              app.address,
-              MINIMUM_GAME_FLOW_RATE.toString(),
-              "0x"
-            )
-            .encodeABI()
-        ]
-      ];
-    else
-      call = [
-        [
-          0, // approve the ticket fee
-          daix.address,
           sf.web3.eth.abi.encodeParameters(
-            ["address", "uint256"],
-            [APP_ADDRESS, sf.web3.utils.toWei("1", "ether").toString()]
-          )
-        ],
-        [
-          5, // callAppAction to participate
-          app.address,
-          app.contract.methods.participate("0x").encodeABI()
-        ],
-        [
-          4, // create constant flow (10/mo)
-          sf.agreements.cfa.address,
-          sf.agreements.cfa.contract.methods
-            .createFlow(
-              daix.address,
-              app.address,
-              MINIMUM_GAME_FLOW_RATE.toString(),
+            ["bytes", "bytes"],
+            [
+              sf.agreements.cfa.contract.methods
+                .createFlow(
+                  daix.address,
+                  app.address,
+                  MINIMUM_GAME_FLOW_RATE.toString(),
+                  "0x"
+                )
+                .encodeABI(),
               "0x"
-            )
-            .encodeABI()
+            ]
+          )
         ]
-      ];
+    ]);
     console.log("this is the batchcall: ", call);
     await sf.host.batchCall(call, { from: userAddress });
     await checkWinner();
-
-    await sf.host.batchCall(
-      [
-        [
-          2, // upgrade 100 daix to play the game
-          daix.address,
-          sf.web3.eth.abi.encodeParameters(
-            ["uint256"],
-            [sf.web3.utils.toWei("100", "ether").toString()]
-          )
-        ],
-        [
-          0, // approve the ticket fee
-          daix.address,
-          sf.web3.eth.abi.encodeParameters(
-            ["address", "uint256"],
-            [APP_ADDRESS, sf.web3.utils.toWei("1", "ether").toString()]
-          )
-        ],
-        [
-          5, // callAppAction to participate
-          app.address,
-          app.contract.methods.participate("0x").encodeABI()
-        ],
-        [
-          4, // create constant flow (10/mo)
-          sf.agreements.cfa.address,
-          sf.agreements.cfa.contract.methods
-            .createFlow(
-              daix.address,
-              app.address,
-              MINIMUM_GAME_FLOW_RATE.toString(),
-              "0x"
-            )
-            .encodeABI()
-        ]
-      ],
-      { from: userAddress }
-    );
   }
 
   async function leaveLottery() {
@@ -215,6 +156,7 @@ function App() {
       sf.agreements.cfa.contract.methods
         .deleteFlow(daix.address, userAddress, app.address, "0x")
         .encodeABI(),
+      "0x",
       { from: userAddress }
     );
     await checkWinner();
@@ -294,7 +236,7 @@ function App() {
   useEffect(() => {
     console.log("Refresh players list");
     (async () => {
-      if (provider) {
+      if (provider && sf.agreements) {
         setDaiBalance(wad4human(await dai.balanceOf.call(userAddress)));
         setDaixBalance(wad4human(await daix.balanceOf.call(userAddress)));
         setDaixBalanceFake(wad4human(await daix.balanceOf.call(userAddress)));

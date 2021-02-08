@@ -11,7 +11,7 @@ export const Header = styled.header`
   padding-left: 18px;
 `;
 
-export const Body = styled.body`
+export const Body = styled.div`
   align-items: center;
   color: white;
   font-size: 20px;

@@ -11,10 +11,10 @@ async function main() {
   // will result in the same database state (usually by checking for the
   // existence of a record before trying to create it). For example:
   //
-  //   const existing = await db.user.findMany({ where: { email: 'admin@email.com' }})
-  //   if (!existing.length) {
-  //     await db.user.create({ data: { name: 'Admin', email: 'admin@email.com' }})
-  //   }
+  // const existing = await db.user.findMany({ where: { email: 'admin@email.com' }})
+  // if (!existing.length) {
+  //   await db.game.create({ data: { name: 'Admin', email: 'admin@email.com' }})
+  // }
 
   console.info('No data to seed. See api/db/seeds.js for info.')
 }

@@ -98,9 +98,66 @@
     {
       "tag": "CreateField",
       "model": "User",
+      "field": "flowsReceiving",
+      "type": "Flow",
+      "arity": "List"
+    },
+    {
+      "tag": "CreateDirective",
+      "location": {
+        "path": {
+          "tag": "Field",
+          "model": "User",
+          "field": "flowsReceiving"
+        },
+        "directive": "relation"
+      }
+    },
+    {
+      "tag": "CreateArgument",
+      "location": {
+        "tag": "Directive",
+        "path": {
+          "tag": "Field",
+          "model": "User",
+          "field": "flowsReceiving"
+        },
+        "directive": "relation"
+      },
+      "argument": "name",
+      "value": "\"flowsReceiving\""
+    },
+    {
+      "tag": "CreateField",
+      "model": "User",
       "field": "flowsOwned",
       "type": "Flow",
       "arity": "List"
+    },
+    {
+      "tag": "CreateDirective",
+      "location": {
+        "path": {
+          "tag": "Field",
+          "model": "User",
+          "field": "flowsOwned"
+        },
+        "directive": "relation"
+      }
+    },
+    {
+      "tag": "CreateArgument",
+      "location": {
+        "tag": "Directive",
+        "path": {
+          "tag": "Field",
+          "model": "User",
+          "field": "flowsOwned"
+        },
+        "directive": "relation"
+      },
+      "argument": "name",
+      "value": "\"flowsOwned\""
     },
     {
       "tag": "CreateModel",
@@ -295,6 +352,73 @@
     {
       "tag": "CreateField",
       "model": "Flow",
+      "field": "recipient",
+      "type": "User",
+      "arity": "Required"
+    },
+    {
+      "tag": "CreateDirective",
+      "location": {
+        "path": {
+          "tag": "Field",
+          "model": "Flow",
+          "field": "recipient"
+        },
+        "directive": "relation"
+      }
+    },
+    {
+      "tag": "CreateArgument",
+      "location": {
+        "tag": "Directive",
+        "path": {
+          "tag": "Field",
+          "model": "Flow",
+          "field": "recipient"
+        },
+        "directive": "relation"
+      },
+      "argument": "name",
+      "value": "\"flowsReceiving\""
+    },
+    {
+      "tag": "CreateArgument",
+      "location": {
+        "tag": "Directive",
+        "path": {
+          "tag": "Field",
+          "model": "Flow",
+          "field": "recipient"
+        },
+        "directive": "relation"
+      },
+      "argument": "fields",
+      "value": "[recipientAddress]"
+    },
+    {
+      "tag": "CreateArgument",
+      "location": {
+        "tag": "Directive",
+        "path": {
+          "tag": "Field",
+          "model": "Flow",
+          "field": "recipient"
+        },
+        "directive": "relation"
+      },
+      "argument": "references",
+      "value": "[address]"
+    },
+    {
+      "tag": "CreateField",
+      "model": "Flow",
+      "field": "recipientAddress",
+      "type": "String",
+      "arity": "Required"
+    },
+    {
+      "tag": "CreateField",
+      "model": "Flow",
       "field": "owner",
       "type": "User",
       "arity": "Required"
@@ -321,8 +445,22 @@
         },
         "directive": "relation"
       },
+      "argument": "name",
+      "value": "\"flowsOwned\""
+    },
+    {
+      "tag": "CreateArgument",
+      "location": {
+        "tag": "Directive",
+        "path": {
+          "tag": "Field",
+          "model": "Flow",
+          "field": "owner"
+        },
+        "directive": "relation"
+      },
       "argument": "fields",
-      "value": "[ownerId]"
+      "value": "[ownerAddress]"
     },
     {
       "tag": "CreateArgument",
@@ -336,14 +474,7 @@
         "directive": "relation"
       },
       "argument": "references",
-      "value": "[id]"
-    },
-    {
-      "tag": "CreateField",
-      "model": "Flow",
-      "field": "ownerId",
-      "type": "String",
-      "arity": "Required"
+      "value": "[address]"
     },
     {
       "tag": "CreateField",

@@ -7,7 +7,10 @@
     ]
   },
   "devDependencies": {
-    "@redwoodjs/core": "0.23.1-pat-prisma"
+    "@redwoodjs/core": "0.24.0"
+  },
+  "resolutions": {
+    "@prisma/client": "2.11.0"
   },
   "eslintConfig": {
     "extends": "@redwoodjs/eslint-config"

@@ -4,14 +4,16 @@
   "private": true,
   "dependencies": {
     "@ethersproject/providers": "^5.0.19",
-    "@redwoodjs/api": "0.23.1-pat-prisma",
-    "@redwoodjs/core": "0.23.1-pat-prisma",
-    "@superfluid-finance/js-sdk": "^0.3.1-PR238.d46ea44.0",
+    "@prisma/sdk": "2.15.0",
+    "@redwoodjs/api": "0.24.0",
+    "@redwoodjs/core": "0.24.0",
+    "@superfluid-finance/js-sdk": "^0.3.1",
     "eth-sig-util": "^3.0.0",
     "ethereumjs-util": "^7.0.7",
     "jsonwebtoken": "^8.5.1"
   },
-  "devDependencies": {
-    "@prisma/cli": "2.12.1"
+  "devDependencies": {},
+  "resolutions": {
+    "@prisma/client": "2.11.0"
   }
 }

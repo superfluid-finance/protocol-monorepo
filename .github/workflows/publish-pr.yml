@@ -37,17 +37,19 @@ jobs:
           workflow: ${{ github.event.workflow_run.workflow_id }}
           workflow_conclusion: success
 
-      - name: Get PR number
-        id: pr_number
+      - name: Get PR data
+        id: pr
         run: |
           ls -R
           pr_number=$(ls pr-packages)
+          n_packages=$(ls pr-packages/$pr_number)
           echo $pr_number
           echo "::set-output name=pr_number::$pr_number"
+          echo "::set-output name=n_packages::$n_packages"
 
       - name: Publish to github
         run: |
-          pr_number="${{ steps.pr_number.outputs.pr_number }}"
+          pr_number="${{ steps.pr.outputs.pr_number }}"
           tasks/npmrc-use-github.sh > pr-packages/$pr_number/.npmrc # using GITHUB_TOKEN
           cd pr-packages/$pr_number
           for f in `ls` ; do
@@ -58,23 +60,24 @@ jobs:
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1
+        if: ${{ steps.pr.outputs.n_packages > 0 }}
         id: fc
         with:
-          issue-number: ${{ steps.pr_number.outputs.pr_number }}
+          issue-number: ${{ steps.pr.outputs.pr_number }}
           comment-author: "github-actions[bot]"
 
       - name: Create comment
-        if: ${{ steps.fc.outputs.comment-id == 0 }}
+        if: ${{ steps.pr.outputs.n_packages > 0 && steps.fc.outputs.comment-id == 0 }}
         uses: peter-evans/create-or-update-comment@v1
         with:
-          issue-number: ${{ steps.pr_number.outputs.pr_number }}
+          issue-number: ${{ steps.pr.outputs.pr_number }}
           body: |
             ### 📦 PR Packages
 
             Install this PR:
 
             ```bash
-            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr_number.outputs.pr_number }} --registry https://npm.pkg.github.com/
+            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr.outputs.pr_number }} --registry https://npm.pkg.github.com/
             ```
 
             <details><summary>:octocat: Click to learn how to use Github packages</summary>

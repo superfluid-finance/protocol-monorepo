@@ -4,18 +4,16 @@ on:
   # triggered by internal pushes
   push:
     branches-ignore: ["master", "dev"]
-  # triggered by external PRs
-  workflow_run:
-    workflows: ["Is PR External"]
-    types:
-      - completed
+  # triggered by external PRs (filtered in the `check` job)
+  pull_request:
 
 jobs:
   check:
 
     runs-on: ubuntu-latest
 
-    if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' }}
+    # triggered by internal pushes or external PRs
+    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
     steps:
       - name: Show contexts

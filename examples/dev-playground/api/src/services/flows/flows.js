@@ -14,6 +14,7 @@ export const flow = async ({
   await sf.initialize()
   const owner = sf.user({ address: ownerAddress, token: tokenAddress })
   let flowRate = 0
-  const { cfa: { flows: { outFlows } } = {} } = await user.details()
+  const { cfa: { flows: { outFlows } } = {} } = await owner.details()
   console.log(outFlows)
+  return { flowRate: 100 }
 }

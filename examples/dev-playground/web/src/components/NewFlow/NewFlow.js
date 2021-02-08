@@ -13,28 +13,35 @@ const NewFlow = ({ to }) => {
   const [error, setError] = React.useState(null)
   const [loading, setLoading] = React.useState(false)
 
+  const sf = new SuperfluidSDK.Framework({
+    ethers: new Web3Provider(window.ethereum),
+  })
+
   const newFlow = async (input) => {
     setLoading(true)
 
-    const sf = new SuperfluidSDK.Framework({
-      ethers: new Web3Provider(window.ethereum),
-    })
     await sf.initialize()
+
     const owner = sf.user({
       address: input.ownerAddress,
       token: input.tokenAddress,
     })
-    const tx = await owner.flow({
+
+    owner.flow({
       recipient: input.recipientAddress,
       flowRate: input.flowRate,
+      onTransaction: () => {
+        setLoading(false)
+        addMessage('Flow created.', { classes: 'rw-flash-success' })
+        navigate(
+          routes.flow({
+            from: input.ownerAddress,
+            to: input.recipientAddress,
+            token: input.tokenAddress,
+          })
+        )
+      },
     })
-    await tx.wait()
-
-    setLoading(false)
-    addMessage('Flow created.', { classes: 'rw-flash-success' })
-    navigate(
-      routes.flow({ from: input.ownerAddress, to: input.recipientAddress })
-    )
   }
 
   return (

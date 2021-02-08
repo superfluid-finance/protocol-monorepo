@@ -1,15 +1,13 @@
 import Flow from 'src/components/Flow'
 
 export const QUERY = gql`
-  query FIND_FLOW_BY_ID($id: String!) {
-    flow: flow(id: $id) {
-      id
-      createdAt
-      updatedAt
+  query FIND_FLOW($from: String!, $to: String!, $token: String!) {
+    flow: flow(
+      ownerAddress: $from
+      recipientAddress: $to
+      tokenAddress: $token
+    ) {
       flowRate
-      recipientAddress
-      ownerAddress
-      userId
     }
   }
 `

@@ -1,17 +1,19 @@
 name: CI Feature Branches
 
 on:
+  # triggered by internal pushes
   push:
     branches-ignore: ["master", "dev"]
-  pull_request:
+  # triggered by external PRs
+  workflow_run:
+    workflows: ["Is PR External"]
+    types:
+      - completed
 
 jobs:
   check:
 
     runs-on: ubuntu-latest
-
-    # a push event from the origin repo, or a PR from external repo
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
     steps:
       - name: Show contexts
@@ -22,7 +24,6 @@ jobs:
           echo github.ref: ${{ github.ref }}
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
-          echo github.event.pull_request.head.repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}
 
   test-ethereum-contracts:
     name: Build and test ethereum-contracts (Feature Branch)

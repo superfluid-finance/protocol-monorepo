@@ -23,22 +23,27 @@ jobs:
       matrix:
           network: [goerli, rinkeby, ropsten, mumbai]
 
-    if: ${{ github.event.inputs.only_network == '' || github.event.inputs.only_network == matrix.network }}
-
     steps:
       - uses: actions/checkout@v2
 
+      - name: Check only_network
+        if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
+        run: echo "DO_SKIP=1" >> $GITHUB_ENV
+
       - name: Use Node.js 12.x
+        if: env.DO_SKIP != 1
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
 
       - name: Build
+        if: env.DO_SKIP != 1
         run: |
           yarn install --frozen-lockfile
           yarn build
 
-      - name: Deploy to ${{ matrix.network }}
+      - name: Build and deploy to ${{ matrix.network }}
+        if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js

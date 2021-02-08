@@ -11,4 +11,31 @@ const getCleanAddress = address => {
     return address.toLowerCase();
 };
 
-module.exports = { validateAddress, isAddress, getCleanAddress };
+const completeTransaction = async ({
+    sf,
+    method,
+    args,
+    sender,
+    onTransaction
+}) => {
+    let tx;
+    if (sf.ethers) {
+        const tx = await method(...args);
+        const receipt = await tx.wait();
+        if (receipt.status === 1) onTransaction(receipt.transactionHash);
+        tx.receipt = receipt;
+    } else {
+        tx = await method(...args, { from: sender }).on(
+            "transactionHash",
+            onTransaction
+        );
+    }
+    return tx;
+};
+
+module.exports = {
+    validateAddress,
+    isAddress,
+    getCleanAddress,
+    completeTransaction
+};

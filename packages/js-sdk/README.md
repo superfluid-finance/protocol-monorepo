@@ -28,16 +28,16 @@
 Here is a quick look at using the SDK.
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const { Web3Provider } = require("@ethersproject/providers");
+
 const sf = new SuperfluidSDK.Framework({
-    version: "v1", // Protocol release version
-    web3Provider: web3.currentProvider, // your web3 provider
+    ethers: new Web3Provider(window.ethereum),
     tokens: ["fDAI"]
 });
-
 await sf.initialize();
 
-const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI.address });
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 
 // Constant Flow Agreement
 await bob.flow({
@@ -89,14 +89,16 @@ During initialization, the resolver will be used to fetch the correct set of con
 Example:
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const { Web3Provider } = require("@ethersproject/providers");
+
 const sf = new SuperfluidSDK.Framework({
-    version: "v1", // Protocol release version
-    web3Provider: web3.currentProvider, // your web3 provider
+    ethers: new Web3Provider(window.ethereum),
     tokens: ["fDAI"]
 });
-
 await sf.initialize();
+
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 ```
 
 ## :bust_in_silhouette: User
@@ -106,12 +108,8 @@ Create a new User object to quickly create and modify agreements.
 Example:
 
 ```js
-// First initialize the SDK
-const sf = new SuperfluidSDK.Framework({...})
-await sf.initialize()
-
-const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI })
-const carol = sf.user({ address: "0x123...", token: sf.tokens.fDAI })
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAI });
+const carol = sf.user({ address: "0x123...", token: sf.tokens.fDAI });
 ```
 
 ### `user.details()`
@@ -178,9 +176,17 @@ const tx = await alice.flow({
 
 Contributions and suggestions welcome!
 
+## Module packaging
+
+Check the module size and dependencies:
+
+```bash
+yarn stats
+```
+
 ## Testing
 
-Since testing can take a while, we recommend specifying a test-suite. For example:
+Since testing can take a long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want. For example:
 
 ```bash
 # Only run User.test.js

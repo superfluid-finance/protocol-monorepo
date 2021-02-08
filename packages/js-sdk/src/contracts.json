@@ -8,6 +8,8 @@
     "ISuperToken",
     "ISuperTokenFactory",
     "ISuperAgreement",
+    "ISuperfluidGovernance",
     "IConstantFlowAgreementV1",
-    "IInstantDistributionAgreementV1"
+    "IInstantDistributionAgreementV1",
+    "ISETH"
 ]

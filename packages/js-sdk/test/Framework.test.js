@@ -1,4 +1,8 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
+
+const { Web3Provider } = require("@ethersproject/providers");
+const Web3 = require("web3");
+
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
@@ -10,18 +14,20 @@ contract("Framework class", accounts => {
 
     before(async () => {
         await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"], {
-            isTruffle: true
-        });
-        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
-            isTruffle: true
-        });
-        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
-            isTruffle: true
-        });
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
-            isTruffle: true
-        });
+        await Promise.all([
+            deployTestToken(t.errorHandler, [":", "fDAI"], {
+                isTruffle: true
+            }),
+            deployTestToken(t.errorHandler, [":", "fUSDC"], {
+                isTruffle: true
+            }),
+            deploySuperToken(t.errorHandler, [":", "fDAI"], {
+                isTruffle: true
+            }),
+            deploySuperToken(t.errorHandler, [":", "fUSDC"], {
+                isTruffle: true
+            })
+        ]);
     });
 
     describe("initialization", () => {
@@ -99,35 +105,59 @@ contract("Framework class", accounts => {
             );
         }
 
-        it("without truffle framework", async () => {
+        it("with native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider
+                isTruffle: true,
+                version: "test"
             });
             await sf.initialize();
             testLoadedContracts(sf);
         });
 
-        it("with truffle framework", async () => {
-            const sf = new SuperfluidSDK.Framework({ isTruffle: true });
+        it("with non-native truffle environment", async () => {
+            const sf = new SuperfluidSDK.Framework({
+                web3: new Web3(web3.currentProvider),
+                version: "test"
+            });
+            await sf.initialize();
+            testLoadedContracts(sf);
+        });
+
+        it("with Ethers.js environment", async () => {
+            const sf = new SuperfluidSDK.Framework({
+                ethers: new Web3Provider(web3.currentProvider),
+                version: "test"
+            });
             await sf.initialize();
             testLoadedContracts(sf);
         });
 
         it("Fail generating gas report without setting gas report type", async () => {
-            const sf = new SuperfluidSDK.Framework({ isTruffle: true });
+            const sf = new SuperfluidSDK.Framework({
+                isTruffle: true,
+                version: "test"
+            });
             await sf.initialize();
             try {
-                sf.generateGasReport("name");
+                sf.generateGasReport("noname");
             } catch (e) {
                 assert.equal(e.message, "No gas metering configured");
             }
         });
 
+        it("defaults to version v1", () => {
+            const sf = new SuperfluidSDK.Framework({
+                isTruffle: true
+            });
+            assert.equal(sf.version, "v1");
+        });
+
         describe("and load tokens", () => {
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["fUSDC", "fDAI"]
+                    isTruffle: true,
+                    tokens: ["fUSDC", "fDAI"],
+                    version: "test"
                 });
                 await sf.initialize();
                 assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
@@ -138,8 +168,9 @@ contract("Framework class", accounts => {
 
             it("failed due to unregistered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["fML"]
+                    tokens: ["fML"],
+                    isTruffle: true,
+                    version: "test"
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -149,11 +180,13 @@ contract("Framework class", accounts => {
 
             it("failed due to no super token wrapper", async () => {
                 await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
-                    from: admin
+                    from: admin,
+                    isTruffle: true
                 });
                 const sf = new SuperfluidSDK.Framework({
-                    web3Provider: web3.currentProvider,
-                    tokens: ["SASHIMI"]
+                    isTruffle: true,
+                    tokens: ["SASHIMI"],
+                    version: "test"
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -168,8 +201,9 @@ contract("Framework class", accounts => {
 
         beforeEach(async () => {
             sf = new SuperfluidSDK.Framework({
-                web3Provider: web3.currentProvider,
-                gasReportType: "HTML"
+                isTruffle: true,
+                gasReportType: "HTML",
+                version: "test"
             });
 
             await sf.initialize();
@@ -177,6 +211,7 @@ contract("Framework class", accounts => {
 
         it("create new super token", async () => {
             await deployTestToken(t.errorHandler, [":", "MISO"], {
+                isTruffle: true,
                 from: admin
             });
             const misoAddress = await sf.resolver.get("tokens.MISO");

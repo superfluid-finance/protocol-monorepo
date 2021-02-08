@@ -37,10 +37,16 @@ export function TableOfPlayers({ playerList, winner }) {
     <BottomTable>
       <h3>Active Players</h3>
       <table>
-        <th>{"Address"}</th>
-        <th>{"FlowRate"}</th>
-        <th>{"Won so far"}</th>
+        <thead>
+          <tr key={0}>
+            <th>{"Address"}</th>
+            <th>{"FlowRate"}</th>
+            <th>{"Won so far"}</th>
+          </tr>
+        </thead>
+        <tbody>
         {items}
+        </tbody>
       </table>
     </BottomTable>
   );
@@ -73,11 +79,17 @@ export function TableOfWinners({ winnerList }) {
     <BottomTable>
       <h3>Winners</h3>
       <table>
-        <th>{"Address"}</th>
-        <th>{"Winning for"}</th>
-        <th>{"FlowRate"}</th>
-        <th>{"Total Won"}</th>
+        <thead>
+          <tr key={0}>
+            <th>{"Address"}</th>
+            <th>{"Winning for"}</th>
+            <th>{"FlowRate"}</th>
+            <th>{"Total Won"}</th>
+          </tr>
+        </thead>
+        <tbody>
         {items}
+        </tbody>
       </table>
     </BottomTable>
   );

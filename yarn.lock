@@ -10212,10 +10212,10 @@ truffle-flattener@^1.5.0:
     delay "4.3.0"
     querystring "0.2.0"
 
-truffle@5.1.65:
-  version "5.1.65"
-  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.1.65.tgz#2f31dc9481c74d04c4d72cfb3085f6ee9752d0d2"
-  integrity sha512-MT7kTrMP1tleqwEzGWj/4wKU3pIOR63cVGsrP0MgEDrXOrpM5XNHnCAp9YBrYsDXqiVPZiEK38385qoJdTk6yA==
+truffle@5.1.49:
+  version "5.1.49"
+  resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.1.49.tgz#c9edc95192047ff4d170fcad235d26d0c4545de5"
+  integrity sha512-SkCfYRPhruowxH+qpJBAvM0u5+j/LK51U85ErXeiuRhyCNEWMNjUtISHTlEZ0KLr0Kki68iXk+o2UekN4Nlp5g==
   dependencies:
     app-module-path "^2.2.0"
     mocha "8.1.2"

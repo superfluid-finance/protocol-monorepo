@@ -13,7 +13,7 @@
         "build": "yarn workspaces run build",
         "test": "yarn workspaces run test",
         "lint": "yarn workspaces run lint",
-        "manage-versions": "lerna version --no-git-tag-version"
+        "manage-versions": "lerna version --exact --no-git-tag-version"
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",

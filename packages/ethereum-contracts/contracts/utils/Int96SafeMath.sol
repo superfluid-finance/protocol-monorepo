@@ -48,11 +48,10 @@ library Int96SafeMath {
      * - The divisor cannot be zero.
      */
     function div(int96 a, int96 b, string memory errorMessage) internal pure returns (int96) {
-        require(b != 0, "Int96SafeMath: division by zero");
-        require(!(b == -1 && a == _INT96_MIN), "Int96SafeMath: division overflow");
+        require(b != 0, errorMessage);
+        require(!(b == -1 && a == _INT96_MIN), errorMessage);
 
         int96 c = a / b;
-        require(c * b == a, errorMessage);
 
         return c;
     }

@@ -1055,7 +1055,7 @@ contract("Superfluid Host Contract", accounts => {
                     );
                 });
 
-                it("#6.24 beforeCreated try to burn just enough gas", async () => {
+                it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async () => {
                     const actionOverhead = 20000; /* some action overhead */
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(

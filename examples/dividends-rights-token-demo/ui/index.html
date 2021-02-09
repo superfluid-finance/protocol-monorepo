@@ -27,7 +27,8 @@
   <button onclick="distribute()">Distribute</button><br/>
 
   <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
-  <script src="abi.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@superfluid-finance/js-sdk@latest/src/abi.js"></script>
+  <script src="DividendRightsToken.abi.js"></script>
   <script>
     let web3, daix, user, host, ida, drt;
 
@@ -36,16 +37,16 @@
         web3 = new Web3(ethereum);
         user = (await web3.eth.getAccounts())[0];
         daix = new web3.eth.Contract(
-            Contracts.IERC20,
+            Superfluid_ABI.IERC20,
             "0xD805De805F34b88107CB253d684fA27Ec1EBb352");
         host = new web3.eth.Contract(
-            Contracts.ISuperfluid,
+            Superfluid_ABI.ISuperfluid,
             "0xC00100DC36c41D7b2189084AAa3E793cA7Cc0dDD");
         ida = new web3.eth.Contract(
-            Contracts.IInstantDistributionAgreementV1,
+            Superfluid_ABI.IInstantDistributionAgreementV1,
             "0x1866B09e73DA7107c762B32Dc74e68De95F3127c");
         drt = new web3.eth.Contract(
-            Contracts.DividendRightsToken,
+            DividendRightsToken_ABI,
             "0xfafaE8496024eE644b7a60bF827760302101330F");
         document.getElementById("issuer").innerHTML = await drt.methods.owner().call();
         setInterval(refreshBalance, 10000);

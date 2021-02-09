@@ -24,21 +24,26 @@ contract("DividendRightsToken", accounts => {
     accounts = accounts.slice(0, 4);
     const [admin, alice, bob, carol] = accounts;
 
-    beforeEach(async function () {
-        const web3Provider = web3.currentProvider;
+    before(async function () {
+        await deployFramework(errorHandler, {
+            web3,
+            from: admin
+        });
+    });
 
-        await deployFramework(errorHandler, { from: admin });
+    beforeEach(async function () {
         await deployTestToken(errorHandler, [":", "fDAI"], {
-            web3Provider,
+            web3,
             from: admin
         });
         await deploySuperToken(errorHandler, [":", "fDAI"], {
-            web3Provider,
+            web3,
             from: admin
         });
 
         sf = new SuperfluidSDK.Framework({
-            web3Provider,
+            web3,
+            version: "test",
             tokens: ["fDAI"]
         });
         await sf.initialize();

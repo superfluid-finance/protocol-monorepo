@@ -8,7 +8,8 @@ const {
     codeChanged,
     isProxiable,
     detectTruffleAndConfigure,
-    extractWeb3Options
+    extractWeb3Options,
+    builtTruffleContractLoader
 } = require("./utils");
 
 let reset;
@@ -111,6 +112,22 @@ module.exports = async function(callback, options = {}) {
         );
 
         const config = SuperfluidSDK.getConfig(chainId);
+        const contracts = [
+            "TestResolver",
+            "Superfluid",
+            "SuperTokenFactory",
+            "TestGovernance",
+            "ISuperfluidGovernance",
+            "UUPSProxy",
+            "UUPSProxiable",
+            "ConstantFlowAgreementV1",
+            "InstantDistributionAgreementV1"
+        ];
+        const mockContracts = [
+            "SuperTokenMockFactory",
+            "SuperfluidMock",
+            "SuperTokenFactoryMock"
+        ];
         const {
             TestResolver,
             Superfluid,
@@ -126,20 +143,10 @@ module.exports = async function(callback, options = {}) {
             InstantDistributionAgreementV1
         } = await SuperfluidSDK.loadContracts({
             ...extractWeb3Options(options),
-            additionalContracts: [
-                "TestResolver",
-                "Superfluid",
-                "SuperfluidMock",
-                "SuperTokenFactory",
-                "SuperTokenFactoryMock",
-                "SuperTokenMockFactory",
-                "TestGovernance",
-                "ISuperfluidGovernance",
-                "UUPSProxy",
-                "UUPSProxiable",
-                "ConstantFlowAgreementV1",
-                "InstantDistributionAgreementV1"
-            ]
+            additionalContracts: contracts.concat(
+                useMocks ? mockContracts : []
+            ),
+            contractLoader: builtTruffleContractLoader
         });
 
         if (!newTestResolver && config.resolverAddress) {

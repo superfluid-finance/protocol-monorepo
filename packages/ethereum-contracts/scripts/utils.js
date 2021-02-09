@@ -1,3 +1,4 @@
+const path = require("path");
 const { promisify } = require("util");
 const readline = require("readline");
 
@@ -95,6 +96,19 @@ function extractWeb3Options({ isTruffle, web3, ethers, from }) {
     return { isTruffle, web3, ethers, from };
 }
 
+/// @dev Load contract from truffle built artifacts
+function builtTruffleContractLoader(name) {
+    try {
+        const directoryPath = path.join(__dirname, "../build/contracts");
+        const builtContract = require(path.join(directoryPath, name + ".json"));
+        return builtContract;
+    } catch (e) {
+        throw new Error(
+            `Cannot load built truffle contract ${name}. Have you built?`
+        );
+    }
+}
+
 module.exports = {
     ZERO_ADDRESS,
     parseColonArgs,
@@ -104,5 +118,6 @@ module.exports = {
     isProxiable,
     extractWeb3Options,
     detectTruffleAndConfigure,
-    rl: promisify(rl.question)
+    rl: promisify(rl.question),
+    builtTruffleContractLoader
 };

@@ -23,6 +23,7 @@ module.exports = class Framework {
      *
      * @param {Array} options.additionalContracts (Optional) additional contracts to be loaded
      * @param {string[]} options.tokens tokens to be loaded, each element is an alias for the underlying token
+     * @param {Function} options.contractLoader (Optional) alternative contract loader function
      *
      * @param {string} options.resolverAddress force resolver address
      * @param {string} options.gasReportType output type for gas reporting. Currently HTML only
@@ -93,7 +94,8 @@ module.exports = class Framework {
             web3: this._options.web3,
             ethers: this._options.ethers,
             from: this._options.from,
-            additionalContracts: this._options.additionalContracts
+            additionalContracts: this._options.additionalContracts,
+            contractLoader: this._options.contractLoader
         });
 
         const resolverAddress =

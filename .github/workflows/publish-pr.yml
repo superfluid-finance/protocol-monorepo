@@ -75,10 +75,11 @@ jobs:
           body: |
             ### 📦 PR Packages
 
-            Install this PR:
+            Install this PR (you need to setup Github packages):
 
             ```bash
-            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr.outputs.pr_number }} --registry https://npm.pkg.github.com/
+            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr.outputs.pr_number }}
+            yarn add @superfluid-finance/ethereum-contracts@PR${{ steps.pr.outputs.pr_number }}
             ```
 
             <details><summary>:octocat: Click to learn how to use Github packages</summary>

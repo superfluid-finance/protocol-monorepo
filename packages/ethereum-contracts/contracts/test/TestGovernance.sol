@@ -125,7 +125,7 @@ contract TestGovernance is
         bytes32 key
     )
         external view override
-        returns(address rewardAddress)
+        returns(address value)
     {
         return address(int160(_configs[key]));
     }

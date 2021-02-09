@@ -64,7 +64,7 @@ await bob.flow({
     -   `ISuperToken` : The Super token contract interface.
     -   `IConstantFlowAgreementV1` : The constant flow agreement (v1) contract interface.
     -   `IInstantDistributionAgreementV1` : The instant distribution agreement (v1) contract interface.
--   Token factory functions:
+-   Token factory helper functions:
     -   `sf.createERC20Wrapper`
 -   `sf.resolver`: The resolver used by the SDK.
     -   In test nets, there are some test tokens can be located with the resolver:
@@ -75,18 +75,26 @@ await bob.flow({
     -   `sf.agreements.cfa` : Constant flow agreement truffle contract instance.
     -   `sf.agreements.ida` : Instant distribution agreement truffle contract instance.
 -   `sf.cfa`: The constant flow agreement helper class instance.
+-   `sf.ida`: The instant distribution agreement helper class instance.
 
 ## Initialization
 
 During initialization, the resolver will be used to fetch the correct set of contracts based on the `version` you provide
 
-| Argument     | Type     | default                                  |
-| :----------- | :------- | ---------------------------------------- |
-| version      | String   | Version of the latest deployed contracts |
-| web3Provider | Object   | required                                 |
-| tokens       | String[] | null                                     |
+| Argument     | Type     | description                              | default |
+| :----------- | :------- | ---------------------------------------- | ------- |
+| version      | String   | Release version of the deployed protocol | v1 |
+| isTruffle    | Boolean  | Use the Framework under the native truffle environment | false |
+| web3         | Object   | Use the Framework with web3.js (1.3.x) | undefined |
+| ethers       | Object   | Use the Framework with ethers.js (5.x.y) | undefined |
+| tokens       | String[] | List of tokens | [] |
 
-Example:
+You also need to choose what web3 framework you plan to use, currently we support three modes:
+* Truffle native environment (developing using `truffle test|exec|egc.`).
+* [Web3.js](https://web3js.readthedocs.io/en/v1.2.1/), currently the SDK has been tested with web3.js `1.3.x` versions.
+* [Ethers.js](https://github.com/ethers-io/ethers.js/), currently the SDK has been tested with ethers.js `5.x.y` versions.
+
+**Example with Ethers.js**
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
@@ -100,6 +108,42 @@ await sf.initialize();
 
 const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 ```
+
+The exposed contract objects are an adapted version that look like [`truffle-contract`](https://github.com/trufflesuite/truffle/tree/develop/packages/contract/) objects.
+
+**Example with Web3.js**
+
+```js
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const web3 = require("web3");
+
+const sf = new SuperfluidSDK.Framework({
+    web3: new Web3(window.ethereum),
+    tokens: ["fDAI"]
+});
+await sf.initialize();
+
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
+```
+
+The exposed contract objects are of [`truffle-contract`](https://github.com/trufflesuite/truffle/tree/develop/packages/contract/) type.
+
+**Example with truffle native**
+
+```js
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+
+const sf = new SuperfluidSDK.Framework({
+    isTruffle: true,
+    tokens: ["fDAI"]
+});
+await sf.initialize();
+
+const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
+```
+
+The exposed contract objects are of [`truffle-contract`](https://github.com/trufflesuite/truffle/tree/develop/packages/contract/) type loaded using truffle `artifacts` object.
+
 
 ## :bust_in_silhouette: User
 
@@ -171,6 +215,22 @@ const tx = await alice.flow({
     }
 });
 ```
+
+## Closer to the metal
+
+You may also use the helper classes and functions instead of the `User` abstraction.
+
+The helpers are usually considered thinner wrappers of the underlying contract calls. It is suitable if you want more control and customization of how to interact with the protocol.
+
+The available helpers currently are:
+
+* `sf.cfa` - Constant flow agreement helper.
+* `sf.ida` - Instant distribution agreement helper.
+* `sf.createERC20Wrapper` - Create a new ERC20 wrapper.
+* `sf.batchCall` - (TBD) batchCall helper.
+* `sf.callAppAction` - (TBD) callAppAction helper.
+
+For their documentations, please look into their code comments directly.
 
 # Contributing
 

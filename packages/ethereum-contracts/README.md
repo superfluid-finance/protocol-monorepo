@@ -39,7 +39,7 @@ If you're building a Super App, then great! This is definitely the place to be. 
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
 
-For writing tests, you can use the `TestEnvironment` helper to deploy all the necessary contracts.
+For writing tests, you can use the `TestEnvironment` helper to deploy all the necessary contracts. Currenty `TestEnvironment` only works with truffle, we are working on to support to other frameworks.
 
 ```js
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");

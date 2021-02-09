@@ -40,10 +40,11 @@ jobs:
       - name: Get PR data
         id: pr
         run: |
-          ls -R
+          ls -R pr-packages
           pr_number=$(ls pr-packages)
           n_packages=$(ls pr-packages/$pr_number | wc -l)
-          echo $pr_number
+          echo pr_number: $pr_number
+          echo n_packages: $n_packages
           echo "::set-output name=pr_number::$pr_number"
           echo "::set-output name=n_packages::$n_packages"
 

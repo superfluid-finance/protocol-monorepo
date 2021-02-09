@@ -1216,6 +1216,21 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@ethersproject/abi@^5.0.10":
+  version "5.0.12"
+  resolved "https://registry.npmjs.org/@ethersproject/abi/-/abi-5.0.12.tgz#9aebe6aedc05ce45bb6c41b06d80bd195b7de77c"
+  integrity sha512-Ujr/3bwyYYjXLDQfebeiiTuvOw9XtUKM8av6YkoBeMXyGQM9GkjrQlwJMNwGTmqjATH/ZNbRgCh98GjOLiIB1Q==
+  dependencies:
+    "@ethersproject/address" "^5.0.9"
+    "@ethersproject/bignumber" "^5.0.13"
+    "@ethersproject/bytes" "^5.0.9"
+    "@ethersproject/constants" "^5.0.8"
+    "@ethersproject/hash" "^5.0.10"
+    "@ethersproject/keccak256" "^5.0.7"
+    "@ethersproject/logger" "^5.0.8"
+    "@ethersproject/properties" "^5.0.7"
+    "@ethersproject/strings" "^5.0.8"
+
 "@ethersproject/abstract-provider@^5.0.8":
   version "5.0.8"
   resolved "https://registry.npmjs.org/@ethersproject/abstract-provider/-/abstract-provider-5.0.8.tgz#880793c29bfed33dff4c2b2be7ecb9ba966d52c0"
@@ -1288,6 +1303,21 @@
   integrity sha512-sCc73pFBsl59eDfoQR5OCEZCRv5b0iywadunti6MQIr5lt3XpwxK1Iuzd8XSFO02N9jUifvuZRrt0cY0+NBgTg==
   dependencies:
     "@ethersproject/bignumber" "^5.0.13"
+
+"@ethersproject/contracts@^5.0.10":
+  version "5.0.10"
+  resolved "https://registry.npmjs.org/@ethersproject/contracts/-/contracts-5.0.10.tgz#650cbf6f3cf89a63006ea91727a68aee4dc3381f"
+  integrity sha512-h9kdvllwT6B1LyUXeNQIb7Y6u6ZprP5LUiQIjSqvOehhm1sFZcaVtydsSa0LIg3SBC5QF0M7zH5p7EtI2VD0rQ==
+  dependencies:
+    "@ethersproject/abi" "^5.0.10"
+    "@ethersproject/abstract-provider" "^5.0.8"
+    "@ethersproject/abstract-signer" "^5.0.10"
+    "@ethersproject/address" "^5.0.9"
+    "@ethersproject/bignumber" "^5.0.13"
+    "@ethersproject/bytes" "^5.0.9"
+    "@ethersproject/constants" "^5.0.8"
+    "@ethersproject/logger" "^5.0.8"
+    "@ethersproject/properties" "^5.0.7"
 
 "@ethersproject/hash@^5.0.10":
   version "5.0.10"
@@ -2904,10 +2934,10 @@
   dependencies:
     "@ethersproject/hash" "^5.0.11"
 
-"@superfluid-finance/js-sdk@^0.3.2-PR258.2dc7b46.0":
-  version "0.3.2-PR258.2dc7b46.0"
-  resolved "https://npm.pkg.github.com/download/@superfluid-finance/js-sdk/0.3.2-PR258.2dc7b46.0/8145b32a8cec80b502aeeb43d77796d05e3c3cfb3092b01af3886aad00fb98ff#43723311c4b33ec77b0add3f06a19e2637da0cf7"
-  integrity sha512-Lq3V4Jy8ciAXDZ2HqJ6Lw4SAyRHNaYr2JqirgF/Lh1BlfA+N1gzcfWxTkf5tHsZ3QtDy46+LSiip0mpby7lYBw==
+"@superfluid-finance/js-sdk@^0.3.2-dev.88c9725.0":
+  version "0.3.2-dev.88c9725.0"
+  resolved "https://npm.pkg.github.com/download/@superfluid-finance/js-sdk/0.3.2-dev.88c9725.0/4de6602a5f2402b31ac2faec6895c4b5c6bcdcb7ad472cad28b7782b7945ffe9#3e73e30d1d950cc1be7d4153ac12c242b307a869"
+  integrity sha512-drSKoD6qEd4IoPpxIQ2s5lPuFqw4cF/r3Pn/Wz7+OjczJLL2jXZ1tUXDL7agsf48rITa1/ZQ+mbC8LgvBH2TQQ==
   dependencies:
     "@ethersproject/hash" "^5.0.11"
 

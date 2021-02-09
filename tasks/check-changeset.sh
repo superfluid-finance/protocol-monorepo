@@ -7,7 +7,7 @@ echo SOURCE_REF: $SOURCE_REF
 echo BASE_REF: $BASE_REF
 
 # fetch the latest commit of the base ref
-git fetch --depth=1 origin refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}
+git fetch origin refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}
 
 # compare the source branch with the dev branch
 git merge-base ${SOURCE_REF} refs/remotes/origin/${BASE_REF}

@@ -42,7 +42,9 @@ import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts
 For writing tests, you can use the the deployment scripts to deploy all the necessary contracts. Currently they only works with web3.js, we are working on to support to other frameworks.
 
 ```js
-const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
+const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
+const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
+const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 
 contract("My Test", accounts => {
     const [admin, bob, carol, dan] = accounts;
@@ -69,6 +71,8 @@ contract("My Test", accounts => {
 To interact with the protocol, you can use the `@superfluid-finance/js-sdk`. Here is a quick-start example:
 
 ```js
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+
 let sf;
 let daix;
 

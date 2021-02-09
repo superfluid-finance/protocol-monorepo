@@ -39,44 +39,61 @@ If you're building a Super App, then great! This is definitely the place to be. 
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
 
-For writing tests, you can use the `TestEnvironment` helper to deploy all the necessary contracts. Currenty `TestEnvironment` only works with truffle, we are working on to support to other frameworks.
+For writing tests, you can use the the deployment scripts to deploy all the necessary contracts. Currently they only works with web3.js, we are working on to support to other frameworks.
 
 ```js
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 contract("My Test", accounts => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const {
-        admin: adminAddress,
-        alice: aliceAddress,
-    } = t.aliases;
+    const [admin, bob, carol, dan] = accounts;
 
     before(async () => {
-        // Deploys a fresh set of Superfluid contracts
-        await t.reset();
+        await deployFramework(errorHandler, {
+            web3,
+            from: admin
+        });
+    });
+
+    beforeEach(async function() {
+        await deployTestToken(errorHandler, [":", "fDAI"], {
+            web3,
+            from: admin
+        });
+        await deploySuperToken(errorHandler, [":", "fDAI"], {
+            web3,
+            from: admin
+        });
     });
 ```
 
-The `TestEnvironment` also exposes the `@superfluid-finance/js-sdk`, so you can skip the initialization skip. Here is a quick-start example:
+To interact with the protocol, you can use the `@superfluid-finance/js-sdk`. Here is a quick-start example:
 
 ```js
 let sf;
-let superToken;
-
-before(async () => {
-    await t.reset();
-    // @superfluid-finance/js-sdk will be available here
-    sf = t.sf;
-});
+let daix;
 
 beforeEach(async () => {
-    // Deploy a test token
-    await t.createNewToken({ doUpgrade: true });
-    ({ superToken } = t.contracts);
+    await deployTestToken(errorHandler, [":", "fDAI"], {
+        web3,
+        from: admin
+    });
+    await deploySuperToken(errorHandler, [":", "fDAI"], {
+        web3,
+        from: admin
+    });
+
+    sf = new SuperfluidSDK.Framework({
+        web3,
+        version: "test",
+        tokens: ["fDAI"]
+    });
+    await sf.initialize();
+
+    daix = sf.tokens.fDAIx;
 
     // Create user objects
-    admin = sf.user({ address: adminAddress, token: superToken.address });
-    alice = sf.user({ address: aliceAddress, token: superToken.address });
+    admin = sf.user({ address: adminAddress, token: daix.address });
+    alice = sf.user({ address: aliceAddress, token: daix.address });
 });
 ```
 

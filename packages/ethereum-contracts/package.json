@@ -43,7 +43,7 @@
     },
     "dependencies": {
         "@openzeppelin/contracts": "3.4.0",
-        "@superfluid-finance/js-sdk": "0.3.1",
+        "@superfluid-finance/js-sdk": "0.3.2",
         "@truffle/contract": "4.3.6",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.0.8",

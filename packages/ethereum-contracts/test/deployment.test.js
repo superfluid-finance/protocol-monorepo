@@ -1,4 +1,4 @@
-//const Web3 = require("web3");
+const Web3 = require("web3");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const deployFramework = require("../scripts/deploy-framework");
@@ -465,13 +465,13 @@ contract("Embeded deployment scripts", () => {
         });
     });
 
-    // context("Used in non-native truffle environment (web3)", () => {
-    //     it("scripts/deploy-test-environment.js", async () => {
-    //         await deployTestEnvironment(errorHandler, {
-    //             web3: new Web3(web3.currentProvider)
-    //         });
-    //     });
-    // });
+    context("Used in non-native truffle environment (web3)", () => {
+        it("scripts/deploy-test-environment.js", async () => {
+            await deployTestEnvironment(errorHandler, {
+                web3: new Web3(web3.currentProvider)
+            });
+        });
+    });
 
     //TODO context("Used with ethers");
 });

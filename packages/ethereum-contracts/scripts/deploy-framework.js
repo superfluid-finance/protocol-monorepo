@@ -8,7 +8,8 @@ const {
     codeChanged,
     isProxiable,
     detectTruffleAndConfigure,
-    extractWeb3Options
+    extractWeb3Options,
+    builtTruffleContractLoader
 } = require("./utils");
 
 let reset;
@@ -139,7 +140,8 @@ module.exports = async function(callback, options = {}) {
                 "UUPSProxiable",
                 "ConstantFlowAgreementV1",
                 "InstantDistributionAgreementV1"
-            ]
+            ],
+            contractLoader: builtTruffleContractLoader
         });
 
         if (!newTestResolver && config.resolverAddress) {

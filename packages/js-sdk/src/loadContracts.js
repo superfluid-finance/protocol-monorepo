@@ -4,11 +4,13 @@ const abis = require("./abi");
 const getAdaptedContract = ({ address, abi, ethers }) => {
     const { Contract } = require("@ethersproject/contracts");
 
-    const ethersContract = new Contract(
-        address,
-        abi,
-        ethers.getSigner() || ethers
-    );
+    let providerOrSigner = ethers
+    try {
+        providerOrSigner = ethers.getSigner()
+    } catch (e) {
+        console.debug("Ethers.js signer is not available. Using read-only mode.");
+    }
+    const ethersContract = new Contract(address, abi, providerOrSigner);
 
     // Create adapter for web3.js Contract.contract.methods.encodeABI
     const web3EncodingAdapter = {};

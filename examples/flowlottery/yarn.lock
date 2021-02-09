@@ -44,7 +44,7 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@decentral.ee/web3-helpers@^0.3.2":
+"@decentral.ee/web3-helpers@^0.3.5":
   version "0.3.5"
   resolved "https://registry.yarnpkg.com/@decentral.ee/web3-helpers/-/web3-helpers-0.3.5.tgz#abead658208801c3c111a80e161ff8a3b1df68e3"
   integrity sha512-IGL7WFaOBH/F0F1UqQhInHfVWKmb0xg2DqnoXMip4ijXLMztekrV19gD5b0jFMQrcW6+WkGmu5fJGUSLva1OAA==
@@ -246,12 +246,12 @@
     find-up "^4.1.0"
     fs-extra "^8.1.0"
 
-"@openzeppelin/contracts@3.4.0", "@openzeppelin/contracts@^3.2.1-solc-0.7":
+"@openzeppelin/contracts@3.4.0", "@openzeppelin/contracts@^3.4.0":
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.0.tgz#9a1669ad5f9fdfb6e273bb5a4fed10cb4cc35eb0"
   integrity sha512-qh+EiHWzfY/9CORr+eRUkeEUP1WiFUcq3974bLHwyYzLBUtK6HPaMkIUHi74S1rDTZ0sNz42DwPc5A4IJvN3rg==
 
-"@openzeppelin/test-helpers@^0.5.7":
+"@openzeppelin/test-helpers@^0.5.10":
   version "0.5.10"
   resolved "https://registry.yarnpkg.com/@openzeppelin/test-helpers/-/test-helpers-0.5.10.tgz#0a6ab9fd0810085e8114f9f33aed4102e848f27f"
   integrity sha512-agXr5Rn/q0MCDaU0ioYMGQVjY32Ln3Ae3cyQKtESuKdDoEZ7g3Y7x4eUbT779OE9nQ+xQCytmVqjKvZvajURug==
@@ -272,22 +272,22 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@superfluid-finance/ethereum-contracts@^0.2.8-PR264.1213033.0":
-  version "0.2.8-PR264.bc820da.0"
-  resolved "https://npm.pkg.github.com/download/@superfluid-finance/ethereum-contracts/0.2.8-PR264.bc820da.0/0520569084c905d306b431ff3919e35d437259c8e8f70e95f133bf0b3545b229#97133a634583f1750e7de364dcae7a7b10a051ae"
-  integrity sha512-WetgK7YIL3A2jt8ayKDzetzCWT8GfWQaMzLVe4ztAdkdh4ynGofDKmXDY7cVTGWkdc1uBxFBBXZrnwd6ovi2Xg==
+"@superfluid-finance/ethereum-contracts@^0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-0.2.7.tgz#a06c205ef70c5872dfb5bc5114e4024e1162cad2"
+  integrity sha512-uCIYn2EcuBswVTJ+c4L2rQgDviEeBMnLrwsFgegkr95+LKBUzNTHNWbfb/4DzCrondlvszDiZ7i9GsrfQfEB7Q==
   dependencies:
     "@openzeppelin/contracts" "3.4.0"
-    "@superfluid-finance/js-sdk" "^0.3.4-PR264.bc820da.0"
+    "@superfluid-finance/js-sdk" "0.3.3"
     "@truffle/contract" "4.3.6"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.0.8"
     stack-trace "0.0.10"
 
-"@superfluid-finance/js-sdk@^0.3.4-PR264.bc820da.0":
-  version "0.3.4-PR264.bc820da.0"
-  resolved "https://npm.pkg.github.com/download/@superfluid-finance/js-sdk/0.3.4-PR264.bc820da.0/a9d60bd8077db2a8b7422c622201fe8664d90f329f6fd348234459787c49d02e#1eef76ba517b485ba1e80d67aa14db3725ed1f52"
-  integrity sha512-/903Udiw8qA+Hagpx+F0GDcKN34bmxq5lKFc1tzraic0ODeiGGvueobyBOnZzg+FhhMzFO0KRk4jj0CI+RElmg==
+"@superfluid-finance/js-sdk@0.3.3":
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.3.3.tgz#ef0062c9ba3f7270d465ca443bd54f161296a5b5"
+  integrity sha512-aQHRDV945pLRYlzK2JOwD98reX8OPXr2CFFyHcIbXE6+SaEJU5lmYRC3EWhM4EVLe3Ba6tlTIubiF1l5B6SV+g==
   dependencies:
     "@ethersproject/hash" "^5.0.11"
 
@@ -332,7 +332,7 @@
     crypto-js "^3.1.9-1"
     debug "^4.1.0"
 
-"@truffle/contract@4.3.6", "@truffle/contract@^4.0.35", "@truffle/contract@^4.2.25":
+"@truffle/contract@4.3.6", "@truffle/contract@^4.0.35", "@truffle/contract@^4.3.6":
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/@truffle/contract/-/contract-4.3.6.tgz#e6a77ea8dd5c4832c41529313b0dfa092de65208"
   integrity sha512-XcIZ4eG1BrkoW30ZYTEqQGskmB2a2CoFJOLDjo2heP8xx+mKAPI0ceg2Ym4PbBUtqPBL6CiWE2WRh2zpFWPrOw==
@@ -370,7 +370,7 @@
   resolved "https://registry.yarnpkg.com/@truffle/error/-/error-0.0.11.tgz#2789c0042d7e796dcbb840c7a9b5d2bcd8e0e2d8"
   integrity sha512-ju6TucjlJkfYMmdraYY/IBJaFb+Sa+huhYtOoyOJ+G29KcgytUVnDzKGwC7Kgk6IsxQMm62Mc1E0GZzFbGGipw==
 
-"@truffle/hdwallet-provider@^1.1.0":
+"@truffle/hdwallet-provider@^1.2.1":
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/@truffle/hdwallet-provider/-/hdwallet-provider-1.2.1.tgz#164f027f688123b991a3fa64ca3519635b65200b"
   integrity sha512-EijX9JgcR3IaM1978ysHqJpObZNBgFWyBPzwy7YxMfWUaCp6PyM/g2w/b/DGmMHT56D56KVu+1PtHpEG0sbjtg==
@@ -4170,7 +4170,7 @@ tough-cookie@~2.5.0:
     psl "^1.1.28"
     punycode "^2.1.1"
 
-truffle@^5.1.48:
+truffle@^5.1.49:
   version "5.1.65"
   resolved "https://registry.yarnpkg.com/truffle/-/truffle-5.1.65.tgz#2f31dc9481c74d04c4d72cfb3085f6ee9752d0d2"
   integrity sha512-MT7kTrMP1tleqwEzGWj/4wKU3pIOR63cVGsrP0MgEDrXOrpM5XNHnCAp9YBrYsDXqiVPZiEK38385qoJdTk6yA==

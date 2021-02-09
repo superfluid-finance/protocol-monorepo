@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { Web3Provider } from "@ethersproject/providers";
+import Web3 from "web3";
 import AnimatedNumber from "animated-number-react";
 import {
   Body,
@@ -184,13 +185,12 @@ function App() {
     });
 
     sf = new SuperfluidSDK.Framework({
-      version: "v1",
-      web3Provider: newProvider,
+      web3: new Web3(newProvider),
       tokens: ["fDAI"]
     });
     await sf.initialize();
 
-    dai = sf.tokens.fDAI;
+    dai = await sf.contracts.TestToken.at(sf.tokens.fDAI.address);
     daix = sf.tokens.fDAIx;
     LotterySuperApp.setProvider(newProvider);
     app = await LotterySuperApp.at(APP_ADDRESS);

@@ -3,10 +3,14 @@
 SOURCE_REF=$1
 BASE_REF=$2
 
+echo SOURCE_REF: $SOURCE_REF
+echo BASE_REF: $BASE_REF
+
 # fetch the latest commit of the base ref
 git fetch --depth=1 origin refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}
 # compare the source branch with the dev branch
 MERGE_BASE_REF=$(git merge-base ${SOURCE_REF} refs/remotes/origin/${BASE_REF})
+echo MERGE_BASE_REF: $MERGE_BASE_REF
 git diff --name-only ${SOURCE_REF} ${MERGE_BASE_REF} > changed-files.list
 echo Changed files:
 echo ---

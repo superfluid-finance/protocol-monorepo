@@ -13,7 +13,7 @@
     "author": "Superfluid",
     "license": "MIT",
     "devDependencies": {
-        "@decentral.ee/web3-helpers": "^0.3.5",
+        "@decentral.ee/web3-helpers": "^0.3.6",
         "@openzeppelin/contracts": "^3.4.0",
         "@openzeppelin/test-helpers": "^0.5.10",
         "@superfluid-finance/ethereum-contracts": "^0.2.7",

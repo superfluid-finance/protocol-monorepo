@@ -41,10 +41,18 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           yarn test
+          if [ -f "scripts/deploy.js" ];then
+            npx truffle --network goerli exec scripts/deploy.js
+          fi
+        env:
+          RELEASE_VERSION: master
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build UI project if exist
         run: |
           if [ -f "ui/package.json" ];then
+            cd ui
             yarn install --frozen-lockfile
             yarn build
           fi
@@ -55,10 +63,18 @@ jobs:
           yarn install --force
           yarn build
           yarn test
+          if [ -f "scripts/deploy.js" ];then
+            npx truffle --network goerli exec scripts/deploy.js
+          fi
+        env:
+          RELEASE_VERSION: master
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build (force-install) UI project if exist
         run: |
           if [ -f "ui/package.json" ];then
+            cd ui
             yarn install --force
             yarn build
           fi

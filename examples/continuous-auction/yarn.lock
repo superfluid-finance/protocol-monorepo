@@ -44,10 +44,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@decentral.ee/web3-helpers@^0.3.5":
-  version "0.3.5"
-  resolved "https://registry.yarnpkg.com/@decentral.ee/web3-helpers/-/web3-helpers-0.3.5.tgz#abead658208801c3c111a80e161ff8a3b1df68e3"
-  integrity sha512-IGL7WFaOBH/F0F1UqQhInHfVWKmb0xg2DqnoXMip4ijXLMztekrV19gD5b0jFMQrcW6+WkGmu5fJGUSLva1OAA==
+"@decentral.ee/web3-helpers@^0.3.6":
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/@decentral.ee/web3-helpers/-/web3-helpers-0.3.6.tgz#743af6d6ccd37daec8a049e2db285c5f2080d169"
+  integrity sha512-6F8ZS+W5hgSRCT+b/LHOoS13yovNlll8hQ/WH0r13cdfmRztgR3ryWE7vp0Wi7ESGGzU96rYiK2KzwBA0O+0XQ==
 
 "@ethersproject/abi@5.0.0-beta.153":
   version "5.0.0-beta.153"

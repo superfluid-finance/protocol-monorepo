@@ -20,6 +20,7 @@
         "@truffle/contract": "^4.3.6",
         "@truffle/hdwallet-provider": "^1.2.1",
         "dotenv": "^8.2.0",
+        "ganache-time-traveler": "^1.0.15",
         "truffle": "^5.1.65"
     }
 }

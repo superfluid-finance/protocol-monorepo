@@ -22,7 +22,6 @@
     "@redwoodjs/router": "^0.24.0",
     "@redwoodjs/web": "0.24.0",
     "@superfluid-finance/js-sdk": "^0.3.1",
-    "@truffle/contract": "^4.3.6",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"

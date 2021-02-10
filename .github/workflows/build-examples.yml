@@ -36,13 +36,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, build and test
+        working-directory: examples/${{ matrix.example }}
         run: |
-          cd examples/${{ matrix.example }}
           yarn install --frozen-lockfile
           yarn build
           yarn test
 
       - name: Deployment
+        working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network goerli exec scripts/deploy.js
@@ -53,6 +54,7 @@ jobs:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build UI project if exist
+        working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
@@ -61,8 +63,8 @@ jobs:
           fi
 
       - name: (force-install) Install, build and test
+        working-directory: examples/${{ matrix.example }}
         run: |
-          cd examples/${{ matrix.example }}
           yarn install --force
           yarn build
           yarn test
@@ -74,6 +76,7 @@ jobs:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: (force-install) Build UI project if exist
+        working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
@@ -82,6 +85,7 @@ jobs:
           fi
 
       - name: (force-install) Deployment
+        working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network goerli exec scripts/deploy.js

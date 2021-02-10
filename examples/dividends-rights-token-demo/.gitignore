@@ -6,7 +6,6 @@
 /.env
 /data
 *.ignore.*
-yarn.lock
 .DS_Store
 
 *.env

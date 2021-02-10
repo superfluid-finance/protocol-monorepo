@@ -1,0 +1,91 @@
+name: Build Examples
+
+on:
+  # after a new release is published
+  workflow_run:
+    workflows: ["Publish Release Package"]
+    types:
+      - completed
+  # manual trigger
+  workflow_dispatch:
+  # every day
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron: '0 8 * * *'
+
+jobs:
+  build-examples:
+    name: Build examples
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false # build all examples independently
+      matrix:
+        node-version: [12.x]
+        example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, build and test
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn test
+
+      # - name: Deployment
+      #   working-directory: examples/${{ matrix.example }}
+      #   run: |
+      #     if [ -f "scripts/deploy.js" ];then
+      #       npx truffle --network goerli exec scripts/deploy.js
+      #     fi
+      #   env:
+      #     RELEASE_VERSION: master
+      #     GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      #     GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+
+      - name: Build UI project if exist
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          if [ -f "ui/package.json" ];then
+            cd ui
+            yarn install --frozen-lockfile
+            yarn build
+          fi
+
+      - name: (force-install) Install, build and test
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          yarn install --force
+          yarn build
+          yarn test
+        env:
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+
+      - name: (force-install) Build UI project if exist
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          if [ -f "ui/package.json" ];then
+            cd ui
+            yarn install --force
+            yarn build
+          fi
+
+      # - name: (force-install) Deployment
+      #   working-directory: examples/${{ matrix.example }}
+      #   run: |
+      #     if [ -f "scripts/deploy.js" ];then
+      #       npx truffle --network goerli exec scripts/deploy.js
+      #     fi
+      #   env:
+      #     RELEASE_VERSION: master
+      #     GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      #     GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}

@@ -66,9 +66,6 @@ jobs:
           yarn install --force
           yarn build
           yarn test
-          if [ -f "scripts/deploy.js" ];then
-            RELEASE_VERSION=master npx truffle --network goerli exec scripts/deploy.js
-          fi
         env:
           GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}

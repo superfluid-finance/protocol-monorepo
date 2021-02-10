@@ -26,11 +26,3 @@ yarn install
 yarn build
 yarn test
 ```
-
-## Deployment
-
-Setup a `.env` file following the example of `.env.template`.
-
-```bash
-RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js
-```

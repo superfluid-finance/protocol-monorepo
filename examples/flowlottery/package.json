@@ -20,6 +20,6 @@
         "@truffle/contract": "^4.3.6",
         "@truffle/hdwallet-provider": "^1.2.1",
         "dotenv": "^8.2.0",
-        "truffle": "^5.1.49"
+        "truffle": "^5.1.65"
     }
 }

@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
   # every day
   schedule:
-      # * is a special character in YAML so you have to quote this string
-      - cron: '0 8 * * *'
+    # * is a special character in YAML so you have to quote this string
+    - cron: '0 8 * * *'
   push:
     branches: ["feature_260_daily_workflow_to_build_examples"]
 
@@ -38,14 +38,14 @@ jobs:
       - name: Install, build and test
         run: |
           cd examples/${{ matrix.example }}
-          yarn install
+          yarn install --frozen-lockfile
           yarn build
           yarn test
 
       - name: Build UI project if exist
         run: |
-          if [ -d "ui" ];then
-            yarn install
+          if [ -f "ui/package.json" ];then
+            yarn install --frozen-lockfile
             yarn build
           fi
 
@@ -58,7 +58,7 @@ jobs:
 
       - name: Build (force-install) UI project if exist
         run: |
-          if [ -d "ui" ];then
+          if [ -f "ui/package.json" ];then
             yarn install --force
             yarn build
           fi

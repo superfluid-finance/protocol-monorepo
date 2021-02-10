@@ -12,6 +12,8 @@ on:
   schedule:
       # * is a special character in YAML so you have to quote this string
       - cron: '0 8 * * *'
+  push:
+    branches: ["feature_260_daily_workflow_to_build_examples"]
 
 jobs:
   build-examples:

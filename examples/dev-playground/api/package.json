@@ -4,14 +4,16 @@
   "private": true,
   "dependencies": {
     "@ethersproject/contracts": "^5.0.10",
-    "@ethersproject/providers": "^5.0.19",
+    "@ethersproject/providers": "^5.0.22",
     "@redwoodjs/api": "0.24.0",
-    "@superfluid-finance/js-sdk": "^0.3.2-dev.88c9725.0",
+    "@superfluid-finance/js-sdk": "^0.3.2",
     "eth-sig-util": "^3.0.0",
-    "ethereumjs-util": "^7.0.7",
+    "ethereumjs-util": "^7.0.8",
     "jsonwebtoken": "^8.5.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@netlify/zip-it-and-ship-it": "^2.2.0"
+  },
   "resolutions": {
     "@prisma/client": "2.11.0"
   }

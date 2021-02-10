@@ -1,7 +1,7 @@
 const {
     web3tx
 } = require("@decentral.ee/web3-helpers");
-const SuperfluidSDK = require("@superfluid-finance/ethereum-contracts");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const DividendRightsToken = artifacts.require("DividendRightsToken");
 
 module.exports = async function (callback, argv) {
@@ -9,25 +9,21 @@ module.exports = async function (callback, argv) {
 
     try {
         global.web3 = web3;
+        global.artifacts = artifacts;
 
         const version = process.env.RELEASE_VERSION || "test";
         console.log("release version:", version);
 
         const sf = new SuperfluidSDK.Framework({
-            chainId: 5,
+            web3,
             version: version,
-            web3Provider: web3.currentProvider
+            tokens: ["fDAI"]
         });
         await sf.initialize();
 
-        const daiAddress = await sf.resolver.get("tokens.fDAI");
-        const dai = await sf.contracts.TestToken.at(daiAddress);
-        const daixWrapper = await sf.getERC20Wrapper(dai);
-        const daix = await sf.contracts.ISuperToken.at(daixWrapper.wrapperAddress);
-    
         const app = await web3tx(DividendRightsToken.new, "Deploy DividendRightsToken")(
             "Dividend Rights Token", "DRT",
-            daix.address,
+            sf.tokens.fDAIx.address,
             sf.host.address, sf.agreements.ida.address,
         );
         console.log("App deployed at", app.address);

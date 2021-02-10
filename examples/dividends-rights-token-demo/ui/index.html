@@ -11,8 +11,7 @@
 </head>
 
 <body>
-  <a href="https://goerli.etherscan.io/address/0xD805De805F34b88107CB253d684fA27Ec1EBb352">DAIx</a><br/>
-  <a href="https://goerli.etherscan.io/address/0xfafaE8496024eE644b7a60bF827760302101330F">DRT</a><br/>
+  <h3>(Please Use Goerli!)</h3>
   <h1>Subscriber</h1>
   <label>Balance: </label> <span id="balance">0</span><br/>
   <label>Units: </label> <span id="units">0</span><br/>
@@ -26,28 +25,48 @@
   <label>Distribution Amount: </label> <input type="number" id="amount" value=100><br/>
   <button onclick="distribute()">Distribute</button><br/>
 
-  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js" crossorigin="anonymous"></script>
+  <script>if (typeof module === "undefined") module = {};</script>
   <script src="https://cdn.jsdelivr.net/npm/@superfluid-finance/js-sdk@latest/src/abi.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@superfluid-finance/js-sdk@latest/src/getConfig.js"></script>
   <script src="DividendRightsToken.abi.js"></script>
   <script>
     let web3, daix, user, host, ida, drt;
 
+    const DEPLOYED_DIVIDEND_RIGHTS_TOKENS = {
+        5: "0x5D9e1EA264813A408E9A9733282BEad6C2Fc373F", // goerli
+    }
     async function main() {
         await ethereum.enable();
         web3 = new Web3(ethereum);
         user = (await web3.eth.getAccounts())[0];
+        const networkId = await web3.eth.net.getId();
+        console.debug("networkId", networkId);
+        const resolver = new web3.eth.Contract(
+            Superfluid_ABI.IResolver,
+            DEFAULT_CONFIG[networkId].resolverAddress);
+        console.debug("resolver", resolver._address);
         daix = new web3.eth.Contract(
             Superfluid_ABI.IERC20,
-            "0xD805De805F34b88107CB253d684fA27Ec1EBb352");
+            await resolver.methods.get("supertokens.v1.fDAIx").call());
+        console.debug("daix", daix._address);
         host = new web3.eth.Contract(
             Superfluid_ABI.ISuperfluid,
-            "0xC00100DC36c41D7b2189084AAa3E793cA7Cc0dDD");
+            await resolver.methods.get("Superfluid.v1").call());
+        console.debug("host", host._address);
+        // load agreements
+        const idav1Type = web3.utils.sha3(
+            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+        );
+        const idaAddress = await host.methods.getAgreementClass(idav1Type).call();
         ida = new web3.eth.Contract(
             Superfluid_ABI.IInstantDistributionAgreementV1,
-            "0x1866B09e73DA7107c762B32Dc74e68De95F3127c");
+            idaAddress);
+        console.debug("ida", ida._address);
         drt = new web3.eth.Contract(
             DividendRightsToken_ABI,
-            "0xfafaE8496024eE644b7a60bF827760302101330F");
+            DEPLOYED_DIVIDEND_RIGHTS_TOKENS[networkId]);
+        console.debug("drt", drt._address);
         document.getElementById("issuer").innerHTML = await drt.methods.owner().call();
         setInterval(refreshBalance, 10000);
         refreshSubscription();

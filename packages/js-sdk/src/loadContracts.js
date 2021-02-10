@@ -89,37 +89,6 @@ const loadContracts = async ({
         } catch (e) {
             throw Error(`could not load ethers environment contracts. ${e}`);
         }
-    } else if (web3) {
-        try {
-            const TruffleContract = require("@truffle/contract");
-            console.debug(
-                `Using @superfluid-finance/js-sdk in a non-native Truffle environment.
-                Peer dependency @truffle/contract is required.`
-            );
-            if (from) {
-                console.log("Set default from address to", from);
-            } else {
-                const accounts = await web3.eth.getAccounts();
-                from = accounts[0];
-                console.log(
-                    "Set default from address to the first account",
-                    from
-                );
-            }
-            await Promise.all(
-                allContractNames.map(async name => {
-                    const c = (contracts[name] = TruffleContract(
-                        await contractLoader(name)
-                    ));
-                    c.setProvider(web3.currentProvider);
-                    c.defaults({ from });
-                })
-            );
-        } catch (e) {
-            throw Error(
-                `could not load non-truffle environment contracts. ${e}`
-            );
-        }
     } else if (isTruffle) {
         try {
             console.debug(

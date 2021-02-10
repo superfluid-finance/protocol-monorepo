@@ -43,6 +43,7 @@ jobs:
           yarn test
 
       - name: Deployment
+        run: |
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network goerli exec scripts/deploy.js
           fi
@@ -81,6 +82,7 @@ jobs:
           fi
 
       - name: (force-install) Deployment
+        run: |
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network goerli exec scripts/deploy.js
           fi

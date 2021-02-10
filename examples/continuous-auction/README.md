@@ -16,3 +16,13 @@ TODO:
 - make the contract an NFT so it can be sold.
 - make the contract redirect income to the owner.
 - keep track of historical bids?
+
+# Usage
+
+## Run tests
+
+```bash
+yarn install
+yarn build
+yarn test
+```

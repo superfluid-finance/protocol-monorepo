@@ -94,14 +94,3 @@ jobs:
         if: env.BUILD_JS_SDK == 1
         run: |
           yarn workspace @superfluid-finance/js-sdk test
-
-  wait-for-tests:
-    name: Build and run related tests (Feature Branch)
-
-    runs-on: ubuntu-latest
-
-    needs: [test-ethereum-contracts, test-js-sdk]
-
-    steps:
-      - name: Report status
-        run: true

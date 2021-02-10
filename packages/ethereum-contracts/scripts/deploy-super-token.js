@@ -3,8 +3,9 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     parseColonArgs,
     ZERO_ADDRESS,
+    extractWeb3Options,
     detectTruffleAndConfigure,
-    extractWeb3Options
+    builtTruffleContractLoader
 } = require("./utils");
 
 /**
@@ -33,7 +34,8 @@ module.exports = async function(callback, argv, options = {}) {
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
             version,
-            additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"]
+            additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"],
+            contractLoader: builtTruffleContractLoader
         });
         await sf.initialize();
 

@@ -6,7 +6,7 @@
     "@ethersproject/contracts": "^5.0.10",
     "@ethersproject/providers": "^5.0.22",
     "@redwoodjs/api": "0.24.0",
-    "@superfluid-finance/js-sdk": "^0.3.4-PR266.c5f6f9d.0",
+    "@superfluid-finance/js-sdk": "^0.3.4-PR266.4e72d19.0",
     "eth-sig-util": "^3.0.0",
     "ethereumjs-util": "^7.0.8",
     "jsonwebtoken": "^8.5.1"

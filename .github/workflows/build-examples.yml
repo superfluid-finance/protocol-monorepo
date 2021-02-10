@@ -1,0 +1,55 @@
+name: Build Examples
+
+on:
+  # after a new release is published
+  workflow_run:
+    workflows: ["Publish Release Package"]
+    types:
+      - completed
+  # manual trigger
+  workflow_dispatch:
+  # every day
+  schedule:
+      # * is a special character in YAML so you have to quote this string
+      - cron: '0 8 * * *'
+
+jobs:
+  build-examples:
+    name: Build examples
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install, build and test
+        run: |
+          cd examples/${{ matrix.example }}
+          yarn install
+          yarn build
+          yarn test
+
+      - name: Build UI project if exist
+        run: |
+          if [ -d "ui" ];then
+            yarn install
+            yarn build
+          fi
+
+      - name: Install (force), build and test
+        run: |
+          cd examples/${{ matrix.example }}
+          yarn install --force
+          yarn build
+          yarn test
+
+      - name: Build (force-install) UI project if exist
+        run: |
+          if [ -d "ui" ];then
+            yarn install --force
+            yarn build
+          fi

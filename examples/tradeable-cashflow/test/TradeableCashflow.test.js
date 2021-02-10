@@ -24,11 +24,14 @@ contract("TradeableCashflow", accounts => {
     const u = {}; // object with all users
     const aliases = {};
 
-    beforeEach(async function() {
+    before(async function() {
         await deployFramework(errorHandler, {
             web3,
             from: accounts[0]
         });
+    });
+
+    beforeEach(async function() {
         await deployTestToken(errorHandler, [":", "fDAI"], {
             web3,
             from: accounts[0]

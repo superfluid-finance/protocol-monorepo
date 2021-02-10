@@ -16,3 +16,21 @@ TODO:
 - make the contract an NFT so it can be sold.
 - make the contract redirect income to the owner.
 - keep track of historical bids?
+
+# Usage
+
+## Run tests
+
+```bash
+yarn install
+yarn build
+yarn test
+```
+
+## Deployment
+
+Setup a `.env` file following the example of `.env.template`.
+
+```bash
+RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js
+```

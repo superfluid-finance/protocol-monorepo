@@ -18,12 +18,20 @@ echo ---
 
 # set BUILD_* variables to GITHUB_ENV
 if ! [ -z "$GITHUB_ENV" ];then
+    # if ci workflow changed
+    if grep -E "^.github/workflows/ci.hml$" changed-files.list;then
+        BUILD_ANYTHING=1
+        BUILD_ETHEREUM_CONTRACTS=1
+        BUILD_JS_SDK=1
+    fi
+    # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ANYTHING=1
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
         echo Ethereum contracts will be tested.
     fi
+    # if js-sdk package changed
     if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ANYTHING=1
         BUILD_JS_SDK=1

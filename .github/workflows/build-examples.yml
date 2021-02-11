@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        node-version: [12.x]
+        node-version: [14.x]
         example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
 
     steps:

@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "0.2.7",
+    "version": "0.2.8",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -44,7 +44,7 @@
     },
     "dependencies": {
         "@openzeppelin/contracts": "3.4.0",
-        "@superfluid-finance/js-sdk": "0.3.3",
+        "@superfluid-finance/js-sdk": "0.3.4",
         "@truffle/contract": "4.3.6",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.0.8",

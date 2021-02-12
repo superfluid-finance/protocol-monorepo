@@ -9,8 +9,8 @@ const TradeableCashflow = artifacts.require("TradeableCashflow");
 const traveler = require("ganache-time-traveler");
 const TEST_TRAVEL_TIME = 3600 * 2; // 1 hours
 
-contract("TradeableCashflow", accounts => {
-    const errorHandler = err => {
+contract("TradeableCashflow", (accounts) => {
+    const errorHandler = (err) => {
         if (err) throw err;
     };
 
@@ -24,27 +24,27 @@ contract("TradeableCashflow", accounts => {
     const u = {}; // object with all users
     const aliases = {};
 
-    before(async function() {
+    before(async function () {
         await deployFramework(errorHandler, {
             web3,
-            from: accounts[0]
+            from: accounts[0],
         });
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await deployTestToken(errorHandler, [":", "fDAI"], {
             web3,
-            from: accounts[0]
+            from: accounts[0],
         });
         await deploySuperToken(errorHandler, [":", "fDAI"], {
             web3,
-            from: accounts[0]
+            from: accounts[0],
         });
 
         sf = new SuperfluidSDK.Framework({
             web3,
             version: "test",
-            tokens: ["fDAI"]
+            tokens: ["fDAI"],
         });
         await sf.initialize();
         daix = sf.tokens.fDAIx;
@@ -53,7 +53,7 @@ contract("TradeableCashflow", accounts => {
         for (var i = 0; i < names.length; i++) {
             u[names[i].toLowerCase()] = sf.user({
                 address: accounts[i],
-                token: daix.address
+                token: daix.address,
             });
             u[names[i].toLowerCase()].alias = names[i];
             aliases[u[names[i].toLowerCase()].address] = names[i];
@@ -64,14 +64,14 @@ contract("TradeableCashflow", accounts => {
                 user.address,
                 toWad(100000000),
                 {
-                    from: user.address
+                    from: user.address,
                 }
             );
             await web3tx(dai.approve, `${user.alias} approves daix`)(
                 daix.address,
                 toWad(100000000),
                 {
-                    from: user.address
+                    from: user.address,
                 }
             );
         }
@@ -169,7 +169,7 @@ contract("TradeableCashflow", accounts => {
         );
         return true;
     }
-    describe("sending flows", async function() {
+    describe("sending flows", async function () {
         it("Case #1 - Alice sends a flow", async () => {
             const { alice } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -309,14 +309,14 @@ contract("TradeableCashflow", accounts => {
             assert.equal(
                 await sf.cfa.getNetFlow({
                     superToken: daix.address,
-                    account: u.app.address
+                    account: u.app.address,
                 }),
                 "0"
             );
             assert.equal(
                 await sf.cfa.getNetFlow({
                     superToken: daix.address,
-                    account: admin.address
+                    account: admin.address,
                 }),
                 toWad(0.001).toString()
             );
@@ -324,27 +324,27 @@ contract("TradeableCashflow", accounts => {
                 superToken: daix.address,
                 sender: u.app.address,
                 receiver: admin.address,
-                by: admin.address
+                by: admin.address,
             });
             assert.isFalse(await sf.host.isAppJailed.call(u.app.address));
             assert.equal(
                 await sf.cfa.getNetFlow({
                     superToken: daix.address,
-                    account: admin.address
+                    account: admin.address,
                 }),
                 "0"
             );
             assert.equal(
                 await sf.cfa.getNetFlow({
                     superToken: daix.address,
-                    account: u.app.address
+                    account: u.app.address,
                 }),
                 "0"
             );
         });
     });
 
-    describe("Changing owner", async function() {
+    describe("Changing owner", async function () {
         it("Case #4 - When the owner changes, the flow changes", async () => {
             const { alice, bob, carol, dan, admin } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -408,7 +408,7 @@ contract("TradeableCashflow", accounts => {
         });
     });
 
-    describe("Sending and receiving at the same time", async function() {
+    describe("Sending and receiving at the same time", async function () {
         it("Case #5 - Dan is a contributor, then becomes the owner too", async () => {
             const { alice, bob, carol, dan, admin } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -475,7 +475,7 @@ contract("TradeableCashflow", accounts => {
         });
     });
 
-    describe.skip("Fuzzy testing", async function() {
+    describe.skip("Fuzzy testing", async function () {
         it("Case #6 - Random testing", async () => {
             const { alice, bob, carol, dan, emma, frank, admin } = u;
             const accounts = [alice, bob, carol, dan, emma, frank, admin];
@@ -491,14 +491,14 @@ contract("TradeableCashflow", accounts => {
                         recipient: u.app,
                         flowRate: toWad(
                             Math.round(Math.random() * 1000) / 1000000 + 0.001
-                        )
+                        ),
                     });
                     switch (seed) {
                         case 1:
                             (await user.details()).cfa.flows.outFlows.length > 0
                                 ? await user.flow({
                                       recipient: u.app,
-                                      flowRate: "0"
+                                      flowRate: "0",
                                   })
                                 : await user.flow({
                                       recipient: u.app,
@@ -506,7 +506,7 @@ contract("TradeableCashflow", accounts => {
                                           Math.round(Math.random() * 1000) /
                                               1000000 +
                                               0.001
-                                      )
+                                      ),
                                   });
                             break;
                         case 2:

@@ -18,6 +18,7 @@
  *
  */
 
+const wrapProvider = require("arb-ethers-web3-bridge").wrapProvider;
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 require("dotenv").config();
 // const infuraKey = "fj4jll3k.....";
@@ -114,6 +115,22 @@ module.exports = {
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+        },
+
+        arbitrum: {
+            provider: function() {
+                // return wrapped provider:
+                return wrapProvider(
+                    //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")
+                    new HDWalletProvider(
+                        process.env.ARBITRUM_MNEMONIC,
+                        process.env.KOVAN_PROVIDER_URL
+                    )
+                );
+            },
+            network_id: "*",
+            gasPrice: 0,
+            gas: 1000000000
         },
 
         mumbai: {

@@ -16,7 +16,7 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
 
     // Create adapter for web3.js Contract.contract.methods.encodeABI
     const web3EncodingAdapter = {};
-    ethersContract.interface.fragments.forEach(fragment => {
+    ethersContract.interface.fragments.forEach((fragment) => {
         web3EncodingAdapter[fragment.name] = (...args) => {
             return {
                 encodeABI: () => {
@@ -67,10 +67,10 @@ const loadContracts = async ({
                 Peer dependency @ethersproject/contract is required.`
             );
             await Promise.all(
-                allContractNames.map(async name => {
+                allContractNames.map(async (name) => {
                     const contract = await contractLoader(name);
                     contracts[name] = {
-                        at: address =>
+                        at: (address) =>
                             getAdaptedContract({
                                 address,
                                 ethers,
@@ -107,7 +107,7 @@ const loadContracts = async ({
                 );
             }
             await Promise.all(
-                allContractNames.map(async name => {
+                allContractNames.map(async (name) => {
                     const c = (contracts[name] = TruffleContract(
                         await contractLoader(name)
                     ));
@@ -129,7 +129,7 @@ const loadContracts = async ({
             if (from) {
                 console.log("Set Ddefault from address to", from);
             }
-            allContractNames.forEach(name => {
+            allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));
                 from && c.defaults({ from });
             });

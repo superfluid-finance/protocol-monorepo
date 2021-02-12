@@ -183,9 +183,9 @@ module.exports = class Framework {
             if (tokenAddress === ZERO_ADDRESS) {
                 throw new Error(`Token ${tokenSymbol} is not registered`);
             }
-            this.tokens[tokenSymbol] = await this.contracts.ISETH.at(
-                tokenAddress
-            );
+            this.tokens[
+                tokenSymbol
+            ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
             console.debug(
                 `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
             );
@@ -200,9 +200,12 @@ module.exports = class Framework {
                 `Token ${tokenSymbol} doesn't have a super token wrapper`
             );
         }
-        const superToken = await this.contracts.ISuperToken.at(
-            superTokenAddress
-        );
+        let superToken;
+        if (tokenSymbol !== this.config.nativeTokenSymbol) {
+            superToken = await this.contracts.ISuperToken.at(superTokenAddress);
+        } else {
+            superToken = await this.contracts.ISETH.at(superTokenAddress);
+        }
         const superTokenSymbol = await superToken.symbol();
         this.tokens[superTokenSymbol] = superToken;
         console.debug(

@@ -4,6 +4,8 @@ on:
   # triggered by internal pushes
   push:
     branches-ignore: ["master", "dev"]
+    paths-ignore:
+      - '**.md'
   # triggered by external PRs (filtered in the `check` job)
   pull_request:
 

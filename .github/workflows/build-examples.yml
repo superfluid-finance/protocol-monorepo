@@ -19,6 +19,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      CI: true # React UI builds may fail for warnings otherwise
+
     strategy:
       fail-fast: false # build all examples independently
       matrix:
@@ -40,16 +43,16 @@ jobs:
           yarn build
           yarn test
 
-      # - name: Deployment
-      #   working-directory: examples/${{ matrix.example }}
-      #   run: |
-      #     if [ -f "scripts/deploy.js" ];then
-      #       npx truffle --network goerli exec scripts/deploy.js
-      #     fi
-      #   env:
-      #     RELEASE_VERSION: master
-      #     GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-      #     GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+      - name: Deployment
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          if [ -f "scripts/deploy.js" ];then
+            npx truffle --network goerli exec scripts/deploy.js
+          fi
+        env:
+          RELEASE_VERSION: master
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build UI project if exist
         working-directory: examples/${{ matrix.example }}
@@ -79,13 +82,13 @@ jobs:
             yarn build
           fi
 
-      # - name: (force-install) Deployment
-      #   working-directory: examples/${{ matrix.example }}
-      #   run: |
-      #     if [ -f "scripts/deploy.js" ];then
-      #       npx truffle --network goerli exec scripts/deploy.js
-      #     fi
-      #   env:
-      #     RELEASE_VERSION: master
-      #     GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-      #     GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+      - name: (force-install) Deployment
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          if [ -f "scripts/deploy.js" ];then
+            npx truffle --network goerli exec scripts/deploy.js
+          fi
+        env:
+          RELEASE_VERSION: master
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}

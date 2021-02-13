@@ -5,7 +5,11 @@ on:
     branches: ["master"]
     paths-ignore:
       # - '**.md' commented-out because README updates should go to the packages
+      - '.github/workflows/**'
       - 'examples/**'
+    paths:
+      - 'packages/**'
+      - '.github/workflows/ci-master.yml'
 
 jobs:
   build:

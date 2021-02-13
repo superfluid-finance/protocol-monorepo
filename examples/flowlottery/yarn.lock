@@ -291,6 +291,13 @@
   dependencies:
     "@ethersproject/hash" "^5.0.11"
 
+"@superfluid-finance/js-sdk@^0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.3.5.tgz#67a592f241448ab8a9c00174f532933e27310f90"
+  integrity sha512-MMv0SIuEfDsBVgox98E1h/UoHMZfmx240p6rqR1favqLNH3jwKvXFGHAc5Xw/hcT36KkFXMk7xqGmRPlfB1dNg==
+  dependencies:
+    "@ethersproject/hash" "^5.0.11"
+
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz#b1665e2c461a2cd92f4c1bbf50d5454de0d4b421"

@@ -81,4 +81,4 @@ jobs:
 
     steps:
       - name: Report success
-        run: test [ ${{ needs.build-examples.result }} == success ]
+        run: test ${{ needs.build-examples.result }} != failure

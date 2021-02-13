@@ -75,10 +75,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: always()
-
     needs: [build-examples]
+
+    if: always()
 
     steps:
       - name: Report success
-        run: [ ${{ needs.build-examples.result }} == success ]
+        run: test [ ${{ needs.build-examples.result }} == success ]

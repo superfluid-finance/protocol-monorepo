@@ -4,12 +4,9 @@ on:
   # triggered by internal pushes
   push:
     branches-ignore: ["master", "dev"]
-    paths-ignore:
-      - '.github/workflows/**'
-      - '**.md'
-      - 'examples/**'
     paths:
       - 'packages/**'
+      - '!**.md'
       - '.github/workflows/ci.yml'
       - '.github/workflows/create-pr-artifact.yml'
   # triggered by external PRs (filtered in the `check` job)

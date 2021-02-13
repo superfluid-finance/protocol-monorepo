@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'examples/**'
+      - '.github/workflows/build-examples.yml'
   workflow_run:
     workflows: ["Publish Release Package"]
     types:

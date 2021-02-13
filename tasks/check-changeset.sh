@@ -37,7 +37,7 @@ if ! [ -z "$GITHUB_ENV" ];then
     # if any exapmle project changed
     if grep -E "^examples/" changed-files.list;then
         BUILD_EXAMPLES=1
-        echo JS SDK will be tested.
+        echo Examples will be tested.
     fi
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
     echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV

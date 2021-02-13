@@ -33,14 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
       - name: Check changeset
         if: github.event_name == 'push'
         run: tasks/check-changeset.sh ${{ github.sha }} dev
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Install, build and test
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

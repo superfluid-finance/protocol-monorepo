@@ -2,6 +2,9 @@ name: Build Examples
 
 on:
   # after a new release is published
+  push:
+    paths:
+      - 'examples/**'
   workflow_run:
     workflows: ["Publish Release Package"]
     types:
@@ -26,6 +29,7 @@ jobs:
       fail-fast: false # build all examples independently
       matrix:
         node-version: [14.x]
+        force-install: [yes, no]
         example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
 
     steps:
@@ -39,6 +43,7 @@ jobs:
       - name: Install, build and test
         working-directory: examples/${{ matrix.example }}
         run: |
+          [ ${{ matrix.force-install }} == yes ] && rm -f yarn.lock
           yarn install --frozen-lockfile
           yarn build
           yarn test
@@ -59,36 +64,12 @@ jobs:
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
+            [ ${{ matrix.force-install }} == yes ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build
           fi
 
-      - name: (force-install) Install, build and test
-        working-directory: examples/${{ matrix.example }}
-        run: |
-          yarn install --force
-          yarn build
-          yarn test
-        env:
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+  build-examples-done:
+    name: Build examples done # An aggregated job used for PR criteria
 
-      - name: (force-install) Build UI project if exist
-        working-directory: examples/${{ matrix.example }}
-        run: |
-          if [ -f "ui/package.json" ];then
-            cd ui
-            yarn install --force
-            yarn build
-          fi
-
-      - name: (force-install) Deployment
-        working-directory: examples/${{ matrix.example }}
-        run: |
-          if [ -f "scripts/deploy.js" ];then
-            npx truffle --network goerli exec scripts/deploy.js
-          fi
-        env:
-          RELEASE_VERSION: master
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+    needs: [build-examples]

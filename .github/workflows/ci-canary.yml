@@ -3,6 +3,9 @@ name: CI Canary
 on:
   push:
     branches: ["dev"]
+    paths-ignore:
+      # - '**.md' commented-out because README updates should go to the packages
+      - 'examples/**'
 
 jobs:
   build:

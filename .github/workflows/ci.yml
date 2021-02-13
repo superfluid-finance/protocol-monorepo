@@ -6,6 +6,7 @@ on:
     branches-ignore: ["master", "dev"]
     paths-ignore:
       - '**.md'
+      - 'examples/**'
   # triggered by external PRs (filtered in the `check` job)
   pull_request:
 

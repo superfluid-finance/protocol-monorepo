@@ -18,7 +18,7 @@ on:
     - cron: '0 8 * * *'
 
 jobs:
-  build-examples:
+  build-example:
     name: Build example
 
     runs-on: ubuntu-latest
@@ -82,5 +82,5 @@ jobs:
     steps:
       - name: Report success
         run: |
-          test "${{ needs.build-examples.result }}" == success || \
-          test "${{ needs.build-examples.result }}" == skipped
+          test "${{ needs.build-example.result }}" == success || \
+          test "${{ needs.build-example.result }}" == skipped

@@ -19,19 +19,19 @@ on:
 
 jobs:
   build-examples:
-    name: Build examples
+    name: Build example
 
     runs-on: ubuntu-latest
 
     env:
-      CI: true # React UI builds may fail for warnings otherwise
+      CI: false # React UI builds may fail for warnings otherwise
 
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        node-version: [14.x]
-        install: [locked-install, clean-install]
         example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
+        install: [locked-install, clean-install]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
       - name: Install, build and test
         working-directory: examples/${{ matrix.example }}
         run: |
-          [ ${{ matrix.install }} == clean-install ] && rm -f yarn.lock
+          [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
           yarn install --frozen-lockfile
           yarn build
           yarn test
@@ -65,7 +65,7 @@ jobs:
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
-            [ ${{ matrix.install }} == clean-install ] && rm -f yarn.lock
+            [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build
           fi
@@ -75,10 +75,12 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    needs: [build-examples]
+    needs: [build-example]
 
     if: always()
 
     steps:
       - name: Report success
-        run: test ${{ needs.build-examples.result }} != failure
+        run: |
+          test "${{ needs.build-examples.result }}" == success || \
+          test "${{ needs.build-examples.result }}" == skipped

@@ -72,4 +72,10 @@ jobs:
   build-examples-done:
     name: Build examples done # An aggregated job used for PR criteria
 
+    runs-on: ubuntu-latest
+
     needs: [build-examples]
+
+    steps:
+      - name: Report success
+        run: true

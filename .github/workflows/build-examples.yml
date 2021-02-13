@@ -30,7 +30,7 @@ jobs:
       fail-fast: false # build all examples independently
       matrix:
         node-version: [14.x]
-        force-install: [yes, no]
+        install: [locked-install, clean-install]
         example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
 
     steps:
@@ -44,7 +44,7 @@ jobs:
       - name: Install, build and test
         working-directory: examples/${{ matrix.example }}
         run: |
-          [ ${{ matrix.force-install }} == yes ] && rm -f yarn.lock
+          [ ${{ matrix.install }} == clean-install ] && rm -f yarn.lock
           yarn install --frozen-lockfile
           yarn build
           yarn test
@@ -65,7 +65,7 @@ jobs:
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
-            [ ${{ matrix.force-install }} == yes ] && rm -f yarn.lock
+            [ ${{ matrix.install }} == clean-install ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build
           fi
@@ -75,8 +75,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    if: always()
+
     needs: [build-examples]
 
     steps:
       - name: Report success
-        run: true
+        run: [ ${{ needs.build-examples.result }} == success ]

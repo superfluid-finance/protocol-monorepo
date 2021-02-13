@@ -3,10 +3,16 @@ name: CI Canary
 on:
   push:
     branches: ["dev"]
+    paths:
+      - 'packages/**'
+      # - '**.md' commented-out because README updates should go to the packages
+      - '.github/workflows/ci-canary.yml'
 
 jobs:
   build:
     name: Build and test of dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     runs-on: ubuntu-latest
 
@@ -41,6 +47,8 @@ jobs:
   coverage:
     name: Run coverage test of dev branch
 
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
     runs-on: ubuntu-latest
 
     steps:
@@ -68,8 +76,6 @@ jobs:
 
   publish:
     name: NPM publish dev branch
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     needs: [build, coverage]
 
@@ -106,8 +112,6 @@ jobs:
 
   deploy-dev:
     name: Deploy Canary to dev-testnets
-
-    if: github.repository == 'superfluid-finance/protocol-monorepo'
 
     needs: [build, coverage]
 

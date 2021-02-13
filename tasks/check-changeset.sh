@@ -20,24 +20,30 @@ echo ---
 if ! [ -z "$GITHUB_ENV" ];then
     # if ci workflow changed
     if grep -E "^.github/workflows/ci.hml$" changed-files.list;then
-        BUILD_ANYTHING=1
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1
     fi
     # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
-        BUILD_ANYTHING=1
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1 # force js-sdk to be rebuilt to if contracts changed
         echo Ethereum contracts will be tested.
     fi
     # if js-sdk package changed
     if grep -E "^packages/js-sdk/(src/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
-        BUILD_ANYTHING=1
         BUILD_JS_SDK=1
         echo JS SDK will be tested.
     fi
-    echo "BUILD_ANYTHING=${BUILD_ANYTHING}" >> $GITHUB_ENV
+    # if any exapmle project changed
+    if grep -E "^examples/" changed-files.list;then
+        BUILD_EXAMPLES=1
+        echo Examples will be tested.
+    fi
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
+    echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
     echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 || "$BUILD_JS_SDK" == 1];then
+        echo PR packages will be published.
+        echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
+    fi
 fi

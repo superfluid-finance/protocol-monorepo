@@ -1,6 +1,7 @@
 name: Build Examples
 
 on:
+  push:
   # after a new release is published
   workflow_run:
     workflows: ["Publish Release Package"]
@@ -14,36 +15,45 @@ on:
     - cron: '0 8 * * *'
 
 jobs:
-  build-examples:
-    name: Build examples
+  build-example:
+    name: Build example
 
     runs-on: ubuntu-latest
 
     env:
-      CI: true # React UI builds may fail for warnings otherwise
+      CI: false # React UI builds may fail for warnings otherwise
 
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        node-version: [14.x]
         example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
+        install: [locked-install, clean-install]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
 
+      - name: Check changeset
+        if: github.event_name == 'push'
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
       - name: Use Node.js ${{ matrix.node-version }}
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, build and test
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         working-directory: examples/${{ matrix.example }}
         run: |
+          [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
           yarn install --frozen-lockfile
           yarn build
           yarn test
 
       - name: Deployment
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "scripts/deploy.js" ];then
@@ -55,40 +65,27 @@ jobs:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build UI project if exist
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
+            [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build
           fi
 
-      - name: (force-install) Install, build and test
-        working-directory: examples/${{ matrix.example }}
-        run: |
-          yarn install --force
-          yarn build
-          yarn test
-        env:
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+  build-examples-done:
+    name: Build examples done # An aggregated job used for PR criteria
 
-      - name: (force-install) Build UI project if exist
-        working-directory: examples/${{ matrix.example }}
-        run: |
-          if [ -f "ui/package.json" ];then
-            cd ui
-            yarn install --force
-            yarn build
-          fi
+    runs-on: ubuntu-latest
 
-      - name: (force-install) Deployment
-        working-directory: examples/${{ matrix.example }}
+    needs: [build-example]
+
+    if: always()
+
+    steps:
+      - name: Report success
         run: |
-          if [ -f "scripts/deploy.js" ];then
-            npx truffle --network goerli exec scripts/deploy.js
-          fi
-        env:
-          RELEASE_VERSION: master
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          test "${{ needs.build-example.result }}" == success || \
+          test "${{ needs.build-example.result }}" == skipped

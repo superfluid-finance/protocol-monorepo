@@ -30,7 +30,7 @@ const DEFAULT_CONFIG = {
         resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47"
     },
     79377087078960: {
-        // arbitru testnet
+        // arbitrum testnet
         resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47"
     }
 };

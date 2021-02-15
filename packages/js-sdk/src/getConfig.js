@@ -28,6 +28,10 @@ const DEFAULT_CONFIG = {
     0x03c401: {
         // (artis) tau1 testnet
         resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47"
+    },
+    79377087078960: {
+        // arbitru testnet
+        resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47"
     }
 };
 

@@ -129,8 +129,8 @@ module.exports = {
                 );
             },
             network_id: "*",
-            gasPrice: 0,
-            gas: 1000000000
+            gas: 1e9, // arbgas is a different beast, 1G gas is normal
+            gasPrice: 0
         },
 
         mumbai: {

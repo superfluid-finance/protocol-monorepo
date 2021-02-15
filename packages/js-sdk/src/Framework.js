@@ -23,6 +23,7 @@ module.exports = class Framework {
      *
      * @param {Array} options.additionalContracts (Optional) additional contracts to be loaded
      * @param {string[]} options.tokens tokens to be loaded, each element is an alias for the underlying token
+     * @param {Function} options.contractLoader (Optional) alternative contract loader function
      *
      * @param {string} options.resolverAddress force resolver address
      * @param {string} options.gasReportType output type for gas reporting. Currently HTML only
@@ -93,7 +94,8 @@ module.exports = class Framework {
             web3: this._options.web3,
             ethers: this._options.ethers,
             from: this._options.from,
-            additionalContracts: this._options.additionalContracts
+            additionalContracts: this._options.additionalContracts,
+            contractLoader: this._options.contractLoader
         });
 
         const resolverAddress =
@@ -181,9 +183,9 @@ module.exports = class Framework {
             if (tokenAddress === ZERO_ADDRESS) {
                 throw new Error(`Token ${tokenSymbol} is not registered`);
             }
-            this.tokens[tokenSymbol] = await this.contracts.ISETH.at(
-                tokenAddress
-            );
+            this.tokens[
+                tokenSymbol
+            ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
             console.debug(
                 `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
             );
@@ -198,9 +200,12 @@ module.exports = class Framework {
                 `Token ${tokenSymbol} doesn't have a super token wrapper`
             );
         }
-        const superToken = await this.contracts.ISuperToken.at(
-            superTokenAddress
-        );
+        let superToken;
+        if (tokenSymbol !== this.config.nativeTokenSymbol) {
+            superToken = await this.contracts.ISuperToken.at(superTokenAddress);
+        } else {
+            superToken = await this.contracts.ISETH.at(superTokenAddress);
+        }
         const superTokenSymbol = await superToken.symbol();
         this.tokens[superTokenSymbol] = superToken;
         console.debug(

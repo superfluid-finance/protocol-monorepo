@@ -8,7 +8,7 @@ const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 const SuperfluidSDK = require("../src");
 
-contract("Framework class", accounts => {
+contract("Framework class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 1), { isTruffle: true });
     const { admin } = t.aliases;
 
@@ -46,39 +46,39 @@ contract("Framework class", accounts => {
             assert.isDefined(IERC20.abi);
             assert.equal(IERC20.contractName, "IERC20");
             assert.isTrue(
-                IERC20.abi.filter(i => i.name === "Transfer").length > 0
+                IERC20.abi.filter((i) => i.name === "Transfer").length > 0
             );
 
             assert.isDefined(IResolver.abi);
             assert.equal(IResolver.contractName, "IResolver");
             assert.isTrue(
-                IResolver.abi.filter(i => i.name === "get").length > 0
+                IResolver.abi.filter((i) => i.name === "get").length > 0
             );
 
             assert.isDefined(TokenInfo.abi);
             assert.equal(TokenInfo.contractName, "TokenInfo");
             assert.isTrue(
-                TokenInfo.abi.filter(i => i.name === "symbol").length > 0
+                TokenInfo.abi.filter((i) => i.name === "symbol").length > 0
             );
 
             assert.isDefined(ISuperfluid.abi);
             assert.equal(ISuperfluid.contractName, "ISuperfluid");
             assert.isTrue(
-                ISuperfluid.abi.filter(i => i.name === "callAgreement").length >
-                    0
+                ISuperfluid.abi.filter((i) => i.name === "callAgreement")
+                    .length > 0
             );
 
             assert.isDefined(ISuperToken.abi);
             assert.equal(ISuperToken.contractName, "ISuperToken");
             assert.isTrue(
-                ISuperToken.abi.filter(i => i.name === "upgrade").length > 0
+                ISuperToken.abi.filter((i) => i.name === "upgrade").length > 0
             );
 
             assert.isDefined(ISuperTokenFactory.abi);
             assert.equal(ISuperTokenFactory.contractName, "ISuperTokenFactory");
             assert.isTrue(
                 ISuperTokenFactory.abi.filter(
-                    i => i.name === "createERC20Wrapper"
+                    (i) => i.name === "createERC20Wrapper"
                 ).length > 0
             );
 
@@ -89,7 +89,7 @@ contract("Framework class", accounts => {
             );
             assert.isTrue(
                 IConstantFlowAgreementV1.abi.filter(
-                    i => i.name === "updateFlow"
+                    (i) => i.name === "updateFlow"
                 ).length > 0
             );
 
@@ -100,7 +100,7 @@ contract("Framework class", accounts => {
             );
             assert.isTrue(
                 IInstantDistributionAgreementV1.abi.filter(
-                    i => i.name === "createIndex"
+                    (i) => i.name === "createIndex"
                 ).length > 0
             );
         }

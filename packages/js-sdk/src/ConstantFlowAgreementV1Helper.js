@@ -220,7 +220,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
             superToken
         );
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
-        return await this._cfa.getNetFlow(superTokenNorm, accountNorm);
+        const netFlow = await this._cfa.getNetFlow(superTokenNorm, accountNorm);
+        return netFlow.toString();
     }
 
     /**
@@ -279,7 +280,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 acc[i.args.sender + ":" + i.args.receiver] = i;
                 return acc;
             }, {})
-        ).filter(i => i.args.flowRate.toString() != "0");
+        ).filter((i) => i.args.flowRate.toString() != "0");
     }
 
     /**
@@ -306,7 +307,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                     receiver: accountNorm,
                     token: superTokenNorm
                 })
-            ).map(f => ({
+            ).map((f) => ({
                 sender: f.args.sender,
                 receiver: f.args.receiver,
                 flowRate: f.args.flowRate.toString()
@@ -318,7 +319,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
                     token: superTokenNorm,
                     sender: accountNorm
                 })
-            ).map(f => ({
+            ).map((f) => ({
                 sender: f.args.sender,
                 receiver: f.args.receiver,
                 flowRate: f.args.flowRate.toString()

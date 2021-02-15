@@ -79,7 +79,7 @@ contract RedirectAll is SuperAppBase {
       newCtx = ctx;
       // @dev This will give me the new flowRate, as it is called in after callbacks
       int96 netFlowRate = _cfa.getNetFlow(_acceptedToken, address(this));
-      (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver); //CHECK: unclear what happens if flow doesn't exist.
+      (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver); // CHECK: unclear what happens if flow doesn't exist.
       int96 inFlowRate = netFlowRate + outFlowRate;
 
       // @dev If inFlowRate === 0, then delete existing flow.
@@ -190,7 +190,7 @@ contract RedirectAll is SuperAppBase {
         ISuperToken _superToken,
         address _agreementClass,
         bytes32 ,//_agreementId,
-        bytes calldata /*_agreementData*/,
+        bytes calldata agreementData,
         bytes calldata ,//_cbdata,
         bytes calldata _ctx
     )

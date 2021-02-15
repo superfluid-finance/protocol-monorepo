@@ -18,7 +18,6 @@
  *
  */
 
-const wrapProvider = require("arb-ethers-web3-bridge").wrapProvider;
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 require("dotenv").config();
 // const infuraKey = "fj4jll3k.....";
@@ -119,6 +118,7 @@ module.exports = {
 
         arbitrum: {
             provider: function() {
+                const wrapProvider = require("arb-ethers-web3-bridge").wrapProvider;
                 // return wrapped provider:
                 return wrapProvider(
                     //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")

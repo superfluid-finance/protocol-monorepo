@@ -124,7 +124,7 @@ module.exports = {
                     //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")
                     new HDWalletProvider(
                         process.env.ARBITRUM_MNEMONIC,
-                        process.env.KOVAN_PROVIDER_URL
+                        process.env.ARBITRUM_PROVIDER_URL
                     )
                 );
             },

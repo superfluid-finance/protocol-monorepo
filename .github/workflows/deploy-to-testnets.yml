@@ -68,3 +68,5 @@ jobs:
             source addresses.vars
             source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
           fi
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

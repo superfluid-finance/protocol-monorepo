@@ -18,6 +18,17 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+      RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
+      ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
+      MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -47,16 +58,6 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
-        env:
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-          RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
-          ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
-          MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
 
       - name: Etherscan verification of ${{ matrix.network }} deployment
         if: env.DO_SKIP != 1
@@ -67,6 +68,3 @@ jobs:
             source addresses.vars
             source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
           fi
-        env:
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

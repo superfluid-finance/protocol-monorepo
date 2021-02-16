@@ -116,6 +116,23 @@ module.exports = {
             skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
         },
 
+        arbitrum: {
+            provider: function() {
+                const wrapProvider = require("arb-ethers-web3-bridge").wrapProvider;
+                // return wrapped provider:
+                return wrapProvider(
+                    //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")
+                    new HDWalletProvider(
+                        process.env.ARBITRUM_MNEMONIC,
+                        process.env.ARBITRUM_PROVIDER_URL
+                    )
+                );
+            },
+            network_id: "*",
+            gas: 1e9, // arbgas is a different beast, 1G gas is normal
+            gasPrice: 0
+        },
+
         mumbai: {
             provider: () =>
                 new HDWalletProvider(

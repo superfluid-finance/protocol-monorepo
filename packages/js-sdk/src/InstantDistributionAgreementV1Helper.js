@@ -1,4 +1,4 @@
-const autoBind = require('auto-bind');
+const autoBind = require("auto-bind");
 const { completeTransaction } = require("./utils/general");
 
 /**

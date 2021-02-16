@@ -68,4 +68,5 @@ jobs:
             source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
           fi
         env:
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

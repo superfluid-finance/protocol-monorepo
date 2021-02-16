@@ -721,7 +721,7 @@ async function _shouldChangeFlow({
         case "createFlow":
         case "updateFlow":
             tx = await web3tx(
-                testenv.sf.cfa[fn].bind(testenv.sf.cfa),
+                testenv.sf.cfa[fn],
                 `${fn} from ${sender} to ${receiver}`
             )({
                 ...flows.main.flowId,
@@ -731,7 +731,7 @@ async function _shouldChangeFlow({
             break;
         case "deleteFlow":
             tx = await web3tx(
-                testenv.sf.cfa[fn].bind(testenv.sf.cfa),
+                testenv.sf.cfa[fn],
                 `${fn} from ${sender} to ${receiver}`
             )({
                 ...flows.main.flowId,

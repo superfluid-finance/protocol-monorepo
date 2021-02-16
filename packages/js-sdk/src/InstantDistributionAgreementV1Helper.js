@@ -1,3 +1,4 @@
+const autoBind = require("auto-bind");
 const { completeTransaction } = require("./utils/general");
 
 /**
@@ -13,6 +14,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
     constructor(sf) {
         this._sf = sf;
         this._ida = sf.agreements.ida;
+        autoBind(this);
     }
 
     async createIndex({

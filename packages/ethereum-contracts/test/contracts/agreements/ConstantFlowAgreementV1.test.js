@@ -1344,7 +1344,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             // shouldDeleteFlow doesn't support loopback mode for now, let's use the sf directly
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "delete the mfa loopback flow"
             )({
                 superToken: superToken.address,
@@ -1530,7 +1530,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             });
 
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "liquidate the mfa receiver1 flow"
             )({
                 superToken: superToken.address,
@@ -1555,7 +1555,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             assert.isTrue((await superToken.balanceOf(app.address)) > 0);
 
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "liquidate the mfa receiver2 flow"
             )({
                 superToken: superToken.address,
@@ -1573,7 +1573,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             await expectNetFlow(receiver2, "0");
 
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "liquidate the mfa sender flow"
             )({
                 superToken: superToken.address,
@@ -1625,7 +1625,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             // delete flow of receiver 1
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "delete the mfa flows partially"
             )({
                 superToken: superToken.address,

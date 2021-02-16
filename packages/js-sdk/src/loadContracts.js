@@ -24,14 +24,14 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
                         fragment,
                         args
                     );
-                }
+                },
             };
         };
     });
     ethersContract.contract = {
         methods: {
-            ...web3EncodingAdapter
-        }
+            ...web3EncodingAdapter,
+        },
     };
 
     return ethersContract;
@@ -41,7 +41,7 @@ function defaultContractLoader(name) {
     if (name in abis) {
         return {
             contractName: name,
-            abi: abis[name]
+            abi: abis[name],
         };
     } else throw new Error(`Cannot load contract "${name}"`);
 }
@@ -52,7 +52,7 @@ const loadContracts = async ({
     web3,
     from,
     additionalContracts,
-    contractLoader
+    contractLoader,
 }) => {
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
@@ -74,10 +74,10 @@ const loadContracts = async ({
                             getAdaptedContract({
                                 address,
                                 ethers,
-                                abi: contract.abi
+                                abi: contract.abi,
                             }),
                         abi: contract.abi,
-                        contractName: name
+                        contractName: name,
                     };
                 })
             );

@@ -16,17 +16,17 @@ contract("Framework class", (accounts) => {
         await t.reset();
         await Promise.all([
             deployTestToken(t.errorHandler, [":", "fDAI"], {
-                isTruffle: true
+                isTruffle: true,
             }),
             deployTestToken(t.errorHandler, [":", "fUSDC"], {
-                isTruffle: true
+                isTruffle: true,
             }),
             deploySuperToken(t.errorHandler, [":", "fDAI"], {
-                isTruffle: true
+                isTruffle: true,
             }),
             deploySuperToken(t.errorHandler, [":", "fUSDC"], {
-                isTruffle: true
-            })
+                isTruffle: true,
+            }),
         ]);
     });
 
@@ -40,7 +40,7 @@ contract("Framework class", (accounts) => {
                 ISuperToken,
                 ISuperTokenFactory,
                 IConstantFlowAgreementV1,
-                IInstantDistributionAgreementV1
+                IInstantDistributionAgreementV1,
             } = sf.contracts;
 
             assert.isDefined(IERC20.abi);
@@ -108,7 +108,7 @@ contract("Framework class", (accounts) => {
         it("with native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
                 isTruffle: true,
-                version: "test"
+                version: "test",
             });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -117,7 +117,7 @@ contract("Framework class", (accounts) => {
         it("with non-native truffle environment", async () => {
             const sf = new SuperfluidSDK.Framework({
                 web3: new Web3(web3.currentProvider),
-                version: "test"
+                version: "test",
             });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -126,7 +126,7 @@ contract("Framework class", (accounts) => {
         it("with Ethers.js environment", async () => {
             const sf = new SuperfluidSDK.Framework({
                 ethers: new Web3Provider(web3.currentProvider),
-                version: "test"
+                version: "test",
             });
             await sf.initialize();
             testLoadedContracts(sf);
@@ -135,7 +135,7 @@ contract("Framework class", (accounts) => {
         it("Fail generating gas report without setting gas report type", async () => {
             const sf = new SuperfluidSDK.Framework({
                 isTruffle: true,
-                version: "test"
+                version: "test",
             });
             await sf.initialize();
             try {
@@ -147,7 +147,7 @@ contract("Framework class", (accounts) => {
 
         it("defaults to version v1", () => {
             const sf = new SuperfluidSDK.Framework({
-                isTruffle: true
+                isTruffle: true,
             });
             assert.equal(sf.version, "v1");
         });
@@ -157,7 +157,7 @@ contract("Framework class", (accounts) => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
                     tokens: ["fUSDC", "fDAI"],
-                    version: "test"
+                    version: "test",
                 });
                 await sf.initialize();
                 assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
@@ -170,7 +170,7 @@ contract("Framework class", (accounts) => {
                 const sf = new SuperfluidSDK.Framework({
                     tokens: ["fML"],
                     isTruffle: true,
-                    version: "test"
+                    version: "test",
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -181,12 +181,12 @@ contract("Framework class", (accounts) => {
             it("failed due to no super token wrapper", async () => {
                 await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
                     from: admin,
-                    isTruffle: true
+                    isTruffle: true,
                 });
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
                     tokens: ["SASHIMI"],
-                    version: "test"
+                    version: "test",
                 });
                 await expectRevert(
                     sf.initialize(),
@@ -203,7 +203,7 @@ contract("Framework class", (accounts) => {
             sf = new SuperfluidSDK.Framework({
                 isTruffle: true,
                 gasReportType: "HTML",
-                version: "test"
+                version: "test",
             });
 
             await sf.initialize();
@@ -212,12 +212,12 @@ contract("Framework class", (accounts) => {
         it("create new super token", async () => {
             await deployTestToken(t.errorHandler, [":", "MISO"], {
                 isTruffle: true,
-                from: admin
+                from: admin,
             });
             const misoAddress = await sf.resolver.get("tokens.MISO");
             const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
             const superMisoToken = await sf.createERC20Wrapper(misoToken, {
-                from: admin
+                from: admin,
             });
             assert.equal(
                 await superMisoToken.getUnderlyingToken.call(),

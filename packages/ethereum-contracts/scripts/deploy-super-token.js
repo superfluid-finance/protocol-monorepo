@@ -5,7 +5,7 @@ const {
     ZERO_ADDRESS,
     extractWeb3Options,
     detectTruffleAndConfigure,
-    builtTruffleContractLoader
+    builtTruffleContractLoader,
 } = require("./utils");
 
 /**
@@ -17,7 +17,7 @@ const {
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
-module.exports = async function(callback, argv, options = {}) {
+module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("Deploying super token");
 
@@ -35,7 +35,7 @@ module.exports = async function(callback, argv, options = {}) {
             ...extractWeb3Options(options),
             version,
             additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"],
-            contractLoader: builtTruffleContractLoader
+            contractLoader: builtTruffleContractLoader,
         });
         await sf.initialize();
 
@@ -45,7 +45,7 @@ module.exports = async function(callback, argv, options = {}) {
             ISuperfluidGovernance,
             ISuperToken,
             ISETH,
-            SETHProxy
+            SETHProxy,
         } = sf.contracts;
 
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(

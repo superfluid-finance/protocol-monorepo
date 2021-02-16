@@ -29,7 +29,7 @@ module.exports = {
     plugins: [
         //"truffle-security",
         "solidity-coverage",
-        "truffle-plugin-verify"
+        "truffle-plugin-verify",
     ],
     /**
      * Networks define how you connect to your ethereum client and let you set the
@@ -62,7 +62,7 @@ module.exports = {
             gasPrice: 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         ropsten: {
@@ -79,7 +79,7 @@ module.exports = {
             gasPrice: 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         goerli: {
@@ -96,7 +96,7 @@ module.exports = {
             gasPrice: +process.env.GOERLI_GAS_PRICE || 100e9, // 100 GWEI, goerli is busy!
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         kovan: {
@@ -113,12 +113,13 @@ module.exports = {
             gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9, // 100 GWEI, goerli is busy!
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         arbitrum: {
-            provider: function() {
-                const wrapProvider = require("arb-ethers-web3-bridge").wrapProvider;
+            provider: function () {
+                const wrapProvider = require("arb-ethers-web3-bridge")
+                    .wrapProvider;
                 // return wrapped provider:
                 return wrapProvider(
                     //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")
@@ -130,7 +131,7 @@ module.exports = {
             },
             network_id: "*",
             gas: 1e9, // arbgas is a different beast, 1G gas is normal
-            gasPrice: 0
+            gasPrice: 0,
         },
 
         mumbai: {
@@ -147,7 +148,7 @@ module.exports = {
             gasPrice: +process.env.MUMBAI_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         artis_tau1: {
@@ -164,7 +165,7 @@ module.exports = {
             gasPrice: +process.env.ARTIS_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         mainnet: {
@@ -181,7 +182,7 @@ module.exports = {
             gasPrice: +process.env.MAINNET_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false // Skip dry run before migrations? (default: false for public nets )
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         coverage: {
@@ -189,14 +190,14 @@ module.exports = {
             network_id: "*",
             port: 8555, // <-- If you change this, also set the port option in .solcover.js.
             gas: 0xfffffffffff, // <-- Use this high gas value
-            gasPrice: 0x01 // <-- Use this low gas price
+            gasPrice: 0x01, // <-- Use this low gas price
         },
 
         ganache: {
             host: "127.0.0.1",
             network_id: "*",
-            port: process.env.GANACHE_PORT || 8545
-        }
+            port: process.env.GANACHE_PORT || 8545,
+        },
 
         // Another network with more advanced options...
         // advanced: {
@@ -245,14 +246,14 @@ module.exports = {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
                     enabled: true,
-                    runs: 200
-                }
+                    runs: 200,
+                },
                 // evmVersion: "petersburg" use default
-            }
-        }
+            },
+        },
     },
 
     api_keys: {
-        etherscan: process.env.ETHERSCAN_API_KEY
-    }
+        etherscan: process.env.ETHERSCAN_API_KEY,
+    },
 };

@@ -31,7 +31,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         flowRate,
         userData,
-        onTransaction = () => null
+        onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
@@ -57,11 +57,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
                         "0x"
                     )
                     .encodeABI(),
-                userData
+                userData,
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
-            onTransaction
+            onTransaction,
         });
         this._sf._pushTxForGasReport(tx, "createFlow");
         console.debug("Flow created.");
@@ -84,7 +84,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         flowRate,
         userData,
-        onTransaction = () => null
+        onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
@@ -111,11 +111,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
                         "0x"
                     )
                     .encodeABI(),
-                userData
+                userData,
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
-            onTransaction
+            onTransaction,
         });
 
         this._sf._pushTxForGasReport(tx, "updateFlow");
@@ -139,7 +139,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         by,
         userData,
-        onTransaction = () => null
+        onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
@@ -162,11 +162,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 this._cfa.contract.methods
                     .deleteFlow(superTokenNorm, senderNorm, receiverNorm, "0x")
                     .encodeABI(),
-                userData
+                userData,
             ],
             sender: byNorm,
             method: this._sf.host.callAgreement,
-            onTransaction
+            onTransaction,
         });
         this._sf._pushTxForGasReport(tx, "deleteFlow");
         console.debug("Flow deleted.");
@@ -187,7 +187,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
     async getFlow({
         superToken,
         sender,
-        receiver
+        receiver,
         //unit
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -213,7 +213,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      */
     async getNetFlow({
         superToken,
-        account
+        account,
         //unit
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -232,7 +232,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
      */
     async getAccountFlowInfo({
         superToken,
-        account
+        account,
         //unit
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -251,7 +251,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
             timestamp: new Date(Number(timestamp.toString()) * 1000),
             flowRate: flowRate.toString(),
             deposit: deposit.toString(),
-            owedDeposit: owedDeposit.toString()
+            owedDeposit: owedDeposit.toString(),
         };
     }
 
@@ -264,8 +264,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 filter: {
                     token,
                     receiver,
-                    sender
-                }
+                    sender,
+                },
             });
         } else {
             const filter = this._sf.agreements.cfa.filters.FlowUpdated(
@@ -293,7 +293,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         superToken,
         account,
         onlyInFlows,
-        onlyOutFlows
+        onlyOutFlows,
         //unit
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -305,24 +305,24 @@ module.exports = class ConstantFlowAgreementV1Helper {
             result.inFlows = (
                 await this.getFlowEvents({
                     receiver: accountNorm,
-                    token: superTokenNorm
+                    token: superTokenNorm,
                 })
             ).map((f) => ({
                 sender: f.args.sender,
                 receiver: f.args.receiver,
-                flowRate: f.args.flowRate.toString()
+                flowRate: f.args.flowRate.toString(),
             }));
         }
         if (!onlyInFlows) {
             result.outFlows = (
                 await this.getFlowEvents({
                     token: superTokenNorm,
-                    sender: accountNorm
+                    sender: accountNorm,
                 })
             ).map((f) => ({
                 sender: f.args.sender,
                 receiver: f.args.receiver,
-                flowRate: f.args.flowRate.toString()
+                flowRate: f.args.flowRate.toString(),
             }));
         }
         return result;

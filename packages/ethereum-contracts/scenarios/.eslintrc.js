@@ -10,10 +10,10 @@ module.exports = {
         beforeEach: true,
         afterEach: true,
         it: true,
-        assert: true
+        assert: true,
     },
     rules: {
         "no-console": "off",
-        indent: "off"
-    }
+        indent: "off",
+    },
 };

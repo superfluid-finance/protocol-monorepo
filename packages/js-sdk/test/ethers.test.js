@@ -15,18 +15,18 @@ const emptyIda = {
         subscriptions: {
             indexIds: [],
             publishers: [],
-            unitsList: []
-        }
-    }
+            unitsList: [],
+        },
+    },
 };
 
-contract("User helper class", accounts => {
+contract("User helper class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const {
         admin: adminAddress,
         alice: aliceAddress,
         bob: bobAddress,
-        carol: carolAddress
+        carol: carolAddress,
     } = t.aliases;
 
     let sf;
@@ -39,7 +39,7 @@ contract("User helper class", accounts => {
         await t.reset();
         sf = new SuperfluidSDK.Framework({
             ethers: new Web3Provider(web3.currentProvider),
-            version: "test"
+            version: "test",
         });
         await sf.initialize();
     });
@@ -56,7 +56,7 @@ contract("User helper class", accounts => {
         it("user", async () => {
             const admin = sf.user({
                 address: adminAddress,
-                token: superToken.address
+                token: superToken.address,
             });
             assert.equal(admin.address, adminAddress);
             assert.equal(admin.token, superToken.address);
@@ -68,11 +68,11 @@ contract("User helper class", accounts => {
         it("shows user details", async () => {
             await alice.flow({
                 recipient: bob.address,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
             await bob.flow({
                 recipient: carol.address,
-                flowRate: "19290123456790" // 50 / mo
+                flowRate: "19290123456790", // 50 / mo
             });
             assert.deepEqual(await alice.details(), {
                 cfa: {
@@ -82,13 +82,13 @@ contract("User helper class", accounts => {
                             {
                                 sender: alice.address,
                                 receiver: bob.address,
-                                flowRate: "38580246913580"
-                            }
-                        ]
+                                flowRate: "38580246913580",
+                            },
+                        ],
                     },
-                    netFlow: "-38580246913580"
+                    netFlow: "-38580246913580",
                 },
-                ...emptyIda
+                ...emptyIda,
             });
             assert.deepEqual(await bob.details(), {
                 cfa: {
@@ -97,20 +97,20 @@ contract("User helper class", accounts => {
                             {
                                 sender: alice.address,
                                 receiver: bob.address,
-                                flowRate: "38580246913580"
-                            }
+                                flowRate: "38580246913580",
+                            },
                         ],
                         outFlows: [
                             {
                                 sender: bob.address,
                                 receiver: carol.address,
-                                flowRate: "19290123456790"
-                            }
-                        ]
+                                flowRate: "19290123456790",
+                            },
+                        ],
                     },
-                    netFlow: "19290123456790"
+                    netFlow: "19290123456790",
                 },
-                ...emptyIda
+                ...emptyIda,
             });
             console.log(JSON.stringify(await bob.details()));
         });
@@ -120,7 +120,7 @@ contract("User helper class", accounts => {
             await expect(
                 alice.flow({
                     recipient: null,
-                    flowRate: "0"
+                    flowRate: "0",
                 })
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
@@ -129,20 +129,20 @@ contract("User helper class", accounts => {
             await expect(
                 alice.flow({
                     recipient: adminAddress,
-                    flowRate: null
+                    flowRate: null,
                 })
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
         it("create a new flow", async () => {
             await alice.flow({
                 recipient: bob.address,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
             // validate flow data
             const flow = await sf.cfa.getFlow({
                 superToken: superToken.address,
                 sender: alice.address,
-                receiver: bob.address
+                receiver: bob.address,
             });
             assert.equal(flow.flowRate, "38580246913580");
             assert.notEqual(flow.deposit, "0");
@@ -152,7 +152,7 @@ contract("User helper class", accounts => {
                 (
                     await sf.cfa.getNetFlow({
                         superToken: superToken.address,
-                        account: alice.address
+                        account: alice.address,
                     })
                 ).toString(),
                 "-38580246913580"
@@ -161,7 +161,7 @@ contract("User helper class", accounts => {
                 (
                     await sf.cfa.getNetFlow({
                         superToken: superToken.address,
-                        account: bob.address
+                        account: bob.address,
                     })
                 ).toString(),
                 "38580246913580"
@@ -172,9 +172,9 @@ contract("User helper class", accounts => {
             const tx = await alice.flow({
                 recipient: bob.address,
                 flowRate: "38580246913580", // 100 / mo
-                onTransaction: hash => {
+                onTransaction: (hash) => {
                     txHash = hash;
-                }
+                },
             });
             assert.equal(txHash, tx.receipt.transactionHash);
         });
@@ -182,12 +182,12 @@ contract("User helper class", accounts => {
             await alice.flow({
                 // "bob" rather than "bob.address"
                 recipient: bob,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
             const flow = await sf.cfa.getFlow({
                 superToken: superToken.address,
                 sender: alice.address,
-                receiver: bob.address
+                receiver: bob.address,
             });
             assert.equal(flow.flowRate, "38580246913580");
         });
@@ -196,25 +196,25 @@ contract("User helper class", accounts => {
         beforeEach(async () => {
             await alice.flow({
                 recipient: bob.address,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
             const flow = await sf.cfa.getFlow({
                 superToken: superToken.address,
                 sender: alice.address,
-                receiver: bob.address
+                receiver: bob.address,
             });
             assert.equal(flow.flowRate, "38580246913580");
         });
         it("modify an existing flow", async () => {
             await alice.flow({
                 recipient: bob.address,
-                flowRate: "19290123456790" // 50 / mo
+                flowRate: "19290123456790", // 50 / mo
             });
 
             const flow = await sf.cfa.getFlow({
                 superToken: superToken.address,
                 sender: alice.address,
-                receiver: bob.address
+                receiver: bob.address,
             });
             assert.equal(flow.flowRate, "19290123456790");
         });
@@ -228,7 +228,7 @@ contract("User helper class", accounts => {
             const { exist } = await sf.ida.getIndex({
                 superToken: superToken.address,
                 publisher: aliceAddress,
-                indexId: poolId
+                indexId: poolId,
             });
             assert.equal(exist, true);
         });
@@ -236,12 +236,12 @@ contract("User helper class", accounts => {
             await alice.giveShares({
                 poolId,
                 shares: 100,
-                recipient: bobAddress
+                recipient: bobAddress,
             });
             const { totalUnitsPending } = await sf.ida.getIndex({
                 superToken: superToken.address,
                 publisher: aliceAddress,
-                indexId: poolId
+                indexId: poolId,
             });
             assert.equal(totalUnitsPending, 100);
         });
@@ -249,19 +249,19 @@ contract("User helper class", accounts => {
             await alice.giveShares({
                 poolId,
                 shares: 100,
-                recipient: bobAddress
+                recipient: bobAddress,
             });
 
             await sf.ida.approveSupscription({
                 superToken: superToken.address,
                 indexId: poolId,
                 publisher: aliceAddress,
-                sender: bobAddress
+                sender: bobAddress,
             });
 
             await alice.distributeToPool({
                 poolId,
-                amount: toWad(100).toString()
+                amount: toWad(100).toString(),
             });
             const balance = await superToken.balanceOf(bobAddress);
             assert.equal(balance.toString(), toWad(200).toString());

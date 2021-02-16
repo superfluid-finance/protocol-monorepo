@@ -1,3 +1,4 @@
+const autoBind = require('auto-bind');
 const { completeTransaction } = require("./utils/general");
 
 /**
@@ -13,6 +14,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
     constructor(sf) {
         this._sf = sf;
         this._cfa = sf.agreements.cfa;
+        autoBind(this);
     }
 
     /**

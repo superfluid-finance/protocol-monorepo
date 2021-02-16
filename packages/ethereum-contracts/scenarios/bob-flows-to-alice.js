@@ -47,7 +47,7 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
         });
         if (currentFlow.flowRate !== "0") {
             await web3tx(
-                sf.cfa.createFlow.bind(sf.cfa),
+                sf.cfa.createFlow,
                 "createFlow"
             )({
                 superToken: sf.tokens.fDAIx.address,
@@ -70,7 +70,7 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
 
     it("Bob deletes the flow", async () => {
         await web3tx(
-            sf.cfa.deleteFlow.bind(sf.cfa),
+            sf.cfa.deleteFlow,
             "deleteFlow"
         )({
             superToken: sf.tokens.fDAIx.address,

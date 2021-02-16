@@ -1,12 +1,14 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
-
 const { web3tx, wad4human, toWad } = require("@decentral.ee/web3-helpers");
+const {
+    shouldCreateIndex,
+} = require("./InstantDistributionAgreementV1.behaviour.js");
 
 const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = 42;
 
-contract("Instance Distribution Agreement v1", (accounts) => {
+contract("Using InstanceDistributionAgreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
         isTruffle: true,
         useMocks: true,
@@ -48,28 +50,11 @@ contract("Instance Distribution Agreement v1", (accounts) => {
             let idata;
             let sdata;
 
-            await web3tx(
-                superfluid.callAgreement,
-                "Alice create default index"
-            )(
-                ida.address,
-                ida.contract.methods
-                    .createIndex(superToken.address, DEFAULT_INDEX_ID, "0x")
-                    .encodeABI(),
-                "0x",
-                {
-                    from: alice,
-                }
-            );
-            idata = await ida.getIndex.call(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID
-            );
-            assert.isTrue(idata.exist);
-            assert.equal(idata.indexValue, "0");
-            assert.equal(idata.totalUnitsApproved, "0");
-            assert.equal(idata.totalUnitsPending, "0");
+            await shouldCreateIndex({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+            });
 
             const subscribers = [
                 [bob, toWad("0.0001")],

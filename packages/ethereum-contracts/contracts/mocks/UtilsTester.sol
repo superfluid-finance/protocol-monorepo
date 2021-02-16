@@ -36,6 +36,10 @@ contract UtilsTester {
         return Int96SafeMath.sub(a, b, "testInt96SafeMathSub overflow");
     }
 
+    function testInt96SafeMathDiv(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.div(a, b, "testInt96SafeMathDiv overflow");
+    }
+
     /// UInt128SafeMath
 
     function getUint128Max() external pure returns (uint128) {

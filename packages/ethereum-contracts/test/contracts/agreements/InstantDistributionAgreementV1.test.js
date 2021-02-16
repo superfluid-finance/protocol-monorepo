@@ -6,10 +6,10 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = 42;
 
-contract("Instance Distribution Agreement v1", accounts => {
+contract("Instance Distribution Agreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { alice, bob, carol, dan } = t.aliases;
     const { INIT_BALANCE } = t.configs;
@@ -23,7 +23,7 @@ contract("Instance Distribution Agreement v1", accounts => {
         ({ superfluid, ida } = t.contracts);
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
         ({ superToken } = t.contracts);
     });
@@ -58,7 +58,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -74,7 +74,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             const subscribers = [
                 [bob, toWad("0.0001")],
                 [carol, toWad("0.0002")],
-                [dan, toWad("0.0003")]
+                [dan, toWad("0.0003")],
             ];
             for (let i = 0; i < subscribers.length; ++i) {
                 const subscriberAddr = subscribers[i][0];
@@ -102,7 +102,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: subscriberAddr
+                        from: subscriberAddr,
                     }
                 );
                 sdata = await ida.getSubscription.call(
@@ -133,7 +133,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: alice
+                        from: alice,
                     }
                 );
                 sdata = await ida.getSubscription.call(
@@ -181,7 +181,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -199,7 +199,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob, toWad("0.01")],
                 [carol, toWad("0.02")],
                 [dan, toWad("0.03")],
-                [alice, toWad("99.94")]
+                [alice, toWad("99.94")],
             ]);
 
             await web3tx(
@@ -217,7 +217,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -235,7 +235,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                 [bob, toWad("0.03")],
                 [carol, toWad("0.06")],
                 [dan, toWad("0.09")],
-                [alice, toWad("99.82")]
+                [alice, toWad("99.82")],
             ]);
 
             await t.validateSystemInvariance();
@@ -250,7 +250,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             // alice and bob create indeces and dan subscribes to them
             const publishers = [
                 [alice, toWad("0.0001")],
-                [bob, toWad("0.0002")]
+                [bob, toWad("0.0002")],
             ];
             for (let i = 0; i < publishers.length; ++i) {
                 let publisherAddr = publishers[i][0];
@@ -266,7 +266,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: publisherAddr
+                        from: publisherAddr,
                     }
                 );
                 idata = await ida.getIndex.call(
@@ -294,7 +294,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: dan
+                        from: dan,
                     }
                 );
                 await web3tx(
@@ -315,7 +315,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: publisherAddr
+                        from: publisherAddr,
                     }
                 );
                 sdata = await ida.getSubscription.call(
@@ -353,7 +353,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             await testExpectedBalances([
                 [alice, toWad("100")],
                 [bob, toWad("100")],
-                [dan, toWad("0")]
+                [dan, toWad("0")],
             ]);
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
@@ -372,7 +372,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -388,7 +388,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob, toWad("100")],
-                [dan, toWad("0.01")]
+                [dan, toWad("0.01")],
             ]);
 
             // Bob distributes tokens (200 * 0.0002 = 0.04)
@@ -407,7 +407,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             idata = await ida.getIndex.call(
@@ -423,7 +423,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob, toWad("99.96")],
-                [dan, toWad("0.05")]
+                [dan, toWad("0.05")],
             ]);
 
             // Alice update Dan's subscription with more units
@@ -443,7 +443,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -469,7 +469,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob, toWad("99.96")],
-                [dan, toWad("0.05")]
+                [dan, toWad("0.05")],
             ]);
 
             // Alice distributes tokens again (100 * 0.0003 = 0.03)
@@ -488,7 +488,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -504,7 +504,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             await testExpectedBalances([
                 [alice, toWad("99.96")],
                 [bob, toWad("99.96")],
-                [dan, toWad("0.08")]
+                [dan, toWad("0.08")],
             ]);
 
             await t.validateSystemInvariance();
@@ -523,7 +523,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             const idata = await ida.getIndex.call(
@@ -550,7 +550,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
 
@@ -562,7 +562,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: alice
+                        from: alice,
                     }
                 ),
                 "IDA: E_INDEX_EXISTS"
@@ -589,7 +589,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(superfluid.callAgreement, "Alice update the index")(
@@ -604,7 +604,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             const idata = await ida.getIndex.call(
@@ -637,7 +637,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: alice
+                        from: alice,
                     }
                 ),
                 "IDA: E_NO_INDEX"
@@ -656,7 +656,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(superfluid.callAgreement, "Alice update the index")(
@@ -671,7 +671,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -698,7 +698,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await expectRevert(
@@ -717,7 +717,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: alice
+                        from: alice,
                     }
                 ),
                 "IDA: E_INDEX_GROW"
@@ -751,7 +751,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -779,7 +779,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             idata = await ida.getIndex.call(
@@ -792,7 +792,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending, "0");
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             await expectRevert(
                 web3tx(
@@ -810,7 +810,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: bob
+                        from: bob,
                     }
                 ),
                 "IDA: E_SUBS_APPROVED"
@@ -847,7 +847,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -860,7 +860,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending, "0");
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -890,7 +890,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -906,7 +906,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending, "0");
             await testExpectedBalances([
                 [alice, toWad("99.9")],
-                [bob, toWad("0.1")]
+                [bob, toWad("0.1")],
             ]);
 
             await t.validateSystemInvariance();
@@ -928,7 +928,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -957,7 +957,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -973,7 +973,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1004,7 +1004,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1020,7 +1020,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1047,7 +1047,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1063,7 +1063,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.7")], // FIXME check deposit
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1097,7 +1097,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await expectRevert(
@@ -1116,7 +1116,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: bob
+                        from: bob,
                     }
                 ),
                 "IDA: E_SUBS_APPROVED"
@@ -1134,7 +1134,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending, "0");
             await testExpectedBalances([
                 [alice, toWad("99.7")],
-                [bob, toWad("0.3")]
+                [bob, toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1174,7 +1174,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1203,7 +1203,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1219,7 +1219,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1249,7 +1249,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await expectRevert(
@@ -1268,7 +1268,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: bob
+                        from: bob,
                     }
                 ),
                 "IDA: E_SUBS_APPROVED"
@@ -1286,7 +1286,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(idata.totalUnitsPending, "0");
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1319,7 +1319,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1332,7 +1332,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             assert.equal(sdata.pendingDistribution.toString(), "0");
             await testExpectedBalances([
                 [alice, toWad("99.9")],
-                [bob, toWad("0.1")]
+                [bob, toWad("0.1")],
             ]);
             subs = await ida.listSubscriptions.call(superToken.address, bob);
             assert.equal(subs.publishers.length, 1);
@@ -1362,7 +1362,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1391,7 +1391,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1407,7 +1407,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("100")],
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1434,7 +1434,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1450,7 +1450,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.7")], // FIXME check deposit
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1485,7 +1485,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1501,7 +1501,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.7")], // FIXME check deposit
-                [bob, toWad("0.3")]
+                [bob, toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1532,7 +1532,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -1548,7 +1548,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.2")], // FIXME check deposit
-                [bob, toWad("0.3")]
+                [bob, toWad("0.3")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -1582,7 +1582,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             sdata = await ida.getSubscription.call(
@@ -1622,7 +1622,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1640,7 +1640,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             subs = await ida.listSubscriptions.call(superToken.address, bob);
@@ -1661,7 +1661,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1679,7 +1679,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await expectRevert(
@@ -1699,7 +1699,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: dan
+                        from: dan,
                     }
                 ),
                 "IDA: E_NOT_ALLOWED"
@@ -1720,7 +1720,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await expectRevert(
@@ -1740,14 +1740,14 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: bob
+                        from: bob,
                     }
                 ),
                 "IDA: E_NO_SUBS"
             );
             await testExpectedBalances([
                 [alice, toWad("99.8")], // FIXME check deposit
-                [bob, toWad("0.2")]
+                [bob, toWad("0.2")],
             ]);
             idata = await ida.getIndex.call(
                 superToken.address,
@@ -1785,7 +1785,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1804,7 +1804,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1822,7 +1822,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1841,12 +1841,12 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await testExpectedBalances([
                 [alice, toWad("99.8")], // FIXME check deposit
-                [bob, toWad("0.2")]
+                [bob, toWad("0.2")],
             ]);
             idata = await ida.getIndex.call(
                 superToken.address,
@@ -1884,7 +1884,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1903,7 +1903,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1921,7 +1921,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -1940,12 +1940,12 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await testExpectedBalances([
                 [alice, toWad("99.8")], // FIXME check deposit
-                [bob, toWad("0.2")]
+                [bob, toWad("0.2")],
             ]);
             idata = await ida.getIndex.call(
                 superToken.address,
@@ -1982,7 +1982,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -2000,7 +2000,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             subs = await ida.listSubscriptions.call(superToken.address, bob);
@@ -2021,7 +2021,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             subs = await ida.listSubscriptions.call(superToken.address, bob);
@@ -2041,7 +2041,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             subs = await ida.listSubscriptions.call(superToken.address, bob);
@@ -2064,7 +2064,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
 
@@ -2082,7 +2082,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: bob
+                        from: bob,
                     }
                 ),
                 "IDA: E_NO_SUBS"
@@ -2104,7 +2104,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
 
@@ -2120,7 +2120,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -2136,7 +2136,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.7")], // FIXME check deposit
-                [bob, toWad("0")]
+                [bob, toWad("0")],
             ]);
             sdata = await ida.getSubscription.call(
                 superToken.address,
@@ -2170,7 +2170,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             idata = await ida.getIndex.call(
@@ -2186,7 +2186,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.7")], // FIXME check deposit
-                [bob, toWad("0.3")]
+                [bob, toWad("0.3")],
             ]);
 
             await web3tx(
@@ -2205,7 +2205,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             idata = await ida.getIndex.call(
@@ -2221,7 +2221,7 @@ contract("Instance Distribution Agreement v1", accounts => {
             );
             await testExpectedBalances([
                 [alice, toWad("99.7")], // FIXME check deposit
-                [bob, toWad("0.3")]
+                [bob, toWad("0.3")],
             ]);
 
             await web3tx(
@@ -2239,7 +2239,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                     .encodeABI(),
                 "0x",
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await expectRevert(
@@ -2256,7 +2256,7 @@ contract("Instance Distribution Agreement v1", accounts => {
                         .encodeABI(),
                     "0x",
                     {
-                        from: bob
+                        from: bob,
                     }
                 ),
                 "IDA: E_SUBS_APPROVED"

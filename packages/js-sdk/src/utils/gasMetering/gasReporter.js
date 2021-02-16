@@ -27,7 +27,7 @@ class GasMeterHTMLReporter extends GasMeterReporter {
         let keys = Object.keys(element);
 
         const headers = keys
-            .map(key => {
+            .map((key) => {
                 return `<th>${key}</th>`;
             })
             .reduce(this._joinStrings);
@@ -37,10 +37,10 @@ class GasMeterHTMLReporter extends GasMeterReporter {
 
     _generateBody(elements) {
         return elements
-            .map(tx => {
+            .map((tx) => {
                 let keys = Object.keys(tx);
                 let tds = keys
-                    .map(key => {
+                    .map((key) => {
                         return `<td>${tx[key]}</td>`;
                     })
                     .reduce(this._joinStrings);
@@ -73,5 +73,5 @@ class GasMeterHTMLReporter extends GasMeterReporter {
 
 module.exports = {
     GasMeterJSONReporter,
-    GasMeterHTMLReporter
+    GasMeterHTMLReporter,
 };

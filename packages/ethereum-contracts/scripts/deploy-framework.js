@@ -1,11 +1,16 @@
-const Web3 = require("web3");
-
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
-const loadContracts = require("./loadContracts");
-const { ZERO_ADDRESS, hasCode, codeChanged, isProxiable } = require("./utils");
+const {
+    ZERO_ADDRESS,
+    hasCode,
+    codeChanged,
+    isProxiable,
+    detectTruffleAndConfigure,
+    extractWeb3Options,
+    builtTruffleContractLoader,
+} = require("./utils");
 
 let reset;
 let testResolver;
@@ -56,35 +61,73 @@ async function deployNewLogicContractIfNew(
 
 /**
  * @dev Deploy the superfluid framework
- * @param newTestResolver (optional) Force to create a new resolver
- * @param useMocks (optional) Use mock contracts instead
- * @param nonUpgradable (optional) Deploy contracts configured to be non-upgradable
- * @param isTruffle (optional) Whether the script is used within the truffle framework
- * @param web3Provider (optional) The web3 provider to be used instead
- * @param from (optional) Address to deploy contracts from, use accounts[0] by default
+ * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
+ * @param {Web3} options.web3  Injected web3 instance
+ * @param {Address} options.from Address to deploy contracts from
+ * @param {boolean} options.newTestResolver Force to create a new resolver
+ * @param {boolean} options.useMocks Use mock contracts instead
+ * @param {boolean} options.nonUpgradable Deploy contracts configured to be non-upgradable
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
-module.exports = async function(
-    callback,
-    {
-        newTestResolver,
-        useMocks,
-        nonUpgradable,
-        isTruffle,
-        web3Provider,
-        from
-    } = {}
-) {
+module.exports = async function (callback, options = {}) {
     try {
-        this.web3 = web3Provider ? new Web3(web3Provider) : web3;
-        if (!this.web3) throw new Error("No web3 is available");
+        console.log("Deploying superfluid framework");
 
-        if (!from) {
-            const accounts = await this.web3.eth.getAccounts();
-            from = accounts[0];
+        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        let { newTestResolver, useMocks, nonUpgradable } = options;
+
+        const CFAv1_TYPE = this.web3.utils.sha3(
+            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+        );
+        const IDAv1_TYPE = this.web3.utils.sha3(
+            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+        );
+
+        newTestResolver = newTestResolver || process.env.NEW_TEST_RESOLVER;
+        useMocks = useMocks || process.env.USE_MOCKS;
+        nonUpgradable = nonUpgradable || process.env.NON_UPGRADABLE;
+        if (newTestResolver) {
+            console.log("**** !ATTN! CREATING NEW RESOLVER ****");
+        }
+        if (useMocks) {
+            console.log("**** !ATTN! USING MOCKS CONTRACTS ****");
+        }
+        if (nonUpgradable) {
+            console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
         }
 
+        reset = !!process.env.RESET_SUPERFLUID_FRAMEWORK;
+        const version = process.env.RELEASE_VERSION || "test";
+        const chainId = await this.web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        console.log("reset: ", reset);
+        console.log("chain ID: ", chainId);
+        console.log("release version:", version);
+
+        await deployERC1820(
+            (err) => {
+                if (err) throw err;
+            },
+            { web3, ...(options.from ? { from: options.from } : {}) }
+        );
+
+        const config = SuperfluidSDK.getConfig(chainId);
+        const contracts = [
+            "TestResolver",
+            "Superfluid",
+            "SuperTokenFactory",
+            "TestGovernance",
+            "ISuperfluidGovernance",
+            "UUPSProxy",
+            "UUPSProxiable",
+            "ConstantFlowAgreementV1",
+            "InstantDistributionAgreementV1",
+        ];
+        const mockContracts = [
+            "SuperTokenMockFactory",
+            "SuperfluidMock",
+            "SuperTokenFactoryMock",
+        ];
         const {
             TestResolver,
             Superfluid,
@@ -97,45 +140,14 @@ module.exports = async function(
             UUPSProxy,
             UUPSProxiable,
             ConstantFlowAgreementV1,
-            InstantDistributionAgreementV1
-        } = loadContracts({
-            isTruffle,
-            useMocks,
-            web3Provider: this.web3.currentProvider,
-            from
+            InstantDistributionAgreementV1,
+        } = await SuperfluidSDK.loadContracts({
+            ...extractWeb3Options(options),
+            additionalContracts: contracts.concat(
+                useMocks ? mockContracts : []
+            ),
+            contractLoader: builtTruffleContractLoader,
         });
-
-        console.log("Deploying superfluid framework");
-        console.log("From address", from);
-
-        const CFAv1_TYPE = this.web3.utils.sha3(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-        );
-        const IDAv1_TYPE = this.web3.utils.sha3(
-            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-        );
-
-        reset = !!process.env.RESET;
-        const version = process.env.RELEASE_VERSION || "test";
-        const chainId = await this.web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-        console.log("reset: ", reset);
-        console.log("network ID: ", chainId);
-        console.log("release version:", version);
-
-        useMocks = useMocks || process.env.USE_MOCKS;
-        nonUpgradable = nonUpgradable || process.env.NON_UPGRADABLE;
-        if (useMocks) console.log("**** !ATTN! USING MOCKS CONTRACTS ****");
-        if (nonUpgradable)
-            console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
-
-        await deployERC1820(
-            err => {
-                if (err) throw err;
-            },
-            { web3: this.web3, from }
-        );
-
-        const config = SuperfluidSDK.getConfig(chainId);
 
         if (!newTestResolver && config.resolverAddress) {
             testResolver = await TestResolver.at(config.resolverAddress);
@@ -150,12 +162,15 @@ module.exports = async function(
         let governance = await deployAndRegisterContractIf(
             TestGovernance,
             `TestGovernance.${version}`,
-            async contractAddress =>
+            async (contractAddress) =>
                 await codeChanged(this.web3, TestGovernance, contractAddress),
             async () => {
+                const accounts = await web3.eth.getAccounts();
                 return await web3tx(TestGovernance.new, "TestGovernance.new")(
-                    from, // let rewardAddress the same as default from address
-                    3600 // liquidationPeriod
+                    // let rewardAddress the first account
+                    accounts[0],
+                    // liquidationPeriod
+                    3600
                 );
             }
         );
@@ -165,7 +180,7 @@ module.exports = async function(
         let superfluid = await deployAndRegisterContractIf(
             SuperfluidLogic,
             `Superfluid.${version}`,
-            async contractAddress =>
+            async (contractAddress) =>
                 !(await hasCode(this.web3, contractAddress)),
             async () => {
                 let superfluidAddress;

@@ -1,4 +1,5 @@
 module.exports = {
     getConfig: require("./getConfig"),
-    Framework: require("./Framework")
+    loadContracts: require("./loadContracts"),
+    Framework: require("./Framework"),
 };

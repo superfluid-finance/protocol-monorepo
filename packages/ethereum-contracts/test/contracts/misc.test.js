@@ -11,7 +11,7 @@ const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 const ZERO_ADDRESS = "0x" + "0".repeat(40);
 
-contract("Miscellaneous for test coverages", accounts => {
+contract("Miscellaneous for test coverages", (accounts) => {
     const admin = accounts[0];
     const alice = accounts[1];
 
@@ -90,7 +90,7 @@ contract("Miscellaneous for test coverages", accounts => {
 
         it("initialization checks", async () => {
             const proxy = await FullUpgradableSuperTokenProxy.new({
-                from: admin
+                from: admin,
             });
             const token = await IERC20.at(proxy.address);
             await expectRevert(
@@ -181,6 +181,51 @@ contract("Miscellaneous for test coverages", accounts => {
             await expectRevert(
                 tester.testInt96SafeMathSub(MIN_INT96, "1"),
                 "testInt96SafeMathSub overflow"
+            );
+            // testInt96SafeMathDiv
+            assert.equal(
+                (await tester.testInt96SafeMathDiv(MAX_INT96, 1)).toString(),
+                MAX_INT96
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MAX_INT96_MINUS_1, 2)
+                ).toString(),
+                MAX_INT96_DIV_2
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MAX_INT96, MAX_INT96)
+                ).toString(),
+                "1"
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MIN_INT96, MIN_INT96)
+                ).toString(),
+                "1"
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MAX_INT96, MIN_INT96)
+                ).toString(),
+                "0"
+            );
+            assert.equal(
+                (
+                    await tester.testInt96SafeMathDiv(MIN_INT96, MAX_INT96)
+                ).toString(),
+                "-1"
+            );
+
+            await expectRevert(
+                tester.testInt96SafeMathDiv(MIN_INT96, 0),
+                "testInt96SafeMathDiv overflow"
+            );
+
+            await expectRevert(
+                tester.testInt96SafeMathDiv(MIN_INT96, -1),
+                "testInt96SafeMathDiv overflow"
             );
         });
 

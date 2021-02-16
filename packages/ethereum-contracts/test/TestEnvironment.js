@@ -18,13 +18,13 @@ const {
     web3tx,
     toWad,
     wad4human,
-    toBN
+    toBN,
 } = require("@decentral.ee/web3-helpers");
 
 module.exports = class TestEnvironment {
     constructor(accounts, { isTruffle, useMocks } = {}) {
-        this.useMocks = useMocks;
         this.isTruffle = isTruffle;
+        this.useMocks = useMocks;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],
@@ -35,17 +35,17 @@ module.exports = class TestEnvironment {
             frank: accounts[6],
             grace: accounts[7],
             heidi: accounts[8],
-            ivan: accounts[9]
+            ivan: accounts[9],
         };
         // delete undefined accounts
-        Object.keys(this.aliases).forEach(alias => {
+        Object.keys(this.aliases).forEach((alias) => {
             if (!this.aliases[alias]) delete this.aliases[alias];
         });
 
         this.configs = {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(0),
-            LIQUIDATION_PERIOD: 3600
+            LIQUIDATION_PERIOD: 3600,
         };
 
         this.constants = Object.assign(
@@ -73,7 +73,7 @@ module.exports = class TestEnvironment {
             newTestResolver: true,
             useMocks: this.useMocks,
             isTruffle: this.isTruffle,
-            ...deployOpts
+            ...deployOpts,
         });
 
         this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
@@ -81,31 +81,34 @@ module.exports = class TestEnvironment {
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
-            isTruffle: this.isTruffle
+            isTruffle: this.isTruffle,
+            version: process.env.RELEASE_VERSION || "test",
         });
         await this.sf.initialize();
 
         // re-loading contracts with testing/mocking interfaces
         this.contracts = {};
-        // load singletons
-        this.contracts.erc1820 = await IERC1820Registry.at(
-            "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
-        );
-        // load host contract
-        this.contracts.superfluid = await SuperfluidMock.at(
-            this.sf.host.address
-        );
-        // load agreement contracts
-        this.contracts.cfa = await ConstantFlowAgreementV1.at(
-            this.sf.agreements.cfa.address
-        );
-        this.contracts.ida = await InstantDistributionAgreementV1.at(
-            this.sf.agreements.ida.address
-        );
-        // load governance contract
-        this.contracts.governance = await TestGovernance.at(
-            await this.sf.host.getGovernance()
-        );
+        await Promise.all([
+            // load singletons
+            (this.contracts.erc1820 = await IERC1820Registry.at(
+                "0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24"
+            )),
+            // load host contract
+            (this.contracts.superfluid = await SuperfluidMock.at(
+                this.sf.host.address
+            )),
+            // load agreement contracts
+            (this.contracts.cfa = await ConstantFlowAgreementV1.at(
+                this.sf.agreements.cfa.address
+            )),
+            (this.contracts.ida = await InstantDistributionAgreementV1.at(
+                this.sf.agreements.ida.address
+            )),
+            // load governance contract
+            (this.contracts.governance = await TestGovernance.at(
+                await this.sf.host.getGovernance()
+            )),
+        ]);
 
         await this.resetForTestCase();
     }
@@ -115,14 +118,16 @@ module.exports = class TestEnvironment {
         // test data can be persisted here
         this.data = {};
 
-        await web3tx(
-            this.contracts.governance.setLiquidationPeriod,
-            "reset liquidation period"
-        )(this.configs.LIQUIDATION_PERIOD);
-        await web3tx(
-            this.contracts.governance.setRewardAddress,
-            "reset reward address to admin"
-        )(this.aliases.admin);
+        await Promise.all([
+            await web3tx(
+                this.contracts.governance.setLiquidationPeriod,
+                "reset liquidation period"
+            )(this.configs.LIQUIDATION_PERIOD),
+            await web3tx(
+                this.contracts.governance.setRewardAddress,
+                "reset reward address to admin"
+            )(this.aliases.admin),
+        ]);
     }
 
     async report({ title }) {
@@ -146,7 +151,7 @@ module.exports = class TestEnvironment {
 
         // mint test tokens to test accounts
         await Promise.all(
-            Object.keys(this.aliases).map(async alias => {
+            Object.keys(this.aliases).map(async (alias) => {
                 const userAddress = this.aliases[alias];
                 await web3tx(
                     this.contracts.testToken.approve,
@@ -155,21 +160,21 @@ module.exports = class TestEnvironment {
                     this.contracts.superToken.address,
                     this.constants.MAX_UINT256,
                     {
-                        from: userAddress
+                        from: userAddress,
                     }
                 );
                 await web3tx(
                     this.contracts.testToken.mint,
                     `Mint token for ${alias}`
                 )(userAddress, this.configs.INIT_BALANCE, {
-                    from: userAddress
+                    from: userAddress,
                 });
                 if (doUpgrade) {
                     await web3tx(
                         this.contracts.superToken.upgrade,
                         `Upgrade token for ${alias}`
                     )(this.configs.INIT_BALANCE, {
-                        from: userAddress
+                        from: userAddress,
                     });
                 }
             })
@@ -197,13 +202,13 @@ module.exports = class TestEnvironment {
     addAlias(alias, address) {
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         this.data.moreAliases = _.merge(this.data.moreAliases, {
-            [alias]: address
+            [alias]: address,
         });
     }
 
     toAlias(address) {
         return this.listAliases().find(
-            i => this.getAddress(i).toLowerCase() === address.toLowerCase()
+            (i) => this.getAddress(i).toLowerCase() === address.toLowerCase()
         );
     }
 
@@ -222,14 +227,14 @@ module.exports = class TestEnvironment {
             account,
             this.configs.INIT_BALANCE,
             {
-                from: account
+                from: account,
             }
         );
         await web3tx(
             this.contracts.superToken.upgrade,
             `Upgrade ${amount.toString()} for account ${alias}`
         )(amount, {
-            from: account
+            from: account,
         });
         this.updateAccountBalanceSnapshot(
             this.contracts.superToken.address,
@@ -242,7 +247,7 @@ module.exports = class TestEnvironment {
         const fromAccount = this.getAddress(from);
         const toAccount = this.getAddress(to);
         await this.contracts.superToken.transfer(toAccount, amount, {
-            from: fromAccount
+            from: fromAccount,
         });
         this.updateAccountBalanceSnapshot(
             this.contracts.superToken.address,
@@ -274,12 +279,12 @@ module.exports = class TestEnvironment {
                                     balanceSnapshot.availableBalance,
                                 deposit: balanceSnapshot.deposit,
                                 owedDeposit: balanceSnapshot.owedDeposit,
-                                timestamp: balanceSnapshot.timestamp
-                            }
-                        }
-                    }
-                }
-            }
+                                timestamp: balanceSnapshot.timestamp,
+                            },
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -293,12 +298,12 @@ module.exports = class TestEnvironment {
                                 availableBalance: 0,
                                 deposit: 0,
                                 owedDeposit: 0,
-                                timestamp: 0
-                            }
-                        }
-                    }
-                }
-            }
+                                timestamp: 0,
+                            },
+                        },
+                    },
+                },
+            },
         });
         return _.clone(
             this.data.tokens[superToken].accounts[account].balanceSnapshot
@@ -317,11 +322,11 @@ module.exports = class TestEnvironment {
                 [superToken]: {
                     accounts: {
                         [account]: {
-                            expectedBalanceDelta: expectedBalanceDelta.toString()
-                        }
-                    }
-                }
-            }
+                            expectedBalanceDelta: expectedBalanceDelta.toString(),
+                        },
+                    },
+                },
+            },
         });
     }
 
@@ -331,11 +336,11 @@ module.exports = class TestEnvironment {
                 [superToken]: {
                     accounts: {
                         [account]: {
-                            expectedBalanceDelta: "0"
-                        }
-                    }
-                }
-            }
+                            expectedBalanceDelta: "0",
+                        },
+                    },
+                },
+            },
         });
         return toBN(
             this.data.tokens[superToken].accounts[account].expectedBalanceDelta
@@ -389,7 +394,7 @@ module.exports = class TestEnvironment {
 
         // update balance snapshot
         await Promise.all(
-            this.listAddresses().map(async address => {
+            this.listAddresses().map(async (address) => {
                 balances2[address] = await superToken.realtimeBalanceOf(
                     address,
                     txBlock.timestamp
@@ -401,7 +406,7 @@ module.exports = class TestEnvironment {
         await syncExpectedBalancesFn();
 
         await Promise.all(
-            this.listAddresses().map(async address => {
+            this.listAddresses().map(async (address) => {
                 const alias = this.toAlias(address);
 
                 const balanceSnapshot1 = this.getAccountBalanceSnapshot(
@@ -449,7 +454,7 @@ module.exports = class TestEnvironment {
 
         let rtBalanceSum = toBN(0);
         await Promise.all(
-            this.listAliases().map(async alias => {
+            this.listAliases().map(async (alias) => {
                 const userAddress = this.getAddress(alias);
                 const tokenBalance = await this.contracts.testToken.balanceOf.call(
                     userAddress

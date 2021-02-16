@@ -1,8 +1,10 @@
 name: CI Feature Branches
 
 on:
+  # triggered by internal pushes
   push:
     branches-ignore: ["master", "dev"]
+  # triggered by external PRs (filtered in the `check` job)
   pull_request:
 
 jobs:
@@ -10,7 +12,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # a push event from the origin repo, or a PR from external repo
+    # triggered by internal pushes or external PRs
     if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
 
     steps:
@@ -22,7 +24,6 @@ jobs:
           echo github.ref: ${{ github.ref }}
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
-          echo github.event.pull_request.head.repo.full_name: ${{ github.event.pull_request.head.repo.full_name }}
 
   test-ethereum-contracts:
     name: Build and test ethereum-contracts (Feature Branch)
@@ -33,7 +34,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -42,13 +43,13 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint and build
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
         run: |
           yarn install --frozen-lockfilepull_request
           yarn lint
@@ -68,7 +69,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v2
@@ -77,13 +78,13 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_JS_SDK == 1
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint and build
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_JS_SDK == 1
         run: |
           yarn install --frozen-lockfilepull_request
           yarn lint
@@ -93,14 +94,3 @@ jobs:
         if: env.BUILD_JS_SDK == 1
         run: |
           yarn workspace @superfluid-finance/js-sdk test
-
-  wait-for-tests:
-    name: Build and run related tests (Feature Branch)
-
-    runs-on: ubuntu-latest
-
-    needs: [test-ethereum-contracts, test-js-sdk]
-
-    steps:
-      - name: Report status
-        run: true

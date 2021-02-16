@@ -11,10 +11,10 @@ module.exports = {
         afterEach: true,
         it: true,
         assert: true,
-        expect: true
+        expect: true,
     },
     rules: {
         "no-console": "off",
-        indent: "off"
-    }
+        indent: "off",
+    },
 };

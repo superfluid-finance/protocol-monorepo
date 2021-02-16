@@ -1,0 +1,33 @@
+{
+  "name": "web",
+  "version": "0.0.0",
+  "private": true,
+  "browserslist": {
+    "development": [
+      "last 1 version"
+    ],
+    "production": [
+      "defaults",
+      "not IE 11",
+      "not IE_Mob 11"
+    ]
+  },
+  "dependencies": {
+    "@apollo/client": "^3.3.7",
+    "@ethersproject/providers": "^5.0.19",
+    "@oneclickdapp/ethereum-auth": "^0.2.0",
+    "@redwoodjs/auth": "^0.24.0",
+    "@redwoodjs/forms": "^0.24.0",
+    "@redwoodjs/router": "^0.24.0",
+    "@redwoodjs/web": "0.24.0",
+    "@superfluid-finance/js-sdk": "^0.3.1",
+    "prop-types": "^15.7.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "9.8.6",
+    "postcss-loader": "4.0.2",
+    "tailwindcss": "npm:@tailwindcss/postcss7-compat"
+  }
+}

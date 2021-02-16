@@ -1,11 +1,5 @@
-const {
-    web3tx,
-    toWad,
-    toBN,
-    wad4human
-} = require("@decentral.ee/web3-helpers");
+const { web3tx, toWad, wad4human } = require("@decentral.ee/web3-helpers");
 
-const { expectRevert } = require("@openzeppelin/test-helpers");
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
 const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
@@ -14,15 +8,12 @@ const TradeableCashflow = artifacts.require("TradeableCashflow");
 
 const traveler = require("ganache-time-traveler");
 const TEST_TRAVEL_TIME = 3600 * 2; // 1 hours
-// TODO: remove version
-const version = "v1";
 
-contract("TradeableCashflow", accounts => {
-    const errorHandler = err => {
+contract("TradeableCashflow", (accounts) => {
+    const errorHandler = (err) => {
         if (err) throw err;
     };
 
-    const ZERO_ADDRESS = "0x" + "0".repeat(40);
     const names = ["Admin", "Alice", "Bob", "Carol", "Dan", "Emma", "Frank"];
     accounts = accounts.slice(0, names.length);
 
@@ -33,22 +24,27 @@ contract("TradeableCashflow", accounts => {
     const u = {}; // object with all users
     const aliases = {};
 
-    beforeEach(async function() {
-        const web3Provider = web3.currentProvider;
+    before(async function () {
+        await deployFramework(errorHandler, {
+            web3,
+            from: accounts[0],
+        });
+    });
 
-        await deployFramework(errorHandler, { from: accounts[0] });
+    beforeEach(async function () {
         await deployTestToken(errorHandler, [":", "fDAI"], {
-            web3Provider,
-            from: accounts[0]
+            web3,
+            from: accounts[0],
         });
         await deploySuperToken(errorHandler, [":", "fDAI"], {
-            web3Provider,
-            from: accounts[0]
+            web3,
+            from: accounts[0],
         });
 
         sf = new SuperfluidSDK.Framework({
-            web3Provider,
-            tokens: ["fDAI"]
+            web3,
+            version: "test",
+            tokens: ["fDAI"],
         });
         await sf.initialize();
         daix = sf.tokens.fDAIx;
@@ -57,7 +53,7 @@ contract("TradeableCashflow", accounts => {
         for (var i = 0; i < names.length; i++) {
             u[names[i].toLowerCase()] = sf.user({
                 address: accounts[i],
-                token: daix.address
+                token: daix.address,
             });
             u[names[i].toLowerCase()].alias = names[i];
             aliases[u[names[i].toLowerCase()].address] = names[i];
@@ -68,14 +64,14 @@ contract("TradeableCashflow", accounts => {
                 user.address,
                 toWad(100000000),
                 {
-                    from: user.address
+                    from: user.address,
                 }
             );
             await web3tx(dai.approve, `${user.alias} approves daix`)(
                 daix.address,
                 toWad(100000000),
                 {
-                    from: user.address
+                    from: user.address,
                 }
             );
         }
@@ -173,7 +169,7 @@ contract("TradeableCashflow", accounts => {
         );
         return true;
     }
-    describe("sending flows", async function() {
+    describe("sending flows", async function () {
         it("Case #1 - Alice sends a flow", async () => {
             const { alice } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -256,6 +252,7 @@ contract("TradeableCashflow", accounts => {
                 "balances aren't equal"
             );
         });
+
         it("Case #3 - Multiple users send flows to the contract", async () => {
             const { alice, bob, carol, dan, admin } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -303,8 +300,51 @@ contract("TradeableCashflow", accounts => {
                 "balances aren't equal"
             );
         });
+
+        it("Case #4 - Owner deletes the flow", async () => {
+            const { alice, admin } = u;
+            await upgrade([alice]);
+            await logUsers();
+            await alice.flow({ flowRate: toWad(0.001), recipient: u.app });
+            assert.equal(
+                await sf.cfa.getNetFlow({
+                    superToken: daix.address,
+                    account: u.app.address,
+                }),
+                "0"
+            );
+            assert.equal(
+                await sf.cfa.getNetFlow({
+                    superToken: daix.address,
+                    account: admin.address,
+                }),
+                toWad(0.001).toString()
+            );
+            await sf.cfa.deleteFlow({
+                superToken: daix.address,
+                sender: u.app.address,
+                receiver: admin.address,
+                by: admin.address,
+            });
+            assert.isFalse(await sf.host.isAppJailed.call(u.app.address));
+            assert.equal(
+                await sf.cfa.getNetFlow({
+                    superToken: daix.address,
+                    account: admin.address,
+                }),
+                "0"
+            );
+            assert.equal(
+                await sf.cfa.getNetFlow({
+                    superToken: daix.address,
+                    account: u.app.address,
+                }),
+                "0"
+            );
+        });
     });
-    describe("Changing owner", async function() {
+
+    describe("Changing owner", async function () {
         it("Case #4 - When the owner changes, the flow changes", async () => {
             const { alice, bob, carol, dan, admin } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -367,7 +407,8 @@ contract("TradeableCashflow", accounts => {
             );
         });
     });
-    describe("Sending and receiving at the same time", async function() {
+
+    describe("Sending and receiving at the same time", async function () {
         it("Case #5 - Dan is a contributor, then becomes the owner too", async () => {
             const { alice, bob, carol, dan, admin } = u;
             const appInitialBalance = await daix.balanceOf(app.address);
@@ -433,7 +474,8 @@ contract("TradeableCashflow", accounts => {
             );
         });
     });
-    describe("Fuzzy testing", async function() {
+
+    describe.skip("Fuzzy testing", async function () {
         it("Case #6 - Random testing", async () => {
             const { alice, bob, carol, dan, emma, frank, admin } = u;
             const accounts = [alice, bob, carol, dan, emma, frank, admin];
@@ -445,12 +487,18 @@ contract("TradeableCashflow", accounts => {
             for (var i = 0; i < 5; i++) {
                 for (var user of accounts) {
                     var seed = Math.floor(Math.random() * 3);
+                    const defaultAction = user.flow({
+                        recipient: u.app,
+                        flowRate: toWad(
+                            Math.round(Math.random() * 1000) / 1000000 + 0.001
+                        ),
+                    });
                     switch (seed) {
                         case 1:
                             (await user.details()).cfa.flows.outFlows.length > 0
                                 ? await user.flow({
                                       recipient: u.app,
-                                      flowRate: "0"
+                                      flowRate: "0",
                                   })
                                 : await user.flow({
                                       recipient: u.app,
@@ -458,19 +506,15 @@ contract("TradeableCashflow", accounts => {
                                           Math.round(Math.random() * 1000) /
                                               1000000 +
                                               0.001
-                                      )
+                                      ),
                                   });
                             break;
                         case 2:
                             if (await transferNFT(user.address)) break;
+                            else await defaultAction();
+                            break;
                         default:
-                            await user.flow({
-                                recipient: u.app,
-                                flowRate: toWad(
-                                    Math.round(Math.random() * 1000) / 1000000 +
-                                        0.001
-                                )
-                            });
+                            await defaultAction();
                     }
                     console.log("go forward in time");
                     await traveler.advanceTimeAndBlock(TEST_TRAVEL_TIME);

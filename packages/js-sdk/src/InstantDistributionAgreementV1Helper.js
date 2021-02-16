@@ -155,6 +155,15 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
+    async getSubscription({ superToken, publisher, indexId, subscriber }) {
+        return await this._ida.getSubscription.call(
+            superToken,
+            publisher,
+            indexId,
+            subscriber
+        );
+    }
+
     async distribute({
         superToken,
         indexId,

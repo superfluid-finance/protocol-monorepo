@@ -2,6 +2,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const { web3tx, wad4human, toWad } = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateIndex,
+    shouldApproveSubscription,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -65,41 +66,15 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 const subscriberAddr = subscribers[i][0];
                 const subscriptionUnits = subscribers[i][1];
                 const subscriberName = t.toAlias(subscriberAddr);
-                sdata = await ida.getSubscription.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID,
-                    subscriberAddr
-                );
-                assert.isFalse(sdata.exist);
-                await web3tx(
-                    superfluid.callAgreement,
-                    `${subscriberName} approves subscription to Alice`
-                )(
-                    ida.address,
-                    ida.contract.methods
-                        .approveSubscription(
-                            superToken.address,
-                            alice,
-                            DEFAULT_INDEX_ID,
-                            "0x"
-                        )
-                        .encodeABI(),
-                    "0x",
-                    {
-                        from: subscriberAddr,
-                    }
-                );
-                sdata = await ida.getSubscription.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID,
-                    subscriberAddr
-                );
-                assert.isTrue(sdata.exist);
-                assert.isTrue(sdata.approved);
+                sdata = await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: subscriberName,
+                });
                 assert.equal(sdata.units.toString(), "0");
                 assert.equal(sdata.pendingDistribution.toString(), "0");
+
                 await web3tx(
                     superfluid.callAgreement,
                     `Alice updates ${subscriberName}'s subscription with ${wad4human(

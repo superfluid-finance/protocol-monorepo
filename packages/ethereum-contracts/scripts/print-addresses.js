@@ -4,7 +4,7 @@ const {
     detectTruffleAndConfigure,
     parseColonArgs,
     getCodeAddress,
-    extractWeb3Options
+    extractWeb3Options,
 } = require("./utils");
 
 /**
@@ -16,7 +16,7 @@ const {
  *
  * Usage: npx truffle exec scripts/print-addresses : output_file
  */
-module.exports = async function(callback, argv, options = {}) {
+module.exports = async function (callback, argv, options = {}) {
     try {
         eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
@@ -31,7 +31,7 @@ module.exports = async function(callback, argv, options = {}) {
             ...extractWeb3Options(options),
             version: process.env.RELEASE_VERSION || "test",
             tokens,
-            additionalContracts: ["UUPSProxiable"]
+            additionalContracts: ["UUPSProxiable"],
         });
         await sf.initialize();
         if (sf.config.nativeTokenSymbol) {
@@ -62,7 +62,7 @@ module.exports = async function(callback, argv, options = {}) {
         output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${await (
             await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
         ).getSuperTokenLogic()}\n`;
-        tokens.forEach(tokenName => {
+        tokens.forEach((tokenName) => {
             output += `TEST_TOKEN_${tokenName.toUpperCase()}=${
                 sf.tokens[tokenName].address
             }\n`;

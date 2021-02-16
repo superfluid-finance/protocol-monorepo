@@ -1,4 +1,4 @@
 module.exports = {
-    trailingComma: "none",
+    trailingComma: "es5",
     singleQuote: false
 };

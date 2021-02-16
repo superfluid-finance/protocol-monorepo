@@ -95,7 +95,7 @@ module.exports = class Framework {
             ethers: this._options.ethers,
             from: this._options.from,
             additionalContracts: this._options.additionalContracts,
-            contractLoader: this._options.contractLoader
+            contractLoader: this._options.contractLoader,
         });
 
         const resolverAddress =
@@ -126,7 +126,7 @@ module.exports = class Framework {
             cfa: await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
             ida: await this.contracts.IInstantDistributionAgreementV1.at(
                 idaAddress
-            )
+            ),
         };
 
         // load agreement helpers

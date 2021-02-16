@@ -11,7 +11,7 @@ function normalizeFlowRate(fr) {
  *
  * Usage: npx truffle exec scripts/inspect-account.js : 0xACC1 0xACC2 ...
  */
-module.exports = async function(callback, argv) {
+module.exports = async function (callback, argv) {
     try {
         const args = parseColonArgs(argv || process.argv);
         if (args.length < 1) {
@@ -21,7 +21,7 @@ module.exports = async function(callback, argv) {
         const sf = new SuperfluidSDK.Framework({
             version: process.env.RELEASE_VERSION || "test",
             web3: this.web3,
-            tokens
+            tokens,
         });
         await sf.initialize();
 
@@ -50,23 +50,23 @@ module.exports = async function(callback, argv) {
                 );
                 const netFlowRate = await sf.cfa.getNetFlow({
                     superToken: superToken.address,
-                    account
+                    account,
                 });
                 console.log(`Net flow rate ${normalizeFlowRate(netFlowRate)}`);
                 const flows = await sf.cfa.listFlows({
                     superToken: superToken.address,
-                    account
+                    account,
                 });
                 console.log("In Flows:");
                 console.log(
                     flows.inFlows.map(
-                        f => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`
+                        (f) => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`
                     )
                 );
                 console.log("Out Flows:");
                 console.log(
                     flows.outFlows.map(
-                        f => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`
+                        (f) => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`
                     )
                 );
             }

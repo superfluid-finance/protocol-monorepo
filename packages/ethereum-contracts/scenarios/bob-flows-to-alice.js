@@ -4,7 +4,7 @@ const {
     web3tx,
     toWad,
     wad4human,
-    toBN
+    toBN,
 } = require("@decentral.ee/web3-helpers");
 
 contract("Scenario: Bob flows to Alice", (accounts) => {
@@ -19,7 +19,7 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
         sf = new SuperfluidSDK.Framework({
             isTruffle: true,
             version: process.env.RELEASE_VERSION || "test",
-            tokens: ["fDAI"]
+            tokens: ["fDAI"],
         });
         await sf.initialize();
         if (toBN(await sf.tokens.fDAIx.balanceOf.call(bob)).lt(toWad(50))) {
@@ -43,7 +43,7 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
         const currentFlow = sf.cfa.getFlow({
             superToken: sf.tokens.fDAIx.address,
             sender: bob,
-            receiver: alice
+            receiver: alice,
         });
         if (currentFlow.flowRate !== "0") {
             await web3tx(
@@ -55,7 +55,7 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
                 receiver: alice,
                 flowRate: toWad(1000)
                     .divn(30 * 24 * 3600)
-                    .toString() // 10/30d
+                    .toString(), // 10/30d
             });
         }
     });
@@ -75,7 +75,7 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
         )({
             superToken: sf.tokens.fDAIx.address,
             sender: bob,
-            receiver: alice
+            receiver: alice,
         });
     });
 });

@@ -30,7 +30,7 @@ class Formatter {
 
     formatObject(x) {
         const result = {};
-        Object.keys(x).forEach(key => {
+        Object.keys(x).forEach((key) => {
             var value = x[key];
             if (this.BN.isBN(value)) {
                 value = this.formatBigNumber(key, value);
@@ -66,10 +66,10 @@ module.exports = class GasMeter {
 
     _format() {
         const formattedAggregates = {};
-        Object.keys(this.aggregates).forEach(actionName => {
+        Object.keys(this.aggregates).forEach((actionName) => {
             const bucket = this.aggregates[actionName];
             formattedAggregates[actionName] = {};
-            Object.keys(bucket).forEach(key => {
+            Object.keys(bucket).forEach((key) => {
                 formattedAggregates[actionName][
                     key
                 ] = this.formatter.formatBigNumber(
@@ -79,12 +79,12 @@ module.exports = class GasMeter {
                 );
             });
         });
-        const formattedRecords = this.records.map(x => {
+        const formattedRecords = this.records.map((x) => {
             return this.formatter.formatObject(x, this.fiatCurr);
         });
         return {
             aggregates: { ...formattedAggregates },
-            executedTxs: [...formattedRecords]
+            executedTxs: [...formattedRecords],
         };
     }
 
@@ -96,7 +96,7 @@ module.exports = class GasMeter {
             txHash: tx.tx,
             gas: gas,
             gasPrice: this.gasPrice,
-            cost: cost
+            cost: cost,
         });
         if (!(actionName in this.aggregates)) {
             this.aggregates[actionName] = {
@@ -107,7 +107,7 @@ module.exports = class GasMeter {
                 maxGas: new this.BN("0"),
                 totalTx: new this.BN("0"),
                 totalGas: new this.BN("0"),
-                totalCost: new this.BN("0")
+                totalCost: new this.BN("0"),
             };
         }
         const bucket = this.aggregates[actionName];

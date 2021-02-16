@@ -5,11 +5,11 @@ const readline = require("readline");
 // promisify the readline
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 });
 // Prepare readline.question for promisification
-rl.question[promisify.custom] = question => {
-    return new Promise(resolve => {
+rl.question[promisify.custom] = (question) => {
+    return new Promise((resolve) => {
         rl.question(question, resolve);
     });
 };
@@ -79,7 +79,7 @@ async function detectTruffleAndConfigure(options) {
     const trace = stackTrace.get();
     //trace.forEach(callSite => console.debug(callSite.getFileName()));
     options.isTruffle =
-        trace.filter(callSite =>
+        trace.filter((callSite) =>
             (callSite.getFileName() || "").endsWith(
                 "truffle/build/commands.bundled.js"
             )
@@ -119,5 +119,5 @@ module.exports = {
     extractWeb3Options,
     detectTruffleAndConfigure,
     rl: promisify(rl.question),
-    builtTruffleContractLoader
+    builtTruffleContractLoader,
 };

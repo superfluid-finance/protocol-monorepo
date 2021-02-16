@@ -20,7 +20,8 @@
         "watch": "webpack --watch",
         "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
         "lint": "run-s lint:*",
-        "lint:js": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
+        "lint:js-prettier": "prettier --check **/*.js && echo '✔  Your .js files look pretty.'",
+        "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
@@ -28,7 +29,8 @@
     },
     "lint-staged": {
         "**/*.+(js|jsx|ts|tsx)": [
-            "yarn lint:js"
+            "yarn lint:js-prettier",
+            "yarn lint:js-eslint"
         ]
     },
     "dependencies": {

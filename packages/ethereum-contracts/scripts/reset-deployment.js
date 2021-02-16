@@ -10,7 +10,7 @@ const { parseColonArgs, rl } = require("./utils");
  *
  * Usage: npx truffle exec scripts/reset-deployment.js : {VERSION}
  */
-module.exports = async function(callback, argv) {
+module.exports = async function (callback, argv) {
     try {
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {

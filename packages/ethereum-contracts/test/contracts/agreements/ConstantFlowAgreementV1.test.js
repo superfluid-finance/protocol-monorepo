@@ -1702,7 +1702,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         });
     });
 
-    describe("#10 multi accounts scenarios", () => {
+    describe("#10 scenarios", () => {
         it("#10.1 two accounts sending to each other with the same flow rate", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 

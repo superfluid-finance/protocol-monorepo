@@ -49,9 +49,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         }
     }
 
+    async function verifyAll() {
+        await t.validateSystemInvariance();
+    }
+
     context("#1 without callbacks", () => {
         describe("#1.1 index operations", async () => {
-            it("#1.1.1 create a new index", async () => {
+            it("#1.1.1 publisher can create a new index", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     publisherName: "alice",
@@ -61,7 +65,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.validateSystemInvariance();
             });
 
-            it("#1.1.2 should fail to create the same index", async () => {
+            it("#1.1.2 publisher should fail to create the same index", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     publisherName: "alice",
@@ -78,7 +82,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 );
             });
 
-            it("#1.1.3 should fail to query non-existant index", async () => {
+            it("#1.1.3 publisher should fail to query non-existant index", async () => {
                 const idata = await t.sf.ida.getIndex({
                     superToken: superToken.address,
                     publisher: alice,
@@ -87,7 +91,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 assert.isFalse(idata.exist);
             });
 
-            it("#1.1.4 update index", async () => {
+            it("#1.1.4 publisher can update update the index", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     publisherName: "alice",
@@ -106,7 +110,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.validateSystemInvariance();
             });
 
-            it("#1.1.5 should fail to update non-existent index", async () => {
+            it("#1.1.5 publisher should fail to update non-existent index", async () => {
                 await expectRevert(
                     shouldUpdateIndex({
                         testenv: t,
@@ -118,7 +122,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 );
             });
 
-            it("#1.1.5 should fail to update index with smaller value", async () => {
+            it("#1.1.6 publisher should fail to update index with smaller value", async () => {
                 let idata;
 
                 await shouldCreateIndex({
@@ -163,7 +167,334 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         });
 
         describe("#1.2 subscription operations", async () => {
-            it("#1.2.1 approveSubscription -> updateSubscription -> updateIndex", async () => {
+            it("#1.2.1 subscriber can approve a subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+            });
+
+            it("#1.2.2 subscriber should fail to approve a subscription twice", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                await expectRevert(
+                    shouldApproveSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                    }),
+                    "IDA: E_SUBS_APPROVED"
+                );
+            });
+
+            it("#1.2.3 subscriber can delete its approved subscription", async () => {
+                let idata;
+                let subs;
+                await superToken.upgrade(INIT_BALANCE, { from: alice });
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 1);
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+
+                await shouldUpdateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "200",
+                });
+
+                await shouldDeleteSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    senderName: "bob",
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.8")], // FIXME check deposit
+                    [bob, toWad("0.2")],
+                ]);
+                idata = await ida.getIndex.call(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID
+                );
+                assert.equal(idata.indexValue, "200");
+                assert.equal(idata.totalUnitsApproved, "0");
+                assert.equal(idata.totalUnitsPending.toString(), "0");
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 0);
+
+                await t.validateSystemInvariance();
+            });
+
+            it("#1.2.4 subscriber can delete its pending subscription", async () => {
+                let idata;
+                let subs;
+                await superToken.upgrade(INIT_BALANCE, { from: alice });
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+                await shouldUpdateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "200",
+                });
+                await shouldDeleteSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    senderName: "bob",
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.8")], // FIXME check deposit
+                    [bob, toWad("0.2")],
+                ]);
+                idata = await ida.getIndex.call(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID
+                );
+                assert.equal(idata.indexValue, "200");
+                assert.equal(idata.totalUnitsApproved, "0");
+                assert.equal(idata.totalUnitsPending.toString(), "0");
+                const sdata = await ida.getSubscription.call(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob
+                );
+                assert.isFalse(sdata.exist);
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 0);
+
+                await t.validateSystemInvariance();
+            });
+
+            it("#1.2.5 publisher can delete a subscription", async () => {
+                let idata;
+                let subs;
+                await superToken.upgrade(INIT_BALANCE, { from: alice });
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+                await shouldUpdateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "200",
+                });
+                await shouldDeleteSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    senderName: "alice",
+                });
+
+                await testExpectedBalances([
+                    [alice, toWad("99.8")], // FIXME check deposit
+                    [bob, toWad("0.2")],
+                ]);
+                idata = await ida.getIndex.call(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID
+                );
+                assert.equal(idata.indexValue, "200");
+                assert.equal(idata.totalUnitsApproved, "0");
+                assert.equal(idata.totalUnitsPending.toString(), "0");
+                const sdata = await ida.getSubscription.call(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID,
+                    bob
+                );
+                assert.isFalse(sdata.exist);
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 0);
+
+                await t.validateSystemInvariance();
+            });
+
+            it("#1.2.6 subscriber should fail to delete a non-existen subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await expectRevert(
+                    shouldDeleteSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        senderName: "bob",
+                    }),
+                    "IDA: E_NO_SUBS"
+                );
+            });
+
+            it("#1.2.7 subscriber should fail to delete a subscription of a non-existent index", async () => {
+                await expectRevert(
+                    shouldDeleteSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        senderName: "bob",
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
+            });
+
+            it("#1.2.8 one should fail to delete other's subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                await expectRevert(
+                    shouldDeleteSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        senderName: "dan",
+                    }),
+                    "IDA: E_NOT_ALLOWED"
+                );
+            });
+
+            it("#1.2.9 subscriber can delete then resubscribe to subscription", async () => {
+                let subs;
+                await superToken.upgrade(INIT_BALANCE, { from: alice });
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 1);
+
+                await shouldDeleteSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    senderName: "bob",
+                });
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 0);
+
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await ida.listSubscriptions.call(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.publishers.length, 1);
+            });
+        });
+
+        describe("#1.3 distribution operations", () => {
+            it("#1.3.1 approveSubscription -> updateSubscription -> updateIndex", async () => {
                 let idata;
                 let sdata;
                 let subs;
@@ -197,16 +528,6 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     [alice, toWad("100")],
                     [bob, toWad("0")],
                 ]);
-
-                await expectRevert(
-                    shouldApproveSubscription({
-                        testenv: t,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                    }),
-                    "IDA: E_SUBS_APPROVED"
-                );
 
                 subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
@@ -295,7 +616,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.validateSystemInvariance();
             });
 
-            it("#1.2.2 updateSubscription -> updateIndex -> approveSubscription", async () => {
+            it("#1.3.2 updateSubscription -> updateIndex -> approveSubscription", async () => {
                 let idata;
                 let sdata;
                 let subs;
@@ -445,7 +766,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.validateSystemInvariance();
             });
 
-            it("#1.2.3 updateSubscription -> approveSubscription -> updateIndex", async () => {
+            it("#1.3.3 updateSubscription -> approveSubscription -> updateIndex", async () => {
                 let idata;
                 let sdata;
                 let subs;
@@ -549,7 +870,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.validateSystemInvariance();
             });
 
-            it("#1.2.4 2x(updateSubscription -> shouldUpdateIndex) ->  approveSubscription", async () => {
+            it("#1.3.4 2x(updateSubscription -> shouldUpdateIndex) ->  approveSubscription", async () => {
                 let idata;
                 let sdata;
                 let subs;
@@ -718,285 +1039,10 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await t.validateSystemInvariance();
             });
+        });
 
-            it("#1.2.5 subscriber can delete its approved subscription", async () => {
-                let idata;
-                let subs;
-                await superToken.upgrade(INIT_BALANCE, { from: alice });
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldApproveSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 1);
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad("0.001").toString(),
-                });
-
-                await shouldUpdateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
-                });
-                await expectRevert(
-                    web3tx(
-                        superfluid.callAgreement,
-                        "Dan try to delete the subscription"
-                    )(
-                        ida.address,
-                        ida.contract.methods
-                            .deleteSubscription(
-                                superToken.address,
-                                alice,
-                                DEFAULT_INDEX_ID,
-                                bob,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x",
-                        {
-                            from: dan,
-                        }
-                    ),
-                    "IDA: E_NOT_ALLOWED"
-                );
-
-                await shouldDeleteSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "bob",
-                });
-                await expectRevert(
-                    web3tx(
-                        superfluid.callAgreement,
-                        "Bob try to delete the subscription again"
-                    )(
-                        ida.address,
-                        ida.contract.methods
-                            .deleteSubscription(
-                                superToken.address,
-                                alice,
-                                DEFAULT_INDEX_ID,
-                                bob,
-                                "0x"
-                            )
-                            .encodeABI(),
-                        "0x",
-                        {
-                            from: bob,
-                        }
-                    ),
-                    "IDA: E_NO_SUBS"
-                );
-                await testExpectedBalances([
-                    [alice, toWad("99.8")], // FIXME check deposit
-                    [bob, toWad("0.2")],
-                ]);
-                idata = await ida.getIndex.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID
-                );
-                assert.equal(idata.indexValue, "200");
-                assert.equal(idata.totalUnitsApproved, "0");
-                assert.equal(idata.totalUnitsPending.toString(), "0");
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 0);
-
-                await t.validateSystemInvariance();
-            });
-
-            it("#1.2.6 subscriber can delete its pending subscription", async () => {
-                let idata;
-                let subs;
-                await superToken.upgrade(INIT_BALANCE, { from: alice });
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad("0.001").toString(),
-                });
-                await shouldUpdateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
-                });
-                await shouldDeleteSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "bob",
-                });
-                await testExpectedBalances([
-                    [alice, toWad("99.8")], // FIXME check deposit
-                    [bob, toWad("0.2")],
-                ]);
-                idata = await ida.getIndex.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID
-                );
-                assert.equal(idata.indexValue, "200");
-                assert.equal(idata.totalUnitsApproved, "0");
-                assert.equal(idata.totalUnitsPending.toString(), "0");
-                const sdata = await ida.getSubscription.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID,
-                    bob
-                );
-                assert.isFalse(sdata.exist);
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 0);
-
-                await t.validateSystemInvariance();
-            });
-
-            it("#1.2.7 publisher can delete a subscription", async () => {
-                let idata;
-                let subs;
-                await superToken.upgrade(INIT_BALANCE, { from: alice });
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad("0.001").toString(),
-                });
-                await shouldUpdateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
-                });
-                await shouldDeleteSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "alice",
-                });
-
-                await testExpectedBalances([
-                    [alice, toWad("99.8")], // FIXME check deposit
-                    [bob, toWad("0.2")],
-                ]);
-                idata = await ida.getIndex.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID
-                );
-                assert.equal(idata.indexValue, "200");
-                assert.equal(idata.totalUnitsApproved, "0");
-                assert.equal(idata.totalUnitsPending.toString(), "0");
-                const sdata = await ida.getSubscription.call(
-                    superToken.address,
-                    alice,
-                    DEFAULT_INDEX_ID,
-                    bob
-                );
-                assert.isFalse(sdata.exist);
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 0);
-
-                await t.validateSystemInvariance();
-            });
-
-            it("#1.2.8 subscriber can delete then resubscribe to subscription", async () => {
-                let subs;
-                await superToken.upgrade(INIT_BALANCE, { from: alice });
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldApproveSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 1);
-
-                await shouldDeleteSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "bob",
-                });
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 0);
-
-                await shouldApproveSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-                subs = await ida.listSubscriptions.call(
-                    superToken.address,
-                    bob
-                );
-                assert.equal(subs.publishers.length, 1);
-            });
-
-            it("#1.2.9 claim distribution from pending subscriptions", async () => {
+        describe("#1.4 claim operation", () => {
+            it("#1.4.1 subscriber can claim distribution from its pending subscription", async () => {
                 let idata;
                 let sdata;
                 let subs;
@@ -1007,17 +1053,6 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-
-                await expectRevert(
-                    shouldClaimPendingDistribution({
-                        testenv: t,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "bob",
-                    }),
-                    "IDA: E_NO_SUBS"
-                );
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -1067,7 +1102,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 assert.equal(subs.publishers.length, 0);
                 await t.validateSystemInvariance();
 
-                shouldClaimPendingDistribution({
+                await shouldClaimPendingDistribution({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -1091,7 +1126,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     [bob, toWad("0.3")],
                 ]);
 
-                shouldClaimPendingDistribution({
+                await shouldClaimPendingDistribution({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -1121,6 +1156,46 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
+
+                await t.validateSystemInvariance();
+            });
+
+            it("#1.4.2 anyone can claim distribution on behalf of other", async () => {
+                await superToken.upgrade(INIT_BALANCE, { from: alice });
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.003").toString(),
+                });
+                await shouldUpdateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "100",
+                });
+                await shouldClaimPendingDistribution({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    senderName: "dan",
+                });
+            });
+
+            it("#1.4.3 one should not claim from a non-existent subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
                 await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
@@ -1129,10 +1204,21 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                         subscriberName: "bob",
                         senderName: "bob",
                     }),
-                    "IDA: E_SUBS_APPROVED"
+                    "IDA: E_NO_SUBS"
                 );
+            });
 
-                await t.validateSystemInvariance();
+            it("#1.4.3 one should not claim from a subscription of a non-existent index", async () => {
+                await expectRevert(
+                    shouldClaimPendingDistribution({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        senderName: "bob",
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
             });
         });
     });
@@ -1216,11 +1302,9 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         });
     });
 
-    describe("#10 end to end scenarios", async () => {
+    describe("#10 scenarios", async () => {
         it("#1.1 1to3 distribution scenario", async () => {
             await superToken.upgrade(INIT_BALANCE, { from: alice });
-            let idata;
-            let sdata;
 
             await shouldCreateIndex({
                 testenv: t,
@@ -1237,24 +1321,20 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 const subscriberAddr = subscribers[i][0];
                 const subscriptionUnits = subscribers[i][1];
                 const subscriberName = t.toAlias(subscriberAddr);
-                sdata = await shouldApproveSubscription({
+                await shouldApproveSubscription({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: subscriberName,
                 });
-                assert.equal(sdata.units.toString(), "0");
-                assert.equal(sdata.pendingDistribution.toString(), "0");
 
-                sdata = await shouldUpdateSubscription({
+                await shouldUpdateSubscription({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: subscriberName,
                     units: subscriptionUnits.toString(),
                 });
-                assert.isTrue(sdata.approved);
-                assert.equal(sdata.pendingDistribution.toString(), "0");
 
                 const subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
@@ -1272,17 +1352,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 );
             }
 
-            idata = await shouldUpdateIndex({
+            await shouldUpdateIndex({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "100",
             });
-            assert.equal(
-                idata.totalUnitsApproved.toString(),
-                toWad("0.0006").toString()
-            );
-
             await testExpectedBalances([
                 [bob, toWad("0.01")],
                 [carol, toWad("0.02")],
@@ -1290,17 +1365,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 [alice, toWad("99.94")],
             ]);
 
-            idata = await shouldUpdateIndex({
+            await shouldUpdateIndex({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "300",
             });
-            assert.equal(
-                idata.totalUnitsApproved.toString(),
-                toWad("0.0006").toString()
-            );
-
             await testExpectedBalances([
                 [bob, toWad("0.03")],
                 [carol, toWad("0.06")],
@@ -1308,14 +1378,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 [alice, toWad("99.82")],
             ]);
 
-            await t.validateSystemInvariance();
+            await verifyAll();
         });
 
         it("#1.2 2to1 distribution scenario", async () => {
             await superToken.upgrade(INIT_BALANCE, { from: alice });
             await superToken.upgrade(INIT_BALANCE, { from: bob });
-            let idata;
-            let sdata;
 
             // alice and bob create indeces and dan subscribes to them
             const publishers = [
@@ -1340,15 +1408,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     subscriberName: "dan",
                 });
 
-                sdata = await shouldUpdateSubscription({
+                await shouldUpdateSubscription({
                     testenv: t,
                     publisherName,
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "dan",
                     units: subscriptionUnits.toString(),
                 });
-                assert.isTrue(sdata.approved);
-                assert.equal(sdata.pendingDistribution.toString(), "0");
             }
 
             const subs = await t.sf.ida.listSubscriptions({
@@ -1375,16 +1441,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             ]);
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
-            idata = await shouldUpdateIndex({
+            await shouldUpdateIndex({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "100",
             });
-            assert.equal(
-                idata.totalUnitsApproved.toString(),
-                toWad("0.0001").toString()
-            );
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob, toWad("100")],
@@ -1392,16 +1454,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             ]);
 
             // Bob distributes tokens (200 * 0.0002 = 0.04)
-            idata = await shouldUpdateIndex({
+            await shouldUpdateIndex({
                 testenv: t,
                 publisherName: "bob",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "200",
             });
-            assert.equal(
-                idata.totalUnitsApproved.toString(),
-                toWad("0.0002").toString()
-            );
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob, toWad("99.96")],
@@ -1409,25 +1467,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             ]);
 
             // Alice update Dan's subscription with more units
-            sdata = await shouldUpdateSubscription({
+            await shouldUpdateSubscription({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "dan",
                 units: toWad("0.0003").toString(),
             });
-            assert.isTrue(sdata.approved);
-            assert.equal(sdata.pendingDistribution.toString(), "0");
-            idata = await ida.getIndex.call(
-                superToken.address,
-                alice,
-                DEFAULT_INDEX_ID
-            );
-            assert.equal(idata.indexValue.toString(), "100");
-            assert.equal(
-                idata.totalUnitsApproved.toString(),
-                toWad("0.0003").toString()
-            );
             await testExpectedBalances([
                 [alice, toWad("99.99")],
                 [bob, toWad("99.96")],
@@ -1435,23 +1481,19 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             ]);
 
             // Alice distributes tokens again (100 * 0.0003 = 0.03)
-            idata = await shouldUpdateIndex({
+            await shouldUpdateIndex({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "200",
             });
-            assert.equal(
-                idata.totalUnitsApproved.toString(),
-                toWad("0.0003").toString()
-            );
             await testExpectedBalances([
                 [alice, toWad("99.96")],
                 [bob, toWad("99.96")],
                 [dan, toWad("0.08")],
             ]);
 
-            await t.validateSystemInvariance();
+            await verifyAll();
         });
     });
 });

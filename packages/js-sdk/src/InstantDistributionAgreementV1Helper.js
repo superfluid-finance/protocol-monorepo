@@ -98,7 +98,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
-    async approveSupscription({
+    async approveSubscription({
         superToken,
         indexId,
         publisher,
@@ -156,12 +156,13 @@ module.exports = class InstantDistributionAgreementV1Helper {
     }
 
     async getSubscription({ superToken, publisher, indexId, subscriber }) {
-        return await this._ida.getSubscription.call(
+        const result = await this._ida.getSubscription.call(
             superToken,
             publisher,
             indexId,
             subscriber
         );
+        return this.constructor._sanitizeSubscriptionData(result);
     }
 
     async distribute({
@@ -217,7 +218,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
 
     async getIndex({ superToken, publisher, indexId }) {
         const result = await this._ida.getIndex(superToken, publisher, indexId);
-        return this.constructor._sanitizeIndexInfo(result);
+        return this.constructor._sanitizeIndexData(result);
     }
 
     async listSubscriptions({ superToken, subscriber }) {
@@ -228,7 +229,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return this.constructor._sanitizeSubscriptionInfo(result);
     }
 
-    static _sanitizeIndexInfo({
+    static _sanitizeIndexData({
         exist,
         indexValue,
         totalUnitsApproved,
@@ -239,6 +240,20 @@ module.exports = class InstantDistributionAgreementV1Helper {
             indexValue: indexValue.toString(),
             totalUnitsApproved: totalUnitsApproved.toString(),
             totalUnitsPending: totalUnitsPending.toString(),
+        };
+    }
+
+    static _sanitizeSubscriptionData({
+        exist,
+        approved,
+        units,
+        pendingDistribution,
+    }) {
+        return {
+            exist,
+            approved,
+            units: units.toString(),
+            pendingDistribution: pendingDistribution.toString(),
         };
     }
 

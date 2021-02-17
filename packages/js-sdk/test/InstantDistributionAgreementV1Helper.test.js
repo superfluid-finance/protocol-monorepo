@@ -131,7 +131,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
             assert.equal(index.totalUnitsPending, units);
         });
 
-        it("approveSupscription", async () => {
+        it("approveSubscription", async () => {
             const units = 100;
             await sf.ida.updateSupscription({
                 superToken: superToken.address,
@@ -141,7 +141,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
@@ -203,7 +203,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 units: subscriber1Units.toString(),
                 sender: publisher,
             });
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
@@ -234,7 +234,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
@@ -282,7 +282,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
@@ -324,7 +324,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,

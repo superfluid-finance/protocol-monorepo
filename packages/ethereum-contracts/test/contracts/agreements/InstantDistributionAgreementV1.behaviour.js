@@ -27,6 +27,38 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
     return idata;
 }
 
+async function shouldUpdateIndex({
+    testenv,
+    publisherName,
+    indexId,
+    indexValue,
+}) {
+    const superToken = testenv.contracts.superToken.address;
+    const publisher = testenv.getAddress(publisherName);
+
+    let idata;
+
+    await web3tx(
+        testenv.sf.ida.updateIndex,
+        `${publisherName} distributes tokens @${indexId} with value ${indexValue}`
+    )({
+        superToken,
+        sender: publisher, // FIXME
+        indexId,
+        indexValue,
+    });
+
+    idata = await testenv.sf.ida.getIndex({
+        superToken,
+        publisher,
+        indexId,
+    });
+
+    assert.equal(idata.indexValue.toString(), indexValue);
+
+    return idata;
+}
+
 async function shouldApproveSubscription({
     testenv,
     publisherName,
@@ -96,41 +128,68 @@ async function shouldUpdateSubscription({
     return sdata;
 }
 
-async function shouldUpdateIndex({
+async function shouldDeleteSubscription({
     testenv,
     publisherName,
     indexId,
-    indexValue,
+    subscriberName,
+    senderName,
 }) {
+    let sdata;
     const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
-
-    let idata;
-
+    const subscriber = testenv.getAddress(subscriberName);
+    const sender = testenv.getAddress(senderName);
     await web3tx(
-        testenv.sf.ida.updateIndex,
-        `${publisherName} distributes tokens @${indexId} with value ${indexValue}`
+        testenv.sf.ida.deleteSupscription,
+        `${senderName} deletes subscription from ${subscriberName} to ${publisherName}@${indexId}`
     )({
-        superToken,
-        sender: publisher, // FIXME
-        indexId,
-        indexValue,
-    });
-
-    idata = await testenv.sf.ida.getIndex({
         superToken,
         publisher,
         indexId,
+        subscriber,
+        sender,
     });
 
-    assert.equal(idata.indexValue.toString(), indexValue);
+    sdata = await testenv.sf.ida.getSubscription({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    });
+    assert.isFalse(sdata.exist);
 
-    return idata;
+    return sdata;
+}
+
+async function shouldClaimPendingDistribution({
+    testenv,
+    publisherName,
+    indexId,
+    subscriberName,
+    senderName,
+}) {
+    const superToken = testenv.contracts.superToken.address;
+    const publisher = testenv.getAddress(publisherName);
+    const subscriber = testenv.getAddress(subscriberName);
+    const sender = testenv.getAddress(senderName);
+    await web3tx(
+        testenv.sf.ida.claim,
+        `${subscriberName} claims pending distrubtions from ${publisherName}@${indexId}`
+    )({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        sender,
+    });
 }
 
 module.exports = {
     shouldCreateIndex,
+    shouldUpdateIndex,
     shouldApproveSubscription,
     shouldUpdateSubscription,
-    shouldUpdateIndex,
+    shouldDeleteSubscription,
+    shouldClaimPendingDistribution,
 };

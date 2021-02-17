@@ -4,6 +4,8 @@ import { useAuth } from '@redwoodjs/auth'
 import { Web3Provider } from '@ethersproject/providers'
 import SuperfluidSDK from '@superfluid-finance/js-sdk'
 
+import toast from 'react-hot-toast'
+
 const BatchTransfer = ({ token }) => {
   const { currentUser } = useAuth()
 
@@ -16,9 +18,13 @@ const BatchTransfer = ({ token }) => {
 
   const batchTransfer = async (input) => {
     setLoading(true)
-
+    input.recipientData.split(/\n/).map((item) => {
+      const [address, value] = item.split(/\s/)
+      console.log(address, value)
+    })
+    toast.error('Something went wrong')
+    // token
     await sf.initialize()
-
     setLoading(false)
   }
 

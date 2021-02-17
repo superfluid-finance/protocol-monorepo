@@ -4,6 +4,7 @@ import {
   FieldError,
   Label,
   TextField,
+  TextAreaField,
   Submit,
 } from '@redwoodjs/forms'
 
@@ -49,12 +50,15 @@ const BatchTransferForm = (props) => {
         >
           Recipient Data
         </Label>
-        <TextField
+        <TextAreaField
           name="recipientData"
           className="rw-input"
           errorClassName="rw-input rw-input-error"
           validation={{
             required: true,
+            pattern: {
+              value: /0x([A-Fa-f0-9]{40})\s[0-9]+/,
+            },
           }}
         />
         <FieldError name="recipientData" className="rw-field-error" />

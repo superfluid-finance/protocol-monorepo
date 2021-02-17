@@ -5,6 +5,9 @@ import { FetchConfigProvider, useFetchConfig } from '@redwoodjs/web'
 import ReactDOM from 'react-dom'
 import { FatalErrorBoundary } from '@redwoodjs/web'
 import { RedwoodApolloProvider } from '@redwoodjs/web/apollo'
+
+import { Toaster } from 'react-hot-toast'
+
 import FatalErrorPage from 'src/pages/FatalErrorPage'
 import DefaultLayout from 'src/layouts/DefaultLayout'
 import Routes from 'src/Routes'
@@ -51,6 +54,7 @@ const ApolloInjector = ({ children }) => {
 
 ReactDOM.render(
   <FatalErrorBoundary page={FatalErrorPage}>
+    <Toaster position="top-left" reverseOrder={true} />
     <FetchConfigProvider>
       <ApolloInjector>
         <AuthProvider client={ethereum} type="ethereum">

@@ -15,6 +15,8 @@
     "@netlify/zip-it-and-ship-it": "^2.2.0"
   },
   "resolutions": {
-    "@prisma/client": "2.11.0"
+    "@prisma/client": "2.11.0",
+    "@prisma/cli": "2.11.0",
+    "@prisma/sdk": "2.11.0"
   }
 }

@@ -5,19 +5,12 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
     const publisher = testenv.getAddress(publisherName);
     let idata;
 
-    idata = await testenv.sf.ida.getIndex({
-        superToken,
-        publisher,
-        indexId,
-    });
-    assert.isFalse(idata.exist);
-
     await web3tx(
         testenv.sf.ida.createIndex,
         `${publisherName} create index ${indexId}`
     )({
         superToken,
-        sender: publisher, // TODO fix this in js-sdk
+        sender: publisher, // FIXME fix this in js-sdk
         indexId,
     });
 
@@ -30,6 +23,8 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
     assert.equal(idata.indexValue, "0");
     assert.equal(idata.totalUnitsApproved, "0");
     assert.equal(idata.totalUnitsPending, "0");
+
+    return idata;
 }
 
 async function shouldApproveSubscription({
@@ -44,14 +39,6 @@ async function shouldApproveSubscription({
 
     let sdata;
 
-    sdata = await testenv.sf.ida.getSubscription({
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    assert.isFalse(sdata.exist);
-
     await web3tx(
         testenv.sf.ida.approveSupscription,
         `${subscriberName} approves subscription to ${publisherName}@${indexId}`
@@ -59,7 +46,7 @@ async function shouldApproveSubscription({
         superToken,
         publisher,
         indexId,
-        sender: subscriber, // TODO
+        sender: subscriber, // FIXME
     });
 
     sdata = await testenv.sf.ida.getSubscription({
@@ -70,10 +57,80 @@ async function shouldApproveSubscription({
     });
     assert.isTrue(sdata.exist);
     assert.isTrue(sdata.approved);
+
     return sdata;
+}
+
+async function shouldUpdateSubscription({
+    testenv,
+    publisherName,
+    indexId,
+    subscriberName,
+    units,
+}) {
+    const superToken = testenv.contracts.superToken.address;
+    const publisher = testenv.getAddress(publisherName);
+    const subscriber = testenv.getAddress(subscriberName);
+    let sdata;
+
+    await web3tx(
+        testenv.sf.ida.updateSupscription,
+        `${publisherName} updates subscription from ${subscriberName} to @${indexId}`
+    )({
+        superToken,
+        sender: publisher, // FIXME
+        indexId,
+        subscriber,
+        units,
+    });
+
+    sdata = await testenv.sf.ida.getSubscription({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    });
+    assert.isTrue(sdata.exist);
+    assert.equal(sdata.units.toString(), units.toString());
+
+    return sdata;
+}
+
+async function shouldUpdateIndex({
+    testenv,
+    publisherName,
+    indexId,
+    indexValue,
+}) {
+    const superToken = testenv.contracts.superToken.address;
+    const publisher = testenv.getAddress(publisherName);
+
+    let idata;
+
+    await web3tx(
+        testenv.sf.ida.updateIndex,
+        `${publisherName} distributes tokens @${indexId} with value ${indexValue}`
+    )({
+        superToken,
+        sender: publisher, // FIXME
+        indexId,
+        indexValue,
+    });
+
+    idata = await testenv.sf.ida.getIndex({
+        superToken,
+        publisher,
+        indexId,
+    });
+
+    assert.equal(idata.indexValue.toString(), indexValue);
+
+    return idata;
 }
 
 module.exports = {
     shouldCreateIndex,
     shouldApproveSubscription,
+    shouldUpdateSubscription,
+    shouldUpdateIndex,
 };

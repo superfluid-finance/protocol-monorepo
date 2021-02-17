@@ -7,7 +7,7 @@
     ]
   },
   "devDependencies": {
-    "@redwoodjs/core": "0.24.0"
+    "@redwoodjs/core": "0.25.1"
   },
   "resolutions": {
     "@prisma/client": "2.11.0",

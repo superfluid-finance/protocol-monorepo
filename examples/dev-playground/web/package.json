@@ -17,14 +17,15 @@
     "@ethersproject/contracts": "^5.0.10",
     "@ethersproject/providers": "^5.0.19",
     "@oneclickdapp/ethereum-auth": "^0.2.0",
-    "@redwoodjs/auth": "^0.24.0",
-    "@redwoodjs/forms": "^0.24.0",
-    "@redwoodjs/router": "^0.24.0",
-    "@redwoodjs/web": "0.24.0",
+    "@redwoodjs/auth": "^0.25.1",
+    "@redwoodjs/forms": "^0.25.1",
+    "@redwoodjs/router": "^0.25.1",
+    "@redwoodjs/web": "0.25.1",
     "@superfluid-finance/js-sdk": "^0.3.1",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react-dom": "^16.13.1",
+    "react-hot-toast": "^1.0.2"
   },
   "devDependencies": {
     "autoprefixer": "9.8.6",

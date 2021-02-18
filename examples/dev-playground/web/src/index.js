@@ -45,6 +45,7 @@ const ApolloInjector = ({ children }) => {
       makeRequest,
       // Note: you must set NODE_ENV manually when using Netlify
       debug: process.NODE_ENV !== 'production',
+      infuraId: process.env.INFURA_ENDPOINT_KEY,
     })
   } catch (e) {
     console.log(e)

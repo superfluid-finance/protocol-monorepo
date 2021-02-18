@@ -11,9 +11,7 @@ const DefaultLayout = ({ children }) => {
   }
 
   const onLogIn = async () => {
-    setIsLoggingIn(true)
-    await logIn()
-    setIsLoggingIn(false)
+    navigate(routes.login())
   }
 
   const truncate = (text, length = 50) => {

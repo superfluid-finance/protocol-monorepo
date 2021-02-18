@@ -7,7 +7,8 @@
     ]
   },
   "devDependencies": {
-    "@redwoodjs/core": "0.25.1"
+    "@redwoodjs/cli": "https://rw-pr-redwoodjs-com.s3.amazonaws.com/1807/redwoodjs-cli-0.25.1-51df01b.tgz",
+    "@redwoodjs/core": "https://rw-pr-redwoodjs-com.s3.amazonaws.com/1807/redwoodjs-core-0.25.1-51df01b.tgz"
   },
   "resolutions": {
     "@prisma/client": "2.11.0",

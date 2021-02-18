@@ -393,7 +393,6 @@ contract SuperAppMock is ISuperApp {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
         _;
     }
-
 }
 
 // Bad super app! This one returns empty ctx

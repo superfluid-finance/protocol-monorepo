@@ -469,6 +469,7 @@ async function shouldApproveSubscription({
     publisherName,
     indexId,
     subscriberName,
+    userData,
 }) {
     console.log("======== shouldApproveSubscription begins ========");
     const superToken = testenv.contracts.superToken.address;
@@ -491,6 +492,7 @@ async function shouldApproveSubscription({
         publisher,
         indexId,
         sender: subscriber, // FIXME
+        userData,
     });
 
     // update subscribers list
@@ -556,7 +558,7 @@ async function shouldApproveSubscription({
             publisher,
             indexId: indexId.toString(),
             subscriber,
-            userData: null,
+            userData: userData || null,
         }
     );
     await expectEvent.inTransaction(
@@ -568,7 +570,7 @@ async function shouldApproveSubscription({
             subscriber,
             publisher,
             indexId: indexId.toString(),
-            userData: null,
+            userData: userData || null,
         }
     );
 

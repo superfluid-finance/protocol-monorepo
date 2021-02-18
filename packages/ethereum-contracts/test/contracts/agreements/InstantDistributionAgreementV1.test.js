@@ -9,6 +9,7 @@ const {
     shouldClaimPendingDistribution,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
 
+const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = 42;
@@ -20,14 +21,16 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
     });
     const { alice, bob, carol, dan } = t.aliases;
     const { INIT_BALANCE } = t.configs;
-
-    let superToken;
+    const { ZERO_ADDRESS } = t.constants;
 
     before(async () => {
         await t.reset();
     });
 
+    let superToken;
+
     beforeEach(async function () {
+        await t.resetForTestCase();
         await t.createNewToken({ doUpgrade: false });
         ({ superToken } = t.contracts);
     });
@@ -1008,6 +1011,39 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         });
     });
 
+    context("#2 callbacks", () => {
+        let app;
+
+        beforeEach(async () => {
+            app = await IDASuperAppTester.new(
+                t.sf.host.address,
+                1 /* APP_TYPE_FINAL_LEVEL */,
+                t.sf.agreements.ida.address,
+                superToken.address,
+                DEFAULT_INDEX_ID
+            );
+            t.addAlias("app", app.address);
+        });
+
+        it("approveSubscription AgreementCreated", async () => {
+            await shouldApproveSubscription({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "address", "address", "bytes"],
+                    [
+                        web3.utils.sha3("create"),
+                        superToken.address,
+                        t.sf.agreements.ida.address,
+                        "0x",
+                    ]
+                ),
+            });
+        });
+    });
+
     context("#3 misc", async () => {
         it("#4.1 only authorized host can access token", async () => {
             const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
@@ -1017,7 +1053,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .createIndex(superToken.address, 42, "0x")
+                        .createIndex(ZERO_ADDRESS, 42, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1027,7 +1063,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .updateIndex(superToken.address, 42, 9000, "0x")
+                        .updateIndex(ZERO_ADDRESS, 42, 9000, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1037,7 +1073,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .distribute(superToken.address, 42, 9000, "0x")
+                        .distribute(ZERO_ADDRESS, 42, 9000, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1047,7 +1083,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .approveSubscription(superToken.address, bob, 42, "0x")
+                        .approveSubscription(ZERO_ADDRESS, bob, 42, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1057,13 +1093,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .updateSubscription(
-                            superToken.address,
-                            42,
-                            alice,
-                            1000,
-                            "0x"
-                        )
+                        .updateSubscription(ZERO_ADDRESS, 42, alice, 1000, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1073,13 +1103,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .deleteSubscription(
-                            superToken.address,
-                            bob,
-                            42,
-                            alice,
-                            "0x"
-                        )
+                        .deleteSubscription(ZERO_ADDRESS, bob, 42, alice, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),

@@ -46,7 +46,9 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param token Super token address.
      * @param indexId Id of the index.
      *
-     * App callbacks: None
+     * # App callbacks
+     *
+     * None
      */
     function createIndex(
         ISuperfluidToken token,
@@ -71,10 +73,6 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @return indexValue Value of the current index.
      * @return totalUnitsApproved Total units approved for the index.
      * @return totalUnitsPending Total units pending approval for the index.
-     *
-     * # App callbacks
-     *
-     * None
      */
     function getIndex(
         ISuperfluidToken token,

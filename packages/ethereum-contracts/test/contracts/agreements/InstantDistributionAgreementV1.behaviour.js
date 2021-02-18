@@ -126,7 +126,7 @@ function getSubscriptionData({
                         ida: {
                             subscriptions: {
                                 [`${publisher}@${indexId}`]: {
-                                    exist: true,
+                                    exist: false,
                                     approved: false,
                                     units: "0",
                                     _syncedIndexValue: "0",
@@ -215,7 +215,7 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
     console.log("======== shouldCreateIndex ends ========");
 }
 
-async function shouldUpdateIndex({
+async function shouldDistribute({
     testenv,
     publisherName,
     indexId,
@@ -356,6 +356,91 @@ async function shouldUpdateIndex({
     console.log("======== shouldUpdateIndex ends ========");
 }
 
+function _beforeSubscriptionUpdate({
+    testenv,
+    superToken,
+    publisher,
+    indexId,
+    subscriber,
+}) {
+    const idataBefore = getIndexData({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+    });
+
+    const sdataBefore = getSubscriptionData({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    });
+
+    return { idataBefore, sdataBefore };
+}
+
+async function _afterSubscriptionUpdate({
+    testenv,
+    superToken,
+    publisher,
+    indexId,
+    subscriber,
+    idataBefore,
+    sdataBefore,
+}) {
+    const sdataExpected = getSubscriptionData({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    });
+    const sdataActual = await testenv.sf.ida.getSubscription({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    });
+    _assertEqualSubscriptionData(sdataActual, sdataExpected);
+
+    const idataExpected = getIndexData({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+    });
+    const idataActual = await testenv.sf.ida.getIndex({
+        superToken,
+        publisher,
+        indexId,
+    });
+    _assertEqualIndexData(idataActual, idataExpected);
+
+    // expect balances
+    await testenv.validateExpectedBalances(() => {
+        if (!sdataBefore.approved) {
+            // side effect of distributing to the pending subscription
+            // for each subscription related operation
+            const indexDiff = toBN(idataBefore.indexValue).sub(
+                toBN(sdataBefore._syncedIndexValue)
+            );
+            const distribution = indexDiff.mul(toBN(sdataBefore.units));
+            testenv.updateAccountExpectedBalanceDelta(
+                superToken,
+                publisher,
+                toBN(0).sub(distribution)
+            );
+            testenv.updateAccountExpectedBalanceDelta(
+                superToken,
+                subscriber,
+                distribution
+            );
+        }
+    });
+}
+
 async function shouldApproveSubscription({
     testenv,
     publisherName,
@@ -367,13 +452,7 @@ async function shouldApproveSubscription({
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const idataBefore = getIndexData({
-        testenv,
-        superToken,
-        publisher,
-        indexId,
-    });
-    const sdataBefore = getSubscriptionData({
+    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -405,7 +484,6 @@ async function shouldApproveSubscription({
             },
         }
     );
-
     // update subscription data
     _updateSubscriptionData({
         testenv,
@@ -414,25 +492,11 @@ async function shouldApproveSubscription({
         indexId,
         subscriber,
         subscriptionData: {
+            exist: true,
             approved: true,
             _syncedIndexValue: idataBefore.indexValue,
         },
     });
-    const sdataExpected = getSubscriptionData({
-        testenv,
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    const sdataActual = await testenv.sf.ida.getSubscription({
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    _assertEqualSubscriptionData(sdataActual, sdataExpected);
-
     // update index data
     _updateIndexData({
         testenv,
@@ -441,25 +505,23 @@ async function shouldApproveSubscription({
         indexId,
         indexData: {
             totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
-                .add(toBN(sdataActual.units))
+                .add(toBN(sdataBefore.units))
                 .toString(),
             totalUnitsPending: toBN(idataBefore.totalUnitsPending)
-                .sub(toBN(sdataActual.units))
+                .sub(toBN(sdataBefore.units))
                 .toString(),
         },
     });
-    const idataExpected = getIndexData({
+
+    await _afterSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
         indexId,
+        subscriber,
+        idataBefore,
+        sdataBefore,
     });
-    const idataActual = await testenv.sf.ida.getIndex({
-        superToken,
-        publisher,
-        indexId,
-    });
-    _assertEqualIndexData(idataActual, idataExpected);
 
     // expect events
     await expectEvent.inTransaction(
@@ -487,25 +549,6 @@ async function shouldApproveSubscription({
         }
     );
 
-    // expect balances
-    await testenv.validateExpectedBalances(() => {
-        // side effect of distributing to the pending subscription
-        const indexDiff = toBN(idataBefore.indexValue).sub(
-            toBN(sdataBefore._syncedIndexValue)
-        );
-        const distribution = indexDiff.mul(toBN(sdataBefore.units));
-        testenv.updateAccountExpectedBalanceDelta(
-            superToken,
-            publisher,
-            toBN(0).sub(distribution)
-        );
-        testenv.updateAccountExpectedBalanceDelta(
-            superToken,
-            subscriber,
-            distribution
-        );
-    });
-
     console.log("======== shouldApproveSubscription ends ========");
 }
 
@@ -521,13 +564,7 @@ async function shouldUpdateSubscription({
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const idataBefore = getIndexData({
-        testenv,
-        superToken,
-        publisher,
-        indexId,
-    });
-    const sdataBefore = getSubscriptionData({
+    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -558,7 +595,6 @@ async function shouldUpdateSubscription({
             [subscriber]: {},
         }
     );
-
     // update subscription data
     _updateSubscriptionData({
         testenv,
@@ -567,34 +603,20 @@ async function shouldUpdateSubscription({
         indexId,
         subscriber,
         subscriptionData: {
+            exist: true,
             units: units.toString(),
             _syncedIndexValue: idataBefore.indexValue,
         },
     });
-    const sdataExpected = getSubscriptionData({
-        testenv,
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    const sdataActual = await testenv.sf.ida.getSubscription({
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    _assertEqualSubscriptionData(sdataActual, sdataExpected);
-
     // update index data
-    const unitsDiff = toBN(sdataActual.units).sub(toBN(sdataBefore.units));
+    const unitsDiff = toBN(units).sub(toBN(sdataBefore.units));
     _updateIndexData({
         testenv,
         superToken,
         publisher,
         indexId,
         indexData: {
-            ...(sdataActual.approved
+            ...(sdataBefore.approved
                 ? {
                       totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
                           .add(unitsDiff)
@@ -607,18 +629,16 @@ async function shouldUpdateSubscription({
                   }),
         },
     });
-    const idataExpected = getIndexData({
+
+    await _afterSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
         indexId,
+        subscriber,
+        idataBefore,
+        sdataBefore,
     });
-    const idataActual = await testenv.sf.ida.getIndex({
-        superToken,
-        publisher,
-        indexId,
-    });
-    _assertEqualIndexData(idataActual, idataExpected);
 
     // expect events
     await expectEvent.inTransaction(
@@ -648,27 +668,6 @@ async function shouldUpdateSubscription({
         }
     );
 
-    // expect balances
-    await testenv.validateExpectedBalances(() => {
-        // side effect of distributing to the pending subscription
-        if (!sdataActual.approved) {
-            const indexDiff = toBN(idataBefore.indexValue).sub(
-                toBN(sdataBefore._syncedIndexValue)
-            );
-            const distribution = indexDiff.mul(toBN(sdataBefore.units));
-            testenv.updateAccountExpectedBalanceDelta(
-                superToken,
-                publisher,
-                toBN(0).sub(distribution)
-            );
-            testenv.updateAccountExpectedBalanceDelta(
-                superToken,
-                subscriber,
-                distribution
-            );
-        }
-    });
-
     console.log("======== shouldUpdateSubscription ends ========");
 }
 
@@ -685,13 +684,7 @@ async function shouldDeleteSubscription({
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
-    const idataBefore = getIndexData({
-        testenv,
-        superToken,
-        publisher,
-        indexId,
-    });
-    const sdataBefore = getSubscriptionData({
+    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -717,7 +710,6 @@ async function shouldDeleteSubscription({
         publisher,
         indexId,
     })[subscriber];
-
     // update subscription data
     _deleteSubscription({
         testenv,
@@ -726,14 +718,6 @@ async function shouldDeleteSubscription({
         indexId,
         subscriber,
     });
-    const sdataActual = await testenv.sf.ida.getSubscription({
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    assert.isFalse(sdataActual.exist);
-
     // update index data
     _updateIndexData({
         testenv,
@@ -754,18 +738,16 @@ async function shouldDeleteSubscription({
                   }),
         },
     });
-    const idataExpected = getIndexData({
+
+    await _afterSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
         indexId,
+        subscriber,
+        idataBefore,
+        sdataBefore,
     });
-    const idataActual = await testenv.sf.ida.getIndex({
-        superToken,
-        publisher,
-        indexId,
-    });
-    _assertEqualIndexData(idataActual, idataExpected);
 
     // expect events
     await expectEvent.inTransaction(
@@ -807,27 +789,6 @@ async function shouldDeleteSubscription({
         }
     );
 
-    // expect balances
-    await testenv.validateExpectedBalances(() => {
-        // side effect of distributing to the pending subscription
-        if (!sdataBefore.approved) {
-            const indexDiff = toBN(idataBefore.indexValue).sub(
-                toBN(sdataBefore._syncedIndexValue)
-            );
-            const distribution = indexDiff.mul(toBN(sdataBefore.units));
-            testenv.updateAccountExpectedBalanceDelta(
-                superToken,
-                publisher,
-                toBN(0).sub(distribution)
-            );
-            testenv.updateAccountExpectedBalanceDelta(
-                superToken,
-                subscriber,
-                distribution
-            );
-        }
-    });
-
     console.log("======== shouldDeleteSubscription ends ========");
 }
 
@@ -845,13 +806,7 @@ async function shouldClaimPendingDistribution({
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
-    const idataBefore = getIndexData({
-        testenv,
-        superToken,
-        publisher,
-        indexId,
-    });
-    const sdataBefore = getSubscriptionData({
+    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -869,6 +824,7 @@ async function shouldClaimPendingDistribution({
         subscriber,
         sender,
     });
+
     _updateSubscriptionData({
         testenv,
         superToken,
@@ -876,42 +832,19 @@ async function shouldClaimPendingDistribution({
         indexId,
         subscriber,
         subscriptionData: {
+            exist: true,
             _syncedIndexValue: idataBefore.indexValue,
         },
     });
-    const sdataExpected = getSubscriptionData({
+
+    await _afterSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
         indexId,
         subscriber,
-    });
-    const sdataActual = await testenv.sf.ida.getSubscription({
-        superToken,
-        publisher,
-        indexId,
-        subscriber,
-    });
-    _assertEqualSubscriptionData(sdataActual, sdataExpected);
-
-    // expect balances
-    await testenv.validateExpectedBalances(() => {
-        if (!sdataBefore.approved) {
-            const indexDiff = toBN(idataBefore.indexValue).sub(
-                toBN(sdataBefore._syncedIndexValue)
-            );
-            const distribution = indexDiff.mul(toBN(sdataBefore.units));
-            testenv.updateAccountExpectedBalanceDelta(
-                superToken,
-                publisher,
-                toBN(0).sub(distribution)
-            );
-            testenv.updateAccountExpectedBalanceDelta(
-                superToken,
-                subscriber,
-                distribution
-            );
-        }
+        idataBefore,
+        sdataBefore,
     });
 
     console.log("======== shouldClaimPendingDistribution ends ========");
@@ -921,7 +854,7 @@ module.exports = {
     getIndexData,
     getSubscribers,
     shouldCreateIndex,
-    shouldUpdateIndex,
+    shouldDistribute,
     getSubscriptionData,
     shouldApproveSubscription,
     shouldUpdateSubscription,

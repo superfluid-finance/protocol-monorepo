@@ -2,7 +2,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const { wad4human, toWad } = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateIndex,
-    shouldUpdateIndex,
+    shouldDistribute,
     shouldApproveSubscription,
     shouldUpdateSubscription,
     shouldDeleteSubscription,
@@ -13,7 +13,7 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = 42;
 
-contract("Using InstanceDistributionAgreement v1", (accounts) => {
+contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
         isTruffle: true,
         useMocks: true,
@@ -95,7 +95,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -107,7 +107,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             it("#1.1.5 publisher should fail to update non-existent index", async () => {
                 await expectRevert(
-                    shouldUpdateIndex({
+                    shouldDistribute({
                         testenv: t,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
@@ -124,14 +124,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "1984",
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -139,7 +139,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
 
                 await expectRevert(
-                    shouldUpdateIndex({
+                    shouldDistribute({
                         testenv: t,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
@@ -218,7 +218,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     units: toWad("0.001").toString(),
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -259,7 +259,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     units: toWad("0.001").toString(),
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -300,7 +300,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     units: toWad("0.001").toString(),
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -471,7 +471,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
                 assert.equal(subs.unitsList[0], toWad("0.001").toString());
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -518,7 +518,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
                 assert.equal(subs.publishers.length, 0);
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -594,7 +594,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     toWad("0.001").toString()
                 );
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -615,7 +615,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await verifyAll();
             });
 
-            it("#1.3.4 2x(updateSubscription -> shouldUpdateIndex) ->  approveSubscription", async () => {
+            it("#1.3.4 2x(updateSubscription -> shouldDistribute) ->  approveSubscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -638,7 +638,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
                 assert.equal(subs.publishers.length, 0);
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -663,7 +663,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
                 assert.equal(subs.publishers.length, 0);
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -716,7 +716,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     units: toWad("0.003").toString(),
                 });
 
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -737,7 +737,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
 
                 // claim by third party
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -757,7 +757,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -781,7 +781,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     subscriberName: "bob",
                     units: toWad("0.003").toString(),
                 });
-                await shouldUpdateIndex({
+                await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
@@ -910,7 +910,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         });
     });
 
-    context("#10 scenarios", async () => {
+    context.only("#10 scenarios", async () => {
         it("#10.1 1to3 distribution scenario", async () => {
             await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -968,7 +968,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 }
             }
 
-            await shouldUpdateIndex({
+            await shouldDistribute({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
@@ -981,7 +981,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 [dan, toWad("0.00")],
             ]);
 
-            await shouldUpdateIndex({
+            await shouldDistribute({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
@@ -1008,7 +1008,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 [dan, toWad("0.09")],
             ]);
 
-            await shouldUpdateIndex({
+            await shouldDistribute({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
@@ -1076,7 +1076,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             assert.equal(wad4human(subs.unitsList[0]), "0.00010");
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
-            await shouldUpdateIndex({
+            await shouldDistribute({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
@@ -1089,7 +1089,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             ]);
 
             // Bob distributes tokens (200 * 0.0002 = 0.04)
-            await shouldUpdateIndex({
+            await shouldDistribute({
                 testenv: t,
                 publisherName: "bob",
                 indexId: DEFAULT_INDEX_ID,
@@ -1111,7 +1111,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
 
             // Alice distributes tokens again (100 * 0.0003 = 0.03)
-            await shouldUpdateIndex({
+            await shouldDistribute({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,

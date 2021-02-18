@@ -413,14 +413,18 @@ module.exports = class TestEnvironment {
                 const realtimeBalanceDelta = this.realtimeBalance(
                     balances2[address]
                 ).sub(this.realtimeBalance(balanceSnapshot1));
-                console.log(
-                    `${alias} real-time balance delta`,
-                    realtimeBalanceDelta.toString()
+                this.printSingleBalance(
+                    `${alias} actual real-time balance delta`,
+                    realtimeBalanceDelta
                 );
 
                 const expectedBalanceDelta = this.getAccountExpectedBalanceDelta(
                     superToken.address,
                     address
+                );
+                this.printSingleBalance(
+                    `${alias} expected real-time balance delta`,
+                    expectedBalanceDelta
                 );
 
                 assert.equal(

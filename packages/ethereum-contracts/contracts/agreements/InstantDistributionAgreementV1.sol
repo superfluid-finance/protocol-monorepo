@@ -629,7 +629,8 @@ contract InstantDistributionAgreementV1 is
         AgreementLibrary.callAppAfterCallback(vars.cbStates, vars.cbdata, newCtx);
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber, context.userData);
-        emit SubscriptionDeleted(token, subscriber, publisher, indexId, context.userData);
+        emit IndexUnitsUpdated(token, publisher, indexId, subscriber, 0, context.userData);
+        emit SubscriptionUnitsUpdated(token, subscriber, publisher, indexId, 0, context.userData);
     }
 
     function claim(

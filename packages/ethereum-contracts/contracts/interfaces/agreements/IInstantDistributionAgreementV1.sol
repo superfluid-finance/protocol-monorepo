@@ -343,13 +343,6 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         address subscriber,
         bytes userData);
 
-    event SubscriptionDeleted(
-        ISuperfluidToken indexed token,
-        address indexed subscriber,
-        address publisher,
-        uint32 indexId,
-        bytes userData);
-
     /**
     * @dev Claim pending distributions.
     * @param token Super token address.

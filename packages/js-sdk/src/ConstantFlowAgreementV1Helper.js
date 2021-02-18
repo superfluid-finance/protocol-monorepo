@@ -259,8 +259,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
 
     async getFlowEvents({ token, receiver = null, sender = null }) {
         let flows;
-        if (this._sf.agreements.cfa.getPastEvents) {
-            flows = await this._sf.agreements.cfa.getPastEvents("FlowUpdated", {
+        if (this._cfa.getPastEvents) {
+            flows = await this._cfa.getPastEvents("FlowUpdated", {
                 fromBlock: 0,
                 toBlock: "latest",
                 filter: {
@@ -270,12 +270,12 @@ module.exports = class ConstantFlowAgreementV1Helper {
                 },
             });
         } else {
-            const filter = this._sf.agreements.cfa.filters.FlowUpdated(
+            const filter = this._cfa.filters.FlowUpdated(
                 token,
                 sender,
                 receiver
             );
-            flows = await this._sf.agreements.cfa.queryFilter(filter);
+            flows = await this._cfa.queryFilter(filter);
         }
         return Object.values(
             flows.reduce((acc, i) => {

@@ -221,6 +221,26 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return this.constructor._sanitizeIndexData(result);
     }
 
+    async listSubcribers({ superToken, publisher, indexId }) {
+        let updates;
+        updates = await this._ida.getPastEvents("IndexUnitsUpdated", {
+            fromBlock: 0,
+            toBlock: "latest",
+            filter: {
+                token: superToken,
+                publisher,
+                indexId,
+            },
+        });
+        // TODO ethers support
+        return Object.values(
+            updates.reduce((acc, i) => {
+                acc[i.args.subscriber] = i;
+                return acc;
+            }, {})
+        ).filter((i) => i.args.units.toString() != "0");
+    }
+
     async listSubscriptions({ superToken, subscriber }) {
         const result = await this._ida.listSubscriptions(
             superToken,

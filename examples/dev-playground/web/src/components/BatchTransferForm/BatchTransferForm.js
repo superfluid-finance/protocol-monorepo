@@ -52,6 +52,7 @@ const BatchTransferForm = (props) => {
         </Label>
         <TextAreaField
           name="recipientData"
+          placeholder={`0xa5cd9237694936f7c22c3a2d59e0ead4baf0061d 1000000000000000000\n0x98d562c7a4781e3e6c0d16f67469b0a3b0cb25c7 1000000000000000000\n0x7a22e36fc847b379b358d97dae992cc5ea9c4eea 1000000000000000000`}
           className="rw-input"
           errorClassName="rw-input rw-input-error"
           validation={{

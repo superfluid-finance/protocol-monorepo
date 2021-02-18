@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.3.7",
+    "@ethersproject/abi": "^5.0.12",
     "@ethersproject/contracts": "^5.0.10",
     "@ethersproject/providers": "^5.0.19",
     "@oneclickdapp/ethereum-auth": "^0.2.0",

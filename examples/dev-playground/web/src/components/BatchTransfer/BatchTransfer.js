@@ -28,19 +28,20 @@ const BatchTransfer = ({ token }) => {
       tokenAddress: token,
     })
 
-    if (error) return toast.error(error)
+    if (error) return toast.error(error.message || error)
 
     toast.promise(tx.wait(), {
       loading: 'Waiting for confirmation',
       success: (receipt) => {
         setTransactionHashes([...transactionHashes, receipt.transactionHash])
         setLoading(false)
+        console.log(receipt)
         return <b>Complete!</b>
       },
       error: (err) => {
         setLoading(false)
         console.log(err)
-        return <b>Something went wrong. {err?.message}</b>
+        return <b>Something went wrong. {err.message || err}</b>
       },
     })
   }
@@ -59,12 +60,6 @@ const BatchTransfer = ({ token }) => {
             error={error}
           />
         </div>
-        <p>Transactions:</p>
-        <ul>
-          {transactionHashes.map((hash) => (
-            <li>{hash}</li>
-          ))}
-        </ul>
       </div>
     </>
   )

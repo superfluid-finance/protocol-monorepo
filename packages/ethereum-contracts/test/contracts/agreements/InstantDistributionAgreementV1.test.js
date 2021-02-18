@@ -32,6 +32,20 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         ({ superToken } = t.contracts);
     });
 
+    async function testExpectedBalances(expectedBalances) {
+        for (let i = 0; i < expectedBalances.length; ++i) {
+            const account = expectedBalances[i][0];
+            const expectedBalance = expectedBalances[i][1];
+            //const expectedDeposit = expectedBalances[i][2] || "0";
+            const balance = await superToken.balanceOf.call(account);
+            console.log(
+                `${t.toAlias(account)}'s current balance: `,
+                wad4human(balance)
+            );
+            assert.equal(balance.toString(), expectedBalance.toString());
+        }
+    }
+
     async function verifyAll() {
         await t.validateSystemInvariance();
     }
@@ -907,20 +921,24 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
 
             const subscribers = [
-                [bob, toWad("0.0001")],
-                [carol, toWad("0.0002")],
-                [dan, toWad("0.0003")],
+                [bob, toWad("0.0001"), true],
+                [carol, toWad("0.0002"), true],
+                [dan, toWad("0.0003"), false],
             ];
             for (let i = 0; i < subscribers.length; ++i) {
                 const subscriberAddr = subscribers[i][0];
                 const subscriptionUnits = subscribers[i][1];
+                const doApprove = subscribers[i][2];
                 const subscriberName = t.toAlias(subscriberAddr);
-                await shouldApproveSubscription({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: subscriberName,
-                });
+
+                if (doApprove) {
+                    await shouldApproveSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: subscriberName,
+                    });
+                }
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -934,16 +952,20 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: subscriberAddr,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(
-                    subs.indexIds[0].toString(),
-                    DEFAULT_INDEX_ID.toString()
-                );
-                assert.equal(
-                    subs.unitsList[0].toString(),
-                    subscriptionUnits.toString()
-                );
+                if (doApprove) {
+                    assert.equal(subs.publishers.length, 1);
+                    assert.equal(subs.publishers[0], alice);
+                    assert.equal(
+                        subs.indexIds[0].toString(),
+                        DEFAULT_INDEX_ID.toString()
+                    );
+                    assert.equal(
+                        subs.unitsList[0].toString(),
+                        subscriptionUnits.toString()
+                    );
+                } else {
+                    assert.equal(subs.publishers.length, 0);
+                }
             }
 
             await shouldUpdateIndex({
@@ -952,6 +974,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "100",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.94")],
+                [bob, toWad("0.01")],
+                [carol, toWad("0.02")],
+                [dan, toWad("0.00")],
+            ]);
 
             await shouldUpdateIndex({
                 testenv: t,
@@ -959,6 +987,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "300",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.82")],
+                [bob, toWad("0.03")],
+                [carol, toWad("0.06")],
+                [dan, toWad("0.00")],
+            ]);
 
             await shouldDeleteSubscription({
                 testenv: t,
@@ -967,12 +1001,25 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 subscriberName: "dan",
                 senderName: "dan",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.82")],
+                [bob, toWad("0.03")],
+                [carol, toWad("0.06")],
+                [dan, toWad("0.09")],
+            ]);
+
             await shouldUpdateIndex({
                 testenv: t,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "300",
+                indexValue: "400",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.79")],
+                [bob, toWad("0.04")],
+                [carol, toWad("0.08")],
+                [dan, toWad("0.09")],
+            ]);
 
             await verifyAll();
         });
@@ -983,12 +1030,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             // alice and bob create indeces and dan subscribes to them
             const publishers = [
-                [alice, toWad("0.0001")],
-                [bob, toWad("0.0002")],
+                [alice, toWad("0.0001"), true],
+                [bob, toWad("0.0002"), false],
             ];
             for (let i = 0; i < publishers.length; ++i) {
                 let publisherAddr = publishers[i][0];
                 let subscriptionUnits = publishers[i][1];
+                let doApprove = publishers[i][2];
                 const publisherName = t.toAlias(publisherAddr);
 
                 await shouldCreateIndex({
@@ -997,12 +1045,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await shouldApproveSubscription({
-                    testenv: t,
-                    publisherName,
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "dan",
-                });
+                if (doApprove) {
+                    await shouldApproveSubscription({
+                        testenv: t,
+                        publisherName,
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "dan",
+                    });
+                }
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -1017,19 +1067,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 superToken: superToken.address,
                 subscriber: dan,
             });
-            assert.equal(subs.publishers.length, 2);
+            assert.equal(subs.publishers.length, 1);
             assert.equal(subs.publishers[0], alice);
             assert.equal(
                 subs.indexIds[0].toString(),
                 DEFAULT_INDEX_ID.toString()
             );
             assert.equal(wad4human(subs.unitsList[0]), "0.00010");
-            assert.equal(subs.publishers[1], bob);
-            assert.equal(
-                subs.indexIds[1].toString(),
-                DEFAULT_INDEX_ID.toString()
-            );
-            assert.equal(wad4human(subs.unitsList[1]), "0.00020");
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
             await shouldUpdateIndex({
@@ -1038,6 +1082,11 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "100",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.99")],
+                [bob, toWad("100.00")],
+                [dan, toWad("0.01")],
+            ]);
 
             // Bob distributes tokens (200 * 0.0002 = 0.04)
             await shouldUpdateIndex({
@@ -1046,6 +1095,11 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "200",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.99")],
+                [bob, toWad("99.96")],
+                [dan, toWad("0.01")],
+            ]);
 
             // Alice update Dan's subscription with more units
             await shouldUpdateSubscription({
@@ -1063,6 +1117,23 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "200",
             });
+            await testExpectedBalances([
+                [alice, toWad("99.96")],
+                [bob, toWad("99.96")],
+                [dan, toWad("0.04")],
+            ]);
+
+            await shouldApproveSubscription({
+                testenv: t,
+                publisherName: "bob",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "dan",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.96")],
+                [bob, toWad("99.96")],
+                [dan, toWad("0.08")],
+            ]);
 
             await verifyAll();
         });

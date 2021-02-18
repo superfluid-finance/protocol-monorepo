@@ -26,20 +26,11 @@ const ApolloInjector = ({ children }) => {
       uri,
       headers,
     })
-    // Default option using Apollo Client
     const makeRequest = (mutation, variables) =>
       graphQLClient.mutate({
         mutation,
         variables,
       })
-
-    // Alternative option using graphql-hooks
-    // You'll also need to modify graphQLClient
-    // const makeRequest = (query, variables) =>
-    //   graphQLClient.request({
-    //     query,
-    //     variables,
-    //   })
 
     ethereum = new EthereumAuthClient({
       makeRequest,

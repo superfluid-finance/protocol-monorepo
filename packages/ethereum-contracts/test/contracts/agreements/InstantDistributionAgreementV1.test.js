@@ -21,7 +21,6 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
     });
     const { alice, bob, carol, dan } = t.aliases;
     const { INIT_BALANCE } = t.configs;
-    const { ZERO_ADDRESS } = t.constants;
 
     before(async () => {
         await t.reset();
@@ -1045,7 +1044,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
     });
 
     context("#3 misc", async () => {
-        it("#4.1 only authorized host can access token", async () => {
+        it.only("#4.1 only authorized host can access token", async () => {
             const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
             const fakeHost = await FakeSuperfluidMock.new();
             const ida = t.sf.agreements.ida;
@@ -1053,7 +1052,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .createIndex(ZERO_ADDRESS, 42, "0x")
+                        .createIndex(superToken.address, 42, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1063,7 +1062,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .updateIndex(ZERO_ADDRESS, 42, 9000, "0x")
+                        .updateIndex(superToken.address, 42, 9000, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1073,7 +1072,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .distribute(ZERO_ADDRESS, 42, 9000, "0x")
+                        .distribute(superToken.address, 42, 9000, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1083,7 +1082,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .approveSubscription(ZERO_ADDRESS, bob, 42, "0x")
+                        .approveSubscription(superToken.address, bob, 42, "0x")
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1093,7 +1092,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .updateSubscription(ZERO_ADDRESS, 42, alice, 1000, "0x")
+                        .updateSubscription(
+                            superToken.address,
+                            42,
+                            alice,
+                            1000,
+                            "0x"
+                        )
                         .encodeABI(),
                     { from: alice }
                 ),
@@ -1103,7 +1108,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
-                        .deleteSubscription(ZERO_ADDRESS, bob, 42, alice, "0x")
+                        .deleteSubscription(
+                            superToken.address,
+                            bob,
+                            42,
+                            alice,
+                            "0x"
+                        )
                         .encodeABI(),
                     { from: alice }
                 ),

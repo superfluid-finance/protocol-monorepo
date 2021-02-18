@@ -220,8 +220,9 @@ async function shouldDistribute({
     publisherName,
     indexId,
     indexValue,
+    amount,
 }) {
-    console.log("======== shouldUpdateIndex begins ========");
+    console.log("======== shouldDistribute begins ========");
     const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
 
@@ -239,15 +240,36 @@ async function shouldDistribute({
     });
     const subscriberAddresses = Object.keys(subscribers);
 
-    const tx = await web3tx(
-        testenv.sf.ida.updateIndex,
-        `${publisherName} distributes tokens to index @${indexId} with value ${indexValue}`
-    )({
-        superToken,
-        sender: publisher, // FIXME
-        indexId,
-        indexValue,
-    });
+    let tx;
+    if (indexValue) {
+        tx = await web3tx(
+            testenv.sf.ida.updateIndex,
+            `${publisherName} distributes tokens to index @${indexId} with indexValue ${indexValue}`
+        )({
+            superToken,
+            sender: publisher, // FIXME
+            indexId,
+            indexValue,
+        });
+    } else {
+        indexValue = (
+            await testenv.sf.agreements.ida.calculateDistribution(
+                superToken,
+                publisher,
+                indexId,
+                amount
+            )
+        ).newIndexValue.toString();
+        tx = await web3tx(
+            testenv.sf.ida.distribute,
+            `${publisherName} distributes tokens to index @${indexId} with amount ${amount}`
+        )({
+            superToken,
+            sender: publisher, // FIXME
+            indexId,
+            amount,
+        });
+    }
 
     // update index data
     _updateIndexData({
@@ -281,7 +303,8 @@ async function shouldDistribute({
             token: superToken,
             publisher: publisher,
             indexId: indexId.toString(),
-            indexValue,
+            oldIndexValue: idataBefore.indexValue,
+            newIndexValue: indexValue,
             totalUnitsPending: idataExpected.totalUnitsPending,
             totalUnitsApproved: idataExpected.totalUnitsApproved,
             userData: null,
@@ -353,7 +376,7 @@ async function shouldDistribute({
         _assertEqualSubscriptionData(sdataActual, sdataExpected);
     }
 
-    console.log("======== shouldUpdateIndex ends ========");
+    console.log("======== shouldDistribute ends ========");
 }
 
 function _beforeSubscriptionUpdate({

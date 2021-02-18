@@ -231,7 +231,7 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         bytes32 iId,
         IndexData memory idata,
-        uint128 indexValue,
+        uint128 newIndexValue,
         bytes memory userData
     )
         private
@@ -239,19 +239,21 @@ contract InstantDistributionAgreementV1 is
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
         token.settleBalance(publisher,
-            (-int256(indexValue - idata.indexValue)).mul(int256(idata.totalUnitsApproved)));
+            (-int256(newIndexValue - idata.indexValue)).mul(int256(idata.totalUnitsApproved)));
         //   - adjust the publisher's deposit amount
         _adjustPublisherDeposit(token, publisher,
-            int256(indexValue - idata.indexValue).mul(int256(idata.totalUnitsPending)));
+            int256(newIndexValue - idata.indexValue).mul(int256(idata.totalUnitsPending)));
         // adjust the publisher's index data
-        idata.indexValue = indexValue;
+        uint128 oldIndexValue = idata.indexValue;
+        idata.indexValue = newIndexValue;
         token.updateAgreementData(iId, _encodeIndexData(idata));
 
         emit IndexUpdated(
             token,
             publisher,
             indexId,
-            indexValue,
+            oldIndexValue,
+            newIndexValue,
             idata.totalUnitsPending,
             idata.totalUnitsApproved,
             userData);
@@ -460,9 +462,6 @@ contract InstantDistributionAgreementV1 is
             token.updateAgreementData(sId, _encodeSubscriptionData(vars.sdata));
         }
 
-        // check account solvency
-        require(!token.isAccountCriticalNow(publisher), "IDA: E_LOW_BALANCE");
-
         // after-hook callback
         if (vars.exist) {
             vars.cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
@@ -557,7 +556,7 @@ contract InstantDistributionAgreementV1 is
         for (uint32 subId = 0; subId < sidList.length; ++subId) {
             bytes32 sId = sidList[subId];
             (exist, sdata) = _getSubscriptionData(token, sId);
-            require(exist, "IDA: E_NO_SUBS");
+            assert(exist);
             assert(sdata.subId == subId);
             publishers[subId] = sdata.publisher;
             indexIds[subId] = sdata.indexId;

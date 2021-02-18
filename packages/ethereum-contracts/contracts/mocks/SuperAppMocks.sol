@@ -12,6 +12,7 @@ import {
 import { AgreementMock } from "./AgreementMock.sol";
 
 
+// The default SuperApp mock that does many tricks
 contract SuperAppMock is ISuperApp {
 
     ISuperfluid private _host;
@@ -472,7 +473,7 @@ contract SuperAppMockReturningInvalidCtx {
 }
 
 // Bad super app! A second level app that calls other app
-contract SuperAppMock3 {
+contract SuperAppMock2ndLevel {
 
     ISuperfluid private _host;
     SuperAppMock private _app;

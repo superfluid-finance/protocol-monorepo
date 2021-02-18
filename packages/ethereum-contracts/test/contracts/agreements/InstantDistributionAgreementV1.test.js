@@ -13,7 +13,7 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = 42;
 
-contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
+contract("Using InstanceDistributionAgreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
         isTruffle: true,
         useMocks: true,
@@ -88,54 +88,169 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
                 assert.isFalse(idata.exist);
             });
 
-            it("#1.1.4 publisher can update update the index", async () => {
+            it("#1.1.4 publisher can update the index", async () => {
+                await t.upgradeBalance("alice", INIT_BALANCE);
                 await shouldCreateIndex({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+
                 await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "1984",
+                    indexValue: "200",
                 });
+                await testExpectedBalances([
+                    [alice, toWad("99.80")],
+                    [bob, toWad("0.00")],
+                ]);
 
                 await verifyAll();
             });
 
             it("#1.1.5 publisher should fail to update non-existent index", async () => {
                 await expectRevert(
-                    shouldDistribute({
-                        testenv: t,
-                        publisherName: "alice",
+                    t.sf.ida.updateIndex({
+                        superToken: superToken.address,
+                        sender: alice, // FIXME
                         indexId: DEFAULT_INDEX_ID,
-                        indexValue: "1984",
+                        indexValue: "42",
                     }),
+                    "IDA: E_NO_INDEX"
+                );
+                await expectRevert(
+                    t.sf.ida.distribute({
+                        superToken: superToken.address,
+                        sender: alice, // FIXME
+                        indexId: DEFAULT_INDEX_ID,
+                        amount: "42",
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
+                await expectRevert(
+                    t.sf.agreements.ida.calculateDistribution(
+                        superToken.address,
+                        alice,
+                        DEFAULT_INDEX_ID,
+                        "42"
+                    ),
                     "IDA: E_NO_INDEX"
                 );
             });
 
             it("#1.1.6 publisher should fail to update index with smaller value", async () => {
+                await t.upgradeBalance("alice", INIT_BALANCE);
+
                 await shouldCreateIndex({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await shouldDistribute({
+                await shouldUpdateSubscription({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "1984",
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
                 });
 
                 await shouldDistribute({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "1984",
+                    indexValue: "200",
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.80")],
+                    [bob, toWad("0.00")],
+                ]);
+
+                await shouldDistribute({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "200",
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.80")],
+                    [bob, toWad("0.00")],
+                ]);
+
+                await expectRevert(
+                    shouldDistribute({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        indexValue: "199",
+                    }),
+                    "IDA: E_INDEX_GROW"
+                );
+            });
+
+            it("#1.1.7 publisher can distribute by specifiying amount", async () => {
+                await t.upgradeBalance("alice", INIT_BALANCE);
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+
+                await shouldDistribute({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    amount: toWad(1).toString(),
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.00")],
+                    [bob, toWad("0.00")],
+                ]);
+
+                await shouldDistribute({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    amount: toWad(1).toString(),
+                });
+                await testExpectedBalances([
+                    [alice, toWad("98.00")],
+                    [bob, toWad("0.00")],
+                ]);
+            });
+
+            it("#1.1.8 publisher cannot distribute with insufficient balance", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
                 });
 
                 await expectRevert(
@@ -143,9 +258,9 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
                         testenv: t,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
-                        indexValue: "1983",
+                        amount: toWad(1).toString(),
                     }),
-                    "IDA: E_INDEX_GROW"
+                    "IDA: E_LOW_BALANCE"
                 );
             });
         });
@@ -425,9 +540,40 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
                 assert.equal(subs.publishers.length, 1);
             });
+
+            it("#1.2.10 one should fail to use a subscription of a non-existent index", async () => {
+                await expectRevert(
+                    shouldApproveSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
+                await expectRevert(
+                    shouldUpdateSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        units: "42",
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
+                await expectRevert(
+                    t.sf.ida.getSubscription({
+                        superToken: superToken.address,
+                        publisher: alice,
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriber: bob,
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
+            });
         });
 
-        describe("#1.3 distribution operations", () => {
+        describe("#1.3 distribution workflows", () => {
             it("#1.3.1 approveSubscription -> updateSubscription -> updateIndex", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
@@ -697,7 +843,7 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
             });
         });
 
-        describe("#1.4 claim operation", () => {
+        describe("#1.4 claim workflows", () => {
             it("#1.4.1 subscriber can claim distribution from its pending subscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
@@ -722,6 +868,11 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "100",
                 });
+                await testExpectedBalances([
+                    [alice, toWad("99.7")],
+                    [bob, toWad("0.0")],
+                ]);
+
                 subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
                     subscriber: bob,
@@ -735,21 +886,22 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
                     subscriberName: "bob",
                     senderName: "bob",
                 });
+                await testExpectedBalances([
+                    [alice, toWad("99.7")],
+                    [bob, toWad("0.3")],
+                ]);
 
-                // claim by third party
-                await shouldDistribute({
-                    testenv: t,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
-                });
                 await shouldClaimPendingDistribution({
                     testenv: t,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    senderName: "dan",
+                    senderName: "bob",
                 });
+                await testExpectedBalances([
+                    [alice, toWad("99.7")],
+                    [bob, toWad("0.3")],
+                ]);
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -825,6 +977,32 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
                         senderName: "bob",
                     }),
                     "IDA: E_NO_INDEX"
+                );
+            });
+
+            it("#1.4.5 subscriber should not claim from a already approved subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+
+                await expectRevert(
+                    shouldClaimPendingDistribution({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        senderName: "bob",
+                    }),
+                    "IDA: E_SUBS_APPROVED"
                 );
             });
         });
@@ -910,7 +1088,7 @@ contract.only("Using InstanceDistributionAgreement v1", (accounts) => {
         });
     });
 
-    context.only("#10 scenarios", async () => {
+    context("#10 scenarios", async () => {
         it("#10.1 1to3 distribution scenario", async () => {
             await t.upgradeBalance("alice", INIT_BALANCE);
 

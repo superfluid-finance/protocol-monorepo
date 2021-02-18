@@ -112,7 +112,8 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidToken indexed token,
         address indexed publisher,
         uint32 indexed indexId,
-        uint128 indexValue,
+        uint128 oldIndexValue,
+        uint128 newIndexValue,
         uint128 totalUnitsPending,
         uint128 totalUnitsApproved,
         bytes userData);

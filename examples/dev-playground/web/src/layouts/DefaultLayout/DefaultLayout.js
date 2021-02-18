@@ -1,5 +1,6 @@
 import { routes, navigate, Link } from '@redwoodjs/router'
 import { useAuth } from '@redwoodjs/auth'
+import { disconnectWalletConnect } from 'src/utils/walletConnect'
 
 const DefaultLayout = ({ children }) => {
   const [isLoggingIn, setIsLoggingIn] = React.useState(false)
@@ -7,6 +8,7 @@ const DefaultLayout = ({ children }) => {
 
   const onLogOut = () => {
     logOut()
+    disconnectWalletConnect()
     navigate(routes.home())
   }
 

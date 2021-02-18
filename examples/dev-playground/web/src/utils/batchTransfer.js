@@ -4,17 +4,18 @@ import { defaultAbiCoder } from '@ethersproject/abi'
 import toast from 'react-hot-toast'
 
 import { getErrorResponse } from './general'
-import { unlockBrowser } from './connect'
+import { unlockWallet } from './wallet'
 
 export const batchTransfer = async ({ tokenAddress, recipients, amounts }) => {
   try {
     if (recipients.length !== amounts.length)
       throw Error('The number of recipients and amounts must be the same')
     toast('Connecting to your wallet...')
-    const { walletProvider, walletAddress, network } = await unlockBrowser({
+    const { walletProvider, walletAddress, network } = await unlockWallet({
       debug: true,
+      infuraId: process.env.INFURA_ENDPOINT_KEY,
     })
-    toast('Your wallet is on ', network)
+    toast(`Your wallet is on chain ${network.chainId}`)
 
     const sf = new SuperfluidSDK.Framework({
       ethers: walletProvider,

@@ -66,7 +66,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
-    async updateSupscription({
+    async updateSubscription({
         superToken,
         indexId,
         subscriber,
@@ -123,7 +123,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
-    async deleteSupscription({
+    async deleteSubscription({
         superToken,
         indexId,
         publisher,

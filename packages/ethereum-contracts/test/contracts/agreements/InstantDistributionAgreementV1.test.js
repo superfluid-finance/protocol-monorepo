@@ -1,5 +1,5 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
-const { wad4human, toWad } = require("@decentral.ee/web3-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
+const { web3tx, wad4human, toWad } = require("@decentral.ee/web3-helpers");
 const {
     shouldCreateIndex,
     shouldDistribute,
@@ -12,7 +12,7 @@ const {
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
 
-const DEFAULT_INDEX_ID = 42;
+const DEFAULT_INDEX_ID = "42";
 
 contract("Using InstanceDistributionAgreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
@@ -1013,6 +1013,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
     context("#2 callbacks", () => {
         let app;
 
+        function idaSelector(functionName) {
+            return t.sf.agreements.ida.abi.filter(
+                (i) => i.name === functionName
+            )[0].signature;
+        }
+
         beforeEach(async () => {
             app = await IDASuperAppTester.new(
                 t.sf.host.address,
@@ -1024,27 +1030,383 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             t.addAlias("app", app.address);
         });
 
-        it("approveSubscription AgreementCreated", async () => {
-            await shouldApproveSubscription({
+        afterEach(async () => {
+            assert.isFalse(
+                await t.sf.host.isAppJailed(app.address),
+                "App got jailed"
+            );
+        });
+
+        it("#2.1 approveSubscription AgreementCreated callbacks", async () => {
+            const tx = await shouldApproveSubscription({
                 testenv: t,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
                 userData: web3.eth.abi.encodeParameters(
-                    ["bytes32", "address", "address", "bytes"],
+                    ["bytes32", "bytes4", "bytes"],
                     [
-                        web3.utils.sha3("create"),
-                        superToken.address,
-                        t.sf.agreements.ida.address,
+                        web3.utils.sha3("created"),
+                        idaSelector("approveSubscription"),
                         "0x",
                     ]
                 ),
             });
+            await expectEvent.notEmitted.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore"
+            );
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: true,
+                    units: "0",
+                    pendingDistribution: "0",
+                }
+            );
+        });
+
+        it("#2.2 approveSubscription AgreementUpdated callbacks", async () => {
+            const units = toWad("0.003").toString();
+            await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                units,
+                fn: async () => {
+                    return await web3tx(
+                        app.updateSubscription,
+                        "app.updateSubscription alice"
+                    )(alice, units);
+                },
+            });
+            const tx = await shouldApproveSubscription({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("updated"),
+                        idaSelector("approveSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: true,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
+        });
+
+        it("#2.3 updateSubscription AgreementCreated callbacks", async () => {
+            const units = toWad("0.003").toString();
+            await shouldCreateIndex({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+            });
+            const tx = await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "app",
+                units,
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("created"),
+                        idaSelector("updateSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            await expectEvent.notEmitted.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore"
+            );
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter",
+                {
+                    publisher: alice,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
+        });
+
+        it("#2.4 updateSubscription AgreementUpdated callbacks", async () => {
+            const units1 = toWad("0.003").toString();
+            const units2 = toWad("0.004").toString();
+            await shouldCreateIndex({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+            });
+            await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "app",
+                units: units1,
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("created"),
+                        idaSelector("updateSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            const tx = await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "app",
+                units: units2,
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("updated"),
+                        idaSelector("updateSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore",
+                {
+                    publisher: alice,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units: units1,
+                    pendingDistribution: "0",
+                }
+            );
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter",
+                {
+                    publisher: alice,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units: units2,
+                    pendingDistribution: "0",
+                }
+            );
+        });
+
+        it("#2.5 subscriber deleteSubscription callbacks", async () => {
+            const units = toWad("0.003").toString();
+            await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                units,
+                fn: async () => {
+                    return await web3tx(
+                        app.updateSubscription,
+                        "app.updateSubscription alice"
+                    )(alice, units);
+                },
+            });
+            const tx = await shouldDeleteSubscription({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                senderName: "alice",
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("deleted"),
+                        idaSelector("deleteSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
+            await expectEvent.notEmitted.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter"
+            );
+        });
+
+        it("#2.6 publisher deleteSubscription callbacks", async () => {
+            const units = toWad("0.003").toString();
+            await shouldCreateIndex({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+            });
+            await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "app",
+                units,
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("created"),
+                        idaSelector("updateSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            const tx = await shouldDeleteSubscription({
+                testenv: t,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "app",
+                senderName: "alice",
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("deleted"),
+                        idaSelector("deleteSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore",
+                {
+                    publisher: alice,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
+            await expectEvent.notEmitted.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter"
+            );
+        });
+
+        it("#2.7 claim callbacks", async () => {
+            await t.upgradeBalance("alice", INIT_BALANCE);
+            await t.transferBalance("alice", "app", INIT_BALANCE);
+
+            const units = toWad("0.005").toString();
+            const distributionAmount = toWad(1).toString();
+            await shouldUpdateSubscription({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                units,
+                fn: async () => {
+                    return await web3tx(
+                        app.updateSubscription,
+                        "app.updateSubscription alice"
+                    )(alice, units);
+                },
+            });
+            await shouldDistribute({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                amount: distributionAmount,
+                fn: async () => {
+                    return await web3tx(
+                        app.distribute,
+                        "app.distribute"
+                    )(distributionAmount);
+                },
+            });
+            const tx = await shouldClaimPendingDistribution({
+                testenv: t,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                senderName: "dan",
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [web3.utils.sha3("updated"), idaSelector("claim"), "0x"]
+                ),
+            });
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: distributionAmount,
+                }
+            );
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
         });
     });
 
     context("#3 misc", async () => {
-        it.only("#4.1 only authorized host can access token", async () => {
+        it("#4.1 only authorized host can access token", async () => {
             const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
             const fakeHost = await FakeSuperfluidMock.new();
             const ida = t.sf.agreements.ida;

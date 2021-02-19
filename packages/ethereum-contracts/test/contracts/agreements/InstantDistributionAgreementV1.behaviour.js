@@ -221,6 +221,7 @@ async function shouldDistribute({
     indexId,
     indexValue,
     amount,
+    fn,
 }) {
     console.log("======== shouldDistribute begins ========");
     const superToken = testenv.contracts.superToken.address;
@@ -241,7 +242,17 @@ async function shouldDistribute({
     const subscriberAddresses = Object.keys(subscribers);
 
     let tx;
-    if (indexValue) {
+    if (fn) {
+        indexValue = (
+            await testenv.sf.agreements.ida.calculateDistribution(
+                superToken,
+                publisher,
+                indexId,
+                amount
+            )
+        ).newIndexValue.toString();
+        tx = await fn();
+    } else if (indexValue) {
         tx = await web3tx(
             testenv.sf.ida.updateIndex,
             `${publisherName} distributes tokens to index @${indexId} with indexValue ${indexValue}`
@@ -251,7 +262,7 @@ async function shouldDistribute({
             indexId,
             indexValue,
         });
-    } else {
+    } else if (amount) {
         indexValue = (
             await testenv.sf.agreements.ida.calculateDistribution(
                 superToken,
@@ -575,6 +586,8 @@ async function shouldApproveSubscription({
     );
 
     console.log("======== shouldApproveSubscription ends ========");
+
+    return tx;
 }
 
 async function shouldUpdateSubscription({
@@ -583,6 +596,8 @@ async function shouldUpdateSubscription({
     indexId,
     subscriberName,
     units,
+    userData,
+    fn,
 }) {
     console.log("======== shouldUpdateSubscription begins ========");
     const superToken = testenv.contracts.superToken.address;
@@ -597,16 +612,19 @@ async function shouldUpdateSubscription({
         subscriber,
     });
 
-    const tx = await web3tx(
-        testenv.sf.ida.updateSupscription,
-        `${publisherName} updates subscription from ${subscriberName} of index @${indexId} with ${units} units`
-    )({
-        superToken,
-        sender: publisher, // FIXME
-        indexId,
-        subscriber,
-        units,
-    });
+    const tx = !fn
+        ? await web3tx(
+              testenv.sf.ida.updateSubscription,
+              `${publisherName} updates subscription from ${subscriberName} of index @${indexId} with ${units} units`
+          )({
+              superToken,
+              sender: publisher, // FIXME
+              indexId,
+              subscriber,
+              units,
+              userData,
+          })
+        : await fn();
 
     // update subscribers list
     _.merge(
@@ -676,7 +694,7 @@ async function shouldUpdateSubscription({
             indexId: indexId.toString(),
             subscriber,
             units,
-            userData: null,
+            userData: userData || null,
         }
     );
     await expectEvent.inTransaction(
@@ -689,11 +707,13 @@ async function shouldUpdateSubscription({
             publisher,
             indexId: indexId.toString(),
             units,
-            userData: null,
+            userData: userData || null,
         }
     );
 
     console.log("======== shouldUpdateSubscription ends ========");
+
+    return tx;
 }
 
 async function shouldDeleteSubscription({
@@ -702,6 +722,7 @@ async function shouldDeleteSubscription({
     indexId,
     subscriberName,
     senderName,
+    userData,
 }) {
     console.log("======== shouldDeleteSubscription begins ========");
     const superToken = testenv.contracts.superToken.address;
@@ -718,7 +739,7 @@ async function shouldDeleteSubscription({
     });
 
     const tx = await web3tx(
-        testenv.sf.ida.deleteSupscription,
+        testenv.sf.ida.deleteSubscription,
         `${senderName} deletes subscription from ${subscriberName} to index ${publisherName}@${indexId}`
     )({
         superToken,
@@ -726,6 +747,7 @@ async function shouldDeleteSubscription({
         indexId,
         subscriber,
         sender,
+        userData,
     });
 
     // update subscribers list
@@ -784,7 +806,7 @@ async function shouldDeleteSubscription({
             publisher,
             indexId: indexId.toString(),
             subscriber,
-            userData: null,
+            userData: userData || null,
         }
     );
     await expectEvent.inTransaction(
@@ -797,7 +819,7 @@ async function shouldDeleteSubscription({
             indexId: indexId.toString(),
             subscriber,
             units: "0",
-            userData: null,
+            userData: userData || null,
         }
     );
     await expectEvent.inTransaction(
@@ -810,11 +832,13 @@ async function shouldDeleteSubscription({
             publisher,
             indexId: indexId.toString(),
             units: "0",
-            userData: null,
+            userData: userData || null,
         }
     );
 
     console.log("======== shouldDeleteSubscription ends ========");
+
+    return tx;
 }
 
 async function shouldClaimPendingDistribution({
@@ -823,6 +847,7 @@ async function shouldClaimPendingDistribution({
     indexId,
     subscriberName,
     senderName,
+    userData,
 }) {
     console.log("======== shouldClaimPendingDistribution begins ========");
 
@@ -839,7 +864,7 @@ async function shouldClaimPendingDistribution({
         subscriber,
     });
 
-    await web3tx(
+    const tx = await web3tx(
         testenv.sf.ida.claim,
         `${subscriberName} claims pending distrubtions from ${publisherName}@${indexId}`
     )({
@@ -848,6 +873,7 @@ async function shouldClaimPendingDistribution({
         indexId,
         subscriber,
         sender,
+        userData,
     });
 
     _updateSubscriptionData({
@@ -873,6 +899,8 @@ async function shouldClaimPendingDistribution({
     });
 
     console.log("======== shouldClaimPendingDistribution ends ========");
+
+    return tx;
 }
 
 module.exports = {

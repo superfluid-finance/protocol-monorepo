@@ -101,7 +101,7 @@ module.exports = class User {
             });
             if (!exist) throw "This pool has not been created yet";
 
-            return await this.sf.ida.updateSupscription({
+            return await this.sf.ida.updateSubscription({
                 superToken: this.token,
                 indexId,
                 subscriber: recipientAddress,

@@ -70,7 +70,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
@@ -113,9 +113,9 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
             });
         });
 
-        it("updateSupscription", async () => {
+        it("updateSubscription", async () => {
             const units = 100;
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
@@ -133,7 +133,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
 
         it("approveSubscription", async () => {
             const units = 100;
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
@@ -156,9 +156,9 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
             assert.equal(index.totalUnitsApproved, units);
         });
 
-        it("deleteSupscription from publisher", async () => {
+        it("deleteSubscription from publisher", async () => {
             const units = 100;
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
@@ -166,7 +166,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.deleteSupscription({
+            await sf.ida.deleteSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
@@ -196,7 +196,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 indexId,
                 sender: publisher,
             });
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: subscriber1,
@@ -226,7 +226,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
         it("distribute - multiple subscribers", async () => {
             const amount = toWad(100);
             // Add the second additional subscriber
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: subscriber2,
@@ -266,7 +266,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: bob,
@@ -274,7 +274,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: carol,
@@ -316,7 +316,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,

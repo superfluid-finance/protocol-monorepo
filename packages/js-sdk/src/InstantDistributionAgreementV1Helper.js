@@ -123,6 +123,31 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
+    async revokeSubscription({
+        superToken,
+        indexId,
+        publisher,
+        subscriber,
+        userData = "0x",
+        onTransaction = () => null,
+    }) {
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
+                this._ida.address,
+                this._ida.contract.methods
+                    .revokeSubscription(superToken, publisher, indexId, "0x")
+                    .encodeABI(),
+                userData,
+            ],
+            sender: subscriber,
+            method: this._sf.host.callAgreement,
+            onTransaction,
+        });
+        console.debug("Subscription revoked.");
+        return tx;
+    }
+
     async deleteSubscription({
         superToken,
         indexId,

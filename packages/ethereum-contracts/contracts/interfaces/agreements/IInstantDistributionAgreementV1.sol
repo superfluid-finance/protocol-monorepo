@@ -41,6 +41,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
     }
 
+    /**************************************************************************
+     * Index operations
+     *************************************************************************/
+
     /**
      * @dev Create a new index for the publisher.
      * @param token Super token address.
@@ -86,6 +90,24 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
                 uint128 indexValue,
                 uint128 totalUnitsApproved,
                 uint128 totalUnitsPending);
+
+    /**
+     * @dev Calculate actual distribution amount
+     * @param token Super token address.
+     * @param publisher The publisher of the index.
+     * @param indexId Id of the index.
+     * @param amount The amount of tokens desired to be distributed.
+     */
+    function calculateDistribution(
+       ISuperfluidToken token,
+       address publisher,
+       uint32 indexId,
+       uint256 amount)
+           external view
+           virtual
+           returns(
+               uint256 actualAmount,
+               uint128 newIndexValue);
 
     /**
      * @dev Update index value of an index.
@@ -142,23 +164,10 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             virtual
             returns(bytes memory newCtx);
 
-    /**
-     * @dev Calculate actual distribution amount
-     * @param token Super token address.
-     * @param publisher The publisher of the index.
-     * @param indexId Id of the index.
-     * @param amount The amount of tokens desired to be distributed.
-     */
-    function calculateDistribution(
-       ISuperfluidToken token,
-       address publisher,
-       uint32 indexId,
-       uint256 amount)
-           external view
-           virtual
-           returns(
-               uint256 actualAmount,
-               uint128 newIndexValue);
+
+    /**************************************************************************
+     * Subscription operations
+     *************************************************************************/
 
     /**
      * @dev Approve the subscription of an index.
@@ -192,6 +201,39 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         bytes userData);
 
     event SubscriptionApproved(
+        ISuperfluidToken indexed token,
+        address indexed subscriber,
+        address publisher,
+        uint32 indexId,
+        bytes userData);
+
+    /**
+    * @dev Revoke the subscription of an index.
+    * @param token Super token address.
+    * @param publisher The publisher of the index.
+    * @param indexId Id of the index.
+    *
+    * # App callbacks
+    * - AgreementUpdated callback to the publisher:
+    *    - agreementId is for the subscription
+    */
+    function revokeSubscription(
+        ISuperfluidToken token,
+        address publisher,
+        uint32 indexId,
+        bytes calldata ctx)
+         external
+         virtual
+         returns(bytes memory newCtx);
+
+    event IndexUnsubscribed(
+        ISuperfluidToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId,
+        address subscriber,
+        bytes userData);
+
+    event SubscriptionRevoked(
         ISuperfluidToken indexed token,
         address indexed subscriber,
         address publisher,
@@ -334,13 +376,6 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
             external
             virtual
             returns(bytes memory newCtx);
-
-    event IndexUnsubscribed(
-        ISuperfluidToken indexed token,
-        address indexed publisher,
-        uint32 indexed indexId,
-        address subscriber,
-        bytes userData);
 
     /**
     * @dev Claim pending distributions.

@@ -716,6 +716,114 @@ async function shouldUpdateSubscription({
     return tx;
 }
 
+async function shouldRevokeSubscription({
+    testenv,
+    publisherName,
+    indexId,
+    subscriberName,
+    userData,
+}) {
+    console.log("======== shouldRevokeSubscription begins ========");
+    const superToken = testenv.contracts.superToken.address;
+    const publisher = testenv.getAddress(publisherName);
+    const subscriber = testenv.getAddress(subscriberName);
+
+    const { idataBefore, sdataBefore } = await _beforeSubscriptionUpdate({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    });
+
+    const tx = await web3tx(
+        testenv.sf.ida.revokeSubscription,
+        `${subscriberName} revoke subscription to index ${publisherName}@${indexId}`
+    )({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        userData,
+    });
+
+    // update subscribers list
+    delete getSubscribers({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+    })[subscriber];
+    // update subscription data
+    _updateSubscriptionData({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        subscriptionData: {
+            exist: true,
+            approved: false,
+            _syncedIndexValue: idataBefore.indexValue,
+        },
+    });
+    // update index data
+    _updateIndexData({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+        indexData: {
+            totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
+                .sub(toBN(sdataBefore.units))
+                .toString(),
+            totalUnitsPending: toBN(idataBefore.totalUnitsPending)
+                .add(toBN(sdataBefore.units))
+                .toString(),
+        },
+    });
+
+    await _afterSubscriptionUpdate({
+        testenv,
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        idataBefore,
+        sdataBefore,
+    });
+
+    // expect events
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.contracts.IInstantDistributionAgreementV1,
+        "IndexUnsubscribed",
+        {
+            token: superToken,
+            publisher,
+            indexId: indexId.toString(),
+            subscriber,
+            userData: userData || null,
+        }
+    );
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.contracts.IInstantDistributionAgreementV1,
+        "SubscriptionRevoked",
+        {
+            token: superToken,
+            publisher,
+            indexId: indexId.toString(),
+            subscriber,
+            userData: userData || null,
+        }
+    );
+
+    console.log("======== shouldRevokeSubscription ends ========");
+
+    return tx;
+}
+
 async function shouldDeleteSubscription({
     testenv,
     publisherName,
@@ -801,6 +909,18 @@ async function shouldDeleteSubscription({
         tx.tx,
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexUnsubscribed",
+        {
+            token: superToken,
+            publisher,
+            indexId: indexId.toString(),
+            subscriber,
+            userData: userData || null,
+        }
+    );
+    await expectEvent.inTransaction(
+        tx.tx,
+        testenv.sf.contracts.IInstantDistributionAgreementV1,
+        "SubscriptionRevoked",
         {
             token: superToken,
             publisher,
@@ -911,6 +1031,7 @@ module.exports = {
     getSubscriptionData,
     shouldApproveSubscription,
     shouldUpdateSubscription,
+    shouldRevokeSubscription,
     shouldDeleteSubscription,
     shouldClaimPendingDistribution,
 };

@@ -5,6 +5,7 @@ const {
     shouldDistribute,
     shouldApproveSubscription,
     shouldUpdateSubscription,
+    shouldRevokeSubscription,
     shouldDeleteSubscription,
     shouldClaimPendingDistribution,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
@@ -569,6 +570,127 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                         publisher: alice,
                         indexId: DEFAULT_INDEX_ID,
                         subscriber: bob,
+                    }),
+                    "IDA: E_NO_INDEX"
+                );
+            });
+
+            it("#1.2.11 subscriber can revoke its subscription", async () => {
+                let subs;
+                await t.upgradeBalance("alice", INIT_BALANCE);
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+
+                await shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await t.sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber: bob,
+                });
+                assert.equal(subs.publishers.length, 1);
+
+                await shouldDistribute({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "200",
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.8")],
+                    [bob, toWad("0.2")],
+                ]);
+
+                await shouldRevokeSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await t.sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber: bob,
+                });
+                assert.equal(subs.publishers.length, 0);
+
+                await shouldDistribute({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    indexValue: "500",
+                });
+                await testExpectedBalances([
+                    [alice, toWad("99.5")],
+                    [bob, toWad("0.2")],
+                ]);
+
+                await verifyAll();
+            });
+
+            it("#1.2.12 subscriber should fail to revoke an pending subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+                await expectRevert(
+                    shouldRevokeSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                    }),
+                    "IDA: E_SUBS_NOT_APPROVED"
+                );
+            });
+
+            it("#1.2.13 subscriber should fail to revoke a non-existen subscription", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await expectRevert(
+                    shouldRevokeSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                    }),
+                    "IDA: E_NO_SUBS"
+                );
+            });
+
+            it("#1.2.14 subscriber should fail to revoke a subscription of a non-existent index", async () => {
+                await expectRevert(
+                    shouldRevokeSubscription({
+                        testenv: t,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "bob",
+                        senderName: "bob",
                     }),
                     "IDA: E_NO_INDEX"
                 );
@@ -1401,6 +1523,27 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     units,
                     pendingDistribution: "0",
                 }
+            );
+        });
+
+        it("#2.8 getSubscriptionByID revert with E_NO_SUBS", async () => {
+            await app.setForceGetSubscriptionByID();
+            await expectRevert(
+                shouldApproveSubscription({
+                    testenv: t,
+                    publisherName: "app",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "alice",
+                    userData: web3.eth.abi.encodeParameters(
+                        ["bytes32", "bytes4", "bytes"],
+                        [
+                            web3.utils.sha3("created"),
+                            idaSelector("approveSubscription"),
+                            "0x",
+                        ]
+                    ),
+                }),
+                "IDA: E_NO_SUBS"
             );
         });
     });

@@ -130,6 +130,12 @@ contract IDASuperAppTester is ISuperApp {
         ) = _ida.getSubscriptionByID(_token, agreementId);
         return abi.encode(publisher, indexId, approved, units, pendingDistribution);
     }
+
+    bool private _forceGetSubscriptionByID = false;
+    function setForceGetSubscriptionByID() external {
+        _forceGetSubscriptionByID = true;
+    }
+
     function _emitSubscriptionDataEvents(bytes memory cbdata, bytes32 agreementId, bool deleted)
         private
     {
@@ -165,7 +171,7 @@ contract IDASuperAppTester is ISuperApp {
     function beforeAgreementCreated(
         ISuperToken superToken,
         address agreementClass,
-        bytes32 /*agreementId*/,
+        bytes32 agreementId,
         bytes calldata agreementData,
         bytes calldata ctx
     )
@@ -176,6 +182,9 @@ contract IDASuperAppTester is ISuperApp {
         returns (bytes memory cbdata)
     {
         _expectCallback(ctx, keccak256("created"), agreementData);
+        if (_forceGetSubscriptionByID) {
+            _ida.getSubscriptionByID(_token, agreementId);
+        }
         return new bytes(0);
     }
 

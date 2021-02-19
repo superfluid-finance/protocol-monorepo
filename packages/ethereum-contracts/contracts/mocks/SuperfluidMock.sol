@@ -155,7 +155,7 @@ contract SuperfluidMock is Superfluid {
     }
 
     function testIsValidAbiEncodedBytes() external pure {
-        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(42)), "bad data");
+        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(1, 2, 3)), "bad data");
         require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(0))), "0");
         require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(1))), "1");
         require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(32))), "32");

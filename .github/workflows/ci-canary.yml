@@ -68,16 +68,15 @@ jobs:
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
-        working-directory: packages/ethereum-contracts
         with:
           name: coverage
           path: |
-            coverage/
-            coverage.json
+            packages/ethereum-contracts/coverage/
+            packages/ethereum-contracts/coverage.json
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
-        working-directory: packages/ethereum-contracts
+        base-path: packages/ethereum-contracts
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

@@ -68,14 +68,16 @@ jobs:
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
+        working-directory: packages/ethereum-contracts
         with:
           name: coverage
           path: |
-            packages/ethereum-contracts/coverage/
-            packages/ethereum-contracts/coverage.json
+            coverage/
+            coverage.json
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
+        working-directory: packages/ethereum-contracts
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -83,6 +85,7 @@ jobs:
     name: NPM publish dev branch
 
     needs: [build, coverage]
+    if: false #FIXME
 
     runs-on: ubuntu-latest
 
@@ -119,6 +122,7 @@ jobs:
     name: Deploy Canary to dev-testnets
 
     needs: [build, coverage]
+    if: false #FIXME
 
     runs-on: ubuntu-latest
 

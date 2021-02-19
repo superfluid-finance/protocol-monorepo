@@ -405,12 +405,36 @@ contract SuperAppMockReturningEmptyCtx {
         _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
     }
 
+    function beforeAgreementCreated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
+    )
+        external pure
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
     function afterAgreementCreated(
         ISuperToken /*superToken*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*agreementData*/,
         bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
+    )
+        external pure
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
+    function beforeAgreementTerminated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
         bytes calldata /*ctx*/
     )
         external pure

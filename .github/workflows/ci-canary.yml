@@ -2,7 +2,7 @@ name: CI Canary
 
 on:
   push:
-    branches: ["dev"]
+    branches: ["dev", "process/issue-27-ci-coverage-integration"]
     paths:
       - 'packages/**'
       # - '**.md' commented-out because README updates should go to the packages
@@ -73,6 +73,11 @@ jobs:
           path: |
             packages/ethereum-contracts/coverage/
             packages/ethereum-contracts/coverage.json
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     name: NPM publish dev branch

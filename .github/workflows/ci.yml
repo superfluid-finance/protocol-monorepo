@@ -43,13 +43,13 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint and build
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_ETHEREUM_CONTRACTS == 1
         run: |
           yarn install --frozen-lockfilepull_request
           yarn lint
@@ -78,13 +78,13 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_JS_SDK == 1
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 
       - name: Install, lint and build
-        if: env.BUILD_ANYTHING == 1
+        if: env.BUILD_JS_SDK == 1
         run: |
           yarn install --frozen-lockfilepull_request
           yarn lint

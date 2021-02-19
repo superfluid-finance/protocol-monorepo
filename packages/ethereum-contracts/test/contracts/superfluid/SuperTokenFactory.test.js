@@ -11,10 +11,10 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const { web3tx } = require("@decentral.ee/web3-helpers");
 
-contract("SuperTokenFactory Contract", accounts => {
+contract("SuperTokenFactory Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 1), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     //const { admin, alice, bob } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
@@ -111,7 +111,7 @@ contract("SuperTokenFactory Contract", accounts => {
 
             it("#2.a.1 non upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0
+                    upgradability: 0,
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
@@ -134,7 +134,7 @@ contract("SuperTokenFactory Contract", accounts => {
 
             it("#2.a.2 semi upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 1
+                    upgradability: 1,
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 assert.equal(
@@ -158,7 +158,7 @@ contract("SuperTokenFactory Contract", accounts => {
 
             it("#2.a.3 full upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 2
+                    upgradability: 2,
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
@@ -186,21 +186,21 @@ contract("SuperTokenFactory Contract", accounts => {
                     "governance.updateContracts"
                 )(superfluid.address, ZERO_ADDRESS, [], factory2Logic.address);
                 let superToken0 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0
+                    upgradability: 0,
                 });
                 assert.equal(
                     await superToken0.getUnderlyingToken.call(),
                     token1.address
                 );
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 1
+                    upgradability: 1,
                 });
                 assert.equal(
                     await superToken1.getUnderlyingToken.call(),
                     token1.address
                 );
                 let superToken2 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 2
+                    upgradability: 2,
                 });
                 assert.equal(
                     await superToken2.getUnderlyingToken.call(),

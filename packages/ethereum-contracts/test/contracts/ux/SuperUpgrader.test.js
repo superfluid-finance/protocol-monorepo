@@ -9,10 +9,10 @@ const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE");
 
-contract("Superfluid Super Upgrader Contract", accounts => {
+contract("Superfluid Super Upgrader Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 6), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { admin, alice, bob, carol, dan, eve } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
@@ -26,7 +26,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
         await t.reset();
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
         ({ superToken, testToken } = t.contracts);
     });
@@ -82,11 +82,11 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 testToken.approve,
                 "testToken.approve - from alice to admin"
             )(upgrader.address, toWad("3"), {
-                from: alice
+                from: alice,
             });
             await expectRevert(
                 upgrader.upgrade(superToken.address, alice, toWad("3"), {
-                    from: eve
+                    from: eve,
                 }),
                 "operation not allowed"
             );
@@ -98,14 +98,14 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 testToken.approve,
                 "testToken.approve - from alice to admin"
             )(upgrader.address, toWad("3"), {
-                from: alice
+                from: alice,
             });
             await web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 toWad("3"),
                 {
-                    from: backend[0]
+                    from: backend[0],
                 }
             );
             const aliceSuperTokenBalance = await superToken.balanceOf.call(
@@ -124,7 +124,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 testToken.approve,
                 "testToken.approve - from alice to backend"
             )(upgrader.address, toWad("3"), {
-                from: alice
+                from: alice,
             });
 
             await web3tx(upgrader.upgrade, "upgrader.upgrade")(
@@ -132,7 +132,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 alice,
                 1,
                 {
-                    from: backend[1]
+                    from: backend[1],
                 }
             );
 
@@ -149,14 +149,14 @@ contract("Superfluid Super Upgrader Contract", accounts => {
         it("#2.4 Should upgrade large amount", async () => {
             const upgrader = await SuperUpgrader.new(admin, backend);
             await testToken.mint(alice, toWad("100000000000"), {
-                from: admin
+                from: admin,
             });
 
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to backend"
             )(upgrader.address, toWad("100000000000"), {
-                from: alice
+                from: alice,
             });
 
             await web3tx(upgrader.upgrade, "upgrader.upgrade")(
@@ -164,7 +164,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 alice,
                 toWad("100000000000"),
                 {
-                    from: backend[2]
+                    from: backend[2],
                 }
             );
 
@@ -187,7 +187,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                     alice,
                     1,
                     {
-                        from: backend[0]
+                        from: backend[0],
                     }
                 ),
                 "ERC20: transfer amount exceeds allowance"
@@ -200,7 +200,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 testToken.approve,
                 "testToken.approve - from alice to backend"
             )(upgrader.address, toWad("1"), {
-                from: alice
+                from: alice,
             });
 
             await expectRevert(
@@ -209,7 +209,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                     alice,
                     "1000000000000000001",
                     {
-                        from: backend[0]
+                        from: backend[0],
                     }
                 ),
                 "ERC20: transfer amount exceeds allowance"
@@ -222,14 +222,14 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 testToken.approve,
                 "testToken.approve - from alice to admin"
             )(upgrader.address, toWad("1000000"), {
-                from: alice
+                from: alice,
             });
             await web3tx(upgrader.upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
                 toWad("3"),
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             const aliceSuperTokenBalance = await superToken.balanceOf.call(
@@ -248,7 +248,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 testToken.approve,
                 "testToken.approve - from alice to backend"
             )(upgrader.address, toWad("1000000"), {
-                from: alice
+                from: alice,
             });
 
             await web3tx(
@@ -258,7 +258,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
 
             await expectRevert(
                 upgrader.upgrade(superToken.address, alice, toWad("3"), {
-                    from: backend[0]
+                    from: backend[0],
                 }),
                 "operation not allowed"
             );
@@ -273,7 +273,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 alice,
                 toWad("100"),
                 {
-                    from: backend[0]
+                    from: backend[0],
                 }
             );
             const aliceSuperTokenBalance = await superToken.balanceOf.call(
@@ -302,7 +302,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 upgrader.revokeBackendAgent,
                 "admin revoke backend account"
             )(backend[0], {
-                from: admin
+                from: admin,
             });
 
             assert.isOk(
@@ -314,7 +314,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 upgrader.grantBackendAgent,
                 "admin grant backend account"
             )(backend[0], {
-                from: admin
+                from: admin,
             });
 
             assert.isOk(
@@ -344,7 +344,7 @@ contract("Superfluid Super Upgrader Contract", accounts => {
                 DEFAULT_ADMIN_ROLE,
                 bob,
                 {
-                    from: admin
+                    from: admin,
                 }
             );
             assert.isOk(

@@ -5,7 +5,7 @@ const {
     parseColonArgs,
     extractWeb3Options,
     detectTruffleAndConfigure,
-    builtTruffleContractLoader
+    builtTruffleContractLoader,
 } = require("./utils");
 
 /**
@@ -17,7 +17,7 @@ const {
  *
  * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}
  */
-module.exports = async function(callback, argv, options = {}) {
+module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("Deploying test token");
 
@@ -39,7 +39,7 @@ module.exports = async function(callback, argv, options = {}) {
         const { TestResolver, TestToken } = await SuperfluidSDK.loadContracts({
             ...extractWeb3Options(options),
             additionalContracts: ["TestResolver", "TestToken"],
-            contractLoader: builtTruffleContractLoader
+            contractLoader: builtTruffleContractLoader,
         });
 
         const testResolver = await TestResolver.at(config.resolverAddress);

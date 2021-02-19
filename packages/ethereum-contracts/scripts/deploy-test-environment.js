@@ -12,8 +12,8 @@ const { detectTruffleAndConfigure } = require("./utils");
  *
  * Usage: npx truffle exec scripts/deploy-test-environment.js
  */
-module.exports = async function(callback, options = {}) {
-    const errorHandler = err => {
+module.exports = async function (callback, options = {}) {
+    const errorHandler = (err) => {
         if (err) throw err;
     };
 

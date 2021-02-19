@@ -9,7 +9,7 @@ const {
     isProxiable,
     detectTruffleAndConfigure,
     extractWeb3Options,
-    builtTruffleContractLoader
+    builtTruffleContractLoader,
 } = require("./utils");
 
 let reset;
@@ -70,7 +70,7 @@ async function deployNewLogicContractIfNew(
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
-module.exports = async function(callback, options = {}) {
+module.exports = async function (callback, options = {}) {
     try {
         console.log("Deploying superfluid framework");
 
@@ -105,7 +105,7 @@ module.exports = async function(callback, options = {}) {
         console.log("release version:", version);
 
         await deployERC1820(
-            err => {
+            (err) => {
                 if (err) throw err;
             },
             { web3, ...(options.from ? { from: options.from } : {}) }
@@ -121,12 +121,12 @@ module.exports = async function(callback, options = {}) {
             "UUPSProxy",
             "UUPSProxiable",
             "ConstantFlowAgreementV1",
-            "InstantDistributionAgreementV1"
+            "InstantDistributionAgreementV1",
         ];
         const mockContracts = [
             "SuperTokenMockFactory",
             "SuperfluidMock",
-            "SuperTokenFactoryMock"
+            "SuperTokenFactoryMock",
         ];
         const {
             TestResolver,
@@ -140,13 +140,13 @@ module.exports = async function(callback, options = {}) {
             UUPSProxy,
             UUPSProxiable,
             ConstantFlowAgreementV1,
-            InstantDistributionAgreementV1
+            InstantDistributionAgreementV1,
         } = await SuperfluidSDK.loadContracts({
             ...extractWeb3Options(options),
             additionalContracts: contracts.concat(
                 useMocks ? mockContracts : []
             ),
-            contractLoader: builtTruffleContractLoader
+            contractLoader: builtTruffleContractLoader,
         });
 
         if (!newTestResolver && config.resolverAddress) {
@@ -162,7 +162,7 @@ module.exports = async function(callback, options = {}) {
         let governance = await deployAndRegisterContractIf(
             TestGovernance,
             `TestGovernance.${version}`,
-            async contractAddress =>
+            async (contractAddress) =>
                 await codeChanged(this.web3, TestGovernance, contractAddress),
             async () => {
                 const accounts = await web3.eth.getAccounts();
@@ -180,7 +180,7 @@ module.exports = async function(callback, options = {}) {
         let superfluid = await deployAndRegisterContractIf(
             SuperfluidLogic,
             `Superfluid.${version}`,
-            async contractAddress =>
+            async (contractAddress) =>
                 !(await hasCode(this.web3, contractAddress)),
             async () => {
                 let superfluidAddress;

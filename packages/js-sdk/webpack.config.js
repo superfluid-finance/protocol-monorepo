@@ -10,7 +10,7 @@ module.exports = {
         filename: "index.js",
         library: "@superfluid-finance/js-sdk",
         libraryTarget: "umd",
-        umdNamedDefine: true
+        umdNamedDefine: true,
     },
     resolve: {
         fallback: {
@@ -22,7 +22,7 @@ module.exports = {
             stream: false,
             https: false,
             http: false,
-            crypto: false
-        }
-    }
+            crypto: false,
+        },
+    },
 };

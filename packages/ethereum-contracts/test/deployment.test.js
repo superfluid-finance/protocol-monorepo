@@ -13,7 +13,7 @@ const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers").constants;
 
 contract("Embeded deployment scripts", () => {
-    const errorHandler = err => {
+    const errorHandler = (err) => {
         if (err) throw err;
     };
     const cfav1Type = web3.utils.sha3(
@@ -70,7 +70,7 @@ contract("Embeded deployment scripts", () => {
             superTokenFactoryLogic,
             superTokenLogic,
             cfa,
-            ida
+            ida,
         };
         // validate addresses
         assert.notEqual(
@@ -161,7 +161,7 @@ contract("Embeded deployment scripts", () => {
             it("fresh deployment (useMocks=true)", async () => {
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
-                    useMocks: true
+                    useMocks: true,
                 });
                 const s = await getSuperfluidAddresses();
                 // check if it useMocks=true
@@ -188,13 +188,13 @@ contract("Embeded deployment scripts", () => {
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
                     nonUpgradable: true,
-                    useMocks: false
+                    useMocks: false,
                 });
                 await expectRevert(
                     deployFramework(errorHandler, {
                         ...deploymentOptions,
                         nonUpgradable: true,
-                        useMocks: true // force an update attempt
+                        useMocks: true, // force an update attempt
                     }),
                     "SF: non upgradable"
                 );
@@ -287,7 +287,7 @@ contract("Embeded deployment scripts", () => {
                 delete process.env.RESET_SUPERFLUID_FRAMEWORK;
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
-                    useMocks: true
+                    useMocks: true,
                 });
                 const s4 = await getSuperfluidAddresses();
                 assert.equal(
@@ -424,7 +424,7 @@ contract("Embeded deployment scripts", () => {
             // new deployment after framework update
             await deployFramework(errorHandler, {
                 ...deploymentOptions,
-                useMocks: true
+                useMocks: true,
             });
             await deploySuperToken(
                 errorHandler,
@@ -468,7 +468,7 @@ contract("Embeded deployment scripts", () => {
     context("Used in non-native truffle environment (web3)", () => {
         it("scripts/deploy-test-environment.js", async () => {
             await deployTestEnvironment(errorHandler, {
-                web3: new Web3(web3.currentProvider)
+                web3: new Web3(web3.currentProvider),
             });
         });
     });

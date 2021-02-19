@@ -1,7 +1,7 @@
 const { toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
-contract("InstantDistributionAgreementV1Helper helper class", accounts => {
+contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const { alice, bob, carol } = t.aliases;
 
@@ -24,7 +24,7 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: alice
+                sender: alice,
             });
 
             const index = await sf.agreements.ida.getIndex(
@@ -40,7 +40,7 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: alice
+                sender: alice,
             });
 
             const indexValue = 100;
@@ -48,7 +48,7 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
                 superToken: superToken.address,
                 indexId,
                 indexValue,
-                sender: alice
+                sender: alice,
             });
 
             const index = await sf.agreements.ida.getIndex(
@@ -67,22 +67,22 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
                 units: toWad("0.001").toString(),
-                sender: publisher
+                sender: publisher,
             });
 
             await sf.ida.updateIndex({
                 superToken: superToken.address,
                 indexId,
                 indexValue: "1000",
-                sender: publisher
+                sender: publisher,
             });
 
             const balanceBefore = await superToken.balanceOf(subscriber);
@@ -93,7 +93,7 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
                 publisher,
                 indexId,
                 subscriber,
-                sender: subscriber
+                sender: subscriber,
             });
 
             const balanceAfter = await superToken.balanceOf(subscriber);
@@ -109,18 +109,18 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: publisher
+                sender: publisher,
             });
         });
 
-        it("updateSupscription", async () => {
+        it("updateSubscription", async () => {
             const units = 100;
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
                 units,
-                sender: publisher
+                sender: publisher,
             });
 
             const index = await sf.agreements.ida.getIndex(
@@ -131,21 +131,21 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             assert.equal(index.totalUnitsPending, units);
         });
 
-        it("approveSupscription", async () => {
+        it("approveSubscription", async () => {
             const units = 100;
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
                 units,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
-                sender: subscriber
+                sender: subscriber,
             });
 
             const index = await sf.agreements.ida.getIndex(
@@ -156,22 +156,22 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             assert.equal(index.totalUnitsApproved, units);
         });
 
-        it("deleteSupscription from publisher", async () => {
+        it("deleteSubscription from publisher", async () => {
             const units = 100;
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
                 units,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.deleteSupscription({
+            await sf.ida.deleteSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
                 subscriber,
-                sender: publisher
+                sender: publisher,
             });
 
             const index = await sf.agreements.ida.getIndex(
@@ -194,20 +194,20 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: publisher
+                sender: publisher,
             });
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: subscriber1,
                 units: subscriber1Units.toString(),
-                sender: publisher
+                sender: publisher,
             });
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
-                sender: subscriber1
+                sender: subscriber1,
             });
         });
 
@@ -217,7 +217,7 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
                 superToken: superToken.address,
                 indexId,
                 amount: amount.toString(),
-                sender: publisher
+                sender: publisher,
             });
             const balance = await superToken.balanceOf(subscriber2);
             assert.equal(balance.toString(), toWad(100).toString());
@@ -226,26 +226,26 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
         it("distribute - multiple subscribers", async () => {
             const amount = toWad(100);
             // Add the second additional subscriber
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: subscriber2,
                 units: subscriber2Units.toString(),
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
-                sender: subscriber2
+                sender: subscriber2,
             });
 
             await sf.ida.distribute({
                 superToken: superToken.address,
                 indexId,
                 amount: amount.toString(),
-                sender: publisher
+                sender: publisher,
             });
             const balance1 = await superToken.balanceOf(subscriber1);
             const balance2 = await superToken.balanceOf(subscriber2);
@@ -263,30 +263,30 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: bob,
                 units: halfUnits,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber: carol,
                 units: halfUnits,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
-                sender: bob
+                sender: bob,
             });
 
             // Carol doesn't approve, so her units are still "pending"
@@ -294,13 +294,13 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             const index = await sf.ida.getIndex({
                 superToken: superToken.address,
                 publisher,
-                indexId
+                indexId,
             });
             const indexDetails = {
                 exist: true,
                 indexValue: "0",
                 totalUnitsApproved: halfUnits.toString(),
-                totalUnitsPending: halfUnits.toString()
+                totalUnitsPending: halfUnits.toString(),
             };
             assert.deepEqual(index, indexDetails);
         });
@@ -313,31 +313,31 @@ contract("InstantDistributionAgreementV1Helper helper class", accounts => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
                 indexId,
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.updateSupscription({
+            await sf.ida.updateSubscription({
                 superToken: superToken.address,
                 indexId,
                 subscriber,
                 units: units.toString(),
-                sender: publisher
+                sender: publisher,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId,
                 publisher,
-                sender: subscriber
+                sender: subscriber,
             });
 
             const {
                 publishers,
                 indexIds,
-                unitsList
+                unitsList,
             } = await sf.ida.listSubscriptions({
                 superToken: superToken.address,
-                subscriber
+                subscriber,
             });
 
             assert.deepEqual(publishers, [publisher]);

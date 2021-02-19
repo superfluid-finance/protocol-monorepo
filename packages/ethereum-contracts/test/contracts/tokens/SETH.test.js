@@ -8,10 +8,10 @@ const SETHProxy = artifacts.require("SETHProxy");
 
 const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
 
-contract("Super ETH (SETH) Contract", accounts => {
+contract("Super ETH (SETH) Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 3), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { alice, bob } = t.aliases;
 
@@ -48,7 +48,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "seth.upgradeByETH by alice"
         )({
             from: alice,
-            value: toWad(1)
+            value: toWad(1),
         });
         await expectEvent.inTransaction(
             tx.tx,
@@ -56,7 +56,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "TokenUpgraded",
             {
                 account: alice,
-                amount: toWad(1).toString()
+                amount: toWad(1).toString(),
             }
         );
         assert.equal(
@@ -75,7 +75,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "seth.upgradeByETHTo bob by alice"
         )(alice, {
             from: bob,
-            value: toWad(1)
+            value: toWad(1),
         });
         await expectEvent.inTransaction(
             tx.tx,
@@ -83,7 +83,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "TokenUpgraded",
             {
                 account: alice,
-                amount: toWad(1).toString()
+                amount: toWad(1).toString(),
             }
         );
         assert.equal(
@@ -102,7 +102,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "weth.deposit 1wad"
         )({
             from: alice,
-            value: toWad(1)
+            value: toWad(1),
         });
         assert.equal(
             (await weth.balanceOf(alice)).toString(),
@@ -112,14 +112,14 @@ contract("Super ETH (SETH) Contract", accounts => {
             seth.address,
             toWad(1),
             {
-                from: alice
+                from: alice,
             }
         );
 
         const tx = await web3tx(seth.upgradeByWETH, "seth.upgrade by alice")(
             toWad(1),
             {
-                from: alice
+                from: alice,
             }
         );
         await expectEvent.inTransaction(
@@ -128,7 +128,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "TokenUpgraded",
             {
                 account: alice,
-                amount: toWad(1).toString()
+                amount: toWad(1).toString(),
             }
         );
         assert.equal((await weth.balanceOf(alice)).toString(), "0");
@@ -148,7 +148,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "seth.upgradeByETH by alice"
         )({
             value: toWad(1),
-            from: alice
+            from: alice,
         });
 
         await expectRevert(
@@ -161,7 +161,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             seth.downgradeToETH,
             "seth.downgradeToETH by alice"
         )(toWad(1), {
-            from: alice
+            from: alice,
         });
         const aliceBalance2 = await web3.eth.getBalance(alice);
         await expectEvent.inTransaction(
@@ -170,7 +170,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "TokenDowngraded",
             {
                 account: alice,
-                amount: toWad(1).toString()
+                amount: toWad(1).toString(),
             }
         );
         assert.equal(
@@ -196,12 +196,12 @@ contract("Super ETH (SETH) Contract", accounts => {
             "seth.upgradeByETH by alice"
         )({
             value: toWad(1),
-            from: alice
+            from: alice,
         });
 
         await expectRevert(
             seth.downgradeToWETH(toWad(1).addn(1), {
-                from: alice
+                from: alice,
             }),
             "SuperfluidToken: burn amount exceeds balance"
         );
@@ -210,7 +210,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             seth.downgradeToWETH,
             "seth.downgradeToWETH by alice"
         )(toWad(1), {
-            from: alice
+            from: alice,
         });
         await expectEvent.inTransaction(
             tx.tx,
@@ -218,7 +218,7 @@ contract("Super ETH (SETH) Contract", accounts => {
             "TokenDowngraded",
             {
                 account: alice,
-                amount: toWad(1).toString()
+                amount: toWad(1).toString(),
             }
         );
         assert.equal(
@@ -241,13 +241,13 @@ contract("Super ETH (SETH) Contract", accounts => {
             "seth.upgradeByETH by alice"
         )({
             value: toWad(1),
-            from: alice
+            from: alice,
         });
 
         await web3tx(seth.downgradeToETH, "seth.downgradeToETH by alice")(
             toWad("0.5"),
             {
-                from: alice
+                from: alice,
             }
         );
         assert.equal(
@@ -267,7 +267,7 @@ contract("Super ETH (SETH) Contract", accounts => {
         await web3tx(seth.downgradeToWETH, "seth.downgradeToWETH by alice")(
             toWad("0.5"),
             {
-                from: alice
+                from: alice,
             }
         );
         assert.equal(
@@ -288,7 +288,7 @@ contract("Super ETH (SETH) Contract", accounts => {
         await web3.eth.sendTransaction({
             to: seth.address,
             from: alice,
-            value: toWad(1)
+            value: toWad(1),
         });
         assert.equal(
             (await seth.balanceOf(alice)).toString(),

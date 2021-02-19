@@ -3,6 +3,9 @@ name: CI Master
 on:
   push:
     branches: ["master"]
+    paths:
+      - 'packages/**'
+      - '.github/workflows/ci-master.yml'
 
 jobs:
   build:

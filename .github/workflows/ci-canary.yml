@@ -77,7 +77,6 @@ jobs:
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
-          base-path: packages/ethereum-contracts
           path-to-lcov: packages/ethereum-contracts/coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
 

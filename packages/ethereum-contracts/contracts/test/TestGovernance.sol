@@ -58,11 +58,22 @@ contract TestGovernance is
         _configs[SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
     }
 
-    function setTrustedForwarderAddress(address forwarder)
+    event TrustedForwarder(address forwarder, bool enabled);
+
+    function enableTrustedForwarder(address forwarder)
         external
         onlyOwner
     {
-        _configs[SuperfluidGovernanceConfigs.BICONOMY_FORWARDER_ADDRESS_CONFIG_KEY] = uint256(uint160(forwarder));
+        _configs[SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)] = 1;
+        emit TrustedForwarder(forwarder, true);
+    }
+
+    function disableTrustedForwarder(address forwarder)
+        external
+        onlyOwner
+    {
+        _configs[SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)] = 0;
+        emit TrustedForwarder(forwarder, false);
     }
 
     /**************************************************************************

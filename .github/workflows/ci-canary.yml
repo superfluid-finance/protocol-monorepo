@@ -76,8 +76,8 @@ jobs:
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
-        base-path: packages/ethereum-contracts
         with:
+          base-path: packages/ethereum-contracts
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   publish:

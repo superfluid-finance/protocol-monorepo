@@ -66,7 +66,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
-    async updateSupscription({
+    async updateSubscription({
         superToken,
         indexId,
         subscriber,
@@ -98,7 +98,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
-    async approveSupscription({
+    async approveSubscription({
         superToken,
         indexId,
         publisher,
@@ -123,7 +123,32 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return tx;
     }
 
-    async deleteSupscription({
+    async revokeSubscription({
+        superToken,
+        indexId,
+        publisher,
+        subscriber,
+        userData = "0x",
+        onTransaction = () => null,
+    }) {
+        const tx = await completeTransaction({
+            sf: this._sf,
+            args: [
+                this._ida.address,
+                this._ida.contract.methods
+                    .revokeSubscription(superToken, publisher, indexId, "0x")
+                    .encodeABI(),
+                userData,
+            ],
+            sender: subscriber,
+            method: this._sf.host.callAgreement,
+            onTransaction,
+        });
+        console.debug("Subscription revoked.");
+        return tx;
+    }
+
+    async deleteSubscription({
         superToken,
         indexId,
         publisher,
@@ -153,6 +178,16 @@ module.exports = class InstantDistributionAgreementV1Helper {
         });
         console.debug("Subscription deleted.");
         return tx;
+    }
+
+    async getSubscription({ superToken, publisher, indexId, subscriber }) {
+        const result = await this._ida.getSubscription.call(
+            superToken,
+            publisher,
+            indexId,
+            subscriber
+        );
+        return this.constructor._sanitizeSubscriptionData(result);
     }
 
     async distribute({
@@ -208,7 +243,27 @@ module.exports = class InstantDistributionAgreementV1Helper {
 
     async getIndex({ superToken, publisher, indexId }) {
         const result = await this._ida.getIndex(superToken, publisher, indexId);
-        return this.constructor._sanitizeIndexInfo(result);
+        return this.constructor._sanitizeIndexData(result);
+    }
+
+    async listSubcribers({ superToken, publisher, indexId }) {
+        let updates;
+        updates = await this._ida.getPastEvents("IndexUnitsUpdated", {
+            fromBlock: 0,
+            toBlock: "latest",
+            filter: {
+                token: superToken,
+                publisher,
+                indexId,
+            },
+        });
+        // TODO ethers support
+        return Object.values(
+            updates.reduce((acc, i) => {
+                acc[i.args.subscriber] = i;
+                return acc;
+            }, {})
+        ).filter((i) => i.args.units.toString() != "0");
     }
 
     async listSubscriptions({ superToken, subscriber }) {
@@ -219,7 +274,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
         return this.constructor._sanitizeSubscriptionInfo(result);
     }
 
-    static _sanitizeIndexInfo({
+    static _sanitizeIndexData({
         exist,
         indexValue,
         totalUnitsApproved,
@@ -230,6 +285,20 @@ module.exports = class InstantDistributionAgreementV1Helper {
             indexValue: indexValue.toString(),
             totalUnitsApproved: totalUnitsApproved.toString(),
             totalUnitsPending: totalUnitsPending.toString(),
+        };
+    }
+
+    static _sanitizeSubscriptionData({
+        exist,
+        approved,
+        units,
+        pendingDistribution,
+    }) {
+        return {
+            exist,
+            approved,
+            units: units.toString(),
+            pendingDistribution: pendingDistribution.toString(),
         };
     }
 

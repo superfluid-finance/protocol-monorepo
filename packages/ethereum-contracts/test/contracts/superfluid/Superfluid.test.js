@@ -1136,11 +1136,13 @@ contract("Superfluid Host Contract", (accounts) => {
             });
 
             describe("#6.3x composite app rules", () => {
-                const SuperAppMock3 = artifacts.require("SuperAppMock3");
+                const SuperAppMock2ndLevel = artifacts.require(
+                    "SuperAppMock2ndLevel"
+                );
 
                 it("#6.30 composite app must be whitelisted", async () => {
                     // assuming MAX_APP_LEVEL = 1
-                    const app3 = await SuperAppMock3.new(
+                    const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
                         agreement.address
@@ -1176,7 +1178,7 @@ contract("Superfluid Host Contract", (accounts) => {
 
                 it("#6.31 composite app cannot be jailed", async () => {
                     // assuming MAX_APP_LEVEL = 1
-                    const app3 = await SuperAppMock3.new(
+                    const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
                         agreement.address
@@ -1202,7 +1204,7 @@ contract("Superfluid Host Contract", (accounts) => {
                 const SuperAppMock2 = artifacts.require(
                     "SuperAppMockReturningEmptyCtx"
                 );
-                const SuperAppMock3 = artifacts.require(
+                const SuperAppMock2ndLevel = artifacts.require(
                     "SuperAppMockReturningInvalidCtx"
                 );
 
@@ -1222,7 +1224,9 @@ contract("Superfluid Host Contract", (accounts) => {
                         "SF: APP_RULE_CTX_IS_MALFORMATED"
                     );
 
-                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    const app3 = await SuperAppMock2ndLevel.new(
+                        superfluid.address
+                    );
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1264,7 +1268,9 @@ contract("Superfluid Host Contract", (accounts) => {
                         }
                     );
 
-                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    const app3 = await SuperAppMock2ndLevel.new(
+                        superfluid.address
+                    );
                     tx = await web3tx(
                         superfluid.callAgreement,
                         "callAgreement"

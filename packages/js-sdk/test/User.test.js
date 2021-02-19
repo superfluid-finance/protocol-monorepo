@@ -301,7 +301,7 @@ contract("User helper class", (accounts) => {
                 recipient: bobAddress,
             });
 
-            await sf.ida.approveSupscription({
+            await sf.ida.approveSubscription({
                 superToken: superToken.address,
                 indexId: poolId,
                 publisher: aliceAddress,

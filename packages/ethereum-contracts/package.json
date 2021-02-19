@@ -24,7 +24,7 @@
         "test:contracts": "truffle test test/contracts.test.js",
         "test:deployment:embeded": "truffle test test/deployment.test.js",
         "test:deployment:scripts": "test/deployment.test.sh",
-        "test-coverage": "yarn build && truffle run coverage --file test/contracts.test.js",
+        "test-coverage": "truffle run coverage --file test/contracts.test.js",
         "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",

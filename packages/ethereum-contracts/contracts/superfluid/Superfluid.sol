@@ -362,7 +362,6 @@ contract Superfluid is
     )
         external override
         onlyAgreement
-        isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory cbdata)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, true, isTermination, callData, ctx);
@@ -387,7 +386,6 @@ contract Superfluid is
     )
         external override
         onlyAgreement
-        isAppActive(app) // although agreement library should make sure it is an app, but we decide to double check it
         returns(bytes memory newCtx)
     {
         (bool success, bytes memory returnedData) = _callCallback(app, false, isTermination, callData, ctx);

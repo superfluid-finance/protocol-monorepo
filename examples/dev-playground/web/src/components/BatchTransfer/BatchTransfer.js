@@ -6,7 +6,6 @@ import toast from 'react-hot-toast'
 const BatchTransfer = ({ token }) => {
   const { currentUser } = useAuth()
 
-  const [error, setError] = React.useState(null)
   const [loading, setLoading] = React.useState(false)
   const [transactionHashes, setTransactionHashes] = React.useState([])
 
@@ -30,12 +29,13 @@ const BatchTransfer = ({ token }) => {
 
     if (error) return toast.error(error.message || error)
 
-    toast.promise(tx.wait(), {
+    await toast.promise(tx.wait(), {
       loading: 'Waiting for confirmation',
       success: (receipt) => {
         setTransactionHashes([...transactionHashes, receipt.transactionHash])
         setLoading(false)
         console.log(receipt)
+        console.log(receipt.transactionHash)
         return <b>Complete!</b>
       },
       error: (err) => {
@@ -44,6 +44,7 @@ const BatchTransfer = ({ token }) => {
         return <b>Something went wrong. {err.message || err}</b>
       },
     })
+    setLoading(false)
   }
 
   return (
@@ -57,7 +58,6 @@ const BatchTransfer = ({ token }) => {
             tokenAddress={token}
             onSave={batchTransfer}
             loading={loading}
-            error={error}
           />
         </div>
       </div>

@@ -59,8 +59,9 @@ jobs:
         run: |
           export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
           echo "Ganache port: $GANACHE_PORT"
-          npx ganache-cli --port $GANACHE_PORT > /dev/null &
+          npx ganache-cli --port $GANACHE_PORT &
           ganache_pid=$!
+          sleep 3 # wait few seconds...
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network ganache exec scripts/deploy.js
           fi

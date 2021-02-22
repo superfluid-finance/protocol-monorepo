@@ -1,3 +1,4 @@
+const getConfig = require("./getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
@@ -111,7 +112,7 @@ module.exports = async function (callback, options = {}) {
             { web3, ...(options.from ? { from: options.from } : {}) }
         );
 
-        const config = SuperfluidSDK.getConfig(chainId);
+        const config = getConfig(chainId);
         const contracts = [
             "TestResolver",
             "Superfluid",
@@ -371,6 +372,22 @@ module.exports = async function (callback, options = {}) {
                 agreementsToUpdate,
                 superTokenFactoryNewLogicAddress
             );
+        }
+
+        // configure governance
+        {
+            if (config.biconomyForwarder) {
+                if (
+                    !(await governance.isTrustedForwarder.call(
+                        config.biconomyForwarder
+                    ))
+                ) {
+                    await web3tx(
+                        governance.enableTrustedForwarder,
+                        "enable biconomy forwarder"
+                    )(config.biconomyForwarder);
+                }
+            }
         }
 
         callback();

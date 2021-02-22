@@ -726,6 +726,7 @@ contract Superfluid is
         }
     }
 
+    /// @dev ISuperfluid.batchCall implementation
     function batchCall(
        Operation[] memory operations
     )
@@ -734,22 +735,26 @@ contract Superfluid is
         _batchCall(msg.sender, operations);
     }
 
-    function biconomyBatchCall(Operation[] memory operations)
+    /// @dev ISuperfluid.forwardBatchCall implementation
+    function forwardBatchCall(Operation[] memory operations)
         external override
     {
-        _batchCall(_getEIP2771MsgSender(), operations);
+        _batchCall(_getTransactionSigner(), operations);
     }
 
-    function _trustedForwarder()
-        internal view override
-        returns (address)
+    /// @dev BaseRelayRecipient.isTrustedForwarder implementation
+    function isTrustedForwarder(address forwarder)
+        public view override
+        returns(bool)
     {
-        return _gov.getConfigAsAddress(
+        return _gov.getConfigAsUint256(
             this,
             ISuperfluidToken(address(0)),
-            SuperfluidGovernanceConfigs.BICONOMY_FORWARDER_ADDRESS_CONFIG_KEY);
+            SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)
+        ) != 0;
     }
 
+    /// @dev IRelayRecipient.isTrustedForwarder implementation
     function versionRecipient()
         external override pure
         returns (string memory)

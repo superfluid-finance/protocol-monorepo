@@ -57,7 +57,8 @@ jobs:
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         working-directory: examples/${{ matrix.example }}
         run: |
-          npx ganache-cli --port 8545 > /dev/null &
+          export GANACHE_PORT=$(( 8555 + $RANDOM % 10000 ))
+          npx ganache-cli --port ${GANACHE_PORT} > /dev/null &
           ganache_pid=$!
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network ganache exec scripts/deploy.js
@@ -65,8 +66,6 @@ jobs:
           kill -9 $ganache_pid
         env:
           RELEASE_VERSION: master
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build UI project if exist
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

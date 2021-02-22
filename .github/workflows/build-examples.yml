@@ -64,7 +64,7 @@ jobs:
             npx ganache-cli --port $GANACHE_PORT &
             ganache_pid=$!
             sleep 3 # wait ganache to start
-            npx truffle --network ganache exec scripts/deploy-test-environment.js
+            npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js
             npx truffle --network ganache exec scripts/deploy.js
             kill -9 $ganache_pid
           fi

@@ -483,6 +483,10 @@ contract("Superfluid Host Contract", (accounts) => {
                     app.allowCompositeApp(alice),
                     "SF: target is not an app"
                 );
+                await expectRevert(
+                    app.allowCompositeApp(app2.address),
+                    "SF: source app should have higher app level"
+                );
                 assert.isFalse(
                     await superfluid.isCompositeAppAllowed.call(
                         app.address,
@@ -1210,6 +1214,23 @@ contract("Superfluid Host Contract", (accounts) => {
 
                 it("#6.40 should give explicit error message in non-termination callbacks", async () => {
                     const app2 = await SuperAppMock2.new(superfluid.address);
+
+                    console.debug("callAppBeforeAgreementCreatedCallback");
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppBeforeAgreementCreatedCallback(
+                                    app2.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                    );
+
+                    console.debug("callAppAfterAgreementCreatedCallback");
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1224,6 +1245,7 @@ contract("Superfluid Host Contract", (accounts) => {
                         "SF: APP_RULE_CTX_IS_MALFORMATED"
                     );
 
+                    console.debug("callAppAfterAgreementCreatedCallback");
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address
                     );
@@ -1243,10 +1265,38 @@ contract("Superfluid Host Contract", (accounts) => {
                 });
 
                 it("#6.41 should jail the app in termination callbacks", async () => {
-                    const app2 = await SuperAppMock2.new(superfluid.address);
-                    let tx = await web3tx(
+                    let app2;
+                    let tx;
+
+                    app2 = await SuperAppMock2.new(superfluid.address);
+                    tx = await web3tx(
                         superfluid.callAgreement,
-                        "callAgreement"
+                        "callAppBeforeAgreementTerminatedCallback"
+                    )(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppBeforeAgreementTerminatedCallback(
+                                app2.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    assert.isTrue(await superfluid.isAppJailed(app2.address));
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app2.address,
+                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
+                        }
+                    );
+
+                    app2 = await SuperAppMock2.new(superfluid.address);
+                    tx = await web3tx(
+                        superfluid.callAgreement,
+                        "callAppAfterAgreementTerminatedCallback"
                     )(
                         agreement.address,
                         agreement.contract.methods
@@ -1264,7 +1314,7 @@ contract("Superfluid Host Contract", (accounts) => {
                         "Jail",
                         {
                             app: app2.address,
-                            reason: "22", // APP_RULE_CTX_IS_EMPTY
+                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
                         }
                     );
 
@@ -1273,7 +1323,7 @@ contract("Superfluid Host Contract", (accounts) => {
                     );
                     tx = await web3tx(
                         superfluid.callAgreement,
-                        "callAgreement"
+                        "callAppAfterAgreementTerminatedCallback"
                     )(
                         agreement.address,
                         agreement.contract.methods
@@ -1291,7 +1341,7 @@ contract("Superfluid Host Contract", (accounts) => {
                         "Jail",
                         {
                             app: app3.address,
-                            reason: "22", // APP_RULE_CTX_IS_EMPTY
+                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
                         }
                     );
                 });

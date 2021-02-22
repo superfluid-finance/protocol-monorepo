@@ -331,18 +331,19 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                 subscriber: subscriber,
             });
 
-            const {
-                publishers,
-                indexIds,
-                unitsList,
-            } = await sf.ida.listSubscriptions({
-                superToken: superToken.address,
-                subscriber,
-            });
-
-            assert.deepEqual(publishers, [publisher]);
-            assert.deepEqual(indexIds, [indexId]);
-            assert.deepEqual(unitsList, [units.toString()]);
+            assert.deepEqual(
+                await sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber,
+                }),
+                [
+                    {
+                        publisher,
+                        indexId,
+                        units: units.toString(),
+                    },
+                ]
+            );
         });
     });
 });

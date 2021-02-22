@@ -22,53 +22,90 @@ module.exports = async function (callback, argv) {
             version: process.env.RELEASE_VERSION || "test",
             web3: this.web3,
             tokens,
+            loadSuperNativeToken: true,
         });
         await sf.initialize();
+        const superTokens = Object.keys(sf.superTokens);
 
         while (args.length) {
             const account = args.shift();
             console.log("=".repeat(80));
-            console.log("account", account);
-            for (let i = 0; i < tokens.length; ++i) {
+            console.log("Account", account);
+            for (let i = 0; i < superTokens.length; ++i) {
                 console.log("-".repeat(80));
-                const tokenName = tokens[i];
-                const token = sf.tokens[tokenName];
-                const superToken = sf.tokens[tokenName + "x"];
-                console.log(
-                    `${tokenName} balance`,
-                    (await token.balanceOf.call(account)).toString() / 1e18
-                );
+                const superTokenSymbol = superTokens[i];
+                const superToken = sf.superTokens[superTokenSymbol];
+                const underlyingToken = superToken.underlyingToken;
+                if (underlyingToken) {
+                    const underlyingTokenSymbol = await underlyingToken.symbol();
+                    console.log(
+                        `${underlyingTokenSymbol} balance`,
+                        (
+                            await underlyingToken.balanceOf.call(account)
+                        ).toString() / 1e18
+                    );
+                }
                 const realtimeBalance = await superToken.realtimeBalanceOf.call(
                     account,
                     parseInt(Date.now() / 1000)
                 );
                 console.log(
-                    `${tokenName}x balance`,
+                    `${superTokenSymbol} balance`,
                     realtimeBalance.availableBalance.toString() / 1e18,
                     realtimeBalance.deposit.toString() / 1e18,
                     realtimeBalance.owedDeposit.toString() / 1e18
                 );
-                const netFlowRate = await sf.cfa.getNetFlow({
-                    superToken: superToken.address,
-                    account,
-                });
-                console.log(`Net flow rate ${normalizeFlowRate(netFlowRate)}`);
-                const flows = await sf.cfa.listFlows({
-                    superToken: superToken.address,
-                    account,
-                });
-                console.log("In Flows:");
-                console.log(
-                    flows.inFlows.map(
-                        (f) => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`
-                    )
-                );
-                console.log("Out Flows:");
-                console.log(
-                    flows.outFlows.map(
-                        (f) => `${f.sender} -> ${normalizeFlowRate(f.flowRate)}`
-                    )
-                );
+                {
+                    console.log("# CFA");
+                    const netFlowRate = await sf.cfa.getNetFlow({
+                        superToken: superToken.address,
+                        account,
+                    });
+                    console.log(
+                        `Net flow rate ${normalizeFlowRate(netFlowRate)}`
+                    );
+                    const flows = await sf.cfa.listFlows({
+                        superToken: superToken.address,
+                        account,
+                    });
+                    console.log("In Flows:");
+                    console.log(
+                        flows.inFlows.map(
+                            (f) =>
+                                `${f.sender} -> ${normalizeFlowRate(
+                                    f.flowRate
+                                )}`
+                        )
+                    );
+                    console.log("Out Flows:");
+                    console.log(
+                        flows.outFlows.map(
+                            (f) =>
+                                `${f.sender} -> ${normalizeFlowRate(
+                                    f.flowRate
+                                )}`
+                        )
+                    );
+                }
+                {
+                    console.log("# IDA");
+                    console.log("Indicies:");
+                    const indices = await sf.ida.listIndices({
+                        superToken: superToken.address,
+                        publisher: account,
+                    });
+                    console.log(indices.map((indexId) => `${indexId}`));
+                    console.log("Subscriptions:");
+                    const subscriptions = await sf.ida.listSubscriptions({
+                        superToken: superToken.address,
+                        subscriber: account,
+                    });
+                    console.log(
+                        subscriptions.map(
+                            (s) => `${s.publisher}@{s.indexId} ${s.units} units`
+                        )
+                    );
+                }
             }
             console.log("=".repeat(80));
         }

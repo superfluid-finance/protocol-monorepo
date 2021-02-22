@@ -8,11 +8,7 @@ const expect = chai.expect;
 
 const emptyIda = {
     ida: {
-        subscriptions: {
-            indexIds: [],
-            publishers: [],
-            unitsList: [],
-        },
+        subscriptions: [],
     },
 };
 

@@ -326,7 +326,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
+                assert.equal(subs.length, 1);
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -354,7 +354,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await verifyAll();
             });
@@ -395,7 +395,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await verifyAll();
             });
@@ -436,7 +436,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await verifyAll();
             });
@@ -516,7 +516,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
+                assert.equal(subs.length, 1);
 
                 await shouldDeleteSubscription({
                     testenv: t,
@@ -529,7 +529,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -541,7 +541,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
+                assert.equal(subs.length, 1);
             });
 
             it("#1.2.10 one should fail to use a subscription of a non-existent index", async () => {
@@ -603,7 +603,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
+                assert.equal(subs.length, 1);
 
                 await shouldDistribute({
                     testenv: t,
@@ -626,7 +626,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
@@ -719,10 +719,10 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
-                assert.equal(subs.unitsList[0], "0");
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                assert.equal(subs[0].units, "0");
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -736,10 +736,10 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
-                assert.equal(subs.unitsList[0], toWad("0.001").toString());
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                assert.equal(subs[0].units, toWad("0.001").toString());
 
                 await shouldDistribute({
                     testenv: t,
@@ -773,7 +773,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -786,7 +786,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
@@ -798,7 +798,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await verifyAll();
 
@@ -812,11 +812,11 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
                 assert.equal(
-                    subs.unitsList[0].toString(),
+                    subs[0].units.toString(),
                     toWad("0.003").toString()
                 );
 
@@ -844,7 +844,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -856,11 +856,11 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
                 assert.equal(
-                    subs.unitsList[0].toString(),
+                    subs[0].units.toString(),
                     toWad("0.001").toString()
                 );
 
@@ -874,11 +874,11 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
                 assert.equal(
-                    subs.unitsList[0].toString(),
+                    subs[0].units.toString(),
                     toWad("0.001").toString()
                 );
 
@@ -906,7 +906,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
@@ -918,7 +918,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -931,7 +931,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
@@ -943,7 +943,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -955,11 +955,11 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 1);
-                assert.equal(subs.publishers[0], alice);
-                assert.equal(subs.indexIds[0], DEFAULT_INDEX_ID);
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
                 assert.equal(
-                    subs.unitsList[0].toString(),
+                    subs[0].units.toString(),
                     toWad("0.005").toString()
                 );
 
@@ -1001,7 +1001,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     superToken: superToken.address,
                     subscriber: bob,
                 });
-                assert.equal(subs.publishers.length, 0);
+                assert.equal(subs.length, 0);
 
                 await shouldClaimPendingDistribution({
                     testenv: t,
@@ -1671,18 +1671,12 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                     subscriber: subscriberAddr,
                 });
                 if (doApprove) {
-                    assert.equal(subs.publishers.length, 1);
-                    assert.equal(subs.publishers[0], alice);
-                    assert.equal(
-                        subs.indexIds[0].toString(),
-                        DEFAULT_INDEX_ID.toString()
-                    );
-                    assert.equal(
-                        subs.unitsList[0].toString(),
-                        subscriptionUnits.toString()
-                    );
+                    assert.equal(subs.length, 1);
+                    assert.equal(subs[0].publisher, alice);
+                    assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                    assert.equal(subs[0].units, subscriptionUnits.toString());
                 } else {
-                    assert.equal(subs.publishers.length, 0);
+                    assert.equal(subs.length, 0);
                 }
             }
 
@@ -1785,13 +1779,10 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 superToken: superToken.address,
                 subscriber: dan,
             });
-            assert.equal(subs.publishers.length, 1);
-            assert.equal(subs.publishers[0], alice);
-            assert.equal(
-                subs.indexIds[0].toString(),
-                DEFAULT_INDEX_ID.toString()
-            );
-            assert.equal(wad4human(subs.unitsList[0]), "0.00010");
+            assert.equal(subs.length, 1);
+            assert.equal(subs[0].publisher, alice);
+            assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+            assert.equal(wad4human(subs[0].units), "0.00010");
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
             await shouldDistribute({

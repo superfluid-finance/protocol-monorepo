@@ -452,6 +452,32 @@ module.exports = class InstantDistributionAgreementV1Helper {
     }
 
     /**
+     * @dev List indices of a publisher
+     * @param {tokenParam} superToken SuperToken for the index
+     * @param {addressParam} publisher Publisher of the index
+     * @return {Promise<Subscription>} Subscription data
+     */
+    async listIndices({ superToken, publisher }) {
+        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
+            superToken
+        );
+        const publisherNorm = await this._sf.utils.normalizeAddressParam(
+            publisher
+        );
+        // TODO ethers support
+        return await this._ida
+            .getPastEvents("IndexCreated", {
+                fromBlock: 0,
+                toBlock: "latest",
+                filter: {
+                    token: superTokenNorm,
+                    publisher: publisherNorm,
+                },
+            })
+            .map((e) => e.args.indexId);
+    }
+
+    /**
      * @dev List subscribers of an index
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
@@ -471,7 +497,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
             toBlock: "latest",
             filter: {
                 token: superTokenNorm,
-                publisherNorm,
+                publisher: publisherNorm,
                 indexId,
             },
         });
@@ -534,10 +560,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
     }
 
     static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }) {
-        return {
-            publishers,
-            indexIds: indexIds.map((id) => id.toString()),
-            unitsList: unitsList.map((units) => units.toString()),
-        };
+        return publishers.map((publisher, i) => ({
+            publisher,
+            indexId: indexIds[i].toString(),
+            units: unitsList[i].toString(),
+        }));
     }
 };

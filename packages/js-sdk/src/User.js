@@ -80,8 +80,8 @@ module.exports = class User {
 
             return await this.sf.ida.createIndex({
                 superToken: this.token,
+                publisher: this.address,
                 indexId,
-                sender: this.address,
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "createPool");
@@ -103,10 +103,10 @@ module.exports = class User {
 
             return await this.sf.ida.updateSubscription({
                 superToken: this.token,
+                publisher: this.address,
                 indexId,
                 subscriber: recipientAddress,
                 units: shares,
-                sender: this.address,
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "giveShares");
@@ -119,9 +119,9 @@ module.exports = class User {
                 throw "You must provide a poolId and amount";
             await this.sf.ida.distribute({
                 superToken: this.token,
+                publisher: this.address,
                 indexId,
                 amount,
-                sender: this.address,
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "distributeToPool");

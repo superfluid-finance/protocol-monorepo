@@ -125,7 +125,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     t.sf.ida.updateIndex({
                         superToken: superToken.address,
-                        sender: alice, // FIXME
+                        publisher: alice,
                         indexId: DEFAULT_INDEX_ID,
                         indexValue: "42",
                     }),
@@ -134,7 +134,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     t.sf.ida.distribute({
                         superToken: superToken.address,
-                        sender: alice, // FIXME
+                        publisher: alice,
                         indexId: DEFAULT_INDEX_ID,
                         amount: "42",
                     }),

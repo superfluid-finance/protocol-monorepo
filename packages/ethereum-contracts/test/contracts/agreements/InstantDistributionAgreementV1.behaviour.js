@@ -170,7 +170,7 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
         `${publisherName} create index ${indexId}`
     )({
         superToken,
-        sender: publisher, // FIXME fix this in js-sdk
+        publisher,
         indexId,
     });
 
@@ -258,7 +258,7 @@ async function shouldDistribute({
             `${publisherName} distributes tokens to index @${indexId} with indexValue ${indexValue}`
         )({
             superToken,
-            sender: publisher, // FIXME
+            publisher,
             indexId,
             indexValue,
         });
@@ -276,7 +276,7 @@ async function shouldDistribute({
             `${publisherName} distributes tokens to index @${indexId} with amount ${amount}`
         )({
             superToken,
-            sender: publisher, // FIXME
+            publisher,
             indexId,
             amount,
         });
@@ -502,7 +502,7 @@ async function shouldApproveSubscription({
         superToken,
         publisher,
         indexId,
-        sender: subscriber, // FIXME
+        subscriber,
         userData,
     });
 
@@ -618,7 +618,7 @@ async function shouldUpdateSubscription({
               `${publisherName} updates subscription from ${subscriberName} of index @${indexId} with ${units} units`
           )({
               superToken,
-              sender: publisher, // FIXME
+              publisher,
               indexId,
               subscriber,
               units,

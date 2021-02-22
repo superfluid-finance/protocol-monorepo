@@ -57,8 +57,9 @@ jobs:
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
         working-directory: examples/${{ matrix.example }}
         run: |
-          export GANACHE_PORT=$(( 8555 + $RANDOM % 10000 ))
-          npx ganache-cli --port ${GANACHE_PORT} > /dev/null &
+          export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
+          echo "Ganache port: $GANACHE_PORT"
+          npx ganache-cli --port $GANACHE_PORT > /dev/null &
           ganache_pid=$!
           if [ -f "scripts/deploy.js" ];then
             npx truffle --network ganache exec scripts/deploy.js

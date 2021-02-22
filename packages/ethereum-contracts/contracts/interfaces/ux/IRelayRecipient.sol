@@ -16,5 +16,12 @@ interface IRelayRecipient {
      */
     function isTrustedForwarder(address forwarder) external view returns(bool);
 
+    /**
+     * @dev EIP 2771 version
+     *
+     * NOTE:
+     * - It is not clear if it is actually from the EIP 2771....
+     * - https://docs.biconomy.io/guides/enable-gasless-transactions/eip-2771
+     */
     function versionRecipient() external view returns (string memory);
 }

@@ -465,8 +465,8 @@ module.exports = class InstantDistributionAgreementV1Helper {
             publisher
         );
         // TODO ethers support
-        return await this._ida
-            .getPastEvents("IndexCreated", {
+        return (
+            await this._ida.getPastEvents("IndexCreated", {
                 fromBlock: 0,
                 toBlock: "latest",
                 filter: {
@@ -474,7 +474,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
                     publisher: publisherNorm,
                 },
             })
-            .map((e) => e.args.indexId);
+        ).map((e) => Number(e.args.indexId.toString()));
     }
 
     /**
@@ -507,7 +507,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
                 acc[i.args.subscriber] = i;
                 return acc;
             }, {})
-        ).filter((i) => i.args.units.toString() != "0");
+        )
+            .filter((i) => i.args.units.toString() != "0")
+            .map((i) => ({
+                subscriber: i.args.subscriber,
+                units: i.args.units.toString(),
+            }));
     }
 
     /**
@@ -562,7 +567,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
     static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }) {
         return publishers.map((publisher, i) => ({
             publisher,
-            indexId: indexIds[i].toString(),
+            indexId: Number(indexIds[i].toString()),
             units: unitsList[i].toString(),
         }));
     }

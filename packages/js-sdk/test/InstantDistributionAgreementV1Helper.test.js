@@ -306,7 +306,7 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
         });
 
         it("listSubscriptions", async () => {
-            const indexId = "1";
+            const indexId = 1;
             const units = toWad(100);
             const publisher = alice;
             const subscriber = bob;
@@ -343,6 +343,119 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
                         units: units.toString(),
                     },
                 ]
+            );
+        });
+
+        it("listSubcribers", async () => {
+            const units = toWad(100).toString();
+            const publisher = alice;
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                publisher,
+                indexId: 1,
+            });
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                publisher,
+                indexId: 2,
+            });
+
+            await sf.ida.updateSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId: 1,
+                subscriber: bob,
+                units,
+            });
+            await sf.ida.updateSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId: 1,
+                subscriber: carol,
+                units,
+            });
+
+            assert.deepEqual(
+                await sf.ida.listSubcribers({
+                    superToken: superToken.address,
+                    publisher,
+                    indexId: 1,
+                }),
+                [
+                    {
+                        subscriber: bob,
+                        units,
+                    },
+                    {
+                        subscriber: carol,
+                        units,
+                    },
+                ]
+            );
+
+            await sf.ida.updateSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId: 1,
+                subscriber: carol,
+                units: "0",
+            });
+
+            assert.deepEqual(
+                await sf.ida.listSubcribers({
+                    superToken: superToken.address,
+                    publisher,
+                    indexId: 1,
+                }),
+                [
+                    {
+                        subscriber: bob,
+                        units,
+                    },
+                ]
+            );
+
+            assert.deepEqual(
+                await sf.ida.listSubcribers({
+                    superToken: superToken.address,
+                    publisher,
+                    indexId: 2,
+                }),
+                []
+            );
+        });
+
+        it("listIndices", async () => {
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                publisher: alice,
+                indexId: 1,
+            });
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                publisher: alice,
+                indexId: 2,
+            });
+            await sf.ida.createIndex({
+                superToken: superToken.address,
+                publisher: bob,
+                indexId: 2,
+            });
+
+            assert.deepEqual(
+                await sf.ida.listIndices({
+                    superToken: superToken.address,
+                    publisher: alice,
+                }),
+                [1, 2]
+            );
+
+            assert.deepEqual(
+                await sf.ida.listIndices({
+                    superToken: superToken.address,
+                    publisher: bob,
+                }),
+                [2]
             );
         });
     });

@@ -38,6 +38,7 @@ contract TestGovernance is
     /* Configurations
     /*************************************************************************/
 
+    // rewardAddress
     function getRewardAddress() external view returns (address) {
         return address(int160(_configs[SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY]));
     }
@@ -51,6 +52,7 @@ contract TestGovernance is
         _configs[SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
     }
 
+    // liquidationPeriod
     function setLiquidationPeriod(uint256 liquidationPeriod)
         external
         onlyOwner
@@ -58,7 +60,13 @@ contract TestGovernance is
         _configs[SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
     }
 
+    // trustedForwarder
     event TrustedForwarder(address forwarder, bool enabled);
+
+    function isTrustedForwarder(address forwarder) external view returns (bool)
+    {
+        return _configs[SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)] == 1;
+    }
 
     function enableTrustedForwarder(address forwarder)
         external

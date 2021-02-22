@@ -17,9 +17,9 @@
         "@openzeppelin/test-helpers": "^0.5.10",
         "@superfluid-finance/ethereum-contracts": "^0.2.8",
         "@superfluid-finance/js-sdk": "^0.3.5",
-        "@truffle/contract": "^4.3.7",
+        "@truffle/contract": "^4.3.8",
         "@truffle/hdwallet-provider": "^1.2.2",
         "dotenv": "^8.2.0",
-        "truffle": "5.1.65"
+        "truffle": "^5.1.67"
     }
 }

@@ -1968,6 +1968,81 @@ contract("Superfluid Host Contract", (accounts) => {
             });
         });
 
+        describe("#11 forwardBatchCall", () => {
+            const TestForwarder = artifacts.require("TestForwarder");
+
+            let forwarder;
+
+            before(async () => {
+                forwarder = await TestForwarder.new();
+            });
+
+            it("#11.1 forwardBatchCall with mocked transaction signer", async () => {
+                await governance.enableTrustedForwarder(forwarder.address, {
+                    from: admin,
+                });
+                await t.createNewToken({ doUpgrade: false });
+                const { superToken } = t.contracts;
+                await t.upgradeBalance("alice", toWad(1));
+                await web3tx(forwarder.execute, "forwarder.execute")(
+                    {
+                        from: alice, // mocked transaction signer
+                        to: superfluid.address,
+                        value: "0",
+                        gas: "5000000",
+                        data: superfluid.contract.methods
+                            .forwardBatchCall([
+                                [
+                                    2, // OPERATION_TYPE_ERC20_TRANSFER_FROM
+                                    superToken.address,
+                                    web3.eth.abi.encodeParameters(
+                                        ["address", "address", "uint256"],
+                                        [alice, bob, toWad(1).toString()]
+                                    ),
+                                ],
+                            ])
+                            .encodeABI(),
+                    },
+                    { from: admin }
+                );
+                assert.equal(
+                    (await superToken.balanceOf(bob)).toString(),
+                    toWad(1).toString()
+                );
+            });
+
+            it("#11.2 untrusted forwarder", async () => {
+                await governance.disableTrustedForwarder(forwarder.address, {
+                    from: admin,
+                });
+                await expectRevert(
+                    web3tx(forwarder.execute, "forwarder.execute")(
+                        {
+                            from: alice,
+                            to: superfluid.address,
+                            value: "0",
+                            gas: "5000000",
+                            data: superfluid.contract.methods
+                                .forwardBatchCall([])
+                                .encodeABI(),
+                        },
+                        { from: admin }
+                    ),
+                    "Not trusted forwarder"
+                );
+            });
+
+            it("#11.3 forwarder with malformatted message", async () => {
+                await expectRevert(
+                    web3tx(superfluid.forwardBatchCall, "forwarder.execute")(
+                        [],
+                        { from: admin }
+                    ),
+                    "Not trusted forwarder"
+                );
+            });
+        });
+
         describe("#20 Governance", () => {
             it("#20.1 getGovernance", async () => {
                 assert.equal(

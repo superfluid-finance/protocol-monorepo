@@ -1,4 +1,4 @@
-const DEFAULT_CONFIG = {
+const DEFAULT_CONFIGS = {
     5: {
         // goerli
         nativeTokenSymbol: "ETH",
@@ -22,7 +22,7 @@ const DEFAULT_CONFIG = {
     },
     80001: {
         // (matic) mumbai testnet
-        nativeTokenSymbol: "MATIC",
+        // nativeTokenSymbol: "MATIC",
         resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
     },
     0x03c401: {
@@ -37,7 +37,7 @@ const DEFAULT_CONFIG = {
 
 /// @dev Get the network configuration
 module.exports = function getConfig(chainId) {
-    const defaultConfig = DEFAULT_CONFIG[chainId] || {};
+    const defaultConfig = DEFAULT_CONFIGS[chainId] || {};
     return {
         ...defaultConfig,
         resolverAddress:

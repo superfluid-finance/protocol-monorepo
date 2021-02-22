@@ -414,10 +414,10 @@ interface ISuperfluid {
     function batchCall(Operation[] memory operations) external;
 
     /**
-     * @dev Batch call function with biconomy forwarder
+     * @dev Batch call function for trusted forwarders (EIP-2771)
      * @param operations Array of batch operations.
      */
-    function biconomyBatchCall(Operation[] memory operations) external;
+    function forwardBatchCall(Operation[] memory operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

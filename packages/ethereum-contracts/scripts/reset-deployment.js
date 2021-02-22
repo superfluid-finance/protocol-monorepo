@@ -1,6 +1,6 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const TestResolver = artifacts.require("TestResolver");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const getConfig = require("./getConfig");
 
 const { parseColonArgs, rl } = require("./utils");
 
@@ -25,7 +25,7 @@ module.exports = async function (callback, argv) {
 
         const chainId = await web3.eth.net.getId(); // FIXME use eth.getChainId;
 
-        const config = SuperfluidSDK.getConfig(chainId);
+        const config = getConfig(chainId);
 
         let testResolver;
         if (config.resolverAddress) {

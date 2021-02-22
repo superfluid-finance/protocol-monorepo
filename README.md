@@ -32,7 +32,7 @@ For technical document, references and tutorials, etc, refer to the
 
 ## Packages
 
-#### [`@superfluid-finance/js-sdk`](tree/dev/packages/js-sdk)
+#### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk)
 
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
@@ -45,7 +45,7 @@ For technical document, references and tutorials, etc, refer to the
 
 To build with Superfluid, you can use the Javascript SDK package.
 
-#### [`@superfluid-finance/ethereum-contracts`](tree/dev/packages/ethereum-contracts)
+#### [`@superfluid-finance/ethereum-contracts`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts)
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">

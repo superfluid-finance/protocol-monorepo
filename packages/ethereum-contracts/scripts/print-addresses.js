@@ -18,7 +18,7 @@ const {
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
         const args = parseColonArgs(argv || process.argv);
         if (args.length != 1) {

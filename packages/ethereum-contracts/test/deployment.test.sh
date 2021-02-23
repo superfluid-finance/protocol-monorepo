@@ -41,9 +41,6 @@ fi
 # Test the scripts
 #
 
-# if any of them fail, exit
-set -e
-
 # unset potential interfering environment varibles
 unset TEST_RESOLVER_ADDRESS
 unset NEW_TEST_RESOLVER
@@ -53,6 +50,9 @@ unset USE_MOCKS
 unset NON_UPGRADABLE
 
 export RELEASE_VERSION=test
+
+# if any of them fail, exit
+set -xe
 
 > $ENVFILE
 npx truffle --network ganache exec scripts/deploy-test-environment.js | tee >(tail -n1 > $ENVFILE)

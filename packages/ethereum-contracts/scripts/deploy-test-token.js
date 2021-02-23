@@ -22,7 +22,7 @@ module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("Deploying test token");
 
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
@@ -32,7 +32,7 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Token name", tokenName);
 
         const reset = !!process.env.RESET_TOKEN;
-        const chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+        const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
         const config = getConfig(chainId);
         console.log("reset: ", reset);
         console.log("chain ID: ", chainId);

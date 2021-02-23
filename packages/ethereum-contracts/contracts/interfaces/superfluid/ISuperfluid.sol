@@ -143,6 +143,16 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
+     * @dev App registered event
+     */
+    event AppRegistered(ISuperApp indexed app);
+
+    /**
+     * @dev Jail event for the app
+     */
+    event Jail(ISuperApp indexed app, uint256 reason);
+
+    /**
      * @dev Message sender declares it as a super app
      * @param configWord The super app manifest configuration, flags are defined in
      *                   `SuperAppDefinitions`
@@ -198,11 +208,6 @@ interface ISuperfluid {
     )
         external view
         returns (bool isAppAllowed);
-
-    /**
-     * @dev Jail event for the app
-     */
-    event Jail(ISuperApp indexed app, uint256 reason);
 
     /**************************************************************************
      * Agreement Framework

@@ -291,6 +291,7 @@ contract Superfluid is
             "SF: invalid config word");
         require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "SF: app already registered");
         _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
+        emit AppRegistered(app);
     }
 
     function isApp(ISuperApp app) public view override returns(bool) {

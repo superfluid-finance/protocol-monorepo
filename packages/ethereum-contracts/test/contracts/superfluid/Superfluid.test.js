@@ -1146,6 +1146,9 @@ contract("Superfluid Host Contract", (accounts) => {
 
                 it("#6.30 composite app must be whitelisted", async () => {
                     // assuming MAX_APP_LEVEL = 1
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app3)
+                    // -> app3.afterAgreementCreated
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app)
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
@@ -1182,12 +1185,14 @@ contract("Superfluid Host Contract", (accounts) => {
 
                 it("#6.31 composite app cannot be jailed", async () => {
                     // assuming MAX_APP_LEVEL = 1
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app3)
+                    // -> app3.afterAgreementCreated
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app) // jailed
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
                         agreement.address
                     );
-                    await superfluid.jailApp(app.address);
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1199,7 +1204,18 @@ contract("Superfluid Host Contract", (accounts) => {
                                 .encodeABI(),
                             "0x"
                         ),
-                        "SF: APP_RULE_COMPOSITE_APP_IS_JAILED"
+                        "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                    );
+                    await superfluid.jailApp(app.address);
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementCreatedCallback(
+                                app3.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
                     );
                 });
             });
@@ -1690,6 +1706,34 @@ contract("Superfluid Host Contract", (accounts) => {
                     "SF: APP_RULE_CTX_IS_READONLY"
                 );
             });
+
+            it("#9.3 callAgreementWithContext should from the same app", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionPingAgreementThroughAux(
+                                agreement.address,
+                                42,
+                                "0x"
+                            )
+                            .encodeABI()
+                    ),
+                    "SF: callAgreementWithContext from wrong address"
+                );
+            });
+
+            it("#9.4 callAppActionWithContext should from the same app", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionCallActionNoopThroughAux("0x")
+                            .encodeABI()
+                    ),
+                    "SF: callAppActionWithContext from wrong address"
+                );
+            });
         });
 
         describe("#10 batchCall", () => {
@@ -1969,12 +2013,12 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         describe("#11 forwardBatchCall", () => {
-            const TestForwarder = artifacts.require("TestForwarder");
+            const ForwarderMock = artifacts.require("ForwarderMock");
 
             let forwarder;
 
             before(async () => {
-                forwarder = await TestForwarder.new();
+                forwarder = await ForwarderMock.new();
             });
 
             it("#11.1 forwardBatchCall with mocked transaction signer", async () => {

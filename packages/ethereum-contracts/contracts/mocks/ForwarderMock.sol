@@ -11,7 +11,7 @@ import { IRelayRecipient } from "../interfaces/ux/IRelayRecipient.sol";
  *
  * It is obviously not secure for any production use.
  */
-contract TestForwarder {
+contract ForwarderMock {
 
     // mocked forward request, we don't emulate the signature flow here
     struct ForwardRequest {

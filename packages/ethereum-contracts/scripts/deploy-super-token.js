@@ -21,7 +21,7 @@ module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("Deploying super token");
 
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
         const version = process.env.RELEASE_VERSION || "test";
         const args = parseColonArgs(argv || process.argv);

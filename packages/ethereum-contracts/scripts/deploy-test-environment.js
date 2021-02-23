@@ -18,7 +18,7 @@ module.exports = async function (callback, options = {}) {
     };
 
     try {
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
         console.log("==== Deploying superfluid framework...");
         await deployFramework(errorHandler, options);

@@ -42,13 +42,14 @@ async function deployAndRegisterContractIf(
 }
 
 async function deployNewLogicContractIfNew(
+    web3,
     LogicContract,
     codeAddress,
     deployFunc
 ) {
     let newCodeAddress = ZERO_ADDRESS;
     const contractName = LogicContract.contractName;
-    if (await codeChanged(this.web3, LogicContract, codeAddress)) {
+    if (await codeChanged(web3, LogicContract, codeAddress)) {
         console.log(`${contractName} logic code has changed`);
         newCodeAddress = await deployFunc();
         console.log(`${contractName} new logic code address ${newCodeAddress}`);
@@ -75,13 +76,13 @@ module.exports = async function (callback, options = {}) {
     try {
         console.log("Deploying superfluid framework");
 
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { newTestResolver, useMocks, nonUpgradable } = options;
 
-        const CFAv1_TYPE = this.web3.utils.sha3(
+        const CFAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
         );
-        const IDAv1_TYPE = this.web3.utils.sha3(
+        const IDAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
 
@@ -100,7 +101,7 @@ module.exports = async function (callback, options = {}) {
 
         reset = !!process.env.RESET_SUPERFLUID_FRAMEWORK;
         const version = process.env.RELEASE_VERSION || "test";
-        const chainId = await this.web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
         console.log("reset: ", reset);
         console.log("chain ID: ", chainId);
         console.log("release version:", version);
@@ -164,7 +165,7 @@ module.exports = async function (callback, options = {}) {
             TestGovernance,
             `TestGovernance.${version}`,
             async (contractAddress) =>
-                await codeChanged(this.web3, TestGovernance, contractAddress),
+                await codeChanged(web3, TestGovernance, contractAddress),
             async () => {
                 const accounts = await web3.eth.getAccounts();
                 return await web3tx(TestGovernance.new, "TestGovernance.new")(
@@ -181,8 +182,7 @@ module.exports = async function (callback, options = {}) {
         let superfluid = await deployAndRegisterContractIf(
             SuperfluidLogic,
             `Superfluid.${version}`,
-            async (contractAddress) =>
-                !(await hasCode(this.web3, contractAddress)),
+            async (contractAddress) => !(await hasCode(web3, contractAddress)),
             async () => {
                 let superfluidAddress;
                 const superfluidLogic = await web3tx(
@@ -213,7 +213,7 @@ module.exports = async function (callback, options = {}) {
                 if (!nonUpgradable) {
                     if (
                         await codeChanged(
-                            this.web3,
+                            web3,
                             SuperfluidLogic,
                             await superfluid.getCodeAddress()
                         )
@@ -287,6 +287,7 @@ module.exports = async function (callback, options = {}) {
 
             // deploy new superfluid host logic
             superfluidNewLogicAddress = await deployNewLogicContractIfNew(
+                web3,
                 SuperfluidLogic,
                 await superfluid.getCodeAddress(),
                 async () => {
@@ -305,6 +306,7 @@ module.exports = async function (callback, options = {}) {
 
             // deploy new CFA logic
             const cfaNewLogicAddress = await deployNewLogicContractIfNew(
+                web3,
                 ConstantFlowAgreementV1,
                 await (
                     await UUPSProxiable.at(
@@ -318,6 +320,7 @@ module.exports = async function (callback, options = {}) {
 
             // deploy new IDA logic
             const idaNewLogicAddress = await deployNewLogicContractIfNew(
+                web3,
                 InstantDistributionAgreementV1,
                 await (
                     await UUPSProxiable.at(
@@ -335,6 +338,7 @@ module.exports = async function (callback, options = {}) {
             ? SuperTokenFactoryMock
             : SuperTokenFactory;
         const superTokenFactoryNewLogicAddress = await deployNewLogicContractIfNew(
+            web3,
             SuperTokenFactoryLogic,
             await superfluid.getSuperTokenFactoryLogic.call(),
             async () => {

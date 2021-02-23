@@ -13,7 +13,7 @@
         "build": "yarn workspaces run build",
         "test": "yarn workspaces run test",
         "lint": "yarn workspaces run lint",
-        "manage-versions": "lerna version --exact --no-git-tag-version",
+        "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
         "postinstall": "husky install"
     },
     "devDependencies": {

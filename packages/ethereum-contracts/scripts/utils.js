@@ -73,21 +73,34 @@ async function isProxiable(UUPSProxiable, address) {
  * ```
  */
 async function detectTruffleAndConfigure(options) {
-    // if isTruffle already set explicitly
-    if ("isTruffle" in options) return;
-    const stackTrace = require("stack-trace");
-    const trace = stackTrace.get();
-    //trace.forEach(callSite => console.debug(callSite.getFileName()));
-    options.isTruffle =
-        trace.filter((callSite) =>
-            (callSite.getFileName() || "").endsWith(
-                "truffle/build/commands.bundled.js"
-            )
-        ).length > 0;
+    // if isTruffle is not set explicitly
+    if (!("isTruffle" in options)) {
+        const stackTrace = require("stack-trace");
+        const trace = stackTrace.get();
+        //trace.forEach(callSite => console.debug(callSite.getFileName()));
+        options.isTruffle =
+            trace.filter((callSite) =>
+                (callSite.getFileName() || "").endsWith(
+                    "truffle/build/commands.bundled.js"
+                )
+            ).length > 0;
+    }
     if (options.isTruffle) {
+        if (options.web3) {
+            throw Error(
+                "Flag 'isTruffle' cannot be 'true' when using a web3 instance."
+            );
+        }
         // set these globally so that it's available throughout the executions
         global.web3 = web3;
         global.artifacts = artifacts;
+    } else {
+        if (!options.web3) {
+            throw Error(
+                "A web3 instance is not provided when not using truffle."
+            );
+        }
+        global.web3 = options.web3;
     }
 }
 

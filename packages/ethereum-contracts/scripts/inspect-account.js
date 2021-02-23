@@ -81,7 +81,7 @@ module.exports = async function (callback, argv) {
                     console.log(
                         flows.outFlows.map(
                             (f) =>
-                                `${f.sender} -> ${normalizeFlowRate(
+                                `${f.receiver} -> ${normalizeFlowRate(
                                     f.flowRate
                                 )}`
                         )

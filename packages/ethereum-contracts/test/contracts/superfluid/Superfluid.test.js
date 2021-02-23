@@ -1706,6 +1706,34 @@ contract("Superfluid Host Contract", (accounts) => {
                     "SF: APP_RULE_CTX_IS_READONLY"
                 );
             });
+
+            it("#9.3 callAgreementWithContext should from the same app", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionPingAgreementThroughAux(
+                                agreement.address,
+                                42,
+                                "0x"
+                            )
+                            .encodeABI()
+                    ),
+                    "SF: callAgreementWithContext from wrong address"
+                );
+            });
+
+            it("#9.4 callAppActionWithContext should from the same app", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionCallActionNoopThroughAux("0x")
+                            .encodeABI()
+                    ),
+                    "SF: callAppActionWithContext from wrong address"
+                );
+            });
         });
 
         describe("#10 batchCall", () => {

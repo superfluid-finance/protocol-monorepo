@@ -94,7 +94,7 @@ module.exports = async function (callback, argv) {
                         superToken: superToken.address,
                         publisher: account,
                     });
-                    console.log(indices.map((indexId) => `${indexId}`));
+                    console.log(indices);
                     console.log("Subscriptions:");
                     const subscriptions = await sf.ida.listSubscriptions({
                         superToken: superToken.address,
@@ -102,7 +102,8 @@ module.exports = async function (callback, argv) {
                     });
                     console.log(
                         subscriptions.map(
-                            (s) => `${s.publisher}@{s.indexId} ${s.units} units`
+                            (s) =>
+                                `${s.publisher}@${s.indexId} ${s.units} units`
                         )
                     );
                 }

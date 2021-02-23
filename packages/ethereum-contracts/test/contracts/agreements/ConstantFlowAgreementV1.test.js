@@ -11,7 +11,6 @@ const {
 const TestEnvironment = require("../../TestEnvironment");
 
 const traveler = require("ganache-time-traveler");
-const MultiFlowApp = artifacts.require("MultiFlowApp");
 
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
@@ -74,6 +73,12 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         const time = opts.time || TEST_TRAVEL_TIME;
         await _timeTravelOnce(time);
         await verifyAll(opts);
+    }
+
+    async function timeTravelOnceAndValidateSystemInvariance(opts = {}) {
+        const time = opts.time || TEST_TRAVEL_TIME;
+        await _timeTravelOnce(time);
+        await t.validateSystemInvariance(opts);
     }
 
     async function expectNetFlow(alias, expectedNetFlowRate) {
@@ -839,7 +844,9 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         });
     });
 
-    describe("#2 multi flows super app scenarios", () => {
+    context("#2 multi flows super app scenarios", () => {
+        const MultiFlowApp = artifacts.require("MultiFlowApp");
+
         const sender = "alice";
         const receiver1 = "bob";
         const receiver2 = "carol";
@@ -1702,7 +1709,72 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         });
     });
 
-    describe("#10 scenarios", () => {
+    context("#3 callbacks", () => {
+        const ExclusiveInflowTestApp = artifacts.require(
+            "ExclusiveInflowTestApp"
+        );
+
+        let app;
+
+        beforeEach(async () => {
+            app = await web3tx(
+                ExclusiveInflowTestApp.new,
+                "ExclusiveInflowTestApp.new"
+            )(cfa.address, superfluid.address);
+            t.addAlias("app", app.address);
+        });
+
+        it("#3.1 ExclusiveInflowTestApp", async () => {
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+            await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
+
+            await web3tx(
+                t.sf.cfa.createFlow,
+                "alice -> app"
+            )({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: app.address,
+                flowRate: FLOW_RATE1.toString(),
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1).toString());
+            await expectNetFlow("bob", "0");
+            await expectNetFlow("app", FLOW_RATE1.toString());
+            await timeTravelOnceAndValidateSystemInvariance();
+
+            await web3tx(
+                t.sf.cfa.createFlow,
+                "bob -> app"
+            )({
+                superToken: superToken.address,
+                sender: bob,
+                receiver: app.address,
+                flowRate: FLOW_RATE1.muln(2).toString(),
+            });
+            await expectNetFlow("alice", "0");
+            await expectNetFlow(
+                "bob",
+                toBN(0).sub(FLOW_RATE1.muln(2)).toString()
+            );
+            await expectNetFlow("app", FLOW_RATE1.muln(2)).toString();
+            await timeTravelOnceAndValidateSystemInvariance();
+
+            await web3tx(
+                t.sf.cfa.deleteFlow,
+                "bob -> app"
+            )({
+                superToken: superToken.address,
+                sender: bob,
+                receiver: app.address,
+            });
+            await expectNetFlow("alice", "0");
+            await expectNetFlow("bob", "0");
+            await expectNetFlow("app", "0");
+            await timeTravelOnceAndValidateSystemInvariance();
+        });
+    });
+
+    context("#10 scenarios", () => {
         it("#10.1 two accounts sending to each other with the same flow rate", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 

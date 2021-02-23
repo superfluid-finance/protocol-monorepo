@@ -1985,12 +1985,12 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         describe("#11 forwardBatchCall", () => {
-            const TestForwarder = artifacts.require("TestForwarder");
+            const ForwarderMock = artifacts.require("ForwarderMock");
 
             let forwarder;
 
             before(async () => {
-                forwarder = await TestForwarder.new();
+                forwarder = await ForwarderMock.new();
             });
 
             it("#11.1 forwardBatchCall with mocked transaction signer", async () => {

@@ -85,8 +85,6 @@ library AgreementLibrary {
         uint256 noopMask;
         (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(ISuperApp(inputs.account));
         if (isSuperApp && !isJailed) {
-            // this will check composit app whitelisting, do not skip!
-            // otherwise an app could be trapped into an agreement:
             bytes memory appCtx = _pushCallbackStack(ctx, inputs);
             if ((noopMask & inputs.noopBit) == 0) {
                 bytes memory callData = abi.encodeWithSelector(
@@ -113,7 +111,7 @@ library AgreementLibrary {
         bytes memory ctx
     )
         internal
-        returns (ISuperfluid.Context memory appContext, bytes memory appCtx)
+        returns (ISuperfluid.Context memory appContext, bytes memory newCtx)
     {
         bool isSuperApp;
         bool isJailed;
@@ -121,9 +119,7 @@ library AgreementLibrary {
         (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(ISuperApp(inputs.account));
 
         if (isSuperApp && !isJailed) {
-            // this will check composit app whitelisting, do not skip!
-            // otherwise an app could be trapped into an agreement
-            appCtx = _pushCallbackStack(ctx, inputs);
+            newCtx = _pushCallbackStack(ctx, inputs);
             if ((noopMask & inputs.noopBit) == 0) {
                 bytes memory callData = abi.encodeWithSelector(
                     _selectorFromNoopBit(inputs.noopBit),
@@ -134,20 +130,20 @@ library AgreementLibrary {
                     cbdata,
                     new bytes(0) // placeholder ctx
                 );
-                appCtx = ISuperfluid(msg.sender).callAppAfterCallback(
+                newCtx = ISuperfluid(msg.sender).callAppAfterCallback(
                     ISuperApp(inputs.account),
                     callData,
                     inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
-                    appCtx);
+                    newCtx);
 
-                appContext = ISuperfluid(msg.sender).decodeCtx(appCtx);
+                appContext = ISuperfluid(msg.sender).decodeCtx(newCtx);
 
                 // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
                 appContext.appAllowanceUsed = max(0, min(
                     inputs.appAllowanceGranted.toInt256(),
                     max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
             }
-            appCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
+            newCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
         }
     }
 
@@ -191,7 +187,7 @@ library AgreementLibrary {
         int256 appAllowanceUsed
     )
         private
-        returns (bytes memory appCtx)
+        returns (bytes memory newCtx)
     {
         // app allowance params stack POP
         return ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);

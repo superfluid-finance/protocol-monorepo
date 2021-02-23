@@ -368,6 +368,8 @@ interface ISuperfluid {
         uint256 appAllowanceWanted;
         // app allowance used, allowing negative values over a callback session
         int256 appAllowanceUsed;
+        // app address
+        address appAddress;
     }
 
     function callAgreementWithContext(

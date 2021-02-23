@@ -427,8 +427,6 @@ contract Superfluid is
     {
         Context memory context = decodeCtx(ctx);
         if (isApp(ISuperApp(context.msgSender))) {
-            require(!isAppJailed(app),
-                "SF: APP_RULE_COMPOSITE_APP_IS_JAILED");
             require(_compositeApps[ISuperApp(context.msgSender)][app],
                 "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED");
         }
@@ -437,6 +435,7 @@ contract Superfluid is
         context.appAllowanceGranted = appAllowanceGranted;
         context.appAllowanceWanted = 0;
         context.appAllowanceUsed = appAllowanceUsed;
+        context.appAddress = address(app);
         appCtx = _updateContext(context);
     }
 
@@ -512,7 +511,8 @@ contract Superfluid is
             userData: userData,
             appAllowanceGranted: 0,
             appAllowanceWanted: 0,
-            appAllowanceUsed: 0
+            appAllowanceUsed: 0,
+            appAddress: address(0)
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
@@ -555,7 +555,8 @@ contract Superfluid is
             userData: "",
             appAllowanceGranted: 0,
             appAllowanceWanted: 0,
-            appAllowanceUsed: 0
+            appAllowanceUsed: 0,
+            appAddress: address(app)
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
@@ -597,8 +598,9 @@ contract Superfluid is
         returns (bytes memory newCtx, bytes memory returnedData)
     {
         Context memory context = decodeCtx(ctx);
-        address oldSender = context.msgSender;
+        require(context.appAddress == msg.sender,  "SF: callAgreementWithContext from wrong address");
 
+        address oldSender = context.msgSender;
         context.msgSender = msg.sender;
         //context.agreementSelector =;
         context.userData = userData;
@@ -629,8 +631,9 @@ contract Superfluid is
         returns(bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        address oldSender = context.msgSender;
+        require(context.appAddress == msg.sender,  "SF: callAppActionWithContext from wrong address");
 
+        address oldSender = context.msgSender;
         context.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
@@ -660,8 +663,9 @@ contract Superfluid is
             context.agreementSelector,
             context.userData,
             allowanceIO,
-            context.appAllowanceUsed
-        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256));
+            context.appAllowanceUsed,
+            context.appAddress
+        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256, address));
         (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
         context.appAllowanceGranted = allowanceIO & type(uint128).max;
         context.appAllowanceWanted = allowanceIO >> 128;
@@ -792,7 +796,8 @@ contract Superfluid is
             context.agreementSelector,
             context.userData,
             allowanceIO,
-            context.appAllowanceUsed
+            context.appAllowanceUsed,
+            context.appAddress
         );
         _ctxStamp = keccak256(ctx);
     }

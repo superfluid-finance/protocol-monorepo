@@ -1146,6 +1146,9 @@ contract("Superfluid Host Contract", (accounts) => {
 
                 it("#6.30 composite app must be whitelisted", async () => {
                     // assuming MAX_APP_LEVEL = 1
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app3)
+                    // -> app3.afterAgreementCreated
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app)
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
@@ -1182,12 +1185,14 @@ contract("Superfluid Host Contract", (accounts) => {
 
                 it("#6.31 composite app cannot be jailed", async () => {
                     // assuming MAX_APP_LEVEL = 1
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app3)
+                    // -> app3.afterAgreementCreated
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app) // jailed
                     const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
                         agreement.address
                     );
-                    await superfluid.jailApp(app.address);
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1199,7 +1204,18 @@ contract("Superfluid Host Contract", (accounts) => {
                                 .encodeABI(),
                             "0x"
                         ),
-                        "SF: APP_RULE_COMPOSITE_APP_IS_JAILED"
+                        "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                    );
+                    await superfluid.jailApp(app.address);
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementCreatedCallback(
+                                app3.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
                     );
                 });
             });

@@ -42,7 +42,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     uint256 internal _totalSupply;
 
     // NOTE: for future compatibility, these are reserved solidity slots
-    // The sub-class of SuperfluidToken solidity slot will start after _reserve9
+    // The sub-class of SuperfluidToken solidity slot will start after _reserve13
     uint256 internal _reserve4;
     uint256 private _reserve5;
     uint256 private _reserve6;

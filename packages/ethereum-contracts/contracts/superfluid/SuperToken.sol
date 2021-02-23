@@ -69,16 +69,16 @@ contract SuperToken is
 
     // NOTE: for future compatibility, these are reserved solidity slots
     // The sub-class of SuperToken solidity slot will start after _reserve19
-    uint256 internal _reserve10;
-    uint256 private _reserve11;
-    uint256 private _reserve12;
-    uint256 private _reserve13;
-    uint256 private _reserve14;
-    uint256 private _reserve15;
-    uint256 private _reserve16;
-    uint256 private _reserve17;
-    uint256 private _reserve18;
-    uint256 internal _reserve19;
+    uint256 internal _reserve22;
+    uint256 private _reserve23;
+    uint256 private _reserve24;
+    uint256 private _reserve25;
+    uint256 private _reserve26;
+    uint256 private _reserve27;
+    uint256 private _reserve28;
+    uint256 private _reserve29;
+    uint256 private _reserve30;
+    uint256 internal _reserve31;
 
     constructor(
         ISuperfluid host

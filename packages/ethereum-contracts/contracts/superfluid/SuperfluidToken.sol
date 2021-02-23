@@ -43,16 +43,16 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
     // NOTE: for future compatibility, these are reserved solidity slots
     // The sub-class of SuperfluidToken solidity slot will start after _reserve9
-    uint256 internal _reserve0;
-    uint256 private _reserve1;
-    uint256 private _reserve2;
-    uint256 private _reserve3;
-    uint256 private _reserve4;
+    uint256 internal _reserve4;
     uint256 private _reserve5;
     uint256 private _reserve6;
     uint256 private _reserve7;
     uint256 private _reserve8;
-    uint256 internal _reserve9;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 internal _reserve13;
 
     constructor(
         ISuperfluid host

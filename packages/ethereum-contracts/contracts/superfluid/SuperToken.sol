@@ -68,7 +68,7 @@ contract SuperToken is
     ERC777Helper.Operators internal _operators;
 
     // NOTE: for future compatibility, these are reserved solidity slots
-    // The sub-class of SuperToken solidity slot will start after _reserve19
+    // The sub-class of SuperToken solidity slot will start after _reserve22
     uint256 internal _reserve22;
     uint256 private _reserve23;
     uint256 private _reserve24;

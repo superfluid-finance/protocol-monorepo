@@ -49,7 +49,8 @@ unset RELEASE_VERSION
 unset USE_MOCKS
 unset NON_UPGRADABLE
 
-export RELEASE_VERSION=test
+# force to load artifacts from build folder instead
+export DISABLE_NATIVE_TRUFFLE=1
 
 # if any of them fail, exit
 set -xe

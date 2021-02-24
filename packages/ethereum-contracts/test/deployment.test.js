@@ -24,14 +24,14 @@ contract("Embeded deployment scripts", () => {
     );
 
     beforeEach(() => {
-        delete process.env.RESET_SUPERFLUID_FRAMEWORK;
+        // cleanup environment variables that might affect the test
+        delete process.env.RESET_TOKEN;
         delete process.env.RELEASE_VERSION;
         delete process.env.TEST_RESOLVER_ADDRESS;
     });
 
-    // cleanup environment after each test
     afterEach(() => {
-        delete process.env.RESET_SUPERFLUID_FRAMEWORK;
+        // cleanup environment after each test
         delete process.env.TEST_RESOLVER_ADDRESS;
     });
 
@@ -249,8 +249,10 @@ contract("Embeded deployment scripts", () => {
                 assert.equal(s1.ida, s2.ida, "cfa deployment not required");
 
                 console.log("==== Reset all");
-                process.env.RESET_SUPERFLUID_FRAMEWORK = 1;
-                await deployFramework(errorHandler, deploymentOptions);
+                await deployFramework(errorHandler, {
+                    ...deploymentOptions,
+                    resetSuperfluidFramework: true,
+                });
                 const s3 = await getSuperfluidAddresses();
                 assert.notEqual(
                     s3.superfluidCode,
@@ -284,7 +286,6 @@ contract("Embeded deployment scripts", () => {
                 assert.notEqual(s1.ida, s3.ida);
 
                 console.log("==== Deploy again with mock logic contract");
-                delete process.env.RESET_SUPERFLUID_FRAMEWORK;
                 await deployFramework(errorHandler, {
                     ...deploymentOptions,
                     useMocks: true,
@@ -330,9 +331,11 @@ contract("Embeded deployment scripts", () => {
                 TestResolver.new,
                 "TestResolver.new"
             )();
-            delete process.env.RESET_SUPERFLUID_FRAMEWORK;
             process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-            await deployFramework(errorHandler, deploymentOptions);
+            await deployFramework(errorHandler, {
+                ...deploymentOptions,
+                resetSuperfluidFramework: true,
+            });
 
             // first deployment
             assert.equal(
@@ -357,8 +360,10 @@ contract("Embeded deployment scripts", () => {
             assert.equal(address2, address1);
 
             // new deployment after framework reset
-            process.env.RESET_SUPERFLUID_FRAMEWORK = 1;
-            await deployFramework(errorHandler, deploymentOptions);
+            await deployFramework(errorHandler, {
+                ...deploymentOptions,
+                resetSuperfluidFramework: true,
+            });
             await deployTestToken(
                 errorHandler,
                 [":", "TEST7262"],
@@ -373,7 +378,6 @@ contract("Embeded deployment scripts", () => {
                 TestResolver.new,
                 "TestResolver.new"
             )();
-            delete process.env.RESET_SUPERFLUID_FRAMEWORK;
             process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
 
             await deployFramework(errorHandler, deploymentOptions);
@@ -442,8 +446,10 @@ contract("Embeded deployment scripts", () => {
             );
 
             // new deployment after framework reset
-            process.env.RESET_SUPERFLUID_FRAMEWORK = 1;
-            await deployFramework(errorHandler, deploymentOptions);
+            await deployFramework(errorHandler, {
+                ...deploymentOptions,
+                resetSuperfluidFramework: true,
+            });
             await deploySuperToken(
                 errorHandler,
                 [":", "TEST7262"],

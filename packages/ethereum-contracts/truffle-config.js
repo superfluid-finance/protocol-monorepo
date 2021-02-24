@@ -110,7 +110,24 @@ module.exports = {
                 ),
             network_id: 42,
             gas: 8e6,
-            gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9, // 100 GWEI, goerli is busy!
+            gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9,
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+        },
+
+        xdai: {
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.XDAI_MNEMONIC,
+                    process.env.XDAI_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
+            network_id: 0x64,
+            gas: 8e6,
+            gasPrice: +process.env.XDAI_GAS_PRICE || 1e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )

@@ -42,7 +42,7 @@ if ! [ -z "$GITHUB_ENV" ];then
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
     echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
     echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
-    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 || "$BUILD_JS_SDK" == 1];then
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 || "$BUILD_JS_SDK" == 1 ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
     fi

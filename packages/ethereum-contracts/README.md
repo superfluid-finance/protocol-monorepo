@@ -26,23 +26,29 @@
 
 ### 📖 [Docs](https://docs.superfluid.finance)
 
-## Install
-
-```sh
-yarn install
-```
-
 ## Usage
 
 If you're building a dapp using the deployed contracts (goerli or mainnet) then you should instead use [`@superfluid-finance/js-sdk`](/packages/js-sdk).
 
-If you're building a Super App, then great! This is definitely the place to be. The contracts can be imported into your `.sol` file like this:
+If you're building a smart contract that uses Superfluid protocol,
+or even your own [SuperApp](https://docs.superfluid.finance/), then great! This is definitely the place to be.
+
+### Smart Contract
+
+The contracts can be imported into your `.sol` file like this:
 
 ```js
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
 
-For writing tests, you can use the the deployment scripts to deploy all the necessary contracts. Currently they only works with web3.js, we are working on to support to other frameworks.
+### Deploying Superfluid Protocol
+
+
+
+### Writing Test
+
+For writing tests, you can use the the deployment scripts to deploy all the necessary contracts. Currently they only works with [web3.js](https://github.com/ChainSafe/web3.js),
+we are working on to support to other frameworks in the future.
 
 ```js
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
@@ -71,7 +77,8 @@ contract("My Test", accounts => {
     });
 ```
 
-To interact with the protocol, you can use the `@superfluid-finance/js-sdk`. Here is a quick-start example:
+To interact with the protocol, you can should consider to use the
+[`@superfluid-finance/js-sdk`](/packages/js-sdk). Here is a quick-start example:
 
 ```js
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
@@ -106,9 +113,14 @@ beforeEach(async () => {
 
 Awesome, now that have the basics, check out the apps over in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples).
 
-## Troubleshooting
+### Examples
 
-One thing to keep in mind is that Superfluid relies on a persistent 1820 registry contract. This must be deployed before you can interact with the protocol. If you follow the examples using the `TestEnvironment` helper, you don't need to worry about it.
+We created a few [examples here](/examples). So that you don't have to start everything
+from the scratch. Clone a project, modify and play!
+
+### Troubleshooting
+
+One thing to keep in mind is that Superfluid relies on a persistent 1820 registry contract. This must be deployed before you can interact with the protocol. If you follow the examples using the deployment scripts, you don't need to worry about it.
 
 If you want to see examples for manually deploying contracts, check out the [scripts folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/scripts).
 
@@ -131,6 +143,15 @@ yarn test
 
 ## Contributing
 
+### Setup Development Environment
+
+1. Install dependencies
+```sh
+yarn install
+```
+
+2. Setup your own `.env` file from `.env.template`
+
 ### Testing
 
 There are two major test suite:
@@ -147,7 +168,7 @@ Since testing can take a long time to execute, you may want to use the [execlusi
 
 ```bash
 # Only run deployment.test.js
-nodemon -x npx truffle test ./test/deployment.test.js
+nodemon -x npx truffle test ./test/contracts/superfluid/Superfluid.test.js
 ```
 
 ## Show your support

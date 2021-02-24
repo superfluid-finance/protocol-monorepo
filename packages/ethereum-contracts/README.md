@@ -79,7 +79,7 @@ contract("My Test", accounts => {
     });
 ```
 
-To interact with the protocol, you can should consider to use the
+To interact with the protocol, you should consider to use the
 [`@superfluid-finance/js-sdk`](/packages/js-sdk). Here is a quick-start example:
 
 ```js
@@ -143,8 +143,8 @@ after the command finishes, you should see:
 export TEST_RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
 ```
 
-By exporting the `TEST_RESOLVER_ADDRESS` variable, you could then interact with your
-own deployment of the Superfluid protocol.
+Run the export command to save TEST_RESOLVER_ADDRESS to your local environment.
+Whenever you run additional tests/scripts this will be the address used to find the SF Framework contracts.
 
 ### Examples
 

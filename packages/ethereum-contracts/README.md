@@ -33,6 +33,12 @@ If you're building a dapp using the deployed contracts (goerli or mainnet) then 
 If you're building a smart contract that uses Superfluid protocol,
 or even your own [SuperApp](https://docs.superfluid.finance/), then great! This is definitely the place to be.
 
+### Installation
+
+```sh
+$ yarn add @superfluid-finance/ethereum-contracts
+```
+
 ### Smart Contract
 
 The contracts can be imported into your `.sol` file like this:
@@ -40,10 +46,6 @@ The contracts can be imported into your `.sol` file like this:
 ```js
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
-
-### Deploying Superfluid Protocol
-
-
 
 ### Writing Test
 
@@ -112,6 +114,37 @@ beforeEach(async () => {
 ```
 
 Awesome, now that have the basics, check out the apps over in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples).
+
+### Deploying Superfluid Protocol
+
+**Local**
+
+To deploy to your local ganache environment:
+
+```sh
+$ DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+```
+
+**Public**
+
+If you want to deploy to a public network:
+
+```sh
+$ NEW_TEST_RESOLVER=1 NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+```
+
+Note `NEW_TEST_RESOLVER=1`, it is to avoid using the official resolver address. Doing so
+after the command finishes, you should see:
+
+```
+...
+======== Super token deployed ========
+=============== TEST ENVIRONMENT RESOLVER ======================
+export TEST_RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
+```
+
+By exporting the `TEST_RESOLVER_ADDRESS` variable, you could then interact with your
+own deployment of the Superfluid protocol.
 
 ### Examples
 

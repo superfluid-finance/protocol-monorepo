@@ -130,7 +130,7 @@ $ DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@supe
 If you want to deploy to a public network:
 
 ```sh
-$ NEW_TEST_RESOLVER=1 NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+$ NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
 Note `NEW_TEST_RESOLVER=1`, it is to avoid using the official resolver address. Doing so

@@ -175,19 +175,15 @@ module.exports = async function (callback, options = {}) {
         console.log("Resolver address", testResolver.address);
 
         // deploy new governance contract
+        let governanceInitializationRequired = false;
         let governance = await deployAndRegisterContractIf(
             TestGovernance,
             `TestGovernance.${protocolReleaseVersion}`,
             async (contractAddress) =>
                 await codeChanged(web3, TestGovernance, contractAddress),
             async () => {
-                const accounts = await web3.eth.getAccounts();
-                return await web3tx(TestGovernance.new, "TestGovernance.new")(
-                    // let rewardAddress the first account
-                    accounts[0],
-                    // liquidationPeriod
-                    3600
-                );
+                governanceInitializationRequired = true;
+                return await web3tx(TestGovernance.new, "TestGovernance.new")();
             }
         );
 
@@ -198,6 +194,7 @@ module.exports = async function (callback, options = {}) {
             `Superfluid.${protocolReleaseVersion}`,
             async (contractAddress) => !(await hasCode(web3, contractAddress)),
             async () => {
+                governanceInitializationRequired = true;
                 let superfluidAddress;
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
@@ -240,6 +237,20 @@ module.exports = async function (callback, options = {}) {
                 return superfluid;
             }
         );
+
+        // initialize the new governance
+        if (governanceInitializationRequired) {
+            const accounts = await web3.eth.getAccounts();
+            await web3tx(governance.initialize, "governance.initialize")(
+                superfluid.address,
+                // let rewardAddress the first account
+                accounts[0],
+                // liquidationPeriod
+                config.liquidationPeriod,
+                // trustedForwarders
+                config.biconomyForwarder ? [config.biconomyForwarder] : []
+            );
+        }
 
         // replace with new governance
         if ((await superfluid.getGovernance.call()) !== governance.address) {
@@ -390,22 +401,6 @@ module.exports = async function (callback, options = {}) {
                 agreementsToUpdate,
                 superTokenFactoryNewLogicAddress
             );
-        }
-
-        // configure governance
-        {
-            if (config.biconomyForwarder) {
-                if (
-                    !(await governance.isTrustedForwarder.call(
-                        config.biconomyForwarder
-                    ))
-                ) {
-                    await web3tx(
-                        governance.enableTrustedForwarder,
-                        "enable biconomy forwarder"
-                    )(config.biconomyForwarder);
-                }
-            }
         }
 
         console.log("======== Superfluid framework deployed ========");

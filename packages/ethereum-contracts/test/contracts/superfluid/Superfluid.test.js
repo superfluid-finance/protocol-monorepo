@@ -2107,7 +2107,7 @@ contract("Superfluid Host Contract", (accounts) => {
             });
 
             it("#20.3 replace with new governance", async () => {
-                const newGov = await TestGovernance.new(ZERO_ADDRESS, 1000);
+                const newGov = await TestGovernance.new(ZERO_ADDRESS, 1000, []);
                 await web3tx(
                     governance.replaceGovernance,
                     "superfluid.replaceGovernance"

@@ -65,7 +65,9 @@ module.exports = async function (callback, argv, options = {}) {
         if (tokenName == "ETH") {
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
-                const sethProxy = await SETHProxy.new(ZERO_ADDRESS);
+                const sethProxy = await SETHProxy.new(
+                    options.weth || ZERO_ADDRESS
+                );
                 const seth = await ISETH.at(sethProxy.address);
                 console.log("Intialize SETH as a custom super token...");
                 await superTokenFactory.initializeCustomSuperToken(

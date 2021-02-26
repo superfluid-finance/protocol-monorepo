@@ -39,6 +39,14 @@ yarn build
 yarn test
 ```
 
+## Deployment
+
+Setup a `.env` file following the example of `.env.template`.
+
+```bash
+RELEASE_VERSION=v1 npx truffle --network goerli exec scripts/deploy.js
+```
+
 ## Install Frontend
 
 > Note: Breaking changes to the JS-SDK means that the UI is currently not functioning properly.

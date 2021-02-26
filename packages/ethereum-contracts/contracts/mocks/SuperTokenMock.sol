@@ -34,10 +34,10 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         assembly { slot:= _totalSupply.slot offset := _totalSupply.offset }
         require (slot == 3 && offset == 0, "_totalSupply changed location");
 
-        assembly { slot:= _reserve0.slot offset := _reserve0.offset }
-        require (slot == 4 && offset == 0, "_reserve0 changed location");
+        assembly { slot:= _reserve4.slot offset := _reserve4.offset }
+        require (slot == 4 && offset == 0, "_reserve4 changed location");
 
-        assembly { slot:= _reserve9.slot offset := _reserve9.offset }
+        assembly { slot:= _reserve13.slot offset := _reserve13.offset }
         require (slot == 13 && offset == 0, "_reserve9 changed location");
 
         // SuperToken storages
@@ -61,15 +61,15 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         require (slot == 18 && offset == 0, "_operators changed location");
         // uses 4 slots
 
-        assembly { slot:= _reserve10.slot offset := _reserve10.offset }
-        require (slot == 22 && offset == 0, "_reserve10 changed location");
+        assembly { slot:= _reserve22.slot offset := _reserve22.offset }
+        require (slot == 22 && offset == 0, "_reserve22 changed location");
 
-        assembly { slot:= _reserve19.slot offset := _reserve19.offset }
-        require (slot == 31 && offset == 0, "_reserve19 changed location");
+        assembly { slot:= _reserve31.slot offset := _reserve31.offset }
+        require (slot == 31 && offset == 0, "_reserve31 changed location");
     }
 
     function getLastSuperTokenStorageSlot() external pure returns (uint slot) {
-        assembly { slot:= _reserve19.slot }
+        assembly { slot:= _reserve31.slot }
     }
 }
 

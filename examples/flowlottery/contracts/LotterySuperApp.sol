@@ -131,13 +131,12 @@ contract LotterySuperApp is Ownable, SuperAppBase {
 
     /// @dev Play the game
     function _quit(
+        address player,
         bytes calldata ctx
     )
         private
         returns (bytes memory newCtx)
     {
-        address player = _host.decodeCtx(ctx).msgSender;
-
         _playersSet.remove(player);
 
         return _draw(player, ctx);
@@ -293,7 +292,7 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         ISuperToken /* superToken */,
         address /* agreementClass */,
         bytes32 /* agreementId */,
-        bytes calldata /*agreementData*/,
+        bytes calldata agreementData,
         bytes calldata cbdata,
         bytes calldata ctx
     )
@@ -304,7 +303,10 @@ contract LotterySuperApp is Ownable, SuperAppBase {
         // According to the app basic law, we should never revert in a termination callback
         (bool shouldIgnore) = abi.decode(cbdata, (bool));
         if (shouldIgnore) return ctx;
-        return _quit(ctx);
+        // note that msgSender can be either flow sender, receiver or liquidator
+        // one must decode agreementData to determine who is the actual player
+        (address player, ) = abi.decode(agreementData, (address, address));
+        return _quit(player, ctx);
     }
 
     function _isSameToken(ISuperToken superToken) private view returns (bool) {

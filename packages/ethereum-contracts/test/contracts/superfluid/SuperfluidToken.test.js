@@ -1,10 +1,10 @@
 const {
-    expectRevert
+    expectRevert,
     // expectEvent
 } = require("@openzeppelin/test-helpers");
 
 const {
-    web3tx
+    web3tx,
     //toBN
     // toDecimals,
     // toBN
@@ -13,10 +13,10 @@ const {
 const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
 
-contract("SuperfluidToken implementation", accounts => {
+contract("SuperfluidToken implementation", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 3), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { admin, alice, bob } = t.aliases;
     const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
@@ -50,7 +50,7 @@ contract("SuperfluidToken implementation", accounts => {
         );
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
         ({ superToken } = t.contracts);
         assert.equal(await availableBalanceOf(admin), "0");
@@ -64,7 +64,7 @@ contract("SuperfluidToken implementation", accounts => {
             [
                 balance[0].toString(),
                 balance[1].toString(),
-                balance[2].toString()
+                balance[2].toString(),
             ],
             expectedBalance
         );
@@ -212,15 +212,15 @@ contract("SuperfluidToken implementation", accounts => {
     describe("#3 agreement hosting functions", () => {
         const testData = [
             "0xdead000000000000000000000000000000000000000000000000000000000000",
-            "0x000000000000000000000000000000000000000000000000000000000000beaf"
+            "0x000000000000000000000000000000000000000000000000000000000000beaf",
         ];
         const testData2 = [
             "0x771c362cd8f0f3f5c1ef27d2a79641f3d14131fcfefd59ccac42c13a52831384",
-            "0x3887e65223d48ea8470b791ed887db139f831bb98e66a607531b3a7be4977cfb"
+            "0x3887e65223d48ea8470b791ed887db139f831bb98e66a607531b3a7be4977cfb",
         ];
 
         context("#3.a agreement data", () => {
-            it("#3.a.1 should create new agreement", async function() {
+            it("#3.a.1 should create new agreement", async function () {
                 await web3tx(acA.createAgreementFor, "createAgreementFor")(
                     superToken.address,
                     "0x42",
@@ -257,14 +257,14 @@ contract("SuperfluidToken implementation", accounts => {
                 // try overlapping data
                 await expectRevert(
                     acA.createAgreementFor(superToken.address, "0x42", [
-                        testData[0]
+                        testData[0],
                     ]),
                     "SuperfluidToken: agreement already created"
                 );
                 await expectRevert(
                     acA.createAgreementFor(superToken.address, "0x42", [
                         ...testData,
-                        ...testData
+                        ...testData,
                     ]),
                     "SuperfluidToken: agreement already created"
                 );

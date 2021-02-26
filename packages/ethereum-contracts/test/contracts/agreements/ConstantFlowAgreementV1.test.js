@@ -5,7 +5,7 @@ const {
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
-    syncAccountExpectedBalanceDeltas
+    syncAccountExpectedBalanceDeltas,
 } = require("./ConstantFlowAgreementV1.behavior.js");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -16,15 +16,13 @@ const MultiFlowApp = artifacts.require("MultiFlowApp");
 const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
 const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
-const MAXIMUM_FLOW_RATE = toBN(2)
-    .pow(toBN(95))
-    .sub(toBN(1));
+const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
 const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
-contract("Using ConstantFlowAgreement v1", accounts => {
+contract("Using ConstantFlowAgreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { admin, alice, bob, dan } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
@@ -45,7 +43,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         await t.report({ title: "ConstantFlowAgreement.test" });
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await t.resetForTestCase();
         await t.createNewToken();
         ({ testToken, superToken } = t.contracts);
@@ -66,7 +64,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             syncAccountExpectedBalanceDeltas({
                 testenv: t,
                 superToken: superToken.address,
-                timestamp: block2.timestamp
+                timestamp: block2.timestamp,
             });
         });
         await t.validateSystemInvariance(opts);
@@ -99,8 +97,8 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             fromBlock: 0,
             toBlock: "latest",
             filter: {
-                app: appAddress
-            }
+                app: appAddress,
+            },
         });
         assert.equal(events.length, 1);
         assert.equal(events[0].args.reason.toString(), reasonCode.toString());
@@ -110,7 +108,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         titlePrefix,
         sender,
         receiver,
-        by
+        by,
     }) {
         it(`${titlePrefix}.a should be liquidated by agent when critical but solvent`, async () => {
             assert.isFalse(
@@ -125,7 +123,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
                     LIQUIDATION_PERIOD +
                     60,
-                allowCriticalAccount: true
+                allowCriticalAccount: true,
             });
             assert.isTrue(
                 await superToken.isAccountCriticalNow(t.aliases[sender])
@@ -138,7 +136,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender,
                 receiver,
-                by
+                by,
             });
 
             await verifyAll();
@@ -150,7 +148,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
         sender,
         receiver,
         by,
-        allowCriticalAccount
+        allowCriticalAccount,
     }) {
         it(`${titlePrefix}.b can self liquidate when insolvent`, async () => {
             assert.isFalse(
@@ -162,7 +160,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             // drain the balance until insolvent (60sec extra)
             await timeTravelOnceAndVerifyAll({
                 time: t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() + 60,
-                allowCriticalAccount: true
+                allowCriticalAccount: true,
             });
             assert.isTrue(
                 await superToken.isAccountCriticalNow(t.aliases[sender])
@@ -175,7 +173,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender,
                 receiver,
-                by
+                by,
             });
 
             await verifyAll({ allowCriticalAccount });
@@ -200,7 +198,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -212,7 +210,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: not enough available balance"
                 );
@@ -224,7 +222,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: "0"
+                        flowRate: "0",
                     }),
                     "CFA: invalid flow rate"
                 );
@@ -236,7 +234,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: "-1"
+                        flowRate: "-1",
                     }),
                     "CFA: invalid flow rate"
                 );
@@ -248,7 +246,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[sender],
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: no self flow"
                 );
@@ -261,14 +259,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
                 await expectRevert(
                     t.sf.cfa.createFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: flow already exist"
                 );
@@ -280,7 +278,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases.carol,
-                        flowRate: MAXIMUM_FLOW_RATE.toString()
+                        flowRate: MAXIMUM_FLOW_RATE.toString(),
                     }),
                     "CFA: deposit overflow"
                 );
@@ -292,7 +290,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: ZERO_ADDRESS,
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: receiver is zero"
                 );
@@ -307,7 +305,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
             });
 
@@ -316,7 +314,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -327,7 +325,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10))
+                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -338,7 +336,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10))
+                    flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -350,7 +348,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: "0"
+                        flowRate: "0",
                     }),
                     "CFA: invalid flow rate"
                 );
@@ -362,7 +360,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: "-1"
+                        flowRate: "-1",
                     }),
                     "CFA: invalid flow rate"
                 );
@@ -374,7 +372,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[agent],
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: flow does not exist"
                 );
@@ -386,7 +384,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[sender],
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: no self flow"
                 );
@@ -400,7 +398,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         receiver: t.aliases[receiver],
                         flowRate: toBN(t.configs.INIT_BALANCE)
                             .div(toBN(LIQUIDATION_PERIOD).sub(toBN(60)))
-                            .toString()
+                            .toString(),
                     }),
                     "CFA: not enough available balance"
                 );
@@ -412,7 +410,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        flowRate: MAXIMUM_FLOW_RATE.toString()
+                        flowRate: MAXIMUM_FLOW_RATE.toString(),
                     }),
                     "CFA: deposit overflow"
                 );
@@ -424,7 +422,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: ZERO_ADDRESS,
-                        flowRate: FLOW_RATE1.toString()
+                        flowRate: FLOW_RATE1.toString(),
                     }),
                     "CFA: receiver is zero"
                 );
@@ -441,7 +439,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
             });
 
@@ -450,7 +448,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    by: sender
+                    by: sender,
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -461,7 +459,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    by: receiver
+                    by: receiver,
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -472,13 +470,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10))
+                    flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
                 });
                 await shouldDeleteFlow({
                     testenv: t,
                     sender,
                     receiver,
-                    by: sender
+                    by: sender,
                 });
 
                 await timeTravelOnceAndVerifyAll();
@@ -489,7 +487,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
-                        receiver: t.aliases[agent]
+                        receiver: t.aliases[agent],
                     }),
                     "CFA: flow does not exist"
                 );
@@ -500,7 +498,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     t.sf.cfa.deleteFlow({
                         superToken: superToken.address,
                         sender: t.aliases[sender],
-                        receiver: ZERO_ADDRESS
+                        receiver: ZERO_ADDRESS,
                     }),
                     "CFA: receiver is zero"
                 );
@@ -512,7 +510,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: ZERO_ADDRESS,
                         receiver: t.aliases[agent],
-                        by: t.aliases[sender]
+                        by: t.aliases[sender],
                     }),
                     "CFA: sender is zero"
                 );
@@ -529,13 +527,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     titlePrefix: "#1.3.6",
                     sender,
                     receiver,
-                    by: sender
+                    by: sender,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.3.6",
                     sender,
                     receiver,
-                    by: sender
+                    by: sender,
                 });
             });
 
@@ -550,7 +548,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     titlePrefix: "#1.3.7",
                     sender,
                     receiver,
-                    by: sender
+                    by: sender,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.3.7",
@@ -558,7 +556,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     receiver,
                     by: sender,
                     // no one will bail you out, alice :(
-                    allowCriticalAccount: true
+                    allowCriticalAccount: true,
                 });
             });
         });
@@ -572,7 +570,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender,
                     receiver,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
             });
 
@@ -582,7 +580,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        by: t.aliases[agent]
+                        by: t.aliases[agent],
                     }),
                     "CFA: sender account is not critical"
                 );
@@ -594,7 +592,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: ZERO_ADDRESS,
                         receiver: t.aliases[receiver],
-                        by: t.aliases[agent]
+                        by: t.aliases[agent],
                     }),
                     "CFA: sender is zero"
                 );
@@ -606,7 +604,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         superToken: superToken.address,
                         sender: t.aliases[sender],
                         receiver: t.aliases[receiver],
-                        by: t.aliases[agent]
+                        by: t.aliases[agent],
                     }),
                     "CFA: sender account is not critical"
                 );
@@ -623,13 +621,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     titlePrefix: "#1.4.4",
                     sender,
                     receiver,
-                    by: agent
+                    by: agent,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.4.4",
                     sender,
                     receiver,
-                    by: agent
+                    by: agent,
                 });
             });
 
@@ -644,7 +642,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     titlePrefix: "#1.4.5",
                     sender,
                     receiver,
-                    by: agent
+                    by: agent,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.4.5",
@@ -652,7 +650,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     receiver,
                     by: agent,
                     // thanks for bailing every one out, dan :)
-                    allowCriticalAccount: true
+                    allowCriticalAccount: true,
                 });
             });
         });
@@ -671,7 +669,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender: "alice",
                     receiver: "bob",
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 });
                 await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
                 await expectNetFlow("bob", FLOW_RATE1);
@@ -681,7 +679,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     testenv: t,
                     sender: "bob",
                     receiver: "alice",
-                    flowRate: flowRate2
+                    flowRate: flowRate2,
                 });
                 await expectNetFlow(
                     "alice",
@@ -691,7 +689,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
 
             it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
-                const test = async deposit => {
+                const test = async (deposit) => {
                     const flowRate = await cfa.getMaximumFlowRateFromDeposit.call(
                         superToken.address,
                         deposit.toString()
@@ -712,9 +710,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 await test(0);
                 await test(1);
                 await test("10000000000000");
-                const maxDeposit = toBN(1)
-                    .shln(95)
-                    .subn(1);
+                const maxDeposit = toBN(1).shln(95).subn(1);
                 await test(maxDeposit);
                 expectRevert(
                     test(maxDeposit.addn(1)),
@@ -723,7 +719,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             });
 
             it("#1.8.3 getDepositRequiredForFlowRate", async () => {
-                const test = async flowRate => {
+                const test = async (flowRate) => {
                     const deposit = await cfa.getDepositRequiredForFlowRate.call(
                         superToken.address,
                         flowRate.toString()
@@ -803,7 +799,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 ["small", toBN(2)],
                 ["typical", FLOW_RATE1],
                 ["large", toWad(42).div(toBN(3600))],
-                ["maximum", MAXIMUM_FLOW_RATE.div(toBN(LIQUIDATION_PERIOD))]
+                ["maximum", MAXIMUM_FLOW_RATE.div(toBN(LIQUIDATION_PERIOD))],
             ].forEach(([label, flowRate], i) => {
                 it(`#1.10.${i} should support ${label} flow rate (${flowRate})`, async () => {
                     // sufficient liquidity for the test case
@@ -817,7 +813,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                             .add(marginalLiquidity)
                     );
                     await testToken.mint(t.aliases.alice, sufficientLiquidity, {
-                        from: t.aliases.alice
+                        from: t.aliases.alice,
                     });
                     await t.upgradeBalance("alice", sufficientLiquidity);
 
@@ -825,18 +821,18 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         testenv: t,
                         sender: "alice",
                         receiver: "bob",
-                        flowRate: flowRate.div(toBN(2))
+                        flowRate: flowRate.div(toBN(2)),
                     });
 
                     await shouldUpdateFlow({
                         testenv: t,
                         sender: "alice",
                         receiver: "bob",
-                        flowRate: flowRate
+                        flowRate: flowRate,
                     });
 
                     await timeTravelOnceAndVerifyAll({
-                        allowCriticalAccount: true
+                        allowCriticalAccount: true,
                     });
                 });
             });
@@ -881,9 +877,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -891,7 +887,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow("mfa", FLOW_RATE1.sub(mfaFlowRate(FLOW_RATE1)));
@@ -903,7 +899,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: lowFlowRate
+                flowRate: lowFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
             await expectNetFlow(
@@ -918,7 +914,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: highFlowRate
+                flowRate: highFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(highFlowRate));
             await expectNetFlow(
@@ -934,7 +930,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                by: sender
+                by: sender,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -948,7 +944,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             const mfa = {
                 ratioPct: 0,
                 sender,
-                receivers: {}
+                receivers: {},
             };
 
             await shouldCreateFlow({
@@ -956,7 +952,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow("mfa", FLOW_RATE1);
@@ -967,7 +963,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: lowFlowRate
+                flowRate: lowFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
             await expectNetFlow("mfa", lowFlowRate);
@@ -978,7 +974,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: highFlowRate
+                flowRate: highFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(highFlowRate));
             await expectNetFlow("mfa", highFlowRate);
@@ -990,7 +986,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                by: sender
+                by: sender,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -1005,12 +1001,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1018,7 +1014,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1034,7 +1030,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: lowFlowRate
+                flowRate: lowFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
             await expectNetFlow(
@@ -1050,7 +1046,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: highFlowRate
+                flowRate: highFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(highFlowRate));
             await expectNetFlow(
@@ -1066,7 +1062,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                by: sender
+                by: sender,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -1083,12 +1079,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1096,7 +1092,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1112,7 +1108,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: lowFlowRate
+                flowRate: lowFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
             await expectNetFlow(
@@ -1128,7 +1124,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: highFlowRate
+                flowRate: highFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(highFlowRate));
             await expectNetFlow(
@@ -1144,7 +1140,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                by: sender
+                by: sender,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -1163,12 +1159,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1176,7 +1172,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1192,7 +1188,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: lowFlowRate
+                flowRate: lowFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(lowFlowRate));
             await expectNetFlow(
@@ -1208,7 +1204,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: highFlowRate
+                flowRate: highFlowRate,
             });
             await expectNetFlow(sender, toBN(0).sub(highFlowRate));
             await expectNetFlow(
@@ -1224,7 +1220,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                by: sender
+                by: sender,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -1239,9 +1235,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await expectRevert(
@@ -1250,7 +1246,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     sender,
                     receiver: "mfa",
                     mfa,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 }),
                 "CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT"
             );
@@ -1266,12 +1262,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1279,7 +1275,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1296,19 +1292,19 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 0
-                    }
-                }
+                        proportion: 0,
+                    },
+                },
             };
             await shouldDeleteFlow({
                 testenv: t,
                 sender,
                 receiver: "mfa",
                 mfa,
-                by: sender
+                by: sender,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow(
@@ -1327,9 +1323,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [sender]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1337,7 +1333,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(
                 sender,
@@ -1348,7 +1344,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             // shouldDeleteFlow doesn't support loopback mode for now, let's use the sf directly
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "delete the mfa loopback flow"
             )({
                 superToken: superToken.address,
@@ -1360,9 +1356,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         t.getAddress(sender),
                         mfa.ratioPct,
                         [t.getAddress(sender)],
-                        [1]
+                        [1],
                     ]
-                )
+                ),
             });
             await t.validateSystemInvariance();
             assert.isFalse(
@@ -1380,12 +1376,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1393,7 +1389,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1410,7 +1406,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender: "mfa",
                 receiver: receiver1,
                 by: receiver1,
-                mfa
+                mfa,
             });
             await expectNetFlow(sender, "0");
             await expectNetFlow("mfa", "0");
@@ -1427,12 +1423,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1440,7 +1436,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1455,7 +1451,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     superToken: superToken.address,
                     sender: t.aliases[sender],
                     receiver: app.address,
-                    by: dan
+                    by: dan,
                 }),
                 "CFA: sender account is not critical"
             );
@@ -1465,7 +1461,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     t.configs.INIT_BALANCE.div(FLOW_RATE1).toNumber() -
                     LIQUIDATION_PERIOD +
                     60,
-                allowCriticalAccount: true
+                allowCriticalAccount: true,
             });
 
             await shouldDeleteFlow({
@@ -1473,7 +1469,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 by: "dan",
-                mfa
+                mfa,
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
             await expectNetFlow(sender, "0");
@@ -1492,12 +1488,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1505,7 +1501,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             const mfaNetFlowRate = FLOW_RATE1.sub(
                 mfaFlowRate(FLOW_RATE1, 75).muln(2)
@@ -1520,29 +1516,27 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     superToken: superToken.address,
                     sender: app.address,
                     receiver: t.getAddress(receiver1),
-                    by: dan
+                    by: dan,
                 }),
                 "CFA: sender account is not critical"
             );
 
             await timeTravelOnceAndVerifyAll({
                 time:
-                    -toWad(50)
-                        .div(mfaNetFlowRate)
-                        .toNumber() -
+                    -toWad(50).div(mfaNetFlowRate).toNumber() -
                     LIQUIDATION_PERIOD +
                     60,
-                allowCriticalAccount: true
+                allowCriticalAccount: true,
             });
 
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "liquidate the mfa receiver1 flow"
             )({
                 superToken: superToken.address,
                 sender: app.address,
                 receiver: t.getAddress(receiver1),
-                by: dan
+                by: dan,
             });
             await expectJailed(
                 app.address,
@@ -1561,13 +1555,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             assert.isTrue((await superToken.balanceOf(app.address)) > 0);
 
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "liquidate the mfa receiver2 flow"
             )({
                 superToken: superToken.address,
                 sender: app.address,
                 receiver: t.getAddress(receiver2),
-                by: dan
+                by: dan,
             });
             await expectJailed(
                 app.address,
@@ -1579,13 +1573,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
             await expectNetFlow(receiver2, "0");
 
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "liquidate the mfa sender flow"
             )({
                 superToken: superToken.address,
                 sender: t.getAddress(sender),
                 receiver: app.address,
-                by: dan
+                by: dan,
             });
             await expectJailed(
                 app.address,
@@ -1606,12 +1600,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await shouldCreateFlow({
@@ -1619,7 +1613,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receiver: "mfa",
                 mfa,
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow(sender, toBN(0).sub(FLOW_RATE1));
             await expectNetFlow(
@@ -1631,7 +1625,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
 
             // delete flow of receiver 1
             await web3tx(
-                t.sf.cfa.deleteFlow.bind(t.sf.cfa),
+                t.sf.cfa.deleteFlow,
                 "delete the mfa flows partially"
             )({
                 superToken: superToken.address,
@@ -1643,9 +1637,9 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                         t.getAddress(sender),
                         mfa.ratioPct,
                         [t.getAddress(receiver1)],
-                        [1]
+                        [1],
                     ]
-                )
+                ),
             });
             await expectJailed(
                 app.address,
@@ -1687,12 +1681,12 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 sender,
                 receivers: {
                     [receiver1]: {
-                        proportion: 1
+                        proportion: 1,
                     },
                     [receiver2]: {
-                        proportion: 1
-                    }
-                }
+                        proportion: 1,
+                    },
+                },
             };
 
             await expectRevert(
@@ -1701,14 +1695,14 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                     sender,
                     receiver: "mfa",
                     mfa,
-                    flowRate: FLOW_RATE1
+                    flowRate: FLOW_RATE1,
                 }),
                 "CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT"
             );
         });
     });
 
-    describe("#10 multi accounts scenarios", () => {
+    describe("#10 scenarios", () => {
         it("#10.1 two accounts sending to each other with the same flow rate", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
@@ -1716,7 +1710,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "alice",
                 receiver: "bob",
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow("alice", FLOW_RATE1.mul(toBN(-1)));
             await expectNetFlow("bob", FLOW_RATE1);
@@ -1726,7 +1720,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "bob",
                 receiver: "alice",
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow("alice", "0");
             await expectNetFlow("bob", "0");
@@ -1745,7 +1739,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "alice",
                 receiver: "bob",
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
             await expectNetFlow("bob", FLOW_RATE1);
@@ -1756,7 +1750,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "bob",
                 receiver: "carol",
-                flowRate: flowRateBC
+                flowRate: flowRateBC,
             });
             await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1));
             await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
@@ -1767,7 +1761,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "carol",
                 receiver: "alice",
-                flowRate: flowRateCA
+                flowRate: flowRateCA,
             });
             await expectNetFlow("alice", toBN(flowRateCA).sub(FLOW_RATE1));
             await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBC));
@@ -1786,13 +1780,13 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "alice",
                 receiver: "bob",
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await shouldCreateFlow({
                 testenv: t,
                 sender: "alice",
                 receiver: "carol",
-                flowRate: FLOW_RATE1
+                flowRate: FLOW_RATE1,
             });
             await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
             await expectNetFlow("bob", FLOW_RATE1);
@@ -1804,7 +1798,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "bob",
                 receiver: "dan",
-                flowRate: flowRateBD
+                flowRate: flowRateBD,
             });
             await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
             await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));
@@ -1816,7 +1810,7 @@ contract("Using ConstantFlowAgreement v1", accounts => {
                 testenv: t,
                 sender: "dan",
                 receiver: "carol",
-                flowRate: flowRateDC
+                flowRate: flowRateDC,
             });
             await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1.muln(2)));
             await expectNetFlow("bob", FLOW_RATE1.sub(flowRateBD));

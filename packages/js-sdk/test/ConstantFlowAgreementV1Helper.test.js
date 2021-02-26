@@ -2,7 +2,7 @@ const { toBN } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
-contract("ConstantFlowAgreementV1 helper class", accounts => {
+contract("ConstantFlowAgreementV1 helper class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const { admin, alice, bob, carol } = t.aliases;
 
@@ -24,13 +24,13 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
-            flowRate: "38580246913580" // 100 / mo
+            flowRate: "38580246913580", // 100 / mo
         });
         // validate flow data
         const flow = await sf.cfa.getFlow({
             superToken: superToken.address,
             sender: alice,
-            receiver: bob
+            receiver: bob,
         });
         const block = await web3.eth.getBlock(tx.receipt.blockNumber);
         assert.equal(flow.timestamp.getTime(), block.timestamp * 1000);
@@ -42,7 +42,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             (
                 await sf.cfa.getNetFlow({
                     superToken: superToken.address,
-                    account: alice
+                    account: alice,
                 })
             ).toString(),
             "-38580246913580"
@@ -51,7 +51,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             (
                 await sf.cfa.getNetFlow({
                     superToken: superToken.address,
-                    account: bob
+                    account: bob,
                 })
             ).toString(),
             "38580246913580"
@@ -65,9 +65,9 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             sender: alice,
             receiver: bob,
             flowRate: "38580246913580", // 100 / mo
-            onTransaction: hash => {
+            onTransaction: (hash) => {
                 txHash = hash;
-            }
+            },
         });
         assert.equal(txHash, tx.receipt.transactionHash);
     });
@@ -77,20 +77,20 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
-            flowRate: "38580246913580" // 100 / mo
+            flowRate: "38580246913580", // 100 / mo
         });
         await sf.cfa.updateFlow({
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
-            flowRate: "19290123456790" // 100 / mo
+            flowRate: "19290123456790", // 100 / mo
         });
         // validate account net flows
         assert.equal(
             (
                 await sf.cfa.getNetFlow({
                     superToken: superToken.address,
-                    account: alice
+                    account: alice,
                 })
             ).toString(),
             "-19290123456790"
@@ -99,7 +99,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             (
                 await sf.cfa.getNetFlow({
                     superToken: superToken.address,
-                    account: bob
+                    account: bob,
                 })
             ).toString(),
             "19290123456790"
@@ -112,16 +112,16 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
-            flowRate: "38580246913580" // 100 / mo
+            flowRate: "38580246913580", // 100 / mo
         });
         const tx = await sf.cfa.updateFlow({
             superToken: superToken.address,
             sender: alice,
             receiver: bob,
             flowRate: "19290123456790", // 100 / mo
-            onTransaction: hash => {
+            onTransaction: (hash) => {
                 txHash = hash;
-            }
+            },
         });
         assert.equal(txHash, tx.receipt.transactionHash);
     });
@@ -132,7 +132,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
         });
 
@@ -141,7 +141,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
             await sf.cfa.deleteFlow({
                 superToken: superToken.address,
                 sender: alice,
-                receiver: bob
+                receiver: bob,
             });
             const ethAfter = await web3.eth.getBalance(alice);
             assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
@@ -149,7 +149,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 (
                     await sf.cfa.getNetFlow({
                         superToken: superToken.address,
-                        account: alice
+                        account: alice,
                     })
                 ).toString(),
                 "0"
@@ -158,7 +158,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 (
                     await sf.cfa.getNetFlow({
                         superToken: superToken.address,
-                        account: bob
+                        account: bob,
                     })
                 ).toString(),
                 "0"
@@ -171,7 +171,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                by: bob
+                by: bob,
             });
             const ethAfter = await web3.eth.getBalance(bob);
             assert.isTrue(toBN(ethAfter).lt(toBN(ethBefore)));
@@ -179,7 +179,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 (
                     await sf.cfa.getNetFlow({
                         superToken: superToken.address,
-                        account: alice
+                        account: alice,
                     })
                 ).toString(),
                 "0"
@@ -188,7 +188,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 (
                     await sf.cfa.getNetFlow({
                         superToken: superToken.address,
-                        account: bob
+                        account: bob,
                     })
                 ).toString(),
                 "0"
@@ -201,7 +201,7 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                     superToken: superToken.address,
                     sender: alice,
                     receiver: bob,
-                    by: admin
+                    by: admin,
                 }),
                 "CFA: sender account is not critical"
             );
@@ -213,9 +213,9 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                onTransaction: hash => {
+                onTransaction: (hash) => {
                     txHash = hash;
-                }
+                },
             });
             assert.equal(txHash, tx.receipt.transactionHash);
         });
@@ -227,18 +227,18 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
             await sf.cfa.createFlow({
                 superToken: superToken.address,
                 sender: bob,
                 receiver: carol,
-                flowRate: "19290123456790" // 100 / mo
+                flowRate: "19290123456790", // 100 / mo
             });
             assert.deepEqual(
                 await sf.cfa.listFlows({
                     superToken: superToken.address,
-                    account: alice
+                    account: alice,
                 }),
                 {
                     inFlows: [],
@@ -246,31 +246,31 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                         {
                             sender: alice,
                             receiver: bob,
-                            flowRate: "38580246913580"
-                        }
-                    ]
+                            flowRate: "38580246913580",
+                        },
+                    ],
                 }
             );
             assert.deepEqual(
                 await sf.cfa.listFlows({
                     superToken: superToken.address,
-                    account: bob
+                    account: bob,
                 }),
                 {
                     inFlows: [
                         {
                             sender: alice,
                             receiver: bob,
-                            flowRate: "38580246913580"
-                        }
+                            flowRate: "38580246913580",
+                        },
                     ],
                     outFlows: [
                         {
                             sender: bob,
                             receiver: carol,
-                            flowRate: "19290123456790"
-                        }
-                    ]
+                            flowRate: "19290123456790",
+                        },
+                    ],
                 }
             );
         });
@@ -280,44 +280,44 @@ contract("ConstantFlowAgreementV1 helper class", accounts => {
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: "38580246913580" // 100 / mo
+                flowRate: "38580246913580", // 100 / mo
             });
             await sf.cfa.createFlow({
                 superToken: superToken.address,
                 sender: bob,
                 receiver: carol,
-                flowRate: "19290123456790" // 100 / mo
+                flowRate: "19290123456790", // 100 / mo
             });
             assert.deepEqual(
                 await sf.cfa.listFlows({
                     superToken: superToken.address,
                     account: bob,
-                    onlyOutFlows: true
+                    onlyOutFlows: true,
                 }),
                 {
                     outFlows: [
                         {
                             sender: bob,
                             receiver: carol,
-                            flowRate: "19290123456790"
-                        }
-                    ]
+                            flowRate: "19290123456790",
+                        },
+                    ],
                 }
             );
             assert.deepEqual(
                 await sf.cfa.listFlows({
                     superToken: superToken.address,
                     account: bob,
-                    onlyInFlows: true
+                    onlyInFlows: true,
                 }),
                 {
                     inFlows: [
                         {
                             sender: alice,
                             receiver: bob,
-                            flowRate: "38580246913580"
-                        }
-                    ]
+                            flowRate: "38580246913580",
+                        },
+                    ],
                 }
             );
         });

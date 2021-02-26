@@ -2,7 +2,7 @@ const { expect } = require("chai");
 const { BN } = require("@openzeppelin/test-helpers");
 const GasMetering = require("../../src/utils/gasMetering/gasMetering");
 
-describe("GasMetering", function() {
+describe("GasMetering", function () {
     beforeEach(async () => {
         this.tx = {
             tx:
@@ -22,9 +22,9 @@ describe("GasMetering", function() {
                 logs: [],
                 status: true,
                 logsBloom: "0x00...",
-                rawLogs: [[{}]]
+                rawLogs: [[{}]],
             },
-            logs: []
+            logs: [],
         };
 
         this.gasPrice = "1000000000"; // 1gwei
@@ -95,7 +95,7 @@ describe("GasMetering", function() {
                     maxGas: "100000",
                     minGas: "100000",
                     totalCost: "0.0002 ETH",
-                    avgCost: "0.0001 ETH"
+                    avgCost: "0.0001 ETH",
                 },
                 SomeAction2: {
                     action: "SomeAction2",
@@ -105,8 +105,8 @@ describe("GasMetering", function() {
                     minGas: "100000",
                     totalCost: "0.0001 ETH",
                     totalGas: "100000",
-                    totalTx: "1"
-                }
+                    totalTx: "1",
+                },
             },
             executedTxs: [
                 {
@@ -115,7 +115,7 @@ describe("GasMetering", function() {
                         "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
                     gasPrice: "1 GWEI",
-                    cost: "0.0001 ETH"
+                    cost: "0.0001 ETH",
                 },
                 {
                     action: "SomeAction",
@@ -123,7 +123,7 @@ describe("GasMetering", function() {
                         "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
                     gasPrice: "1 GWEI",
-                    cost: "0.0001 ETH"
+                    cost: "0.0001 ETH",
                 },
                 {
                     action: "SomeAction2",
@@ -131,9 +131,9 @@ describe("GasMetering", function() {
                         "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
                     gasPrice: "1 GWEI",
-                    cost: "0.0001 ETH"
-                }
-            ]
+                    cost: "0.0001 ETH",
+                },
+            ],
         });
     });
 });

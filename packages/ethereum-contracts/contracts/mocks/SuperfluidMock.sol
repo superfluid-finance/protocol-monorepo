@@ -110,6 +110,12 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly { mstore(add(context, mul(32, 8)), 42) }
             require(context.appAllowanceUsed == 42, "appAllowanceUsed changed location");
         }
+        // context.appAllowanceGranted
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 9)), 42) }
+            require(context.appAddress == address(42), "appAllowanceUsed changed location");
+        }
     }
 }
 
@@ -155,6 +161,7 @@ contract SuperfluidMock is Superfluid {
     }
 
     function testIsValidAbiEncodedBytes() external pure {
+        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(1, 2, 3)), "bad data");
         require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(0))), "0");
         require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(1))), "1");
         require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(32))), "32");

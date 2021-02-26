@@ -12,9 +12,41 @@ import {
 import { AgreementMock } from "./AgreementMock.sol";
 
 
+contract SuperAppMockAux {
+
+    function actionPingAgreement(ISuperfluid host, AgreementMock agreement, uint256 ping, bytes calldata ctx)
+        external
+    {
+        host.callAgreementWithContext(
+            agreement,
+            abi.encodeWithSelector(
+                AgreementMock.pingMe.selector,
+                address(this), // expectedMsgSender
+                ping,
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            ctx);
+    }
+
+    function actionCallActionNoop(ISuperfluid host, SuperAppMock app, bytes calldata ctx)
+        external
+    {
+        host.callAppActionWithContext(
+            app,
+            abi.encodeWithSelector(
+                SuperAppMock.actionNoop.selector,
+                new bytes(0)
+            ),
+            ctx);
+    }
+}
+
+// The default SuperApp mock that does many tricks
 contract SuperAppMock is ISuperApp {
 
     ISuperfluid private _host;
+    SuperAppMockAux private _aux;
 
     constructor(ISuperfluid host, uint256 configWord, bool doubleRegistration) {
         _host = host;
@@ -22,6 +54,7 @@ contract SuperAppMock is ISuperApp {
         if (doubleRegistration) {
             _host.registerApp(configWord);
         }
+        _aux = new SuperAppMockAux();
     }
 
     function tryRegisterApp(uint256 configWord) external {
@@ -100,6 +133,22 @@ contract SuperAppMock is ISuperApp {
         validCtx(ctx)
     // solhint-disable-next-line no-empty-blocks
     {
+    }
+
+    function actionPingAgreementThroughAux(AgreementMock agreement, uint256 ping, bytes calldata ctx)
+        external
+        validCtx(ctx)
+    {
+        // this should fail
+        _aux.actionPingAgreement(_host, agreement, ping, ctx);
+    }
+
+    function actionCallActionNoopThroughAux(bytes calldata ctx)
+        external
+        validCtx(ctx)
+    {
+        // this should fail
+        _aux.actionCallActionNoop(_host, this, ctx);
     }
 
     function actionPingAgreement(AgreementMock agreement, uint256 ping, bytes calldata ctx)
@@ -392,7 +441,6 @@ contract SuperAppMock is ISuperApp {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
         _;
     }
-
 }
 
 // Bad super app! This one returns empty ctx
@@ -405,12 +453,36 @@ contract SuperAppMockReturningEmptyCtx {
         _host.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL);
     }
 
+    function beforeAgreementCreated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*ctx*/
+    )
+        external pure
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
     function afterAgreementCreated(
         ISuperToken /*superToken*/,
         address /*agreementClass*/,
         bytes32 /*agreementId*/,
         bytes calldata /*agreementData*/,
         bytes calldata /*cbdata*/,
+        bytes calldata /*ctx*/
+    )
+        external pure
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+
+    function beforeAgreementTerminated(
+        ISuperToken /*superToken*/,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
         bytes calldata /*ctx*/
     )
         external pure
@@ -472,7 +544,7 @@ contract SuperAppMockReturningInvalidCtx {
 }
 
 // Bad super app! A second level app that calls other app
-contract SuperAppMock3 {
+contract SuperAppMock2ndLevel {
 
     ISuperfluid private _host;
     SuperAppMock private _app;

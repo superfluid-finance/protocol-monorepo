@@ -17,6 +17,11 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 
+/**
+ * The dividends rights token show cases two use cases
+ * 1. Use Instant distribution agreement to distribute tokens to token holders.
+ * 2. Use SuperApp framework to update `isSubscribing` when new subscription is approved by token holder.
+ */
 contract DividendRightsToken is
     Ownable,
     ERC20,

@@ -15,10 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 12.x
+      - name: Use Node.js 14.x
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 14.x
 
       - name: Show context
         run: |
@@ -39,15 +39,15 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Install dependencies
-        if: env.BUILD_ANYTHING == 1
+        if: env.PUBLISH_PR_ARTIFACT == 1
         run: yarn install --frozen-lockfile
 
       - name: Build
-        if: env.BUILD_ANYTHING == 1
+        if: env.PUBLISH_PR_ARTIFACT == 1
         run: yarn build
 
       - name: Setup PR package versions locally
-        if: env.BUILD_ANYTHING == 1
+        if: env.PUBLISH_PR_ARTIFACT == 1
         run: |
           prNumber=${{ github.event.number }}
           shortRev=$(git rev-parse --short ${{ github.sha }})
@@ -55,7 +55,7 @@ jobs:
           yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
 
       - name: Create packages
-        if: env.BUILD_ANYTHING == 1
+        if: env.PUBLISH_PR_ARTIFACT == 1
         run: |
           prNumber=${{ github.event.number }}
           dirName="bin/${prNumber}"
@@ -72,7 +72,7 @@ jobs:
           done
 
       - name: Create empty artifact
-        if: env.BUILD_ANYTHING != 1
+        if: env.PUBLISH_PR_ARTIFACT != 1
         run: |
           prNumber=${{ github.event.number }}
           dirName="bin/${prNumber}"

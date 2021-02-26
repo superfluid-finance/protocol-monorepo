@@ -1,14 +1,15 @@
+const path = require("path");
 const { promisify } = require("util");
 const readline = require("readline");
 
 // promisify the readline
 const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
 });
 // Prepare readline.question for promisification
-rl.question[promisify.custom] = question => {
-    return new Promise(resolve => {
+rl.question[promisify.custom] = (question) => {
+    return new Promise((resolve) => {
         rl.question(question, resolve);
     });
 };
@@ -64,35 +65,77 @@ async function isProxiable(UUPSProxiable, address) {
  * @param {Object} options the options object to be configured
  *
  * NOTE:
- * This has to be invoked within the same context of the caller, in order
+ * 1. This has to be invoked within the same context of the caller, in order
  * to use "web3", "artifacts" from the truffle execution context.
  * The correct way of using this then should be:
  * ```
  * eval(`(${detectIsTruffle.toString()})()`)
  * ```
+ * 2. This will expose `web3` object to global
  */
 async function detectTruffleAndConfigure(options) {
-    // if isTruffle already set explicitly
-    if ("isTruffle" in options) return;
-    const stackTrace = require("stack-trace");
-    const trace = stackTrace.get();
-    //trace.forEach(callSite => console.debug(callSite.getFileName()));
-    options.isTruffle =
-        trace.filter(callSite =>
-            (callSite.getFileName() || "").endsWith(
-                "truffle/build/commands.bundled.js"
-            )
-        ).length > 0;
+    function _detectTruffle() {
+        const stackTrace = require("stack-trace");
+        const trace = stackTrace.get();
+        //trace.forEach(callSite => console.debug(callSite.getFileName()));
+        return (
+            trace.filter((callSite) =>
+                (callSite.getFileName() || "").endsWith(
+                    "truffle/build/commands.bundled.js"
+                )
+            ).length > 0
+        );
+    }
+
+    const truffleDetected = _detectTruffle();
+    // if isTruffle is not set explicitly
+    if (!("isTruffle" in options)) {
+        if ("DISABLE_NATIVE_TRUFFLE" in process.env) {
+            options.isTruffle = !process.env.DISABLE_NATIVE_TRUFFLE;
+        } else {
+            options.isTruffle = truffleDetected;
+        }
+    }
     if (options.isTruffle) {
+        if (options.web3) {
+            throw Error(
+                "Flag 'isTruffle' cannot be 'true' when using a web3 instance."
+            );
+        }
         // set these globally so that it's available throughout the executions
         global.web3 = web3;
         global.artifacts = artifacts;
+    } else {
+        if (!truffleDetected) {
+            if (!options.web3) {
+                throw Error(
+                    "A web3 instance is not provided when not using truffle."
+                );
+            }
+            global.web3 = options.web3;
+        } else {
+            // use web3 of truffle
+            options.web3 = global.web3 = web3;
+        }
     }
 }
 
 /// @dev Extract the web3 options used to initialize the SDK
 function extractWeb3Options({ isTruffle, web3, ethers, from }) {
     return { isTruffle, web3, ethers, from };
+}
+
+/// @dev Load contract from truffle built artifacts
+function builtTruffleContractLoader(name) {
+    try {
+        const directoryPath = path.join(__dirname, "../build/contracts");
+        const builtContract = require(path.join(directoryPath, name + ".json"));
+        return builtContract;
+    } catch (e) {
+        throw new Error(
+            `Cannot load built truffle contract ${name}. Have you built?`
+        );
+    }
 }
 
 module.exports = {
@@ -104,5 +147,6 @@ module.exports = {
     isProxiable,
     extractWeb3Options,
     detectTruffleAndConfigure,
-    rl: promisify(rl.question)
+    rl: promisify(rl.question),
+    builtTruffleContractLoader,
 };

@@ -1,23 +1,21 @@
-const { web3tx } = require("@decentral.ee/web3-helpers");
+const { web3tx, setWeb3Provider } = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const LotterySuperApp = artifacts.require("LotterySuperApp");
 
-module.exports = async function(callback, argv) {
-    const errorHandler = err => {
-        if (err) throw err;
-    };
-
+module.exports = async function(callback) {
     try {
-        global.web3 = web3;
-
         const version = process.env.RELEASE_VERSION || "test";
         console.log("release version:", version);
 
+        // make sure that we are using the same web3 provider in the helpers
+        setWeb3Provider(web3.currentProvider);
+
         const sf = new SuperfluidSDK.Framework({
-            version,
-            web3Provider: web3.currentProvider,
+            web3,
+            version: version,
             tokens: ["fDAI"]
         });
+
         await sf.initialize();
 
         const app = await web3tx(LotterySuperApp.new, "Deploy LotterySuperApp")(

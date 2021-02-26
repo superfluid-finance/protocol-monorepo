@@ -10,10 +10,10 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
-contract("Superfluid Host Contract", accounts => {
+contract("Superfluid Host Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 3), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
@@ -228,9 +228,7 @@ contract("Superfluid Host Contract", accounts => {
                             )
                         )
                         .toString(),
-                    toBN(1)
-                        .shln(N_DEFAULT_AGREEMENTS)
-                        .toString()
+                    toBN(1).shln(N_DEFAULT_AGREEMENTS).toString()
                 );
                 assert.equal(
                     toBN(MAX_UINT256)
@@ -485,6 +483,10 @@ contract("Superfluid Host Contract", accounts => {
                     app.allowCompositeApp(alice),
                     "SF: target is not an app"
                 );
+                await expectRevert(
+                    app.allowCompositeApp(app2.address),
+                    "SF: source app should have higher app level"
+                );
                 assert.isFalse(
                     await superfluid.isCompositeAppAllowed.call(
                         app.address,
@@ -538,7 +540,7 @@ contract("Superfluid Host Contract", accounts => {
                         t.contracts.ida.address,
                         "0x2020",
                         "0x" /* agreementData */,
-                        "0x" /* cbdata */
+                        "0x" /* cbdata */,
                     ],
                     "0x" + "dead".repeat(20)
                 );
@@ -549,7 +551,7 @@ contract("Superfluid Host Contract", accounts => {
                         t.contracts.ida.address,
                         "0x2020",
                         "0xdead" /* agreementData */,
-                        "0xbeef" /* cbdata */
+                        "0xbeef" /* cbdata */,
                     ],
                     "0x" + "faec".repeat(20)
                 );
@@ -705,11 +707,11 @@ contract("Superfluid Host Contract", accounts => {
                         appLevel: "0",
                         callType: "1" /* CALL_INFO_CALL_TYPE_AGREEMENT */,
                         agreementSelector: agreement.abi.filter(
-                            i =>
+                            (i) =>
                                 i.name ===
                                 "callAppBeforeAgreementCreatedCallback"
                         )[0].signature,
-                        cbdata: "0x" + Buffer.from("Noop").toString("hex")
+                        cbdata: "0x" + Buffer.from("Noop").toString("hex"),
                     }
                 );
             });
@@ -774,7 +776,7 @@ contract("Superfluid Host Contract", accounts => {
                     "0x"
                 );
                 const agreementSelector = agreement.abi.filter(
-                    i => i.name === "callAppAfterAgreementCreatedCallback"
+                    (i) => i.name === "callAppAfterAgreementCreatedCallback"
                 )[0].signature;
                 await expectEvent.inTransaction(
                     tx.tx,
@@ -783,7 +785,7 @@ contract("Superfluid Host Contract", accounts => {
                     {
                         appLevel: "1",
                         callType: "3" /* CALL_INFO_CALL_TYPE_APP_CALLBACK */,
-                        agreementSelector
+                        agreementSelector,
                     }
                 );
                 await expectEvent.inTransaction(
@@ -793,7 +795,7 @@ contract("Superfluid Host Contract", accounts => {
                     {
                         appLevel: "0",
                         callType: "1" /* CALL_INFO_CALL_TYPE_AGREEMENT */,
-                        agreementSelector
+                        agreementSelector,
                     }
                 );
             });
@@ -884,7 +886,7 @@ contract("Superfluid Host Contract", accounts => {
                     "Jail",
                     {
                         app: app.address,
-                        reason: "10" // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
+                        reason: "10", // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
                     }
                 );
             });
@@ -908,7 +910,7 @@ contract("Superfluid Host Contract", accounts => {
                     "Jail",
                     {
                         app: app.address,
-                        reason: "10" // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
+                        reason: "10", // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
                     }
                 );
             });
@@ -932,7 +934,7 @@ contract("Superfluid Host Contract", accounts => {
                     "Jail",
                     {
                         app: app.address,
-                        reason: "20" // APP_RULE_CTX_IS_READONLY
+                        reason: "20", // APP_RULE_CTX_IS_READONLY
                     }
                 );
             });
@@ -994,7 +996,7 @@ contract("Superfluid Host Contract", accounts => {
                                 .encodeABI(),
                             "0x",
                             {
-                                gas: Math.ceil(gasLimit / 2)
+                                gas: Math.ceil(gasLimit / 2),
                             }
                         ),
                         "SF: need more gas"
@@ -1025,7 +1027,7 @@ contract("Superfluid Host Contract", accounts => {
                         "Jail",
                         {
                             app: app.address,
-                            reason: "10" // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
+                            reason: "10", // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
                         }
                     );
                 });
@@ -1048,7 +1050,7 @@ contract("Superfluid Host Contract", accounts => {
                                 .encodeABI(),
                             "0x",
                             {
-                                gas: Math.ceil(gasLimit / 2)
+                                gas: Math.ceil(gasLimit / 2),
                             }
                         ),
                         "SF: need more gas"
@@ -1104,7 +1106,7 @@ contract("Superfluid Host Contract", accounts => {
                                     .encodeABI(),
                                 "0x",
                                 {
-                                    gas
+                                    gas,
                                 }
                             );
                             console.log("Gas used", tx.receipt.gasUsed);
@@ -1138,11 +1140,16 @@ contract("Superfluid Host Contract", accounts => {
             });
 
             describe("#6.3x composite app rules", () => {
-                const SuperAppMock3 = artifacts.require("SuperAppMock3");
+                const SuperAppMock2ndLevel = artifacts.require(
+                    "SuperAppMock2ndLevel"
+                );
 
                 it("#6.30 composite app must be whitelisted", async () => {
                     // assuming MAX_APP_LEVEL = 1
-                    const app3 = await SuperAppMock3.new(
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app3)
+                    // -> app3.afterAgreementCreated
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app)
+                    const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
                         agreement.address
@@ -1178,12 +1185,14 @@ contract("Superfluid Host Contract", accounts => {
 
                 it("#6.31 composite app cannot be jailed", async () => {
                     // assuming MAX_APP_LEVEL = 1
-                    const app3 = await SuperAppMock3.new(
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app3)
+                    // -> app3.afterAgreementCreated
+                    // -> mockAgreement.callAppAfterAgreementCreatedCallback(app) // jailed
+                    const app3 = await SuperAppMock2ndLevel.new(
                         superfluid.address,
                         app.address,
                         agreement.address
                     );
-                    await superfluid.jailApp(app.address);
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1195,7 +1204,18 @@ contract("Superfluid Host Contract", accounts => {
                                 .encodeABI(),
                             "0x"
                         ),
-                        "SF: APP_RULE_COMPOSITE_APP_IS_JAILED"
+                        "SF: APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED"
+                    );
+                    await superfluid.jailApp(app.address);
+                    await superfluid.callAgreement(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppAfterAgreementCreatedCallback(
+                                app3.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
                     );
                 });
             });
@@ -1204,12 +1224,29 @@ contract("Superfluid Host Contract", accounts => {
                 const SuperAppMock2 = artifacts.require(
                     "SuperAppMockReturningEmptyCtx"
                 );
-                const SuperAppMock3 = artifacts.require(
+                const SuperAppMock2ndLevel = artifacts.require(
                     "SuperAppMockReturningInvalidCtx"
                 );
 
                 it("#6.40 should give explicit error message in non-termination callbacks", async () => {
                     const app2 = await SuperAppMock2.new(superfluid.address);
+
+                    console.debug("callAppBeforeAgreementCreatedCallback");
+                    await expectRevert(
+                        superfluid.callAgreement(
+                            agreement.address,
+                            agreement.contract.methods
+                                .callAppBeforeAgreementCreatedCallback(
+                                    app2.address,
+                                    "0x"
+                                )
+                                .encodeABI(),
+                            "0x"
+                        ),
+                        "SF: APP_RULE_CTX_IS_MALFORMATED"
+                    );
+
+                    console.debug("callAppAfterAgreementCreatedCallback");
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1224,7 +1261,10 @@ contract("Superfluid Host Contract", accounts => {
                         "SF: APP_RULE_CTX_IS_MALFORMATED"
                     );
 
-                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    console.debug("callAppAfterAgreementCreatedCallback");
+                    const app3 = await SuperAppMock2ndLevel.new(
+                        superfluid.address
+                    );
                     await expectRevert(
                         superfluid.callAgreement(
                             agreement.address,
@@ -1241,10 +1281,38 @@ contract("Superfluid Host Contract", accounts => {
                 });
 
                 it("#6.41 should jail the app in termination callbacks", async () => {
-                    const app2 = await SuperAppMock2.new(superfluid.address);
-                    let tx = await web3tx(
+                    let app2;
+                    let tx;
+
+                    app2 = await SuperAppMock2.new(superfluid.address);
+                    tx = await web3tx(
                         superfluid.callAgreement,
-                        "callAgreement"
+                        "callAppBeforeAgreementTerminatedCallback"
+                    )(
+                        agreement.address,
+                        agreement.contract.methods
+                            .callAppBeforeAgreementTerminatedCallback(
+                                app2.address,
+                                "0x"
+                            )
+                            .encodeABI(),
+                        "0x"
+                    );
+                    assert.isTrue(await superfluid.isAppJailed(app2.address));
+                    await expectEvent.inTransaction(
+                        tx.tx,
+                        superfluid.contract,
+                        "Jail",
+                        {
+                            app: app2.address,
+                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
+                        }
+                    );
+
+                    app2 = await SuperAppMock2.new(superfluid.address);
+                    tx = await web3tx(
+                        superfluid.callAgreement,
+                        "callAppAfterAgreementTerminatedCallback"
                     )(
                         agreement.address,
                         agreement.contract.methods
@@ -1262,14 +1330,16 @@ contract("Superfluid Host Contract", accounts => {
                         "Jail",
                         {
                             app: app2.address,
-                            reason: "22" // APP_RULE_CTX_IS_EMPTY
+                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
                         }
                     );
 
-                    const app3 = await SuperAppMock3.new(superfluid.address);
+                    const app3 = await SuperAppMock2ndLevel.new(
+                        superfluid.address
+                    );
                     tx = await web3tx(
                         superfluid.callAgreement,
-                        "callAgreement"
+                        "callAppAfterAgreementTerminatedCallback"
                     )(
                         agreement.address,
                         agreement.contract.methods
@@ -1287,7 +1357,7 @@ contract("Superfluid Host Contract", accounts => {
                         "Jail",
                         {
                             app: app3.address,
-                            reason: "22" // APP_RULE_CTX_IS_EMPTY
+                            reason: "22", // APP_RULE_CTX_IS_MALFORMATED
                         }
                     );
                 });
@@ -1300,7 +1370,7 @@ contract("Superfluid Host Contract", accounts => {
                     [2, "callAppBeforeAgreementUpdatedCallback"],
                     [3, "callAppAfterAgreementUpdatedCallback"],
                     [4, "callAppBeforeAgreementTerminatedCallback"],
-                    [5, "callAppAfterAgreementTerminatedCallback"]
+                    [5, "callAppAfterAgreementTerminatedCallback"],
                 ];
                 for (let i = 0; i < tests.length; ++i) {
                     console.log("testing noop mask for", tests[i][1]);
@@ -1421,7 +1491,7 @@ contract("Superfluid Host Contract", accounts => {
                     {
                         appLevel: "0",
                         callType: "2" /* CALL_INFO_CALL_TYPE_APP_ACTION */,
-                        agreementSelector: "0x00000000"
+                        agreementSelector: "0x00000000",
                     }
                 );
             });
@@ -1485,7 +1555,7 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract,
                     "Pong",
                     {
-                        ping: "42"
+                        ping: "42",
                     }
                 );
             });
@@ -1636,6 +1706,34 @@ contract("Superfluid Host Contract", accounts => {
                     "SF: APP_RULE_CTX_IS_READONLY"
                 );
             });
+
+            it("#9.3 callAgreementWithContext should from the same app", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionPingAgreementThroughAux(
+                                agreement.address,
+                                42,
+                                "0x"
+                            )
+                            .encodeABI()
+                    ),
+                    "SF: callAgreementWithContext from wrong address"
+                );
+            });
+
+            it("#9.4 callAppActionWithContext should from the same app", async () => {
+                await expectRevert(
+                    superfluid.callAppAction(
+                        app.address,
+                        app.contract.methods
+                            .actionCallActionNoopThroughAux("0x")
+                            .encodeABI()
+                    ),
+                    "SF: callAppActionWithContext from wrong address"
+                );
+            });
         });
 
         describe("#10 batchCall", () => {
@@ -1646,7 +1744,7 @@ contract("Superfluid Host Contract", accounts => {
                 await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                     toWad("10"),
                     {
-                        from: alice
+                        from: alice,
                     }
                 );
 
@@ -1654,7 +1752,7 @@ contract("Superfluid Host Contract", accounts => {
                     superToken.approve,
                     "SuperToken.approve - from alice to admin"
                 )(admin, toWad("3"), {
-                    from: alice
+                    from: alice,
                 });
                 assert.equal(
                     (await superToken.allowance.call(alice, admin)).toString(),
@@ -1669,7 +1767,7 @@ contract("Superfluid Host Contract", accounts => {
                             web3.eth.abi.encodeParameters(
                                 ["uint256"],
                                 [toWad("10").toString()]
-                            )
+                            ),
                         ],
                         [
                             1, // approve
@@ -1677,7 +1775,7 @@ contract("Superfluid Host Contract", accounts => {
                             web3.eth.abi.encodeParameters(
                                 ["address", "uint256"],
                                 [bob, toWad("1").toString()]
-                            )
+                            ),
                         ],
                         [
                             2, // transferFrom own funds
@@ -1685,7 +1783,7 @@ contract("Superfluid Host Contract", accounts => {
                             web3.eth.abi.encodeParameters(
                                 ["address", "address", "uint256"],
                                 [admin, bob, toWad("2").toString()]
-                            )
+                            ),
                         ],
                         [
                             2, // transferFrom other's funds
@@ -1693,7 +1791,7 @@ contract("Superfluid Host Contract", accounts => {
                             web3.eth.abi.encodeParameters(
                                 ["address", "address", "uint256"],
                                 [alice, bob, toWad("3").toString()]
-                            )
+                            ),
                         ],
                         [
                             102, // downgrade
@@ -1701,11 +1799,11 @@ contract("Superfluid Host Contract", accounts => {
                             web3.eth.abi.encodeParameters(
                                 ["uint256"],
                                 [toWad("5").toString()]
-                            )
-                        ]
+                            ),
+                        ],
                     ],
                     {
-                        from: admin
+                        from: admin,
                     }
                 );
                 assert.equal(
@@ -1761,9 +1859,9 @@ contract("Superfluid Host Contract", accounts => {
                                     agreement.contract.methods
                                         .pingMe(admin, 42, "0x")
                                         .encodeABI(),
-                                    "0x" // user data
+                                    "0x", // user data
                                 ]
-                            )
+                            ),
                         ],
                         [
                             201, // call agreement
@@ -1774,13 +1872,13 @@ contract("Superfluid Host Contract", accounts => {
                                     agreement.contract.methods
                                         .pingMe(admin, 43, "0x")
                                         .encodeABI(),
-                                    "0x" // user data
+                                    "0x", // user data
                                 ]
-                            )
-                        ]
+                            ),
+                        ],
                     ],
                     {
-                        from: admin
+                        from: admin,
                     }
                 );
                 await expectEvent.inTransaction(
@@ -1788,7 +1886,7 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract,
                     "Pong",
                     {
-                        ping: "42"
+                        ping: "42",
                     }
                 );
                 await expectEvent.inTransaction(
@@ -1796,7 +1894,7 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract,
                     "Pong",
                     {
-                        ping: "43"
+                        ping: "43",
                     }
                 );
 
@@ -1837,18 +1935,18 @@ contract("Superfluid Host Contract", accounts => {
                                     agreement.contract.methods
                                         .pingMe(admin, 42, "0x")
                                         .encodeABI(),
-                                    "0x" // user data
+                                    "0x", // user data
                                 ]
-                            )
+                            ),
                         ],
                         [
                             202, // call app action
                             app.address,
-                            app.contract.methods.actionNoop("0x").encodeABI()
-                        ]
+                            app.contract.methods.actionNoop("0x").encodeABI(),
+                        ],
                     ],
                     {
-                        from: admin
+                        from: admin,
                     }
                 );
                 await expectEvent.inTransaction(
@@ -1856,7 +1954,7 @@ contract("Superfluid Host Contract", accounts => {
                     agreement.contract,
                     "Pong",
                     {
-                        ping: "42"
+                        ping: "42",
                     }
                 );
                 await expectEvent.inTransaction(
@@ -1883,18 +1981,18 @@ contract("Superfluid Host Contract", accounts => {
                                 app.address,
                                 app.contract.methods
                                     .actionCallActionNoop("0x")
-                                    .encodeABI()
+                                    .encodeABI(),
                             ],
                             [
                                 202, // call app action
                                 app.address,
                                 app.contract.methods
                                     .actionCallActionRevert("error 42", "0x")
-                                    .encodeABI()
-                            ]
+                                    .encodeABI(),
+                            ],
                         ],
                         {
-                            from: admin
+                            from: admin,
                         }
                     ),
                     "error 42"
@@ -1906,10 +2004,85 @@ contract("Superfluid Host Contract", accounts => {
                     web3tx(superfluid.batchCall, "Superfluid.batchCall")(
                         [[8888, ZERO_ADDRESS, "0x"]],
                         {
-                            from: admin
+                            from: admin,
                         }
                     ),
                     "SF: unknown batch call operation type"
+                );
+            });
+        });
+
+        describe("#11 forwardBatchCall", () => {
+            const ForwarderMock = artifacts.require("ForwarderMock");
+
+            let forwarder;
+
+            before(async () => {
+                forwarder = await ForwarderMock.new();
+            });
+
+            it("#11.1 forwardBatchCall with mocked transaction signer", async () => {
+                await governance.enableTrustedForwarder(forwarder.address, {
+                    from: admin,
+                });
+                await t.createNewToken({ doUpgrade: false });
+                const { superToken } = t.contracts;
+                await t.upgradeBalance("alice", toWad(1));
+                await web3tx(forwarder.execute, "forwarder.execute")(
+                    {
+                        from: alice, // mocked transaction signer
+                        to: superfluid.address,
+                        value: "0",
+                        gas: "5000000",
+                        data: superfluid.contract.methods
+                            .forwardBatchCall([
+                                [
+                                    2, // OPERATION_TYPE_ERC20_TRANSFER_FROM
+                                    superToken.address,
+                                    web3.eth.abi.encodeParameters(
+                                        ["address", "address", "uint256"],
+                                        [alice, bob, toWad(1).toString()]
+                                    ),
+                                ],
+                            ])
+                            .encodeABI(),
+                    },
+                    { from: admin }
+                );
+                assert.equal(
+                    (await superToken.balanceOf(bob)).toString(),
+                    toWad(1).toString()
+                );
+            });
+
+            it("#11.2 untrusted forwarder", async () => {
+                await governance.disableTrustedForwarder(forwarder.address, {
+                    from: admin,
+                });
+                await expectRevert(
+                    web3tx(forwarder.execute, "forwarder.execute")(
+                        {
+                            from: alice,
+                            to: superfluid.address,
+                            value: "0",
+                            gas: "5000000",
+                            data: superfluid.contract.methods
+                                .forwardBatchCall([])
+                                .encodeABI(),
+                        },
+                        { from: admin }
+                    ),
+                    "Not trusted forwarder"
+                );
+            });
+
+            it("#11.3 forwarder with malformatted message", async () => {
+                await expectRevert(
+                    web3tx(superfluid.forwardBatchCall, "forwarder.execute")(
+                        [],
+                        { from: admin }
+                    ),
+                    "Not trusted forwarder"
                 );
             });
         });

@@ -12,17 +12,17 @@ module.exports = class User {
         try {
             const flows = await this.sf.cfa.listFlows({
                 superToken: this.token,
-                account: this.address
+                account: this.address,
             });
             const netFlow = (
                 await this.sf.cfa.getNetFlow({
                     superToken: this.token,
-                    account: this.address
+                    account: this.address,
                 })
             ).toString();
             const subscriptions = await this.sf.ida.listSubscriptions({
                 superToken: this.token,
-                subscriber: this.address
+                subscriber: this.address,
             });
             return { cfa: { flows, netFlow }, ida: { subscriptions } };
         } catch (e) {
@@ -40,13 +40,13 @@ module.exports = class User {
                     superToken: this.token,
                     sender: this.address,
                     receiver: recipientAddress,
-                    ...options
+                    ...options,
                 });
 
             const existingFlow = await this.sf.cfa.getFlow({
                 superToken: this.token,
                 sender: this.address,
-                receiver: recipientAddress
+                receiver: recipientAddress,
             });
             if (existingFlow.flowRate !== "0")
                 return await this.sf.cfa.updateFlow({
@@ -54,14 +54,14 @@ module.exports = class User {
                     sender: this.address,
                     receiver: recipientAddress,
                     flowRate,
-                    ...options
+                    ...options,
                 });
             return await this.sf.cfa.createFlow({
                 superToken: this.token,
                 sender: this.address,
                 receiver: recipientAddress,
                 flowRate,
-                ...options
+                ...options,
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "flow");
@@ -74,14 +74,14 @@ module.exports = class User {
             const { exist } = await this.sf.ida.getIndex({
                 superToken: this.token,
                 publisher: this.address,
-                indexId
+                indexId,
             });
             if (exist) throw "This pool has already been created";
 
             return await this.sf.ida.createIndex({
                 superToken: this.token,
+                publisher: this.address,
                 indexId,
-                sender: this.address
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "createPool");
@@ -97,16 +97,16 @@ module.exports = class User {
             const { exist } = await this.sf.ida.getIndex({
                 superToken: this.token,
                 publisher: this.address,
-                indexId
+                indexId,
             });
             if (!exist) throw "This pool has not been created yet";
 
-            return await this.sf.ida.updateSupscription({
+            return await this.sf.ida.updateSubscription({
                 superToken: this.token,
+                publisher: this.address,
                 indexId,
                 subscriber: recipientAddress,
                 units: shares,
-                sender: this.address
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "giveShares");
@@ -119,9 +119,9 @@ module.exports = class User {
                 throw "You must provide a poolId and amount";
             await this.sf.ida.distribute({
                 superToken: this.token,
+                publisher: this.address,
                 indexId,
                 amount,
-                sender: this.address
             });
         } catch (e) {
             throw getErrorResponse(e, "user", "distributeToPool");

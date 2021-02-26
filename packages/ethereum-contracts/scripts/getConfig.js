@@ -9,7 +9,11 @@ const DEFAULT_CONFIGS = {
     4447: {
         // for local testing
         // this is a fake forwarder address, it is to test the deployment script
-        liquidationPeriod: 3600,
+        biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+    },
+    5777: {
+        // for local testing
+        // this is a fake forwarder address, it is to test the deployment script
         biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
     },
     5: {
@@ -47,11 +51,11 @@ const DEFAULT_CONFIGS = {
 };
 
 module.exports = function getConfig(chainId) {
-    const defaultConfig = DEFAULT_CONFIGS[chainId] || {
-        liquidationPeriod: 3600,
-    };
     return {
-        ...defaultConfig,
+        ...{
+            liquidationPeriod: 3600,
+        },
+        ...DEFAULT_CONFIGS[chainId],
         ...SuperfluidSDK.getConfig(chainId),
     };
 };

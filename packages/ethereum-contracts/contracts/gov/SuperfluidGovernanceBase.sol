@@ -184,7 +184,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     event CFAv1LiquidationPeriodChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
-        uint256 value);
+        uint256 liquidationPeriod);
 
     function getCFAv1LiquidationPeriod(
         ISuperfluid host,

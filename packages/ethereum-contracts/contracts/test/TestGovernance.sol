@@ -3,20 +3,16 @@ pragma solidity 0.7.6;
 
 import {
     ISuperfluid,
-    ISuperAgreement,
-    ISuperfluidToken,
-    ISuperToken,
-    ISuperTokenFactory,
-    ISuperfluidGovernance,
-    SuperfluidGovernanceConfigs
+    ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperfluidGovernanceBase } from "../gov/SuperfluidGovernanceBase.sol";
-
-import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
+/**
+ * @dev A initializable version of the governance for testing purpose
+ */
 contract TestGovernance is
     Ownable,
     SuperfluidGovernanceBase
@@ -31,10 +27,16 @@ contract TestGovernance is
     )
         external
     {
+        // can initialize only once
+        assert(address(host) != address(0));
+        assert(address(_host) == address(0));
+
         _host = host;
 
         setRewardAddress(_host, ISuperfluidToken(address(0)), rewardAddress);
+
         setCFAv1LiquidationPeriod(_host, ISuperfluidToken(address(0)), liquidationPeriod);
+
         for (uint i = 0; i < trustedForwarders.length; ++i) {
             enableTrustedForwarder(_host, ISuperfluidToken(address(0)), trustedForwarders[i]);
         }
@@ -43,7 +45,7 @@ contract TestGovernance is
     function _requireAuthorised(ISuperfluid host)
         internal view override
     {
-        require(host == _host, "TestGovernance: unrecogonized host");
-        require(owner() == _msgSender(), "TestGovernance: only owner is authorized");
+        assert(host == _host);
+        assert(owner() == _msgSender());
     }
 }

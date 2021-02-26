@@ -8,13 +8,15 @@ async function fetchLatestChanges(contract, eventName, filter) {
         toBlock: "latest",
         filter,
     });
-    return changes.reduce(
-        (acc, i) =>
-            _.merge(acc, {
-                [i.args.superToken]: i.args,
-            }),
-        {}
-    );
+    return Object.values(
+        changes.reduce(
+            (acc, i) =>
+                _.merge(acc, {
+                    [i.args.superToken]: i.args,
+                }),
+            {}
+        )
+    ).filter((i) => !!i.set);
 }
 
 /**
@@ -112,9 +114,7 @@ module.exports = async function (callback, argv, options = {}) {
                     host: host.address,
                 }
             );
-            Object.values(latests).forEach((i) =>
-                console.log(i.superToken, i.rewardAddress)
-            );
+            latests.forEach((i) => console.log(i.superToken, i.rewardAddress));
         }
         {
             console.log("## CFAv1LiquidationPeriod");
@@ -125,7 +125,7 @@ module.exports = async function (callback, argv, options = {}) {
                     host: host.address,
                 }
             );
-            Object.values(latests).forEach((i) =>
+            latests.forEach((i) =>
                 console.log(i.superToken, i.liquidationPeriod.toString())
             );
         }
@@ -138,7 +138,7 @@ module.exports = async function (callback, argv, options = {}) {
                     host: host.address,
                 }
             );
-            Object.values(latests)
+            latests
                 .filter((i) => !!i.enabled)
                 .forEach((i) => console.log(i.superToken, i.forwarder));
         }

@@ -88,6 +88,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         address value
     )
         internal
+        onlyAuthorized(host)
     {
         _configs[address(host)][address(superToken)][key] = Value(true, uint256(uint160(value)));
     }
@@ -99,6 +100,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         uint256 value
     )
         internal
+        onlyAuthorized(host)
     {
         _configs[address(host)][address(superToken)][key] = Value(true, value);
     }
@@ -109,6 +111,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         bytes32 key
     )
         internal
+        onlyAuthorized(host)
     {
         _configs[address(host)][address(superToken)][key] = Value(false, 0);
     }
@@ -153,13 +156,14 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     event RewardAddressChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
+        bool set,
         address rewardAddress);
 
     function getRewardAddress(
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        external view returns (address)
+        public view returns (address)
     {
         return getConfigAsAddress(
             host, superToken,
@@ -173,24 +177,37 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     )
         public
     {
-        emit RewardAddressChanged(host, superToken, rewardAddress);
+        emit RewardAddressChanged(host, superToken, true, rewardAddress);
         return _setConfig(
             host, superToken,
             SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY,
             rewardAddress);
     }
 
+    function clearRewardAddress(
+        ISuperfluid host,
+        ISuperfluidToken superToken
+    )
+        public
+    {
+        emit RewardAddressChanged(host, superToken, false, address(0));
+        _clearConfig(
+            host, superToken,
+            SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY);
+    }
+
     // CFAv1 liquidationPeriod
     event CFAv1LiquidationPeriodChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
+        bool set,
         uint256 liquidationPeriod);
 
     function getCFAv1LiquidationPeriod(
         ISuperfluid host,
         ISuperfluidToken superToken
     )
-        external view
+        public view
         returns (uint256 value)
     {
         return getConfigAsUint256(
@@ -205,17 +222,30 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     )
         public
     {
-        emit CFAv1LiquidationPeriodChanged(host, superToken, value);
+        emit CFAv1LiquidationPeriodChanged(host, superToken, true, value);
         return _setConfig(
             host, superToken,
             SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY,
             value);
     }
 
+    function clearCFAv1LiquidationPeriod(
+        ISuperfluid host,
+        ISuperfluidToken superToken
+    )
+        public
+    {
+        emit CFAv1LiquidationPeriodChanged(host, superToken, false, 0);
+        _clearConfig(
+            host, superToken,
+            SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY);
+    }
+
     // trustedForwarder
     event TrustedForwarderChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,
+        bool set,
         address forwarder,
         bool enabled);
 
@@ -224,7 +254,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken,
         address forwarder
     )
-        external view
+        public view
         returns (bool)
     {
         return getConfigAsUint256(
@@ -244,7 +274,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             host, superToken,
             SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder),
             1);
-        emit TrustedForwarderChanged(host, superToken, forwarder, true);
+        emit TrustedForwarderChanged(host, superToken, true, forwarder, true);
     }
 
     function disableTrustedForwarder(
@@ -259,7 +289,20 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             host, superToken,
             SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder),
             0);
-        emit TrustedForwarderChanged(host, superToken, forwarder, false);
+        emit TrustedForwarderChanged(host, superToken, true, forwarder, false);
+    }
+
+    function clearTrustedForwarder(
+        ISuperfluid host,
+        ISuperfluidToken superToken,
+        address forwarder
+    )
+        public
+    {
+        emit TrustedForwarderChanged(host, superToken, false, forwarder, false);
+        return _clearConfig(
+            host, superToken,
+            SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder));
     }
 
     // TODO: would like to use virtual modifier, but solhint doesn't like it atm

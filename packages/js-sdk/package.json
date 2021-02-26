@@ -38,8 +38,7 @@
         "auto-bind": "^4.0.0"
     },
     "peerDependencies": {
-        "@ethersproject/contracts": "^5.0.11",
-        "@truffle/contract": "4.3.8"
+        "@ethersproject/contracts": "^5.0.10"
     },
     "devDependencies": {
         "@decentral.ee/web3-helpers": "0.5.0",

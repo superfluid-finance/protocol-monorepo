@@ -77,11 +77,11 @@ async function detectTruffleAndConfigure(options) {
     function _detectTruffle() {
         const stackTrace = require("stack-trace");
         const trace = stackTrace.get();
-        //trace.forEach(callSite => console.debug(callSite.getFileName()));
+        //trace.forEach((callSite) => console.debug(callSite.getFileName()));
         return (
             trace.filter((callSite) =>
-                (callSite.getFileName() || "").endsWith(
-                    "truffle/build/commands.bundled.js"
+                (callSite.getFileName() || "").match(
+                    /node_modules\/truffle\/build\/[^/]+\.bundled\.js/
                 )
             ).length > 0
         );

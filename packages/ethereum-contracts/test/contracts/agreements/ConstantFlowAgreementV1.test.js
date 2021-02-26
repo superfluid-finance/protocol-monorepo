@@ -521,7 +521,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                     await web3tx(
                         governance.setRewardAddress,
                         "set reward address to admin"
-                    )(admin);
+                    )(superfluid.address, ZERO_ADDRESS, admin);
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.3.6",
@@ -542,7 +542,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                     await web3tx(
                         governance.setRewardAddress,
                         "set reward address to zero"
-                    )(ZERO_ADDRESS);
+                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.3.7",
@@ -615,7 +615,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                     await web3tx(
                         governance.setRewardAddress,
                         "set reward address to admin"
-                    )(admin);
+                    )(superfluid.address, ZERO_ADDRESS, admin);
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.4.4",
@@ -636,7 +636,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                     await web3tx(
                         governance.setRewardAddress,
                         "set reward address to zero"
-                    )(ZERO_ADDRESS);
+                    )(superfluid.address, ZERO_ADDRESS, ZERO_ADDRESS);
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.4.5",

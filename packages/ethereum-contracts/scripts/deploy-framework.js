@@ -404,6 +404,16 @@ module.exports = async function (callback, options = {}) {
         }
 
         console.log("======== Superfluid framework deployed ========");
+
+        if (process.env.TEST_RESOLVER_ADDRESS) {
+            console.log(
+                "=============== TEST ENVIRONMENT RESOLVER ======================"
+            );
+            console.log(
+                `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
+            );
+        }
+
         callback();
     } catch (err) {
         callback(err);

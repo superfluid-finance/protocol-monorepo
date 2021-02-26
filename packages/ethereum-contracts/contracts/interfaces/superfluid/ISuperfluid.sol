@@ -12,7 +12,8 @@ import { ISuperApp } from "./ISuperApp.sol";
 import {
     SuperAppDefinitions,
     ContextDefinitions,
-    BatchOperation
+    BatchOperation,
+    SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -142,6 +143,16 @@ interface ISuperfluid {
      *************************************************************************/
 
     /**
+     * @dev App registered event
+     */
+    event AppRegistered(ISuperApp indexed app);
+
+    /**
+     * @dev Jail event for the app
+     */
+    event Jail(ISuperApp indexed app, uint256 reason);
+
+    /**
      * @dev Message sender declares it as a super app
      * @param configWord The super app manifest configuration, flags are defined in
      *                   `SuperAppDefinitions`
@@ -197,11 +208,6 @@ interface ISuperfluid {
     )
         external view
         returns (bool isAppAllowed);
-
-    /**
-     * @dev Jail event for the app
-     */
-    event Jail(ISuperApp indexed app, uint256 reason);
 
     /**************************************************************************
      * Agreement Framework
@@ -362,6 +368,8 @@ interface ISuperfluid {
         uint256 appAllowanceWanted;
         // app allowance used, allowing negative values over a callback session
         int256 appAllowanceUsed;
+        // app address
+        address appAddress;
     }
 
     function callAgreementWithContext(
@@ -407,10 +415,16 @@ interface ISuperfluid {
     }
 
     /**
-     * @dev Batch call function.
+     * @dev Batch call function
      * @param operations Array of batch operations.
      */
     function batchCall(Operation[] memory operations) external;
+
+    /**
+     * @dev Batch call function for trusted forwarders (EIP-2771)
+     * @param operations Array of batch operations.
+     */
+    function forwardBatchCall(Operation[] memory operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

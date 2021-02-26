@@ -12,27 +12,31 @@ const { detectTruffleAndConfigure } = require("./utils");
  *
  * Usage: npx truffle exec scripts/deploy-test-environment.js
  */
-module.exports = async function(callback, options = {}) {
-    const errorHandler = err => {
+module.exports = async function (callback, options = {}) {
+    const errorHandler = (err) => {
         if (err) throw err;
     };
 
     try {
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
-        console.log("==== Deploying superfluid framework...");
+        console.log("======== Deploying superfluid framework ========");
         await deployFramework(errorHandler, options);
-        console.log("==== Superfluid framework deployed.");
+        console.log("==== Superfluid framework deployed  ========");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         for (let i = 0; i < tokens.length; ++i) {
-            console.log(`==== Deploying test token ${tokens[i]}...`);
+            console.log(`======== Deploying test token ${tokens[i]} ========`);
             await deployTestToken(errorHandler, [":", tokens[i]], options);
-            console.log(`==== Test token ${tokens[i]} deployed.`);
+            console.log(`======== Test token ${tokens[i]} deployed ========`);
 
-            console.log(`==== Creating super token for ${tokens[i]}...`);
+            console.log(
+                `======== Creating super token for ${tokens[i]} ========`
+            );
             await deploySuperToken(errorHandler, [":", tokens[i]], options);
-            console.log(`==== Super token for ${tokens[i]} deployed.`);
+            console.log(
+                `======== Super token for ${tokens[i]} deployed ========`
+            );
         }
         // Creating SETH
         await deploySuperToken(errorHandler, [":", "ETH"], options);

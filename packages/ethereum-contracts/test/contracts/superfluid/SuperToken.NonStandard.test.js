@@ -4,7 +4,7 @@ const {
     web3tx,
     toWad,
     toDecimals,
-    toBN
+    toBN,
 } = require("@decentral.ee/web3-helpers");
 
 const TestToken = artifacts.require("TestToken");
@@ -14,10 +14,10 @@ const ERC777SenderRecipientMock = artifacts.require(
 
 const TestEnvironment = require("../../TestEnvironment");
 
-contract("SuperToken's Non Standard Functions", accounts => {
+contract("SuperToken's Non Standard Functions", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), {
         isTruffle: true,
-        useMocks: true
+        useMocks: true,
     });
     const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
@@ -30,7 +30,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
         await t.reset();
     });
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
         ({ superfluid, testToken, superToken } = t.contracts);
     });
@@ -74,7 +74,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 superToken.upgrade,
                 "SuperToken.upgrade 2.0 tokens from alice"
             )(toWad(2), {
-                from: alice
+                from: alice,
             });
             const { timestamp } = await web3.eth.getBlock("latest");
 
@@ -124,7 +124,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(superToken.upgrade, "SuperToken.upgrade 2 from alice")(
                 toWad(2),
                 {
-                    from: alice
+                    from: alice,
                 }
             );
 
@@ -132,7 +132,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 superToken.downgrade,
                 "SuperToken.downgrade 2 from alice"
             )(toWad(1), {
-                from: alice
+                from: alice,
             });
 
             const finalBalance = await testToken.balanceOf.call(alice);
@@ -161,10 +161,10 @@ contract("SuperToken's Non Standard Functions", accounts => {
             );
 
             await web3tx(superToken.upgrade, "upgrade 2 from alice")(toWad(2), {
-                from: alice
+                from: alice,
             });
             await web3tx(superToken.upgrade, "upgrade 1 from bob")(toWad(1), {
-                from: bob
+                from: bob,
             });
 
             const initialSuperBalanceBob = await superToken.balanceOf.call(bob);
@@ -172,7 +172,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(superToken.downgrade, "downgrade 2 from alice")(
                 toWad(2),
                 {
-                    from: alice
+                    from: alice,
                 }
             );
 
@@ -207,7 +207,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                     superToken.downgrade,
                     "SuperToken.downgrade - bad balance"
                 )(toBN(1), {
-                    from: alice
+                    from: alice,
                 }),
                 "SuperfluidToken: burn amount exceeds balance"
             );
@@ -219,14 +219,14 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 "TEST6D",
                 6,
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await web3tx(token6D.mint, "Mint testToken for bob")(
                 bob,
                 toDecimals("100", 6),
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             assert.equal(
@@ -244,11 +244,11 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 token6D.approve,
                 "TestToken.approve - from bob to SuperToken"
             )(superToken6D.address, MAX_UINT256, {
-                from: bob
+                from: bob,
             });
 
             await web3tx(superToken6D.upgrade, "upgrade 1 from bob")(toWad(1), {
-                from: bob
+                from: bob,
             });
             assert.equal(
                 (await superToken6D.balanceOf.call(bob)).toString(),
@@ -262,7 +262,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(superToken6D.upgrade, "upgrade 0.1234567 from bob")(
                 toWad("0.1234567"),
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             assert.equal(
@@ -277,7 +277,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(superToken6D.downgrade, "downgrade from bob")(
                 toWad(1),
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             assert.equal(
@@ -294,7 +294,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 superToken6D.downgrade,
                 "downgrade extra decimals from bob"
             )(toWad("0.10000012345"), {
-                from: bob
+                from: bob,
             });
             assert.equal(
                 (await token6D.balanceOf.call(bob)).toString(),
@@ -309,7 +309,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(superToken6D.downgrade, "downgrade the rest from bob")(
                 toWad("0.023456"),
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             assert.equal(
@@ -328,14 +328,14 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 "TEST20D",
                 20,
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             await web3tx(token20D.mint, "Mint testToken for bob")(
                 bob,
                 toDecimals("100", 20),
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             assert.equal(
@@ -353,11 +353,11 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 token20D.approve,
                 "TestToken.approve - from bob to SuperToken"
             )(superToken6D.address, MAX_UINT256, {
-                from: bob
+                from: bob,
             });
 
             await web3tx(superToken6D.upgrade, "upgrade 1 from bob")(toWad(1), {
-                from: bob
+                from: bob,
             });
             assert.equal(
                 (await superToken6D.balanceOf.call(bob)).toString(),
@@ -371,7 +371,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             await web3tx(superToken6D.downgrade, "downgrade 1 from bob")(
                 toWad(1),
                 {
-                    from: bob
+                    from: bob,
                 }
             );
             assert.equal(
@@ -392,7 +392,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 superToken.upgradeTo,
                 "SuperToken.upgrade 2.0 tokens from alice to bob"
             )(bob, toWad(2), "0x", {
-                from: alice
+                from: alice,
             });
             const { timestamp } = await web3.eth.getBlock("latest");
 
@@ -453,7 +453,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             const mock = await ERC777SenderRecipientMock.new();
             await expectRevert(
                 superToken.upgradeTo(mock.address, toWad(2), "0x", {
-                    from: alice
+                    from: alice,
                 }),
                 "SuperToken: not an ERC777TokensRecipient"
             );
@@ -465,7 +465,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 superToken.upgradeTo,
                 "SuperToken.upgrade 2.0 tokens from alice to bob"
             )(mock.address, toWad(2), "0x", {
-                from: alice
+                from: alice,
             });
         });
 
@@ -475,7 +475,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 mock.address,
                 toWad(2),
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -490,7 +490,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
                 mock.address,
                 toWad(2),
                 {
-                    from: alice
+                    from: alice,
                 }
             );
             await web3tx(
@@ -614,7 +614,7 @@ contract("SuperToken's Non Standard Functions", accounts => {
             );
         });
 
-        it("#10.3 batchCall should only be called by host", async function() {
+        it("#10.3 batchCall should only be called by host", async function () {
             await expectRevert(
                 superToken.operationApprove(alice, bob, "0"),
                 "SuperfluidToken: Only host contract allowed"

@@ -5,7 +5,7 @@ const {
     ZERO_ADDRESS,
     extractWeb3Options,
     detectTruffleAndConfigure,
-    builtTruffleContractLoader
+    builtTruffleContractLoader,
 } = require("./utils");
 
 /**
@@ -14,16 +14,17 @@ const {
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
+ * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
  */
-module.exports = async function(callback, argv, options = {}) {
+module.exports = async function (callback, argv, options = {}) {
     try {
-        console.log("Deploying super token");
+        console.log("======== Deploying super token ========");
 
-        eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        let { resetToken, protocolReleaseVersion } = options;
 
-        const version = process.env.RELEASE_VERSION || "test";
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
             throw new Error("Not enough arguments");
@@ -31,11 +32,19 @@ module.exports = async function(callback, argv, options = {}) {
         const tokenName = args.pop();
         console.log("Underlying token name", tokenName);
 
+        resetToken = resetToken || !!process.env.RESET_TOKEN;
+        protocolReleaseVersion =
+            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
+        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        console.log("reset token: ", resetToken);
+        console.log("chain ID: ", chainId);
+        console.log("protocol release version:", protocolReleaseVersion);
+
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
-            version,
+            version: protocolReleaseVersion,
             additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"],
-            contractLoader: builtTruffleContractLoader
+            contractLoader: builtTruffleContractLoader,
         });
         await sf.initialize();
 
@@ -45,7 +54,7 @@ module.exports = async function(callback, argv, options = {}) {
             ISuperfluidGovernance,
             ISuperToken,
             ISETH,
-            SETHProxy
+            SETHProxy,
         } = sf.contracts;
 
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
@@ -56,7 +65,9 @@ module.exports = async function(callback, argv, options = {}) {
         if (tokenName == "ETH") {
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
-                const sethProxy = await SETHProxy.new(ZERO_ADDRESS);
+                const weth = options.weth || ZERO_ADDRESS;
+                const sethProxy = await SETHProxy.new(weth);
+                console.log("WETH Address: ", weth);
                 const seth = await ISETH.at(sethProxy.address);
                 console.log("Intialize SETH as a custom super token...");
                 await superTokenFactory.initializeCustomSuperToken(
@@ -82,12 +93,12 @@ module.exports = async function(callback, argv, options = {}) {
             };
         }
 
-        const name = `supertokens.${version}.${tokenName}x`;
+        const name = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
         const superTokenAddress = await sf.resolver.get(name);
         console.log("SuperToken namt at the resolver: ", name);
         console.log("SuperToken address: ", superTokenAddress);
         let doDeploy = false;
-        if (superTokenAddress == ZERO_ADDRESS) {
+        if (resetToken || superTokenAddress == ZERO_ADDRESS) {
             doDeploy = true;
         } else {
             console.log("The superToken already registered.");
@@ -143,6 +154,7 @@ module.exports = async function(callback, argv, options = {}) {
             console.log("Resolver set done.");
         }
 
+        console.log("======== Super token deployed ========");
         callback();
     } catch (err) {
         callback(err);

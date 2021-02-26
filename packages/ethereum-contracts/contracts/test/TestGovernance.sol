@@ -7,7 +7,8 @@ import {
     ISuperfluidToken,
     ISuperToken,
     ISuperTokenFactory,
-    ISuperfluidGovernance
+    ISuperfluidGovernance,
+    SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
@@ -20,14 +21,6 @@ contract TestGovernance is
     ISuperfluidGovernance
 {
 
-    // solhint-disable-next-line const-name-snakecase
-    bytes32 private constant _SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY =
-        keccak256("org.superfluid-finance.superfluid.rewardAddress");
-
-    // solhint-disable-next-line const-name-snakecase
-    bytes32 private constant _CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.liquidationPeriod");
-
     mapping (bytes32 => uint256) private _configs;
 
     constructor(
@@ -35,8 +28,8 @@ contract TestGovernance is
         uint256 liquidationPeriod
     )
     {
-        _configs[_SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
-        _configs[_CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
+        _configs[SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
+        _configs[SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
 
         transferOwnership(msg.sender);
     }
@@ -45,8 +38,9 @@ contract TestGovernance is
     /* Configurations
     /*************************************************************************/
 
+    // rewardAddress
     function getRewardAddress() external view returns (address) {
-        return address(int160(_configs[_SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY]));
+        return address(int160(_configs[SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY]));
     }
 
     function setRewardAddress(
@@ -55,14 +49,39 @@ contract TestGovernance is
         external
         onlyOwner
     {
-        _configs[_SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
+        _configs[SuperfluidGovernanceConfigs.SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY] = uint256(uint160(rewardAddress));
     }
 
+    // liquidationPeriod
     function setLiquidationPeriod(uint256 liquidationPeriod)
         external
         onlyOwner
     {
-        _configs[_CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
+        _configs[SuperfluidGovernanceConfigs.CFAv1_LIQUIDATION_PERIOD_CONFIG_KEY] = liquidationPeriod;
+    }
+
+    // trustedForwarder
+    event TrustedForwarder(address forwarder, bool enabled);
+
+    function isTrustedForwarder(address forwarder) external view returns (bool)
+    {
+        return _configs[SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)] == 1;
+    }
+
+    function enableTrustedForwarder(address forwarder)
+        external
+        onlyOwner
+    {
+        _configs[SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)] = 1;
+        emit TrustedForwarder(forwarder, true);
+    }
+
+    function disableTrustedForwarder(address forwarder)
+        external
+        onlyOwner
+    {
+        _configs[SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)] = 0;
+        emit TrustedForwarder(forwarder, false);
     }
 
     /**************************************************************************
@@ -125,7 +144,7 @@ contract TestGovernance is
         bytes32 key
     )
         external view override
-        returns(address rewardAddress)
+        returns(address value)
     {
         return address(int160(_configs[key]));
     }

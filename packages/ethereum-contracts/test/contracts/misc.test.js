@@ -11,7 +11,7 @@ const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 const ZERO_ADDRESS = "0x" + "0".repeat(40);
 
-contract("Miscellaneous for test coverages", accounts => {
+contract("Miscellaneous for test coverages", (accounts) => {
     const admin = accounts[0];
     const alice = accounts[1];
 
@@ -90,7 +90,7 @@ contract("Miscellaneous for test coverages", accounts => {
 
         it("initialization checks", async () => {
             const proxy = await FullUpgradableSuperTokenProxy.new({
-                from: admin
+                from: admin,
             });
             const token = await IERC20.at(proxy.address);
             await expectRevert(

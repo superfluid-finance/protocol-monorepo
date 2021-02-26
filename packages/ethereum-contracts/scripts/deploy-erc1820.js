@@ -13,9 +13,9 @@ const { hasCode } = require("./utils");
  *
  * Usage: npx truffle exec scripts/deploy-erc1820.js
  */
-module.exports = async function(callback, { web3, from } = {}) {
+module.exports = async function (callback, { web3, from } = {}) {
     try {
-        this.web3 = web3 || global.web3;
+        web3 = web3 || global.web3;
 
         const rawTransaction = {
             nonce: 0,
@@ -27,7 +27,7 @@ module.exports = async function(callback, { web3, from } = {}) {
             r:
                 "0x1820182018201820182018201820182018201820182018201820182018201820",
             s:
-                "0x1820182018201820182018201820182018201820182018201820182018201820"
+                "0x1820182018201820182018201820182018201820182018201820182018201820",
         };
         const tx = new Transaction(rawTransaction);
         const res = {
@@ -43,7 +43,7 @@ module.exports = async function(callback, { web3, from } = {}) {
                             ethUtils.toBuffer(0)
                         )
                         .toString("hex")
-            )
+            ),
         };
         assert.equal("0xa990077c3205cbDf861e17Fa532eeB069cE9fF96", res.sender);
         assert.equal(
@@ -52,17 +52,17 @@ module.exports = async function(callback, { web3, from } = {}) {
         );
 
         console.log("Checking ERC1820 deployment at", res.contractAddr);
-        if (!(await hasCode(this.web3, res.contractAddr))) {
+        if (!(await hasCode(web3, res.contractAddr))) {
             console.log("Deploying...");
-            const account = from || (await this.web3.eth.getAccounts())[0];
+            const account = from || (await web3.eth.getAccounts())[0];
             console.log("Step 1: send ETH");
-            await this.web3.eth.sendTransaction({
+            await web3.eth.sendTransaction({
                 from: account,
                 to: res.sender,
-                value: "100000000000000000" //this.web3.utils.toWei(0.1)
+                value: "100000000000000000", //web3.utils.toWei(0.1)
             });
             console.log("Step 2: send signed transaction");
-            await this.web3.eth.sendSignedTransaction(res.rawTx);
+            await web3.eth.sendSignedTransaction(res.rawTx);
             console.log("Deployment done.");
         } else {
             console.log("ERC1820 is already deployoed.");

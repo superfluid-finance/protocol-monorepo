@@ -214,6 +214,7 @@ contract AgreementMock is AgreementBase {
     )
         private returns (bytes memory newCtx)
     {
+        bool isJailed = ISuperfluid(msg.sender).isAppJailed(app);
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
             ISuperfluidToken(address(0)) /* token */,
@@ -223,7 +224,12 @@ contract AgreementMock is AgreementBase {
         );
         cbStates.noopBit = noopBit;
         (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
-        require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
+        if (isJailed) {
+            require(newCtx.length == 0, "AgreementMock: callback should not reach jailed app");
+            newCtx = ctx;
+        } else {
+            require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after callback");
+        }
         emit AppAfterCallbackResult(
             context.appLevel,
             context.callType,
@@ -296,20 +302,6 @@ contract AgreementMock is AgreementBase {
         validCtx(ctx)
         returns (bytes memory newCtx)
     {
-        /* ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
-        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
-            ISuperfluidToken(address(0)) // token,
-            address(app) // account,
-            0 // agreementId,
-            "" // agreementData
-        );
-        cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
-        require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after");
-        emit AppAfterCallbackResult(
-            context.appLevel,
-            context.callType,
-            context.agreementSelector); */
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP, ctx);
     }
 

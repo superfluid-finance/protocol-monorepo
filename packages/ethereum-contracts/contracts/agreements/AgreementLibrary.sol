@@ -49,8 +49,6 @@ library AgreementLibrary {
      *************************************************************************/
 
     struct CallbackInputs {
-        bool isSuperApp;
-        uint256 noopMask;
         ISuperfluidToken token;
         address account;
         bytes32 agreementId;
@@ -66,22 +64,13 @@ library AgreementLibrary {
         bytes32 agreementId,
         bytes memory agreementData
     )
-       internal view
+       internal pure
        returns (CallbackInputs memory inputs)
     {
-        ISuperfluid host = ISuperfluid(msg.sender);
         inputs.token = token;
         inputs.account = account;
         inputs.agreementId = agreementId;
         inputs.agreementData = agreementData;
-        {
-            bool isJailed;
-            (inputs.isSuperApp, isJailed, inputs.noopMask) = host.getAppManifest(ISuperApp(account));
-            // skip the callbacks if the app is already jailed
-            if (isJailed) {
-                inputs.noopMask = type(uint256).max;
-            }
-        }
     }
 
     function callAppBeforeCallback(
@@ -91,11 +80,13 @@ library AgreementLibrary {
         internal
         returns(bytes memory cbdata)
     {
-        if (inputs.isSuperApp) {
-            // this will check composit app whitelisting, do not skip!
-            // otherwise an app could be trapped into an agreement:
+        bool isSuperApp;
+        bool isJailed;
+        uint256 noopMask;
+        (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(ISuperApp(inputs.account));
+        if (isSuperApp && !isJailed) {
             bytes memory appCtx = _pushCallbackStack(ctx, inputs);
-            if ((inputs.noopMask & inputs.noopBit) == 0) {
+            if ((noopMask & inputs.noopBit) == 0) {
                 bytes memory callData = abi.encodeWithSelector(
                     _selectorFromNoopBit(inputs.noopBit),
                     inputs.token,
@@ -120,13 +111,16 @@ library AgreementLibrary {
         bytes memory ctx
     )
         internal
-        returns (ISuperfluid.Context memory appContext, bytes memory appCtx)
+        returns (ISuperfluid.Context memory appContext, bytes memory newCtx)
     {
-        if (inputs.isSuperApp) {
-            // this will check composit app whitelisting, do not skip!
-            // otherwise an app could be trapped into an agreement
-            appCtx = _pushCallbackStack(ctx, inputs);
-            if ((inputs.noopMask & inputs.noopBit) == 0) {
+        bool isSuperApp;
+        bool isJailed;
+        uint256 noopMask;
+        (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(ISuperApp(inputs.account));
+
+        if (isSuperApp && !isJailed) {
+            newCtx = _pushCallbackStack(ctx, inputs);
+            if ((noopMask & inputs.noopBit) == 0) {
                 bytes memory callData = abi.encodeWithSelector(
                     _selectorFromNoopBit(inputs.noopBit),
                     inputs.token,
@@ -136,21 +130,20 @@ library AgreementLibrary {
                     cbdata,
                     new bytes(0) // placeholder ctx
                 );
-                appCtx = ISuperfluid(msg.sender).callAppAfterCallback(
+                newCtx = ISuperfluid(msg.sender).callAppAfterCallback(
                     ISuperApp(inputs.account),
                     callData,
                     inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
-                    appCtx);
+                    newCtx);
 
-                appContext = ISuperfluid(msg.sender).decodeCtx(appCtx);
+                appContext = ISuperfluid(msg.sender).decodeCtx(newCtx);
 
                 // adjust allowance used to the range [appAllowanceWanted..appAllowanceGranted]
                 appContext.appAllowanceUsed = max(0, min(
                     inputs.appAllowanceGranted.toInt256(),
                     max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
-
-                appCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
             }
+            newCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
         }
     }
 
@@ -194,7 +187,7 @@ library AgreementLibrary {
         int256 appAllowanceUsed
     )
         private
-        returns (bytes memory appCtx)
+        returns (bytes memory newCtx)
     {
         // app allowance params stack POP
         return ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);

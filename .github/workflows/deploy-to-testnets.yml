@@ -18,6 +18,17 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+      RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
+      ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
+      MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -30,11 +41,11 @@ jobs:
         if: ${{ github.event.inputs.only_network != '' && github.event.inputs.only_network != matrix.network }}
         run: echo "DO_SKIP=1" >> $GITHUB_ENV
 
-      - name: Use Node.js 12.x
+      - name: Use Node.js 14.x
         if: env.DO_SKIP != 1
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
+          node-version: 14.x
 
       - name: Build
         if: env.DO_SKIP != 1
@@ -47,19 +58,15 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+
+      - name: Etherscan verification of ${{ matrix.network }} deployment
+        if: env.DO_SKIP != 1
+        run: |
+          cd packages/ethereum-contracts
           if ./tasks/supports-etherscan.sh ${{ matrix.network }};then
             npx truffle exec --network ${{ matrix.network }} scripts/print-addresses.js : addresses.vars
             source addresses.vars
             source tasks/etherscan-verify-framework.sh ${{ matrix.network }}
           fi
         env:
-          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-          RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
-          ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
-          MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

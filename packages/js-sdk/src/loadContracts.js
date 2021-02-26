@@ -16,7 +16,7 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
 
     // Create adapter for web3.js Contract.contract.methods.encodeABI
     const web3EncodingAdapter = {};
-    ethersContract.interface.fragments.forEach(fragment => {
+    ethersContract.interface.fragments.forEach((fragment) => {
         web3EncodingAdapter[fragment.name] = (...args) => {
             return {
                 encodeABI: () => {
@@ -24,14 +24,14 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
                         fragment,
                         args
                     );
-                }
+                },
             };
         };
     });
     ethersContract.contract = {
         methods: {
-            ...web3EncodingAdapter
-        }
+            ...web3EncodingAdapter,
+        },
     };
 
     return ethersContract;
@@ -41,7 +41,7 @@ function defaultContractLoader(name) {
     if (name in abis) {
         return {
             contractName: name,
-            abi: abis[name]
+            abi: abis[name],
         };
     } else throw new Error(`Cannot load contract "${name}"`);
 }
@@ -52,7 +52,7 @@ const loadContracts = async ({
     web3,
     from,
     additionalContracts,
-    contractLoader
+    contractLoader,
 }) => {
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
@@ -67,17 +67,17 @@ const loadContracts = async ({
                 Peer dependency @ethersproject/contract is required.`
             );
             await Promise.all(
-                allContractNames.map(async name => {
+                allContractNames.map(async (name) => {
                     const contract = await contractLoader(name);
                     contracts[name] = {
-                        at: address =>
+                        at: (address) =>
                             getAdaptedContract({
                                 address,
                                 ethers,
-                                abi: contract.abi
+                                abi: contract.abi,
                             }),
                         abi: contract.abi,
-                        contractName: name
+                        contractName: name,
                     };
                 })
             );
@@ -98,7 +98,7 @@ const loadContracts = async ({
             if (from) {
                 console.log("Set Ddefault from address to", from);
             }
-            allContractNames.forEach(name => {
+            allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));
                 from && c.defaults({ from });
             });

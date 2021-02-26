@@ -22,7 +22,9 @@ module.exports = class Framework {
      * @param {Ethers} options.ethers  Injected ethers instance
      *
      * @param {Array} options.additionalContracts (Optional) additional contracts to be loaded
-     * @param {string[]} options.tokens tokens to be loaded, each element is an alias for the underlying token
+     * @param {string[]} options.tokens (Optional) Tokens to be loaded, with underlying token symbols names
+     *                                  or super native token symbol.
+     * @param {bool} options.loadSuperNativeToken Load super native token (e.g. ETHx) if possible
      * @param {Function} options.contractLoader (Optional) alternative contract loader function
      *
      * @param {string} options.resolverAddress force resolver address
@@ -95,7 +97,7 @@ module.exports = class Framework {
             ethers: this._options.ethers,
             from: this._options.from,
             additionalContracts: this._options.additionalContracts,
-            contractLoader: this._options.contractLoader
+            contractLoader: this._options.contractLoader,
         });
 
         const resolverAddress =
@@ -126,7 +128,7 @@ module.exports = class Framework {
             cfa: await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
             ida: await this.contracts.IInstantDistributionAgreementV1.at(
                 idaAddress
-            )
+            ),
         };
 
         // load agreement helpers
@@ -143,11 +145,16 @@ module.exports = class Framework {
 
         // load tokens
         this.tokens = {};
-        if (this._options.tokens) {
-            await Promise.all(
-                this._options.tokens.map(this.loadToken.bind(this))
-            );
-        }
+        this.superTokens = {};
+        await Promise.all(
+            [
+                ...(this._options.tokens ? this._options.tokens : []),
+                ...(this._options.loadSuperNativeToken &&
+                this.config.nativeTokenSymbol
+                    ? [this.config.nativeTokenSymbol]
+                    : []),
+            ].map(this.loadToken.bind(this))
+        );
 
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {
@@ -176,6 +183,7 @@ module.exports = class Framework {
     async loadToken(tokenSymbol) {
         // load underlying token
         //  but we don't need to load native tokens
+        let underlyingToken;
         if (tokenSymbol !== this.config.nativeTokenSymbol) {
             const tokenAddress = await this.resolver.get(
                 `tokens.${tokenSymbol}`
@@ -183,9 +191,9 @@ module.exports = class Framework {
             if (tokenAddress === ZERO_ADDRESS) {
                 throw new Error(`Token ${tokenSymbol} is not registered`);
             }
-            this.tokens[tokenSymbol] = await this.contracts.ISETH.at(
-                tokenAddress
-            );
+            underlyingToken = this.tokens[
+                tokenSymbol
+            ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
             console.debug(
                 `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
             );
@@ -200,11 +208,16 @@ module.exports = class Framework {
                 `Token ${tokenSymbol} doesn't have a super token wrapper`
             );
         }
-        const superToken = await this.contracts.ISuperToken.at(
-            superTokenAddress
-        );
+        let superToken;
+        if (tokenSymbol !== this.config.nativeTokenSymbol) {
+            superToken = await this.contracts.ISuperToken.at(superTokenAddress);
+        } else {
+            superToken = await this.contracts.ISETH.at(superTokenAddress);
+        }
         const superTokenSymbol = await superToken.symbol();
         this.tokens[superTokenSymbol] = superToken;
+        this.superTokens[superTokenSymbol] = superToken;
+        superToken.underlyingToken = underlyingToken;
         console.debug(
             `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
         );

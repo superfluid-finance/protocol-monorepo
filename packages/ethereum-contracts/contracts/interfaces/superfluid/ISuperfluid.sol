@@ -42,6 +42,7 @@ interface ISuperfluid {
      */
     function getGovernance() external view returns(ISuperfluidGovernance governance);
 
+    event GovernanceReplaced(ISuperfluidGovernance oldGov, ISuperfluidGovernance newGov);
     /**
      * @dev Replace the current governance with a new one
      */
@@ -51,6 +52,7 @@ interface ISuperfluid {
      * Agreement Whitelisting
      *************************************************************************/
 
+    event AgreementClassRegistered(bytes32 agreementType, address code);
     /**
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic INitial agreement class code
@@ -60,6 +62,7 @@ interface ISuperfluid {
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
 
+    event AgreementClassUpdated(bytes32 agreementType, address code);
     /**
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
@@ -124,12 +127,14 @@ interface ISuperfluid {
      */
     function getSuperTokenFactoryLogic() external view returns (address logic);
 
+    event SuperTokenFactoryUpdated(ISuperTokenFactory newFactory);
     /**
      * @dev Update super token factory
      * @param newFactory New factory logic
      */
     function updateSuperTokenFactory(ISuperTokenFactory newFactory) external;
 
+    event SuperTokenLogicUpdated(ISuperToken indexed token, address code);
     /**
      * @dev Update the super token logic to the latest
      *

@@ -118,6 +118,7 @@ contract Superfluid is
     }
 
     function replaceGovernance(ISuperfluidGovernance newGov) external override onlyGovernance {
+        emit GovernanceReplaced(_gov, newGov);
         _gov = newGov;
     }
 
@@ -144,6 +145,7 @@ contract Superfluid is
         // register the agreement proxy
         _agreementClasses.push((agreementClass));
         _agreementClassIndices[agreementType] = _agreementClasses.length;
+        emit AgreementClassRegistered(agreementType, address(agreementClassLogic));
     }
 
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
@@ -153,6 +155,7 @@ contract Superfluid is
         require(idx != 0, "SF: agreement class not registered");
         UUPSProxiable proxiable = UUPSProxiable(address(_agreementClasses[idx - 1]));
         proxiable.updateCode(address(agreementClassLogic));
+        emit AgreementClassUpdated(agreementType, address(agreementClassLogic));
     }
 
     function isAgreementTypeListed(bytes32 agreementType)
@@ -256,15 +259,17 @@ contract Superfluid is
             require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
             UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
         }
+        emit SuperTokenFactoryUpdated(_superTokenFactory);
     }
 
     function updateSuperTokenLogic(ISuperToken token)
         external override
         onlyGovernance
     {
+        address code = address(_superTokenFactory.getSuperTokenLogic());
         // assuming it's uups proxiable
-        UUPSProxiable(address(token))
-            .updateCode(address(_superTokenFactory.getSuperTokenLogic()));
+        UUPSProxiable(address(token)).updateCode(code);
+        emit SuperTokenLogicUpdated(token, code);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

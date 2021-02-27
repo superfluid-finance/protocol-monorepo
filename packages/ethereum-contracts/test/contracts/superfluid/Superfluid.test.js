@@ -2022,9 +2022,14 @@ contract("Superfluid Host Contract", (accounts) => {
             });
 
             it("#11.1 forwardBatchCall with mocked transaction signer", async () => {
-                await governance.enableTrustedForwarder(forwarder.address, {
-                    from: admin,
-                });
+                await governance.enableTrustedForwarder(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    forwarder.address,
+                    {
+                        from: admin,
+                    }
+                );
                 await t.createNewToken({ doUpgrade: false });
                 const { superToken } = t.contracts;
                 await t.upgradeBalance("alice", toWad(1));
@@ -2056,9 +2061,14 @@ contract("Superfluid Host Contract", (accounts) => {
             });
 
             it("#11.2 untrusted forwarder", async () => {
-                await governance.disableTrustedForwarder(forwarder.address, {
-                    from: admin,
-                });
+                await governance.disableTrustedForwarder(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    forwarder.address,
+                    {
+                        from: admin,
+                    }
+                );
                 await expectRevert(
                     web3tx(forwarder.execute, "forwarder.execute")(
                         {
@@ -2107,10 +2117,10 @@ contract("Superfluid Host Contract", (accounts) => {
             });
 
             it("#20.3 replace with new governance", async () => {
-                const newGov = await TestGovernance.new(ZERO_ADDRESS, 1000);
+                const newGov = await TestGovernance.new();
                 await web3tx(
                     governance.replaceGovernance,
-                    "superfluid.replaceGovernance"
+                    "governance.replaceGovernance"
                 )(superfluid.address, newGov.address);
                 assert.equal(
                     await superfluid.getGovernance.call(),

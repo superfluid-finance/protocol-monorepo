@@ -63,10 +63,12 @@ contract("Superfluid Host Contract", (accounts) => {
 
             it("#1.5 update the code by governanc3", async () => {
                 const mock1 = await SuperfluidMock.new(
-                    false /* nonUpgradable */
+                    false /* nonUpgradable */,
+                    false /* appWhiteListingEnabled */
                 );
                 const mock2 = await SuperfluidMock.new(
-                    true /* nonUpgradable */
+                    true /* nonUpgradable */,
+                    false /* appWhiteListingEnabled */
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -2173,7 +2175,8 @@ contract("Superfluid Host Contract", (accounts) => {
 
             it("#30.3 host is not upgradable", async () => {
                 const mock1 = await SuperfluidMock.new(
-                    false /* nonUpgradable */
+                    false /* nonUpgradable */,
+                    false /* appWhiteListingEnabled */
                 );
                 await expectRevert(
                     governance.updateContracts(

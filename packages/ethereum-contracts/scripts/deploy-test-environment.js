@@ -1,3 +1,4 @@
+const getConfig = require("./getConfig");
 const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
@@ -20,6 +21,10 @@ module.exports = async function (callback, options = {}) {
     try {
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
+        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
+
         console.log("======== Deploying superfluid framework ========");
         await deployFramework(errorHandler, options);
         console.log("==== Superfluid framework deployed  ========");
@@ -39,7 +44,11 @@ module.exports = async function (callback, options = {}) {
             );
         }
         // Creating SETH
-        await deploySuperToken(errorHandler, [":", "ETH"], options);
+        await deploySuperToken(
+            errorHandler,
+            [":", config.nativeTokenSymbol],
+            options
+        );
 
         if (process.env.TEST_RESOLVER_ADDRESS) {
             console.log(

@@ -76,7 +76,12 @@ module.exports = async function (callback, argv, options = {}) {
                     seth.address
                 );
                 console.log("Intialize SETH token info...");
-                await seth.initialize(ZERO_ADDRESS, 18, "Super ETH", "ETHx");
+                await seth.initialize(
+                    ZERO_ADDRESS,
+                    18,
+                    `Super ${sf.config.nativeTokenSymbol}`,
+                    `${sf.config.nativeTokenSymbol}x`
+                );
                 return seth;
             };
         } else {

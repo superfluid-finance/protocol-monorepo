@@ -1,4 +1,4 @@
-<h1 align="center">Welcome to superfluid-dashboard-lite 👋</h1>
+<h1 align="center">Welcome to SF Developer Playground 👋</h1>
 <p>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
@@ -14,11 +14,22 @@
 
 ## Install
 
+#### Step 1.
+
 ```sh
 yarn install
+
+yarn rw db save
+yarn rw db up
 ```
 
-copy `.env.template` to `.env` and add the required variables
+#### Step 2.
+
+copy `.env.template` to `.env` and add the required variables. You can use this to generate a string for `ETHEREUM_JWT_SECRET`:
+
+```bash
+openssl rand -base64 48
+```
 
 ## Usage
 
@@ -26,11 +37,24 @@ copy `.env.template` to `.env` and add the required variables
 yarn rw dev
 ```
 
+Now you can flow tokens to another user. Click their address and hit "Flow" to get started!
+
 ## New to Redwood?
 
 - [Tutorial](https://redwoodjs.com/tutorial/welcome-to-redwood): getting started and complete overview guide.
 - [Docs](https://redwoodjs.com/docs/introduction): using the Redwood Router, handling assets and files, list of command-line tools, and more.
 - [Redwood Community](https://community.redwoodjs.com): get help, share tips and tricks, and collaborate on everything about RedwoodJS.
+
+## Hosting
+
+If you get into trouble during hosting, due to the api serverless bundle size, you can use these commands to test out your bundle size
+
+```bash
+cd api
+yarn rw build api
+node zip-it.js
+# outputs to graphql.zip
+```
 
 ## Author
 

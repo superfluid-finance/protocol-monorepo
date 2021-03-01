@@ -5,7 +5,7 @@ export const users = () => {
 }
 
 export const user = ({ id }) => {
-  const user = db.user.findOne({
+  return db.user.findOne({
     where: { id },
   })
 }

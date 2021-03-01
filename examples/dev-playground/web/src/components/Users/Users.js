@@ -77,17 +77,6 @@ const UsersList = ({ users }) => {
                   {truncate(user.address)}
                 </Link>
               </td>
-              <td>
-                <nav className="rw-table-actions">
-                  <Link
-                    to={routes.user({ id: user.id })}
-                    title={'Show user ' + user.id + ' detail'}
-                    className="rw-button rw-button-small"
-                  >
-                    Show
-                  </Link>
-                </nav>
-              </td>
             </tr>
           ))}
         </tbody>

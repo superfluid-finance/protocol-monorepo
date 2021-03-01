@@ -1,10 +1,11 @@
 import { Link, routes, navigate } from '@redwoodjs/router'
 import { useAuth } from '@redwoodjs/auth'
 import { useParams } from '@redwoodjs/router'
+import { disconnectWalletConnect } from 'src/utils/walletConnect'
 
 const LoginPage = () => {
   const [isLoggingIn, setIsLoggingIn] = React.useState(false)
-  const { logIn, isAuthenticated, loading } = useAuth()
+  const { logIn, isAuthenticated, loading, logOut } = useAuth()
   const { redirectTo } = useParams()
 
   const onLogIn = async () => {
@@ -12,6 +13,18 @@ const LoginPage = () => {
     await logIn()
     setIsLoggingIn(false)
     navigate(redirectTo || routes.home())
+  }
+  const onLogInWalletConnect = async () => {
+    setIsLoggingIn(true)
+    await logIn('walletConnect')
+    setIsLoggingIn(false)
+    navigate(redirectTo || routes.home())
+  }
+
+  const onLogOut = () => {
+    logOut()
+    disconnectWalletConnect()
+    navigate(routes.home())
   }
 
   return (
@@ -28,7 +41,19 @@ const LoginPage = () => {
           onClick={onLogIn}
           className="mt-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700"
         >
-          {isLoggingIn ? 'Logging in...' : 'Log in'}
+          {isLoggingIn ? 'Logging in...' : 'Log in with MetaMask'}
+        </button>
+        <br />
+        <button
+          disabled={isLoggingIn}
+          onClick={onLogInWalletConnect}
+          className="mt-8 whitespace-nowrap inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700"
+        >
+          {isLoggingIn ? 'Logging in...' : 'Log in with WalletConnect'}
+        </button>
+        <br />
+        <button className="mt-8" onClick={onLogOut}>
+          Disconnect wallet
         </button>
       </div>
     </>

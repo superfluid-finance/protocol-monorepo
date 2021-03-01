@@ -1,5 +1,6 @@
 import { routes, navigate, Link } from '@redwoodjs/router'
 import { useAuth } from '@redwoodjs/auth'
+import { disconnectWalletConnect } from 'src/utils/walletConnect'
 
 const DefaultLayout = ({ children }) => {
   const [isLoggingIn, setIsLoggingIn] = React.useState(false)
@@ -7,13 +8,12 @@ const DefaultLayout = ({ children }) => {
 
   const onLogOut = () => {
     logOut()
+    disconnectWalletConnect()
     navigate(routes.home())
   }
 
   const onLogIn = async () => {
-    setIsLoggingIn(true)
-    await logIn()
-    setIsLoggingIn(false)
+    navigate(routes.login())
   }
 
   const truncate = (text, length = 50) => {
@@ -50,7 +50,9 @@ const DefaultLayout = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="mb-4 flex justify-between items-center border-b-2 border-gray-100 py-6 md:justify-start md:space-x-10">
             <div className="flex justify-start lg:w-0 lg:flex-1">
-              <Link to="/">Home</Link>
+              <Link to="/">
+                <img className="h-10" src="/favicon.png" />
+              </Link>
             </div>
             {loginButton}
           </div>

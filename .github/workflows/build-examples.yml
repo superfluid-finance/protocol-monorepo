@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow]
         install: [locked-install, clean-install]
         node-version: [14.x]
 

@@ -96,52 +96,6 @@ contract("Super ETH (SETH) Contract", (accounts) => {
         );
     });
 
-    it("#1.3 upgradeByWETH", async () => {
-        await web3tx(
-            weth.deposit,
-            "weth.deposit 1wad"
-        )({
-            from: alice,
-            value: toWad(1),
-        });
-        assert.equal(
-            (await weth.balanceOf(alice)).toString(),
-            toWad(1).toString()
-        );
-        await web3tx(weth.approve, "weth.approve by alice to seth")(
-            seth.address,
-            toWad(1),
-            {
-                from: alice,
-            }
-        );
-
-        const tx = await web3tx(seth.upgradeByWETH, "seth.upgrade by alice")(
-            toWad(1),
-            {
-                from: alice,
-            }
-        );
-        await expectEvent.inTransaction(
-            tx.tx,
-            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
-            "TokenUpgraded",
-            {
-                account: alice,
-                amount: toWad(1).toString(),
-            }
-        );
-        assert.equal((await weth.balanceOf(alice)).toString(), "0");
-        assert.equal(
-            (await seth.balanceOf(alice)).toString(),
-            toWad(1).toString()
-        );
-        assert.equal(
-            (await web3.eth.getBalance(seth.address)).toString(),
-            toWad(1).toString()
-        );
-    });
-
     it("#1.4 downgradeToETH", async () => {
         await web3tx(
             seth.upgradeByETH,
@@ -190,7 +144,123 @@ contract("Super ETH (SETH) Contract", (accounts) => {
         );
     });
 
-    it("#1.5 downgradeToWETH", async () => {
+    it("#1.3 upgrade", async () => {
+        await web3tx(
+            weth.deposit,
+            "weth.deposit 1wad"
+        )({
+            from: alice,
+            value: toWad(1),
+        });
+        assert.equal(
+            (await weth.balanceOf(alice)).toString(),
+            toWad(1).toString()
+        );
+        await web3tx(weth.approve, "weth.approve by alice to seth")(
+            seth.address,
+            toWad(1),
+            {
+                from: alice,
+            }
+        );
+
+        const tx = await web3tx(seth.upgrade, "seth.upgrade by alice")(
+            toWad(1),
+            {
+                from: alice,
+            }
+        );
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenUpgraded",
+            {
+                account: alice,
+                amount: toWad(1).toString(),
+            }
+        );
+        assert.equal((await weth.balanceOf(alice)).toString(), "0");
+        assert.equal(
+            (await seth.balanceOf(alice)).toString(),
+            toWad(1).toString()
+        );
+        assert.equal(
+            (await web3.eth.getBalance(seth.address)).toString(),
+            toWad(1).toString()
+        );
+    });
+
+    it("#1.4 upgradeTo", async () => {
+        await web3tx(
+            weth.deposit,
+            "weth.deposit 1wad"
+        )({
+            from: alice,
+            value: toWad(1),
+        });
+        assert.equal(
+            (await weth.balanceOf(alice)).toString(),
+            toWad(1).toString()
+        );
+        await web3tx(weth.approve, "weth.approve by alice to seth")(
+            seth.address,
+            toWad(1),
+            {
+                from: alice,
+            }
+        );
+
+        const tx = await web3tx(
+            seth.upgradeTo,
+            "seth.upgradeTo by alice to bob"
+        )(bob, toWad(1).toString(), "0xdeadbeef", {
+            from: alice,
+        });
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "TokenUpgraded",
+            {
+                account: alice,
+                amount: toWad(1).toString(),
+            }
+        );
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "Transfer",
+            {
+                from: t.constants.ZERO_ADDRESS,
+                to: bob,
+                value: toWad(1).toString(),
+            }
+        );
+        await expectEvent.inTransaction(
+            tx.tx,
+            t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
+            "Minted",
+            {
+                to: bob,
+                amount: toWad(1).toString(),
+                data: "0xdeadbeef",
+            }
+        );
+        assert.equal((await weth.balanceOf(alice)).toString(), "0");
+        assert.equal(
+            (await seth.balanceOf(alice)).toString(),
+            toWad(0).toString()
+        );
+        assert.equal(
+            (await seth.balanceOf(bob)).toString(),
+            toWad(1).toString()
+        );
+        assert.equal(
+            (await web3.eth.getBalance(seth.address)).toString(),
+            toWad(1).toString()
+        );
+    });
+
+    it("#1.5 downgrade", async () => {
         await web3tx(
             seth.upgradeByETH,
             "seth.upgradeByETH by alice"
@@ -200,18 +270,18 @@ contract("Super ETH (SETH) Contract", (accounts) => {
         });
 
         await expectRevert(
-            seth.downgradeToWETH(toWad(1).addn(1), {
+            seth.downgrade(toWad(1).addn(1), {
                 from: alice,
             }),
             "SuperfluidToken: burn amount exceeds balance"
         );
 
-        const tx = await web3tx(
-            seth.downgradeToWETH,
-            "seth.downgradeToWETH by alice"
-        )(toWad(1), {
-            from: alice,
-        });
+        const tx = await web3tx(seth.downgrade, "seth.downgrade by alice")(
+            toWad(1),
+            {
+                from: alice,
+            }
+        );
         await expectEvent.inTransaction(
             tx.tx,
             t.sf.contracts.ISuperToken, // see if it's compatible with ISuperToken events
@@ -264,12 +334,9 @@ contract("Super ETH (SETH) Contract", (accounts) => {
         );
         assert.equal((await weth.balanceOf(alice)).toString(), "0");
 
-        await web3tx(seth.downgradeToWETH, "seth.downgradeToWETH by alice")(
-            toWad("0.5"),
-            {
-                from: alice,
-            }
-        );
+        await web3tx(seth.downgrade, "seth.downgrade by alice")(toWad("0.5"), {
+            from: alice,
+        });
         assert.equal(
             (await weth.balanceOf(alice)).toString(),
             toWad("0.5").toString()

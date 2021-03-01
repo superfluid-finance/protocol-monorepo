@@ -63,10 +63,12 @@ contract("Superfluid Host Contract", (accounts) => {
 
             it("#1.5 update the code by governanc3", async () => {
                 const mock1 = await SuperfluidMock.new(
-                    false /* nonUpgradable */
+                    false /* nonUpgradable */,
+                    false /* appWhiteListingEnabled */
                 );
                 const mock2 = await SuperfluidMock.new(
-                    true /* nonUpgradable */
+                    true /* nonUpgradable */,
+                    false /* appWhiteListingEnabled */
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -2173,7 +2175,8 @@ contract("Superfluid Host Contract", (accounts) => {
 
             it("#30.3 host is not upgradable", async () => {
                 const mock1 = await SuperfluidMock.new(
-                    false /* nonUpgradable */
+                    false /* nonUpgradable */,
+                    false /* appWhiteListingEnabled */
                 );
                 await expectRevert(
                     governance.updateContracts(
@@ -2185,6 +2188,69 @@ contract("Superfluid Host Contract", (accounts) => {
                     "SF: non upgradable"
                 );
             });
+        });
+    });
+
+    context("App whitelisting deployment", () => {
+        const SuperAppMockWithRegistrationkey = artifacts.require(
+            "SuperAppMockWithRegistrationkey"
+        );
+
+        let superfluid;
+        let governance;
+
+        before(async () => {
+            await t.reset({ appWhiteListing: true });
+            ({ governance, superfluid } = t.contracts);
+        });
+
+        function createSecretKey(deployer, registrationkey) {
+            return web3.utils.sha3(
+                web3.eth.abi.encodeParameters(
+                    ["string", "address", "string"],
+                    [
+                        "org.superfluid-finance.superfluid.appWhiteListing.seed",
+                        deployer,
+                        registrationkey,
+                    ]
+                )
+            );
+        }
+
+        it("#40.1 app registration without key should fail", async () => {
+            await expectRevert(
+                SuperAppMock.new(
+                    superfluid.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */,
+                    false
+                ),
+                "SF: app registration key required"
+            );
+        });
+
+        it("#40.2 app registration with invalid key should fail", async () => {
+            await expectRevert(
+                SuperAppMockWithRegistrationkey.new(
+                    superfluid.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */,
+                    "bad microsoft registration key"
+                ),
+                "SF: invalid registration key"
+            );
+        });
+
+        it("#40.3 app can register with a correct key", async () => {
+            const secretKey = createSecretKey(bob, "hello world");
+            await governance.whiteListNewApp(superfluid.address, secretKey);
+            const app = await SuperAppMockWithRegistrationkey.new(
+                superfluid.address,
+                1 /* APP_TYPE_FINAL_LEVEL */,
+                "hello world",
+                {
+                    from: bob,
+                }
+            );
+            assert.isTrue(await superfluid.isApp(app.address));
         });
     });
 });

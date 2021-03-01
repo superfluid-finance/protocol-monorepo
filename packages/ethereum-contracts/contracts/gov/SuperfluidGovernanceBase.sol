@@ -305,6 +305,22 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder));
     }
 
+    /**
+     * @dev Whitelist a new app using the secret key
+     *
+     * NOTE:
+     * To generate the secret key, use the SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey
+     * offchain.
+     */
+    function whiteListNewApp(
+        ISuperfluid host,
+        bytes32 secretKey
+    )
+        external
+    {
+        _setConfig(host, ISuperfluidToken(address(0)), secretKey, 1);
+    }
+
     // TODO: would like to use virtual modifier, but solhint doesn't like it atm
     modifier onlyAuthorized(ISuperfluid host) {
         _requireAuthorised(host);

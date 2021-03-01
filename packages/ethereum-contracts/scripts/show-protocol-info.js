@@ -85,6 +85,10 @@ module.exports = async function (callback, argv, options = {}) {
                 await host.NON_UPGRADABLE_DEPLOYMENT.call()
             );
             console.log(
+                "APP_WHITE_LISTING_ENABLED",
+                (await host.APP_WHITE_LISTING_ENABLED.call()).toString()
+            );
+            console.log(
                 "MAX_APP_LEVEL",
                 (await host.MAX_APP_LEVEL.call()).toString()
             );

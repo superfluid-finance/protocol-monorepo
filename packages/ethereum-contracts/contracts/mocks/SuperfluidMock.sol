@@ -12,7 +12,7 @@ import { CallUtils } from "../utils/CallUtils.sol";
 
 contract SuperfluidUpgradabilityTester is Superfluid {
 
-    constructor() Superfluid(false)
+    constructor() Superfluid(false, false)
     // solhint-disable-next-line no-empty-blocks
     {
     }
@@ -122,8 +122,8 @@ contract SuperfluidUpgradabilityTester is Superfluid {
 contract SuperfluidMock is Superfluid {
 
 
-    constructor(bool nonUpgradable)
-        Superfluid(nonUpgradable)
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled)
+        Superfluid(nonUpgradable, appWhiteListingEnabled)
     // solhint-disable-next-line no-empty-blocks
     {
     }

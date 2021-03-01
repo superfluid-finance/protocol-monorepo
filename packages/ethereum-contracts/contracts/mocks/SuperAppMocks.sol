@@ -583,3 +583,14 @@ contract SuperAppMock2ndLevel {
             ctx);
     }
 }
+
+// The default SuperApp mock that does many tricks
+contract SuperAppMockWithRegistrationkey {
+
+    ISuperfluid private _host;
+
+    constructor(ISuperfluid host, uint256 configWord, string memory registrationKey) {
+        _host = host;
+        _host.registerAppWithKey(configWord, registrationKey);
+    }
+}

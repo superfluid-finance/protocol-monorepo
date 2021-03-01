@@ -70,6 +70,8 @@ async function deployNewLogicContractIfNew(
  * @param {boolean} options.useMocks Use mock contracts instead (overridng env: USE_MOCKS)
  * @param {boolean} options.nonUpgradable Deploy contracts configured to be non-upgradable
  *                  (overridng env: NON_UPGRADABLE)
+ * @param {boolean} options.appWhiteListing Deploy contracts configured to require app white listing
+ *                  (overridng env: ENABLE_APP_WHITELISTING)
  * @param {boolean} options.resetSuperfluidFramework Reset the superfluid framework deployment
  *                  (overridng env: RESET_SUPERFLUID_FRAMEWORK)
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
@@ -86,6 +88,7 @@ module.exports = async function (callback, options = {}) {
             newTestResolver,
             useMocks,
             nonUpgradable,
+            appWhiteListing,
             protocolReleaseVersion,
         } = options;
         resetSuperfluidFramework = options.resetSuperfluidFramework;
@@ -100,6 +103,8 @@ module.exports = async function (callback, options = {}) {
         newTestResolver = newTestResolver || !!process.env.NEW_TEST_RESOLVER;
         useMocks = useMocks || !!process.env.USE_MOCKS;
         nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
+        appWhiteListing =
+            appWhiteListing || !!process.env.ENABLE_APP_WHITELISTING;
         if (newTestResolver) {
             console.log("**** !ATTN! CREATING NEW RESOLVER ****");
         }
@@ -199,7 +204,7 @@ module.exports = async function (callback, options = {}) {
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
-                )(nonUpgradable);
+                )(nonUpgradable, appWhiteListing);
                 console.log(
                     `Superfluid new code address ${superfluidLogic.address}`
                 );
@@ -324,7 +329,7 @@ module.exports = async function (callback, options = {}) {
                     const superfluidLogic = await web3tx(
                         SuperfluidLogic.new,
                         "SuperfluidLogic.new"
-                    )(nonUpgradable);
+                    )(nonUpgradable, appWhiteListing);
                     return superfluidLogic.address;
                 }
             );

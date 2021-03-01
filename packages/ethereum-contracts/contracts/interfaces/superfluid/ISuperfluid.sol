@@ -165,6 +165,14 @@ interface ISuperfluid {
     function registerApp(uint256 configWord) external;
 
     /**
+     * @dev Message sender declares it as a super app, using a registration key
+     * @param configWord The super app manifest configuration, flags are defined in
+     *                   `SuperAppDefinitions`
+     * @param registrationKey The registration key issued by the governance
+     */
+    function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
+
+    /**
      * @dev Query if the app is registered
      * @param app Super app address
      */

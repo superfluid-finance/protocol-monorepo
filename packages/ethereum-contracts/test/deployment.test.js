@@ -114,7 +114,10 @@ contract("Embeded deployment scripts", () => {
     it("codeChanged function", async () => {
         {
             // with constructor param
-            const a1 = await web3tx(Superfluid.new, "Superfluid.new 1")(true);
+            const a1 = await web3tx(Superfluid.new, "Superfluid.new 1")(
+                true, // nonUpgradable
+                false // appWhiteListingEnabled
+            );
             assert.isFalse(await codeChanged(web3, Superfluid, a1.address));
         }
         {

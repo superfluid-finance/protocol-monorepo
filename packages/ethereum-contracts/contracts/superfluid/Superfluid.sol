@@ -46,6 +46,9 @@ contract Superfluid is
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public NON_UPGRADABLE_DEPLOYMENT;
 
+    // solhint-disable-next-line var-name-mixedcase
+    bool immutable public APP_WHITE_LISTING_ENABLED;
+
     /**
      * @dev Maximum number of level of apps can be composed together
      *
@@ -82,8 +85,9 @@ contract Superfluid is
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
 
-    constructor(bool nonUpgradable) {
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
+        APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,7 +285,36 @@ contract Superfluid is
     )
         external override
     {
+        // check if whitelisting required
+        if (APP_WHITE_LISTING_ENABLED) {
+            revert("SF: app registration key required");
+        }
+
+        _registerApp(configWord);
+    }
+
+    function registerAppWithKey(uint256 configWord, string calldata registrationKey)
+        external override
+    {
+        require(
+            _gov.getConfigAsUint256(
+                this,
+                ISuperfluidToken(address(0)),
+                SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey(
+                    // solhint-disable-next-line avoid-tx-origin
+                    tx.origin,
+                    registrationKey)
+            ) == 1,
+            "SF: invalid registration key"
+        );
+        _registerApp(configWord);
+    }
+
+    function _registerApp(uint256 configWord) private
+    {
         ISuperApp app = ISuperApp(msg.sender);
+
+        // check if it is called within the constructor
         // solhint-disable-next-line avoid-tx-origin
         require(msg.sender != tx.origin, "SF: APP_RULE_NO_REGISTRATION_FOR_EOA");
         {
@@ -290,6 +323,7 @@ contract Superfluid is
             assembly { cs := extcodesize(app) }
             require(cs == 0, "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR");
         }
+
         require(
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,

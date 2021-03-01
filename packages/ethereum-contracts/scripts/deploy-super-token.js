@@ -62,10 +62,12 @@ module.exports = async function (callback, argv, options = {}) {
         );
 
         let deploymentFn;
-        if (tokenName == "ETH") {
+        if (tokenName == sf.config.nativeTokenSymbol) {
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
-                const weth = options.weth || ZERO_ADDRESS;
+                const weth =
+                    options.weth || process.env.WETH_ADDRESS || ZERO_ADDRESS;
+                console.log("WETH address", weth);
                 const sethProxy = await SETHProxy.new(weth);
                 console.log("WETH Address: ", weth);
                 const seth = await ISETH.at(sethProxy.address);

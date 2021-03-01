@@ -1,4 +1,7 @@
 const DEFAULT_CONFIGS = {
+    //
+    // ETHEREUM
+    //
     5: {
         // goerli
         nativeTokenSymbol: "ETH",
@@ -20,15 +23,37 @@ const DEFAULT_CONFIGS = {
         nativeTokenSymbol: "ETH",
         resolverAddress: "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B",
     },
+
+    //
+    // MATIC: https://docs.matic.network/docs/develop/network-details/network/
+    //
+    137: {
+        // (matic) mainnet
+        nativeTokenSymbol: "MATIC",
+    },
+
     80001: {
         // (matic) mumbai testnet
-        // nativeTokenSymbol: "MATIC",
+        nativeTokenSymbol: "MATIC",
         resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
     },
+
+    //
+    // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
+    //
+    0x64: {
+        nativeTokenSymbol: "xDAI",
+    },
+
+    // ARTIS
     0x03c401: {
         // (artis) tau1 testnet
         resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
     },
+
+    //
+    // ARBITRUM
+    //
     79377087078960: {
         // arbitrum testnet
         resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",

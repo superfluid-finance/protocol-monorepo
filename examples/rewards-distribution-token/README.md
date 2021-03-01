@@ -1,5 +1,5 @@
-Dividend Rights Token
-=====================
+Rewards Distribution Token
+==========================
 
 A ERC20 token that tokenizes units in the [Instant Distribution Agreements](https://docs.superfluid.finance/tutorials/instant-distribution/).
 

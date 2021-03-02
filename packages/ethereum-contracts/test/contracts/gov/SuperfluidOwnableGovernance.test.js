@@ -300,12 +300,19 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
 
         it("#4 whiteListNewApp", async () => {
             await expectRevert(
-                governance.whiteListNewApp(superfluid.address, ZERO_ADDRESS),
+                governance.whiteListNewApp(
+                    superfluid.address,
+                    web3.utils.sha3("test")
+                ),
                 onlyOwnerReason
             );
-            await governance.whiteListNewApp(superfluid.address, "test", {
-                from: alice,
-            });
+            await governance.whiteListNewApp(
+                superfluid.address,
+                web3.utils.sha3("test"),
+                {
+                    from: alice,
+                }
+            );
         });
     });
 });

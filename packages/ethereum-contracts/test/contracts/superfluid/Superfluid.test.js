@@ -2254,12 +2254,12 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         it("#40.4 app can register with an used key should fail", async () => {
-            const secretKey = createSecretKey(bob, "hello world");
+            const secretKey = createSecretKey(bob, "hello world again");
             await governance.whiteListNewApp(superfluid.address, secretKey);
             await SuperAppMockWithRegistrationkey.new(
                 superfluid.address,
                 1 /* APP_TYPE_FINAL_LEVEL */,
-                "hello world",
+                "hello world again",
                 {
                     from: bob,
                 }
@@ -2268,7 +2268,7 @@ contract("Superfluid Host Contract", (accounts) => {
                 SuperAppMockWithRegistrationkey.new(
                     superfluid.address,
                     1 /* APP_TYPE_FINAL_LEVEL */,
-                    "hello world",
+                    "hello world again",
                     {
                         from: bob,
                     }

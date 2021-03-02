@@ -145,6 +145,7 @@ contract("Super ETH (SETH) Contract", (accounts) => {
     });
 
     it("#1.3 upgrade", async () => {
+        assert.equal(await seth.getUnderlyingToken(), weth.address);
         await web3tx(
             weth.deposit,
             "weth.deposit 1wad"

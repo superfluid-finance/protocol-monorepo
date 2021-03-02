@@ -81,6 +81,13 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         host.updateSuperTokenLogic(token);
     }
 
+    event ConfigChanged(
+        ISuperfluid indexed host,
+        ISuperfluidToken indexed superToken,
+        bytes32 key,
+        bool set,
+        uint256 value);
+
     function _setConfig(
         ISuperfluid host,
         ISuperfluidToken superToken,
@@ -90,6 +97,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         internal
         onlyAuthorized(host)
     {
+        emit ConfigChanged(host, superToken, key, true, uint256(uint160(value)));
         _configs[address(host)][address(superToken)][key] = Value(true, uint256(uint160(value)));
     }
 
@@ -102,6 +110,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         internal
         onlyAuthorized(host)
     {
+        emit ConfigChanged(host, superToken, key, true, value);
         _configs[address(host)][address(superToken)][key] = Value(true, value);
     }
 
@@ -113,6 +122,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         internal
         onlyAuthorized(host)
     {
+        emit ConfigChanged(host, superToken, key, false, 0);
         _configs[address(host)][address(superToken)][key] = Value(false, 0);
     }
 
@@ -268,7 +278,6 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         address forwarder
     )
         public
-        onlyAuthorized(host)
     {
         _setConfig(
             host, superToken,
@@ -283,7 +292,6 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         address forwarder
     )
         public
-        onlyAuthorized(host)
     {
         _setConfig(
             host, superToken,

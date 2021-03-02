@@ -2252,5 +2252,29 @@ contract("Superfluid Host Contract", (accounts) => {
             );
             assert.isTrue(await superfluid.isApp(app.address));
         });
+
+        it("#40.4 app can register with an used key should fail", async () => {
+            const secretKey = createSecretKey(bob, "hello world");
+            await governance.whiteListNewApp(superfluid.address, secretKey);
+            await SuperAppMockWithRegistrationkey.new(
+                superfluid.address,
+                1 /* APP_TYPE_FINAL_LEVEL */,
+                "hello world",
+                {
+                    from: bob,
+                }
+            );
+            await expectRevert(
+                SuperAppMockWithRegistrationkey.new(
+                    superfluid.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */,
+                    "hello world",
+                    {
+                        from: bob,
+                    }
+                ),
+                "SF: registration key already used"
+            );
+        });
     });
 });

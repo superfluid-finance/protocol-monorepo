@@ -297,5 +297,15 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
                 )
             );
         });
+
+        it("#4 whiteListNewApp", async () => {
+            await expectRevert(
+                governance.whiteListNewApp(superfluid.address, ZERO_ADDRESS),
+                onlyOwnerReason
+            );
+            await governance.whiteListNewApp(superfluid.address, "test", {
+                from: alice,
+            });
+        });
     });
 });

@@ -84,6 +84,8 @@ contract Superfluid is
     /// @dev Ctx stamp of the current transaction, it should always be cleared to
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
+    /// @dev if app whitelisting is enabled, this is to make sure the secrets are used only once
+    mapping(bytes32 => bool) internal _appSecretsUsed;
 
     constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
@@ -296,17 +298,25 @@ contract Superfluid is
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
+        bytes32 secretKey = SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey(
+            // solhint-disable-next-line avoid-tx-origin
+            tx.origin,
+            registrationKey);
+        // check if the secret key is enabled
         require(
             _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
-                SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey(
-                    // solhint-disable-next-line avoid-tx-origin
-                    tx.origin,
-                    registrationKey)
+                secretKey
             ) == 1,
             "SF: invalid registration key"
         );
+        require(
+            !_appSecretsUsed[secretKey],
+            "SF: registration key already used"
+        );
+        // clear the key so that it can't be reused
+        _appSecretsUsed[secretKey] = true;
         _registerApp(configWord);
     }
 

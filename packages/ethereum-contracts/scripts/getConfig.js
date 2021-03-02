@@ -7,12 +7,17 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const DEFAULT_CONFIGS = {
     4447: {
-        // for local testing
+        // for local testing (truffle internal ganache)
         // this is a fake forwarder address, it is to test the deployment script
         biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
     },
     5777: {
-        // for local testing
+        // for local testing (external ganache)
+        // this is a fake forwarder address, it is to test the deployment script
+        biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+    },
+    8777: {
+        // for coverage testing
         // this is a fake forwarder address, it is to test the deployment script
         biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
     },

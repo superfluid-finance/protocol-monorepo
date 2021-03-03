@@ -1,20 +1,33 @@
-<p align="center"><img src="https://rdai.money/images/logo.svg" width="160"/></p>
-
-<p align="center">
-    <img alt="GitHub" src="https://img.shields.io/github/license/rtoken-project/rtoken-contracts">
+<h1 align="center">Welcome to Superfluid Subgraph 👋
+</h1>
+<div align="center">
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+    <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
+  </a>
 </p>
+</div>
 
-# rToken Subgraph
+<>{`\_`}</>
 
-> Data provider for rDAI / rToken dapps
+> Official subgraph for the superfluid protocol
+
+:warning: WARNING: This subgraph is under active development! Please use with caution until it is finished
 
 ## What you can do:
 
-- **Use the Official rDAI subgraph** provided by TheGraph - see [link](https://thegraph.com/explorer/subgraph/rtoken-project/rdai).
+-   **Use the Official rDAI subgraph** provided by TheGraph - see [link](https://thegraph.com/explorer/subgraph/rtoken-project/rdai).
 
-- **Develop and improve the subgraph** - see [Local development](#local-development).
+-   **Develop and improve the subgraph** - see [Local development](#local-development).
 
-- **Implement your own rToken subgraph** - see [Bring-your-own rToken](#bring-your-own-rtoken).
+-   **Implement your own rToken subgraph** - see [Bring-your-own rToken](#bring-your-own-rtoken).
 
 ## Local development
 
@@ -30,8 +43,8 @@ The rToken team uses this local subgraph deployment flow to enable rapid develop
 
 #### Notes:
 
-- If you've already performed this step, you should skip down to the [Testing and restarting](#testing-and-restarting).
-- If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
+-   If you've already performed this step, you should skip down to the [Testing and restarting](#testing-and-restarting).
+-   If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
 
 First install the dependencie: [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/)
 
@@ -125,16 +138,16 @@ Great job! Now let's make sure things are working properly by doing a sanity che
 
 ```graphql
 query {
-  accounts(
-    first: 1000
-    where: { id_not: "0x0000000000000000000000000000000000000000" }
-  ) {
-    id
-    balance
-    hat {
-      id
+    accounts(
+        first: 1000
+        where: { id_not: "0x0000000000000000000000000000000000000000" }
+    ) {
+        id
+        balance
+        hat {
+            id
+        }
     }
-  }
 }
 ```
 

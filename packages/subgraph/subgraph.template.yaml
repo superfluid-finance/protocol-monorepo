@@ -1,52 +1,52 @@
 specVersion: 0.0.2
-description: Tracking interest on rDAI ({{network}})
-repository: https://github.com/rtoken-project/rtoken-monorepo
+description: Super Tokens and Agreements (Constant Flow, Instant Distribution) on ({{network}})
+repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
-  file: ./schema.graphql
+    file: ./schema.graphql
 dataSources:
-  - kind: ethereum/contract
-    name: RToken
-    network: {{ network }}
-    source:
-      abi: RToken
-      address: "{{ address }}"
-      startBlock: {{ startBlock }}
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.3
-      language: wasm/assemblyscript
-      entities:
-        - Transaction
-        - Account
-        - Loan
-        - Hat
-        - HatMembership
-        - Transfer
-        - LoanTransferred
-        - InterestPaid
-        - HatChanged
-      abis:
-        - name: RToken
-          file: ./abis/RToken.json
-        - name: IAllocationStrategy
-          file: ./abis/IAllocationStrategy.json
-      eventHandlers:
-        - event: AllocationStrategyChanged(address,uint256)
-          handler: handleAllocationStrategyChanged
-        - event: Approval(indexed address,indexed address,uint256)
-          handler: handleApproval
-        - event: CodeUpdated(address)
-          handler: handleCodeUpdated
-        - event: HatChanged(indexed address,indexed uint256,indexed uint256)
-          handler: handleHatChanged
-        - event: HatCreated(indexed uint256)
-          handler: handleHatCreated
-        - event: InterestPaid(indexed address,uint256)
-          handler: handleInterestPaid
-        - event: LoansTransferred(indexed address,indexed address,indexed uint256,bool,uint256,uint256)
-          handler: handleLoansTransferred
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
-      file: ./src/mapping.ts
+    - kind: ethereum/contract
+      name: RToken
+      network: { { network } }
+      source:
+          abi: RToken
+          address: "{{ address }}"
+          startBlock: { { startBlock } }
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.3
+          language: wasm/assemblyscript
+          entities:
+              - Transaction
+              - Account
+              - Loan
+              - Hat
+              - HatMembership
+              - Transfer
+              - LoanTransferred
+              - InterestPaid
+              - HatChanged
+          abis:
+              - name: RToken
+                file: ./abis/RToken.json
+              - name: IAllocationStrategy
+                file: ./abis/IAllocationStrategy.json
+          eventHandlers:
+              - event: AllocationStrategyChanged(address,uint256)
+                handler: handleAllocationStrategyChanged
+              - event: Approval(indexed address,indexed address,uint256)
+                handler: handleApproval
+              - event: CodeUpdated(address)
+                handler: handleCodeUpdated
+              - event: HatChanged(indexed address,indexed uint256,indexed uint256)
+                handler: handleHatChanged
+              - event: HatCreated(indexed uint256)
+                handler: handleHatCreated
+              - event: InterestPaid(indexed address,uint256)
+                handler: handleInterestPaid
+              - event: LoansTransferred(indexed address,indexed address,indexed uint256,bool,uint256,uint256)
+                handler: handleLoansTransferred
+              - event: OwnershipTransferred(indexed address,indexed address)
+                handler: handleOwnershipTransferred
+              - event: Transfer(indexed address,indexed address,uint256)
+                handler: handleTransfer
+          file: ./src/mapping.ts

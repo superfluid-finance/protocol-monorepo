@@ -31,7 +31,8 @@
     "workspaces": {
         "packages": [
             "packages/ethereum-contracts",
-            "packages/js-sdk"
+            "packages/js-sdk",
+            "packages/subgraph"
         ]
     }
 }

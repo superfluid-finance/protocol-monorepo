@@ -15,7 +15,7 @@
 </p>
 </div>
 
-<>{`\_`}</>
+<>{`\_}</>
 
 > Official subgraph for the superfluid protocol
 
@@ -23,32 +23,32 @@
 
 ## What you can do:
 
--   **Use the Official rDAI subgraph** provided by TheGraph - see [link](https://thegraph.com/explorer/subgraph/rtoken-project/rdai).
+-   **Use the Official rDAI subgraph** provided by TheGraph - see [link coming soon]().
 
--   **Develop and improve the subgraph** - see [Local development](#local-development).
+-   **Help improve the subgraph** - see [Local development](#local-development).
 
--   **Implement your own rToken subgraph** - see [Bring-your-own rToken](#bring-your-own-rtoken).
+-   **Implement your own Superfluid subgraph (please chat with us first)** - see [Deploy Your Own](#deploy-your-own).
 
 ## Local development
 
-> Hold on :exclamation: You probably don't need this section. If you are using rToken on `Mainnet` or `Ropsten` you should just use an existing subgraph from The Graph's website.
+> Hold up :exclamation: You probably don't need this repo. If you are using Superfluid on xDAI, Polygon (Matic), or another testnet, you should just use the existing subgraph from The Graph Network.
 
-The rToken team uses this local subgraph deployment flow to enable rapid development and testing of the tools provided here. In this section we will do the following:
+In this section we will cover the following:
 
 1. Deploy the subgraph to a `docker container`.
-2. Deploy the rToken contracts to `Ganache`.
+2. Deploy the Superfluid contracts to `Ganache`.
 3. Check that your setup is correct by running some `tests`.
+
+If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
 
 ### Initial setup
 
-#### Notes:
+First install these dependencies:
 
--   If you've already performed this step, you should skip down to the [Testing and restarting](#testing-and-restarting).
--   If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
+-   [docker](https://docs.docker.com/install/)
+-   [docker-compose](https://docs.docker.com/compose/install/)
 
-First install the dependencie: [docker](https://docs.docker.com/install/) and [docker-compose](https://docs.docker.com/compose/install/)
-
-Install the necessary packages:
+Now install the necessary node packages:
 
 ```bash
 yarn global add truffle ganache-cli @graphprotocol/graph-cli
@@ -64,9 +64,8 @@ Download the `graph-node` Docker instance.
 
 ```bash
 git clone https://github.com/graphprotocol/graph-node/
+cd graph-node/docker
 ```
-
-Then navigate to `graph-node/docker`
 
 If on Linux, run the following script.
 
@@ -91,7 +90,19 @@ docker logs docker_graph-node_1
 
 #### Deploy the contracts to Ganache
 
-Now in `rtoken-monorepo` navigate to `packages/contracts`, deploy the contracts, and copy the address for `rTOKEN contract (proxy)`.
+> If you're returning from an earlier coding session, you should skip down to the [Testing and restarting](#testing-and-restarting).
+
+Now in `protocol-monorepo` navigate to `packages/ethereum-contracts`, deploy the contracts, and copy the address for the `Resolver`.
+
+🚧⚠️🚧⚠️
+
+#### DOCUMENTATION UNDER CONSTRUCTION
+
+Please ignore the rest of this file
+
+The rest of the documentation will be updated soon
+
+🚧⚠️🚧⚠️
 
 ```bash
 # Install dependencies
@@ -194,7 +205,7 @@ yarn create-local
 yarn deploy-local --watch
 ```
 
-## Bring-your-own rToken
+## Deploy Your Own
 
 If you deploy your own token, and wish to use this subgraph with `@rtoken/utils` to get data, you will need to deploy you own subgraph. As long as you didn't modify the rToken contracts too much, you can probably deploy as-is. Be sure to modify `subgraph.yaml` with the correct `address` and `startBlock`.
 

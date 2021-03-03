@@ -1,0 +1,94 @@
+type Transaction @entity {
+  id: ID!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  events: [Event!]! @derivedFrom(field: "transaction")
+}
+
+###############################################################################
+#                                  Protocol                                   #
+###############################################################################
+
+type Account @entity {
+  id: ID!
+  # ---------------------------------- state ----------------------------------
+  hat: Hat # todo: case 0 ?
+  balance: BigDecimal! # in rDai (rAmount)
+  # ---------------------------------- links ----------------------------------
+  loansOwned: [Loan!]! @derivedFrom(field: "owner")
+  loansReceived: [Loan!]!
+  hatMember: [HatMembership!]! @derivedFrom(field: "account")
+  transfersFrom: [Transfer!]! @derivedFrom(field: "from")
+  transfersTo: [Transfer!]! @derivedFrom(field: "to")
+  interests: [InterestPaid!]! @derivedFrom(field: "account")
+  events: [HatChanged!]! @derivedFrom(field: "account")
+}
+
+type Loan @entity {
+  id: ID!
+  # ---------------------------------- state ----------------------------------
+  owner: Account!
+  recipient: Account!
+  amount: BigDecimal! # in rDai (accounts[owner].lRecipients[recipient])
+  hat: Hat # todo: case 0 ?
+  sInternal: BigDecimal!
+  interestRedeemed: BigDecimal!
+  # ---------------------------------- links ----------------------------------
+  transfers: [LoanTransferred!]! @derivedFrom(field: "loan")
+}
+
+type Hat @entity {
+  id: ID!
+  # ---------------------------------- links ----------------------------------
+  users: [Account!]! @derivedFrom(field: "hat")
+  loans: [Loan!]! @derivedFrom(field: "hat")
+  members: [HatMembership!]! @derivedFrom(field: "hat")
+  events: [HatChanged!]! @derivedFrom(field: "hat")
+}
+
+type HatMembership @entity {
+  id: ID!
+  # ---------------------------------- state ----------------------------------
+  hat: Hat! # no case 0 here
+  account: Account!
+  portion: BigInt!
+}
+
+###############################################################################
+#                                   Events                                    #
+###############################################################################
+
+interface Event {
+  id: ID!
+  transaction: Transaction!
+}
+
+type Transfer implements Event @entity {
+  id: ID!
+  transaction: Transaction!
+  from: Account!
+  to: Account!
+  value: BigDecimal! # in rDai
+}
+
+type LoanTransferred implements Event @entity {
+  id: ID!
+  transaction: Transaction!
+  loan: Loan!
+  value: BigDecimal! # in rDai (redeemableAmount)
+}
+
+type InterestPaid implements Event @entity {
+  id: ID!
+  transaction: Transaction!
+  account: Account!
+  value: BigDecimal!
+}
+
+type HatChanged implements Event @entity {
+  id: ID!
+  transaction: Transaction!
+  account: Account!
+  hat: Hat # todo: case 0 ?
+  oldHat: Hat # tmp
+}

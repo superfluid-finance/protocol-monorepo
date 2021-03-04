@@ -61,15 +61,14 @@ jobs:
             export RELEASE_VERSION=test
             export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
             echo "Ganache port: $GANACHE_PORT"
-            npx ganache-cli --port $GANACHE_PORT &
+            npx ganache-cli --port $GANACHE_PORT >/dev/null &
             ganache_pid=$!
             sleep 3 # wait ganache to start
-            npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js
+            DISABLE_NATIVE_TRUFFLE=1 npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js | tee deploy.ignore.log
+            export "$(tail -n1 deploy.ignore.log | awk '{ print $2 }')" # export the TEST_RESOLVER_ADDRESS, with some precaution to prevent script injection
             npx truffle --network ganache exec scripts/deploy.js
             kill -9 $ganache_pid
           fi
-        env:
-          DISABLE_NATIVE_TRUFFLE: 1 # to deploy the protocol from an npm package
 
       - name: Build UI project if exist
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

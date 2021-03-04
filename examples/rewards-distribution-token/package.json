@@ -12,14 +12,14 @@
     "author": "Superfluid",
     "license": "MIT",
     "devDependencies": {
-        "@decentral.ee/web3-helpers": "^0.4.0",
-        "@openzeppelin/contracts": "^3.4.0",
+        "@decentral.ee/web3-helpers": "^0.5.2",
+        "@openzeppelin/contracts": "^3.4.1",
         "@openzeppelin/test-helpers": "^0.5.10",
         "@superfluid-finance/ethereum-contracts": "^0.2.8",
-        "@superfluid-finance/js-sdk": "^0.3.5",
-        "@truffle/contract": "^4.3.8",
+        "@superfluid-finance/js-sdk": "^0.4.0",
+        "@truffle/contract": "^4.3.9",
         "@truffle/hdwallet-provider": "^1.2.2",
         "dotenv": "^8.2.0",
-        "truffle": "^5.1.67"
+        "truffle": "^5.2.2"
     }
 }

@@ -69,9 +69,7 @@ jobs:
             kill -9 $ganache_pid
           fi
         env:
-          RELEASE_VERSION: master
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          DISABLE_NATIVE_TRUFFLE: 1 # to deploy the protocol from an npm package
 
       - name: Build UI project if exist
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

@@ -58,15 +58,15 @@ jobs:
         working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "scripts/deploy.js" ];then
-            # export RELEASE_VERSION=test
-            # export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
-            # echo "Ganache port: $GANACHE_PORT"
-            # npx ganache-cli --port $GANACHE_PORT &
-            # ganache_pid=$!
-            # sleep 3 # wait ganache to start
-            # npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js
-            npx truffle --network goerli exec scripts/deploy.js
-            #kill -9 $ganache_pid
+            export RELEASE_VERSION=test
+            export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
+            echo "Ganache port: $GANACHE_PORT"
+            npx ganache-cli --port $GANACHE_PORT &
+            ganache_pid=$!
+            sleep 3 # wait ganache to start
+            npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js
+            npx truffle --network ganache exec scripts/deploy.js
+            kill -9 $ganache_pid
           fi
         env:
           RELEASE_VERSION: master

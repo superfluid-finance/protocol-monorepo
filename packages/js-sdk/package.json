@@ -35,11 +35,12 @@
     },
     "dependencies": {
         "@ethersproject/hash": "^5.0.11",
+        "@truffle/contract": "4.3.9",
         "auto-bind": "^4.0.0"
     },
     "peerDependencies": {
         "@ethersproject/contracts": "^5.0.11",
-        "@truffle/contract": "4.3.8"
+        "@truffle/contract": "4.3.9"
     },
     "devDependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",

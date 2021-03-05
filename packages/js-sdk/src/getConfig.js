@@ -43,6 +43,7 @@ const DEFAULT_CONFIGS = {
     //
     0x64: {
         nativeTokenSymbol: "xDAI",
+        resolverAddress: "0xD2009765189164b495c110D61e4D301729079911",
     },
 
     // ARTIS

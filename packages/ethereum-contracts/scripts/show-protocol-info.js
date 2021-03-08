@@ -152,6 +152,10 @@ module.exports = async function (callback, argv, options = {}) {
             console.log("## SuperToken of Native Chain Token");
             const token = sf.tokens[sf.config.nativeTokenSymbol + "x"];
             console.log(await token.symbol.call(), token.address);
+            console.log(
+                "Underlying Wrapped Native",
+                await token.getUnderlyingToken.call()
+            );
         }
         {
             console.log("## Managed SuperTokens");

@@ -30,6 +30,7 @@ const DEFAULT_CONFIGS = {
     137: {
         // (matic) mainnet
         nativeTokenSymbol: "MATIC",
+        resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
     },
 
     80001: {

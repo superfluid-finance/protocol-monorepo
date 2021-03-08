@@ -25,7 +25,8 @@
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
-        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests"
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
+        "check-updates": "ncu --dep prod,dev"
     },
     "lint-staged": {
         "**/*.+(js|jsx|ts|tsx)": [
@@ -39,16 +40,17 @@
     },
     "peerDependencies": {
         "@ethersproject/contracts": "^5.0.11",
-        "@truffle/contract": "4.3.9"
+        "@truffle/contract": "^4.0.0"
     },
     "devDependencies": {
-        "@decentral.ee/web3-helpers": "0.5.3",
+        "@decentral.ee/web3-helpers": "^0.5.3",
+        "@truffle/contract": "^4.3.9",
         "@ethersproject/contracts": "^5.0.11",
         "@ethersproject/providers": "^5.0.23",
-        "@openzeppelin/test-helpers": "0.5.10",
+        "@openzeppelin/test-helpers": "^0.5.10",
         "@superfluid-finance/ethereum-contracts": "1.0.0-rc.1",
-        "chai-as-promised": "7.1.1",
-        "truffle": "5.1.49",
+        "chai-as-promised": "^7.1.1",
+        "truffle": "^5.1.49",
         "web3": "^1.3.4",
         "webpack": "^5.24.3",
         "webpack-bundle-analyzer": "^4.4.0",

@@ -39,8 +39,10 @@ module.exports = async function (callback, argv, options = {}) {
                 "AccessControl",
                 "Ownable",
                 "Superfluid",
+                "SuperTokenFactory",
                 "SuperfluidGovernanceBase",
             ],
+            loadSuperNativeToken: true,
         });
         await sf.initialize();
 
@@ -145,6 +147,32 @@ module.exports = async function (callback, argv, options = {}) {
             latests
                 .filter((i) => !!i.enabled)
                 .forEach((i) => console.log(i.superToken, i.forwarder));
+        }
+        if (sf.config.nativeTokenSymbol) {
+            console.log("## SuperToken of Native Chain Token");
+            const token = sf.tokens[sf.config.nativeTokenSymbol + "x"];
+            console.log(await token.symbol.call(), token.address);
+            console.log(
+                "Underlying Wrapped Native",
+                await token.getUnderlyingToken.call()
+            );
+        }
+        {
+            console.log("## Managed SuperTokens");
+            let superTokenFactory = await sf.contracts.SuperTokenFactory.at(
+                await sf.host.getSuperTokenFactory()
+            );
+            const latests = await superTokenFactory.getPastEvents(
+                "SuperTokenCreated",
+                {
+                    fromBlock: 0,
+                    toBlock: "latest",
+                }
+            );
+            for (let i = 0; i < latests.length; ++i) {
+                const token = sf.contracts.IERC20.at(latests[i].args.token);
+                console.log(await token.symbol.call(), token.address);
+            }
         }
 
         callback();

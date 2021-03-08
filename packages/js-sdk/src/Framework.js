@@ -226,14 +226,20 @@ module.exports = class Framework {
     /**
      * @dev Create the ERC20 wrapper from underlying token
      * @param {Any} tokenInfo the TokenInfo contract object to the underlying token
+     * @param {string} superTokenName (optional) overriding superTokenName
+     * @param {string} superTokenSymbol (optional) overriding superTokenSymbol
      * @param {address} from (optional) send transaction from
      * @param {address} upgradability (optional) send transaction from
      * @return {Promise<Transaction>} web3 transaction object
      */
-    async createERC20Wrapper(tokenInfo, { from, upgradability } = {}) {
+    async createERC20Wrapper(
+        tokenInfo,
+        { superTokenSymbol, superTokenName, from, upgradability } = {}
+    ) {
         const tokenName = await tokenInfo.name.call();
         const tokenSymbol = await tokenInfo.symbol.call();
-        const superTokenSymbol = `${tokenSymbol}x`;
+        superTokenName = superTokenName || `Super ${tokenName}`;
+        superTokenSymbol = superTokenSymbol || `${tokenSymbol}x`;
         const factory = await this.contracts.ISuperTokenFactory.at(
             await this.host.getSuperTokenFactory()
         );
@@ -242,7 +248,7 @@ module.exports = class Framework {
         const tx = await factory.createERC20Wrapper(
             tokenInfo.address,
             upgradability,
-            `Super ${tokenName}`,
+            superTokenName,
             superTokenSymbol,
             ...((from && [{ from }]) || []) // don't mind this silly js stuff, thanks to web3.js
         );

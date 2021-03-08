@@ -38,6 +38,7 @@ module.exports = async function (callback, argv, options = {}) {
             additionalContracts: [
                 "AccessControl",
                 "Ownable",
+                "UUPSProxiable",
                 "Superfluid",
                 "SuperTokenFactory",
                 "SuperfluidGovernanceBase",
@@ -82,6 +83,12 @@ module.exports = async function (callback, argv, options = {}) {
             console.log("# Host");
             host = await sf.contracts.Superfluid.at(sf.host.address);
             console.log("address", host.address);
+            console.log(
+                "code address",
+                await (
+                    await sf.contracts.UUPSProxiable.at(sf.host.address)
+                ).getCodeAddress()
+            );
             console.log(
                 "NON_UPGRADABLE_DEPLOYMENT",
                 await host.NON_UPGRADABLE_DEPLOYMENT.call()

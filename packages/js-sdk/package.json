@@ -25,7 +25,8 @@
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
-        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests"
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
+        "check-updates": "ncu --dep prod,dev"
     },
     "lint-staged": {
         "**/*.+(js|jsx|ts|tsx)": [

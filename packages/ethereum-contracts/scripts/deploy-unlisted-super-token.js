@@ -8,7 +8,8 @@ const {
 } = require("./utils");
 
 /**
- * @dev Deploy test token (Mintable ERC20) to the network. * @param {Array} argv Overriding command line arguments
+ * @dev Deploy unlisted super token to the network.
+ * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from

@@ -56,7 +56,7 @@ module.exports = async function (callback, argv, options = {}) {
         }
 
         {
-            const govAddress = await await sf.host.getGovernance.call();
+            const govAddress = await sf.host.getGovernance.call();
             console.log("Governance address", govAddress);
             const ownable = await sf.contracts.Ownable.at(govAddress);
             if (

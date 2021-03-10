@@ -61,9 +61,9 @@ jobs:
             export RELEASE_VERSION=test
             export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
             echo "Ganache port: $GANACHE_PORT"
-            npx ganache-cli --port $GANACHE_PORT >/dev/null &
+            npx ganache-cli --port $GANACHE_PORT &
             ganache_pid=$!
-            sleep 3 # wait ganache to start
+            sleep 10 # wait ganache to start
             DISABLE_NATIVE_TRUFFLE=1 npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js | tee deploy.ignore.log
             export "$(tail -n1 deploy.ignore.log | awk '{ print $2 }')" # export the TEST_RESOLVER_ADDRESS, with some precaution to prevent script injection
             npx truffle --network ganache exec scripts/deploy.js

@@ -33,7 +33,8 @@
         "check-no-focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
-        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests"
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
+        "check-updates": "ncu --dep prod,dev"
     },
     "lint-staged": {
         "**/*.+(sol)": [
@@ -45,12 +46,12 @@
         ]
     },
     "dependencies": {
-        "@decentral.ee/web3-helpers": "0.5.2",
-        "@openzeppelin/contracts": "3.4.0",
+        "@decentral.ee/web3-helpers": "0.5.3",
+        "@openzeppelin/contracts": "3.4.1",
         "@superfluid-finance/js-sdk": "0.4.1",
-        "@truffle/contract": "4.3.8",
+        "@truffle/contract": "4.3.9",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.0.8",
+        "ethereumjs-util": "7.0.9",
         "stack-trace": "0.0.10"
     },
     "peerDependencies": {
@@ -67,8 +68,8 @@
         "dotenv": "8.2.0",
         "ganache-time-traveler": "1.0.15",
         "readline": "1.3.0",
-        "solhint": "3.3.2",
-        "solidity-coverage": "0.7.15",
+        "solhint": "3.3.3",
+        "solidity-coverage": "0.7.16",
         "truffle": "5.1.49",
         "truffle-flattener": "^1.5.0",
         "truffle-plugin-verify": "https://github.com/hellwolf/truffle-plugin-verify"

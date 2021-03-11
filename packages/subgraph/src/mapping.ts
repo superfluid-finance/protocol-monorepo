@@ -6,17 +6,13 @@ import {
 } from "@graphprotocol/graph-ts";
 
 import {
-  RToken,
-  AllocationStrategyChanged as AllocationStrategyChangedEvent,
-  Approval as ApprovalEvent,
-  CodeUpdated as CodeUpdatedEvent,
-  HatChanged as HatChangedEvent,
-  HatCreated as HatCreatedEvent,
-  InterestPaid as InterestPaidEvent,
-  LoansTransferred as LoansTransferredEvent,
-  OwnershipTransferred as OwnershipTransferredEvent,
-  Transfer as TransferEvent
-} from "../generated/RToken/RToken";
+  Superfluid,
+} from "../generated/Superfluid/Superfluid";
+
+import {
+  ConstantFlowAgreementV1,
+  FlowUpdatedEvent as FlowUpdatedEventEvent,
+} from "../generated/Superfluid/ConstantFlowAgreementV1";
 
 import { IAllocationStrategy } from "../generated/RToken/IAllocationStrategy";
 
@@ -40,66 +36,7 @@ import {
   toDai
 } from "./utils";
 
-// let contract = Contract.bind(event.address)
-//
-// The following functions can then be called on this contract to access
-// state variables and other data:
-//
-// - contract.ALLOCATION_STRATEGY_EXCHANGE_RATE_SCALE(...)
-// - contract.INITIAL_SAVING_ASSET_CONVERSION_RATE(...)
-// - contract.MAX_NUM_HAT_RECIPIENTS(...)
-// - contract.MAX_UINT256(...)
-// - contract.PROPORTION_BASE(...)
-// - contract.SELF_HAT_ID(...)
-// - contract._guardCounter(...)
-// - contract._owner(...)
-// - contract.accountStats(...)
-// - contract.accounts(...)
-// - contract.allowance(...)
-// - contract.approve(...)
-// - contract.balanceOf(...)
-// - contract.changeHat(...)
-// - contract.createHat(...)
-// - contract.decimals(...)
-// - contract.getAccountStats(...)
-// - contract.getCurrentAllocationStrategy(...)
-// - contract.getCurrentSavingStrategy(...)
-// - contract.getGlobalStats(...)
-// - contract.getHatByAddress(...)
-// - contract.getHatByID(...)
-// - contract.getHatStats(...)
-// - contract.getMaximumHatID(...)
-// - contract.getSavingAssetBalance(...)
-// - contract.hatStats(...)
-// - contract.ias(...)
-// - contract.initialized(...)
-// - contract.interestPayableOf(...)
-// - contract.isOwner(...)
-// - contract.mint(...)
-// - contract.mintWithNewHat(...)
-// - contract.mintWithSelectedHat(...)
-// - contract.name(...)
-// - contract.owner(...)
-// - contract.payInterest(...)
-// - contract.proxiableUUID(...)
-// - contract.receivedLoanOf(...)
-// - contract.receivedSavingsOf(...)
-// - contract.redeem(...)
-// - contract.redeemAll(...)
-// - contract.redeemAndTransfer(...)
-// - contract.redeemAndTransferAll(...)
-// - contract.savingAssetConversionRate(...)
-// - contract.savingAssetOrignalAmount(...)
-// - contract.symbol(...)
-// - contract.token(...)
-// - contract.totalSupply(...)
-// - contract.transfer(...)
-// - contract.transferAll(...)
-// - contract.transferAllFrom(...)
-// - contract.transferAllowances(...)
-// - contract.transferFrom(...)
-
-export function handleHatChanged(event: HatChangedEvent): void {
+export function handleFlowUpdated(event: FlowUpdatedEvent): void {
   let account = fetchAccount(event.params.account.toHex());
   account.hat = event.params.newHatID.toString();
   account.save();

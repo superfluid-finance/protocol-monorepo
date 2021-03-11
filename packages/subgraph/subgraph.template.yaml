@@ -8,7 +8,7 @@ dataSources:
       name: Superfluid
       network: {{ network }}
       source:
-          abi: Superfluid
+          abi: ConstantFlowAgreementV1
           address: "{{ address }}"
           startBlock: {{ startBlock }}
       mapping:
@@ -20,11 +20,11 @@ dataSources:
               - Account
               - Transfer
           abis:
-              - name: Superfluid
-                file: ./abis/Superfluid.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
               - name: ConstantFlowAgreementV1
                 file: ./abis/ConstantFlowAgreementV1.json
           eventHandlers:
-              - event: FlowUpdated(indexed address,indexed address, indexed address, int96, int256, int256, bytes)
+              - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated
           file: ./src/mapping.ts

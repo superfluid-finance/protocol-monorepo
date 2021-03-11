@@ -23,9 +23,7 @@
         "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.1"
     },
     "devDependencies": {
-        "ganache-cli": "^6.9.1",
         "mustache": "^4.0.1",
-        "truffle": "^5.1.22"
     },
     "workspaces": {
         "nohoist": [

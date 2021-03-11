@@ -33,9 +33,10 @@ function createFlowID(owner: string, recipient: string, token: string): string {
 export function fetchToken(address: string): Token {
     let token = Token.load(address);
     if (token == null) {
+        let tokenContract = Token.bind(address);
+        let underlyingAddress = tokenContract.getUnderlyingToken()
         token = new Token(address);
-        // TODO: fetch underlyingAddress
-        // token.underlyingAddress =
+        token.underlyingAddress = underlyingAddress
     }
     return token as Token;
 }

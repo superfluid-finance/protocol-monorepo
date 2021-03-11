@@ -60,11 +60,15 @@ Now install the necessary node packages:
 yarn global add truffle ganache-cli @graphprotocol/graph-cli
 ```
 
+#### Ganache
+
 Start ganache. It's helpful to specify a mnemonic, so you can hard-code the address in `subgraph.yaml` and the test files.
 
 ```bash
 ganache-cli -h 0.0.0.0 -m 'deputy taste judge cave mosquito supply hospital clarify argue aware abuse glory'
 ```
+
+#### Graph-node
 
 Download the `graph-node` Docker instance.
 

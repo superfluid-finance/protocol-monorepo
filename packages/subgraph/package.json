@@ -7,7 +7,7 @@
     "license": "MIT",
     "scripts": {
         "codegen": "yarn get-abi && graph codegen",
-        "get-abi": "node getAbi",
+        "getAbi": "node scripts/getAbi",
         "build": "graph build",
         "create-local": "graph create --node http://localhost:8020/ rtoken-test",
         "remove-local": "graph remove --node http://localhost:8020/ rtoken-test",

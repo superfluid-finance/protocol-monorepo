@@ -5,10 +5,10 @@ schema:
     file: ./schema.graphql
 dataSources:
     - kind: ethereum/contract
-      name: RToken
+      name: Superfluid
       network: { { network } }
       source:
-          abi: RToken
+          abi: Superfluid
           address: "{{ address }}"
           startBlock: { { startBlock } }
       mapping:

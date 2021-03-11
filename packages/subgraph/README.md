@@ -19,7 +19,13 @@
 
 > Official subgraph for the superfluid protocol
 
-:warning: WARNING: This subgraph is under active development! Please use with caution until it is finished
+🚧⚠️🚧⚠️
+
+**WARNING: This subgraph is under active development!**
+
+Please use with caution until it is finished
+
+🚧⚠️🚧⚠️
 
 ## What you can do:
 
@@ -67,15 +73,15 @@ git clone https://github.com/graphprotocol/graph-node/
 cd graph-node/docker
 ```
 
-If on Linux, run the following script.
-
-> Note I had problems here. If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
+If on Linux, run the following script. You should be already logged into docker
 
 ```bash
 # For Linux machines
 sudo apt install jq
 ./setup.sh # writes the host IP to the docker-compose file
 ```
+
+> Note: If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
 
 Now start the necessary subgraph Docker containers.
 
@@ -92,36 +98,30 @@ docker logs docker_graph-node_1
 
 > If you're returning from an earlier coding session, you should skip down to the [Testing and restarting](#testing-and-restarting).
 
-Now in `protocol-monorepo` navigate to `packages/ethereum-contracts`, deploy the contracts, and copy the address for the `Resolver`.
-
-🚧⚠️🚧⚠️
-
-#### DOCUMENTATION UNDER CONSTRUCTION
-
-Please ignore the rest of this file
-
-The rest of the documentation will be updated soon
-
-🚧⚠️🚧⚠️
+Now in navigate to `protocol-monorepo/packages/ethereum-contracts`. To deploy the contracts run the following commands
 
 ```bash
-# Install dependencies
-lerna bootstrap
-# Deploy contracts
-truffle test --network subgraph test/subgraphDeployment.test.js
-# Copy the rToken contract address
-> ...
-> The rTOKEN contract (proxy) is deployed at: 0x625aD1AA6469568ded0cd0254793Efd0e5C0394F
-```
-
-We also need to build the contracts, for use in the `subgraph` package.
-
-```bash
-# Build and save the contracts
 yarn build
+
+DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "./scripts/deploy-test-environment.js"
 ```
+
+Finally, copy the address for the `Resolver`.
+
+> Tip: If you use the same mnemonic each time you start Ganache and deploy the contracts, then this will always be the same address.
+
+host: 0x72D802E9afAb5852B4309236550B0Dac5ebCd301
+cfa: 0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416
+ida: 0xdb594725203c59F20F9b5fB2D360947523dabd27
+resolver: 0xa36FfB4643C11307515F9851f2320a0556fD2687
 
 #### Deploy the Subgraph
+
+Here in `packages/subgraph` fetch the contract ABIs using this command:
+
+```bash
+yarn getAbi
+```
 
 Now in `rtoken-monorepo` navigate to `packages/subgraph` and paste the contract address in `subgraph.yaml`. We are ready to deploy our subgraph.
 

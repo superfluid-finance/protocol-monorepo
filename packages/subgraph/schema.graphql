@@ -11,51 +11,36 @@ type Transaction @entity {
 
 type Account @entity {
   id: ID!
-  # ------------------- state -----------------
-  hat: Hat # todo: case 0 ?
-  #balance: BigDecimal! # in rDai (rAmount)
-  # ------------------- links -----------------
-  loansOwned: [Loan!]! @derivedFrom(field: "owner")
-  loansReceived: [Loan!]!
-  hatMember: [HatMembership!]! @derivedFrom(field: "account")
-  transfersFrom: [Transfer!]! @derivedFrom(field: "from")
-  transfersTo: [Transfer!]! @derivedFrom(field: "to")
-  interests: [InterestPaid!]! @derivedFrom(field: "account")
-  events: [HatChanged!]! @derivedFrom(field: "account")
+  # ---------------------------------- state ----------------------------------
+  # ---------------------------------- links ----------------------------------
+  flowsOwned: [Flow!]! @derivedFrom(field: "owner")
+  flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
+  events: [FlowUpdated!]! @derivedFrom(field: "account")
 }
 
-type Loan @entity {
+type Token @entity {
   id: ID!
+  # underlyingAddress: Bytes! # TODO: Underlying ERC20 address
   # ---------------------------------- state ----------------------------------
-  owner: Account!
-  recipient: Account!
-  amount: BigDecimal! # in rDai (accounts[owner].lRecipients[recipient])
-  hat: Hat # todo: case 0 ?
-  sInternal: BigDecimal!
-  interestRedeemed: BigDecimal!
   # ---------------------------------- links ----------------------------------
-  transfers: [LoanTransferred!]! @derivedFrom(field: "loan")
+  flows: [Flow!]! @derivedFrom(field: "token")
 }
 
 type Flow @entity {
   id: ID!
+  # ---------------------------------- state ----------------------------------
+  sum: BigInt!
+  flowRate: BigInt!
   # ---------------------------------- links ----------------------------------
-  from: Account! #@derivedFrom(field: "hat")
-  to: Account! #@derivedFrom(field: "hat")
+  token: Token! @derivedFrom(field: "flows")
+  owner: Account! @derivedFrom(field: "flowsOwned")
+  recipient: Account! @derivedFrom(field: "flowsReceived")
   events: [FlowUpdated!]! @derivedFrom(field: "flow")
 }
 
-type HatMembership @entity {
-  id: ID!
-  # ---------------------------------- state ----------------------------------
-  hat: Hat! # no case 0 here
-  account: Account!
-  portion: BigInt!
-}
-
-#############
-#  Events   #
-############
+#################
+#     Events    #
+#################
 
 interface Event {
   id: ID!

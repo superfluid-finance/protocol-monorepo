@@ -32,17 +32,26 @@ import {
 } from "./utils";
 
 export function handleFlowUpdated(event: FlowUpdatedEvent): void {
-  let owner = fetchAccount(event.params.sender.toHex());
-  let receiver = fetchAccount(event.params.receiver.toHex())
-  let flow = fetchFlow()
-  account.hat = event.params.newHatID.toString();
-  account.save();
+  let ownerAddress = event.params.sender.toHex()
+  let recipientAddress event.params.receiver.toHex()
+  let tokenAddress = event.params.token.toHex()
+  let flowRate = event.params.token.flowRate.toHex()
 
-  let ev = new HatChanged(createEventID(event));
+  let flow = fetchFlow(ownerAddress, recipientAddress, tokenAddress)
+  let oldFlowRate = flow.flowRate
+
+  flow.flowRate = flowRate
+  // TODO: Update flow sum
+  flow.save()
+
+  let ev = new FlowUpdated(createEventID(event));
   ev.transaction = logTransaction(event).id;
-  ev.account = event.params.account.toHex();
-  ev.hat = event.params.newHatID.toString();
-  ev.oldHat = event.params.oldHatID.toString(); // tmp
+  ev.owner = ownerAddress;
+  ev.recipient = recipientAddress;
+  ev.oldFlowRate = oldFlowRate;
+  ev.flowRate = flowRate
+  // TODO: Replace sum with correct value
+  ev.sum = BigDecimal.fromString("0");
   ev.save();
 }
 //

@@ -15,7 +15,6 @@ type Account @entity {
   # ---------------------------------- links ----------------------------------
   flowsOwned: [Flow!]! @derivedFrom(field: "owner")
   flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
-  events: [FlowUpdated!]! @derivedFrom(field: "account")
 }
 
 type Token @entity {
@@ -50,6 +49,8 @@ interface Event {
 type FlowUpdated implements Event @entity {
   id: ID!
   transaction: Transaction!
-  account: Account!
   flow: Flow!
+  oldFlowRate: BigInt!
+  flowRate: BigInt!
+  sum: BigInt!
 }

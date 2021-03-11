@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const contracts = ["Superfluid"];
+const contracts = ["Superfluid", "ConstantFlowAgreementV1"];
 
 const directoryPath = path.join(
     __dirname,

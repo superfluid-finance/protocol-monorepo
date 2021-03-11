@@ -22,7 +22,9 @@ dataSources:
           abis:
               - name: Superfluid
                 file: ./abis/Superfluid.json
+              - name: ConstantFlowAgreementV1
+                file: ./abis/ConstantFlowAgreementV1.json
           eventHandlers:
-              - event: Transfer(indexed address,indexed address,uint256)
-                handler: handleTransfer
+              - event: FlowUpdated(indexed address,indexed address, indexed address, int96, int256, int256, bytes)
+                handler: handleFlowUpdated
           file: ./src/mapping.ts

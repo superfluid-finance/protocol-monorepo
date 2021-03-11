@@ -117,25 +117,24 @@ resolver: 0xa36FfB4643C11307515F9851f2320a0556fD2687
 
 #### Deploy the Subgraph
 
-Here in `packages/subgraph` fetch the contract ABIs using this command:
+Here in `packages/subgraph` enter the contract addresses from the previous step in `config/local/json`.
+
+We are now ready to deploy our subgraph.
 
 ```bash
+# Generate "subgraph.yaml" using the template
+yarn prepare-local
+
+# Get the ABIs
 yarn getAbi
-```
 
-Now in `rtoken-monorepo` navigate to `packages/subgraph` and paste the contract address in `subgraph.yaml`. We are ready to deploy our subgraph.
-
-```bash
-# Generate the subgraph.yaml file from the template
-yarn prepare:local
-
-# Copy the abis from packages/contracts and generate the subgraph schema
+# Generate the subgraph schema
 yarn codegen
 
-# Create the subgraph node "rtoken-test" (only run once)
+# Create the namespace for the subgraph (only run once)
 yarn create-local
 
-# Deploy the subgraph to "rtoken-test" node
+# Deploy the subgraph
 yarn deploy-local
 ```
 

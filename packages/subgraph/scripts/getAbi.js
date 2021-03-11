@@ -1,18 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const contracts = [
-    "IERC20",
-    "IResolver",
-    "ISuperfluid",
-    "ISuperToken",
-    "ISuperTokenFactory",
-    "ISuperAgreement",
-    "ISuperfluidGovernance",
-    "IConstantFlowAgreementV1",
-    "IInstantDistributionAgreementV1",
-    "ISETH",
-];
+const contracts = ["Superfluid"];
 
 const directoryPath = path.join(
     __dirname,
@@ -20,7 +9,7 @@ const directoryPath = path.join(
 );
 
 fs.mkdir("abis/", (err) => {
-    if (err) return console.error(err);
+    if (err) return; //console.error(err);
     console.log("abis/ directory created");
 });
 
@@ -29,10 +18,10 @@ fs.readdir(directoryPath, (err, files) => {
     console.log("Fetched ABIs for the following contracts:");
     files.forEach((fileName, i) => {
         const contractName = fileName.split(".")[0];
-        if (!contracts.includes(fileName)) return;
+        if (!contracts.includes(contractName)) return;
         const data = require(path.join(directoryPath, fileName));
         const abi = data.abi;
-        fs.writeFile(`abis/${filename}`, JSON.stringify(abi), (err) => {
+        fs.writeFile(`abis/${fileName}`, JSON.stringify(abi), (err) => {
             if (err) throw err;
             console.log(`- ${contractName}`);
         });

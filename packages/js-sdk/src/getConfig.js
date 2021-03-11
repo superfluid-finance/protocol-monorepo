@@ -30,6 +30,7 @@ const DEFAULT_CONFIGS = {
     137: {
         // (matic) mainnet
         nativeTokenSymbol: "MATIC",
+        resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
     },
 
     80001: {
@@ -43,6 +44,7 @@ const DEFAULT_CONFIGS = {
     //
     0x64: {
         nativeTokenSymbol: "xDAI",
+        resolverAddress: "0xD2009765189164b495c110D61e4D301729079911",
     },
 
     // ARTIS

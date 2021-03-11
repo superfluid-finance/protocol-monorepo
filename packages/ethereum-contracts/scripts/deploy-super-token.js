@@ -9,7 +9,7 @@ const {
 } = require("./utils");
 
 /**
- * @dev Deploy test token (Mintable ERC20) to the network.
+ * @dev Deploy listed super token to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
@@ -17,6 +17,14 @@ const {
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
+ *
+ * NOTE:
+ * - If the `TOKEN_NAME` is the same as the nativeTokenSymbol defined in the js-sdk, then
+ *   the SETH contract will be deployed.
+ * - Otherwise an ERC20 super token wrapper will be created, the underlying token address
+ *   has to be registered in the resolver as `tokens.${TOKEN_NAME}`
+ * - An entry in `supertokens.${protocolReleaseVersion}.${TOKEN_NAME}x` will be created
+ *   for the super token address.
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
@@ -90,11 +98,14 @@ module.exports = async function (callback, argv, options = {}) {
             const tokenInfoName = await tokenInfo.name.call();
             const tokenInfoSymbol = await tokenInfo.symbol.call();
             const tokenInfoDecimals = await tokenInfo.decimals.call();
-            console.log("Token address", tokenAddress);
-            console.log("Token name", tokenName);
-            console.log("Token info name()", tokenInfoName);
-            console.log("Token info symbol()", tokenInfoSymbol);
-            console.log("Token info decimals()", tokenInfoDecimals.toString());
+            console.log("Underlying token address", tokenAddress);
+            console.log("Underlying token name", tokenName);
+            console.log("Underlying token info name()", tokenInfoName);
+            console.log("Underlying token info symbol()", tokenInfoSymbol);
+            console.log(
+                "Underlying token info decimals()",
+                tokenInfoDecimals.toString()
+            );
             deploymentFn = async () => {
                 return await sf.createERC20Wrapper(tokenInfo);
             };

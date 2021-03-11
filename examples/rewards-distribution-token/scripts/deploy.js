@@ -1,4 +1,5 @@
-const { web3tx, setWeb3Provider } = require("@decentral.ee/web3-helpers");
+const { web3tx } = require("@decentral.ee/web3-helpers");
+const { setWeb3Provider } = require("@decentral.ee/web3-helpers/src/config");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const DividendRightsToken = artifacts.require("DividendRightsToken");
 

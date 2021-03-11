@@ -146,6 +146,24 @@ module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
+        arbitrum: {
+            provider: function () {
+                const wrapProvider = require("arb-ethers-web3-bridge")
+                    .wrapProvider;
+                // return wrapped provider:
+                return wrapProvider(
+                    //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")
+                    new HDWalletProvider(
+                        process.env.ARBITRUM_MNEMONIC,
+                        process.env.ARBITRUM_PROVIDER_URL
+                    )
+                );
+            },
+            network_id: "*",
+            gas: 1e9, // arbgas is a different beast, 1G gas is normal
+            gasPrice: 0,
+        },
+
         xdai: {
             provider: () => {
                 return new HDWalletProvider(
@@ -166,22 +184,24 @@ module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
-        arbitrum: {
-            provider: function () {
-                const wrapProvider = require("arb-ethers-web3-bridge")
-                    .wrapProvider;
-                // return wrapped provider:
-                return wrapProvider(
-                    //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")
-                    new HDWalletProvider(
-                        process.env.ARBITRUM_MNEMONIC,
-                        process.env.ARBITRUM_PROVIDER_URL
-                    )
+        matic: {
+            provider: () => {
+                return new HDWalletProvider(
+                    process.env.MATIC_MNEMONIC,
+                    createProviderForOpenEthereum(
+                        process.env.MATIC_PROVIDER_URL
+                    ),
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
                 );
             },
-            network_id: "*",
-            gas: 1e9, // arbgas is a different beast, 1G gas is normal
-            gasPrice: 0,
+            network_id: 137,
+            gas: 8e6,
+            gasPrice: +process.env.MATIC_GAS_PRICE || 1e9,
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         mumbai: {
@@ -298,7 +318,7 @@ module.exports = {
                     enabled: true,
                     runs: 200,
                 },
-                // evmVersion: "petersburg" use default
+                // evmVersion: use default
             },
         },
     },

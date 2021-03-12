@@ -30,6 +30,7 @@ type Flow @entity {
     # ---------------------------------- state ----------------------------------
     sum: BigDecimal!
     flowRate: BigInt!
+    lastUpdate: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token! #@derivedFrom(field: "flows")
     owner: Account! #@derivedFrom(field: "flowsOwned")

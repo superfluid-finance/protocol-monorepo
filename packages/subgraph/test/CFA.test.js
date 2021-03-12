@@ -4,12 +4,15 @@ const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
+const traveler = require("ganache-time-traveler");
+
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 const INIT_BALANCE = toWad(100);
+const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 
 const emptyIda = {
     ida: {
@@ -39,15 +42,6 @@ contract("ConstantFlowAgreementV1", accounts => {
     let carol;
 
     before(async function() {
-        // await deployTestToken(errorHandler, [":", "fDAI"], {
-        //     web3,
-        //     from: adminAddress,
-        // });
-        // await deploySuperToken(errorHandler, [":", "fDAI"], {
-        //     web3,
-        //     from: adminAddress,
-        // });
-
         sf = new SuperfluidSDK.Framework({
             web3,
             version: "test",
@@ -80,6 +74,15 @@ contract("ConstantFlowAgreementV1", accounts => {
         bob = sf.user({ address: bobAddress, token: daix.address });
         carol = sf.user({ address: carolAddress, token: daix.address });
     });
+
+    async function _timeTravelOnce(time = TEST_TRAVEL_TIME) {
+        const block1 = await web3.eth.getBlock("latest");
+        console.log("current block time", block1.timestamp);
+        console.log(`time traveler going to the future +${time}...`);
+        await traveler.advanceTimeAndBlock(time);
+        const block2 = await web3.eth.getBlock("latest");
+        console.log("new block time", block2.timestamp);
+    }
 
     describe("flows", () => {
         it("create a new flow", async () => {
@@ -117,17 +120,7 @@ contract("ConstantFlowAgreementV1", accounts => {
                 ).toString(),
                 "38580246913580"
             );
-        });
-        it.skip("create a new flow with onTransaction", async () => {
-            let txHash;
-            const tx = await alice.flow({
-                recipient: bob.address,
-                flowRate: "38580246913580", // 100 / mo
-                onTransaction: hash => {
-                    txHash = hash;
-                },
-            });
-            assert.equal(txHash, tx.receipt.transactionHash);
+            await _timeTravelOnce();
         });
         it.skip("create a new flow with User object argument", async () => {
             const tx = await alice.flow({

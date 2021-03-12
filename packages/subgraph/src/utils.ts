@@ -44,7 +44,8 @@ export function fetchToken(address: string): Token {
 export function fetchFlow(
     owner: string,
     recipient: string,
-    token: string
+    token: string,
+    timestamp: BigInt
 ): Flow {
     let id = createFlowID(owner, recipient, token);
     let flow = Flow.load(id);
@@ -54,17 +55,12 @@ export function fetchFlow(
         flow.flowRate = BigInt.fromI32(0);
         flow.token = token;
         flow.owner = owner;
+        flow.lastUpdate = timestamp;
         flow.recipient = recipient;
 
-        // Update accounts
+        // Create accounts if they do not exist
         let ownerAccount = fetchAccount(owner);
         let recipientAccount = fetchAccount(recipient);
-        let flowsOwned = ownerAccount.flowsOwned;
-        let flowsReceived = recipientAccount.flowsReceived;
-        flowsOwned.push(id);
-        flowsReceived.push(id);
-        ownerAccount.flowsOwned = flowsOwned;
-        recipientAccount.flowsReceived = flowsReceived;
         ownerAccount.save();
         recipientAccount.save();
     }

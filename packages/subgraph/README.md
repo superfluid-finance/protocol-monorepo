@@ -130,24 +130,20 @@ Now come back here in `packages/subgraph` and run the following command to deplo
 
 ```bash
 NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
-# TODO: figure out which to use
-DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
+
+> ConstantFlowAgreementV1: TruffleContract .agreements.cfa @0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416 | Helper .cfa
 
 > =============== TEST ENVIRONMENT RESOLVER ======================
 > export TEST_RESOLVER_ADDRESS=0xa36FfB4643C11307515F9851f2320a0556fD2687
 ```
 
-Copy the `export` command from your output and run it.
+Copy the `export` command from your output and run it. Also copy the address for `ConstantFlowAgreementV1`.
 
 > Tip: If you use the same mnemonic each time you start Ganache and deploy the contracts, then this will always be the same address.
 
-cfa: 0xDEc5164A580dadD01f0C856Bc60b04e3acE8400F
-ida: 0xdb594725203c59F20F9b5fB2D360947523dabd27
-resolver: 0xa36FfB4643C11307515F9851f2320a0556fD2687
-
 ## Deploy the Subgraph
 
-Enter the contract addresses from the previous step in `config/local/json`.
+Enter the address for `ConstantFlowAgreementV1` from the previous step in `config/ganache.json`.
 
 We are now ready to deploy our subgraph.
 

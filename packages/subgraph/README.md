@@ -279,7 +279,13 @@ TODO
 
 ## Hosted Service
 
-TODO
+Log in to the explorer at https://thegraph.com/explorer/. Then go to your dashboard. IMPORTANT: select the Superfluid-Finance account- don't use your your personal account. Copy the auth token to use in this command:
+
+```
+graph auth https://api.thegraph.com/deploy/ <ACCESS_TOKEN>
+```
+
+If the subgraph has not been created yet, you must create it first using the dashboard.
 
 # Contributing
 

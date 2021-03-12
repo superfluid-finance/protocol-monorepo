@@ -15,7 +15,8 @@
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
-        "deploy-mainnet": "mustache config/mainnet.json subgraph.template.yaml > subgraph.yaml && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs rtoken-project/rdai",
+        "deploy-xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy pi0neerpat/superfluid-xdai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
+        "deploy-polygon": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy pi0neerpat/superfluid-polygon --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
         "deploy-kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs rtoken-project/rdai-kovan"
     },
     "dependencies": {

@@ -1,5 +1,5 @@
 {
-  "network": "xdai",
-  "address": "TODO",
-  "startBlock": 0
+    "network": "xdai",
+    "address": "0xEbdA4ceF883A7B12c4E669Ebc58927FBa8447C7D",
+    "startBlock": 14829097
 }

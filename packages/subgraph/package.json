@@ -10,7 +10,7 @@
         "getAbi": "node scripts/getAbi",
         "codegen": "graph codegen",
         "build": "graph build",
-        "test": "nodemon -x npx truffle test",
+        "test": "nodemon -x truffle test --network ganache",
         "prepare-local": "mustache config/local.json subgraph.template.yaml > subgraph.yaml",
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
@@ -19,14 +19,10 @@
         "deploy-kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs rtoken-project/rdai-kovan"
     },
     "dependencies": {
+        "@decentral.ee/web3-helpers": "^0.5.3",
         "@graphprotocol/graph-cli": "0.16.1",
         "@graphprotocol/graph-ts": "0.16.0",
-        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.1",
-        "@superfluid-finance/js-sdk": "^0.4.1"
-    },
-    "devDependencies": {
-        "@decentral.ee/web3-helpers": "^0.5.3",
-        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.1",
+        "@superfluid-finance/js-sdk": "^0.4.1",
         "mustache": "^4.0.1",
         "truffle": "^5.2.3"
     },

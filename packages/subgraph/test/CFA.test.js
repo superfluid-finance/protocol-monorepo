@@ -32,6 +32,13 @@ contract("ConstantFlowAgreementV1", accounts => {
     let admin;
 
     beforeEach(async function() {
+        sf = new SuperfluidSDK.Framework({
+            web3,
+            version: "test",
+            resolverAddress: "0x8BFE5CbbB02584c8ECaF69c05728e6856d430972",
+        });
+        await sf.initialize();
+
         await deployTestToken(errorHandler, [":", "fDAI"], {
             web3,
             from: adminAddress,
@@ -40,13 +47,6 @@ contract("ConstantFlowAgreementV1", accounts => {
             web3,
             from: adminAddress,
         });
-
-        sf = new SuperfluidSDK.Framework({
-            web3,
-            tokens: ["fDAI"],
-            resolverAddress: "0xa36FfB4643C11307515F9851f2320a0556fD2687",
-        });
-        await sf.initialize();
 
         if (!dai) {
             const daiAddress = await sf.tokens.fDAI.address;
@@ -69,9 +69,9 @@ contract("ConstantFlowAgreementV1", accounts => {
             )(daix.address, toWad(100), { from: accounts[i] });
         }
 
-        alice = sf.user({ address: aliceAddress, token: superToken.address });
-        bob = sf.user({ address: bobAddress, token: superToken.address });
-        carol = sf.user({ address: carolAddress, token: superToken.address });
+        alice = sf.user({ address: aliceAddress, token: daix });
+        bob = sf.user({ address: bobAddress, token: daix });
+        carol = sf.user({ address: carolAddress, token: daix });
     });
 
     describe("flows", () => {

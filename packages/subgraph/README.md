@@ -120,12 +120,18 @@ ethereum: 'ganache:http://172.17.0.1:8545'
 
 > Note: If you're returning from an earlier work session, skip down to [Testing](#testing).
 
-Now in navigate to `protocol-monorepo/packages/ethereum-contracts`. To deploy the contracts run the following commands
+Now navigate to `packages/ethereum-contracts` and build the contracts.
 
 ```bash
 yarn build
+```
 
-DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "./scripts/deploy-test-environment.js"
+Now come back here in `packages/subgraph` and run the following command to deploy contracts:
+
+```bash
+NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
+# TODO: figure out which to use
+DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
 TODO: update what address to use
@@ -140,7 +146,7 @@ resolver: 0xa36FfB4643C11307515F9851f2320a0556fD2687
 
 ## Deploy the Subgraph
 
-Here in `packages/subgraph` enter the contract addresses from the previous step in `config/local/json`.
+Enter the contract addresses from the previous step in `config/local/json`.
 
 We are now ready to deploy our subgraph.
 

@@ -10,6 +10,7 @@
         "getAbi": "node scripts/getAbi",
         "codegen": "graph codegen",
         "build": "graph build",
+        "test": "nodemon -x npx truffle test",
         "prepare-local": "mustache config/local.json subgraph.template.yaml > subgraph.yaml",
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
@@ -20,10 +21,14 @@
     "dependencies": {
         "@graphprotocol/graph-cli": "0.16.1",
         "@graphprotocol/graph-ts": "0.16.0",
-        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.1"
+        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.1",
+        "@superfluid-finance/js-sdk": "^0.4.1"
     },
     "devDependencies": {
-        "mustache": "^4.0.1"
+        "@decentral.ee/web3-helpers": "^0.5.3",
+        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.1",
+        "mustache": "^4.0.1",
+        "truffle": "^5.2.3"
     },
     "workspaces": {
         "nohoist": [

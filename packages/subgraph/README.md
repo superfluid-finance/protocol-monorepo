@@ -27,17 +27,15 @@ Please use with caution until it is finished
 
 🚧⚠️🚧⚠️
 
-## What you can do:
+# Hosted Subgraphs
 
--   **Use the Official rDAI subgraph** provided by TheGraph - see [link coming soon]().
+The Superfluid subgraphs are available from The Graph's hosted service, at the following endpoints:
 
--   **Help improve the subgraph** - see [Local development](#local-development).
+TODO
 
--   **Implement your own Superfluid subgraph (please chat with us first)** - see [Deploy Your Own](#deploy-your-own).
+# Local development
 
-## Local development
-
-> Hold up :exclamation: You probably don't need this repo. If you are using Superfluid on xDAI, Polygon (Matic), or another testnet, you should just use the existing subgraph from The Graph Network.
+🛑 **STOP** 🛑 You probably don't need this repo. If you are using Superfluid on xDAI, Polygon (Matic), or even a testnet, we've already deployed the subgraphs for you. See **Hosted Subraphs** above.
 
 In this section we will cover the following:
 
@@ -47,7 +45,7 @@ In this section we will cover the following:
 
 If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
 
-### Initial setup
+## Initial setup
 
 First install these dependencies:
 
@@ -60,7 +58,7 @@ Now install the necessary node packages:
 yarn global add truffle ganache-cli @graphprotocol/graph-cli
 ```
 
-#### Ganache
+### Ganache
 
 Start ganache. It's helpful to specify a mnemonic, so you can hard-code the address in `subgraph.yaml` and the test files.
 
@@ -68,7 +66,7 @@ Start ganache. It's helpful to specify a mnemonic, so you can hard-code the addr
 ganache-cli -h 0.0.0.0 -m 'deputy taste judge cave mosquito supply hospital clarify argue aware abuse glory'
 ```
 
-#### Graph-node
+### Graph-node
 
 Download the `graph-node` Docker instance.
 
@@ -115,12 +113,12 @@ ip a | grep docker | grep inet
 Ty changing the line in the docker-compose using the output above
 
 ```
-ethereum: 'local:http://172.17.0.1:8545'
+ethereum: 'ganache:http://172.17.0.1:8545'
 ```
 
-#### Deploy the contracts to Ganache
+## Deploy the contracts to Ganache
 
-> If you're returning from an earlier coding session, you should skip down to the [Testing and restarting](#testing-and-restarting).
+> Note: If you're returning from an earlier work session, skip down to [Testing](#testing).
 
 Now in navigate to `protocol-monorepo/packages/ethereum-contracts`. To deploy the contracts run the following commands
 
@@ -140,7 +138,7 @@ cfa: 0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416
 ida: 0xdb594725203c59F20F9b5fB2D360947523dabd27
 resolver: 0xa36FfB4643C11307515F9851f2320a0556fD2687
 
-#### Deploy the Subgraph
+## Deploy the Subgraph
 
 Here in `packages/subgraph` enter the contract addresses from the previous step in `config/local/json`.
 
@@ -164,17 +162,75 @@ yarn create-local
 
 # Deploy the subgraph
 yarn deploy-local
+
+> Deployed to http://localhost:8000/subgraphs/name/superfluid-test/graphql
 ```
 
 > If you see "NetworkNotSupported" error, make sure the network name in your docker-compose matches the one in subgraph.yaml
 
-Great job! Now let's make sure things are working properly by doing a sanity check using Postman, or another API tool.
+Navigate to the url in the console output, and let's try a test query so we know the deployment worked. It should return an empty `accounts` array
 
-| Property     | value                                              |
-| ------------ | -------------------------------------------------- |
-| URL          | `http://localhost:8000/subgraphs/name/rtoken-test` |
-| Request type | POST                                               |
-| body         | GraphQL                                            |
+```
+{
+  accounts{
+    flowsOwned{
+      id
+    }
+  }
+}
+```
+
+:tada: Congrats! In the next section we will setup automatic subgraph re-deployments and run tests.
+
+## Testing
+
+Now that you have everything set up, you can start making changes to the subgraph. To automatically re-reploy the subgraph, we will use the `--watch` flag.
+
+You will use this flow anytime you want to restart, or come back to the subgraph.
+
+1. In the repo `graph-node/docker`, stop your docker instance, and restart it:
+
+```bash
+# Blow away the database
+sudo rm -rf data
+docker-compose up
+```
+
+2. Deploy the contracts to ganache (if needed)
+
+Remember to use the same mnemonic, or update the contract address in `subgraph.yaml`
+
+3. Start subgraph auto re-deploy
+
+```bash
+yarn create-local
+yarn deploy-local --watch
+```
+
+## Troubleshooting
+
+### Contracts
+
+Poke around at the contracts using truffle console. See our docs [Using Superfluid with truffle console](https://docs.superfluid.finance/superfluid/docs/setup-truffle-console) for more help.
+
+```bash
+truffle console --network ganache
+
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+sf = new SuperfluidSDK.Framework({web3,tokens: ["fDAI"], resolverAddress: "0xa36FfB4643C11307515F9851f2320a0556fD2687"});
+
+const [admin, bob, carol, dan] = accounts;
+```
+
+### Subgraph
+
+Another way to perform a sanity check is using a http query with the following:
+
+| Property     | value                                                  |
+| ------------ | ------------------------------------------------------ |
+| URL          | `http://localhost:8000/subgraphs/name/superfluid-test` |
+| Request type | POST                                                   |
+| body         | GraphQL                                                |
 
 ```graphql
 query {
@@ -212,31 +268,15 @@ You should get a response like this
 }
 ```
 
-:tada: Congrats! if you were successful with the initial setup, you can move to the next section to enable automatic redeployments of the subgraph upon changes.
+# Production
 
-### Testing and restarting
+## Graph Network
 
-Once you've completed the initial setup, here is the flow for testing and restarting your subgraph.
+TODO
 
-1. In the repo `graph-node/docker`, stop your docker instance, and restart it:
+## Hosted Service
 
-```bash
-sudo rm -rf data && docker-compose up
-
-```
-
-2. Deploy the contracts to ganache (if needed)
-
-3. Re-deploy the new subgraph, whenever subgraph.yaml is changed:
-
-```bash
-yarn create-local
-yarn deploy-local --watch
-```
-
-## Deploy Your Own
-
-If you deploy your own token, and wish to use this subgraph with `@rtoken/utils` to get data, you will need to deploy you own subgraph. As long as you didn't modify the rToken contracts too much, you can probably deploy as-is. Be sure to modify `subgraph.yaml` with the correct `address` and `startBlock`.
+TODO
 
 # Contributing
 

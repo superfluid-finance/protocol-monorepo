@@ -23,9 +23,9 @@ export function fetchAccount(id: string): Account {
 }
 
 function createFlowID(owner: string, recipient: string, token: string): string {
-    return from
+    return owner
         .concat("-")
-        .concat(to)
+        .concat(recipient)
         .concat("-")
         .concat(token);
 }
@@ -34,9 +34,9 @@ export function fetchToken(address: string): Token {
     let token = Token.load(address);
     if (token == null) {
         let tokenContract = Token.bind(address);
-        let underlyingAddress = tokenContract.getUnderlyingToken()
+        let underlyingAddress = tokenContract.getUnderlyingToken();
         token = new Token(address);
-        token.underlyingAddress = underlyingAddress
+        token.underlyingAddress = underlyingAddress;
     }
     return token as Token;
 }
@@ -51,7 +51,7 @@ export function fetchFlow(
     if (flow == null) {
         flow = new Flow(id);
         flow.sum = BigDecimal.fromString("0");
-        flow.flowRate = BigDecimal.fromString("0");
+        flow.flowRate = BigInt.fromI32(0);
         flow.token = token;
         flow.owner = owner;
         flow.recipient = recipient;
@@ -59,11 +59,11 @@ export function fetchFlow(
         // Update accounts
         let ownerAccount = fetchAccount(owner);
         let recipientAccount = fetchAccount(recipient);
-        let flowsOwned = onwerAccount.flowsOwned;
+        let flowsOwned = ownerAccount.flowsOwned;
         let flowsReceived = recipientAccount.flowsReceived;
         flowsOwned.push(id);
         flowsReceived.push(id);
-        ownerAccount.flowsOwner = flowsOwned;
+        ownerAccount.flowsOwned = flowsOwned;
         recipientAccount.flowsReceived = flowsReceived;
         ownerAccount.save();
         recipientAccount.save();

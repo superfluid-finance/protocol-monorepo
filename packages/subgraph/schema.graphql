@@ -1,8 +1,8 @@
 type Transaction @entity {
-  id: ID!
-  timestamp: BigInt!
-  blockNumber: BigInt!
-  events: [Event!]! @derivedFrom(field: "transaction")
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    events: [Event!]! @derivedFrom(field: "transaction")
 }
 
 ####################
@@ -10,31 +10,31 @@ type Transaction @entity {
 ####################
 
 type Account @entity {
-  id: ID!
-  # ---------------------------------- state ----------------------------------
-  # ---------------------------------- links ----------------------------------
-  flowsOwned: [Flow!]! @derivedFrom(field: "owner")
-  flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    # ---------------------------------- links ----------------------------------
+    flowsOwned: [Flow!]! @derivedFrom(field: "owner")
+    flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
 }
 
 type Token @entity {
-  id: ID!
-  # underlyingAddress: Bytes! # TODO: Underlying ERC20 address
-  # ---------------------------------- state ----------------------------------
-  # ---------------------------------- links ----------------------------------
-  flows: [Flow!]! @derivedFrom(field: "token")
+    id: ID!
+    # underlyingAddress: Bytes! # TODO: Underlying ERC20 address
+    # ---------------------------------- state ----------------------------------
+    # ---------------------------------- links ----------------------------------
+    flows: [Flow!]! @derivedFrom(field: "token")
 }
 
 type Flow @entity {
-  id: ID!
-  # ---------------------------------- state ----------------------------------
-  sum: BigInt!
-  flowRate: BigInt!
-  # ---------------------------------- links ----------------------------------
-  token: Token! @derivedFrom(field: "flows")
-  owner: Account! @derivedFrom(field: "flowsOwned")
-  recipient: Account! @derivedFrom(field: "flowsReceived")
-  events: [FlowUpdated!]! @derivedFrom(field: "flow")
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    sum: BigDecimal!
+    flowRate: BigInt!
+    # ---------------------------------- links ----------------------------------
+    token: Token! #@derivedFrom(field: "flows")
+    owner: Account! #@derivedFrom(field: "flowsOwned")
+    recipient: Account! #@derivedFrom(field: "flowsReceived")
+    events: [FlowUpdated!]! @derivedFrom(field: "flow")
 }
 
 #################
@@ -42,15 +42,15 @@ type Flow @entity {
 #################
 
 interface Event {
-  id: ID!
-  transaction: Transaction!
+    id: ID!
+    transaction: Transaction!
 }
 
 type FlowUpdated implements Event @entity {
-  id: ID!
-  transaction: Transaction!
-  flow: Flow!
-  oldFlowRate: BigInt!
-  flowRate: BigInt!
-  sum: BigInt!
+    id: ID!
+    transaction: Transaction!
+    flow: Flow!
+    oldFlowRate: BigInt!
+    flowRate: BigInt!
+    sum: BigDecimal!
 }

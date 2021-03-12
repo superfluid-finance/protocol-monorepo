@@ -91,11 +91,31 @@ Now start the necessary subgraph Docker containers.
 
 ```bash
 docker-compose up
-# or to run in background
-docker-compose up -d
+```
 
-# Check its running
-docker logs docker_graph-node_1
+You should see ganache logs start coming in
+
+```
+Listening on 0.0.0.0:8545
+web3_clientVersion
+net_version
+eth_getBlockByNumber
+eth_getBlockByNumber
+```
+
+If there is some connection issue between graph-node and ganache, it may be caused by docker network issues.
+
+I had to run the following command to get the correct host IP, instead of the one that `setup.sh` provided.
+
+```bash
+ip a | grep docker | grep inet
+> inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
+```
+
+Ty changing the line in the docker-compose using the output above
+
+```
+ethereum: 'local:http://172.17.0.1:8545'
 ```
 
 #### Deploy the contracts to Ganache
@@ -110,6 +130,7 @@ yarn build
 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "./scripts/deploy-test-environment.js"
 ```
 
+TODO: update what address to use
 Finally, copy the address for the `Resolver`.
 
 > Tip: If you use the same mnemonic each time you start Ganache and deploy the contracts, then this will always be the same address.
@@ -135,12 +156,17 @@ yarn getAbi
 # Generate the subgraph schema
 yarn codegen
 
+# Check the subgraph will compile
+yarn build
+
 # Create the namespace for the subgraph (only run once)
 yarn create-local
 
 # Deploy the subgraph
 yarn deploy-local
 ```
+
+> If you see "NetworkNotSupported" error, make sure the network name in your docker-compose matches the one in subgraph.yaml
 
 Great job! Now let's make sure things are working properly by doing a sanity check using Postman, or another API tool.
 

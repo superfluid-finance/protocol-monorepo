@@ -1,58 +1,55 @@
 import {
-  BigDecimal,
-  BigInt,
-  EthereumEvent,
-  log
+    BigDecimal,
+    BigInt,
+    EthereumEvent,
+    log,
 } from "@graphprotocol/graph-ts";
 
-import {
-  Superfluid,
-} from "../generated/Superfluid/Superfluid";
+import { Superfluid } from "../generated/Superfluid/Superfluid";
 
 import {
-  ConstantFlowAgreementV1,
-  FlowUpdated as FlowUpdatedEvent,
+    ConstantFlowAgreementV1,
+    FlowUpdated as FlowUpdatedEvent,
 } from "../generated/Superfluid/ConstantFlowAgreementV1";
 
 import {
-  Transaction,
-  Account,
-  Flow,
-  Token,
-  FlowUpdated
+    Transaction,
+    Account,
+    Flow,
+    Token,
+    FlowUpdated,
 } from "../generated/schema";
 
 import {
-  createEventID,
-  fetchFlow,
-  fetchToken,
-  fetchAccount,
-  logTransaction,
-  toDai
+    createEventID,
+    fetchFlow,
+    fetchToken,
+    fetchAccount,
+    logTransaction,
+    toDai,
 } from "./utils";
 
 export function handleFlowUpdated(event: FlowUpdatedEvent): void {
-  let ownerAddress = event.params.sender.toHex()
-  let recipientAddress event.params.receiver.toHex()
-  let tokenAddress = event.params.token.toHex()
-  let flowRate = event.params.token.flowRate.toHex()
+    let ownerAddress = event.params.sender.toHex();
+    let recipientAddress = event.params.receiver.toHex();
+    let tokenAddress = event.params.token.toHex();
+    let flowRate = event.params.flowRate;
 
-  let flow = fetchFlow(ownerAddress, recipientAddress, tokenAddress)
-  let oldFlowRate = flow.flowRate
+    let flow = fetchFlow(ownerAddress, recipientAddress, tokenAddress);
+    let oldFlowRate = flow.flowRate;
 
-  flow.flowRate = flowRate
-  // TODO: Update flow sum
-  flow.save()
+    flow.flowRate = flowRate;
+    // TODO: Update flow sum
+    flow.save();
 
-  let ev = new FlowUpdated(createEventID(event));
-  ev.transaction = logTransaction(event).id;
-  ev.owner = ownerAddress;
-  ev.recipient = recipientAddress;
-  ev.oldFlowRate = oldFlowRate;
-  ev.flowRate = flowRate
-  // TODO: Replace sum with correct value
-  ev.sum = BigDecimal.fromString("0");
-  ev.save();
+    let ev = new FlowUpdated(createEventID(event));
+    ev.transaction = logTransaction(event).id;
+    ev.flow = flow.id;
+    ev.oldFlowRate = oldFlowRate;
+    ev.flowRate = flowRate;
+    // TODO: Replace sum with correct value
+    ev.sum = BigDecimal.fromString("0");
+    ev.save();
 }
 //
 // export function handleHatCreated(event: HatCreatedEvent): void {

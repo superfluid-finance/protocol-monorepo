@@ -132,15 +132,16 @@ Now come back here in `packages/subgraph` and run the following command to deplo
 NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
 # TODO: figure out which to use
 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
+
+> =============== TEST ENVIRONMENT RESOLVER ======================
+> export TEST_RESOLVER_ADDRESS=0xa36FfB4643C11307515F9851f2320a0556fD2687
 ```
 
-TODO: update what address to use
-Finally, copy the address for the `Resolver`.
+Copy the `export` command from your output and run it.
 
 > Tip: If you use the same mnemonic each time you start Ganache and deploy the contracts, then this will always be the same address.
 
-host: 0x72D802E9afAb5852B4309236550B0Dac5ebCd301
-cfa: 0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416
+cfa: 0xDEc5164A580dadD01f0C856Bc60b04e3acE8400F
 ida: 0xdb594725203c59F20F9b5fB2D360947523dabd27
 resolver: 0xa36FfB4643C11307515F9851f2320a0556fD2687
 

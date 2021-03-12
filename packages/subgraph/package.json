@@ -11,7 +11,7 @@
         "codegen": "graph codegen",
         "build": "graph build",
         "test": "nodemon -x truffle test --network ganache",
-        "prepare-local": "mustache config/local.json subgraph.template.yaml > subgraph.yaml",
+        "prepare-local": "mustache config/ganache.json subgraph.template.yaml > subgraph.yaml",
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",

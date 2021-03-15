@@ -267,7 +267,7 @@ interface ISuperfluidToken {
         external;
 
     /**
-     * @dev Agreement liquidation event
+     * @dev Agreement liquidation event (DEPRECATED BY AgreementLiquidatedBy)
      * @param agreementClass Contract address of the agreement
      * @param id Agreement ID
      * @param penaltyAccount Account of the agreement to be penalized
@@ -283,12 +283,38 @@ interface ISuperfluidToken {
     );
 
     /**
-     * @dev System bailout occurred
+     * @dev System bailout occurred (DEPRECATIED BY AgreementLiquidatedBy)
      * @param bailoutAccount Account that bailout the penalty account
      * @param bailoutAmount Amount of account bailout
      */
     event Bailout(
         address indexed bailoutAccount,
+        uint256 bailoutAmount
+    );
+
+    /**
+     * @dev Agreement liquidation event (including agent account)
+     * @param agreementClass Contract address of the agreement
+     * @param id Agreement ID
+     * @param liquidatorAccount Account of the agent that performed the liquidation.
+     * @param penaltyAccount Account of the agreement to be penalized
+     * @param bondAccount Account that collect the reward or bailout accounts
+     * @param rewardAmount Amount of liquidation reward
+     * @param bailoutAmount Amount of liquidation bailouot
+     *
+     * NOTE:
+     * Reward account rule:
+     * - if bailout is larger than 0, then
+     *   - the bondAccount will pay for the bailoutAmount.
+     *   - the penaltyAccount will get the rewardAmount.
+     */
+    event AgreementLiquidatedBy(
+        address liquidatorAccount,
+        address indexed agreementClass,
+        bytes32 id,
+        address indexed penaltyAccount,
+        address indexed bondAccount,
+        uint256 rewardAmount,
         uint256 bailoutAmount
     );
 

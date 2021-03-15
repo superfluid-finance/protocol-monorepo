@@ -37,8 +37,8 @@ contract NativeSuperTokenProxy is INativeSuperTokenCustom, CustomSuperTokenProxy
         external override
     {
         ISuperToken(address(this)).initialize(
-            IERC20(0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF), // 0xFF... for "no underlying token"
-            18, // not sure if this has any effect in our case
+            IERC20(0x0), // no underlying/wrapped token
+            18, // shouldn't matter if there's no wrapped token
             name,
             symbol
         );

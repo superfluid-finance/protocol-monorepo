@@ -304,9 +304,13 @@ interface ISuperfluidToken {
      *
      * NOTE:
      * Reward account rule:
+     * - if bailout is equal to 0, then
+     *   - the bondAccount will get the rewardAmount,
+     *   - the penaltyAccount will pay for the rewardAmount.
      * - if bailout is larger than 0, then
-     *   - the bondAccount will pay for the bailoutAmount.
-     *   - the penaltyAccount will get the rewardAmount.
+     *   - the liquidatorAccount will get the rewardAmouont,
+     *   - the bondAccount will pay for both the rewardAmount and bailoutAmount,
+     *   - the penaltyAccount will pay for the rewardAmount while get the bailoutAmount.
      */
     event AgreementLiquidatedBy(
         address liquidatorAccount,

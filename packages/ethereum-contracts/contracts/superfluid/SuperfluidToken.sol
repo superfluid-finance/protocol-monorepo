@@ -330,10 +330,17 @@ abstract contract SuperfluidToken is ISuperfluidToken
         onlyAgreement
     {
         ISuperfluidGovernance gov = _host.getGovernance();
-        address rewardAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
-        // reward go to liquidator if reward address is null
-        if (rewardAccount == address(0)) {
-            rewardAccount = liquidator;
+
+        // In this configuration, where reward address is set:
+        // that reward account is also a bailout account,
+        // the terminology is being changed to bondAccount
+        address bondAccount = gov.getConfigAsAddress(_host, this, _REWARD_ADDRESS_CONFIG_KEY);
+
+        // In an alternative configuration
+        // reward go to liquidator if bondAccount is null,
+        // on the flip side it also subsidizes all bailout situations
+        if (bondAccount == address(0)) {
+            bondAccount = liquidator;
         }
 
         int256 signedRewardAmount = rewardAmount.toInt256();
@@ -341,16 +348,28 @@ abstract contract SuperfluidToken is ISuperfluidToken
         if (bailoutAmount == 0) {
             // if account is in critical state
             // - reward account takes the reward
-            _balances[rewardAccount] = _balances[rewardAccount]
+            _balances[bondAccount] = _balances[bondAccount]
                 .add(signedRewardAmount);
             // - penalty applies
             _balances[penaltyAccount] = _balances[penaltyAccount]
                 .sub(signedRewardAmount);
+
+            // TODO deprecate AgreementLiquidated
             emit AgreementLiquidated(
                 msg.sender, id,
                 penaltyAccount,
-                rewardAccount /* rewardAccount */,
+                bondAccount /* rewardAccount */,
                 rewardAmount
+            );
+
+            emit AgreementLiquidatedBy(
+                liquidator,
+                msg.sender,
+                id,
+                penaltyAccount,
+                bondAccount,
+                rewardAmount,
+                0
             );
         } else {
             int256 signedBailoutAmount = bailoutAmount.toInt256();
@@ -359,12 +378,13 @@ abstract contract SuperfluidToken is ISuperfluidToken
             _balances[liquidator] = _balances[liquidator]
                 .add(signedRewardAmount);
             // - reward account becomes bailout account
-            _balances[rewardAccount] = _balances[rewardAccount]
+            _balances[bondAccount] = _balances[bondAccount]
                 .sub(signedRewardAmount)
                 .sub(signedBailoutAmount);
             // - penalty applies (excluding the bailout)
             _balances[penaltyAccount] = _balances[penaltyAccount]
                 .add(signedBailoutAmount);
+            // TODO deprecate AgreementLiquidated & Bailout
             emit AgreementLiquidated(
                 msg.sender, id,
                 penaltyAccount,
@@ -372,7 +392,17 @@ abstract contract SuperfluidToken is ISuperfluidToken
                 rewardAmount
             );
             emit Bailout(
-                rewardAccount,
+                bondAccount,
+                bailoutAmount
+            );
+
+            emit AgreementLiquidatedBy(
+                liquidator,
+                msg.sender,
+                id,
+                penaltyAccount,
+                bondAccount,
+                rewardAmount,
                 bailoutAmount
             );
         }

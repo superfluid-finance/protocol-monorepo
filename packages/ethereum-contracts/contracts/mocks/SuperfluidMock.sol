@@ -12,7 +12,7 @@ import { CallUtils } from "../utils/CallUtils.sol";
 
 contract SuperfluidUpgradabilityTester is Superfluid {
 
-    constructor() Superfluid(false)
+    constructor() Superfluid(false, false)
     // solhint-disable-next-line no-empty-blocks
     {
     }
@@ -44,6 +44,9 @@ contract SuperfluidUpgradabilityTester is Superfluid {
 
         assembly { slot:= _ctxStamp.slot offset := _ctxStamp.offset }
         require (slot == 6 && offset == 0, "_ctxStamp changed location");
+
+        assembly { slot:= _appSecretsUsed.slot offset := _appSecretsUsed.offset }
+        require (slot == 7 && offset == 0, "_appSecretsUsed changed location");
     }
 
     // @dev Make sure the context struct layout never change over the course of the development
@@ -122,8 +125,8 @@ contract SuperfluidUpgradabilityTester is Superfluid {
 contract SuperfluidMock is Superfluid {
 
 
-    constructor(bool nonUpgradable)
-        Superfluid(nonUpgradable)
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled)
+        Superfluid(nonUpgradable, appWhiteListingEnabled)
     // solhint-disable-next-line no-empty-blocks
     {
     }

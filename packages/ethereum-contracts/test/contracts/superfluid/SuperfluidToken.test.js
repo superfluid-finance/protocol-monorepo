@@ -477,7 +477,11 @@ contract("SuperfluidToken implementation", (accounts) => {
 
         context("#4.a default reward account (admin)", () => {
             before(async () => {
-                await governance.setRewardAddress(admin);
+                await governance.setRewardAddress(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    admin
+                );
             });
 
             it("#4.a.1 liquidation without bailout by alice (liquidator)", async () => {
@@ -525,7 +529,11 @@ contract("SuperfluidToken implementation", (accounts) => {
 
         context("#4.b zero reward account", () => {
             before(async () => {
-                await governance.setRewardAddress(ZERO_ADDRESS);
+                await governance.setRewardAddress(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    ZERO_ADDRESS
+                );
             });
 
             it("#4.b.1 liquidation without bailout by alice (liquidator)", async () => {

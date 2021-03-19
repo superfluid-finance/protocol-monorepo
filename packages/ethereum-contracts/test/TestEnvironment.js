@@ -117,13 +117,21 @@ module.exports = class TestEnvironment {
 
         await Promise.all([
             await web3tx(
-                this.contracts.governance.setLiquidationPeriod,
+                this.contracts.governance.setCFAv1LiquidationPeriod,
                 "reset liquidation period"
-            )(this.configs.LIQUIDATION_PERIOD),
+            )(
+                this.sf.host.address,
+                this.constants.ZERO_ADDRESS,
+                this.configs.LIQUIDATION_PERIOD
+            ),
             await web3tx(
                 this.contracts.governance.setRewardAddress,
                 "reset reward address to admin"
-            )(this.aliases.admin),
+            )(
+                this.sf.host.address,
+                this.constants.ZERO_ADDRESS,
+                this.aliases.admin
+            ),
         ]);
     }
 

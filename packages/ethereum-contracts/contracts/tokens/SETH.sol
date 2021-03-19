@@ -25,11 +25,16 @@ interface IWETH is IERC20 {
  * @author Superfluid
  */
 interface ISETHCustom {
+    // using native token
     function upgradeByETH() external payable;
     function upgradeByETHTo(address to) external payable;
-    function upgradeByWETH(uint wad) external;
     function downgradeToETH(uint wad) external;
-    function downgradeToWETH(uint wad) external;
+
+    // using wrapped native token
+    function getUnderlyingToken() external view returns(address tokenAddr);
+    function upgrade(uint256 amount) external;
+    function upgradeTo(address to, uint256 amount, bytes calldata data) external;
+    function downgrade(uint256 amount) external;
 }
 
 /**
@@ -38,7 +43,12 @@ interface ISETHCustom {
  * @author Superfluid
  */
 // solhint-disable-next-line no-empty-blocks
-interface ISETH is ISETHCustom, ISuperToken { }
+interface ISETH is ISETHCustom, ISuperToken {
+    function getUnderlyingToken() external override(ISETHCustom, ISuperToken) view returns(address tokenAddr);
+    function upgrade(uint256 amount) external override(ISETHCustom, ISuperToken);
+    function upgradeTo(address to, uint256 amount, bytes calldata data) external override(ISETHCustom, ISuperToken);
+    function downgrade(uint256 amount) external override(ISETHCustom, ISuperToken);
+}
 
 /**
  * SETH receive fallback logic contract
@@ -95,7 +105,20 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
         emit TokenUpgraded(to, msg.value);
     }
 
-    function upgradeByWETH(uint wad) external override {
+    function downgradeToETH(uint wad) external override {
+        ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
+        msg.sender.transfer(wad);
+        emit TokenDowngraded(msg.sender, wad);
+    }
+
+    function getUnderlyingToken()
+        external override view
+        returns(address tokenAddr)
+    {
+        return address(_weth);
+    }
+
+    function upgrade(uint wad) external override {
         _weth.transferFrom(msg.sender, address(this), wad);
         // this will trigger receive() which is overriden to a no-op
         _weth.withdraw(wad);
@@ -103,13 +126,15 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
         emit TokenUpgraded(msg.sender, wad);
     }
 
-    function downgradeToETH(uint wad) external override {
-        ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
-        msg.sender.transfer(wad);
-        emit TokenDowngraded(msg.sender, wad);
+    function upgradeTo(address to, uint256 wad, bytes calldata data) external override {
+        _weth.transferFrom(msg.sender, address(this), wad);
+        // this will trigger receive() which is overriden to a no-op
+        _weth.withdraw(wad);
+        ISuperToken(address(this)).selfMint(to, wad, data);
+        emit TokenUpgraded(msg.sender, wad);
     }
 
-    function downgradeToWETH(uint wad) external override {
+    function downgrade(uint256 wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
         _weth.deposit{ value: wad }();
         _weth.transfer(msg.sender, wad);

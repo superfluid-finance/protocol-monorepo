@@ -86,7 +86,7 @@ jobs:
 
             To use the Github package registry, create a token with "read:packages" permission. See [Creating a personal access token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) for help.
 
-            Next add these lines to your `~/.npmrc` file, replacing TOKEN with your personal access token. See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you get stuck.
+            Next add these lines to your `.npmrc` file, replacing TOKEN with your personal access token. See [Installing a package from Github](https://docs.github.com/en/packages/guides/configuring-npm-for-use-with-github-packages#installing-a-package) if you get stuck.
 
             ```
             @superfluid-finance:registry=https://npm.pkg.github.com

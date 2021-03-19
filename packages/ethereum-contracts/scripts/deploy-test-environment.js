@@ -1,3 +1,4 @@
+const getConfig = require("./getConfig");
 const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
@@ -20,22 +21,34 @@ module.exports = async function (callback, options = {}) {
     try {
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
-        console.log("==== Deploying superfluid framework...");
+        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
+
+        console.log("======== Deploying superfluid framework ========");
         await deployFramework(errorHandler, options);
-        console.log("==== Superfluid framework deployed.");
+        console.log("==== Superfluid framework deployed  ========");
 
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         for (let i = 0; i < tokens.length; ++i) {
-            console.log(`==== Deploying test token ${tokens[i]}...`);
+            console.log(`======== Deploying test token ${tokens[i]} ========`);
             await deployTestToken(errorHandler, [":", tokens[i]], options);
-            console.log(`==== Test token ${tokens[i]} deployed.`);
+            console.log(`======== Test token ${tokens[i]} deployed ========`);
 
-            console.log(`==== Creating super token for ${tokens[i]}...`);
+            console.log(
+                `======== Creating super token for ${tokens[i]} ========`
+            );
             await deploySuperToken(errorHandler, [":", tokens[i]], options);
-            console.log(`==== Super token for ${tokens[i]} deployed.`);
+            console.log(
+                `======== Super token for ${tokens[i]} deployed ========`
+            );
         }
         // Creating SETH
-        await deploySuperToken(errorHandler, [":", "ETH"], options);
+        await deploySuperToken(
+            errorHandler,
+            [":", config.nativeTokenSymbol],
+            options
+        );
 
         if (process.env.TEST_RESOLVER_ADDRESS) {
             console.log(

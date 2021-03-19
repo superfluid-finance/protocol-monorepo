@@ -19,11 +19,38 @@
  */
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-require("dotenv").config();
-// const infuraKey = "fj4jll3k.....";
+try {
+    require("dotenv").config();
+} catch (error) {
+    console.error(
+        "Loading .env file failed. Things will likely fail. You may want to copy .env.template and create a new one."
+    );
+}
+
 //
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+// This is a hack to resolve that HDWallet doesn't work with openethereum (xdai & kovan)
+//
+// Related issues:
+// - https://github.com/trufflesuite/truffle/issues/3182
+// - https://github.com/openethereum/parity-ethereum/issues/11824
+// - https://github.com/MetaMask/web3-provider-engine/issues/311
+function createProviderForOpenEthereum(url) {
+    let provider;
+    const Web3WsProvider = require("web3-providers-ws");
+    if (url.startsWith("ws:") || url.startsWith("wss:")) {
+        provider = new Web3WsProvider(url);
+        // apply the skipCache hack
+        const origSend = provider.__proto__.send;
+        provider.__proto__.send = function (payload, callback) {
+            delete payload.skipCache;
+            origSend.call(provider, payload, callback);
+        };
+    } else {
+        // let hdwallet provider handle the url directly
+        provider = url;
+    }
+    return provider;
+}
 
 module.exports = {
     plugins: [
@@ -100,17 +127,20 @@ module.exports = {
         },
 
         kovan: {
-            provider: () =>
-                new HDWalletProvider(
+            provider: () => {
+                return new HDWalletProvider(
                     process.env.KOVAN_MNEMONIC,
-                    process.env.KOVAN_PROVIDER_URL,
+                    createProviderForOpenEthereum(
+                        process.env.KOVAN_PROVIDER_URL
+                    ),
                     0, //address_index
                     10, // num_addresses
                     true // shareNonce
-                ),
+                );
+            },
             network_id: 42,
             gas: 8e6,
-            gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9, // 100 GWEI, goerli is busy!
+            gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -132,6 +162,46 @@ module.exports = {
             network_id: "*",
             gas: 1e9, // arbgas is a different beast, 1G gas is normal
             gasPrice: 0,
+        },
+
+        xdai: {
+            provider: () => {
+                return new HDWalletProvider(
+                    process.env.XDAI_MNEMONIC,
+                    createProviderForOpenEthereum(
+                        process.env.XDAI_PROVIDER_URL
+                    ),
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                );
+            },
+            network_id: 0x64,
+            gas: 8e6,
+            gasPrice: +process.env.XDAI_GAS_PRICE || 1e9,
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+        },
+
+        matic: {
+            provider: () => {
+                return new HDWalletProvider(
+                    process.env.MATIC_MNEMONIC,
+                    createProviderForOpenEthereum(
+                        process.env.MATIC_PROVIDER_URL
+                    ),
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                );
+            },
+            network_id: 137,
+            gas: 8e6,
+            gasPrice: +process.env.MATIC_GAS_PRICE || 1e9,
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
         },
 
         mumbai: {
@@ -248,7 +318,7 @@ module.exports = {
                     enabled: true,
                     runs: 200,
                 },
-                // evmVersion: "petersburg" use default
+                // evmVersion: use default
             },
         },
     },

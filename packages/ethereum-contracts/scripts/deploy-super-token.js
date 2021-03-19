@@ -9,21 +9,30 @@ const {
 } = require("./utils");
 
 /**
- * @dev Deploy test token (Mintable ERC20) to the network.
+ * @dev Deploy listed super token to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
+ * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
+ *
+ * NOTE:
+ * - If the `TOKEN_NAME` is the same as the nativeTokenSymbol defined in the js-sdk, then
+ *   the SETH contract will be deployed.
+ * - Otherwise an ERC20 super token wrapper will be created, the underlying token address
+ *   has to be registered in the resolver as `tokens.${TOKEN_NAME}`
+ * - An entry in `supertokens.${protocolReleaseVersion}.${TOKEN_NAME}x` will be created
+ *   for the super token address.
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
-        console.log("Deploying super token");
+        console.log("======== Deploying super token ========");
 
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        let { resetToken, protocolReleaseVersion } = options;
 
-        const version = process.env.RELEASE_VERSION || "test";
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
             throw new Error("Not enough arguments");
@@ -31,9 +40,17 @@ module.exports = async function (callback, argv, options = {}) {
         const tokenName = args.pop();
         console.log("Underlying token name", tokenName);
 
+        resetToken = resetToken || !!process.env.RESET_TOKEN;
+        protocolReleaseVersion =
+            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
+        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        console.log("reset token: ", resetToken);
+        console.log("chain ID: ", chainId);
+        console.log("protocol release version:", protocolReleaseVersion);
+
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
-            version,
+            version: protocolReleaseVersion,
             additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"],
             contractLoader: builtTruffleContractLoader,
         });
@@ -53,17 +70,26 @@ module.exports = async function (callback, argv, options = {}) {
         );
 
         let deploymentFn;
-        if (tokenName == "ETH") {
+        if (tokenName == sf.config.nativeTokenSymbol) {
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
-                const sethProxy = await SETHProxy.new(ZERO_ADDRESS);
+                const weth =
+                    options.weth || process.env.WETH_ADDRESS || ZERO_ADDRESS;
+                console.log("WETH address", weth);
+                const sethProxy = await SETHProxy.new(weth);
+                console.log("WETH Address: ", weth);
                 const seth = await ISETH.at(sethProxy.address);
                 console.log("Intialize SETH as a custom super token...");
                 await superTokenFactory.initializeCustomSuperToken(
                     seth.address
                 );
                 console.log("Intialize SETH token info...");
-                await seth.initialize(ZERO_ADDRESS, 18, "Super ETH", "ETHx");
+                await seth.initialize(
+                    ZERO_ADDRESS,
+                    18,
+                    `Super ${sf.config.nativeTokenSymbol}`,
+                    `${sf.config.nativeTokenSymbol}x`
+                );
                 return seth;
             };
         } else {
@@ -72,22 +98,25 @@ module.exports = async function (callback, argv, options = {}) {
             const tokenInfoName = await tokenInfo.name.call();
             const tokenInfoSymbol = await tokenInfo.symbol.call();
             const tokenInfoDecimals = await tokenInfo.decimals.call();
-            console.log("Token address", tokenAddress);
-            console.log("Token name", tokenName);
-            console.log("Token info name()", tokenInfoName);
-            console.log("Token info symbol()", tokenInfoSymbol);
-            console.log("Token info decimals()", tokenInfoDecimals.toString());
+            console.log("Underlying token address", tokenAddress);
+            console.log("Underlying token name", tokenName);
+            console.log("Underlying token info name()", tokenInfoName);
+            console.log("Underlying token info symbol()", tokenInfoSymbol);
+            console.log(
+                "Underlying token info decimals()",
+                tokenInfoDecimals.toString()
+            );
             deploymentFn = async () => {
                 return await sf.createERC20Wrapper(tokenInfo);
             };
         }
 
-        const name = `supertokens.${version}.${tokenName}x`;
+        const name = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
         const superTokenAddress = await sf.resolver.get(name);
         console.log("SuperToken namt at the resolver: ", name);
         console.log("SuperToken address: ", superTokenAddress);
         let doDeploy = false;
-        if (superTokenAddress == ZERO_ADDRESS) {
+        if (resetToken || superTokenAddress == ZERO_ADDRESS) {
             doDeploy = true;
         } else {
             console.log("The superToken already registered.");
@@ -143,6 +172,7 @@ module.exports = async function (callback, argv, options = {}) {
             console.log("Resolver set done.");
         }
 
+        console.log("======== Super token deployed ========");
         callback();
     } catch (err) {
         callback(err);

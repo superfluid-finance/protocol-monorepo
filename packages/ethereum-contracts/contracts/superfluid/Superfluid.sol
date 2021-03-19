@@ -46,6 +46,9 @@ contract Superfluid is
     // solhint-disable-next-line var-name-mixedcase
     bool immutable public NON_UPGRADABLE_DEPLOYMENT;
 
+    // solhint-disable-next-line var-name-mixedcase
+    bool immutable public APP_WHITE_LISTING_ENABLED;
+
     /**
      * @dev Maximum number of level of apps can be composed together
      *
@@ -81,9 +84,12 @@ contract Superfluid is
     /// @dev Ctx stamp of the current transaction, it should always be cleared to
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
+    /// @dev if app whitelisting is enabled, this is to make sure the secrets are used only once
+    mapping(bytes32 => bool) internal _appSecretsUsed;
 
-    constructor(bool nonUpgradable) {
+    constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
+        APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,6 +124,7 @@ contract Superfluid is
     }
 
     function replaceGovernance(ISuperfluidGovernance newGov) external override onlyGovernance {
+        emit GovernanceReplaced(_gov, newGov);
         _gov = newGov;
     }
 
@@ -144,6 +151,7 @@ contract Superfluid is
         // register the agreement proxy
         _agreementClasses.push((agreementClass));
         _agreementClassIndices[agreementType] = _agreementClasses.length;
+        emit AgreementClassRegistered(agreementType, address(agreementClassLogic));
     }
 
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external onlyGovernance override {
@@ -153,6 +161,7 @@ contract Superfluid is
         require(idx != 0, "SF: agreement class not registered");
         UUPSProxiable proxiable = UUPSProxiable(address(_agreementClasses[idx - 1]));
         proxiable.updateCode(address(agreementClassLogic));
+        emit AgreementClassUpdated(agreementType, address(agreementClassLogic));
     }
 
     function isAgreementTypeListed(bytes32 agreementType)
@@ -256,15 +265,17 @@ contract Superfluid is
             require(!NON_UPGRADABLE_DEPLOYMENT, "SF: non upgradable");
             UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
         }
+        emit SuperTokenFactoryUpdated(_superTokenFactory);
     }
 
     function updateSuperTokenLogic(ISuperToken token)
         external override
         onlyGovernance
     {
+        address code = address(_superTokenFactory.getSuperTokenLogic());
         // assuming it's uups proxiable
-        UUPSProxiable(address(token))
-            .updateCode(address(_superTokenFactory.getSuperTokenLogic()));
+        UUPSProxiable(address(token)).updateCode(code);
+        emit SuperTokenLogicUpdated(token, code);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +287,44 @@ contract Superfluid is
     )
         external override
     {
+        // check if whitelisting required
+        if (APP_WHITE_LISTING_ENABLED) {
+            revert("SF: app registration key required");
+        }
+
+        _registerApp(configWord);
+    }
+
+    function registerAppWithKey(uint256 configWord, string calldata registrationKey)
+        external override
+    {
+        bytes32 secretKey = SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey(
+            // solhint-disable-next-line avoid-tx-origin
+            tx.origin,
+            registrationKey);
+        // check if the secret key is enabled
+        require(
+            _gov.getConfigAsUint256(
+                this,
+                ISuperfluidToken(address(0)),
+                secretKey
+            ) == 1,
+            "SF: invalid registration key"
+        );
+        require(
+            !_appSecretsUsed[secretKey],
+            "SF: registration key already used"
+        );
+        // clear the key so that it can't be reused
+        _appSecretsUsed[secretKey] = true;
+        _registerApp(configWord);
+    }
+
+    function _registerApp(uint256 configWord) private
+    {
         ISuperApp app = ISuperApp(msg.sender);
+
+        // check if it is called within the constructor
         // solhint-disable-next-line avoid-tx-origin
         require(msg.sender != tx.origin, "SF: APP_RULE_NO_REGISTRATION_FOR_EOA");
         {
@@ -285,6 +333,7 @@ contract Superfluid is
             assembly { cs := extcodesize(app) }
             require(cs == 0, "SF: APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR");
         }
+
         require(
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,

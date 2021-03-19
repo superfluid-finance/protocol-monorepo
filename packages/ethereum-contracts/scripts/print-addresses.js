@@ -31,12 +31,10 @@ module.exports = async function (callback, argv, options = {}) {
             ...extractWeb3Options(options),
             version: process.env.RELEASE_VERSION || "test",
             tokens,
+            loadSuperNativeToken: true,
             additionalContracts: ["UUPSProxiable"],
         });
         await sf.initialize();
-        if (sf.config.nativeTokenSymbol) {
-            await sf.loadToken(sf.config.nativeTokenSymbol);
-        }
 
         const { UUPSProxiable, ISuperTokenFactory } = sf.contracts;
 

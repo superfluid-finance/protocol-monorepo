@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [dividends-rights-token-demo, continuous-auction, flowlottery, tradeable-cashflow]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow]
         install: [locked-install, clean-install]
         node-version: [14.x]
 
@@ -58,20 +58,17 @@ jobs:
         working-directory: examples/${{ matrix.example }}
         run: |
           if [ -f "scripts/deploy.js" ];then
-            # export RELEASE_VERSION=test
-            # export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
-            # echo "Ganache port: $GANACHE_PORT"
-            # npx ganache-cli --port $GANACHE_PORT &
-            # ganache_pid=$!
-            # sleep 3 # wait ganache to start
-            # npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js
-            npx truffle --network goerli exec scripts/deploy.js
-            #kill -9 $ganache_pid
+            export RELEASE_VERSION=test
+            export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
+            echo "Ganache port: $GANACHE_PORT"
+            npx ganache-cli --port $GANACHE_PORT &
+            ganache_pid=$!
+            sleep 10 # wait ganache to start
+            DISABLE_NATIVE_TRUFFLE=1 npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js | tee deploy.ignore.log
+            export "$(tail -n1 deploy.ignore.log | awk '{ print $2 }')" # export the TEST_RESOLVER_ADDRESS, with some precaution to prevent script injection
+            npx truffle --network ganache exec scripts/deploy.js
+            kill -9 $ganache_pid
           fi
-        env:
-          RELEASE_VERSION: master
-          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Build UI project if exist
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

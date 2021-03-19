@@ -77,7 +77,9 @@ module.exports = async function (callback, argv, options = {}) {
                     console.log("admin", i, maybeMembers[i]);
                 }
             }
+            console.log("\n");
         }
+
         let host;
         {
             console.log("# Host");
@@ -105,7 +107,9 @@ module.exports = async function (callback, argv, options = {}) {
                 "CALLBACK_GAS_LIMIT",
                 (await host.CALLBACK_GAS_LIMIT.call()).toString()
             );
+            console.log("\n");
         }
+
         let gov;
         {
             console.log("# Governance");
@@ -155,6 +159,9 @@ module.exports = async function (callback, argv, options = {}) {
                 .filter((i) => !!i.enabled)
                 .forEach((i) => console.log(i.superToken, i.forwarder));
         }
+        console.log("\n");
+
+        console.log("# Listed SuperTokens");
         if (sf.config.nativeTokenSymbol) {
             console.log("## SuperToken of Native Chain Token");
             const token = sf.tokens[sf.config.nativeTokenSymbol + "x"];
@@ -165,7 +172,7 @@ module.exports = async function (callback, argv, options = {}) {
             );
         }
         {
-            console.log("## Managed SuperTokens");
+            console.log("## Other Unlisted SuperTokens");
             let superTokenFactory = await sf.contracts.SuperTokenFactory.at(
                 await sf.host.getSuperTokenFactory()
             );
@@ -177,8 +184,14 @@ module.exports = async function (callback, argv, options = {}) {
                 }
             );
             for (let i = 0; i < latests.length; ++i) {
-                const token = sf.contracts.IERC20.at(latests[i].args.token);
-                console.log(await token.symbol.call(), token.address);
+                const token = await sf.contracts.ISuperToken.at(
+                    latests[i].args.token
+                );
+                console.log(
+                    await token.symbol.call(),
+                    token.address,
+                    `(${await token.getUnderlyingToken.call()})`
+                );
             }
         }
 

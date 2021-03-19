@@ -93,10 +93,11 @@ contract ExclusiveInflowTestApp is SuperAppBase {
 }
 
 /**
- * @dev This is CFA SuperApp that refused to close its outflow by its receiver.
+ * @dev This is CFA SuperApp that refuses to close its outflow by its receiver.
  *
  * This test the logic that the app re-opens the same stream in the termination callback.
- * In reality, the app would have to
+ * In reality, the app would have to fund the app with enough tokens to not to be jailed due
+ * to low balance.
  */
 contract NonClosableOutflowTestApp is SuperAppBase {
 
@@ -174,5 +175,118 @@ contract NonClosableOutflowTestApp is SuperAppBase {
             ctx
         );
     }
+}
 
+/**
+ * @dev This is CFA SuperApp that refuses to accept any opening flow without reverting them.
+ */
+contract SelfDeletingFlowTestApp is SuperAppBase {
+
+    IConstantFlowAgreementV1 private _cfa;
+    ISuperfluid private _host;
+    address private _receiver;
+    int96 private _flowRate;
+
+    constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
+        assert(address(cfa) != address(0));
+        assert(address(superfluid) != address(0));
+        _cfa = cfa;
+        _host = superfluid;
+
+        uint256 configWord =
+            SuperAppDefinitions.APP_LEVEL_FINAL
+            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+            // | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
+            ;
+
+        _host.registerApp(configWord);
+    }
+
+    function afterAgreementCreated(
+        ISuperToken superToken,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        newCtx = ctx;
+        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.deleteFlow.selector,
+                superToken,
+                context.msgSender,
+                address(this),
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            newCtx
+        );
+    }
+}
+
+/**
+ * @dev This is CFA SuperApp that closes an updated flow.
+ */
+contract ClosingOnUpdateFlowTestApp is SuperAppBase {
+
+    IConstantFlowAgreementV1 private _cfa;
+    ISuperfluid private _host;
+    address private _receiver;
+    int96 private _flowRate;
+
+    constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
+        assert(address(cfa) != address(0));
+        assert(address(superfluid) != address(0));
+        _cfa = cfa;
+        _host = superfluid;
+
+        uint256 configWord =
+            SuperAppDefinitions.APP_LEVEL_FINAL
+            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+            // | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
+            ;
+
+        _host.registerApp(configWord);
+    }
+
+    function afterAgreementUpdated(
+        ISuperToken superToken,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        newCtx = ctx;
+        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.deleteFlow.selector,
+                superToken,
+                context.msgSender,
+                address(this),
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            newCtx
+        );
+    }
 }

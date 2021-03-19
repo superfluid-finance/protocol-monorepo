@@ -1823,6 +1823,92 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             await expectNetFlow("app", toBN(0).sub(FLOW_RATE1).toString());
             await timeTravelOnceAndValidateSystemInvariance();
         });
+
+        it("#3.3 SelfDeletingFlowTestApp", async () => {
+            const SelfDeletingFlowTestApp = artifacts.require(
+                "SelfDeletingFlowTestApp"
+            );
+            const app = await web3tx(
+                SelfDeletingFlowTestApp.new,
+                "NonClosableOutflowTestApp.new"
+            )(cfa.address, superfluid.address);
+            t.addAlias("app", app.address);
+
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+
+            await web3tx(
+                t.sf.cfa.createFlow,
+                "alice -> app"
+            )({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: app.address,
+                flowRate: FLOW_RATE1.toString(),
+            });
+            assert.equal(
+                (
+                    await t.sf.cfa.getFlow({
+                        superToken: superToken.address,
+                        sender: alice,
+                        receiver: app.address,
+                    })
+                ).flowRate,
+                "0"
+            );
+            await expectNetFlow("alice", "0");
+            await expectNetFlow("app", "0");
+            await timeTravelOnceAndValidateSystemInvariance();
+        });
+
+        it("#3.4 ClosingOnUpdateFlowTestApp", async () => {
+            const ClosingOnUpdateFlowTestApp = artifacts.require(
+                "ClosingOnUpdateFlowTestApp"
+            );
+            const app = await web3tx(
+                ClosingOnUpdateFlowTestApp.new,
+                "NonClosableOutflowTestApp.new"
+            )(cfa.address, superfluid.address);
+            t.addAlias("app", app.address);
+
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+
+            await web3tx(
+                t.sf.cfa.createFlow,
+                "alice -> app"
+            )({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: app.address,
+                flowRate: FLOW_RATE1.toString(),
+            });
+            await expectNetFlow("alice", toBN(0).sub(FLOW_RATE1).toString());
+            await expectNetFlow("bob", "0");
+            await expectNetFlow("app", FLOW_RATE1.toString());
+            await timeTravelOnceAndValidateSystemInvariance();
+
+            await web3tx(
+                t.sf.cfa.updateFlow,
+                "alice -> app"
+            )({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: app.address,
+                flowRate: FLOW_RATE1.muln(2).toString(),
+            });
+            assert.equal(
+                (
+                    await t.sf.cfa.getFlow({
+                        superToken: superToken.address,
+                        sender: alice,
+                        receiver: app.address,
+                    })
+                ).flowRate,
+                "0"
+            );
+            await expectNetFlow("alice", "0");
+            await expectNetFlow("app", "0");
+            await timeTravelOnceAndValidateSystemInvariance();
+        });
     });
 
     context("#10 scenarios", () => {

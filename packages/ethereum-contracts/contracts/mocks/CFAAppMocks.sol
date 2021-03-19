@@ -51,7 +51,6 @@ contract ExclusiveInflowTestApp is SuperAppBase {
         bytes calldata ctx
     )
         external override
-        onlyHost
         returns(bytes memory newCtx)
     {
         newCtx = ctx;
@@ -83,7 +82,6 @@ contract ExclusiveInflowTestApp is SuperAppBase {
         bytes calldata ctx
     )
         external override
-        onlyHost
         returns(bytes memory newCtx)
     {
         (address flowSender, ) = abi.decode(agreementData, (address, address));
@@ -92,9 +90,89 @@ contract ExclusiveInflowTestApp is SuperAppBase {
         return ctx;
     }
 
-    modifier onlyHost() {
-        assert(msg.sender == address(_host));
-        _;
+}
+
+/**
+ * @dev This is CFA SuperApp that refused to close its outflow by its receiver.
+ *
+ * This test the logic that the app re-opens the same stream in the termination callback.
+ * In reality, the app would have to
+ */
+contract NonClosableOutflowTestApp is SuperAppBase {
+
+    IConstantFlowAgreementV1 private _cfa;
+    ISuperfluid private _host;
+    address private _receiver;
+    int96 private _flowRate;
+
+    constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
+        assert(address(cfa) != address(0));
+        assert(address(superfluid) != address(0));
+        _cfa = cfa;
+        _host = superfluid;
+
+        uint256 configWord =
+            SuperAppDefinitions.APP_LEVEL_FINAL
+            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            // | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
+            ;
+
+        _host.registerApp(configWord);
+    }
+
+    function setupOutflow(
+        ISuperToken superToken,
+        address receiver,
+        int96 flowRate
+    )
+        external
+    {
+        _receiver = receiver;
+        _flowRate = flowRate;
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.createFlow.selector,
+                superToken,
+                receiver,
+                flowRate,
+                new bytes(0)
+            ),
+            new bytes(0) // user data
+        );
+    }
+
+    function afterAgreementTerminated(
+        ISuperToken superToken,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata agreementData,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        (address flowSender, address flowReceiver) = abi.decode(agreementData, (address, address));
+        assert(flowSender == address(this));
+        assert(flowReceiver == _receiver);
+        // recreate the flow
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.createFlow.selector,
+                superToken,
+                flowReceiver,
+                _flowRate,
+                new bytes(0)
+            ),
+            "0x",
+            ctx
+        );
     }
 
 }

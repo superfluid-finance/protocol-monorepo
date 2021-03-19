@@ -1710,21 +1710,16 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
     });
 
     context("#3 callbacks", () => {
-        const ExclusiveInflowTestApp = artifacts.require(
-            "ExclusiveInflowTestApp"
-        );
-
-        let app;
-
-        beforeEach(async () => {
-            app = await web3tx(
+        it("#3.1 ExclusiveInflowTestApp", async () => {
+            const ExclusiveInflowTestApp = artifacts.require(
+                "ExclusiveInflowTestApp"
+            );
+            const app = await web3tx(
                 ExclusiveInflowTestApp.new,
                 "ExclusiveInflowTestApp.new"
             )(cfa.address, superfluid.address);
             t.addAlias("app", app.address);
-        });
 
-        it("#3.1 ExclusiveInflowTestApp", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
             await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
@@ -1770,6 +1765,62 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             await expectNetFlow("alice", "0");
             await expectNetFlow("bob", "0");
             await expectNetFlow("app", "0");
+            await timeTravelOnceAndValidateSystemInvariance();
+        });
+
+        it("#3.2 NonClosableOutflowTestApp", async () => {
+            const NonClosableOutflowTestApp = artifacts.require(
+                "NonClosableOutflowTestApp"
+            );
+            const app = await web3tx(
+                NonClosableOutflowTestApp.new,
+                "NonClosableOutflowTestApp.new"
+            )(cfa.address, superfluid.address);
+            t.addAlias("app", app.address);
+
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+            await t.transferBalance("alice", "app", t.configs.INIT_BALANCE);
+
+            await web3tx(app.setupOutflow, "app.setupOutflow")(
+                superToken.address,
+                alice,
+                FLOW_RATE1.toString()
+            );
+            assert.equal(
+                (
+                    await t.sf.cfa.getFlow({
+                        superToken: superToken.address,
+                        sender: app.address,
+                        receiver: alice,
+                    })
+                ).flowRate,
+                FLOW_RATE1.toString()
+            );
+            await expectNetFlow("alice", FLOW_RATE1.toString());
+            await expectNetFlow("app", toBN(0).sub(FLOW_RATE1).toString());
+            await timeTravelOnceAndValidateSystemInvariance();
+
+            await web3tx(
+                t.sf.cfa.deleteFlow,
+                "app -> alice by alice"
+            )({
+                superToken: superToken.address,
+                sender: app.address,
+                receiver: alice,
+                by: alice,
+            });
+            assert.equal(
+                (
+                    await t.sf.cfa.getFlow({
+                        superToken: superToken.address,
+                        sender: app.address,
+                        receiver: alice,
+                    })
+                ).flowRate,
+                FLOW_RATE1.toString()
+            );
+            await expectNetFlow("alice", FLOW_RATE1.toString());
+            await expectNetFlow("app", toBN(0).sub(FLOW_RATE1).toString());
             await timeTravelOnceAndValidateSystemInvariance();
         });
     });

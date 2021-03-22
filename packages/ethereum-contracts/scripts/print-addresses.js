@@ -26,7 +26,7 @@ module.exports = async function (callback, argv, options = {}) {
         }
         const outputFilename = args.shift();
 
-        const tokens = ["fDAI", "fUSDC", "fTUSD"];
+        const tokens = [];
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
             version: process.env.RELEASE_VERSION || "test",

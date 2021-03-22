@@ -44,11 +44,11 @@
     },
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
-        "@truffle/contract": "^4.3.9",
         "@ethersproject/contracts": "^5.0.12",
         "@ethersproject/providers": "^5.0.24",
         "@openzeppelin/test-helpers": "^0.5.10",
-        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.1",
+        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.2",
+        "@truffle/contract": "^4.3.9",
         "chai-as-promised": "^7.1.1",
         "truffle": "5.1.49",
         "web3": "^1.3.4",

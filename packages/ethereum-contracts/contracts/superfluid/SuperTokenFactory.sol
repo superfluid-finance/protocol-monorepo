@@ -143,6 +143,8 @@ abstract contract SuperTokenFactoryBase is
         // odd solidity stuff..
         address payable a = address(uint160(customSuperTokenProxy));
         UUPSProxy(a).initializeProxy(address(_superTokenLogic));
+
+        emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }
 
 }

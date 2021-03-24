@@ -8,24 +8,45 @@ dataSources:
       name: Host
       network: {{ network }}
       source:
-          abi: Superfluid
-          address: "{{ hostAddress }}"
-          startBlock: {{ hostStartBlock }}
+          abi: ISuperTokenFactory
+          address: "{{ superTokenFactoryAddress }}"
+          startBlock: {{ superTokenFactoryStartBlock }}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.3
           language: wasm/assemblyscript
-          file: ./src/mappings/host.ts
+          file: ./src/mappings/superToken.ts
           entities:
               - Transaction
               - Account
               - Transfer
           abis:
-              - name: ISuperfluid
-                file: ./abis/Superfluid.json
+              - name: ISuperTokenFactory
+                file: ./abis/ISuperTokenFactory.json
           eventHandlers:
-              - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleFlowUpdated
+              - event: SuperTokenCreated(address token)
+                handler: handleSuperTokenCreated
+    # - kind: ethereum/contract
+    #   name: Host
+    #   network: {{ network }}
+    #   source:
+    #       abi: Superfluid
+    #       address: "{{ hostAddress }}"
+    #       startBlock: {{ hostStartBlock }}
+    #   mapping:
+    #       kind: ethereum/events
+    #       apiVersion: 0.0.3
+    #       language: wasm/assemblyscript
+    #       file: ./src/mappings/host.ts
+    #       entities:
+    #           - Transaction
+    #           - Account
+    #           - Transfer
+    #       abis:
+    #           - name: ISuperfluid
+    #             file: ./abis/Superfluid.json
+    #       eventHandlers:
+
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1
       network: {{ network }}

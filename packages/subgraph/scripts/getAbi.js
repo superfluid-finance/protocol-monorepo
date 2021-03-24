@@ -1,14 +1,18 @@
 const fs = require("fs");
 const path = require("path");
 
-const contracts = ["Superfluid", "ConstantFlowAgreementV1"];
+const contracts = [
+    "Superfluid",
+    "ConstantFlowAgreementV1",
+    "ISuperTokenFactory",
+];
 
 const directoryPath = path.join(
     __dirname,
     "../../ethereum-contracts/build/contracts"
 );
 
-fs.mkdir("abis/", (err) => {
+fs.mkdir("abis/", err => {
     if (err) return; //console.error(err);
     console.log("abis/ directory created");
 });
@@ -21,7 +25,7 @@ fs.readdir(directoryPath, (err, files) => {
         if (!contracts.includes(contractName)) return;
         const data = require(path.join(directoryPath, fileName));
         const abi = data.abi;
-        fs.writeFile(`abis/${fileName}`, JSON.stringify(abi), (err) => {
+        fs.writeFile(`abis/${fileName}`, JSON.stringify(abi), err => {
             if (err) throw err;
             console.log(`- ${contractName}`);
         });

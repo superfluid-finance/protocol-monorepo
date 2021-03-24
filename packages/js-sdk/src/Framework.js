@@ -22,8 +22,10 @@ module.exports = class Framework {
      * @param {Ethers} options.ethers  Injected ethers instance
      *
      * @param {Array} options.additionalContracts (Optional) additional contracts to be loaded
-     * @param {string[]} options.tokens (Optional) Tokens to be loaded, with underlying token symbols names
-     *                                  or super native token symbol.
+     * @param {string[]} options.tokens (Optional) Tokens to be loaded with a list of (in order of preference):
+     *    - super chain-native token symbol,
+     *    - underlying token symbols,
+     *    - super token symbol
      * @param {bool} options.loadSuperNativeToken Load super native token (e.g. ETHx) if possible
      * @param {Function} options.contractLoader (Optional) alternative contract loader function
      *
@@ -172,7 +174,10 @@ module.exports = class Framework {
 
     /**
      * @dev Load additional token using resolver
-     * @param {String} tokenSymbol token symbol used to query resolver
+     * @param {String} tokenSymbol token symbol used to query resolver (in order of preference):
+     *    - super chain-native token symbol,
+     *    - underlying token symbols,
+     *    - super token symbol
      * @return {Promise}
      *
      * NOTE:
@@ -184,19 +189,24 @@ module.exports = class Framework {
         // load underlying token
         //  but we don't need to load native tokens
         let underlyingToken;
+        let superTokenSymbol;
         if (tokenSymbol !== this.config.nativeTokenSymbol) {
             const tokenAddress = await this.resolver.get(
                 `tokens.${tokenSymbol}`
             );
-            if (tokenAddress === ZERO_ADDRESS) {
-                throw new Error(`Token ${tokenSymbol} is not registered`);
+            if (tokenAddress !== ZERO_ADDRESS) {
+                underlyingToken = this.tokens[
+                    tokenSymbol
+                ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
+                console.debug(
+                    `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+                );
+                superTokenSymbol = tokenSymbol + "x";
+            } else {
+                superTokenSymbol = tokenSymbol;
             }
-            underlyingToken = this.tokens[
-                tokenSymbol
-            ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
-            console.debug(
-                `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
-            );
+        } else {
+            superTokenSymbol = this.config.nativeTokenSymbol + "x";
         }
 
         // load super token
@@ -214,7 +224,6 @@ module.exports = class Framework {
         } else {
             superToken = await this.contracts.ISETH.at(superTokenAddress);
         }
-        const superTokenSymbol = await superToken.symbol();
         this.tokens[superTokenSymbol] = superToken;
         this.superTokens[superTokenSymbol] = superToken;
         superToken.underlyingToken = underlyingToken;

@@ -41,6 +41,7 @@ module.exports = async function (callback, argv, options = {}) {
                 "UUPSProxiable",
                 "Superfluid",
                 "SuperTokenFactory",
+                "SuperToken",
                 "SuperfluidGovernanceBase",
             ],
             loadSuperNativeToken: true,
@@ -162,6 +163,17 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("\n");
 
         console.log("# Listed SuperTokens");
+        let superTokenFactory;
+        {
+            superTokenFactory = await sf.contracts.SuperTokenFactory.at(
+                await sf.host.getSuperTokenFactory()
+            );
+            console.log("SuperTokenFactory address", superTokenFactory.address);
+            console.log(
+                "SuperTokenLogic address",
+                await superTokenFactory.getSuperTokenLogic()
+            );
+        }
         if (sf.config.nativeTokenSymbol) {
             console.log("## SuperToken of Native Chain Token");
             const token = sf.tokens[sf.config.nativeTokenSymbol + "x"];
@@ -172,10 +184,8 @@ module.exports = async function (callback, argv, options = {}) {
             );
         }
         {
-            console.log("## Other Unlisted SuperTokens");
-            let superTokenFactory = await sf.contracts.SuperTokenFactory.at(
-                await sf.host.getSuperTokenFactory()
-            );
+            console.log("## Other Managed SuperTokens");
+            const latestSuperTokenLogicAddress = await superTokenFactory.getSuperTokenLogic();
             const latests = await superTokenFactory.getPastEvents(
                 "SuperTokenCreated",
                 {
@@ -184,15 +194,21 @@ module.exports = async function (callback, argv, options = {}) {
                 }
             );
             for (let i = 0; i < latests.length; ++i) {
-                const token = await sf.contracts.ISuperToken.at(
+                const token = await sf.contracts.SuperToken.at(
                     latests[i].args.token
                 );
+                const superTokenLogicAddress = await token.getCodeAddress();
+                const needsUpdate =
+                    superTokenLogicAddress.toLowerCase() !==
+                    latestSuperTokenLogicAddress.toLowerCase();
                 console.log(
-                    await token.symbol.call(),
+                    `${await token.name.call()} (${await token.symbol.call()})`,
                     token.address,
-                    `(${await token.getUnderlyingToken.call()})`
+                    `(${await token.getUnderlyingToken.call()})`,
+                    needsUpdate ? `*(${superTokenLogicAddress})` : ""
                 );
             }
+            console.log("* - Needs super token logic update");
         }
 
         callback();

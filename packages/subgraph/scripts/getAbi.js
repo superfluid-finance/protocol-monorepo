@@ -5,6 +5,7 @@ const contracts = [
     "Superfluid",
     "ConstantFlowAgreementV1",
     "ISuperTokenFactory",
+    "ISuperToken",
 ];
 
 const directoryPath = path.join(

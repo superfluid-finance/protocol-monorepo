@@ -112,7 +112,7 @@ module.exports = class Framework {
         );
         this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
         console.debug(
-            `Superfluid host contract: TruffleContract .host @${superfluidAddress}`
+            `Superfluid host contract: TruffleContract .host ${superfluidAddress}`
         );
 
         // load agreements
@@ -137,10 +137,15 @@ module.exports = class Framework {
             this
         );
         console.debug(
-            `ConstantFlowAgreementV1: TruffleContract .agreements.cfa @${cfaAddress} | Helper .cfa`
+            `ConstantFlowAgreementV1: TruffleContract .agreements.cfa ${cfaAddress} | Helper .cfa`
         );
         console.debug(
-            `InstantDistributionAgreementV1: TruffleContract .agreements.ida @${idaAddress} | Helper .ida`
+            `InstantDistributionAgreementV1: TruffleContract .agreements.ida ${idaAddress} | Helper .ida`
+        );
+
+        const superTokenFactoryAddress = await this.host.getSuperTokenFactory();
+        console.debug(
+            `SuperTokenFactory contract: ${superTokenFactoryAddress}`
         );
 
         // load tokens
@@ -195,7 +200,7 @@ module.exports = class Framework {
                 tokenSymbol
             ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
             console.debug(
-                `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+                `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] ${tokenAddress}`
             );
         }
 
@@ -219,7 +224,7 @@ module.exports = class Framework {
         this.superTokens[superTokenSymbol] = superToken;
         superToken.underlyingToken = underlyingToken;
         console.debug(
-            `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
+            `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] ${superTokenAddress}`
         );
     }
 

@@ -69,20 +69,20 @@ dataSources:
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated
-templates:
-  - name: SuperToken
-    kind: ethereum/contract
-    network: {{ network }}
-    source:
-      abi: SuperToken
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.1
-      language: wasm/assemblyscript
-      file: ./src/mappings/superToken.ts
-      entities:
-        - Token
-      abis:
-        - name: ISuperToken
-          file: ./abis/SuperToken.json
-      eventHandlers:
+# templates:
+#   - name: SuperToken
+#     kind: ethereum/contract
+#     network: {{ network }}
+#     source:
+#       abi: ISuperToken
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.1
+#       language: wasm/assemblyscript
+#       file: ./src/mappings/superToken.ts
+#       entities:
+#         - Token
+#       abis:
+#         - name: ISuperToken
+#           file: ./abis/ISuperToken.json
+#       eventHandlers:

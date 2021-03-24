@@ -211,12 +211,10 @@ module.exports = class Framework {
 
         // load super token
         const superTokenAddress = await this.resolver.get(
-            `supertokens.${this.version}.${tokenSymbol}x`
+            `supertokens.${this.version}.${superTokenSymbol}`
         );
         if (superTokenAddress === ZERO_ADDRESS) {
-            throw new Error(
-                `Token ${tokenSymbol} doesn't have a super token wrapper`
-            );
+            throw new Error(`Super Token for ${tokenSymbol} cannot be found`);
         }
         let superToken;
         if (tokenSymbol !== this.config.nativeTokenSymbol) {

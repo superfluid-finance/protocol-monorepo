@@ -35,8 +35,12 @@ export function fetchToken(address: string): Token {
     if (token == null) {
         let tokenContract = Token.bind(address);
         let underlyingAddress = tokenContract.getUnderlyingToken();
+        let name = tokenContract.name();
+        let symbol = tokenContract.symbol();
         token = new Token(address);
         token.underlyingAddress = underlyingAddress;
+        token.name = name;
+        token.symbol = symbol;
     }
     return token as Token;
 }

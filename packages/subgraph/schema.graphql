@@ -18,10 +18,11 @@ type Account @entity {
 }
 
 type Token @entity {
+    # Note: All Tokens are Super Tokens for this subgraph
     id: ID!
     name: String!
     symbol: String!
-    underlyingAddress: Bytes! # TODO: Underlying ERC20 address
+    underlyingAddress: Bytes! # Underlying ERC20
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
     flows: [Flow!]! @derivedFrom(field: "token")
@@ -56,4 +57,13 @@ type FlowUpdated implements Event @entity {
     oldFlowRate: BigInt!
     flowRate: BigInt!
     sum: BigDecimal!
+}
+
+type SuperTokenCreated implements Event @entity {
+    id: ID!
+    transaction: Transaction!
+    address: Bytes!
+    underlyingAddress: Bytes!
+    name: String!
+    symbol: String!
 }

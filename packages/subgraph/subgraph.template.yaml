@@ -24,7 +24,7 @@ dataSources:
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
           eventHandlers:
-              - event: SuperTokenCreated(address token)
+              - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
     # - kind: ethereum/contract
     #   name: Host

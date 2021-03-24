@@ -19,7 +19,9 @@ type Account @entity {
 
 type Token @entity {
     id: ID!
-    # underlyingAddress: Bytes! # TODO: Underlying ERC20 address
+    name: String!
+    symbol: String!
+    underlyingAddress: Bytes! # TODO: Underlying ERC20 address
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
     flows: [Flow!]! @derivedFrom(field: "token")

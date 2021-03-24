@@ -5,26 +5,63 @@ schema:
     file: ./schema.graphql
 dataSources:
     - kind: ethereum/contract
-      name: Superfluid
+      name: Host
       network: {{ network }}
       source:
-          abi: ConstantFlowAgreementV1
-          address: "{{ address }}"
-          startBlock: {{ startBlock }}
+          abi: Superfluid
+          address: "{{ hostAddress }}"
+          startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.3
           language: wasm/assemblyscript
+          file: ./src/mappings/host.ts
           entities:
               - Transaction
               - Account
               - Transfer
           abis:
               - name: ISuperfluid
-                file: ./abis/ISuperfluid.json
+                file: ./abis/Superfluid.json
+          eventHandlers:
+              - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
+                handler: handleFlowUpdated
+    - kind: ethereum/contract
+      name: ConstantFlowAgreementV1
+      network: {{ network }}
+      source:
+          abi: ConstantFlowAgreementV1
+          address: "{{ cfaAddress }}"
+          startBlock: {{ cfaStartBlock }}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.3
+          language: wasm/assemblyscript
+          file: ./src/mappings/cfav1.ts
+          entities:
+              - Transaction
+              - Account
+              - Transfer
+          abis:
               - name: ConstantFlowAgreementV1
                 file: ./abis/ConstantFlowAgreementV1.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated
-          file: ./src/mapping.ts
+templates:
+  - name: SuperToken
+    kind: ethereum/contract
+    network: {{ network }}
+    source:
+      abi: SuperToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.1
+      language: wasm/assemblyscript
+      file: ./src/mappings/superToken.ts
+      entities:
+        - Token
+      abis:
+        - name: ISuperToken
+          file: ./abis/SuperToken.json
+      eventHandlers:

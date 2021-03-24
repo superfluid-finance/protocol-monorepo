@@ -2,8 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 const contracts = [
-    "Superfluid",
-    "ConstantFlowAgreementV1",
+    "IConstantFlowAgreementV1",
     "ISuperTokenFactory",
     "ISuperToken",
 ];

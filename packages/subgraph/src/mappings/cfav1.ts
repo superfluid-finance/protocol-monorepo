@@ -5,12 +5,10 @@ import {
     log,
 } from "@graphprotocol/graph-ts";
 
-import { Superfluid } from "../generated/Superfluid/Superfluid";
-
 import {
-    ConstantFlowAgreementV1,
+    IConstantFlowAgreementV1 as ConstantFlowAgreementV1,
     FlowUpdated as FlowUpdatedEvent,
-} from "../generated/Superfluid/ConstantFlowAgreementV1";
+} from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
 import {
     Transaction,
@@ -18,7 +16,7 @@ import {
     Flow,
     Token,
     FlowUpdated,
-} from "../generated/schema";
+} from "../../generated/schema";
 
 import {
     createEventID,
@@ -27,7 +25,7 @@ import {
     fetchAccount,
     logTransaction,
     toDai,
-} from "./utils";
+} from "../utils";
 
 export function handleFlowUpdated(event: FlowUpdatedEvent): void {
     let ownerAddress = event.params.sender.toHex();

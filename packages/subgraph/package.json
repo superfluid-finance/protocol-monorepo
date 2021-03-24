@@ -10,7 +10,7 @@
         "getAbi": "node scripts/getAbi",
         "codegen": "graph codegen",
         "build": "graph build",
-        "test": "nodemon -x truffle test --network ganache",
+        "test": "truffle test --network ganache",
         "prepare-local": "mustache config/ganache.json subgraph.template.yaml > subgraph.yaml",
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",

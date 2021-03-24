@@ -210,7 +210,27 @@ yarn create-local
 yarn deploy-local --watch
 ```
 
+4. Generate activity
+
+Run the test to generate some activity on your local ganache contracts
+
+```bash
+yarn test
+```
+
 ## Troubleshooting
+
+### Docker
+
+Sometimes docker container won't stop
+
+`Cannot kill container d28... signaling init process caused "permission denied"`
+
+Try running
+
+```
+sudo killall containerd-shim
+```
 
 ### Contracts
 
@@ -242,10 +262,6 @@ query {
         where: { id_not: "0x0000000000000000000000000000000000000000" }
     ) {
         id
-        balance
-        hat {
-            id
-        }
     }
 }
 ```

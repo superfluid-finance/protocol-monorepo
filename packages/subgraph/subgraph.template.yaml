@@ -5,7 +5,7 @@ schema:
     file: ./schema.graphql
 dataSources:
     - kind: ethereum/contract
-      name: Host
+      name: SuperTokenFactory
       network: {{ network }}
       source:
           abi: ISuperTokenFactory
@@ -23,6 +23,8 @@ dataSources:
           abis:
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
+              - name: ISuperToken
+                file: ./abis/ISuperToken.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
@@ -51,7 +53,7 @@ dataSources:
       name: ConstantFlowAgreementV1
       network: {{ network }}
       source:
-          abi: ConstantFlowAgreementV1
+          abi: IConstantFlowAgreementV1
           address: "{{ cfaAddress }}"
           startBlock: {{ cfaStartBlock }}
       mapping:
@@ -64,25 +66,25 @@ dataSources:
               - Account
               - Transfer
           abis:
-              - name: ConstantFlowAgreementV1
-                file: ./abis/ConstantFlowAgreementV1.json
+              - name: IConstantFlowAgreementV1
+                file: ./abis/IConstantFlowAgreementV1.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated
-# templates:
-#   - name: SuperToken
-#     kind: ethereum/contract
-#     network: {{ network }}
-#     source:
-#       abi: ISuperToken
-#     mapping:
-#       kind: ethereum/events
-#       apiVersion: 0.0.1
-#       language: wasm/assemblyscript
-#       file: ./src/mappings/superToken.ts
-#       entities:
-#         - Token
-#       abis:
-#         - name: ISuperToken
-#           file: ./abis/ISuperToken.json
-#       eventHandlers:
+templates:
+  - name: SuperToken
+    kind: ethereum/contract
+    network: {{ network }}
+    source:
+      abi: ISuperToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.1
+      language: wasm/assemblyscript
+      file: ./src/mappings/superToken.ts
+      entities:
+        - Token
+      abis:
+        - name: ISuperToken
+          file: ./abis/ISuperToken.json
+      # eventHandlers:

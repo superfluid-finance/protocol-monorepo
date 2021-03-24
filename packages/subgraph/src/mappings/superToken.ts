@@ -5,27 +5,27 @@ import {
     log,
 } from "@graphprotocol/graph-ts";
 
-import { Superfluid } from "../generated/Superfluid/Superfluid";
-
-import { SuperTokenCreated as SuperTokenCreatedEvent } from "../generated/Superfluid/ConstantFlowAgreementV1";
+import { SuperTokenCreated as SuperTokenCreatedEvent } from "../../generated/SuperTokenFactory/ISuperTokenFactory";
 
 import {
     Transaction,
     Account,
     Token,
     SuperTokenCreated,
-} from "../generated/schema";
+} from "../../generated/schema";
 
-import { fetchToken, fetchAccount, logTransaction, toDai } from "./utils";
+import { createEventID, logTransaction, fetchToken } from "../utils";
 
 export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
-    let address = event.params.address.toHex();
+    let address = event.params.token.toHex();
     let token = fetchToken(address);
     token.save();
 
+    // TODO: start monitoring events for this token?
+
     let ev = new SuperTokenCreated(createEventID(event));
     ev.transaction = logTransaction(event).id;
-    ev.address = address;
+    ev.address = event.params.token;
     ev.underlyingAddress = token.underlyingAddress;
     ev.symbol = token.symbol;
     ev.name = token.name;

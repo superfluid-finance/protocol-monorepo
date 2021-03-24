@@ -2,10 +2,12 @@ import {
     BigInt,
     BigDecimal,
     EthereumEvent,
+    Address,
     log,
 } from "@graphprotocol/graph-ts";
 
 import { Account, Flow, Token, Transaction } from "../generated/schema";
+import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 
 export function createEventID(event: EthereumEvent): string {
     return event.block.number
@@ -33,7 +35,7 @@ function createFlowID(owner: string, recipient: string, token: string): string {
 export function fetchToken(address: string): Token {
     let token = Token.load(address);
     if (token == null) {
-        let tokenContract = Token.bind(address);
+        let tokenContract = SuperToken.bind(Address.fromString(address));
         let underlyingAddress = tokenContract.getUnderlyingToken();
         let name = tokenContract.name();
         let symbol = tokenContract.symbol();

@@ -25,6 +25,7 @@ module.exports = {
             host: "0.0.0.0",
             network_id: "*",
             port: 8545,
+            networkCheckTimeout: 10000,
         },
     },
 };

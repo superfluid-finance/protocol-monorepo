@@ -114,24 +114,43 @@ module.exports = class Framework {
         );
         this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
         console.debug(
-            `Superfluid host contract: TruffleContract .host @${superfluidAddress}`
+            "Superfluid host contract: TruffleContract .host",
+            superfluidAddress
         );
 
-        // load agreements
-        const cfav1Type = id(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-        );
-        const idav1Type = id(
-            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-        );
-        const cfaAddress = await this.host.getAgreementClass(cfav1Type);
-        const idaAddress = await this.host.getAgreementClass(idav1Type);
-        this.agreements = {
-            cfa: await this.contracts.IConstantFlowAgreementV1.at(cfaAddress),
-            ida: await this.contracts.IInstantDistributionAgreementV1.at(
-                idaAddress
-            ),
-        };
+        this.agreements = {};
+        this.tokens = {};
+        this.superTokens = {};
+
+        // load agreement classes
+        [this.agreements.cfa, this.agreements.ida] = await Promise.all([
+            // load agreements
+            ...[
+                [
+                    id(
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                    ),
+                    this.contracts.IConstantFlowAgreementV1,
+                ],
+                [
+                    id(
+                        "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+                    ),
+                    this.contracts.IInstantDistributionAgreementV1,
+                ],
+            ].map(async (data) => {
+                const address = await this.host.getAgreementClass(data[0]);
+                return await data[1].at(address);
+            }),
+            // load tokens
+            ...[
+                ...(this._options.tokens ? this._options.tokens : []),
+                ...(this._options.loadSuperNativeToken &&
+                this.config.nativeTokenSymbol
+                    ? [this.config.nativeTokenSymbol]
+                    : []),
+            ].map(this.loadToken.bind(this)),
+        ]);
 
         // load agreement helpers
         this.cfa = new (require("./ConstantFlowAgreementV1Helper"))(this);
@@ -139,23 +158,12 @@ module.exports = class Framework {
             this
         );
         console.debug(
-            `ConstantFlowAgreementV1: TruffleContract .agreements.cfa @${cfaAddress} | Helper .cfa`
+            "ConstantFlowAgreementV1: TruffleContract .agreements.cfa | Helper .cfa",
+            this.agreements.cfa.address
         );
         console.debug(
-            `InstantDistributionAgreementV1: TruffleContract .agreements.ida @${idaAddress} | Helper .ida`
-        );
-
-        // load tokens
-        this.tokens = {};
-        this.superTokens = {};
-        await Promise.all(
-            [
-                ...(this._options.tokens ? this._options.tokens : []),
-                ...(this._options.loadSuperNativeToken &&
-                this.config.nativeTokenSymbol
-                    ? [this.config.nativeTokenSymbol]
-                    : []),
-            ].map(this.loadToken.bind(this))
+            "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
+            this.agreements.ida.address
         );
 
         this.utils = new (require("./Utils"))(this);
@@ -192,7 +200,8 @@ module.exports = class Framework {
                 );
                 this.tokens[tokenKey] = underlyingToken;
                 console.debug(
-                    `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"] @${tokenAddress}`
+                    `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"]`,
+                    tokenAddress
                 );
                 superTokenKey = tokenKey + "x";
             } else {
@@ -219,7 +228,8 @@ module.exports = class Framework {
         this.superTokens[superTokenKey] = superToken;
         superToken.underlyingToken = underlyingToken;
         console.debug(
-            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"] @${superTokenAddress}`
+            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"]`,
+            superTokenAddress
         );
     }
 

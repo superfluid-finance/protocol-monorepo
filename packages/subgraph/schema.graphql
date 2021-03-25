@@ -15,6 +15,8 @@ type Account @entity {
     # ---------------------------------- links ----------------------------------
     flowsOwned: [Flow!]! @derivedFrom(field: "owner")
     flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
+    upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "account")
+    downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "account")
 }
 
 type Token @entity {
@@ -26,6 +28,8 @@ type Token @entity {
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
     flows: [Flow!]! @derivedFrom(field: "token")
+    upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "token")
+    downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "token")
 }
 
 type Flow @entity {
@@ -66,4 +70,20 @@ type SuperTokenCreated implements Event @entity {
     underlyingAddress: Bytes!
     name: String!
     symbol: String!
+}
+
+type TokenUpgraded implements Event @entity {
+    id: ID!
+    account: Account!
+    transaction: Transaction!
+    token: Token!
+    amount: BigInt!
+}
+
+type TokenDowngraded implements Event @entity {
+    id: ID!
+    account: Account!
+    transaction: Transaction!
+    token: Token!
+    amount: BigInt!
 }

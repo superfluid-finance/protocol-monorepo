@@ -6,7 +6,7 @@ import {
 } from "@graphprotocol/graph-ts";
 
 import {
-    IConstantFlowAgreementV1 as ConstantFlowAgreementV1,
+    // IConstantFlowAgreementV1 as ConstantFlowAgreementV1,
     FlowUpdated as FlowUpdatedEvent,
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 

@@ -15,11 +15,10 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.3
           language: wasm/assemblyscript
-          file: ./src/mappings/superToken.ts
+          file: ./src/mappings/superTokenFactory.ts
           entities:
-              - Transaction
-              - Account
-              - Transfer
+              - Token
+              - SuperToken
           abis:
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
@@ -84,7 +83,12 @@ templates:
       file: ./src/mappings/superToken.ts
       entities:
         - Token
+        - SuperToken
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
-      # eventHandlers:
+      eventHandlers:
+        - event: TokenUpgraded(indexed address,uint256)
+          handler: handleTokenUpgraded
+        - event: TokenDowngraded(indexed address,uint256)
+          handler: handleTokenDowngraded

@@ -218,6 +218,8 @@ Run the test to generate some activity on your local ganache contracts
 yarn test
 ```
 
+If you get an error like `Error: Invalid address passed to IResolver.at(): undefined`, then your resolver environment variable is not found. Fix this by running the `export TEST_RESOLVER_ADDRESS=0xa` command again.
+
 ## Troubleshooting
 
 ### Docker
@@ -240,7 +242,12 @@ Poke around at the contracts using truffle console. See our docs [Using Superflu
 truffle console --network ganache
 
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-sf = new SuperfluidSDK.Framework({web3,tokens: ["fDAI"], resolverAddress: "0xa36FfB4643C11307515F9851f2320a0556fD2687"});
+# For ganache
+sf = new SuperfluidSDK.Framework({web3, version: "test"});
+# For xDAI / testnets / etc
+sf = new SuperfluidSDK.Framework({web3, resolver: "0xD2009765189164b495c110D61e4D301729079911"});
+
+await sf.initialize();
 
 const [admin, bob, carol, dan] = accounts;
 ```

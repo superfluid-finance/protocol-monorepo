@@ -23,9 +23,9 @@ module.exports = class Framework {
      *
      * @param {Array} options.additionalContracts (Optional) additional contracts to be loaded
      * @param {string[]} options.tokens (Optional) Tokens to be loaded with a list of (in order of preference):
-     *    - super chain-native token symbol,
-     *    - underlying token symbols,
-     *    - super token symbol
+     *    - super chain-native token symbol (see getConfig.js),
+     *    - underlying token resolver key (tokens.{KEY}),
+     *    - super token key  (supertokens.{protocol_release_version}.{KEY})
      * @param {bool} options.loadSuperNativeToken Load super native token (e.g. ETHx) if possible
      * @param {Function} options.contractLoader (Optional) alternative contract loader function
      *
@@ -174,59 +174,52 @@ module.exports = class Framework {
 
     /**
      * @dev Load additional token using resolver
-     * @param {String} tokenSymbol token symbol used to query resolver (in order of preference):
-     *    - super chain-native token symbol,
-     *    - underlying token symbols,
-     *    - super token symbol
-     * @return {Promise}
-     *
-     * NOTE:
-     * Resolver keys:
-     * - token key: `tokens.${tokenSymbol}`
-     * - super token key: `supertokens.${version}.${tokenSymbol}x`
+     * @param {String} tokenKey token key used to query resolver (in order of preference):
+     *    - super chain-native token symbol (see getConfig.js),
+     *    - underlying token resolver key (tokens.{KEY}),
+     *    - super token key  (supertokens.{protocol_release_version}.{KEY})
      */
-    async loadToken(tokenSymbol) {
+    async loadToken(tokenKey) {
         // load underlying token
         //  but we don't need to load native tokens
         let underlyingToken;
-        let superTokenSymbol;
-        if (tokenSymbol !== this.config.nativeTokenSymbol) {
-            const tokenAddress = await this.resolver.get(
-                `tokens.${tokenSymbol}`
-            );
+        let superTokenKey;
+        if (tokenKey !== this.config.nativeTokenSymbol) {
+            const tokenAddress = await this.resolver.get(`tokens.${tokenKey}`);
             if (tokenAddress !== ZERO_ADDRESS) {
-                underlyingToken = this.tokens[
-                    tokenSymbol
-                ] = await this.contracts.ERC20WithTokenInfo.at(tokenAddress);
-                console.debug(
-                    `${tokenSymbol}: ERC20WithTokenInfo .tokens["${tokenSymbol}"] @${tokenAddress}`
+                underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
+                    tokenAddress
                 );
-                superTokenSymbol = tokenSymbol + "x";
+                this.tokens[tokenKey] = underlyingToken;
+                console.debug(
+                    `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"] @${tokenAddress}`
+                );
+                superTokenKey = tokenKey + "x";
             } else {
-                superTokenSymbol = tokenSymbol;
+                superTokenKey = tokenKey;
             }
         } else {
-            superTokenSymbol = this.config.nativeTokenSymbol + "x";
+            superTokenKey = this.config.nativeTokenSymbol + "x";
         }
 
         // load super token
         const superTokenAddress = await this.resolver.get(
-            `supertokens.${this.version}.${superTokenSymbol}`
+            `supertokens.${this.version}.${superTokenKey}`
         );
         if (superTokenAddress === ZERO_ADDRESS) {
-            throw new Error(`Super Token for ${tokenSymbol} cannot be found`);
+            throw new Error(`Super Token for ${tokenKey} cannot be found`);
         }
         let superToken;
-        if (tokenSymbol !== this.config.nativeTokenSymbol) {
+        if (tokenKey !== this.config.nativeTokenSymbol) {
             superToken = await this.contracts.ISuperToken.at(superTokenAddress);
         } else {
             superToken = await this.contracts.ISETH.at(superTokenAddress);
         }
-        this.tokens[superTokenSymbol] = superToken;
-        this.superTokens[superTokenSymbol] = superToken;
+        this.tokens[superTokenKey] = superToken;
+        this.superTokens[superTokenKey] = superToken;
         superToken.underlyingToken = underlyingToken;
         console.debug(
-            `${superTokenSymbol}: ISuperToken .tokens["${superTokenSymbol}"] @${superTokenAddress}`
+            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"] @${superTokenAddress}`
         );
     }
 

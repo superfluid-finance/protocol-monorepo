@@ -4,6 +4,7 @@ const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
 const SuperAppMock = artifacts.require("SuperAppMock");
 const TestGovernance = artifacts.require("TestGovernance");
+const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -394,8 +395,10 @@ contract("Superfluid Host Contract", (accounts) => {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
+                const helper = await SuperTokenFactoryHelper.new();
                 const factory2Logic = await SuperTokenFactory.new(
-                    superfluid.address
+                    superfluid.address,
+                    helper.address
                 );
                 await web3tx(
                     governance.updateContracts,
@@ -2159,8 +2162,10 @@ contract("Superfluid Host Contract", (accounts) => {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
+                const helper = await SuperTokenFactoryHelper.new();
                 const factory2Logic = await SuperTokenFactory.new(
-                    superfluid.address
+                    superfluid.address,
+                    helper.address
                 );
                 await expectRevert(
                     governance.updateContracts(

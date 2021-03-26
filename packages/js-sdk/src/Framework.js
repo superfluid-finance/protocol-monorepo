@@ -270,7 +270,9 @@ module.exports = class Framework {
         console.log(
             `${u} super token ${superTokenSymbol} created at ${wrapperAddress}`
         );
-        return this.contracts.ISuperToken.at(wrapperAddress);
+        const superToken = await this.contracts.ISuperToken.at(wrapperAddress);
+        superToken.tx = tx;
+        return superToken;
     }
 
     user({ address, token, options }) {

@@ -27,7 +27,11 @@ const BatchTransfer = ({ token }) => {
       tokenAddress: token,
     })
 
-    if (error) return toast.error(error.message || error)
+    if (error) {
+      toast.error(error.message || error)
+      setLoading(false)
+      return
+    }
 
     await toast.promise(tx.wait(), {
       loading: 'Waiting for confirmation',

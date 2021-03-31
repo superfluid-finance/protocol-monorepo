@@ -13,7 +13,6 @@ export const batchTransfer = async ({ tokenAddress, recipients, amounts }) => {
     toast('Connecting to your wallet...')
     const { walletProvider, walletAddress, network } = await unlockWallet({
       debug: true,
-      infuraId: process.env.INFURA_ENDPOINT_KEY,
     })
     toast(`Your wallet is on chain ${network.chainId}`)
 
@@ -32,7 +31,7 @@ export const batchTransfer = async ({ tokenAddress, recipients, amounts }) => {
       ]
     })
     const tx = await sf.host.batchCall(calls)
-    // const tx = //
+
     return { tx }
   } catch (err) {
     console.log(err)

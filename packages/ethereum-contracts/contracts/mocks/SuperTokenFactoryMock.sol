@@ -38,8 +38,7 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 }
 
 // spliting this off because the contract is getting bigger
-contract SuperTokenMockFactory {
-
+contract SuperTokenFactoryMockHelper {
     function create(ISuperfluid host, uint256 waterMark)
         external
         returns (address logic)
@@ -51,22 +50,22 @@ contract SuperTokenMockFactory {
 
 contract SuperTokenFactoryMock is SuperTokenFactoryBase
 {
-    SuperTokenMockFactory immutable private _f;
+    SuperTokenFactoryMockHelper immutable private _helper;
 
     constructor(
         ISuperfluid host,
-        SuperTokenMockFactory f
+        SuperTokenFactoryMockHelper helper
     )
         SuperTokenFactoryBase(host)
     {
-        _f = f;
+        _helper = helper;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        return _f.create(host, 0);
+        return _helper.create(host, 0);
     }
 
 }
@@ -74,22 +73,22 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase
 {
 
-    SuperTokenMockFactory immutable private _f;
+    SuperTokenFactoryMockHelper immutable private _helper;
 
     constructor(
         ISuperfluid host,
-        SuperTokenMockFactory f
+        SuperTokenFactoryMockHelper helper
     )
         SuperTokenFactoryBase(host)
     {
-        _f = f;
+        _helper = helper;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        return _f.create(host, 42);
+        return _helper.create(host, 42);
     }
 
 }

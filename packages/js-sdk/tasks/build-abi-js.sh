@@ -2,15 +2,18 @@
 
 cd "$(dirname "$0")/.."
 
-which jq &>/dev/null || { echo "Install jq utility!" && exit 1; }
+JQ="../../node_modules/node-jq/bin/jq"
 
-CONTRACTS=( $(jq -r .[] ./src/contracts.json) )
+CONTRACTS=( $($JQ -r .[] ./src/contracts.json) )
+[ $? == 0 ] || exit 1
 
 {
     echo "if (typeof module === \"undefined\") module = {};"
     echo "Superfluid_ABI = module.exports = {"
     for i in "${CONTRACTS[@]}";do
-        echo "    $i: $(jq '.abi' ../ethereum-contracts/build/contracts/$i.json),"
+        ABI="$($JQ '.abi' ../ethereum-contracts/build/contracts/$i.json)"
+        [ $? == 0 ] || exit 1
+        echo "    $i: $ABI,"
     done
     echo "};"
 } > src/abi.js

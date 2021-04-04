@@ -805,6 +805,19 @@ async function _shouldChangeFlow({
                         rewardAmount: expectedRewardAmount.toString(),
                     }
                 );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedBy",
+                    {
+                        liquidatorAccount: roles.agent,
+                        agreementClass: testenv.sf.agreements.cfa.address,
+                        penaltyAccount: roles.sender,
+                        bondAccount: roles.reward,
+                        rewardAmount: expectedRewardAmount.toString(),
+                        bailoutAmount: "0",
+                    }
+                );
             } else {
                 const expectedRewardAmount = toBN(flows.main.flowInfo1.deposit);
                 const expectedBailoutAmount = toBN(
@@ -855,6 +868,19 @@ async function _shouldChangeFlow({
                     "Bailout",
                     {
                         bailoutAccount: roles.reward,
+                        bailoutAmount: expectedBailoutAmount.toString(),
+                    }
+                );
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    testenv.sf.contracts.ISuperToken,
+                    "AgreementLiquidatedBy",
+                    {
+                        liquidatorAccount: roles.agent,
+                        agreementClass: testenv.sf.agreements.cfa.address,
+                        penaltyAccount: roles.sender,
+                        bondAccount: roles.reward,
+                        rewardAmount: expectedRewardAmount.toString(),
                         bailoutAmount: expectedBailoutAmount.toString(),
                     }
                 );

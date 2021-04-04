@@ -1,9 +1,12 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
+const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
-const SuperTokenMockFactory = artifacts.require("SuperTokenMockFactory");
+const SuperTokenFactoryMockHelper = artifacts.require(
+    "SuperTokenFactoryMockHelper"
+);
 const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
@@ -70,6 +73,7 @@ contract("SuperTokenFactory Contract", (accounts) => {
         let token1;
 
         beforeEach(async () => {
+            await t.reset();
             ({ superfluid, governance } = t.contracts);
             factory = await SuperTokenFactoryMock.at(
                 await superfluid.getSuperTokenFactory.call()
@@ -81,23 +85,18 @@ contract("SuperTokenFactory Contract", (accounts) => {
             );
         });
 
-        afterEach(async () => {
-            // cleanup test environment for other tests
-            await t.reset();
-        });
-
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
                 const SuperTokenFactoryMock42 = artifacts.require(
                     "SuperTokenFactoryMock42"
                 );
-                const f = await web3tx(
-                    SuperTokenMockFactory.new,
-                    "SuperTokenMockFactory.new"
+                const helper = await web3tx(
+                    SuperTokenFactoryMockHelper.new,
+                    "SuperTokenFactoryMockHelper.new"
                 )();
                 const factory2Logic = await SuperTokenFactoryMock42.new(
                     superfluid.address,
-                    f.address
+                    helper.address
                 );
                 await web3tx(
                     governance.updateContracts,
@@ -112,6 +111,9 @@ contract("SuperTokenFactory Contract", (accounts) => {
             it("#2.a.1 non upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 0,
+                });
+                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
+                    token: superToken1.address,
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
@@ -135,6 +137,9 @@ contract("SuperTokenFactory Contract", (accounts) => {
             it("#2.a.2 semi upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 1,
+                });
+                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
+                    token: superToken1.address,
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 assert.equal(
@@ -160,6 +165,9 @@ contract("SuperTokenFactory Contract", (accounts) => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 2,
                 });
+                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
+                    token: superToken1.address,
+                });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
                 assert.equal(
@@ -174,33 +182,71 @@ contract("SuperTokenFactory Contract", (accounts) => {
                     "UUPSProxiable: not upgradable"
                 );
             });
+
+            it("#2.a.4 Create Custom Token", async () => {
+                const CustomSuperTokenMock = artifacts.require(
+                    "CustomSuperTokenMock"
+                );
+                const CustomSuperTokenProxyMock = artifacts.require(
+                    "CustomSuperTokenProxyMock"
+                );
+                const customToken = await CustomSuperTokenMock.at(
+                    (
+                        await web3tx(
+                            CustomSuperTokenProxyMock.new,
+                            "CustomSuperTokenProxyMock.new"
+                        )(superfluid.address)
+                    ).address
+                );
+                const tx = await web3tx(
+                    factory.initializeCustomSuperToken,
+                    "initializeCustomSuperToken"
+                )(customToken.address);
+                await expectEvent(tx.receipt, "CustomSuperTokenCreated", {
+                    token: customToken.address,
+                });
+            });
         });
 
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
+                const helper = await SuperTokenFactoryHelper.new();
                 const factory2Logic = await SuperTokenFactory.new(
-                    superfluid.address
+                    superfluid.address,
+                    helper.address
                 );
                 await web3tx(
                     governance.updateContracts,
                     "governance.updateContracts"
                 )(superfluid.address, ZERO_ADDRESS, [], factory2Logic.address);
+
                 let superToken0 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 0,
+                });
+                await expectEvent(superToken0.tx.receipt, "SuperTokenCreated", {
+                    token: superToken0.address,
                 });
                 assert.equal(
                     await superToken0.getUnderlyingToken.call(),
                     token1.address
                 );
+
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 1,
+                });
+                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
+                    token: superToken1.address,
                 });
                 assert.equal(
                     await superToken1.getUnderlyingToken.call(),
                     token1.address
                 );
+
                 let superToken2 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 2,
+                });
+                await expectEvent(superToken2.tx.receipt, "SuperTokenCreated", {
+                    token: superToken2.address,
                 });
                 assert.equal(
                     await superToken2.getUnderlyingToken.call(),

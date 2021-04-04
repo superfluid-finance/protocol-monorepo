@@ -174,7 +174,7 @@ contract("Framework class", (accounts) => {
                 });
                 await expectRevert(
                     sf.initialize(),
-                    "Token fML is not registered"
+                    "Super Token for fML cannot be found"
                 );
             });
 
@@ -190,7 +190,7 @@ contract("Framework class", (accounts) => {
                 });
                 await expectRevert(
                     sf.initialize(),
-                    "Token SASHIMI doesn't have a super token wrapper"
+                    "Super Token for SASHIMI cannot be found"
                 );
             });
         });

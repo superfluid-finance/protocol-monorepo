@@ -163,13 +163,8 @@ module.exports = class Framework {
         );
         console.debug(
             "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
-            this.agreements.ida
-                .address`ConstantFlowAgreementV1: TruffleContract .agreements.cfa ${cfaAddress} | Helper .cfa`
+            this.agreements.ida.address
         );
-        console.debug(
-            `InstantDistributionAgreementV1: TruffleContract .agreements.ida ${idaAddress} | Helper .ida`
-        );
-
         const superTokenFactoryAddress = await this.host.getSuperTokenFactory();
         console.debug(
             `SuperTokenFactory contract: ${superTokenFactoryAddress}`

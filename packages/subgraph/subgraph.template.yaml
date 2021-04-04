@@ -27,6 +27,8 @@ dataSources:
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
+              - event: CustomSuperTokenCreated(indexed address)
+                handler: handleSuperTokenCreated
     # - kind: ethereum/contract
     #   name: Host
     #   network: {{ network }}

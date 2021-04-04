@@ -68,10 +68,12 @@ export function fetchFlow(
         flow.lastUpdate = timestamp;
         flow.recipient = recipient;
 
-        // Create accounts if they do not exist
+        // Create accounts/tokens if they do not exist
+        let token = fetchToken(tokenAddress);
+        token.save();
         let ownerAccount = fetchAccount(owner);
-        let recipientAccount = fetchAccount(recipient);
         ownerAccount.save();
+        let recipientAccount = fetchAccount(recipient);
         recipientAccount.save();
     }
     return flow as Flow;

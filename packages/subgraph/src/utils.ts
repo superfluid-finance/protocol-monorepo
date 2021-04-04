@@ -63,13 +63,13 @@ export function fetchFlow(
         flow = new Flow(id);
         flow.sum = BigDecimal.fromString("0");
         flow.flowRate = BigInt.fromI32(0);
-        flow.token = tokenAddress;
+        let token = fetchToken(tokenAddress);
+        flow.token = token.id;
         flow.owner = owner;
         flow.lastUpdate = timestamp;
         flow.recipient = recipient;
 
         // Create accounts/tokens if they do not exist
-        let token = fetchToken(tokenAddress);
         token.save();
         let ownerAccount = fetchAccount(owner);
         ownerAccount.save();

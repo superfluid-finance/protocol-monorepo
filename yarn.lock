@@ -8000,14 +8000,9 @@ ganache-cli@^6.11.0:
     source-map-support "0.5.12"
     yargs "13.2.4"
 
-ganache-time-traveler@1.0.15:
+ganache-time-traveler@1.0.15, ganache-time-traveler@^1.0.15:
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/ganache-time-traveler/-/ganache-time-traveler-1.0.15.tgz#07c575abeb1e110903b76a2181e18598066617e9"
-  integrity sha512-3yoSbvvqSRA13w/SrNGy5tniwdwuRSAMrltGaOZAoqjnhpWkbVlGOVkdiEA/69dN4ZTArwJr1lWpiPzwqTWNCA==
-
-ganache-time-traveler@^1.0.15:
-  version "1.0.15"
-  resolved "https://registry.npmjs.org/ganache-time-traveler/-/ganache-time-traveler-1.0.15.tgz#07c575abeb1e110903b76a2181e18598066617e9"
   integrity sha512-3yoSbvvqSRA13w/SrNGy5tniwdwuRSAMrltGaOZAoqjnhpWkbVlGOVkdiEA/69dN4ZTArwJr1lWpiPzwqTWNCA==
 
 gauge@~2.7.3:

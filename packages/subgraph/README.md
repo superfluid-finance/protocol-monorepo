@@ -120,7 +120,7 @@ ethereum: 'ganache:http://172.17.0.1:8545'
 
 > Note: If you're returning from an earlier work session, skip down to [Testing](#testing).
 
-Now navigate to `packages/ethereum-contracts` and build the contracts.
+Navigate to the **root of the repo** and run the build command.
 
 ```bash
 yarn build

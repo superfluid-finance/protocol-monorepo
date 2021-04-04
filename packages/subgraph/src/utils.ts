@@ -6,6 +6,7 @@ import {
     log,
 } from "@graphprotocol/graph-ts";
 
+import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { Account, Flow, Token, Transaction } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 
@@ -43,6 +44,9 @@ export function fetchToken(address: string): Token {
         token.underlyingAddress = underlyingAddress;
         token.name = name;
         token.symbol = symbol;
+        // Create a dynamic data source instance
+        // https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
+        SuperTokenTemplate.create(Address.fromString(address));
     }
     return token as Token;
 }
@@ -50,16 +54,16 @@ export function fetchToken(address: string): Token {
 export function fetchFlow(
     owner: string,
     recipient: string,
-    token: string,
+    tokenAddress: string,
     timestamp: BigInt
 ): Flow {
-    let id = createFlowID(owner, recipient, token);
+    let id = createFlowID(owner, recipient, tokenAddress);
     let flow = Flow.load(id);
     if (flow == null) {
         flow = new Flow(id);
         flow.sum = BigDecimal.fromString("0");
         flow.flowRate = BigInt.fromI32(0);
-        flow.token = token;
+        flow.token = tokenAddress;
         flow.owner = owner;
         flow.lastUpdate = timestamp;
         flow.recipient = recipient;

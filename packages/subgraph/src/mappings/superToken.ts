@@ -8,27 +8,33 @@ import {
 
 import { TokenUpgraded, TokenDowngraded } from "../../generated/schema";
 
-import { createEventID, logTransaction, fetchToken } from "../utils";
+import {
+    createEventID,
+    logTransaction,
+    fetchToken,
+    fetchAccount,
+} from "../utils";
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
-    let account = event.params.account.toHex();
+    let account = fetchAccount(event.params.account.toHex());
+    account.save();
     let amount = event.params.amount;
 
     let ev = new TokenUpgraded(createEventID(event));
     ev.transaction = logTransaction(event).id;
-    ev.account = account;
+    ev.account = account.id;
     ev.amount = amount;
     ev.token = dataSource.address().toHex();
     ev.save();
 }
 
 export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
-    let account = event.params.account.toHex();
+    let account = fetchAccount(event.params.account.toHex());
     let amount = event.params.amount;
 
     let ev = new TokenDowngraded(createEventID(event));
     ev.transaction = logTransaction(event).id;
-    ev.account = account;
+    ev.account = account.id;
     ev.amount = amount;
     ev.token = dataSource.address().toHex();
     ev.save();

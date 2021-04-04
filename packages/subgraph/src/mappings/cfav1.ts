@@ -22,7 +22,6 @@ import {
     createEventID,
     fetchFlow,
     fetchToken,
-    fetchAccount,
     logTransaction,
     toDai,
 } from "../utils";

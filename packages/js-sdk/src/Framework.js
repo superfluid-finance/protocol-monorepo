@@ -191,6 +191,7 @@ module.exports = class Framework {
         // load underlying token
         //  but we don't need to load native tokens
         let underlyingToken;
+        let checkUnderlyingToken;
         let superTokenKey;
         if (tokenKey !== this.config.nativeTokenSymbol) {
             const tokenAddress = await this.resolver.get(`tokens.${tokenKey}`);
@@ -204,8 +205,10 @@ module.exports = class Framework {
                     tokenAddress
                 );
                 superTokenKey = tokenKey + "x";
+                checkUnderlyingToken = true;
             } else {
                 superTokenKey = tokenKey;
+                checkUnderlyingToken = true;
             }
         } else {
             superTokenKey = this.config.nativeTokenSymbol + "x";
@@ -226,7 +229,33 @@ module.exports = class Framework {
         }
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
+
+        if (checkUnderlyingToken) {
+            const underlyingTokenAddress = await superToken.getUnderlyingToken.call();
+            if (underlyingTokenAddress !== ZERO_ADDRESS) {
+                // if underlying token is not undefined and not equal to getUnderlyingToken() returned address
+                if (
+                    underlyingToken &&
+                    underlyingTokenAddress.toLowerCase() !==
+                        underlyingToken.address.toLowerCase()
+                ) {
+                    throw new Error(
+                        `Underlying token address are different for ${tokenKey}`
+                    );
+                }
+
+                // if underlying token is null or undefined
+                if (!underlyingToken) {
+                    underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
+                        underlyingTokenAddress
+                    );
+                    const symbol = await underlyingToken.symbol();
+                    this.tokens[symbol] = underlyingToken;
+                }
+            }
+        }
         superToken.underlyingToken = underlyingToken;
+
         console.debug(
             `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"]`,
             superTokenAddress

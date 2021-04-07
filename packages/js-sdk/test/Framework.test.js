@@ -166,6 +166,19 @@ contract("Framework class", (accounts) => {
                 assert.equal(await sf.tokens.fDAIx.symbol(), "fDAIx");
             });
 
+            it("registered in resolver", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["fUSDCx", "fDAIx"],
+                    version: "test",
+                });
+                await sf.initialize();
+                assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
+                assert.equal(await sf.tokens.fDAI.symbol(), "fDAI");
+                assert.equal(await sf.tokens.fUSDCx.symbol(), "fUSDCx");
+                assert.equal(await sf.tokens.fDAIx.symbol(), "fDAIx");
+            });
+
             it("failed due to unregistered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     tokens: ["fML"],

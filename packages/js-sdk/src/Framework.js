@@ -250,7 +250,11 @@ module.exports = class Framework {
                         underlyingTokenAddress
                     );
                     const symbol = await underlyingToken.symbol();
-                    this.tokens[symbol] = underlyingToken;
+                    if (symbol !== this.config.nativeTokenSymbol) {
+                        this.tokens[symbol] = underlyingToken;
+                    } else {
+                        underlyingToken = undefined;
+                    }
                 }
             }
         }

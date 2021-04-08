@@ -7,11 +7,11 @@ const NativeSuperTokenProxy = artifacts.require("NativeSuperTokenProxy");
 const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
 contract("NativeSuperTokenProxy Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 3), {
+    const t = new TestEnvironment(accounts.slice(0, 1), {
         isTruffle: true,
         useMocks: true,
     });
-
+    const { admin } = t.aliases;
     let superTokenFactory;
 
     before(async () => {
@@ -31,6 +31,11 @@ contract("NativeSuperTokenProxy Contract", (accounts) => {
             "Didi Token",
             "DD",
             toWad(42)
+        );
+        const token = await t.sf.contracts.ISuperToken.at(tokenProxy.address);
+        assert.equal(
+            (await token.balanceOf.call(admin)).toString(),
+            toWad(42).toString()
         );
         await expectRevert(
             tokenProxy.initialize("Hacker", "HH", toWad(0)),

@@ -87,7 +87,10 @@ During initialization, the resolver will be used to fetch the correct set of con
 | isTruffle    | Boolean  | Use the Framework under the native truffle environment | false |
 | web3         | Object   | Use the Framework with web3.js (1.3.x) | undefined |
 | ethers       | Object   | Use the Framework with ethers.js (5.x.y) | undefined |
-| tokens       | String[] | List of tokens | [] |
+| additionalContracts | String[] | additional contracts to be loaded | [] |
+| tokens       | String[] | List of token keys to load from the resolver | [] |
+| loadSuperNativeToken | Boolean | Load super native token (e.g. ETHx) if possible | false |
+| resolverAddress | Address | Force resolver address | undefined |
 
 You also need to choose what web3 framework you plan to use, currently we support three modes:
 * Truffle native environment (developing using `truffle test|exec|egc.`).

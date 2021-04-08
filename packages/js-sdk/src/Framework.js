@@ -184,7 +184,7 @@ module.exports = class Framework {
      * @dev Load additional token using resolver
      * @param {String} superTokenKey super token key used to query resolver
      */
-    async isSuprTokenListed(superTokenKey) {
+    async isSuperTokenListed(superTokenKey) {
         const superTokenAddress = await this.resolver.get(
             `supertokens.${this.version}.${superTokenKey}`
         );

@@ -154,22 +154,22 @@ contract("Framework class", (accounts) => {
         });
 
         describe("token loading", () => {
-            it("isSuprTokenListed", async () => {
+            it("isSuperTokenListed", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
                     version: "test",
                 });
                 await sf.initialize();
 
-                assert.isTrue(await sf.isSuprTokenListed("ETHx"));
-                assert.isTrue(await sf.isSuprTokenListed("fUSDCx"));
-                assert.isTrue(await sf.isSuprTokenListed("fDAIx"));
+                assert.isTrue(await sf.isSuperTokenListed("ETHx"));
+                assert.isTrue(await sf.isSuperTokenListed("fUSDCx"));
+                assert.isTrue(await sf.isSuperTokenListed("fDAIx"));
 
-                assert.isFalse(await sf.isSuprTokenListed("ETH"));
-                assert.isFalse(await sf.isSuprTokenListed("fUSDC"));
-                assert.isFalse(await sf.isSuprTokenListed("fDAI"));
-                assert.isFalse(await sf.isSuprTokenListed("fTUSDx"));
-                assert.isFalse(await sf.isSuprTokenListed("ABC"));
+                assert.isFalse(await sf.isSuperTokenListed("ETH"));
+                assert.isFalse(await sf.isSuperTokenListed("fUSDC"));
+                assert.isFalse(await sf.isSuperTokenListed("fDAI"));
+                assert.isFalse(await sf.isSuperTokenListed("fTUSDx"));
+                assert.isFalse(await sf.isSuperTokenListed("ABC"));
             });
 
             it("load all tokens", async () => {

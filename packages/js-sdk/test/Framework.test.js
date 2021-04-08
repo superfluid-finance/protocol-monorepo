@@ -14,20 +14,21 @@ contract("Framework class", (accounts) => {
 
     before(async () => {
         await t.reset();
-        await Promise.all([
-            deployTestToken(t.errorHandler, [":", "fDAI"], {
-                isTruffle: true,
-            }),
-            deployTestToken(t.errorHandler, [":", "fUSDC"], {
-                isTruffle: true,
-            }),
-            deploySuperToken(t.errorHandler, [":", "fDAI"], {
-                isTruffle: true,
-            }),
-            deploySuperToken(t.errorHandler, [":", "fUSDC"], {
-                isTruffle: true,
-            }),
-        ]);
+        await deployTestToken(t.errorHandler, [":", "fDAI"], {
+            isTruffle: true,
+        });
+        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
+            isTruffle: true,
+        });
+        await deploySuperToken(t.errorHandler, [":", "ETH"], {
+            isTruffle: true,
+        });
+        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
+            isTruffle: true,
+        });
+        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
+            isTruffle: true,
+        });
     });
 
     describe("initialization", () => {
@@ -152,11 +153,68 @@ contract("Framework class", (accounts) => {
             assert.equal(sf.version, "v1");
         });
 
-        describe("and load tokens", () => {
+        describe("token loading", () => {
+            it("isSuprTokenListed", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.isTrue(await sf.isSuprTokenListed("ETHx"));
+                assert.isTrue(await sf.isSuprTokenListed("fUSDCx"));
+                assert.isTrue(await sf.isSuprTokenListed("fDAIx"));
+
+                assert.isFalse(await sf.isSuprTokenListed("ETH"));
+                assert.isFalse(await sf.isSuprTokenListed("fUSDC"));
+                assert.isFalse(await sf.isSuprTokenListed("fDAI"));
+                assert.isFalse(await sf.isSuprTokenListed("fTUSDx"));
+                assert.isFalse(await sf.isSuprTokenListed("ABC"));
+            });
+
+            it("load all tokens", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["ETH", "fUSDC", "fDAI"],
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
+                assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
+                assert.isUndefined(sf.superTokens.ETHx.underlyingToken);
+
+                assert.equal(sf.superTokens.fUSDCx, sf.tokens.fUSDCx);
+                assert.equal(await sf.superTokens.fUSDCx.symbol(), "fUSDCx");
+                assert.equal(await sf.tokens.fUSDC.symbol(), "fUSDC");
+                assert.equal(sf.tokens.fUSDCx.underlyingToken, sf.tokens.fUSDC);
+
+                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
+                assert.equal(await sf.superTokens.fDAIx.symbol(), "fDAIx");
+                assert.equal(await sf.tokens.fDAI.symbol(), "fDAI");
+                assert.equal(sf.tokens.fDAIx.underlyingToken, sf.tokens.fDAI);
+            });
+
+            it("load by superToken key", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["fDAIx"],
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.equal(sf.superTokens.fDAIx, sf.tokens.fDAIx);
+                assert.equal(await sf.superTokens.fDAIx.symbol(), "fDAIx");
+                assert.equal(
+                    await sf.tokens.fDAIx.underlyingToken.symbol(),
+                    "fDAI"
+                );
+            });
+
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
-                    tokens: ["fUSDC", "fDAI"],
+                    tokens: ["fUSDCx", "fDAIx"],
                     version: "test",
                 });
                 await sf.initialize();

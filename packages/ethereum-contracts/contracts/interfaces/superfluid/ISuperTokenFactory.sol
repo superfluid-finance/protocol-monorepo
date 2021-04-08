@@ -80,4 +80,6 @@ interface ISuperTokenFactory {
 
     event SuperTokenCreated(ISuperToken indexed token);
 
+    event CustomSuperTokenCreated(ISuperToken indexed token);
+
 }

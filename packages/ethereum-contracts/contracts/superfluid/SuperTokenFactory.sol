@@ -143,25 +143,40 @@ abstract contract SuperTokenFactoryBase is
         // odd solidity stuff..
         address payable a = address(uint160(customSuperTokenProxy));
         UUPSProxy(a).initializeProxy(address(_superTokenLogic));
+
+        emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }
 
 }
 
+// spliting this off because the contract is getting bigger
+contract SuperTokenFactoryHelper {
+    function create(ISuperfluid host)
+        external
+        returns (address logic)
+    {
+        return address(new SuperToken(host));
+    }
+}
+
 contract SuperTokenFactory is SuperTokenFactoryBase
 {
+    SuperTokenFactoryHelper immutable private _helper;
 
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        SuperTokenFactoryHelper helper
     )
         SuperTokenFactoryBase(host)
         // solhint-disable-next-line no-empty-blocks
     {
+        _helper = helper;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
         external override
         returns (address logic)
     {
-        return address(new SuperToken(host));
+        return _helper.create(host);
     }
 }

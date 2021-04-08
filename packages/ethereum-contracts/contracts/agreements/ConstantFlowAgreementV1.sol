@@ -507,7 +507,7 @@ contract ConstantFlowAgreementV1 is
             }
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
-            (,vars.appAllowance, vars.newFlowData) = _changeFlow(
+            (,vars.appAllowance,) = _changeFlow(
                     currentContext.timestamp,
                     token, flowParams, oldFlowData);
 
@@ -526,6 +526,10 @@ contract ConstantFlowAgreementV1 is
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
             }
             (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+
+            // NB: the callback might update the same flow!!
+            // reload the flow data
+            (, vars.newFlowData) = _getAgreementData(token, flowParams.flowId);
         } else {
             (,,vars.newFlowData) = _changeFlow(
                     currentContext.timestamp,

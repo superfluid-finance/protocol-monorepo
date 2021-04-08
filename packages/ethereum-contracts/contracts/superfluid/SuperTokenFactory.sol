@@ -90,32 +90,32 @@ abstract contract SuperTokenFactoryBase is
         string calldata symbol
     )
         public override
+        returns (ISuperToken superToken)
     {
         require(address(underlyingToken) != address(0), "SuperTokenFactory: zero address");
 
-        ISuperToken token;
         if (upgradability == Upgradability.NON_UPGRADABLE) {
-            token = ISuperToken(this.createSuperTokenLogic(_host));
+            superToken = ISuperToken(this.createSuperTokenLogic(_host));
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
             proxy.initializeProxy(address(_superTokenLogic));
-            token = ISuperToken(address(proxy));
+            superToken = ISuperToken(address(proxy));
         } else /* if (type == Upgradability.FULL_UPGRADABE) */ {
             FullUpgradableSuperTokenProxy proxy = new FullUpgradableSuperTokenProxy();
             proxy.initialize();
-            token = ISuperToken(address(proxy));
+            superToken = ISuperToken(address(proxy));
         }
 
         // initialize the token
-        token.initialize(
+        superToken.initialize(
             underlyingToken,
             underlyingDecimals,
             name,
             symbol
         );
 
-        emit SuperTokenCreated(token);
+        emit SuperTokenCreated(superToken);
     }
 
     function createERC20Wrapper(
@@ -125,8 +125,9 @@ abstract contract SuperTokenFactoryBase is
         string calldata symbol
     )
         external override
+        returns (ISuperToken superToken)
     {
-        createERC20Wrapper(
+        return createERC20Wrapper(
             underlyingToken,
             underlyingToken.decimals(),
             upgradability,

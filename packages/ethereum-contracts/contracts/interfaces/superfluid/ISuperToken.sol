@@ -329,7 +329,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *************************************************************************/
 
     /**
-     * @dev Return the underlaying token contract
+     * @dev Return the underlying token contract
      * @return tokenAddr Underlying token address
      */
     function getUnderlyingToken() external view returns(address tokenAddr);
@@ -356,7 +356,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Token upgrade event
-     * @param account Account whose tokens are upgraded to
+     * @param account Account where tokens are upgraded to
      * @param amount Amount of tokens upgraded (in 18 decimals)
      */
     event TokenUpgraded(

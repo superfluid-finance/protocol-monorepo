@@ -49,7 +49,7 @@ contract SuperToken is
        variables are added APPEND-ONLY. Re-ordering variables can
        permanently BREAK the deployed proxy contract. */
 
-    /// @dev The underlaying ERC20 token
+    /// @dev The underlying ERC20 token
     IERC20 internal _underlyingToken;
 
     /// @dev Decimals of the underlying token

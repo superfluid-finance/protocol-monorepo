@@ -182,6 +182,17 @@ module.exports = class Framework {
 
     /**
      * @dev Load additional token using resolver
+     * @param {String} superTokenKey super token key used to query resolver
+     */
+    async isSuprTokenListed(superTokenKey) {
+        const superTokenAddress = await this.resolver.get(
+            `supertokens.${this.version}.${superTokenKey}`
+        );
+        return superTokenAddress !== ZERO_ADDRESS;
+    }
+
+    /**
+     * @dev Load additional token using resolver
      * @param {String} tokenKey token key used to query resolver (in order of preference):
      *    - super chain-native token symbol (see getConfig.js),
      *    - underlying token resolver key (tokens.{KEY}),
@@ -205,11 +216,10 @@ module.exports = class Framework {
                     tokenAddress
                 );
                 superTokenKey = tokenKey + "x";
-                checkUnderlyingToken = true;
             } else {
                 superTokenKey = tokenKey;
-                checkUnderlyingToken = true;
             }
+            checkUnderlyingToken = true;
         } else {
             superTokenKey = this.config.nativeTokenSymbol + "x";
         }
@@ -251,6 +261,12 @@ module.exports = class Framework {
                     );
                     const symbol = await underlyingToken.symbol();
                     this.tokens[symbol] = underlyingToken;
+                }
+            } else {
+                if (underlyingToken) {
+                    throw new Error(
+                        `Unexpected underlying token for ${tokenKey}`
+                    );
                 }
             }
         }

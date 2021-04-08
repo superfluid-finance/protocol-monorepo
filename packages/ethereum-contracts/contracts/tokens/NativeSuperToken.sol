@@ -30,6 +30,9 @@ interface INativeSuperToken is INativeSuperTokenCustom, ISuperToken {
 /**
  * @dev Native SuperToken custom super token implementation
  *
+ * NOTE:
+ * - This is a simple implementation where the supply is pre-minted.
+ *
  * @author Superfluid
  */
 contract NativeSuperTokenProxy is INativeSuperTokenCustom, CustomSuperTokenProxyBase {

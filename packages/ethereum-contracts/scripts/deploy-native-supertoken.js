@@ -8,7 +8,7 @@ const {
 } = require("./utils");
 
 /**
- * @dev Deploy unlisted super token to the network.
+ * @dev Deploy unlisted native super token to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
@@ -19,7 +19,7 @@ const {
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
-        console.log("======== Deploying unmanaged super token ========");
+        console.log("======== Deploying unlisted native super token ========");
 
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
@@ -58,19 +58,19 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Deploying NativeSuperTokenProxy...");
         const proxy = await NativeSuperTokenProxy.new();
 
-        const logic = await INativeSuperToken.at(proxy.address);
+        const token = await INativeSuperToken.at(proxy.address);
 
         console.log("Invoking initializeCustomSuperToken...");
-        await superTokenFactory.initializeCustomSuperToken(logic.address);
+        await superTokenFactory.initializeCustomSuperToken(token.address);
 
         console.log("Invoking initialize...");
-        await logic.initialize(
+        await token.initialize(
             superTokenName,
             superTokenSymbol,
             web3.utils.toWei(String(initialSupply))
         );
 
-        console.log(`Native SuperToken deployed at ${logic.address}`);
+        console.log(`Native SuperToken deployed at ${token.address}`);
 
         callback();
     } catch (err) {

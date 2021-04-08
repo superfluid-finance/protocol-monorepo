@@ -207,13 +207,22 @@ module.exports = async function (callback, argv, options = {}) {
                 });
             }
             {
-                const latests = await superTokenFactory.getPastEvents(
-                    "SuperTokenCreated",
-                    {
-                        fromBlock: 0,
-                        toBlock: "latest",
-                    }
-                );
+                const latests = [
+                    ...(await superTokenFactory.getPastEvents(
+                        "CustomSuperTokenCreated",
+                        {
+                            fromBlock: 0,
+                            toBlock: "latest",
+                        }
+                    )),
+                    ...(await superTokenFactory.getPastEvents(
+                        "SuperTokenCreated",
+                        {
+                            fromBlock: 0,
+                            toBlock: "latest",
+                        }
+                    )),
+                ];
                 const superTokens = [];
                 for (let i = 0; i < latests.length; ++i) {
                     const superToken = await sf.contracts.SuperToken.at(

@@ -1,4 +1,4 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const {
     web3tx,
@@ -70,11 +70,15 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
         it("#2.1 - should upgrade if enough balance", async () => {
             const initialBalance = await testToken.balanceOf.call(alice);
 
-            await web3tx(
+            const tx = await web3tx(
                 superToken.upgrade,
                 "SuperToken.upgrade 2.0 tokens from alice"
             )(toWad(2), {
                 from: alice,
+            });
+            expectEvent(tx.receipt, "TokenUpgraded", {
+                account: alice,
+                amount: toWad(2).toString(),
             });
             const { timestamp } = await web3.eth.getBlock("latest");
 
@@ -388,11 +392,15 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
             const initialBalanceAlice = await testToken.balanceOf.call(alice);
             const initialBalanceBob = await testToken.balanceOf.call(bob);
 
-            await web3tx(
+            const tx = await web3tx(
                 superToken.upgradeTo,
                 "SuperToken.upgrade 2.0 tokens from alice to bob"
             )(bob, toWad(2), "0x", {
                 from: alice,
+            });
+            expectEvent(tx.receipt, "TokenUpgraded", {
+                account: bob,
+                amount: toWad(2).toString(),
             });
             const { timestamp } = await web3.eth.getBlock("latest");
 

@@ -250,18 +250,7 @@ module.exports = class Framework {
                         underlyingTokenAddress
                     );
                     const symbol = await underlyingToken.symbol();
-                    if (symbol !== this.config.nativeTokenSymbol) {
-                        this.tokens[symbol] = underlyingToken;
-                    } else {
-                        const tokenAddress = await this.resolver.get(
-                            `tokens.${symbol}`
-                        );
-                        if (tokenAddress !== ZERO_ADDRESS) {
-                            underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
-                                tokenAddress
-                            );
-                        }
-                    }
+                    this.tokens[symbol] = underlyingToken;
                 }
             }
         }

@@ -356,7 +356,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Token upgrade event
-     * @param account Account whose tokens are upgraded
+     * @param account Account whose tokens are upgraded to
      * @param amount Amount of tokens upgraded (in 18 decimals)
      */
     event TokenUpgraded(

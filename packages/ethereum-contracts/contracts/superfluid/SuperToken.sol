@@ -560,7 +560,7 @@ contract SuperToken is
             // if `to` is diffferent from `account`, we requireReceptionAck
             account != to, userData, operatorData);
 
-        emit TokenUpgraded(account, adjustedAmount);
+        emit TokenUpgraded(to, adjustedAmount);
     }
 
     function _downgrade(

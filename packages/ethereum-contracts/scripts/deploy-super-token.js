@@ -1,4 +1,5 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const { web3tx } = require("@decentral.ee/web3-helpers");
 
 const {
     parseColonArgs,
@@ -51,12 +52,20 @@ module.exports = async function (callback, argv, options = {}) {
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
             version: protocolReleaseVersion,
-            additionalContracts: ["TestResolver", "UUPSProxiable", "SETHProxy"],
+            additionalContracts: [
+                "Ownable",
+                "IMultiSigWallet",
+                "TestResolver",
+                "UUPSProxiable",
+                "SETHProxy",
+            ],
             contractLoader: builtTruffleContractLoader,
         });
         await sf.initialize();
 
         const {
+            Ownable,
+            IMultiSigWallet,
             TestResolver,
             UUPSProxiable,
             ISuperfluidGovernance,
@@ -69,8 +78,10 @@ module.exports = async function (callback, argv, options = {}) {
             await sf.host.getSuperTokenFactory.call()
         );
 
+        let superTokenKey;
         let deploymentFn;
         if (tokenName == sf.config.nativeTokenSymbol) {
+            superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
                 const weth =
@@ -93,27 +104,36 @@ module.exports = async function (callback, argv, options = {}) {
                 return seth;
             };
         } else {
-            const tokenAddress = await sf.resolver.get(`tokens.${tokenName}`);
-            const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
-            const tokenInfoName = await tokenInfo.name.call();
-            const tokenInfoSymbol = await tokenInfo.symbol.call();
-            const tokenInfoDecimals = await tokenInfo.decimals.call();
-            console.log("Underlying token address", tokenAddress);
-            console.log("Underlying token name", tokenName);
-            console.log("Underlying token info name()", tokenInfoName);
-            console.log("Underlying token info symbol()", tokenInfoSymbol);
-            console.log(
-                "Underlying token info decimals()",
-                tokenInfoDecimals.toString()
-            );
-            deploymentFn = async () => {
-                return await sf.createERC20Wrapper(tokenInfo);
-            };
+            superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenName}`;
+            if ((await sf.resolver.get(superTokenKey)) === ZERO_ADDRESS) {
+                const tokenAddress = await sf.resolver.get(
+                    `tokens.${tokenName}`
+                );
+                if (tokenAddress === ZERO_ADDRESS) {
+                    throw new Error("Underlying ERC20 Token not found");
+                }
+                const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
+                const tokenInfoName = await tokenInfo.name.call();
+                const tokenInfoSymbol = await tokenInfo.symbol.call();
+                const tokenInfoDecimals = await tokenInfo.decimals.call();
+                console.log("Underlying token address", tokenAddress);
+                console.log("Underlying token name", tokenName);
+                console.log("Underlying token info name()", tokenInfoName);
+                console.log("Underlying token info symbol()", tokenInfoSymbol);
+                console.log(
+                    "Underlying token info decimals()",
+                    tokenInfoDecimals.toString()
+                );
+                superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
+                deploymentFn = async () => {
+                    return await sf.createERC20Wrapper(tokenInfo);
+                };
+            }
         }
 
-        const name = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
-        const superTokenAddress = await sf.resolver.get(name);
-        console.log("SuperToken namt at the resolver: ", name);
+        const superTokenAddress = await sf.resolver.get(superTokenKey);
+        console.log("SuperToken key at the resolver: ", superTokenKey);
+
         console.log("SuperToken address: ", superTokenAddress);
         let doDeploy = false;
         if (resetToken || superTokenAddress == ZERO_ADDRESS) {
@@ -145,20 +165,46 @@ module.exports = async function (callback, argv, options = {}) {
                     const gov = await ISuperfluidGovernance.at(
                         await sf.host.getGovernance()
                     );
-                    await gov.updateSuperTokenLogic(
-                        sf.host.address,
-                        superTokenAddress
-                    );
-                    const superTokenLogic3 = await (
-                        await UUPSProxiable.at(superTokenAddress)
-                    ).getCodeAddress();
-                    console.log(
-                        "Updated SuperToken logic address",
-                        superTokenLogic3
-                    );
-                    if (superTokenLogic3 !== superTokenLogic1)
-                        throw new Error("SuperToken logic not updated");
-                    console.log("SuperToken's logic has been updated.");
+                    switch (process.env.GOVERNANCE_TYPE) {
+                        case "MULTISIG": {
+                            console.log("Governance type: MultiSig");
+                            const multis = await IMultiSigWallet.at(
+                                await (await Ownable.at(gov.address)).owner()
+                            );
+                            console.log("MultiSig address: ", multis.address);
+                            const data = gov.contract.methods
+                                .updateSuperTokenLogic(
+                                    sf.host.address,
+                                    superTokenAddress
+                                )
+                                .encodeABI();
+                            console.log("MultiSig data", data);
+                            await web3tx(
+                                multis.submitTransaction,
+                                "multis.submitTransaction"
+                            )(gov.address, 0, data);
+                            break;
+                        }
+                        default: {
+                            console.log(
+                                "Assuming default governance type: Direct Ownership"
+                            );
+                            await gov.updateSuperTokenLogic(
+                                sf.host.address,
+                                superTokenAddress
+                            );
+                            const superTokenLogic3 = await (
+                                await UUPSProxiable.at(superTokenAddress)
+                            ).getCodeAddress();
+                            console.log(
+                                "Updated SuperToken logic address",
+                                superTokenLogic3
+                            );
+                            if (superTokenLogic3 !== superTokenLogic1)
+                                throw new Error("SuperToken logic not updated");
+                            console.log("SuperToken's logic has been updated.");
+                        }
+                    }
                 }
             }
         }
@@ -168,7 +214,7 @@ module.exports = async function (callback, argv, options = {}) {
             console.log("Wrapper created at", superToken.address);
             console.log("Resolver setting new address...");
             const testResolver = await TestResolver.at(sf.resolver.address);
-            await testResolver.set(name, superToken.address);
+            await testResolver.set(superTokenKey, superToken.address);
             console.log("Resolver set done.");
         }
 

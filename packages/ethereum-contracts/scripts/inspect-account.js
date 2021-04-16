@@ -24,6 +24,7 @@ module.exports = async function (callback, argv) {
         const config = getConfig(chainId);
 
         const tokens = config.testTokens;
+        tokens.push("ETHx");
         const sf = new SuperfluidSDK.Framework({
             version: process.env.RELEASE_VERSION || "test",
             web3,
@@ -36,7 +37,11 @@ module.exports = async function (callback, argv) {
         while (args.length) {
             const account = args.shift();
             console.log("=".repeat(80));
-            console.log("Account", account);
+            const isApp = await sf.host.isApp(account);
+            console.log("Account", account, isApp ? "(app)" : "");
+            if (isApp) {
+                console.log("Jailed", await sf.host.isAppJailed(account));
+            }
             for (let i = 0; i < superTokens.length; ++i) {
                 console.log("-".repeat(80));
                 const superTokenSymbol = superTokens[i];

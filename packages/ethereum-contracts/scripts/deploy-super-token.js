@@ -1,5 +1,4 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { web3tx } = require("@decentral.ee/web3-helpers");
 
 const {
     parseColonArgs,
@@ -7,6 +6,7 @@ const {
     extractWeb3Options,
     detectTruffleAndConfigure,
     builtTruffleContractLoader,
+    sendGovernanceAction,
 } = require("./utils");
 
 /**
@@ -55,6 +55,7 @@ module.exports = async function (callback, argv, options = {}) {
             additionalContracts: [
                 "Ownable",
                 "IMultiSigWallet",
+                "SuperfluidGovernanceBase",
                 "TestResolver",
                 "UUPSProxiable",
                 "SETHProxy",
@@ -64,11 +65,8 @@ module.exports = async function (callback, argv, options = {}) {
         await sf.initialize();
 
         const {
-            Ownable,
-            IMultiSigWallet,
             TestResolver,
             UUPSProxiable,
-            ISuperfluidGovernance,
             ISuperToken,
             ISETH,
             SETHProxy,
@@ -161,49 +159,24 @@ module.exports = async function (callback, argv, options = {}) {
                 );
                 if (superTokenLogic1 !== superTokenLogic2) {
                     console.log("SuperToken logic needs to be updated.");
-                    console.log("Updating supertoken's logic....");
-                    const gov = await ISuperfluidGovernance.at(
-                        await sf.host.getGovernance()
+                    await sendGovernanceAction(sf, (gov) =>
+                        gov.updateSuperTokenLogic(
+                            sf.host.address,
+                            superTokenAddress
+                        )
                     );
-                    switch (process.env.GOVERNANCE_TYPE) {
-                        case "MULTISIG": {
-                            console.log("Governance type: MultiSig");
-                            const multis = await IMultiSigWallet.at(
-                                await (await Ownable.at(gov.address)).owner()
-                            );
-                            console.log("MultiSig address: ", multis.address);
-                            const data = gov.contract.methods
-                                .updateSuperTokenLogic(
-                                    sf.host.address,
-                                    superTokenAddress
-                                )
-                                .encodeABI();
-                            console.log("MultiSig data", data);
-                            await web3tx(
-                                multis.submitTransaction,
-                                "multis.submitTransaction"
-                            )(gov.address, 0, data);
-                            break;
-                        }
-                        default: {
-                            console.log(
-                                "Assuming default governance type: Direct Ownership"
-                            );
-                            await gov.updateSuperTokenLogic(
-                                sf.host.address,
-                                superTokenAddress
-                            );
-                            const superTokenLogic3 = await (
-                                await UUPSProxiable.at(superTokenAddress)
-                            ).getCodeAddress();
-                            console.log(
-                                "Updated SuperToken logic address",
-                                superTokenLogic3
-                            );
-                            if (superTokenLogic3 !== superTokenLogic1)
-                                throw new Error("SuperToken logic not updated");
-                            console.log("SuperToken's logic has been updated.");
-                        }
+                    if (!process.env.GOVERNANCE_TYPE) {
+                        // validate the token logic update for default governance type updates
+                        const superTokenLogic3 = await (
+                            await UUPSProxiable.at(superTokenAddress)
+                        ).getCodeAddress();
+                        console.log(
+                            "Updated SuperToken logic address",
+                            superTokenLogic3
+                        );
+                        if (superTokenLogic3 !== superTokenLogic1)
+                            throw new Error("SuperToken logic not updated");
+                        console.log("SuperToken's logic has been updated.");
                     }
                 }
             }

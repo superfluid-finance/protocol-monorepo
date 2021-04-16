@@ -11,6 +11,7 @@ const {
     detectTruffleAndConfigure,
     extractWeb3Options,
     builtTruffleContractLoader,
+    sendGovernanceAction,
 } = require("./utils");
 
 let resetSuperfluidFramework;
@@ -136,6 +137,7 @@ module.exports = async function (callback, options = {}) {
         const contracts = [
             "Ownable",
             "IMultiSigWallet",
+            "SuperfluidGovernanceBase",
             "TestResolver",
             "Superfluid",
             "SuperTokenFactory",
@@ -155,6 +157,7 @@ module.exports = async function (callback, options = {}) {
         const {
             Ownable,
             IMultiSigWallet,
+            SuperfluidGovernanceBase,
             TestResolver,
             Superfluid,
             SuperfluidMock,
@@ -421,43 +424,23 @@ module.exports = async function (callback, options = {}) {
             agreementsToUpdate.length > 0 ||
             superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
         ) {
-            switch (process.env.GOVERNANCE_TYPE) {
-                case "MULTISIG": {
-                    console.log("Governance type: MultiSig");
-                    const multis = await IMultiSigWallet.at(
-                        await (await Ownable.at(governance.address)).owner()
-                    );
-                    console.log("MultiSig address: ", multis.address);
-                    const data = governance.contract.methods
-                        .updateContracts(
-                            superfluid.address,
-                            superfluidNewLogicAddress,
-                            agreementsToUpdate,
-                            superTokenFactoryNewLogicAddress
-                        )
-                        .encodeABI();
-                    console.log("MultiSig data", data);
-                    await web3tx(
-                        multis.submitTransaction,
-                        "multis.submitTransaction"
-                    )(governance.address, 0, data);
-                    break;
-                }
-                default: {
-                    console.log(
-                        "Assuming default governance type: Direct Ownership"
-                    );
-                    await web3tx(
-                        governance.updateContracts,
-                        "superfluid.updateContracts"
-                    )(
+            await sendGovernanceAction(
+                {
+                    host: superfluid,
+                    contracts: {
+                        Ownable,
+                        IMultiSigWallet,
+                        SuperfluidGovernanceBase,
+                    },
+                },
+                (gov) =>
+                    gov.updateContracts(
                         superfluid.address,
                         superfluidNewLogicAddress,
                         agreementsToUpdate,
                         superTokenFactoryNewLogicAddress
-                    );
-                }
-            }
+                    )
+            );
         }
 
         console.log("======== Superfluid framework deployed ========");

@@ -22,8 +22,7 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("======== Creating new app registration key ========");
 
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
-        let { protocolReleaseVersion, walletType } = options;
-        walletType = walletType || "gnosis-wallet";
+        let { protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 2) {
@@ -31,13 +30,11 @@ module.exports = async function (callback, argv, options = {}) {
         }
         const registrationkey = args.pop();
         const deployer = args.pop();
-        console.log("Wallet Type", walletType);
         console.log("Deployer", deployer);
         console.log("Registration key", registrationkey);
 
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        console.log("protocol release version:", protocolReleaseVersion);
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({
@@ -47,9 +44,6 @@ module.exports = async function (callback, argv, options = {}) {
                 "Ownable",
                 "IMultiSigWallet",
                 "SuperfluidGovernanceBase",
-                "TestResolver",
-                "UUPSProxiable",
-                "SETHProxy",
             ],
             contractLoader: builtTruffleContractLoader,
         });

@@ -17,14 +17,14 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_NAME}
+ * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_SYMBOL}
  *
  * NOTE:
- * - If the `TOKEN_NAME` is the same as the nativeTokenSymbol defined in the js-sdk, then
+ * - If the `TOKEN_SYMBOL` is the same as the nativeTokenSymbol defined in the js-sdk, then
  *   the SETH contract will be deployed.
  * - Otherwise an ERC20 super token wrapper will be created, the underlying token address
- *   has to be registered in the resolver as `tokens.${TOKEN_NAME}`
- * - An entry in `supertokens.${protocolReleaseVersion}.${TOKEN_NAME}x` will be created
+ *   has to be registered in the resolver as `tokens.${TOKEN_SYMBOL}`
+ * - An entry in `supertokens.${protocolReleaseVersion}.${TOKEN_SYMBOL}x` will be created
  *   for the super token address.
  */
 module.exports = async function (callback, argv, options = {}) {
@@ -38,8 +38,8 @@ module.exports = async function (callback, argv, options = {}) {
         if (args.length !== 1) {
             throw new Error("Not enough arguments");
         }
-        const tokenName = args.pop();
-        console.log("Underlying token name", tokenName);
+        const tokenSymbol = args.pop();
+        console.log("Underlying token name", tokenSymbol);
 
         resetToken = resetToken || !!process.env.RESET_TOKEN;
         protocolReleaseVersion =
@@ -78,8 +78,8 @@ module.exports = async function (callback, argv, options = {}) {
 
         let superTokenKey;
         let deploymentFn;
-        if (tokenName == sf.config.nativeTokenSymbol) {
-            superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
+        if (tokenSymbol == sf.config.nativeTokenSymbol) {
+            superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
             deploymentFn = async () => {
                 console.log("Creating SETH Proxy...");
                 const weth =
@@ -102,10 +102,10 @@ module.exports = async function (callback, argv, options = {}) {
                 return seth;
             };
         } else {
-            superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenName}`;
+            superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
             if ((await sf.resolver.get(superTokenKey)) === ZERO_ADDRESS) {
                 const tokenAddress = await sf.resolver.get(
-                    `tokens.${tokenName}`
+                    `tokens.${tokenSymbol}`
                 );
                 if (tokenAddress === ZERO_ADDRESS) {
                     throw new Error("Underlying ERC20 Token not found");
@@ -115,14 +115,13 @@ module.exports = async function (callback, argv, options = {}) {
                 const tokenInfoSymbol = await tokenInfo.symbol.call();
                 const tokenInfoDecimals = await tokenInfo.decimals.call();
                 console.log("Underlying token address", tokenAddress);
-                console.log("Underlying token name", tokenName);
                 console.log("Underlying token info name()", tokenInfoName);
                 console.log("Underlying token info symbol()", tokenInfoSymbol);
                 console.log(
                     "Underlying token info decimals()",
                     tokenInfoDecimals.toString()
                 );
-                superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenName}x`;
+                superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
                 deploymentFn = async () => {
                     return await sf.createERC20Wrapper(tokenInfo);
                 };

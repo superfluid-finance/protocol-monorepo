@@ -6,7 +6,15 @@ import toast from 'react-hot-toast'
 import { getErrorResponse } from './general'
 import { unlockWallet } from './wallet'
 
-export const batchTransfer = async ({ tokenAddress, recipients, amounts }) => {
+export const BATCH_STREAM = 'batchStream'
+export const BATCH_TRANSFER = 'batchTransfer'
+
+export const batchCall = async ({
+  tokenAddress,
+  recipients,
+  amounts,
+  type,
+}) => {
   try {
     if (recipients.length !== amounts.length)
       throw Error('The number of recipients and amounts must be the same')

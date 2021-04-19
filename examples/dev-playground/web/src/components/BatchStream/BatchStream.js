@@ -1,15 +1,15 @@
 import BatchForm from 'src/components/BatchForm'
 import { useAuth } from '@redwoodjs/auth'
-import { batchCall, BATCH_TRANSFER } from 'src/utils/batch'
+import { batchCall, BATCH_STREAM } from 'src/utils/batch'
 import toast from 'react-hot-toast'
 
-const BatchTransfer = ({ token }) => {
+const BatchStream = ({ token }) => {
   const { currentUser } = useAuth()
 
   const [loading, setLoading] = React.useState(false)
   const [transactionHashes, setTransactionHashes] = React.useState([])
 
-  const batchTransfer = async (input) => {
+  const batchStream = async (input) => {
     setLoading(true)
     let recipients = []
     let amounts = []
@@ -25,7 +25,7 @@ const BatchTransfer = ({ token }) => {
       recipients,
       amounts,
       tokenAddress: token,
-      type: BATCH_TRANSFER,
+      type: BATCH_STREAM,
     })
 
     if (error) return toast.error(error.message || error)
@@ -52,12 +52,12 @@ const BatchTransfer = ({ token }) => {
     <>
       <div className="rw-segment">
         <header className="rw-segment-header">
-          <h2 className="rw-heading rw-heading-secondary">Batch Transfer</h2>
+          <h2 className="rw-heading rw-heading-secondary">Batch Stream</h2>
         </header>
         <div className="rw-segment-main">
           <BatchForm
             tokenAddress={token}
-            onSave={batchTransfer}
+            onSave={batchStream}
             loading={loading}
           />
         </div>
@@ -66,4 +66,4 @@ const BatchTransfer = ({ token }) => {
   )
 }
 
-export default BatchTransfer
+export default BatchStream

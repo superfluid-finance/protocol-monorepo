@@ -21,6 +21,7 @@ const Routes = ({ useAuth }) => {
       <Route path="/" page={HomePage} name="home" />
       <Route path="/login" page={LoginPage} name="login" />
       <Route path="/batchtransfer/{token}" page={BatchTransferPage} name="batchTransfer" />
+      <Route path="/batchstream/{token}" page={BatchStreamPage} name="batchStream" />
       <Route path="/users/new" page={NewUserPage} name="newUser" />
       <Route path="/users/{id}/edit" page={EditUserPage} name="editUser" />
       <Route path="/users/{id}" page={UserPage} name="user" />

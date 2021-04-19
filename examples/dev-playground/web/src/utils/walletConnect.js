@@ -10,15 +10,15 @@ export const disconnectWalletConnect = () => {
 
 export const unlockWalletConnect = async ({
   debug,
-  infuraId,
-  rpc,
   onNetworkChange,
   onDisconnect,
 }) => {
   try {
     const provider = new WalletConnectProvider({
-      infuraId,
-      rpc,
+      rpc: {
+        100: process.env.XDAI_RPC_URL,
+      },
+      infuraId: process.env.INFURA_ENDPOINT_KEY,
     })
     console.log(provider)
     // provider.on('chainChanged', onNetworkChange)
@@ -53,11 +53,8 @@ export const unlockWalletConnect = async ({
   }
 }
 
-export const isWalletConnect = ({ debug, infuraId }) => {
+export const isWalletConnect = () => {
   try {
-    // await new WalletConnectProvider({
-    //   infuraId,
-    // })
     return !!localStorage.getItem(WALLET_CONNECT_LOCAL_KEY)
   } catch (error) {
     /* eslint-disable-next-line no-console */

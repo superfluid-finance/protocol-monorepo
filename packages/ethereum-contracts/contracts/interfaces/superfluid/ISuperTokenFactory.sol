@@ -51,7 +51,8 @@ interface ISuperTokenFactory {
         string calldata name,
         string calldata symbol
     )
-        external;
+        external
+        returns (ISuperToken superToken);
 
     /**
      * @dev Create new super token wrapper for the underlying ERC20 token with extra token info
@@ -69,7 +70,8 @@ interface ISuperTokenFactory {
         string calldata name,
         string calldata symbol
     )
-        external;
+        external
+        returns (ISuperToken superToken);
 
     function initializeCustomSuperToken(
         address customSuperTokenProxy

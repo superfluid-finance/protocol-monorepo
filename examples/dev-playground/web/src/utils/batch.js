@@ -29,23 +29,43 @@ export const batchCall = async ({
       ethers: walletProvider,
     })
     await sf.initialize()
-    const calls = recipients.map((recipient, index) => {
-      return [
-        2, // OPERATION_TYPE_ERC20_TRANSFER_FROM
-        tokenAddress,
-        defaultAbiCoder.encode(
-          ['address', 'address', 'uint256'],
-          [walletAddress, recipient, amounts[index]]
-        ),
-      ]
-    })
+    let calls = []
+    if (type === BATCH_STREAM) {
+      calls = recipients.map((recipient, index) => {
+        return [
+          201, // OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT
+          sf.agreements.cfa.address,
+          defaultAbiCoder.encode(
+            ['bytes', 'bytes'],
+            [
+              sf.agreements.cfa.contract.methods
+                .createFlow(tokenAddress, recipient, amounts[index], '0x')
+                .encodeABI(),
+              '0x',
+            ]
+          ),
+        ]
+      })
+    } else {
+      calls = recipients.map((recipient, index) => {
+        return [
+          2, // OPERATION_TYPE_ERC20_TRANSFER_FROM
+          tokenAddress,
+          defaultAbiCoder.encode(
+            ['address', 'address', 'uint256'],
+            [walletAddress, recipient, amounts[index]]
+          ),
+        ]
+      })
+    }
+
     const tx = await sf.host.batchCall(calls)
     // const tx = //
     return { tx }
   } catch (err) {
     console.log(err)
     return {
-      ...getErrorResponse(err, 'batchTransfer'),
+      ...getErrorResponse(err, 'batchCall'),
     }
   }
 }

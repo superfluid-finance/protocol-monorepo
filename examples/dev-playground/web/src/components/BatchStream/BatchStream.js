@@ -28,7 +28,10 @@ const BatchStream = ({ token }) => {
       type: BATCH_STREAM,
     })
 
-    if (error) return toast.error(error.message || error)
+    if (error) {
+      setLoading(false)
+      return toast.error(error.message || error)
+    }
 
     await toast.promise(tx.wait(), {
       loading: 'Waiting for confirmation',

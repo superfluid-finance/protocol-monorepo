@@ -20,7 +20,7 @@ fs.mkdir("abis/", err => {
 fs.readdir(directoryPath, (err, files) => {
     if (err) return console.log(err);
     console.log("Fetched ABIs for the following contracts:");
-    files.forEach((fileName, i) => {
+    files.forEach(fileName => {
         const contractName = fileName.split(".")[0];
         if (!contracts.includes(contractName)) return;
         const data = require(path.join(directoryPath, fileName));

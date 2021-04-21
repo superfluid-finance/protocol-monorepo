@@ -1,45 +1,22 @@
-const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
+const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
-const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
-const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-
-const traveler = require("ganache-time-traveler");
 
 const chai = require("chai");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 const INIT_BALANCE = toWad(100);
-const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
-
-const emptyIda = {
-    ida: {
-        subscriptions: [],
-    },
-};
 
 contract("ConstantFlowAgreementV1", accounts => {
-    const errorHandler = err => {
-        if (err) throw err;
-    };
-
-    const [
-        adminAddress,
-        aliceAddress,
-        bobAddress,
-        carolAddress,
-        danAddress,
-    ] = accounts;
+    const [aliceAddress, bobAddress, carolAddress] = accounts;
 
     let sf;
     let dai;
     let daix;
-    let superToken;
-    let alice;
-    let bob;
-    let carol;
+    // let alice;
+    // let bob;
+    // let carol;
 
     before(async function() {
         sf = new SuperfluidSDK.Framework({
@@ -70,14 +47,14 @@ contract("ConstantFlowAgreementV1", accounts => {
         await daix.upgrade(INIT_BALANCE, { from: bobAddress });
         await daix.upgrade(INIT_BALANCE, { from: carolAddress });
 
-        alice = sf.user({ address: aliceAddress, token: daix.address });
-        bob = sf.user({ address: bobAddress, token: daix.address });
-        carol = sf.user({ address: carolAddress, token: daix.address });
+        // alice = sf.user({ address: aliceAddress, token: daix.address });
+        // bob = sf.user({ address: bobAddress, token: daix.address });
+        // carol = sf.user({ address: carolAddress, token: daix.address });
     });
 
     describe("downgrade", () => {
         it("downgrades tokens", async () => {
-            const tx = await daix.downgrade(100, { from: aliceAddress });
+            await daix.downgrade(100, { from: aliceAddress });
         });
     });
 });

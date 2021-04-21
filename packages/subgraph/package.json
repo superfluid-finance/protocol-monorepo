@@ -17,7 +17,10 @@
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
         "deploy-xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy pi0neerpat/superfluid-xdai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
         "deploy-polygon": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy pi0neerpat/superfluid-polygon --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy-kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs rtoken-project/rdai-kovan"
+        "deploy-kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml && graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs rtoken-project/rdai-kovan",
+        "lint": "run-s lint:*",
+        "lint:js-prettier": "prettier --check  **/*.js && echo '✔  Your .js files look pretty.'",
+        "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",

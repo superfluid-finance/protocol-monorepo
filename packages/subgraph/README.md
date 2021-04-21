@@ -131,13 +131,15 @@ Now come back here in `packages/subgraph` and run the following command to deplo
 ```bash
 NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
 
+> .......
 > ConstantFlowAgreementV1: TruffleContract .agreements.cfa @0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416 | Helper .cfa
-
 > =============== TEST ENVIRONMENT RESOLVER ======================
 > export TEST_RESOLVER_ADDRESS=0xa36FfB4643C11307515F9851f2320a0556fD2687
 ```
 
-Copy the `export` command from your output and run it. Also copy the address for `ConstantFlowAgreementV1`.
+Copy the `export` command from your output and run it. NOTE: you must load this environment variable in the same terminal which you run `yarn test`.
+
+Copy the address for `ConstantFlowAgreementV1`, which will be used later.
 
 > Tip: If you use the same mnemonic each time you start Ganache and deploy the contracts, then this will always be the same address.
 

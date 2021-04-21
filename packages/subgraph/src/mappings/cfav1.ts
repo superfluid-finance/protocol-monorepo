@@ -33,13 +33,14 @@ export function handleFlowUpdated(event: FlowUpdatedEvent): void {
     let flowRate = event.params.flowRate;
 
     let currentTimestamp = event.block.timestamp;
-
+    // Get the existing flow
     let flow = fetchFlow(
         ownerAddress,
         recipientAddress,
         tokenAddress,
         currentTimestamp
     );
+    // TODO: No need for BigDecimal here?
     let oldFlowRate = flow.flowRate;
     let duration = currentTimestamp.minus(flow.lastUpdate).toBigDecimal();
 

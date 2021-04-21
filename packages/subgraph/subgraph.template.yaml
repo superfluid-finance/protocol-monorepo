@@ -66,9 +66,12 @@ dataSources:
               - Transaction
               - Account
               - Transfer
+              - Token
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
+              - name: ISuperToken
+                file: ./abis/ISuperToken.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated

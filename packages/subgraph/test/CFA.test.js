@@ -122,7 +122,7 @@ contract("ConstantFlowAgreementV1", accounts => {
             );
             await _timeTravelOnce();
         });
-        it.skip("create a new flow with User object argument", async () => {
+        it("create a new flow with User object argument", async () => {
             const tx = await alice.flow({
                 // "bob" rather than "bob.address"
                 recipient: bob,

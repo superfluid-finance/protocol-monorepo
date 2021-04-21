@@ -55,7 +55,7 @@ First install these dependencies:
 Now install the necessary node packages:
 
 ```bash
-yarn global add truffle ganache-cli @graphprotocol/graph-cli
+npm i -g truffle ganache-cli @graphprotocol/graph-cli
 ```
 
 ### Ganache

@@ -19,14 +19,6 @@
 
 > Official subgraph for the superfluid protocol
 
-🚧⚠️🚧⚠️
-
-**WARNING: This subgraph is under active development!**
-
-Please use with caution until it is finished
-
-🚧⚠️🚧⚠️
-
 # Hosted Subgraphs
 
 The Superfluid subgraphs are available from The Graph's hosted service, at the following endpoints:

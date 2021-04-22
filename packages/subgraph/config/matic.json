@@ -1,0 +1,9 @@
+{
+    "network": "matic",
+    "hostAddress": "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+    "hostStartBlock": 11650607,
+    "cfaAddress": "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+    "cfaStartBlock": 11650607,
+    "superTokenFactoryAddress": "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+    "superTokenFactoryStartBlock": 11650607
+}

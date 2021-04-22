@@ -1,5 +1,9 @@
 {
-  "network": "mumbai",
-  "address": "TODO",
-  "startBlock": 0
+    "network": "mumbai",
+    "hostAddress": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
+    "hostStartBlock": 0,
+    "cfaAddress": "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873",
+    "cfaStartBlock": 0,
+    "superTokenFactoryAddress": "",
+    "superTokenFactoryStartBlock": 0
 }

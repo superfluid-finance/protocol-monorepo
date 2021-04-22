@@ -83,13 +83,16 @@ await bob.flow({
 
 During initialization, the resolver will be used to fetch the correct set of contracts based on the `version` you provide
 
-| Argument  | Type     | description                                            | default   |
-| :-------- | :------- | ------------------------------------------------------ | --------- |
-| version   | String   | Release version of the deployed protocol               | v1        |
-| isTruffle | Boolean  | Use the Framework under the native truffle environment | false     |
-| web3      | Object   | Use the Framework with web3.js (1.3.x)                 | undefined |
-| ethers    | Object   | Use the Framework with ethers.js (5.x.y)               | undefined |
-| tokens    | String[] | List of tokens                                         | []        |
+| Argument             | Type     | description                                            | default   |
+| :------------------- | :------- | ------------------------------------------------------ | --------- |
+| version              | String   | Release version of the deployed protocol               | v1        |
+| isTruffle            | Boolean  | Use the Framework under the native truffle environment | false     |
+| web3                 | Object   | Use the Framework with web3.js (1.3.x)                 | undefined |
+| ethers               | Object   | Use the Framework with ethers.js (5.x.y)               | undefined |
+| additionalContracts  | String[] | additional contracts to be loaded                      | []        |
+| tokens               | String[] | List of token keys to load from the resolver           | []        |
+| loadSuperNativeToken | Boolean  | Load super native token (e.g. ETHx) if possible        | false     |
+| resolverAddress      | Address  | Force resolver address                                 | undefined |
 
 You also need to choose what web3 framework you plan to use, currently we support three modes:
 
@@ -212,7 +215,7 @@ const tx = await alice.flow({
     recipient: bob,
     flowRate: "38580246913580", // 100 / mo
     // OPTIONS: See ConstantFlowAgreementV1Helper for more
-    onTransaction: hash => {
+    onTransaction: (hash) => {
         txHash = hash;
     },
 });

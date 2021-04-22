@@ -57,7 +57,7 @@ contract SuperUpgrader is AccessControl {
             (hasRole(BACKEND_ROLE, msg.sender) &&
             !_optout[account])
         , "operation not allowed");
-        //get underlaying token
+        //get underlying token
         ISuperToken superToken = ISuperToken(superTokenAddr);
         //get tokens from user
         IERC20 token = IERC20(superToken.getUnderlyingToken());

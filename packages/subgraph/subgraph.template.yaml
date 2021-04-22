@@ -10,7 +10,7 @@ dataSources:
       source:
           abi: ISuperTokenFactory
           address: "{{ superTokenFactoryAddress }}"
-          startBlock: {{ superTokenFactoryStartBlock }}
+          startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.3
@@ -56,7 +56,7 @@ dataSources:
       source:
           abi: IConstantFlowAgreementV1
           address: "{{ cfaAddress }}"
-          startBlock: {{ cfaStartBlock }}
+          startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
           apiVersion: 0.0.3

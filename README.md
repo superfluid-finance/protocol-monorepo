@@ -1,3 +1,5 @@
+[![Gitpod ready-to-code](https://img.shields.io/badge/Gitpod-ready--to--code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/superfluid-finance/protocol-monorepo)
+
 <h1 align="center">Welcome to superfluid protocol-monorepo 👋</h1>
 <p>
   <a href="#superfluid-financeethereum-contracts" target="_blank">

@@ -165,6 +165,23 @@ module.exports = class Framework {
             "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
             this.agreements.ida.address
         );
+        const superTokenFactoryAddress = await this.host.getSuperTokenFactory();
+        console.debug(
+            `SuperTokenFactory contract: ${superTokenFactoryAddress}`
+        );
+
+        // load tokens
+        this.tokens = {};
+        this.superTokens = {};
+        await Promise.all(
+            [
+                ...(this._options.tokens ? this._options.tokens : []),
+                ...(this._options.loadSuperNativeToken &&
+                this.config.nativeTokenSymbol
+                    ? [this.config.nativeTokenSymbol]
+                    : []),
+            ].map(this.loadToken.bind(this))
+        );
 
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {

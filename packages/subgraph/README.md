@@ -15,19 +15,31 @@
 </p>
 </div>
 
-<>{`\_}</>
+> Official subgraph for the Superfluid Protocol
 
-> Official subgraph for the superfluid protocol
+# 📖 Docs
 
-# Hosted Subgraphs
+Get started using the Subgraphs with an introduction and query examples:
 
-The Superfluid subgraphs are available from The Graph's hosted service, at the following endpoints:
+https://docs.superfluid.finance/superfluid/docs/subgraph
 
-TODO
+# 👨‍🚀 Hosted Subgraphs
 
-# Local development
+All subgraphs are available via The Graph's hosted service:
 
-🛑 **STOP** 🛑 You probably don't need this repo. If you are using Superfluid on xDAI, Polygon (Matic), or even a testnet, we've already deployed the subgraphs for you. See **Hosted Subraphs** above.
+| Network | URL |
+| --- | --- |
+| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-xdai |
+| Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-matic |
+| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-mumbai |
+| Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-goerli |
+| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-ropsten |
+| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-kovan |
+| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-rinkeby |
+
+# 🤓 Local development
+
+🛑 **STOP - Do not pass Go** 🛑 You probably don't need this repo. If you need data for Superfluid on xDAI, Polygon (Matic), or testnet, we already deployed them for you! Head over to the **Docs** to get started.
 
 In this section we will cover the following:
 
@@ -292,7 +304,7 @@ You should get a response like this
 
 ## Graph Network
 
-TODO
+Coming soon. Let The Graph team know you want Superfluid available on the Network >> https://discord.gg/7eXTnPKYV4
 
 ## Hosted Service
 

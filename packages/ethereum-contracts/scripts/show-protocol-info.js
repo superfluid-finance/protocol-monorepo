@@ -231,10 +231,11 @@ module.exports = async function (callback, argv, options = {}) {
                     const symbol = await superToken.symbol.call();
                     const superTokenLogicAddress = await superToken.getCodeAddress();
                     const isListed =
-                        (await sf.resolver.get(
-                            `supertokens.${sf.version}.${symbol}`
-                        )) !==
-                        "0x" + "0".repeat(40);
+                        (
+                            await sf.resolver.get(
+                                `supertokens.${sf.version}.${symbol}`
+                            )
+                        ).toLowerCase() == superToken.address.toLowerCase();
                     superTokens.push({
                         symbol,
                         name: await superToken.name.call(),

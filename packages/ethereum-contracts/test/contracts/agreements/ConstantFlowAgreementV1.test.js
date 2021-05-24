@@ -695,10 +695,11 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
                 const test = async (deposit) => {
-                    const flowRate = await cfa.getMaximumFlowRateFromDeposit.call(
-                        superToken.address,
-                        deposit.toString()
-                    );
+                    const flowRate =
+                        await cfa.getMaximumFlowRateFromDeposit.call(
+                            superToken.address,
+                            deposit.toString()
+                        );
                     const expectedFlowRate = clipDepositNumber(
                         toBN(deposit),
                         true /* rounding down */
@@ -725,10 +726,11 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             it("#1.8.3 getDepositRequiredForFlowRate", async () => {
                 const test = async (flowRate) => {
-                    const deposit = await cfa.getDepositRequiredForFlowRate.call(
-                        superToken.address,
-                        flowRate.toString()
-                    );
+                    const deposit =
+                        await cfa.getDepositRequiredForFlowRate.call(
+                            superToken.address,
+                            flowRate.toString()
+                        );
                     const expectedDeposit = clipDepositNumber(
                         toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD))
                     );
@@ -762,9 +764,8 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             });
 
             it("#1.8.4 only authorized host can access token", async () => {
-                const FakeSuperfluidMock = artifacts.require(
-                    "FakeSuperfluidMock"
-                );
+                const FakeSuperfluidMock =
+                    artifacts.require("FakeSuperfluidMock");
                 const fakeHost = await FakeSuperfluidMock.new();
                 await expectRevert(
                     fakeHost.callAgreement(

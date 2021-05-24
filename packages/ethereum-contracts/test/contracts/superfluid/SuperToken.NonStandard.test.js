@@ -113,10 +113,10 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
         it("#2.2 - should not upgrade without enough underlying balance", async () => {
             const initialBalance = await testToken.balanceOf.call(alice);
             await expectRevert(
-                web3tx(
-                    superToken.upgrade,
-                    "SuperToken.upgrade - bad balance"
-                )(initialBalance.add(toBN(1)), { from: alice }),
+                web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
+                    initialBalance.add(toBN(1)),
+                    { from: alice }
+                ),
                 "ERC20: transfer amount exceeds balance"
             );
             await t.validateSystemInvariance();
@@ -408,10 +408,8 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
             const finalSuperTokenBalanceAlice = await superToken.balanceOf.call(
                 alice
             );
-            const finalRealBalanceAlice = await superToken.realtimeBalanceOf.call(
-                alice,
-                timestamp
-            );
+            const finalRealBalanceAlice =
+                await superToken.realtimeBalanceOf.call(alice, timestamp);
 
             const finalBalanceBob = await testToken.balanceOf.call(bob);
             const finalSuperTokenBalanceBob = await superToken.balanceOf.call(

@@ -9,11 +9,13 @@
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
-  <a href="https://twitter.com/Superfluid_HQ/status/" target="_blank">
+  <a href="https://twitter.com/Superfluid_HQ/status/" target="blank">
     <img alt="Twitter: Superfluid_HQ" src="https://img.shields.io/twitter/follow/Superfluid_HQ.svg?style=social" />
   </a>
 </p>
 </div>
+
+<>{`\_`}</>
 
 > Javascript SDK for building with Superfluid Protocol
 
@@ -33,7 +35,7 @@ const { Web3Provider } = require("@ethersproject/providers");
 
 const sf = new SuperfluidSDK.Framework({
     ethers: new Web3Provider(window.ethereum),
-    tokens: ["fDAI"]
+    tokens: ["fDAI"],
 });
 await sf.initialize();
 
@@ -42,7 +44,7 @@ const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 // Constant Flow Agreement
 await bob.flow({
     recipient: "0x123...",
-    flowRate: "38580246913580" // 100 tokens / mo
+    flowRate: "38580246913580", // 100 tokens / mo
 });
 
 // Instant Distribution Agreement
@@ -81,21 +83,22 @@ await bob.flow({
 
 During initialization, the resolver will be used to fetch the correct set of contracts based on the `version` you provide
 
-| Argument     | Type     | description                              | default |
-| :----------- | :------- | ---------------------------------------- | ------- |
-| version      | String   | Release version of the deployed protocol | v1 |
-| isTruffle    | Boolean  | Use the Framework under the native truffle environment | false |
-| web3         | Object   | Use the Framework with web3.js (1.3.x) | undefined |
-| ethers       | Object   | Use the Framework with ethers.js (5.x.y) | undefined |
-| additionalContracts | String[] | additional contracts to be loaded | [] |
-| tokens       | String[] | List of token keys to load from the resolver | [] |
-| loadSuperNativeToken | Boolean | Load super native token (e.g. ETHx) if possible | false |
-| resolverAddress | Address | Force resolver address | undefined |
+| Argument             | Type     | description                                            | default   |
+| :------------------- | :------- | ------------------------------------------------------ | --------- |
+| version              | String   | Release version of the deployed protocol               | v1        |
+| isTruffle            | Boolean  | Use the Framework under the native truffle environment | false     |
+| web3                 | Object   | Use the Framework with web3.js (1.3.x)                 | undefined |
+| ethers               | Object   | Use the Framework with ethers.js (5.x.y)               | undefined |
+| additionalContracts  | String[] | additional contracts to be loaded                      | []        |
+| tokens               | String[] | List of token keys to load from the resolver           | []        |
+| loadSuperNativeToken | Boolean  | Load super native token (e.g. ETHx) if possible        | false     |
+| resolverAddress      | Address  | Force resolver address                                 | undefined |
 
 You also need to choose what web3 framework you plan to use, currently we support three modes:
-* Truffle native environment (developing using `truffle test|exec|egc.`).
-* [Web3.js](https://web3js.readthedocs.io/en/v1.2.1/), currently the SDK has been tested with web3.js `1.3.x` versions.
-* [Ethers.js](https://github.com/ethers-io/ethers.js/), currently the SDK has been tested with ethers.js `5.x.y` versions.
+
+-   Truffle native environment (developing using `truffle test|exec|egc.`).
+-   [Web3.js](https://web3js.readthedocs.io/en/v1.2.1/), currently the SDK has been tested with web3.js `1.3.x` versions.
+-   [Ethers.js](https://github.com/ethers-io/ethers.js/), currently the SDK has been tested with ethers.js `5.x.y` versions.
 
 **Example with Ethers.js**
 
@@ -105,7 +108,7 @@ const { Web3Provider } = require("@ethersproject/providers");
 
 const sf = new SuperfluidSDK.Framework({
     ethers: new Web3Provider(window.ethereum),
-    tokens: ["fDAI"]
+    tokens: ["fDAI"],
 });
 await sf.initialize();
 
@@ -122,7 +125,7 @@ const web3 = require("web3");
 
 const sf = new SuperfluidSDK.Framework({
     web3: new Web3(window.ethereum),
-    tokens: ["fDAI"]
+    tokens: ["fDAI"],
 });
 await sf.initialize();
 
@@ -138,7 +141,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const sf = new SuperfluidSDK.Framework({
     isTruffle: true,
-    tokens: ["fDAI"]
+    tokens: ["fDAI"],
 });
 await sf.initialize();
 
@@ -146,7 +149,6 @@ const bob = sf.user({ address: "0xabc...", token: sf.tokens.fDAIx.address });
 ```
 
 The exposed contract objects are of [`truffle-contract`](https://github.com/trufflesuite/truffle/tree/develop/packages/contract/) type loaded using truffle `artifacts` object.
-
 
 ## :bust_in_silhouette: User
 
@@ -213,9 +215,9 @@ const tx = await alice.flow({
     recipient: bob,
     flowRate: "38580246913580", // 100 / mo
     // OPTIONS: See ConstantFlowAgreementV1Helper for more
-    onTransaction: hash => {
+    onTransaction: (hash) => {
         txHash = hash;
-    }
+    },
 });
 ```
 
@@ -227,11 +229,11 @@ The helpers are usually considered thinner wrappers of the underlying contract c
 
 The available helpers currently are:
 
-* `sf.cfa` - Constant flow agreement helper.
-* `sf.ida` - Instant distribution agreement helper.
-* `sf.createERC20Wrapper` - Create a new ERC20 wrapper.
-* `sf.batchCall` - (TBD) batchCall helper.
-* `sf.callAppAction` - (TBD) callAppAction helper.
+-   `sf.cfa` - Constant flow agreement helper.
+-   `sf.ida` - Instant distribution agreement helper.
+-   `sf.createERC20Wrapper` - Create a new ERC20 wrapper.
+-   `sf.batchCall` - (TBD) batchCall helper.
+-   `sf.callAppAction` - (TBD) callAppAction helper.
 
 For their documentations, please look into their code comments directly.
 

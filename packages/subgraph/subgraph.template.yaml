@@ -1,0 +1,99 @@
+specVersion: 0.0.2
+description: Super Tokens and Agreements (CFA, IDA) on the {{network}} network.
+repository: https://github.com/superfluid-finance/protocol-monorepo
+schema:
+    file: ./schema.graphql
+dataSources:
+    - kind: ethereum/contract
+      name: SuperTokenFactory
+      network: {{ network }}
+      source:
+          abi: ISuperTokenFactory
+          address: "{{ superTokenFactoryAddress }}"
+          startBlock: {{ hostStartBlock }}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.3
+          language: wasm/assemblyscript
+          file: ./src/mappings/superTokenFactory.ts
+          entities:
+              - Token
+              - SuperToken
+          abis:
+              - name: ISuperTokenFactory
+                file: ./abis/ISuperTokenFactory.json
+              - name: ISuperToken
+                file: ./abis/ISuperToken.json
+          eventHandlers:
+              - event: SuperTokenCreated(indexed address)
+                handler: handleSuperTokenCreated
+              - event: CustomSuperTokenCreated(indexed address)
+                handler: handleSuperTokenCreated
+    # - kind: ethereum/contract
+    #   name: Host
+    #   network: {{ network }}
+    #   source:
+    #       abi: Superfluid
+    #       address: "{{ hostAddress }}"
+    #       startBlock: {{ hostStartBlock }}
+    #   mapping:
+    #       kind: ethereum/events
+    #       apiVersion: 0.0.3
+    #       language: wasm/assemblyscript
+    #       file: ./src/mappings/host.ts
+    #       entities:
+    #           - Transaction
+    #           - Account
+    #           - Transfer
+    #       abis:
+    #           - name: ISuperfluid
+    #             file: ./abis/Superfluid.json
+    #       eventHandlers:
+
+    - kind: ethereum/contract
+      name: ConstantFlowAgreementV1
+      network: {{ network }}
+      source:
+          abi: IConstantFlowAgreementV1
+          address: "{{ cfaAddress }}"
+          startBlock: {{ hostStartBlock }}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.3
+          language: wasm/assemblyscript
+          file: ./src/mappings/cfav1.ts
+          entities:
+              - Transaction
+              - Account
+              - Transfer
+              - Token
+          abis:
+              - name: IConstantFlowAgreementV1
+                file: ./abis/IConstantFlowAgreementV1.json
+              - name: ISuperToken
+                file: ./abis/ISuperToken.json
+          eventHandlers:
+              - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
+                handler: handleFlowUpdated
+templates:
+  - name: SuperToken
+    kind: ethereum/contract
+    network: {{ network }}
+    source:
+      abi: ISuperToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.1
+      language: wasm/assemblyscript
+      file: ./src/mappings/superToken.ts
+      entities:
+        - Token
+        - SuperToken
+      abis:
+        - name: ISuperToken
+          file: ./abis/ISuperToken.json
+      eventHandlers:
+        - event: TokenUpgraded(indexed address,uint256)
+          handler: handleTokenUpgraded
+        - event: TokenDowngraded(indexed address,uint256)
+          handler: handleTokenDowngraded

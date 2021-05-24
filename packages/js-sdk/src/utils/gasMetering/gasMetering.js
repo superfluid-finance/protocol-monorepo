@@ -70,13 +70,12 @@ module.exports = class GasMeter {
             const bucket = this.aggregates[actionName];
             formattedAggregates[actionName] = {};
             Object.keys(bucket).forEach((key) => {
-                formattedAggregates[actionName][
-                    key
-                ] = this.formatter.formatBigNumber(
-                    key,
-                    bucket[key],
-                    this.fiatCurr
-                );
+                formattedAggregates[actionName][key] =
+                    this.formatter.formatBigNumber(
+                        key,
+                        bucket[key],
+                        this.fiatCurr
+                    );
             });
         });
         const formattedRecords = this.records.map((x) => {

@@ -25,6 +25,7 @@
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint-staged": "lint-staged",
+        "pre-commit:lint-js-eslint": "yarn lint:js-eslint",
         "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
         "check-updates": "ncu --dep prod,dev"
     },
@@ -47,7 +48,7 @@
         "@ethersproject/contracts": "^5.0.12",
         "@ethersproject/providers": "^5.0.24",
         "@openzeppelin/test-helpers": "^0.5.10",
-        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.3",
+        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.4",
         "@truffle/contract": "^4.3.9",
         "chai-as-promised": "^7.1.1",
         "truffle": "5.1.49",

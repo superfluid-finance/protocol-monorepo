@@ -165,6 +165,23 @@ module.exports = class Framework {
             "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
             this.agreements.ida.address
         );
+        const superTokenFactoryAddress = await this.host.getSuperTokenFactory();
+        console.debug(
+            `SuperTokenFactory contract: ${superTokenFactoryAddress}`
+        );
+
+        // load tokens
+        this.tokens = {};
+        this.superTokens = {};
+        await Promise.all(
+            [
+                ...(this._options.tokens ? this._options.tokens : []),
+                ...(this._options.loadSuperNativeToken &&
+                this.config.nativeTokenSymbol
+                    ? [this.config.nativeTokenSymbol]
+                    : []),
+            ].map(this.loadToken.bind(this))
+        );
 
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {
@@ -241,7 +258,8 @@ module.exports = class Framework {
         this.superTokens[superTokenKey] = superToken;
 
         if (checkUnderlyingToken) {
-            const underlyingTokenAddress = await superToken.getUnderlyingToken.call();
+            const underlyingTokenAddress =
+                await superToken.getUnderlyingToken.call();
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address
                 if (
@@ -256,9 +274,10 @@ module.exports = class Framework {
 
                 // if underlying token is null or undefined
                 if (!underlyingToken) {
-                    underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
-                        underlyingTokenAddress
-                    );
+                    underlyingToken =
+                        await this.contracts.ERC20WithTokenInfo.at(
+                            underlyingTokenAddress
+                        );
                     const symbol = await underlyingToken.symbol();
                     this.tokens[symbol] = underlyingToken;
                 }

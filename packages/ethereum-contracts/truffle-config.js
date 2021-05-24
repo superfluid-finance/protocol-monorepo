@@ -148,8 +148,8 @@ module.exports = {
 
         arbitrum: {
             provider: function () {
-                const wrapProvider = require("arb-ethers-web3-bridge")
-                    .wrapProvider;
+                const wrapProvider =
+                    require("arb-ethers-web3-bridge").wrapProvider;
                 // return wrapped provider:
                 return wrapProvider(
                     //new HDWalletProvider(process.env.ARBITRUM_MNEMONIC, "wss://kovan3.arbitrum.io/ws")

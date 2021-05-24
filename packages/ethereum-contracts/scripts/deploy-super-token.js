@@ -144,7 +144,8 @@ module.exports = async function (callback, argv, options = {}) {
                 );
                 doDeploy = true;
             } else {
-                const superTokenLogic1 = await superTokenFactory.getSuperTokenLogic();
+                const superTokenLogic1 =
+                    await superTokenFactory.getSuperTokenLogic();
                 console.log(
                     "Latest SuperToken logic address",
                     superTokenLogic1

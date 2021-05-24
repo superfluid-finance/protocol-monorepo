@@ -390,34 +390,35 @@ module.exports = async function (callback, options = {}) {
         const SuperTokenFactoryLogic = useMocks
             ? SuperTokenFactoryMock
             : SuperTokenFactory;
-        const superTokenFactoryNewLogicAddress = await deployNewLogicContractIfNew(
-            web3,
-            SuperTokenFactoryLogic,
-            await superfluid.getSuperTokenFactoryLogic.call(),
-            async () => {
-                let superTokenLogic;
-                if (useMocks) {
-                    const helper = await web3tx(
-                        SuperTokenFactoryMockHelper.new,
-                        "SuperTokenFactoryMockHelper.new"
-                    )();
-                    superTokenLogic = await web3tx(
-                        SuperTokenFactoryMock.new,
-                        "SuperTokenFactoryMock.new"
-                    )(superfluid.address, helper.address);
-                } else {
-                    const helper = await web3tx(
-                        SuperTokenFactoryHelper.new,
-                        "SuperTokenFactoryHelper.new"
-                    )();
-                    superTokenLogic = await web3tx(
-                        SuperTokenFactory.new,
-                        "SuperTokenFactory.new"
-                    )(superfluid.address, helper.address);
+        const superTokenFactoryNewLogicAddress =
+            await deployNewLogicContractIfNew(
+                web3,
+                SuperTokenFactoryLogic,
+                await superfluid.getSuperTokenFactoryLogic.call(),
+                async () => {
+                    let superTokenLogic;
+                    if (useMocks) {
+                        const helper = await web3tx(
+                            SuperTokenFactoryMockHelper.new,
+                            "SuperTokenFactoryMockHelper.new"
+                        )();
+                        superTokenLogic = await web3tx(
+                            SuperTokenFactoryMock.new,
+                            "SuperTokenFactoryMock.new"
+                        )(superfluid.address, helper.address);
+                    } else {
+                        const helper = await web3tx(
+                            SuperTokenFactoryHelper.new,
+                            "SuperTokenFactoryHelper.new"
+                        )();
+                        superTokenLogic = await web3tx(
+                            SuperTokenFactory.new,
+                            "SuperTokenFactory.new"
+                        )(superfluid.address, helper.address);
+                    }
+                    return superTokenLogic.address;
                 }
-                return superTokenLogic.address;
-            }
-        );
+            );
 
         if (
             superfluidNewLogicAddress !== ZERO_ADDRESS ||

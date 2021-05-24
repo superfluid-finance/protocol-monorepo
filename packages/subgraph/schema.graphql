@@ -1,0 +1,89 @@
+type Transaction @entity {
+    id: ID!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    events: [Event!]! @derivedFrom(field: "transaction")
+}
+
+####################
+#     Protocol     #
+####################
+
+type Account @entity {
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    # ---------------------------------- links ----------------------------------
+    flowsOwned: [Flow!]! @derivedFrom(field: "owner")
+    flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
+    upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "account")
+    downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "account")
+}
+
+type Token @entity {
+    # Note: All Tokens are Super Tokens for this subgraph
+    id: ID!
+    name: String!
+    symbol: String!
+    underlyingAddress: Bytes! # Underlying ERC20
+    # ---------------------------------- state ----------------------------------
+    # ---------------------------------- links ----------------------------------
+    flows: [Flow!]! @derivedFrom(field: "token")
+    upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "token")
+    downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "token")
+}
+
+type Flow @entity {
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    sum: BigDecimal!
+    flowRate: BigInt!
+    lastUpdate: BigInt!
+    # ---------------------------------- links ----------------------------------
+    token: Token! #@derivedFrom(field: "flows")
+    owner: Account! #@derivedFrom(field: "flowsOwned")
+    recipient: Account! #@derivedFrom(field: "flowsReceived")
+    events: [FlowUpdated!]! @derivedFrom(field: "flow")
+}
+
+#################
+#     Events    #
+#################
+
+interface Event {
+    id: ID!
+    transaction: Transaction!
+}
+
+type FlowUpdated implements Event @entity {
+    id: ID!
+    transaction: Transaction!
+    flow: Flow!
+    oldFlowRate: BigInt!
+    flowRate: BigInt!
+    sum: BigDecimal!
+}
+
+type SuperTokenCreated implements Event @entity {
+    id: ID!
+    transaction: Transaction!
+    address: Bytes!
+    underlyingAddress: Bytes!
+    name: String!
+    symbol: String!
+}
+
+type TokenUpgraded implements Event @entity {
+    id: ID!
+    account: Account!
+    transaction: Transaction!
+    token: Token!
+    amount: BigInt!
+}
+
+type TokenDowngraded implements Event @entity {
+    id: ID!
+    account: Account!
+    transaction: Transaction!
+    token: Token!
+    amount: BigInt!
+}

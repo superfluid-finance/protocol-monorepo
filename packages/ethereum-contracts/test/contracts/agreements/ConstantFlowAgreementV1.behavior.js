@@ -427,12 +427,11 @@ async function _shouldChangeFlow({
     const getAccountFlowInfo1 = (role) => _accountFlowInfo1[roles[role]];
 
     const addAccountFlowInfo2 = async (role) => {
-        _accountFlowInfo2[
-            roles[role]
-        ] = await testenv.sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: roles[role],
-        });
+        _accountFlowInfo2[roles[role]] =
+            await testenv.sf.cfa.getAccountFlowInfo({
+                superToken: superToken.address,
+                account: roles[role],
+            });
         _printFlowInfo(
             `${role} account flow info after`,
             getAccountFlowInfo2(role)

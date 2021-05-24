@@ -32,10 +32,10 @@ contract("Scenario: Bob flows to Alice", (accounts) => {
                 toWad(100),
                 { from: bob }
             );
-            await web3tx(
-                sf.tokens.fDAIx.upgrade,
-                "Bob upgrades 100 fDAIx"
-            )(toWad(100), { from: bob });
+            await web3tx(sf.tokens.fDAIx.upgrade, "Bob upgrades 100 fDAIx")(
+                toWad(100),
+                { from: bob }
+            );
         }
     });
 

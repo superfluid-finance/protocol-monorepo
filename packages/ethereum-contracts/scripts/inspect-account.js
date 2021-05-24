@@ -43,7 +43,8 @@ module.exports = async function (callback, argv) {
                 const superToken = sf.superTokens[superTokenSymbol];
                 const underlyingToken = superToken.underlyingToken;
                 if (underlyingToken) {
-                    const underlyingTokenSymbol = await underlyingToken.symbol();
+                    const underlyingTokenSymbol =
+                        await underlyingToken.symbol();
                     console.log(
                         `${underlyingTokenSymbol} balance`,
                         (

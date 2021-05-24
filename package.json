@@ -10,8 +10,8 @@
     "license": "MIT",
     "scripts": {
         "lint": "yarn workspaces run lint",
-        "build": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build",
-        "test": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i test",
+        "build": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
+        "test": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i test;done",
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
         "postinstall": "husky install"
     },

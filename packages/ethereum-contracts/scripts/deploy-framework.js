@@ -11,6 +11,7 @@ const {
     detectTruffleAndConfigure,
     extractWeb3Options,
     builtTruffleContractLoader,
+    sendGovernanceAction,
 } = require("./utils");
 
 let resetSuperfluidFramework;
@@ -134,6 +135,9 @@ module.exports = async function (callback, options = {}) {
 
         const config = getConfig(chainId);
         const contracts = [
+            "Ownable",
+            "IMultiSigWallet",
+            "SuperfluidGovernanceBase",
             "TestResolver",
             "Superfluid",
             "SuperTokenFactory",
@@ -151,6 +155,9 @@ module.exports = async function (callback, options = {}) {
             "SuperTokenFactoryMockHelper",
         ];
         const {
+            Ownable,
+            IMultiSigWallet,
+            SuperfluidGovernanceBase,
             TestResolver,
             Superfluid,
             SuperfluidMock,
@@ -183,16 +190,22 @@ module.exports = async function (callback, options = {}) {
 
         // deploy new governance contract
         let governanceInitializationRequired = false;
-        let governance = await deployAndRegisterContractIf(
-            TestGovernance,
-            `TestGovernance.${protocolReleaseVersion}`,
-            async (contractAddress) =>
-                await codeChanged(web3, TestGovernance, contractAddress),
-            async () => {
-                governanceInitializationRequired = true;
-                return await web3tx(TestGovernance.new, "TestGovernance.new")();
-            }
-        );
+        let governance;
+        if (!process.env.NO_NEW_GOVERNANCE) {
+            governance = await deployAndRegisterContractIf(
+                TestGovernance,
+                `TestGovernance.${protocolReleaseVersion}`,
+                async (contractAddress) =>
+                    await codeChanged(web3, TestGovernance, contractAddress),
+                async () => {
+                    governanceInitializationRequired = true;
+                    return await web3tx(
+                        TestGovernance.new,
+                        "TestGovernance.new"
+                    )();
+                }
+            );
+        }
 
         // deploy new superfluid host contract
         const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
@@ -244,6 +257,14 @@ module.exports = async function (callback, options = {}) {
                 return superfluid;
             }
         );
+
+        // load existing governance if needed
+        if (!governance) {
+            governance = await ISuperfluidGovernance.at(
+                await superfluid.getGovernance.call()
+            );
+            console.log("Governance address", governance.address);
+        }
 
         // initialize the new governance
         if (governanceInitializationRequired) {
@@ -404,14 +425,22 @@ module.exports = async function (callback, options = {}) {
             agreementsToUpdate.length > 0 ||
             superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
         ) {
-            await web3tx(
-                governance.updateContracts,
-                "superfluid.updateContracts"
-            )(
-                superfluid.address,
-                superfluidNewLogicAddress,
-                agreementsToUpdate,
-                superTokenFactoryNewLogicAddress
+            await sendGovernanceAction(
+                {
+                    host: superfluid,
+                    contracts: {
+                        Ownable,
+                        IMultiSigWallet,
+                        SuperfluidGovernanceBase,
+                    },
+                },
+                (gov) =>
+                    gov.updateContracts(
+                        superfluid.address,
+                        superfluidNewLogicAddress,
+                        agreementsToUpdate,
+                        superTokenFactoryNewLogicAddress
+                    )
             );
         }
 

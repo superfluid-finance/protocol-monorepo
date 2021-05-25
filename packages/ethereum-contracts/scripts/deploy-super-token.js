@@ -64,13 +64,8 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        const {
-            TestResolver,
-            UUPSProxiable,
-            ISuperToken,
-            ISETH,
-            SETHProxy,
-        } = sf.contracts;
+        const { TestResolver, UUPSProxiable, ISuperToken, ISETH, SETHProxy } =
+            sf.contracts;
 
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
             await sf.host.getSuperTokenFactory.call()

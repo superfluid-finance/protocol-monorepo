@@ -1,0 +1,50 @@
+name: Run Ethereum Contracts Script
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Protocol release version (test/master/v1/etc.)'
+        required: true
+        default: 'test'
+      network:
+        description: 'Network for the script to run on'
+        required: false
+      script_name:
+        description: 'Script name'
+        required: true
+      script_args:
+        description: 'Script arguments'
+        required: false
+
+jobs:
+
+  run-ethereum-contracts-script:
+    name: Deploy to testnets
+
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Execute truffle script
+        run: |
+          cd packages/ethereum-contracts
+          npx truffle exec \
+            --network ${{ github.event.inputs.network }} \
+            ${{ github.event.inputs.script_name }} \
+            : \
+            ${{ github.event.inputs.script_args }}

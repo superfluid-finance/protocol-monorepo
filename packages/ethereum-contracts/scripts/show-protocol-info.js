@@ -174,7 +174,8 @@ module.exports = async function (callback, argv, options = {}) {
                 "SuperTokenLogic address",
                 await superTokenFactory.getSuperTokenLogic()
             );
-            latestSuperTokenLogicAddress = await superTokenFactory.getSuperTokenLogic();
+            latestSuperTokenLogicAddress =
+                await superTokenFactory.getSuperTokenLogic();
         }
         console.log("\n");
 
@@ -197,13 +198,15 @@ module.exports = async function (callback, argv, options = {}) {
                     sf.tokens[sf.config.nativeTokenSymbol + "x"].address
                 );
                 const symbol = await superToken.symbol.call();
-                const superTokenLogicAddress = await superToken.getCodeAddress();
+                const superTokenLogicAddress =
+                    await superToken.getCodeAddress();
                 printSuperToken({
                     symbol,
                     name: await superToken.name.call(),
                     tokenAddress: superToken.address,
                     superTokenLogicAddress,
-                    underlyingTokenAddress: await superToken.getUnderlyingToken.call(),
+                    underlyingTokenAddress:
+                        await superToken.getUnderlyingToken.call(),
                 });
             }
             {
@@ -229,7 +232,8 @@ module.exports = async function (callback, argv, options = {}) {
                         latests[i].args.token
                     );
                     const symbol = await superToken.symbol.call();
-                    const superTokenLogicAddress = await superToken.getCodeAddress();
+                    const superTokenLogicAddress =
+                        await superToken.getCodeAddress();
                     const isListed =
                         (
                             await sf.resolver.get(
@@ -241,7 +245,8 @@ module.exports = async function (callback, argv, options = {}) {
                         name: await superToken.name.call(),
                         tokenAddress: superToken.address,
                         superTokenLogicAddress,
-                        underlyingTokenAddress: await superToken.getUnderlyingToken.call(),
+                        underlyingTokenAddress:
+                            await superToken.getUnderlyingToken.call(),
                         isListed,
                     });
                 }

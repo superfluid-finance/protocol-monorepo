@@ -26,6 +26,8 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      ADMIN_TYPE: MULTISIG
+      GOVERNANCE_TYPE: MULTISIG
 
     steps:
       - uses: actions/checkout@v2

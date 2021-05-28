@@ -20,8 +20,6 @@ on:
 jobs:
 
   run-ethereum-contracts-script:
-    name: Deploy to testnets
-
     runs-on: ubuntu-latest
 
     env:

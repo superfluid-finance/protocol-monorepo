@@ -6,7 +6,7 @@ on:
       release_version:
         description: 'Protocol release version (test/master/v1/etc.)'
         required: true
-        default: 'v2'
+        default: 'v1'
       network:
         description: 'Network for the script to run on'
         required: false
@@ -45,7 +45,21 @@ jobs:
       - name: Execute truffle script
         run: |
           cd packages/ethereum-contracts
-          npx truffle exec \
+          npx truffle \
             --network ${{ github.event.inputs.network }} \
+            exec \
             ${{ github.event.inputs.script_name }} \
             ${{ github.event.inputs.script_args }}
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
+          ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
+          MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
+          KOVAN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+

@@ -62,4 +62,6 @@ jobs:
           MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
           KOVAN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
           KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+          XDAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          XDAI_PROVIDER_URL: ${{ secrets.XDAI_PROVIDER_URL }}
 

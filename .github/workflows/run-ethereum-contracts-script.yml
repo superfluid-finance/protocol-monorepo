@@ -6,7 +6,7 @@ on:
       release_version:
         description: 'Protocol release version (test/master/v1/etc.)'
         required: true
-        default: 'test'
+        default: 'v2'
       network:
         description: 'Network for the script to run on'
         required: false
@@ -48,5 +48,4 @@ jobs:
           npx truffle exec \
             --network ${{ github.event.inputs.network }} \
             ${{ github.event.inputs.script_name }} \
-            : \
             ${{ github.event.inputs.script_args }}

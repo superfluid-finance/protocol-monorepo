@@ -5,6 +5,9 @@ const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
 const { validateAddress } = require("./utils/general");
+const { batchCall } = require("./batchCall");
+const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
+const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
 
 const User = require("./User");
 
@@ -153,10 +156,9 @@ module.exports = class Framework {
         ]);
 
         // load agreement helpers
-        this.cfa = new (require("./ConstantFlowAgreementV1Helper"))(this);
-        this.ida = new (require("./InstantDistributionAgreementV1Helper"))(
-            this
-        );
+        this.cfa = new ConstantFlowAgreementV1Helper(this);
+        this.ida = new InstantDistributionAgreementV1Helper(this);
+
         console.debug(
             "ConstantFlowAgreementV1: TruffleContract .agreements.cfa | Helper .cfa",
             this.agreements.cfa.address
@@ -346,6 +348,16 @@ module.exports = class Framework {
             return new User({ sf: this, address, token, options });
         } catch (e) {
             throw getErrorResponse(e, "Framework", "user");
+        }
+    }
+
+    batchCall(calls) {
+        try {
+            if (!calls) throw "Missing arguments for sf.batchCall()";
+            // TODO: Validate specfic arguments
+            return batchCall({ sf: this, calls });
+        } catch (e) {
+            throw getErrorResponse(e, "Framework", "batchCall");
         }
     }
 

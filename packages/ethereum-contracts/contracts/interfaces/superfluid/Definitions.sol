@@ -138,7 +138,7 @@ library BatchOperation {
      */
     uint32 constant internal OPERATION_TYPE_SUPERTOKEN_DOWNGRADE = 2 + 100;
     /**
-     * @dev SuperFluid.callAgreement batch operation type
+     * @dev Superfluid.callAgreement batch operation type
      *
      * Call spec:
      * callAgreement(

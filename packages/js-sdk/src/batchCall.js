@@ -10,26 +10,38 @@ const TYPES = {
 };
 
 const parseERC20Operation = ({ index, operationType, data }) => {
+    const { tokenAddress, spender, recipient, amount } = data;
+
     /**
-     * @dev ERC20 Approve batch operation type
+     * @dev ERC20.approve batch operation type
      * Call spec:
-     * callAgreement(
-     *     ISuperAgreement(target)),
-     *     abi.decode(data, (bytes calldata, bytes userdata)
+     * ISuperToken(target).operationApprove(
+     *     abi.decode(data, (address spender, uint256 amount))
      * )
      */
+    if (operationType === TYPES.ERC20_APPROVE) {
+        return [
+            operationType,
+            tokenAddress,
+            // TODO: Encode params  [spender, amount]
+        ];
+    }
     /**
- * @dev ERC20 Approve batch operation type
- uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT = 1 + 200;
- * Call spec:
- * callAppAction(
- *     ISuperApp(target)),
- *     data
- * )
- */
+     * @dev ERC20.transferFrom batch operation type
+     * Call spec:
+     * ISuperToken(target).operationTransferFrom(
+     *     abi.decode(data, (address sender, address recipient, uint256 amount)
+     * )
+     */
+    return [
+        operationType,
+        tokenAddress,
+        // TODO: Encode params  [sender, recipient, amount]
+    ];
 };
 
 const parseSuperTokenOperation = ({ index, operationType, data }) => {
+    const { amount, tokenAddress } = data;
     /**
      * @dev SuperToken.upgrade batch operation type
      * Call spec:
@@ -44,25 +56,43 @@ const parseSuperTokenOperation = ({ index, operationType, data }) => {
      *     abi.decode(data, (uint256 amount)
      * )
      */
+    return [
+        operationType,
+        tokenAddress,
+        // TODO: Encode parameters [amount]
+    ];
 };
 
 const parseSuperFluidOperation = ({ index, operationType, data }) => {
     /**
-     * @dev ERC20 Approve batch operation type
+     * @dev Superfluid.callAgreement batch operation type
      * Call spec:
      * callAgreement(
      *     ISuperAgreement(target)),
      *     abi.decode(data, (bytes calldata, bytes userdata)
      * )
      */
+    // Get CFA or IDA address
+    return [
+        operationType,
+        agreementAddress,
+        // TODO: Encode params
+        // Open-ended? Use existing helper library?
+    ];
     /**
-     * @dev ERC20 Approve batch operation type
+     * @dev Superfluid.callAppAction batch operation type
      * Call spec:
      * callAppAction(
      *     ISuperApp(target)),
      *     data
      * )
      */
+    return [
+        operationType,
+        superAppAddress,
+        // TODO: Encode params
+        // Open-ended? Use existing helper library?
+    ];
 };
 
 const parse = ({ index, type, data }) => {

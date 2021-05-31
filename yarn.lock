@@ -630,7 +630,7 @@
 
 "@ethersproject/abi@^5.2.0":
   version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@ethersproject/abi/-/abi-5.2.0.tgz#e2ca0b7f7e3b83e4d427ed8b38fdc1c48e2bb00f"
+  resolved "https://registry.npmjs.org/@ethersproject/abi/-/abi-5.2.0.tgz#e2ca0b7f7e3b83e4d427ed8b38fdc1c48e2bb00f"
   integrity sha512-24ExfHa0VbIOUHbB36b6lCVmWkaIVmrd9/m8MICtmSsRKzlugWqUD0B8g0zrRylXNxAOc3V6T4xKJ8jEDSvp3w==
   dependencies:
     "@ethersproject/address" "^5.2.0"
@@ -4218,9 +4218,9 @@ asn1@~0.2.3:
   dependencies:
     safer-buffer "~2.1.0"
 
-"assemblyscript@git+https://github.com/AssemblyScript/assemblyscript.git#36040d5b5312f19a025782b5e36663823494c2f3":
+"assemblyscript@https://github.com/AssemblyScript/assemblyscript#36040d5b5312f19a025782b5e36663823494c2f3":
   version "0.6.0"
-  resolved "git+https://github.com/AssemblyScript/assemblyscript.git#36040d5b5312f19a025782b5e36663823494c2f3"
+  resolved "https://github.com/AssemblyScript/assemblyscript#36040d5b5312f19a025782b5e36663823494c2f3"
   dependencies:
     "@protobufjs/utf8" "^1.1.0"
     binaryen "77.0.0-nightly.20190407"
@@ -5780,17 +5780,7 @@ concat-stream@^1.5.0:
     readable-stream "^2.2.2"
     typedarray "^0.0.6"
 
-concat-stream@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/concat-stream/-/concat-stream-2.0.0.tgz#414cf5af790a48c60ab9be4527d56d5e41133cb1"
-  integrity sha512-MWufYdFw53ccGjCA+Ol7XJYpAlW6/prSMzuPOTRnJGcGzuhLn4Scrz7qf6o8bROZ514ltazcIFJZevcfbo0x7A==
-  dependencies:
-    buffer-from "^1.0.0"
-    inherits "^2.0.3"
-    readable-stream "^3.0.2"
-    typedarray "^0.0.6"
-
-"concat-stream@github:hugomrdias/concat-stream#feat/smaller":
+concat-stream@^2.0.0, "concat-stream@github:hugomrdias/concat-stream#feat/smaller":
   version "2.0.0"
   resolved "https://codeload.github.com/hugomrdias/concat-stream/tar.gz/057bc7b5d6d8df26c8cf00a3f151b6721a0a8034"
   dependencies:

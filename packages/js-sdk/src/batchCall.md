@@ -5,17 +5,17 @@ await sf.batchCall([
     {
         type: "SUPERTOKEN_UPGRADE",
         data: {
-            tokenAddress: "0xfff...000",
+            token: "0x111...",
             amount: "1000000000000000000",
         },
     },
     {
         type: "ERC20_TRANSFER_FROM",
         data: {
-            tokenAddress: "0xfff...000",
+            token: "0x111...",
             amount: "1000000000000000000",
-            sender: "0xaaa...111",
-            recipient: "0xbbb...222",
+            sender: "0xaaa...",
+            recipient: "0xbbb...",
         },
     },
 ]);
@@ -23,14 +23,22 @@ await sf.batchCall([
 
 All the `sf.batchCall()` options and available arguments are shown in the table below.
 
-| Action                      | Type (required string or number)   | Data (required)                                 |
-| :-------------------------- | :--------------------------------- | :---------------------------------------------- |
-| ERC20 `approve`             | "ERC20_APPROVE" or 1               | `tokenAddress`, `spender`, `amount`             |
-| ERC20 `transferFrom`        | "ERC20_TRANSFER_FROM" or 2         | `tokenAddress`, `sender`, `recipient`, `amount` |
-| Super Token `upgrade`       | "SUPERTOKEN_UPGRADE" or 101        | `tokenAddress`, `amount`                        |
-| Super Token `downgrade`     | "SUPERTOKEN_DOWNGRADE" or 102      | `tokenAddress`, `amount`                        |
-| Super Fluid `callAgreement` | "SUPERFLUID_CALL_AGREEMENT" or 201 | `agreeementType`, `callData` (TODO)             |
-| Super Fluid `callAppAction` | "CALL_APP_ACTION" or 202           | `superAppAddress`, `callData` (TODO)            |
+| Action                      | Type (required string or number)   | Data (required)                                                                            |
+| :-------------------------- | :--------------------------------- | :----------------------------------------------------------------------------------------- |
+| ERC20 `approve`             | "ERC20_APPROVE" or 1               | `token` Address, `spender` Address, `amount` String                                        |
+| ERC20 `transferFrom`        | "ERC20_TRANSFER_FROM" or 2         | `token` Address, `sender` Address, `recipient` Address, `amount` String                    |
+| Super Token `upgrade`       | "SUPERTOKEN_UPGRADE" or 101        | `token` Address, `amount` String                                                           |
+| Super Token `downgrade`     | "SUPERTOKEN_DOWNGRADE" or 102      | `token` Address, `amount` String                                                           |
+| Super Fluid `callAgreement` | "SUPERFLUID_CALL_AGREEMENT" or 201 | `agreeementType` "CFA" or "IDA", `method` String, `arguments` array, `userData` (optional) |
+| Super Fluid `callAppAction` | "CALL_APP_ACTION" or 202           | `superApp` Address, `callData` see below                                                   |
+
+callAgreement and callAppAction rely on encoded data. You'll need to add a library to encode this data, since the SDK doesn't know how to encode your data.
+
+TODO
+
+```
+yarn add @ethersproject/abi
+```
 
 Here is a compete example which approves a Super App to spend a user's Super Tokens, followed by a Super App function call:
 
@@ -50,7 +58,7 @@ await sf.batchCall([
     {
         type: "ERC20_APPROVE",
         data: {
-            tokenAddress: sf.tokens.fDAIx.address,
+            token: sf.tokens.fDAIx.address,
             spender: bob.address,
             amount: "1000000000000000000",
         },
@@ -58,7 +66,9 @@ await sf.batchCall([
     {
         type: "CALL_APP_ACTION",
         data: {
-            // todo
+            agreementType: "CFA",
+            method: "createFlow",
+            arguments: [],
         },
     },
 ]);

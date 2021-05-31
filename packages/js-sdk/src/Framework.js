@@ -260,7 +260,8 @@ module.exports = class Framework {
         this.superTokens[superTokenKey] = superToken;
 
         if (checkUnderlyingToken) {
-            const underlyingTokenAddress = await superToken.getUnderlyingToken.call();
+            const underlyingTokenAddress =
+                await superToken.getUnderlyingToken.call();
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address
                 if (
@@ -275,9 +276,10 @@ module.exports = class Framework {
 
                 // if underlying token is null or undefined
                 if (!underlyingToken) {
-                    underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
-                        underlyingTokenAddress
-                    );
+                    underlyingToken =
+                        await this.contracts.ERC20WithTokenInfo.at(
+                            underlyingTokenAddress
+                        );
                     const symbol = await underlyingToken.symbol();
                     this.tokens[symbol] = underlyingToken;
                 }

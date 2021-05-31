@@ -85,7 +85,7 @@ await sf.batchCall([
 
 ## SUPERFLUID_CALL_AGREEMENT
 
-To call an agreement, provide the `agreementType` ("CFA" or "IDA"), `method`, and `arguments`. Use the docs for Constant Flow Agreement (TODO LINK) and Instant Distribution Agreement (TODO LINK) to check the proper order for the arguments.
+To call an agreement, provide the `agreementType` ("CFA" or "IDA"), `method`, and `arguments`. Use the docs for Constant Flow Agreement (TODO LINK) and Instant Distribution Agreement (TODO LINK) to see the proper order for the arguments.
 
 ```js
 await sf.batchCall([
@@ -102,30 +102,25 @@ await sf.batchCall([
             ],
         },
     },
-    {
-        type: "SUPERFLUID_CALL_AGREEMENT",
-        data: {
-            agreementType: "IDA",
-            method: "createFlow",
-            arguments: [
-                sf.tokens.fDAIx.address, // Token address
-                app.address, // Flow recipient
-                MINIMUM_GAME_FLOW_RATE.toString(), // Flow rate
-                "0x",
-            ],
-        },
-    },
 ]);
 ```
 
 ## CALL_APP_ACTION
 
-callAppAction rely on encoded data. You'll need to add a library to encode this data, since the SDK doesn't know how to encode your data.
+The `@superfluid-finaince/js-sdk` isn't aware of your Super App, so you must encode the method arguments yourself. Here is an example using two different libraries:
 
-TODO
+```js
+// Example Solidity function in your Super App
+function deposit(uint256 amount) {}
 
-```
-yarn add @ethersproject/abi
+// Ethers.js
+myContract.interface.encodeFunctionData(
+   "deposit",
+   ["1000000000000000000"]
+);
+
+// Web3.js
+myContract.methods.deposit("1000000000000000000").encodeABI()
 ```
 
 Here is an example which approves a Super App to spend a user's Super Tokens, followed by a Super App function call:
@@ -154,7 +149,10 @@ await sf.batchCall([
     {
         type: "CALL_APP_ACTION",
         data: {
-            // TODO
+            callData: myContract.interface.encodeFunctionData(
+               "deposit",
+               ["1000000000000000000"]
+            );
         },
     },
 ]);

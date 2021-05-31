@@ -90,6 +90,7 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
         method,
         arguments,
         userData = "0x",
+        callData,
     } = data;
     /**
      * @dev Superfluid.callAgreement batch operation type
@@ -130,15 +131,9 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
      */
     if (!superApp)
         throw `You did not provide a superApp for item #${index} in your batch call array.`;
-    // TODO: update  callData error
-    // if (!callData)
-    //     throw `You did not provide the callData for item #${index} in your batch call array.`;
-    return [
-        operationType,
-        superApp,
-        // Open-ended? Use existing helper library?
-        abiCoder.encode(["uint256"], [amount]),
-    ];
+    if (!callData)
+        throw `You did not provide the callData for item #${index} in your batch call array.`;
+    return [operationType, superApp, callData];
 };
 
 const parse = ({ index, type, data }) => {

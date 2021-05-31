@@ -9,10 +9,9 @@
     "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
-        "dev": "yarn workspace @superfluid-finance/ethereum-contracts dev",
-        "build": "yarn workspaces run build",
-        "test": "yarn workspaces run test",
         "lint": "yarn workspaces run lint",
+        "build": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
+        "test": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i test;done",
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
         "postinstall": "husky install"
     },
@@ -32,7 +31,8 @@
     "workspaces": {
         "packages": [
             "packages/ethereum-contracts",
-            "packages/js-sdk"
+            "packages/js-sdk",
+            "packages/subgraph"
         ]
     }
 }

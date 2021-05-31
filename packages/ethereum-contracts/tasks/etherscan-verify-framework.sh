@@ -16,7 +16,7 @@ npx truffle --network $TRUFFLE_NETWORK run etherscan SuperTokenFactory@${SUPERFL
 echo SUPERFLUID_SUPER_TOKEN_LOGIC
 # it is required to provide the constructor arguments manually, because the super token logic is created through a contract not an EOA
 SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log(("0".repeat(64)+("'${SUPERFLUID_HOST_PROXY}'".slice(2))).slice(-64))')
-npx truffle --network $TRUFFLE_NETWORK run etherscan SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC}@${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
+npx truffle --network $TRUFFLE_NETWORK run etherscan SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC} --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
 
 echo CFA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${CFA_PROXY}

@@ -1,0 +1,8 @@
+{
+    "network": "mumbai",
+    "hostStartBlock": 9343671,
+    "hostAddress": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
+    "cfaAddress": "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873",
+    "idaAddress": "0x804348D4960a61f2d5F9ce9103027A3E849E09b8",
+    "superTokenFactoryAddress": "0x200657E2f123761662567A1744f9ACAe50dF47E6"
+}

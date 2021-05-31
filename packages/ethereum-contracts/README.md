@@ -91,17 +91,17 @@ let daix;
 beforeEach(async () => {
     await deployTestToken(errorHandler, [":", "fDAI"], {
         web3,
-        from: admin
+        from: admin,
     });
     await deploySuperToken(errorHandler, [":", "fDAI"], {
         web3,
-        from: admin
+        from: admin,
     });
 
     sf = new SuperfluidSDK.Framework({
         web3,
         version: "test",
-        tokens: ["fDAI"]
+        tokens: ["fDAI"],
     });
     await sf.initialize();
 
@@ -122,7 +122,7 @@ Awesome, now that have the basics, check out the apps over in the [examples fold
 To deploy to your local ganache environment:
 
 ```sh
-$ DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
 **Public**
@@ -130,7 +130,7 @@ $ DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@supe
 If you want to deploy to a public network:
 
 ```sh
-$ NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
 Note `NEW_TEST_RESOLVER=1`, it is to avoid using the official resolver address. Doing so
@@ -179,6 +179,7 @@ yarn test
 ### Setup Development Environment
 
 1. Install dependencies
+
 ```sh
 yarn install
 ```

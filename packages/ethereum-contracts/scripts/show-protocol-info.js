@@ -41,6 +41,7 @@ module.exports = async function (callback, argv, options = {}) {
                 "UUPSProxiable",
                 "Superfluid",
                 "SuperTokenFactory",
+                "SuperToken",
                 "SuperfluidGovernanceBase",
             ],
             loadSuperNativeToken: true,
@@ -161,37 +162,99 @@ module.exports = async function (callback, argv, options = {}) {
         }
         console.log("\n");
 
-        console.log("# Listed SuperTokens");
-        if (sf.config.nativeTokenSymbol) {
-            console.log("## SuperToken of Native Chain Token");
-            const token = sf.tokens[sf.config.nativeTokenSymbol + "x"];
-            console.log(await token.symbol.call(), token.address);
-            console.log(
-                "Underlying Wrapped Native",
-                await token.getUnderlyingToken.call()
-            );
-        }
+        console.log("# Super Token Factory");
+        let superTokenFactory;
+        let latestSuperTokenLogicAddress;
         {
-            console.log("## Other Unlisted SuperTokens");
-            let superTokenFactory = await sf.contracts.SuperTokenFactory.at(
+            superTokenFactory = await sf.contracts.SuperTokenFactory.at(
                 await sf.host.getSuperTokenFactory()
             );
-            const latests = await superTokenFactory.getPastEvents(
-                "SuperTokenCreated",
-                {
-                    fromBlock: 0,
-                    toBlock: "latest",
-                }
+            console.log("SuperTokenFactory address", superTokenFactory.address);
+            console.log(
+                "SuperTokenLogic address",
+                await superTokenFactory.getSuperTokenLogic()
             );
-            for (let i = 0; i < latests.length; ++i) {
-                const token = await sf.contracts.ISuperToken.at(
-                    latests[i].args.token
-                );
+            latestSuperTokenLogicAddress =
+                await superTokenFactory.getSuperTokenLogic();
+        }
+        console.log("\n");
+
+        console.log("# Managed Super Tokens");
+        {
+            const printSuperToken = (s) => {
+                const needsUpdate =
+                    s.superTokenLogicAddress.toLowerCase() !==
+                    latestSuperTokenLogicAddress.toLowerCase();
                 console.log(
-                    await token.symbol.call(),
-                    token.address,
-                    `(${await token.getUnderlyingToken.call()})`
+                    `${s.name} (${s.symbol})`,
+                    s.tokenAddress,
+                    `(${s.underlyingTokenAddress})`,
+                    needsUpdate ? `*(${s.superTokenLogicAddress})` : ""
                 );
+            };
+            if (sf.config.nativeTokenSymbol) {
+                console.log("## SuperToken of Native Chain Token");
+                const superToken = await sf.contracts.SuperToken.at(
+                    sf.tokens[sf.config.nativeTokenSymbol + "x"].address
+                );
+                const symbol = await superToken.symbol.call();
+                const superTokenLogicAddress =
+                    await superToken.getCodeAddress();
+                printSuperToken({
+                    symbol,
+                    name: await superToken.name.call(),
+                    tokenAddress: superToken.address,
+                    superTokenLogicAddress,
+                    underlyingTokenAddress:
+                        await superToken.getUnderlyingToken.call(),
+                });
+            }
+            {
+                const latests = [
+                    ...(await superTokenFactory.getPastEvents(
+                        "CustomSuperTokenCreated",
+                        {
+                            fromBlock: 0,
+                            toBlock: "latest",
+                        }
+                    )),
+                    ...(await superTokenFactory.getPastEvents(
+                        "SuperTokenCreated",
+                        {
+                            fromBlock: 0,
+                            toBlock: "latest",
+                        }
+                    )),
+                ];
+                const superTokens = [];
+                for (let i = 0; i < latests.length; ++i) {
+                    const superToken = await sf.contracts.SuperToken.at(
+                        latests[i].args.token
+                    );
+                    const symbol = await superToken.symbol.call();
+                    const superTokenLogicAddress =
+                        await superToken.getCodeAddress();
+                    const isListed =
+                        (
+                            await sf.resolver.get(
+                                `supertokens.${sf.version}.${symbol}`
+                            )
+                        ).toLowerCase() == superToken.address.toLowerCase();
+                    superTokens.push({
+                        symbol,
+                        name: await superToken.name.call(),
+                        tokenAddress: superToken.address,
+                        superTokenLogicAddress,
+                        underlyingTokenAddress:
+                            await superToken.getUnderlyingToken.call(),
+                        isListed,
+                    });
+                }
+                console.log("## Listed Super Tokens");
+                superTokens.filter((s) => s.isListed).forEach(printSuperToken);
+                console.log("## Unlisted Super Tokens");
+                superTokens.filter((s) => !s.isListed).forEach(printSuperToken);
+                console.log("* - Needs super token logic update");
             }
         }
 

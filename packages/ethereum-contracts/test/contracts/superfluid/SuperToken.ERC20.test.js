@@ -80,9 +80,7 @@ contract("SuperToken's ERC20 compliance", (accounts) => {
                     });
 
                     it("emits an approval event", async function () {
-                        const {
-                            logs,
-                        } = await this.token.decreaseAllowance(
+                        const { logs } = await this.token.decreaseAllowance(
                             spender,
                             approvedAmount,
                             { from: alice }

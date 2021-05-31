@@ -103,9 +103,7 @@ function shouldBehaveLikeERC20(
                         });
 
                         it("emits a transfer event", async function () {
-                            const {
-                                logs,
-                            } = await this.token.transferFrom(
+                            const { logs } = await this.token.transferFrom(
                                 tokenOwner,
                                 to,
                                 amount,
@@ -120,9 +118,7 @@ function shouldBehaveLikeERC20(
                         });
 
                         it("emits an approval event", async function () {
-                            const {
-                                logs,
-                            } = await this.token.transferFrom(
+                            const { logs } = await this.token.transferFrom(
                                 tokenOwner,
                                 to,
                                 amount,

@@ -23,14 +23,8 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
         isTruffle: true,
         useMocks: true,
     });
-    const [
-        ,
-        holder,
-        defaultOperatorA,
-        defaultOperatorB,
-        newOperator,
-        anyone,
-    ] = accounts;
+    const [, holder, defaultOperatorA, defaultOperatorB, newOperator, anyone] =
+        accounts;
     const defaultOperators = [defaultOperatorA, defaultOperatorB];
     const initialSupply = toWad(50);
     const { ZERO_ADDRESS } = t.constants;
@@ -385,9 +379,7 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
                     });
 
                     it("revoked default operator can be re-authorized", async function () {
-                        const {
-                            logs,
-                        } = await this.token.authorizeOperator(
+                        const { logs } = await this.token.authorizeOperator(
                             defaultOperatorA,
                             { from: holder }
                         );
@@ -419,8 +411,10 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
                 describe("with no ERC777TokensRecipient implementer", function () {
                     describe("with contract recipient", function () {
                         beforeEach(async function () {
-                            this.tokensRecipientImplementer = await ERC777SenderRecipientMock.new();
-                            this.recipient = this.tokensRecipientImplementer.address;
+                            this.tokensRecipientImplementer =
+                                await ERC777SenderRecipientMock.new();
+                            this.recipient =
+                                this.tokensRecipientImplementer.address;
                         });
 
                         it("send reverts", async function () {
@@ -508,7 +502,8 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
                 describe("with ERC777TokensRecipient implementer", function () {
                     describe("with contract as implementer for an externally owned account", function () {
                         beforeEach(async function () {
-                            this.tokensRecipientImplementer = await ERC777SenderRecipientMock.new();
+                            this.tokensRecipientImplementer =
+                                await ERC777SenderRecipientMock.new();
                             this.recipient = anyone;
 
                             await this.tokensRecipientImplementer.recipientFor(
@@ -535,10 +530,12 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
 
                     describe("with contract as implementer for another contract", function () {
                         beforeEach(async function () {
-                            this.recipientContract = await ERC777SenderRecipientMock.new();
+                            this.recipientContract =
+                                await ERC777SenderRecipientMock.new();
                             this.recipient = this.recipientContract.address;
 
-                            this.tokensRecipientImplementer = await ERC777SenderRecipientMock.new();
+                            this.tokensRecipientImplementer =
+                                await ERC777SenderRecipientMock.new();
                             await this.tokensRecipientImplementer.recipientFor(
                                 this.recipient
                             );
@@ -557,8 +554,10 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
 
                     describe("with contract as implementer for itself", function () {
                         beforeEach(async function () {
-                            this.tokensRecipientImplementer = await ERC777SenderRecipientMock.new();
-                            this.recipient = this.tokensRecipientImplementer.address;
+                            this.tokensRecipientImplementer =
+                                await ERC777SenderRecipientMock.new();
+                            this.recipient =
+                                this.tokensRecipientImplementer.address;
 
                             await this.tokensRecipientImplementer.recipientFor(
                                 this.recipient
@@ -582,7 +581,8 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
 
                 describe("with a contract as implementer for an externally owned account", function () {
                     beforeEach(async function () {
-                        this.tokensSenderImplementer = await ERC777SenderRecipientMock.new();
+                        this.tokensSenderImplementer =
+                            await ERC777SenderRecipientMock.new();
                         this.sender = holder;
 
                         await this.tokensSenderImplementer.senderFor(
@@ -607,10 +607,12 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
 
                 describe("with contract as implementer for another contract", function () {
                     beforeEach(async function () {
-                        this.senderContract = await ERC777SenderRecipientMock.new();
+                        this.senderContract =
+                            await ERC777SenderRecipientMock.new();
                         this.sender = this.senderContract.address;
 
-                        this.tokensSenderImplementer = await ERC777SenderRecipientMock.new();
+                        this.tokensSenderImplementer =
+                            await ERC777SenderRecipientMock.new();
                         await this.tokensSenderImplementer.senderFor(
                             this.sender
                         );
@@ -633,7 +635,8 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
 
                 describe("with a contract as implementer for itself", function () {
                     beforeEach(async function () {
-                        this.tokensSenderImplementer = await ERC777SenderRecipientMock.new();
+                        this.tokensSenderImplementer =
+                            await ERC777SenderRecipientMock.new();
                         this.sender = this.tokensSenderImplementer.address;
 
                         await this.tokensSenderImplementer.senderFor(

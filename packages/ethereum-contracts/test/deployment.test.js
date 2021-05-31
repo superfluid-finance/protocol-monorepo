@@ -48,7 +48,8 @@ contract("Embeded deployment scripts", () => {
         const superfluidCode = await superfluid.getCodeAddress.call();
         const gov = await testResolver.get(govName);
         const superTokenFactory = await superfluid.getSuperTokenFactory.call();
-        const superTokenFactoryLogic = await superfluid.getSuperTokenFactoryLogic.call();
+        const superTokenFactoryLogic =
+            await superfluid.getSuperTokenFactoryLogic.call();
         const superTokenLogic = await (
             await ISuperTokenFactory.at(superTokenFactory)
         ).getSuperTokenLogic();

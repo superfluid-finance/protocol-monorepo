@@ -138,6 +138,35 @@ function builtTruffleContractLoader(name) {
     }
 }
 
+async function sendGovernanceAction(sf, actionFn) {
+    const gov = await sf.contracts.SuperfluidGovernanceBase.at(
+        await sf.host.getGovernance.call()
+    );
+    switch (process.env.GOVERNANCE_TYPE) {
+        case "MULTISIG": {
+            console.log("Governance type: MultiSig");
+            const multis = await sf.contracts.IMultiSigWallet.at(
+                await (await sf.contracts.Ownable.at(gov.address)).owner()
+            );
+            console.log("MultiSig address: ", multis.address);
+            const data = actionFn(gov.contract.methods).encodeABI();
+            console.log("MultiSig data", data);
+            console.log("Sending governance action to multisig...");
+            await multis.submitTransaction(gov.address, 0, data);
+            console.log(
+                "Governance action sent, but it may still need confirmation(s)."
+            );
+            break;
+        }
+        default: {
+            console.log("Governance type: Direct Ownership (default)");
+            console.log("Executing governance action...");
+            await actionFn(gov);
+            console.log("Governance action executed.");
+        }
+    }
+}
+
 module.exports = {
     ZERO_ADDRESS,
     parseColonArgs,
@@ -149,4 +178,5 @@ module.exports = {
     detectTruffleAndConfigure,
     rl: promisify(rl.question),
     builtTruffleContractLoader,
+    sendGovernanceAction,
 };

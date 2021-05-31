@@ -151,7 +151,9 @@ module.exports = class TestEnvironment {
         );
 
         this.contracts.superToken = await SuperTokenMock.at(
-            (await this.sf.createERC20Wrapper(this.contracts.testToken)).address
+            (
+                await this.sf.createERC20Wrapper(this.contracts.testToken)
+            ).address
         );
 
         // mint test tokens to test accounts
@@ -327,7 +329,8 @@ module.exports = class TestEnvironment {
                 [superToken]: {
                     accounts: {
                         [account]: {
-                            expectedBalanceDelta: expectedBalanceDelta.toString(),
+                            expectedBalanceDelta:
+                                expectedBalanceDelta.toString(),
                         },
                     },
                 },
@@ -426,10 +429,11 @@ module.exports = class TestEnvironment {
                     realtimeBalanceDelta
                 );
 
-                const expectedBalanceDelta = this.getAccountExpectedBalanceDelta(
-                    superToken.address,
-                    address
-                );
+                const expectedBalanceDelta =
+                    this.getAccountExpectedBalanceDelta(
+                        superToken.address,
+                        address
+                    );
                 this.printSingleBalance(
                     `${alias} expected real-time balance delta`,
                     expectedBalanceDelta
@@ -465,14 +469,16 @@ module.exports = class TestEnvironment {
         await Promise.all(
             this.listAliases().map(async (alias) => {
                 const userAddress = this.getAddress(alias);
-                const tokenBalance = await this.contracts.testToken.balanceOf.call(
-                    userAddress
-                    /* TODO query old block currentBlock.timestamp*/
-                );
-                const superTokenBalance = await this.contracts.superToken.realtimeBalanceOf.call(
-                    userAddress,
-                    currentBlock.timestamp.toString()
-                );
+                const tokenBalance =
+                    await this.contracts.testToken.balanceOf.call(
+                        userAddress
+                        /* TODO query old block currentBlock.timestamp*/
+                    );
+                const superTokenBalance =
+                    await this.contracts.superToken.realtimeBalanceOf.call(
+                        userAddress,
+                        currentBlock.timestamp.toString()
+                    );
                 superTokenBalance.timestamp = currentBlock.timestamp;
                 // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
                 const realtimeBalance = superTokenBalance.availableBalance

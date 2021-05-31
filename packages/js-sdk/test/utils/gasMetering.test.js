@@ -5,8 +5,7 @@ const GasMetering = require("../../src/utils/gasMetering/gasMetering");
 describe("GasMetering", function () {
     beforeEach(async () => {
         this.tx = {
-            tx:
-                "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+            tx: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
             receipt: {
                 transactionHash:
                     "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
@@ -111,24 +110,21 @@ describe("GasMetering", function () {
             executedTxs: [
                 {
                     action: "SomeAction",
-                    txHash:
-                        "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                    txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
                     gasPrice: "1 GWEI",
                     cost: "0.0001 ETH",
                 },
                 {
                     action: "SomeAction",
-                    txHash:
-                        "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                    txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
                     gasPrice: "1 GWEI",
                     cost: "0.0001 ETH",
                 },
                 {
                     action: "SomeAction2",
-                    txHash:
-                        "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
+                    txHash: "0xf12344cf8a52ea36e2ba325c15b8faf6147d7fb98c900f39f50fec853f506286",
                     gas: "100000",
                     gasPrice: "1 GWEI",
                     cost: "0.0001 ETH",

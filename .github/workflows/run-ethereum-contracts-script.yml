@@ -9,7 +9,10 @@ on:
         default: 'v1'
       network:
         description: 'Network for the script to run on'
-        required: false
+        required: true
+      owner_type:
+        description: 'Choose the owner type: MULTISIG, or default (OWNABLE)'
+        required: true
       script_name:
         description: 'Script name'
         required: true
@@ -24,8 +27,8 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-      ADMIN_TYPE: MULTISIG
-      GOVERNANCE_TYPE: MULTISIG
+      ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
+      GOVERNANCE_TYPE: ${{ github.event.inputs.owner_type }}
 
     steps:
       - uses: actions/checkout@v2
@@ -62,4 +65,5 @@ jobs:
           KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
           XDAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
           XDAI_PROVIDER_URL: ${{ secrets.XDAI_PROVIDER_URL }}
-
+          MATIC_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}

@@ -46,9 +46,17 @@ contract("batchCall helper class", (accounts) => {
         recipient: "0xbbb...",
     };
 
-    describe("Generic bad-case", () => {
+    describe.only("Generic bad-case", () => {
+        it("Calls not provided", async () => {
+            await expect(sf.batchCall({})).to.be.rejectedWith(
+                getErrorResponse(
+                    "You must provide an array of calls",
+                    "batchCall"
+                )
+            );
+        });
         it("Data not provided", async () => {
-            await expect(sf.batchCall({ type: 1 })).to.be.rejectedWith(
+            await expect(sf.batchCall([{ type: 1 }])).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("data", getBatchCallHelpText(0)),
                     "batchCall"
@@ -57,7 +65,7 @@ contract("batchCall helper class", (accounts) => {
         });
         it("Type not provided", async () => {
             await expect(
-                sf.batchCall({ data: exampleERC20TransferFromData })
+                sf.batchCall([{ data: exampleERC20TransferFromData }])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("type", getBatchCallHelpText(0)),
@@ -69,10 +77,12 @@ contract("batchCall helper class", (accounts) => {
             const NO_OP_STRING = "NO_OP";
             const NO_OP_NUMBER = 9999;
             await expect(
-                sf.batchCall({
-                    type: NO_OP_NUMBER,
-                    data: exampleERC20TransferFromData,
-                })
+                sf.batchCall([
+                    {
+                        type: NO_OP_NUMBER,
+                        data: exampleERC20TransferFromData,
+                    },
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     `You provided an invalid operation type "${NO_OP_NUMBER}"${getBatchCallHelpText(
@@ -82,10 +92,12 @@ contract("batchCall helper class", (accounts) => {
                 )
             );
             await expect(
-                sf.batchCall({
-                    type: NO_OP_STRING,
-                    data: exampleERC20TransferFromData,
-                })
+                sf.batchCall([
+                    {
+                        type: NO_OP_STRING,
+                        data: exampleERC20TransferFromData,
+                    },
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     `You provided an invalid operation type "${NO_OP_STRING}"${getBatchCallHelpText(
@@ -97,14 +109,16 @@ contract("batchCall helper class", (accounts) => {
         });
     });
     describe("ERC20 bad-case", () => {
-        it("Amount not provided", async () => {
+        it("amount not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "ERC20_APPROVE",
-                    data: {
-                        token: "0x",
+                sf.batchCall([
+                    {
+                        type: "ERC20_APPROVE",
+                        data: {
+                            token: "0x",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("amount", getBatchCallHelpText(0)),
@@ -112,14 +126,16 @@ contract("batchCall helper class", (accounts) => {
                 )
             );
         });
-        it("Token not provided", async () => {
+        it("token not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "ERC20_APPROVE",
-                    data: {
-                        amount: "1",
+                sf.batchCall([
+                    {
+                        type: "ERC20_APPROVE",
+                        data: {
+                            amount: "1",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("token", getBatchCallHelpText(0)),
@@ -129,13 +145,15 @@ contract("batchCall helper class", (accounts) => {
         });
         it("ERC20_APPROVE spender not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "ERC20_APPROVE",
-                    data: {
-                        token: "0x",
-                        amount: "1",
+                sf.batchCall([
+                    {
+                        type: "ERC20_APPROVE",
+                        data: {
+                            token: "0x",
+                            amount: "1",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("spender", getBatchCallHelpText(0)),
@@ -145,13 +163,15 @@ contract("batchCall helper class", (accounts) => {
         });
         it("ERC20_TRANSFER_FROM sender not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "ERC20_TRANSFER_FROM",
-                    data: {
-                        token: "0x",
-                        amount: "1",
+                sf.batchCall([
+                    {
+                        type: "ERC20_TRANSFER_FROM",
+                        data: {
+                            token: "0x",
+                            amount: "1",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("sender", getBatchCallHelpText(0)),
@@ -161,14 +181,16 @@ contract("batchCall helper class", (accounts) => {
         });
     });
     describe("Super Token bad-case", () => {
-        it("Amount not provided", async () => {
+        it("amount not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        token: "0x",
+                sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            token: "0x",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("amount", getBatchCallHelpText(0)),
@@ -176,14 +198,16 @@ contract("batchCall helper class", (accounts) => {
                 )
             );
         });
-        it("Token not provided", async () => {
+        it("token not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        amount: "1",
+                sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            amount: "1",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("token", getBatchCallHelpText(0)),
@@ -195,18 +219,20 @@ contract("batchCall helper class", (accounts) => {
     describe("Call Agreement bad-case", () => {
         it("agreementType not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        method: "createFlow",
-                        arguments: [
-                            "0x", // Token address
-                            "0x", // Flow recipient
-                            "1", // Flow rate
-                            "0x",
-                        ],
+                sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            method: "createFlow",
+                            arguments: [
+                                "0x", // Token address
+                                "0x", // Flow recipient
+                                "1", // Flow rate
+                                "0x",
+                            ],
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError(
@@ -219,19 +245,21 @@ contract("batchCall helper class", (accounts) => {
         });
         it("Invalid agreementType", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        agreementType: "NO_OP",
-                        method: "createFlow",
-                        arguments: [
-                            "0x", // Token address
-                            "0x", // Flow recipient
-                            "1", // Flow rate
-                            "0x",
-                        ],
+                sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            agreementType: "NO_OP",
+                            method: "createFlow",
+                            arguments: [
+                                "0x", // Token address
+                                "0x", // Flow recipient
+                                "1", // Flow rate
+                                "0x",
+                            ],
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     "You provided an invalid agreementType" +
@@ -242,18 +270,20 @@ contract("batchCall helper class", (accounts) => {
         });
         it("method not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        agreementType: "CFA",
-                        arguments: [
-                            "0x", // Token address
-                            "0x", // Flow recipient
-                            "1", // Flow rate
-                            "0x",
-                        ],
+                sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            agreementType: "CFA",
+                            arguments: [
+                                "0x", // Token address
+                                "0x", // Flow recipient
+                                "1", // Flow rate
+                                "0x",
+                            ],
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError("method", getBatchCallHelpText(0)),
@@ -263,13 +293,15 @@ contract("batchCall helper class", (accounts) => {
         });
         it("arguments not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        agreementType: "CFA",
-                        method: "createFlow",
+                sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            agreementType: "CFA",
+                            method: "createFlow",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError(
@@ -280,20 +312,42 @@ contract("batchCall helper class", (accounts) => {
                 )
             );
         });
-        it("arguments not provided", async () => {
+    });
+    describe("Super App bad-case", () => {
+        it("superApp not provided", async () => {
             await expect(
-                sf.batchCall({
-                    type: "SUPERTOKEN_UPGRADE",
-                    data: {
-                        agreementType: "CFA",
-                        method: "createFlow",
-                        arguments: [],
+                sf.batchCall([
+                    {
+                        type: "CALL_APP_ACTION",
+                        data: {
+                            callData: "0x",
+                        },
                     },
-                })
+                ])
             ).to.be.rejectedWith(
                 getErrorResponse(
                     getMissingArgumentError(
-                        "arguments",
+                        "superApp",
+                        getBatchCallHelpText(0)
+                    ),
+                    "batchCall"
+                )
+            );
+        });
+        it("callData not provided", async () => {
+            await expect(
+                sf.batchCall([
+                    {
+                        type: "CALL_APP_ACTION",
+                        data: {
+                            superApp: "CFA",
+                        },
+                    },
+                ])
+            ).to.be.rejectedWith(
+                getErrorResponse(
+                    getMissingArgumentError(
+                        "callData",
                         getBatchCallHelpText(0)
                     ),
                     "batchCall"

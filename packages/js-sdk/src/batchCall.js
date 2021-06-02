@@ -190,7 +190,8 @@ const parse = ({ index, type, data }) => {
 };
 
 const batchCall = ({ sf, calls }) => {
-    if (!calls)
+    console.log(calls);
+    if (!calls || typeof calls !== Array)
         throw getErrorResponse(
             "You must provide an array of calls",
             "batchCall"

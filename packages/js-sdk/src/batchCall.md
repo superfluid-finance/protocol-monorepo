@@ -137,6 +137,8 @@ await sf.initialize();
 
 const bob = sf.user({ address: "0xbbb...", token: sf.tokens.fDAIx.address });
 
+// TODO: Create contract
+
 await sf.batchCall([
     {
         type: "ERC20_APPROVE",
@@ -149,6 +151,7 @@ await sf.batchCall([
     {
         type: "CALL_APP_ACTION",
         data: {
+            superApp: myContract.address,
             callData: myContract.interface.encodeFunctionData(
                "deposit",
                ["1000000000000000000"]

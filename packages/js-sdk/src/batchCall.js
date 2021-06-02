@@ -1,4 +1,8 @@
-const { getErrorResponse } = require("./utils/error");
+const {
+    getErrorResponse,
+    getMissingArgumentError,
+    getBatchCallHelpText,
+} = require("./utils/error");
 const { AbiCoder } = require("@ethersproject/abi");
 
 const abiCoder = new AbiCoder();
@@ -20,9 +24,8 @@ const AGREEMENT_TYPES = {
 const parseERC20Operation = ({ index, operationType, data }) => {
     const { token, spender, sender, recipient, amount } = data;
     if (!amount)
-        throw `You did not provide an amount for item #${index} in your batch call array.`;
-    if (!token)
-        throw `You did not provide the token for item #${index} in your batch call array.`;
+        throw getMissingArgumentError("amount", getErrorHelpText(index));
+    if (!token) throw getMissingArgumentError("token", getErrorHelpText(index));
 
     /**
      * @dev ERC20.approve batch operation type
@@ -33,7 +36,7 @@ const parseERC20Operation = ({ index, operationType, data }) => {
      */
     if (operationType === OPERATION_TYPES.ERC20_APPROVE) {
         if (!spender)
-            throw `You did not provide the spender for item #${index} in your batch call array.`;
+            throw getMissingArgumentError("spender", getErrorHelpText(index));
         return [
             operationType,
             token,
@@ -47,8 +50,8 @@ const parseERC20Operation = ({ index, operationType, data }) => {
      *     abi.decode(data, (address sender, address recipient, uint256 amount)
      * )
      */
-    if (!spender)
-        throw `You did not provide the sender for item #${index} in your batch call array.`;
+    if (!sender)
+        throw getMissingArgumentError("sender", getErrorHelpText(index));
     return [
         operationType,
         token,
@@ -62,9 +65,8 @@ const parseERC20Operation = ({ index, operationType, data }) => {
 const parseSuperTokenOperation = ({ index, operationType, data }) => {
     const { amount, token } = data;
     if (!amount)
-        throw `You did not provide an amount for item #${index} in your batch call array.`;
-    if (!token)
-        throw `You did not provide the token for item #${index} in your batch call array.`;
+        throw getMissingArgumentError("amount", getErrorHelpText(index));
+    if (!token) throw getMissingArgumentError("token", getErrorHelpText(index));
 
     /**
      * @dev SuperToken.upgrade batch operation type
@@ -102,13 +104,18 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
      */
     if (operationType === OPERATION_TYPES.SUPERFLUID_CALL_AGREEMENT) {
         if (!agreementType)
-            throw `You did not provide the agreementType for item #${index} in your batch call array.`;
+            throw getMissingArgumentError(
+                "agreementType",
+                getErrorHelpText(index)
+            );
         if (!method)
-            throw `You did not provide the method for item #${index} in your batch call array.`;
+            throw getMissingArgumentError("method", getErrorHelpText(index));
         if (!arguments)
-            throw `You did not provide any arguments for item #${index} in your batch call array.`;
+            throw getMissingArgumentError("arguments", getErrorHelpText(index));
         if (!OBJECT.keys(AGREEMENT_TYPES).includes(agreementType))
-            throw `You provided an invalid agreementType for item #${index} in your batch call array.`;
+            throw `You provided an invalid agreementType${getBatchCallHelpText(
+                index
+            )}`;
 
         const agreementAddress =
             sf.agreements[AGREEMENT_TYPES[agreementType]].address;
@@ -130,24 +137,26 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
      * )
      */
     if (!superApp)
-        throw `You did not provide a superApp for item #${index} in your batch call array.`;
+        throw getMissingArgumentError("superApp", getErrorHelpText(index));
     if (!callData)
-        throw `You did not provide the callData for item #${index} in your batch call array.`;
+        throw getMissingArgumentError("callData", getErrorHelpText(index));
     return [operationType, superApp, callData];
 };
 
 const parse = ({ index, type, data }) => {
     try {
         if (!type)
-            throw `You did not provide a type for item #${index} in your batch call array.`;
+            throw getMissingArgumentError("type", getErrorHelpText(index));
         if (!data)
-            throw `You did not provide any data for item #${index} in your batch call array.`;
+            throw getMissingArgumentError("data", getErrorHelpText(index));
 
         // Opertation type
         let operationType = type;
         if (typeof type !== Number) {
             if (!Object.keys(OPERATION_TYPES).includes(type))
-                throw `You provided an invalid operation type "${type}" for item #${index} in your batch call array. Please see https://docs.superfluid.finaince/bathcall for a list of available types`;
+                throw `You provided an invalid operation type "${
+                    type + 1
+                }"${getBatchCallHelpText(index)}`;
             operationType = OPERATION_TYPES[type];
         }
 
@@ -172,7 +181,9 @@ const parse = ({ index, type, data }) => {
             ].includes(operationType)
         )
             return parseSuperFluidOperation({ index, operationType, data });
-        throw `You provided an invalid operation type "${type}" for item #${index} in your batch call array. Please see https://docs.superfluid.finaince/bathcall for a list of available types`;
+        throw `You provided an invalid operation type "${
+            type + 1
+        }"${getBatchCallHelpText(index)}`;
     } catch (e) {
         throw getErrorResponse(e, "batchCall");
     }

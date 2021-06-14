@@ -142,17 +142,17 @@ module.exports = class TestEnvironment {
     }
 
     /// create a new test token
-    async createNewToken({ doUpgrade } = {}) {
+    async createNewToken({ doUpgrade, doNotSetAsDefault } = {}) {
         // test token contract
-        this.contracts.testToken = await web3tx(TestToken.new, "TestToken.new")(
+        const testToken = await web3tx(TestToken.new, "TestToken.new")(
             "Test Token",
             "TEST",
             18
         );
 
-        this.contracts.superToken = await SuperTokenMock.at(
+        const superToken = await SuperTokenMock.at(
             (
-                await this.sf.createERC20Wrapper(this.contracts.testToken)
+                await this.sf.createERC20Wrapper(testToken)
             ).address
         );
 
@@ -161,24 +161,21 @@ module.exports = class TestEnvironment {
             Object.keys(this.aliases).map(async (alias) => {
                 const userAddress = this.aliases[alias];
                 await web3tx(
-                    this.contracts.testToken.approve,
+                    testToken.approve,
                     `TestToken.approve by ${alias} to SuperToken`
-                )(
-                    this.contracts.superToken.address,
-                    this.constants.MAX_UINT256,
+                )(superToken.address, this.constants.MAX_UINT256, {
+                    from: userAddress,
+                });
+                await web3tx(testToken.mint, `Mint token for ${alias}`)(
+                    userAddress,
+                    this.configs.INIT_BALANCE,
                     {
                         from: userAddress,
                     }
                 );
-                await web3tx(
-                    this.contracts.testToken.mint,
-                    `Mint token for ${alias}`
-                )(userAddress, this.configs.INIT_BALANCE, {
-                    from: userAddress,
-                });
                 if (doUpgrade) {
                     await web3tx(
-                        this.contracts.superToken.upgrade,
+                        superToken.upgrade,
                         `Upgrade token for ${alias}`
                     )(this.configs.INIT_BALANCE, {
                         from: userAddress,
@@ -186,6 +183,16 @@ module.exports = class TestEnvironment {
                 }
             })
         );
+
+        if (!doNotSetAsDefault) {
+            this.contracts.testToken = testToken;
+            this.contracts.superToken = superToken;
+        }
+
+        return {
+            testToken,
+            superToken,
+        };
     }
 
     /**************************************************************************

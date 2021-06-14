@@ -241,8 +241,6 @@ contract ClosingOnUpdateFlowTestApp is SuperAppBase {
 
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
-    address private _receiver;
-    int96 private _flowRate;
 
     constructor(IConstantFlowAgreementV1 cfa, ISuperfluid superfluid) {
         assert(address(cfa) != address(0));
@@ -283,6 +281,64 @@ contract ClosingOnUpdateFlowTestApp is SuperAppBase {
                 superToken,
                 context.msgSender,
                 address(this),
+                new bytes(0)
+            ),
+            new bytes(0), // user data
+            newCtx
+        );
+    }
+}
+
+contract FlowExchangeTestApp is SuperAppBase {
+
+    IConstantFlowAgreementV1 private _cfa;
+    ISuperfluid private _host;
+    ISuperToken private _targetToken;
+
+    constructor(
+        IConstantFlowAgreementV1 cfa,
+        ISuperfluid superfluid,
+        ISuperToken targetToken) {
+        assert(address(cfa) != address(0));
+        assert(address(superfluid) != address(0));
+        _cfa = cfa;
+        _host = superfluid;
+        _targetToken = targetToken;
+
+        uint256 configWord =
+            SuperAppDefinitions.APP_LEVEL_FINAL
+            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+            // | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
+            ;
+
+        _host.registerApp(configWord);
+    }
+
+    function afterAgreementCreated(
+        ISuperToken superToken,
+        address /*agreementClass*/,
+        bytes32 /*agreementId*/,
+        bytes calldata /*agreementData*/,
+        bytes calldata /*cbdata*/,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        newCtx = ctx;
+        ISuperfluid.Context memory context = _host.decodeCtx(ctx);
+        (,int96 flowRate,,) = _cfa.getFlow(superToken, context.msgSender, address(this));
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.createFlow.selector,
+                _targetToken,
+                context.msgSender,
+                flowRate,
                 new bytes(0)
             ),
             new bytes(0), // user data

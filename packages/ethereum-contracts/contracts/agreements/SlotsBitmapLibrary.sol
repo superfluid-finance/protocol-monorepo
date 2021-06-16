@@ -5,7 +5,7 @@ import {
     ISuperfluidToken
 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 
-library SlotsBitmap {
+library SlotsBitmapLibrary {
 
     uint32 internal constant _MAX_NUM_SLOTS = 256;
 
@@ -13,6 +13,7 @@ library SlotsBitmap {
         ISuperfluidToken token,
         address account,
         uint256 bitmapStateSlotId,
+        uint256 dataStateSlotIDStart,
         bytes32 data
     )
         public
@@ -29,7 +30,7 @@ library SlotsBitmap {
                 slotData[0] = data;
                 token.updateAgreementStateSlot(
                     account,
-                    bitmapStateSlotId + slotId,
+                    dataStateSlotIDStart + slotId,
                     slotData);
                 // update slot map
                 slotData[0] = bytes32(subsBitmap | (1 << uint256(slotId)));
@@ -67,7 +68,8 @@ library SlotsBitmap {
     function listData(
        ISuperfluidToken token,
        address account,
-       uint256 bitmapStateSlotId
+       uint256 bitmapStateSlotId,
+       uint256 dataStateSlotIDStart
     )
        public view
        returns (bytes32[] memory dataList)
@@ -85,7 +87,7 @@ library SlotsBitmap {
            dataList[nSlots++] = token.getAgreementStateSlot(
                address(this),
                account,
-               bitmapStateSlotId + slotId, 1)[0];
+               dataStateSlotIDStart + slotId, 1)[0];
        }
        // resize memory arrays
        assembly {

@@ -19,7 +19,7 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
-import { SlotsBitmap } from "./SlotsBitmap.sol";
+import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 contract InstantDistributionAgreementV1 is
@@ -1012,10 +1012,11 @@ contract InstantDistributionAgreementV1 is
         private
         returns (uint32 subId)
     {
-        return SlotsBitmap.findEmptySlotAndFill(
+        return SlotsBitmapLibrary.findEmptySlotAndFill(
             token,
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START,
             iId);
     }
 
@@ -1026,7 +1027,7 @@ contract InstantDistributionAgreementV1 is
     )
         private
     {
-        SlotsBitmap.clearSlot(
+        SlotsBitmapLibrary.clearSlot(
             token,
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
@@ -1040,10 +1041,12 @@ contract InstantDistributionAgreementV1 is
        private view
        returns (bytes32[] memory sidList)
     {
-        sidList = SlotsBitmap.listData(
+        sidList = SlotsBitmapLibrary.listData(
             token,
             subscriber,
-            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID);
+            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START);
+        // map data to subId
         for (uint slotId = 0; slotId < sidList.length; ++slotId) {
             sidList[slotId] = _getSubscriptionId(subscriber, sidList[slotId]);
         }

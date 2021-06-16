@@ -468,7 +468,8 @@ contract Superfluid is
         bytes calldata ctx,
         ISuperApp app,
         uint256 appAllowanceGranted,
-        int256 appAllowanceUsed
+        int256 appAllowanceUsed,
+        ISuperfluidToken appAllowanceToken
     )
         external override
         onlyAgreement
@@ -485,26 +486,27 @@ contract Superfluid is
         context.appAllowanceWanted = 0;
         context.appAllowanceUsed = appAllowanceUsed;
         context.appAddress = address(app);
+        context.appAllowanceToken = appAllowanceToken;
         appCtx = _updateContext(context);
     }
 
     function appCallbackPop(
         bytes calldata ctx,
-        int256 allowanceUsedDelta
+        int256 appAllowanceUsedDelta
     )
         external override
         onlyAgreement
         returns (bytes memory newCtx)
     {
         Context memory context = decodeCtx(ctx);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(allowanceUsedDelta);
+        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
         newCtx = _updateContext(context);
     }
 
     function ctxUseAllowance(
         bytes calldata ctx,
-        uint256 allowanceWantedMore,
-        int256 allowanceUsedDelta
+        uint256 appAllowanceWantedMore,
+        int256 appAllowanceUsedDelta
     )
         external override
         onlyAgreement
@@ -512,8 +514,8 @@ contract Superfluid is
     {
         Context memory context = decodeCtx(ctx);
 
-        context.appAllowanceWanted = context.appAllowanceWanted.add(allowanceWantedMore);
-        context.appAllowanceUsed = context.appAllowanceUsed.add(allowanceUsedDelta);
+        context.appAllowanceWanted = context.appAllowanceWanted.add(appAllowanceWantedMore);
+        context.appAllowanceUsed = context.appAllowanceUsed.add(appAllowanceUsedDelta);
 
         newCtx = _updateContext(context);
     }
@@ -561,7 +563,8 @@ contract Superfluid is
             appAllowanceGranted: 0,
             appAllowanceWanted: 0,
             appAllowanceUsed: 0,
-            appAddress: address(0)
+            appAddress: address(0),
+            appAllowanceToken: ISuperfluidToken(address(0))
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
@@ -605,7 +608,8 @@ contract Superfluid is
             appAllowanceGranted: 0,
             appAllowanceWanted: 0,
             appAllowanceUsed: 0,
-            appAddress: address(app)
+            appAddress: address(app),
+            appAllowanceToken: ISuperfluidToken(address(0))
         }));
         bool success;
         (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
@@ -703,21 +707,7 @@ contract Superfluid is
         public pure override
         returns (Context memory context)
     {
-        uint256 callInfo;
-        uint256 allowanceIO;
-        (
-            callInfo,
-            context.timestamp,
-            context.msgSender,
-            context.agreementSelector,
-            context.userData,
-            allowanceIO,
-            context.appAllowanceUsed,
-            context.appAddress
-        ) = abi.decode(ctx, (uint256, uint256, address, bytes4, bytes, uint256, int256, address));
-        (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
-        context.appAllowanceGranted = allowanceIO & type(uint128).max;
-        context.appAllowanceWanted = allowanceIO >> 128;
+        return _decodeCtx(ctx);
     }
 
     function isCtxValid(bytes calldata ctx)
@@ -839,16 +829,61 @@ contract Superfluid is
             context.appAllowanceGranted.toUint128() |
             (uint256(context.appAllowanceWanted.toUint128()) << 128);
         ctx = abi.encode(
-            callInfo,
-            context.timestamp,
-            context.msgSender,
-            context.agreementSelector,
-            context.userData,
-            allowanceIO,
-            context.appAllowanceUsed,
-            context.appAddress
+            abi.encode(
+                callInfo,
+                context.timestamp,
+                context.msgSender,
+                context.agreementSelector,
+                context.userData
+            ),
+            abi.encode(
+                allowanceIO,
+                context.appAllowanceUsed,
+                context.appAddress,
+                context.appAllowanceToken
+            )
         );
         _ctxStamp = keccak256(ctx);
+    }
+
+    function _decodeCtx(bytes memory ctx)
+        private pure
+        returns (Context memory context)
+    {
+        bytes memory ctx1;
+        bytes memory ctx2;
+        (ctx1, ctx2) = abi.decode(ctx, (bytes, bytes));
+        {
+            uint256 callInfo;
+            (
+                callInfo,
+                context.timestamp,
+                context.msgSender,
+                context.agreementSelector,
+                context.userData
+            ) = abi.decode(ctx1, (
+                uint256,
+                uint256,
+                address,
+                bytes4,
+                bytes));
+            (context.appLevel, context.callType) = ContextDefinitions.decodeCallInfo(callInfo);
+        }
+        {
+            uint256 allowanceIO;
+            (
+                allowanceIO,
+                context.appAllowanceUsed,
+                context.appAddress,
+                context.appAllowanceToken
+            ) = abi.decode(ctx2, (
+                uint256,
+                int256,
+                address,
+                ISuperfluidToken));
+            context.appAllowanceGranted = allowanceIO & type(uint128).max;
+            context.appAllowanceWanted = allowanceIO >> 128;
+        }
     }
 
     function _isCtxValid(bytes memory ctx) private view returns (bool) {

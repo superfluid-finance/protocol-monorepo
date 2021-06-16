@@ -142,6 +142,7 @@ module.exports = async function (callback, options = {}) {
             "ISuperfluidGovernance",
             "UUPSProxy",
             "UUPSProxiable",
+            "SlotsBitmap",
             "ConstantFlowAgreementV1",
             "InstantDistributionAgreementV1",
         ];
@@ -162,6 +163,7 @@ module.exports = async function (callback, options = {}) {
             ISuperfluidGovernance,
             UUPSProxy,
             UUPSProxiable,
+            SlotsBitmap,
             ConstantFlowAgreementV1,
             InstantDistributionAgreementV1,
         } = await SuperfluidSDK.loadContracts({
@@ -171,6 +173,9 @@ module.exports = async function (callback, options = {}) {
             ),
             contractLoader: builtTruffleContractLoader,
         });
+
+        const slotsBitmap = await SlotsBitmap.new();
+        InstantDistributionAgreementV1.link("SlotsBitmap", slotsBitmap.address);
 
         if (!newTestResolver && config.resolverAddress) {
             testResolver = await TestResolver.at(config.resolverAddress);

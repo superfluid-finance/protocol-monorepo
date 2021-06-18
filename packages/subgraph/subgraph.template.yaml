@@ -24,6 +24,9 @@ dataSources:
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+            # TODO: remove here ISuperfluid once the cfaAddres issue is resolved
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
@@ -33,7 +36,7 @@ dataSources:
     #   name: Host
     #   network: {{ network }}
     #   source:
-    #       abi: Superfluid
+    #       abi: ISuperfluid
     #       address: "{{ hostAddress }}"
     #       startBlock: {{ hostStartBlock }}
     #   mapping:
@@ -41,14 +44,14 @@ dataSources:
     #       apiVersion: 0.0.3
     #       language: wasm/assemblyscript
     #       file: ./src/mappings/host.ts
-    #       entities:
-    #           - Transaction
-    #           - Account
-    #           - Transfer
-    #       abis:
-    #           - name: ISuperfluid
-    #             file: ./abis/Superfluid.json
-    #       eventHandlers:
+          # entities:
+          #     - Transaction
+          #     - Account
+          #     - Transfer
+          # abis:
+          #     - name: ISuperfluid
+          #       file: ./abis/Superfluid.json
+          # eventHandlers:
 
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1

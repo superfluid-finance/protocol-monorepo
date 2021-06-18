@@ -4,6 +4,8 @@ import {
     EthereumEvent,
     Address,
     log,
+    dataSource,
+    DataSourceContext,
 } from "@graphprotocol/graph-ts";
 
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
@@ -15,6 +17,8 @@ import {
     AccountWithToken,
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
+import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
 
 export function createEventID(event: EthereumEvent): string {
     return event.block.number
@@ -64,7 +68,23 @@ export function fetchToken(address: string): Token {
         token.symbol = symbol;
         // Create a dynamic data source instance
         // https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
-        SuperTokenTemplate.create(Address.fromString(address));
+        // TODO: pull the cfa address directly from the subgraph.yaml
+        // Waiting for a response: https://discord.com/channels/438038660412342282/438070183794573313/855252832353386506
+        // and remove all these dumb web3 calls
+        // Theoretically this mapping should be initiated from the superTokenFactory contract
+        // Cross your finders dataSource.address() is indeed the factory address
+        let superTokenFactory = SuperTokenFactory.bind(dataSource.address());
+        let hostAddress = superTokenFactory.getHost();
+        let host = SuperFluid.bind(hostAddress);
+        let cfaAddress = host.getAgreementClass(
+            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1".toHex()
+        );
+        let context = new DataSourceContext();
+        context.setString("cfaAddress", cfaAddress);
+        SuperTokenTemplate.createWithContext(
+            Address.fromString(address),
+            context
+        );
     }
     return token as Token;
 }
@@ -77,7 +97,9 @@ export function fetchAccountWithToken(
     let accountWithToken = AccountWithToken.load(id);
     if (accountWithToken == null) {
         let account = fetchAccount(accountId); // Ensure these exist
+        account.save();
         let token = fetchToken(tokenId);
+        token.save();
         accountWithToken = new AccountWithToken(id);
         accountWithToken.balance = BigDecimal.fromString("0");
         accountWithToken.account = accountId;
@@ -118,7 +140,8 @@ export function updateBalance(
     accountId: string,
     tokenId: string,
     amount: BigDecimal,
-    increase: bool
+    increase: bool,
+    timestamp: BigInt
 ): AccountWithToken {
     let accountWithToken = fetchAccountWithToken(accountId, tokenId);
     let balance = accountWithToken.balance;
@@ -127,6 +150,13 @@ export function updateBalance(
     } else {
         accountWithToken.balance = balance - amount;
     }
+
+    // cfa = dataSource.ConstantFlowAgreementV1
+    // let tokenContract = SuperToken.bind(Address.fromString(tokenId));
+    // let realTimeBalance = tokenContract.realTimeBalanceOf(accountId, timestamp)
+    //     .dynamicBalance;
+    // accountWithToken.realTimeBalance = realTimeBalance;
+    // accountWithToken.lastUpdate = timestamp;
     accountWithToken.save();
     return accountWithToken as AccountWithToken;
 }

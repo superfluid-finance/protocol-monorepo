@@ -113,7 +113,7 @@ beforeEach(async () => {
 });
 ```
 
-Awesome, now that have the basics, check out the apps over in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples).
+Awesome, now that you have the basics, check out the apps over in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples).
 
 ### Deploying Superfluid Protocol
 

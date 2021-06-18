@@ -1,10 +1,14 @@
 import {
     BigInt,
     BigDecimal,
+    Bytes,
+    ByteArray,
     ethereum,
     Address,
+    crypto,
     log,
     dataSource,
+    Value,
     DataSourceContext,
 } from "@graphprotocol/graph-ts";
 
@@ -77,7 +81,12 @@ export function fetchToken(address: string): Token {
         let hostAddress = superTokenFactory.getHost();
         let host = SuperFluid.bind(hostAddress);
         let cfaAddress = host.getAgreementClass(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1".toHex()
+            ByteArray.fromHexString(
+                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+            )
+            // Value.fromString(
+            //     "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+            // ).toBytes()
         );
         let context = new DataSourceContext();
         context.setString("cfaAddress", cfaAddress.toString());

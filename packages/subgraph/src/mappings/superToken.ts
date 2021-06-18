@@ -4,38 +4,72 @@ import {
     // ISuperToken as SuperToken,
     TokenUpgraded as TokenUpgradedEvent,
     TokenDowngraded as TokenDowngradedEvent,
+    Transfer as TransferEvent,
 } from "../../generated/templates/SuperToken/ISuperToken";
 
-import { TokenUpgraded, TokenDowngraded } from "../../generated/schema";
+import {
+    TokenUpgraded,
+    TokenDowngraded,
+    TokenTransfer,
+} from "../../generated/schema";
 
 import {
     createEventID,
     logTransaction,
     fetchToken,
     fetchAccount,
+    fetchAccountWithToken,
+    updateBalance,
 } from "../utils";
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     let account = fetchAccount(event.params.account.toHex());
     account.save();
     let amount = event.params.amount;
+    let tokenId = dataSource.address().toHex();
 
     let ev = new TokenUpgraded(createEventID(event));
     ev.transaction = logTransaction(event).id;
     ev.account = account.id;
     ev.amount = amount;
-    ev.token = dataSource.address().toHex();
+    ev.token = tokenId;
     ev.save();
+
+    // Increase user balance
+    updateBalance(account.id, tokenId, amount.toBigDecimal(), true);
 }
 
 export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     let account = fetchAccount(event.params.account.toHex());
     let amount = event.params.amount;
+    let tokenId = dataSource.address().toHex();
 
     let ev = new TokenDowngraded(createEventID(event));
     ev.transaction = logTransaction(event).id;
     ev.account = account.id;
     ev.amount = amount;
-    ev.token = dataSource.address().toHex();
+    ev.token = tokenId;
     ev.save();
+
+    // Decrease user balance
+    updateBalance(account.id, tokenId, amount.toBigDecimal(), false);
+}
+
+export function handleTransfer(event: TransferEvent): void {
+    let fromAccount = fetchAccount(event.params.from.toHex());
+    let toAccount = fetchAccount(event.params.to.toHex());
+    let value = event.params.value;
+    let tokenId = dataSource.address().toHex();
+
+    let ev = new TokenTransfer(createEventID(event));
+    ev.transaction = logTransaction(event).id;
+    ev.from = fromAccount.id;
+    ev.to = toAccount.id;
+    ev.value = value;
+    ev.token = tokenId;
+    ev.save();
+
+    // Update user balances
+    updateBalance(toAccount.id, tokenId, value.toBigDecimal(), true);
+    updateBalance(fromAccount.id, tokenId, value.toBigDecimal(), false);
 }

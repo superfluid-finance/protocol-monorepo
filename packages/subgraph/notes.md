@@ -1,4 +1,8 @@
-Getting error on event handleFlowUpdated
+AccountToken - a link between account and token
+Purpose is to track all account balances, but also whether the user has interacted with a token
 
-WARN Trying again after eth_call RPC call failed (attempt #10) with result Err(Web3Error(Decoder("Error(\"invalid type: null, expected a 0x-prefixed hex-encoded vector of bytes\", line: 0, column: 0)"))), block_hash: 0xa0c6f2e53fc7a9873e2ebd61b1efbe937e6d96b73e17c43776de052c0dcb12ae, block_number: 58, subgraph_id: QmekY8VMJrxAfTixVs6vwcUrANNQv7sLLV8FBHBqQdz1Ui, component: SubgraphInstanceManager
+If we query AccountToken for a user, then any items that are returned will include every token they've interacted with, regardless of their balance. Same is true if we query for the Token as well.
 
+Balance should be updated any time there is transfer event. Or via a CFA stream opening/closing
+
+We also need a simple way to get the netFlow for a user's total flows. This can then be combined with the realTimeBalance to get the current user balance

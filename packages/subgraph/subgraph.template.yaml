@@ -65,6 +65,7 @@ dataSources:
           entities:
               - Transaction
               - Account
+              - AccountWithToken
               - Transfer
               - Token
           abis:
@@ -89,6 +90,7 @@ templates:
       entities:
         - Token
         - SuperToken
+        - AccountWithToken
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
@@ -97,3 +99,5 @@ templates:
           handler: handleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)
           handler: handleTokenDowngraded
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer

@@ -32,6 +32,15 @@ type Token @entity {
     downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "token")
 }
 
+type AccountWithToken @entity {
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    balance: BigDecimal!
+    # ---------------------------------- links ----------------------------------
+    account: Account!
+    token: Token!
+}
+
 type Flow @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
@@ -86,4 +95,13 @@ type TokenDowngraded implements Event @entity {
     transaction: Transaction!
     token: Token!
     amount: BigInt!
+}
+
+type TokenTransfer implements Event @entity {
+    id: ID!
+    transaction: Transaction!
+    from: Account!
+    to: Account!
+    token: Token!
+    value: BigInt!
 }

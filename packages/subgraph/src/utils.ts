@@ -7,7 +7,13 @@ import {
 } from "@graphprotocol/graph-ts";
 
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import { Account, Flow, Token, Transaction } from "../generated/schema";
+import {
+    Account,
+    Flow,
+    Token,
+    Transaction,
+    AccountWithToken,
+} from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 
 export function createEventID(event: EthereumEvent): string {
@@ -54,10 +60,6 @@ export function fetchToken(address: string): Token {
         let symbol = tokenContract.symbol();
         token = new Token(address);
         token.underlyingAddress = underlyingAddress;
-        token.name = "foo";
-        token.symbol = "foo";
-        token = new Token(address);
-        token.underlyingAddress = underlyingAddress;
         token.name = name;
         token.symbol = symbol;
         // Create a dynamic data source instance
@@ -65,6 +67,23 @@ export function fetchToken(address: string): Token {
         SuperTokenTemplate.create(Address.fromString(address));
     }
     return token as Token;
+}
+
+export function fetchAccountWithToken(
+    accountId: string,
+    tokenId: string
+): AccountWithToken {
+    let id = accountId.concat("-").concat(tokenId);
+    let accountWithToken = AccountWithToken.load(id);
+    if (accountWithToken == null) {
+        let account = fetchAccount(accountId); // Ensure these exist
+        let token = fetchToken(tokenId);
+        accountWithToken = new AccountWithToken(id);
+        accountWithToken.balance = BigDecimal.fromString("0");
+        accountWithToken.account = accountId;
+        accountWithToken.token = tokenId;
+    }
+    return accountWithToken as AccountWithToken;
 }
 
 export function fetchFlow(
@@ -93,4 +112,21 @@ export function fetchFlow(
         token.save();
     }
     return flow as Flow;
+}
+
+export function updateBalance(
+    accountId: string,
+    tokenId: string,
+    amount: BigDecimal,
+    increase: bool
+): AccountWithToken {
+    let accountWithToken = fetchAccountWithToken(accountId, tokenId);
+    let balance = accountWithToken.balance;
+    if (increase) {
+        accountWithToken.balance = balance + amount;
+    } else {
+        accountWithToken.balance = balance - amount;
+    }
+    accountWithToken.save();
+    return accountWithToken as AccountWithToken;
 }

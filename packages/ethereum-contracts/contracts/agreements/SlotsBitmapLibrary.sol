@@ -5,6 +5,17 @@ import {
     ISuperfluidToken
 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 
+/**
+ * @dev A library implements slots bitmap on Superfluid Token storage
+ *
+ * NOTE:
+ * - A slots bitmap allows you to iterate through a list of data efficiently.
+ * - A data slot can be enabled or disabled with the help of bitmap.
+ * - MAX_NUM_SLOTS is 256 in this implementation (using one uint256)
+ * - Superfluid token storage usage:
+ *   - getAgreementStateSlot(bitmapStateSlotId) stores the bitmap of enabled data slots
+ *   - getAgreementStateSlot(dataStateSlotIDStart + stotId) stores the data of the slot
+ */
 library SlotsBitmapLibrary {
 
     uint32 internal constant _MAX_NUM_SLOTS = 256;

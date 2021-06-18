@@ -51,7 +51,6 @@ async function codeChanged(web3, contract, address) {
     // console.log(code);
     // console.log(bytecodeFromCompiler);
     // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));
-    // return binaryFromCompiler.indexOf(codeTrimed) === -1;
     return binaryTrimed !== codeTrimed;
 }
 

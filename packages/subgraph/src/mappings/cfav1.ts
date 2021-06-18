@@ -1,9 +1,4 @@
-import {
-    BigDecimal,
-    BigInt,
-    EthereumEvent,
-    log,
-} from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 
 import {
     // IConstantFlowAgreementV1 as ConstantFlowAgreementV1,

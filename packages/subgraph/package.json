@@ -30,8 +30,8 @@
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
-        "@graphprotocol/graph-cli": "0.16.1",
-        "@graphprotocol/graph-ts": "0.16.0",
+        "@graphprotocol/graph-cli": "0.18.0",
+        "@graphprotocol/graph-ts": "0.18.0",
         "@superfluid-finance/js-sdk": "^0.4.1",
         "ganache-time-traveler": "^1.0.15",
         "mustache": "^4.0.1",

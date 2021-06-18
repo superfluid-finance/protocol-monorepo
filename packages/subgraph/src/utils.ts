@@ -1,7 +1,7 @@
 import {
     BigInt,
     BigDecimal,
-    EthereumEvent,
+    ethereum,
     Address,
     log,
     dataSource,
@@ -20,7 +20,7 @@ import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISu
 import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
 import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
 
-export function createEventID(event: EthereumEvent): string {
+export function createEventID(event: ethereum.Event): string {
     return event.block.number
         .toString()
         .concat("-")
@@ -35,7 +35,7 @@ function createFlowID(owner: string, recipient: string, token: string): string {
         .concat(token);
 }
 
-export function logTransaction(event: EthereumEvent): Transaction {
+export function logTransaction(event: ethereum.Event): Transaction {
     let tx = new Transaction(event.transaction.hash.toHex());
     tx.timestamp = event.block.timestamp;
     tx.blockNumber = event.block.number;
@@ -80,7 +80,7 @@ export function fetchToken(address: string): Token {
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1".toHex()
         );
         let context = new DataSourceContext();
-        context.setString("cfaAddress", cfaAddress);
+        context.setString("cfaAddress", cfaAddress.toString());
         SuperTokenTemplate.createWithContext(
             Address.fromString(address),
             context

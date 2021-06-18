@@ -53,6 +53,7 @@ const loadContracts = async ({
     from,
     additionalContracts,
     contractLoader,
+    networkId,
 }) => {
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
@@ -112,6 +113,7 @@ const loadContracts = async ({
                         await contractLoader(name)
                     ));
                     c.setProvider(web3.currentProvider);
+                    networkId && c.setNetwork(networkId);
                     c.defaults({ from });
                 })
             );

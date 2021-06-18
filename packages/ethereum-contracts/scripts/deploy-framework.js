@@ -172,16 +172,8 @@ module.exports = async function (callback, options = {}) {
                 useMocks ? mockContracts : []
             ),
             contractLoader: builtTruffleContractLoader,
+            networkId: chainId,
         });
-
-        const slotsBitmapLibrary = await web3tx(
-            SlotsBitmapLibrary.new,
-            "SlotsBitmapLibrary.new"
-        )();
-        InstantDistributionAgreementV1.link(
-            "SlotsBitmapLibrary",
-            slotsBitmapLibrary.address
-        );
 
         if (!newTestResolver && config.resolverAddress) {
             testResolver = await TestResolver.at(config.resolverAddress);
@@ -301,7 +293,25 @@ module.exports = async function (callback, options = {}) {
             )(superfluid.address, cfa.address);
         }
 
+        // create SlotsBitmapLibrary
+        let slotsBitmapLibrary = await deployAndRegisterContractIf(
+            SlotsBitmapLibrary,
+            `lib.${protocolReleaseVersion}.SlotsBitmapLibrary`,
+            async (contractAddress) =>
+                await codeChanged(web3, SlotsBitmapLibrary, contractAddress),
+            async () => {
+                return await web3tx(
+                    SlotsBitmapLibrary.new,
+                    "SlotsBitmapLibrary.new"
+                )();
+            }
+        );
+
         // list IDA v1
+        InstantDistributionAgreementV1.link(
+            "SlotsBitmapLibrary",
+            slotsBitmapLibrary.address
+        );
         const deployIDAv1 = async () => {
             const agreement = await web3tx(
                 InstantDistributionAgreementV1.new,

@@ -33,7 +33,9 @@ async function hasCode(web3, address) {
 }
 
 async function codeChanged(web3, contract, address) {
-    const bytecodeFromCompiler = contract.bytecode;
+    // use .binary instead of .bytecode
+    // since .binary will have the linked library addresses
+    const binaryFromCompiler = contract.binary;
     const code = await web3.eth.getCode(address);
 
     // no code
@@ -41,12 +43,16 @@ async function codeChanged(web3, contract, address) {
 
     // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
     // find the second occurance of the init code
-    const codeTrimed = code.slice(code.lastIndexOf("6080604052"));
+    const codeTrimed = code.slice(code.lastIndexOf("6080604052")).toLowerCase();
+    const binaryTrimed = binaryFromCompiler
+        .slice(binaryFromCompiler.lastIndexOf("6080604052"))
+        .toLowerCase();
 
     // console.log(code);
     // console.log(bytecodeFromCompiler);
     // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));
-    return bytecodeFromCompiler.indexOf(codeTrimed) === -1;
+    // return binaryFromCompiler.indexOf(codeTrimed) === -1;
+    return binaryTrimed !== codeTrimed;
 }
 
 async function getCodeAddress(UUPSProxiable, proxyAddress) {

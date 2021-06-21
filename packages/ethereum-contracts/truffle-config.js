@@ -325,5 +325,6 @@ module.exports = {
 
     api_keys: {
         etherscan: process.env.ETHERSCAN_API_KEY,
+        polygonscan: process.env.POLYGONSCAN_API_KEY,
     },
 };

@@ -121,9 +121,9 @@ module.exports = async function (callback, options = {}) {
             !!process.env.RESET_SUPERFLUID_FRAMEWORK;
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        const networkId = await web3.eth.net.getId();
         console.log("reset superfluid framework: ", resetSuperfluidFramework);
-        console.log("chain ID: ", chainId);
+        console.log("network ID: ", networkId);
         console.log("protocol release version:", protocolReleaseVersion);
 
         await deployERC1820(
@@ -133,7 +133,7 @@ module.exports = async function (callback, options = {}) {
             { web3, ...(options.from ? { from: options.from } : {}) }
         );
 
-        const config = getConfig(chainId);
+        const config = getConfig(networkId);
         const contracts = [
             "Ownable",
             "IMultiSigWallet",
@@ -179,7 +179,7 @@ module.exports = async function (callback, options = {}) {
                 useMocks ? mockContracts : []
             ),
             contractLoader: builtTruffleContractLoader,
-            networkId: chainId,
+            networkId,
         });
 
         if (!newTestResolver && config.resolverAddress) {

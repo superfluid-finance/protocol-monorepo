@@ -2,6 +2,9 @@ set -xe
 
 TRUFFLE_NETWORK=$1
 
+echo TRUFFLE_NETWORK=$TRUFFLE_NETWORK
+echo NETWORK_ID=$NETWORK_ID
+
 echo SUPERFLUID_HOST
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPERFLUID_HOST_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run etherscan Superfluid@${SUPERFLUID_HOST_LOGIC}
@@ -34,7 +37,7 @@ jq -s '.[0] * .[1]' \
     <(cat <<EOF
 {
     "networks": {
-        "5": {
+        "$NETWORK_ID": {
             "links": {
                 "SlotsBitmapLibrary": "$SLOTS_BITMAP_LIBRARY_ADDRESS"
             }

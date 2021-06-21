@@ -22,6 +22,10 @@ echo CFA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${CFA_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run etherscan ConstantFlowAgreementV1@${CFA_LOGIC}
 
+echo SlotsBitmapLibrary
+
+npx truffle --network $TRUFFLE_NETWORK run etherscan SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
+
 echo IDA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${IDA_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run etherscan InstantDistributionAgreementV1@${IDA_LOGIC}

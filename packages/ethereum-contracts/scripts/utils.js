@@ -143,6 +143,39 @@ function builtTruffleContractLoader(name) {
     }
 }
 
+async function setResolver(sf, key, value) {
+    console.log(`Setting resolver ${key} -> ${value} ...`);
+    const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
+    switch (process.env.ADMIN_TYPE) {
+        case "MULTISIG": {
+            console.log("Admin type: MultiSig");
+            // assuming governance owner manages the resolver too...
+            const multis = await sf.contracts.IMultiSigWallet.at(
+                await (
+                    await sf.contracts.Ownable.at(
+                        await sf.host.getGovernance.call()
+                    )
+                ).owner()
+            );
+            console.log("MultiSig address: ", multis.address);
+            const data = resolver.contract.methods.set(key, value).encodeABI();
+            console.log("MultiSig data", data);
+            console.log("Sending admin action to multisig...");
+            await multis.submitTransaction(resolver.address, 0, data);
+            console.log(
+                "Admin action sent, but it may still need confirmation(s)."
+            );
+            break;
+        }
+        default: {
+            console.log("Admin type: Direct Ownership (default)");
+            console.log("Executing admin action...");
+            await resolver.set(key, value);
+            console.log("Admin action executed.");
+        }
+    }
+}
+
 async function sendGovernanceAction(sf, actionFn) {
     const gov = await sf.contracts.SuperfluidGovernanceBase.at(
         await sf.host.getGovernance.call()
@@ -183,5 +216,6 @@ module.exports = {
     detectTruffleAndConfigure,
     rl: promisify(rl.question),
     builtTruffleContractLoader,
+    setResolver,
     sendGovernanceAction,
 };

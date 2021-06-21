@@ -70,26 +70,9 @@ export function fetchToken(address: string): Token {
         token.underlyingAddress = underlyingAddress;
         token.name = name;
         token.symbol = symbol;
-        // Create a dynamic data source instance
-        // https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
-        // TODO: pull the cfa address directly from the subgraph.yaml
-        // Waiting for a response: https://discord.com/channels/438038660412342282/438070183794573313/855252832353386506
-        // and remove all these dumb web3 calls
-        // Theoretically this mapping should be initiated from the superTokenFactory contract
-        // Cross your finders dataSource.address() is indeed the factory address
-        let superTokenFactory = SuperTokenFactory.bind(dataSource.address());
-        let hostAddress = superTokenFactory.getHost();
-        let host = SuperFluid.bind(hostAddress);
-        let cfaAddress = host.getAgreementClass(
-            ByteArray.fromHexString(
-                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-            )
-            // Value.fromString(
-            //     "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-            // ).toBytes()
-        );
+        // Additional context can be added here. See docs: https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
         let context = new DataSourceContext();
-        context.setString("cfaAddress", cfaAddress.toString());
+        context.setString("dummyValue", "foo");
         SuperTokenTemplate.createWithContext(
             Address.fromString(address),
             context
@@ -153,19 +136,8 @@ export function updateBalance(
     timestamp: BigInt
 ): AccountWithToken {
     let accountWithToken = fetchAccountWithToken(accountId, tokenId);
-    let balance = accountWithToken.balance;
-    if (increase) {
-        accountWithToken.balance = balance + amount;
-    } else {
-        accountWithToken.balance = balance - amount;
-    }
-
-    // cfa = dataSource.ConstantFlowAgreementV1
-    // let tokenContract = SuperToken.bind(Address.fromString(tokenId));
-    // let realTimeBalance = tokenContract.realTimeBalanceOf(accountId, timestamp)
-    //     .dynamicBalance;
-    // accountWithToken.realTimeBalance = realTimeBalance;
-    // accountWithToken.lastUpdate = timestamp;
+    let tokenContract = SuperToken.bind(Address.fromString(tokenId));
+    let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
     accountWithToken.save();
     return accountWithToken as AccountWithToken;
 }

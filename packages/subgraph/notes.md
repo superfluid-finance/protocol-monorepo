@@ -1,3 +1,7 @@
+IDA will be needed to account for balance changes
+
+-   just use balanceOf whenever an event occurs
+
 AccountToken - a link between account and token
 Purpose is to track all account balances, but also whether the user has interacted with a token
 

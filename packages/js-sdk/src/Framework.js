@@ -76,22 +76,22 @@ module.exports = class Framework {
     async initialize() {
         console.log("Initializing Superfluid Framework...");
         let networkType;
-        let chainId;
+        let networkId;
         if (this.ethers) {
             const network = await this.ethers.getNetwork();
             networkType = network.name;
-            chainId = network.chainId;
+            networkId = network.chainId;
         } else {
             // NOTE: querying network type first,
             // Somehow web3.eth.net.getId may send bogus number if this was not done first
             // It could be a red-herring issue, but it makes it more stable.
             networkType = await this.web3.eth.net.getNetworkType();
-            chainId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+            networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         }
         console.log("networkType", networkType);
-        console.log("chainId", chainId);
+        console.log("networkId", networkId);
 
-        this.config = getConfig(chainId);
+        this.config = getConfig(networkId);
 
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,
@@ -100,6 +100,7 @@ module.exports = class Framework {
             from: this._options.from,
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,
+            networkId: networkId,
         });
 
         const resolverAddress =

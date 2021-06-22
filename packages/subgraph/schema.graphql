@@ -38,8 +38,6 @@ type AccountWithToken @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
     balance: BigDecimal!
-    realTimeBalance: BigDecimal!
-    lastUpdate: BigInt!
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
@@ -106,6 +104,6 @@ type TokenTransfer implements Event @entity {
     transaction: Transaction!
     from: Account!
     to: Account!
-    token: Token!
     value: BigInt!
+    token: Token!
 }

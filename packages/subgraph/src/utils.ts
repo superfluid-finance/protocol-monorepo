@@ -70,13 +70,14 @@ export function fetchToken(address: string): Token {
         token.underlyingAddress = underlyingAddress;
         token.name = name;
         token.symbol = symbol;
+        SuperTokenTemplate.create(Address.fromString(address));
         // Additional context can be added here. See docs: https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
-        let context = new DataSourceContext();
-        context.setString("dummyValue", "foo");
-        SuperTokenTemplate.createWithContext(
-            Address.fromString(address),
-            context
-        );
+        // let context = new DataSourceContext();
+        // context.setString("dummyValue", "foo");
+        // SuperTokenTemplate.createWithContext(
+        //     Address.fromString(address),
+        //     context
+        // );
     }
     return token as Token;
 }
@@ -89,8 +90,8 @@ export function fetchAccountWithToken(
     let accountWithToken = AccountWithToken.load(id);
     if (accountWithToken == null) {
         let account = fetchAccount(accountId); // Ensure these exist
-        account.save();
         let token = fetchToken(tokenId);
+        account.save();
         token.save();
         accountWithToken = new AccountWithToken(id);
         accountWithToken.balance = BigDecimal.fromString("0");
@@ -130,10 +131,7 @@ export function fetchFlow(
 
 export function updateBalance(
     accountId: string,
-    tokenId: string,
-    amount: BigDecimal,
-    increase: bool,
-    timestamp: BigInt
+    tokenId: string
 ): AccountWithToken {
     let accountWithToken = fetchAccountWithToken(accountId, tokenId);
     let tokenContract = SuperToken.bind(Address.fromString(tokenId));

@@ -94,12 +94,6 @@ module.exports = async function (callback, options = {}) {
         } = options;
         resetSuperfluidFramework = options.resetSuperfluidFramework;
 
-        const CFAv1_TYPE = web3.utils.sha3(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-        );
-        const IDAv1_TYPE = web3.utils.sha3(
-            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-        );
 
         newTestResolver = newTestResolver || !!process.env.NEW_TEST_RESOLVER;
         useMocks = useMocks || !!process.env.USE_MOCKS;
@@ -122,6 +116,14 @@ module.exports = async function (callback, options = {}) {
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
         const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+
+        const CFAv1_TYPE = web3.utils.sha3(
+            `org.superfluid-finance.agreements.ConstantFlowAgreement.${protocolReleaseVersion}`
+        );
+        const IDAv1_TYPE = web3.utils.sha3(
+            `org.superfluid-finance.agreements.InstantDistributionAgreement.${protocolReleaseVersion}`
+        );
+
         console.log("reset superfluid framework: ", resetSuperfluidFramework);
         console.log("chain ID: ", chainId);
         console.log("protocol release version:", protocolReleaseVersion);

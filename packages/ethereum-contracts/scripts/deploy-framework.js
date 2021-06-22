@@ -42,15 +42,15 @@ async function deployAndRegisterContractIf(
     return contractDeployed;
 }
 
-async function deployNewLogicContractIfNew(
+async function deployContractIfCodeChanged(
     web3,
-    LogicContract,
+    Contract,
     codeAddress,
     deployFunc
 ) {
     let newCodeAddress = ZERO_ADDRESS;
-    const contractName = LogicContract.contractName;
-    if (await codeChanged(web3, LogicContract, codeAddress)) {
+    const contractName = Contract.contractName;
+    if (await codeChanged(web3, Contract, codeAddress)) {
         console.log(`${contractName} logic code has changed`);
         newCodeAddress = await deployFunc();
         console.log(`${contractName} new logic code address ${newCodeAddress}`);
@@ -121,9 +121,9 @@ module.exports = async function (callback, options = {}) {
             !!process.env.RESET_SUPERFLUID_FRAMEWORK;
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        const networkId = await web3.eth.net.getId();
         console.log("reset superfluid framework: ", resetSuperfluidFramework);
-        console.log("chain ID: ", chainId);
+        console.log("network ID: ", networkId);
         console.log("protocol release version:", protocolReleaseVersion);
 
         await deployERC1820(
@@ -133,7 +133,7 @@ module.exports = async function (callback, options = {}) {
             { web3, ...(options.from ? { from: options.from } : {}) }
         );
 
-        const config = getConfig(chainId);
+        const config = getConfig(networkId);
         const contracts = [
             "Ownable",
             "IMultiSigWallet",
@@ -179,7 +179,7 @@ module.exports = async function (callback, options = {}) {
                 useMocks ? mockContracts : []
             ),
             contractLoader: builtTruffleContractLoader,
-            networkId: chainId,
+            networkId,
         });
 
         if (!newTestResolver && config.resolverAddress) {
@@ -314,26 +314,20 @@ module.exports = async function (callback, options = {}) {
             )(superfluid.address, cfa.address);
         }
 
-        // create SlotsBitmapLibrary
-        let slotsBitmapLibrary = await deployAndRegisterContractIf(
-            SlotsBitmapLibrary,
-            `lib.${protocolReleaseVersion}.SlotsBitmapLibrary`,
-            async (contractAddress) =>
-                await codeChanged(web3, SlotsBitmapLibrary, contractAddress),
-            async () => {
-                return await web3tx(
-                    SlotsBitmapLibrary.new,
-                    "SlotsBitmapLibrary.new"
-                )();
-            }
-        );
-
         // list IDA v1
-        InstantDistributionAgreementV1.link(
-            "SlotsBitmapLibrary",
-            slotsBitmapLibrary.address
-        );
+        const deploySlotsBitmapLibrary = async () => {
+            const lib = await web3tx(
+                SlotsBitmapLibrary.new,
+                "SlotsBitmapLibrary.new"
+            )();
+            InstantDistributionAgreementV1.link(
+                "SlotsBitmapLibrary",
+                lib.address
+            );
+            return lib;
+        };
         const deployIDAv1 = async () => {
+            await deploySlotsBitmapLibrary();
             const agreement = await web3tx(
                 InstantDistributionAgreementV1.new,
                 "InstantDistributionAgreementV1.new"
@@ -345,11 +339,40 @@ module.exports = async function (callback, options = {}) {
             return agreement;
         };
         if (!(await superfluid.isAgreementTypeListed.call(IDAv1_TYPE))) {
+            await deploySlotsBitmapLibrary();
             const ida = await deployIDAv1();
             await web3tx(
                 governance.registerAgreementClass,
                 "Governance registers IDA"
             )(superfluid.address, ida.address);
+        } else {
+            let slotsBitmapLibraryAddress = ZERO_ADDRESS;
+            try {
+                slotsBitmapLibraryAddress = await (
+                    await InstantDistributionAgreementV1.at(
+                        await superfluid.getAgreementClass.call(IDAv1_TYPE)
+                    )
+                ).SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+            } catch (e) {
+                console.warn(
+                    "Cannot get slotsBitmapLibrary address",
+                    e.toString()
+                );
+            }
+            if (
+                (await deployContractIfCodeChanged(
+                    web3,
+                    SlotsBitmapLibrary,
+                    slotsBitmapLibraryAddress,
+                    deploySlotsBitmapLibrary
+                )) == ZERO_ADDRESS
+            ) {
+                // code not changed, link with existing library
+                InstantDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBitmapLibraryAddress
+                );
+            }
         }
 
         let superfluidNewLogicAddress = ZERO_ADDRESS;
@@ -360,7 +383,7 @@ module.exports = async function (callback, options = {}) {
             }
 
             // deploy new superfluid host logic
-            superfluidNewLogicAddress = await deployNewLogicContractIfNew(
+            superfluidNewLogicAddress = await deployContractIfCodeChanged(
                 web3,
                 SuperfluidLogic,
                 await superfluid.getCodeAddress(),
@@ -379,7 +402,7 @@ module.exports = async function (callback, options = {}) {
             );
 
             // deploy new CFA logic
-            const cfaNewLogicAddress = await deployNewLogicContractIfNew(
+            const cfaNewLogicAddress = await deployContractIfCodeChanged(
                 web3,
                 ConstantFlowAgreementV1,
                 await (
@@ -393,7 +416,7 @@ module.exports = async function (callback, options = {}) {
                 agreementsToUpdate.push(cfaNewLogicAddress);
 
             // deploy new IDA logic
-            const idaNewLogicAddress = await deployNewLogicContractIfNew(
+            const idaNewLogicAddress = await deployContractIfCodeChanged(
                 web3,
                 InstantDistributionAgreementV1,
                 await (
@@ -412,7 +435,7 @@ module.exports = async function (callback, options = {}) {
             ? SuperTokenFactoryMock
             : SuperTokenFactory;
         const superTokenFactoryNewLogicAddress =
-            await deployNewLogicContractIfNew(
+            await deployContractIfCodeChanged(
                 web3,
                 SuperTokenFactoryLogic,
                 await superfluid.getSuperTokenFactoryLogic.call(),

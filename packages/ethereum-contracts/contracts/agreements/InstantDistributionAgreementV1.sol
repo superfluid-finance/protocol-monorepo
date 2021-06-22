@@ -43,6 +43,8 @@ contract InstantDistributionAgreementV1 is
     using UInt128SafeMath for uint128;
     using SignedSafeMath for int256;
 
+    address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
+
     /// @dev Subscriber state slot id for storing subs bitmap
     uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
     /// @dev Publisher state slot id for storing its deposit amount

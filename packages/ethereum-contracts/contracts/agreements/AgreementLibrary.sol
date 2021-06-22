@@ -101,7 +101,7 @@ library AgreementLibrary {
                     inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                     appCtx);
             }
-            _popCallbackStatck(ctx, 0);
+            _popCallbackStack(ctx, 0);
         }
     }
 
@@ -144,7 +144,7 @@ library AgreementLibrary {
                     max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
 
             }
-            newCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
+            newCtx = _popCallbackStack(ctx, appContext.appAllowanceUsed);
         }
     }
 
@@ -184,7 +184,7 @@ library AgreementLibrary {
             inputs.token);
     }
 
-    function _popCallbackStatck(
+    function _popCallbackStack(
         bytes memory ctx,
         int256 appAllowanceUsedDelta
     )

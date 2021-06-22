@@ -101,7 +101,7 @@ library AgreementLibrary {
                     inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                     appCtx);
             }
-            _popCallbackStatck(ctx, 0);
+            _popCallbackStack(ctx, 0);
         }
     }
 
@@ -142,8 +142,9 @@ library AgreementLibrary {
                 appContext.appAllowanceUsed = max(0, min(
                     inputs.appAllowanceGranted.toInt256(),
                     max(appContext.appAllowanceWanted.toInt256(), appContext.appAllowanceUsed)));
+
             }
-            newCtx = _popCallbackStatck(ctx, appContext.appAllowanceUsed);
+            newCtx = _popCallbackStack(ctx, appContext.appAllowanceUsed);
         }
     }
 
@@ -179,18 +180,19 @@ library AgreementLibrary {
             ctx,
             ISuperApp(inputs.account),
             inputs.appAllowanceGranted,
-            inputs.appAllowanceUsed);
+            inputs.appAllowanceUsed,
+            inputs.token);
     }
 
-    function _popCallbackStatck(
+    function _popCallbackStack(
         bytes memory ctx,
-        int256 appAllowanceUsed
+        int256 appAllowanceUsedDelta
     )
         private
         returns (bytes memory newCtx)
     {
         // app allowance params stack POP
-        return ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsed);
+        return ISuperfluid(msg.sender).appCallbackPop(ctx, appAllowanceUsedDelta);
     }
 
     /**************************************************************************

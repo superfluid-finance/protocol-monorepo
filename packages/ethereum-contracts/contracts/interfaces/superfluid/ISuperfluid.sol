@@ -257,7 +257,8 @@ interface ISuperfluid {
         bytes calldata ctx,
         ISuperApp app,
         uint256 appAllowanceGranted,
-        int256 appAllowanceUsed
+        int256 appAllowanceUsed,
+        ISuperfluidToken appAllowanceToken
     )
         external
         // onlyAgreement
@@ -265,7 +266,7 @@ interface ISuperfluid {
 
     function appCallbackPop(
         bytes calldata ctx,
-        int256 allowanceUsedDelta
+        int256 appAllowanceUsedDelta
     )
         external
         // onlyAgreement
@@ -273,8 +274,8 @@ interface ISuperfluid {
 
     function ctxUseAllowance(
         bytes calldata ctx,
-        uint256 allowanceWantedMore,
-        int256 allowanceUsedDelta
+        uint256 appAllowanceWantedMore,
+        int256 appAllowanceUsedDelta
     )
         external
         // onlyAgreement
@@ -383,6 +384,8 @@ interface ISuperfluid {
         int256 appAllowanceUsed;
         // app address
         address appAddress;
+        // app allowance in super token
+        ISuperfluidToken appAllowanceToken;
     }
 
     function callAgreementWithContext(

@@ -117,7 +117,13 @@ contract SuperfluidUpgradabilityTester is Superfluid {
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 9)), 42) }
-            require(context.appAddress == address(42), "appAllowanceUsed changed location");
+            require(context.appAddress == address(42), "appAddress changed location");
+        }
+        // context.appAllowanceToken
+        {
+            Context memory context;
+            assembly { mstore(add(context, mul(32, 10)), 42) }
+            require(address(context.appAllowanceToken) == address(42), "appAllowanceToken changed location");
         }
     }
 }

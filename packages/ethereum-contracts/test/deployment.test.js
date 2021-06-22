@@ -250,7 +250,7 @@ contract("Embeded deployment scripts", () => {
                     "superTokenLogic deployment not required"
                 );
                 assert.equal(s1.cfa, s2.cfa, "cfa deployment not required");
-                assert.equal(s1.ida, s2.ida, "cfa deployment not required");
+                assert.equal(s1.ida, s2.ida, "ida deployment not required");
 
                 console.log("==== Reset all");
                 await deployFramework(errorHandler, {

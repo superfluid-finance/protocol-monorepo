@@ -138,6 +138,7 @@ export function updateBalance(
     let accountWithToken = fetchAccountWithToken(accountId, tokenId);
     let tokenContract = SuperToken.bind(Address.fromString(tokenId));
     let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
+    accountWithToken.balance = newBalance.toBigDecimal();
     accountWithToken.save();
     return accountWithToken as AccountWithToken;
 }

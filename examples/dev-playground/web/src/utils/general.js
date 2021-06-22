@@ -4,10 +4,15 @@ export const truncate = (text, length = 50) => {
 }
 
 export const getErrorResponse = (error, functionName) => {
-  const errorText = typeof error === 'string' ? error : error.message
+  let errorText = typeof error === 'string' ? error : error.message
+  if (errorText.includes('execution reverted')) {
+    const after = errorText.split('execution reverted:')[1]
+    errorText = after.split(`"`)[0]
+  }
+  console.log(error.message)
   const res = {
     /* eslint-disable-nextline i18next/no-literal-string */
-    message: `Error web3.${functionName}(): ${errorText}`,
+    message: `Error ${functionName}(): ${errorText}`,
   }
   const ABORTED = 'aborted'
   const EXCEPTION = 'exception'

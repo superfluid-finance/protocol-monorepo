@@ -8,7 +8,7 @@ import {
   Submit,
 } from '@redwoodjs/forms'
 
-const BatchTransferForm = (props) => {
+const BatchForm = (props) => {
   const onSubmit = (data) => {
     props.onSave(data)
   }
@@ -74,4 +74,4 @@ const BatchTransferForm = (props) => {
   )
 }
 
-export default BatchTransferForm
+export default BatchForm

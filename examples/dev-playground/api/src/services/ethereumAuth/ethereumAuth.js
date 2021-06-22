@@ -43,7 +43,7 @@ export const authVerify = async ({
   try {
     const address = addressRaw.toLowerCase()
     const authDetails = await db.user
-      .findOne({
+      .findFirst({
         where: { address },
       })
       .authDetail()

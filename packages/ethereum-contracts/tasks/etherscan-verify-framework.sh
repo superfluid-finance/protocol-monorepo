@@ -1,6 +1,9 @@
-set -x
+set -xe
 
 TRUFFLE_NETWORK=$1
+
+echo TRUFFLE_NETWORK=$TRUFFLE_NETWORK
+echo NETWORK_ID=$NETWORK_ID
 
 echo SUPERFLUID_HOST
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPERFLUID_HOST_PROXY}
@@ -22,9 +25,29 @@ echo CFA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${CFA_PROXY}
 npx truffle --network $TRUFFLE_NETWORK run etherscan ConstantFlowAgreementV1@${CFA_LOGIC}
 
+echo SlotsBitmapLibrary
+npx truffle --network $TRUFFLE_NETWORK run etherscan SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
+
 echo IDA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${IDA_PROXY}
+# HACK: do library link ourselves
+cp build/contracts/InstantDistributionAgreementV1.json build/contracts/InstantDistributionAgreementV1.json.bak
+jq -s '.[0] * .[1]' \
+    build/contracts/InstantDistributionAgreementV1.json.bak \
+    <(cat <<EOF
+{
+    "networks": {
+        "$NETWORK_ID": {
+            "links": {
+                "SlotsBitmapLibrary": "$SLOTS_BITMAP_LIBRARY_ADDRESS"
+            }
+        }
+    }
+}
+EOF
+    ) > build/contracts/InstantDistributionAgreementV1.json
 npx truffle --network $TRUFFLE_NETWORK run etherscan InstantDistributionAgreementV1@${IDA_LOGIC}
+mv build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
 
 echo fDAIx
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAI}

@@ -26,19 +26,30 @@ module.exports = async function (callback, argv, options = {}) {
         }
         const outputFilename = args.shift();
 
+        const networkId = await web3.eth.net.getId();
+        console.log("network ID: ", networkId);
+
         const tokens = ["fDAI", "fUSDC", "fTUSD"];
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
             version: process.env.RELEASE_VERSION || "test",
             tokens,
             loadSuperNativeToken: true,
-            additionalContracts: ["UUPSProxiable"],
+            additionalContracts: [
+                "UUPSProxiable",
+                "InstantDistributionAgreementV1",
+            ],
         });
         await sf.initialize();
 
-        const { UUPSProxiable, ISuperTokenFactory } = sf.contracts;
+        const {
+            UUPSProxiable,
+            ISuperTokenFactory,
+            InstantDistributionAgreementV1,
+        } = sf.contracts;
 
         let output = "";
+        output += `NETWORK_ID=${networkId}\n`;
         output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
         output += `SUPERFLUID_HOST_LOGIC=${await getCodeAddress(
             UUPSProxiable,
@@ -53,6 +64,9 @@ module.exports = async function (callback, argv, options = {}) {
             sf.agreements.cfa.address
         )}\n`;
         output += `IDA_PROXY=${sf.agreements.ida.address}\n`;
+        output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${await (
+            await InstantDistributionAgreementV1.at(sf.agreements.ida.address)
+        ).SLOTS_BITMAP_LIBRARY_ADDRESS.call()}\n`;
         output += `IDA_LOGIC=${await getCodeAddress(
             UUPSProxiable,
             sf.agreements.ida.address

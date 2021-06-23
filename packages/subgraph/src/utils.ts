@@ -134,9 +134,16 @@ export function updateBalance(
     tokenId: string
 ): AccountWithToken {
     let accountWithToken = fetchAccountWithToken(accountId, tokenId);
+    log.info("Token updateBalance: {}", [tokenId]);
     let tokenContract = SuperToken.bind(Address.fromString(tokenId));
-    let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
-    accountWithToken.balance = newBalance.toBigDecimal();
-    accountWithToken.save();
+    let underlyingAddress = tokenContract.try_getUnderlyingToken();
+    if (underlyingAddress.reverted) {
+        log.info("REVERTED", []);
+    }
+    // log.info("Token underlyingAddress: {}", [underlyingAddress.toString()]);
+    // let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
+    // log.debug(newBalance.toString(), []);
+    // accountWithToken.balance = newBalance.toBigDecimal();
+    // accountWithToken.save();
     return accountWithToken as AccountWithToken;
 }

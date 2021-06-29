@@ -1,15 +1,13 @@
 const { toBN, toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
+
 const {
     getErrorResponse,
     getMissingArgumentError,
     getBatchCallHelpText,
-} = require("@superfluid-finance/js-sdk/src/utils/error");
+} = require("../src/utils/error");
 
-const chai = require("chai");
-const chaiAsPromised = require("chai-as-promised");
-chai.use(chaiAsPromised);
-const expect = chai.expect;
+const { batchCall } = require("../src/batchCall");
 
 contract("batchCall helper class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
@@ -29,6 +27,7 @@ contract("batchCall helper class", (accounts) => {
     before(async () => {
         await t.reset();
         sf = t.sf;
+        sf.batchCall = batchCall;
     });
 
     beforeEach(async () => {
@@ -46,72 +45,92 @@ contract("batchCall helper class", (accounts) => {
         recipient: "0xbbb...",
     };
 
-    describe.only("Generic bad-case", () => {
+    describe("Generic bad-case", () => {
         it("Calls not provided", async () => {
-            await expect(sf.batchCall({})).to.be.rejectedWith(
-                getErrorResponse(
+            try {
+                await sf.batchCall({});
+            } catch (err) {
+                assert.equal(err.message, getErrorResponse(
                     "You must provide an array of calls",
                     "batchCall"
-                )
-            );
+                ));
+            }
         });
+
         it("Data not provided", async () => {
-            await expect(sf.batchCall([{ type: 1 }])).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("data", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+            try {
+                await sf.batchCall([{ type: 1 }]);
+            } catch (err) {
+                assert.equal(
+                    err.message,
+                    "Error: @superfluid-finance/js-sdk batchCall: You did not provide a required argument for \"data\"  in item #0 in your batch call array. Please see https://docs.superfluid.finaince/batchCall for more help"
+                );
+            }
         });
+
         it("Type not provided", async () => {
-            await expect(
-                sf.batchCall([{ data: exampleERC20TransferFromData }])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("type", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+            try{
+                await sf.batchCall([{ data: exampleERC20TransferFromData }]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("type", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
+
         it("Invalid operation", async () => {
             const NO_OP_STRING = "NO_OP";
-            const NO_OP_NUMBER = 9999;
-            await expect(
-                sf.batchCall([
+            const NO_OP_NUMBER = 10000;
+            try {
+                await sf.batchCall([
                     {
                         type: NO_OP_NUMBER,
                         data: exampleERC20TransferFromData,
                     },
                 ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    `You provided an invalid operation type "${NO_OP_NUMBER}"${getBatchCallHelpText(
-                        0
-                    )}`,
-                    "batchCall"
-                )
-            );
-            await expect(
-                sf.batchCall([
+            } catch (err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        `You provided an invalid operation type "${NO_OP_NUMBER}"${getBatchCallHelpText(
+                            0
+                        )}`,
+                        "batchCall"
+                    )
+                );
+
+            }
+
+            try {
+                await sf.batchCall([
                     {
                         type: NO_OP_STRING,
                         data: exampleERC20TransferFromData,
                     },
                 ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    `You provided an invalid operation type "${NO_OP_STRING}"${getBatchCallHelpText(
-                        0
-                    )}`,
-                    "batchCall"
-                )
-            );
+            } catch (err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        `You provided an invalid operation type "${NO_OP_STRING}"${getBatchCallHelpText(
+                            0
+                        )}`,
+                        "batchCall"
+                    )
+                );
+
+            }
         });
+
     });
     describe("ERC20 bad-case", () => {
         it("amount not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "ERC20_APPROVE",
                         data: {
@@ -119,33 +138,39 @@ contract("batchCall helper class", (accounts) => {
                         },
                     },
                 ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("amount", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("amount", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
         it("token not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "ERC20_APPROVE",
                         data: {
                             amount: "1",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("token", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("token", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
         it("ERC20_APPROVE spender not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "ERC20_APPROVE",
                         data: {
@@ -153,17 +178,21 @@ contract("batchCall helper class", (accounts) => {
                             amount: "1",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("spender", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("spender", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
+
         it("ERC20_TRANSFER_FROM sender not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "ERC20_TRANSFER_FROM",
                         data: {
@@ -171,57 +200,67 @@ contract("batchCall helper class", (accounts) => {
                             amount: "1",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("sender", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("sender", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
     });
     describe("Super Token bad-case", () => {
         it("amount not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "SUPERTOKEN_UPGRADE",
                         data: {
                             token: "0x",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("amount", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("amount", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
+
         it("token not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "SUPERTOKEN_UPGRADE",
                         data: {
                             amount: "1",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("token", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("token", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
     });
     describe("Call Agreement bad-case", () => {
         it("agreementType not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
-                        type: "SUPERTOKEN_UPGRADE",
+                        type: "SUPERFLUID_CALL_AGREEMENT",
                         data: {
                             method: "createFlow",
                             arguments: [
@@ -232,22 +271,26 @@ contract("batchCall helper class", (accounts) => {
                             ],
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError(
-                        "agreementType",
-                        getBatchCallHelpText(0)
-                    ),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError(
+                            "agreementType",
+                            getBatchCallHelpText(0)
+                        ),
+                        "batchCall"
+                    )
+                );
+            }
         });
+
         it("Invalid agreementType", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
-                        type: "SUPERTOKEN_UPGRADE",
+                        type: "SUPERFLUID_CALL_AGREEMENT",
                         data: {
                             agreementType: "NO_OP",
                             method: "createFlow",
@@ -259,20 +302,24 @@ contract("batchCall helper class", (accounts) => {
                             ],
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    "You provided an invalid agreementType" +
-                        getBatchCallHelpText(0),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        "You provided an invalid agreementType" +
+                            getBatchCallHelpText(0),
+                        "batchCall"
+                    )
+                );
+            }
         });
+
         it("method not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
-                        type: "SUPERTOKEN_UPGRADE",
+                        type: "SUPERFLUID_CALL_AGREEMENT",
                         data: {
                             agreementType: "CFA",
                             arguments: [
@@ -283,76 +330,89 @@ contract("batchCall helper class", (accounts) => {
                             ],
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError("method", getBatchCallHelpText(0)),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError("method", getBatchCallHelpText(0)),
+                        "batchCall"
+                    )
+                );
+            }
         });
         it("arguments not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
-                        type: "SUPERTOKEN_UPGRADE",
+                        type: "SUPERFLUID_CALL_AGREEMENT",
                         data: {
                             agreementType: "CFA",
                             method: "createFlow",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError(
-                        "arguments",
-                        getBatchCallHelpText(0)
-                    ),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError(
+                            "arguments",
+                            getBatchCallHelpText(0)
+                        ),
+                        "batchCall"
+                    )
+                );
+            }
         });
     });
     describe("Super App bad-case", () => {
         it("superApp not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "CALL_APP_ACTION",
                         data: {
                             callData: "0x",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError(
-                        "superApp",
-                        getBatchCallHelpText(0)
-                    ),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError(
+                            "superApp",
+                            getBatchCallHelpText(0)
+                        ),
+                        "batchCall"
+                    )
+                );
+            }
         });
+
         it("callData not provided", async () => {
-            await expect(
-                sf.batchCall([
+            try {
+                await sf.batchCall([
                     {
                         type: "CALL_APP_ACTION",
                         data: {
                             superApp: "CFA",
                         },
                     },
-                ])
-            ).to.be.rejectedWith(
-                getErrorResponse(
-                    getMissingArgumentError(
-                        "callData",
-                        getBatchCallHelpText(0)
-                    ),
-                    "batchCall"
-                )
-            );
+                ]);
+            } catch(err) {
+                assert.equal(
+                    err.message,
+                    getErrorResponse(
+                        getMissingArgumentError(
+                            "callData",
+                            getBatchCallHelpText(0)
+                        ),
+                        "batchCall"
+                    )
+                );
+            }
         });
     });
 });

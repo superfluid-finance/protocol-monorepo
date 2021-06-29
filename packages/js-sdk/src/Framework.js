@@ -354,7 +354,7 @@ module.exports = class Framework {
     }
 
     batchCall(calls) {
-        return batchCall({ sf: this, calls });
+        return this.host.batchCall(batchCall(calls));
     }
 
     /**

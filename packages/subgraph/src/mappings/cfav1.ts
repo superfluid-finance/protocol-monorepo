@@ -18,23 +18,18 @@ import {
     fetchFlow,
     fetchToken,
     logTransaction,
-    toDai,
+    updateBalance,
 } from "../utils";
 
 export function handleFlowUpdated(event: FlowUpdatedEvent): void {
-    let ownerAddress = event.params.sender.toHex();
-    let recipientAddress = event.params.receiver.toHex();
-    let tokenAddress = event.params.token.toHex();
+    let ownerId = event.params.sender.toHex();
+    let recipientId = event.params.receiver.toHex();
+    let tokenId = event.params.token.toHex();
     let flowRate = event.params.flowRate;
 
     let currentTimestamp = event.block.timestamp;
     // Get the existing flow
-    let flow = fetchFlow(
-        ownerAddress,
-        recipientAddress,
-        tokenAddress,
-        currentTimestamp
-    );
+    let flow = fetchFlow(ownerId, recipientId, tokenId, currentTimestamp);
     // TODO: No need for BigDecimal here?
     let oldFlowRate = flow.flowRate;
     let duration = currentTimestamp.minus(flow.lastUpdate).toBigDecimal();
@@ -52,4 +47,7 @@ export function handleFlowUpdated(event: FlowUpdatedEvent): void {
     ev.flowRate = flowRate;
     ev.sum = sum;
     ev.save();
+
+    updateBalance(ownerId, tokenId);
+    updateBalance(recipientId, tokenId);
 }

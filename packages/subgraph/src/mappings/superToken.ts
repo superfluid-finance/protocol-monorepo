@@ -35,7 +35,6 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     ev.token = tokenId;
     ev.save();
 
-    // Increase user balance
     updateBalance(account.id, tokenId);
 }
 
@@ -53,7 +52,6 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     ev.token = tokenId;
     ev.save();
 
-    // Decrease user balance
     updateBalance(account.id, tokenId);
 }
 
@@ -72,7 +70,6 @@ export function handleTransfer(event: TransferEvent): void {
     ev.token = tokenId;
     ev.save();
 
-    // Update user balances
     updateBalance(toAccount.id, tokenId);
     updateBalance(fromAccount.id, tokenId);
 }

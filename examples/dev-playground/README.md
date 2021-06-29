@@ -56,6 +56,16 @@ node zip-it.js
 # outputs to graphql.zip
 ```
 
+### Ngrok it
+
+```bash
+# In VM
+yarn rw dev --fwd="--host=0.0.0.0"
+
+# on host machine
+./ngrok http 8910 --host-header=rewrite
+```
+
 ## Author
 
 👤 **Patrick Gallagher**

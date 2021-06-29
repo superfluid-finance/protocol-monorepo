@@ -198,8 +198,9 @@ module.exports = async function (callback, argv, options = {}) {
                     sf.tokens[sf.config.nativeTokenSymbol + "x"].address
                 );
                 const symbol = await superToken.symbol.call();
-                const superTokenLogicAddress =
-                    await superToken.getCodeAddress();
+                const superTokenLogicAddress = await (
+                    await sf.contracts.UUPSProxiable.at(superToken.address)
+                ).getCodeAddress();
                 printSuperToken({
                     symbol,
                     name: await superToken.name.call(),

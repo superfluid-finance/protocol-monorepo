@@ -48,7 +48,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         ({ testToken, superToken } = t.contracts);
     });
 
-    async function _timeTravelOnce(time = TEST_TRAVEL_TIME) {
+    async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
         const block1 = await web3.eth.getBlock("latest");
         console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);
@@ -71,13 +71,13 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
     async function timeTravelOnceAndVerifyAll(opts = {}) {
         const time = opts.time || TEST_TRAVEL_TIME;
-        await _timeTravelOnce(time);
+        await timeTravelOnce(time);
         await verifyAll(opts);
     }
 
     async function timeTravelOnceAndValidateSystemInvariance(opts = {}) {
         const time = opts.time || TEST_TRAVEL_TIME;
-        await _timeTravelOnce(time);
+        await timeTravelOnce(time);
         await t.validateSystemInvariance(opts);
     }
 
@@ -1867,7 +1867,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             );
             const app = await web3tx(
                 ClosingOnUpdateFlowTestApp.new,
-                "NonClosableOutflowTestApp.new"
+                "ClosingOnUpdateFlowTestApp.new"
             )(cfa.address, superfluid.address);
             t.addAlias("app", app.address);
 
@@ -1909,6 +1909,127 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             await expectNetFlow("alice", "0");
             await expectNetFlow("app", "0");
             await timeTravelOnceAndValidateSystemInvariance();
+        });
+
+        it("#3.5 FlowExchangeTestApp", async () => {
+            await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+
+            const { superToken: superToken2 } = await t.createNewToken({
+                doUpgrade: true,
+                doNotSetAsDefault: true,
+            });
+            const FlowExchangeTestApp = artifacts.require(
+                "FlowExchangeTestApp"
+            );
+            const app = await web3tx(
+                FlowExchangeTestApp.new,
+                "FlowExchangeTestApp.new"
+            )(cfa.address, superfluid.address, superToken2.address);
+            t.addAlias("app", app.address);
+
+            await expectRevert(
+                web3tx(
+                    t.sf.cfa.createFlow,
+                    "alice -> app"
+                )({
+                    superToken: superToken.address,
+                    sender: alice,
+                    receiver: app.address,
+                    flowRate: FLOW_RATE1.toString(),
+                }),
+                "CFA: not enough available balance."
+            );
+
+            // fund the app with
+            await superToken2.transfer(app.address, t.configs.INIT_BALANCE, {
+                from: alice,
+            });
+            await web3tx(
+                t.sf.cfa.createFlow,
+                "alice -> app"
+            )({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: app.address,
+                flowRate: FLOW_RATE1.toString(),
+            });
+            let flow1, flow2;
+            flow1 = await cfa.getFlow(superToken.address, alice, app.address);
+            flow2 = await cfa.getFlow(superToken2.address, app.address, alice);
+            const deposit = clipDepositNumber(
+                FLOW_RATE1.muln(LIQUIDATION_PERIOD)
+            ).toString();
+            console.log(
+                "Flow: alice -> app (token1)",
+                flow1.flowRate.toString(),
+                flow1.deposit.toString(),
+                flow1.owedDeposit.toString()
+            );
+            assert.equal(flow1.flowRate.toString(), FLOW_RATE1.toString());
+            assert.equal(flow1.deposit.toString(), deposit);
+            assert.equal(flow1.owedDeposit.toString(), "0");
+            console.log(
+                "Flow: app -> alice (token2)",
+                flow2.flowRate.toString(),
+                flow2.deposit.toString(),
+                flow2.owedDeposit.toString()
+            );
+            assert.equal(flow2.flowRate.toString(), FLOW_RATE1.toString());
+            assert.equal(flow2.deposit.toString(), deposit);
+            assert.equal(flow2.owedDeposit.toString(), "0");
+            console.log(
+                "App balances",
+                (await superToken.balanceOf(app.address)).toString(),
+                (await superToken2.balanceOf(app.address)).toString()
+            );
+
+            await timeTravelOnceAndValidateSystemInvariance();
+
+            await web3tx(
+                t.sf.cfa.deleteFlow,
+                "alice -> app"
+            )({
+                superToken: superToken.address,
+                sender: alice,
+                receiver: app.address,
+            });
+            flow1 = await cfa.getFlow(superToken.address, alice, app.address);
+            flow2 = await cfa.getFlow(superToken2.address, app.address, alice);
+            console.log(
+                "Flow: alice -> app (token1)",
+                flow1.flowRate.toString(),
+                flow1.deposit.toString(),
+                flow1.owedDeposit.toString()
+            );
+            assert.equal(flow1.flowRate.toString(), "0");
+            assert.equal(flow1.deposit.toString(), "0");
+            assert.equal(flow1.owedDeposit.toString(), "0");
+            console.log(
+                "Flow: app -> alice (token2)",
+                flow2.flowRate.toString(),
+                flow2.deposit.toString(),
+                flow2.owedDeposit.toString()
+            );
+            assert.equal(flow2.flowRate.toString(), FLOW_RATE1.toString());
+            assert.equal(flow2.deposit.toString(), deposit);
+            assert.equal(flow2.owedDeposit.toString(), "0");
+            console.log(
+                "App balances",
+                (await superToken.balanceOf(app.address)).toString(),
+                (await superToken2.balanceOf(app.address)).toString()
+            );
+            assert.equal(
+                toBN(await superToken2.balanceOf(app.address))
+                    .add(toBN(await superToken2.balanceOf(alice)))
+                    .add(toBN(deposit))
+                    .toString(),
+                t.configs.INIT_BALANCE.toString()
+            );
+
+            await timeTravelOnceAndValidateSystemInvariance();
+            assert.isFalse(
+                await t.contracts.superfluid.isAppJailed(app.address)
+            );
         });
     });
 

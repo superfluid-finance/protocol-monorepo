@@ -20,6 +20,7 @@ contract("batchCall helper class", (accounts) => {
 
     let sf;
     let superToken;
+    let testToken;
     let alic;
     let bob;
     let carol;
@@ -27,12 +28,15 @@ contract("batchCall helper class", (accounts) => {
     before(async () => {
         await t.reset();
         sf = t.sf;
-        sf.batchCall = batchCall;
+        sf.batchCall = (calls) => {
+            console.log(batchCall(calls));
+            return sf.host.batchCall(batchCall(calls));
+        }
     });
 
     beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: true });
-        ({ superToken } = t.contracts);
+        await t.createNewToken({ doUpgrade: false });
+        ({ superToken, testToken } = t.contracts);
         alice = sf.user({ address: aliceAddress, token: superToken.address });
         bob = sf.user({ address: bobAddress, token: superToken.address });
         carol = sf.user({ address: carolAddress, token: superToken.address });
@@ -413,6 +417,31 @@ contract("batchCall helper class", (accounts) => {
                     )
                 );
             }
+        });
+    });
+
+    describe("Tokens Operations", () => {
+        it.only("Upgrade and Approve", async () => {
+            
+                await testToken.approve(superToken.address, "1000000000000000000");
+                await sf.batchCall([
+                    {
+                        type: "SUPERTOKEN_UPGRADE",
+                        data: {
+                            token: superToken.address,
+                            amount: "1000000000000000000"
+                        }
+                    },
+                    {
+                        type: "ERC20_APPROVE",
+                        data: {
+                            token: superToken.address,
+                            spender: aliceAddress,
+                            amount: "1000000000000000000"
+                        }
+                    },
+                ]);
+                await superToken.transferFrom(adminAddress, aliceAddress, "1000000000000000000", {from: aliceAddress});
         });
     });
 });

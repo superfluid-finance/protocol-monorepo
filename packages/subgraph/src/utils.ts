@@ -129,21 +129,31 @@ export function fetchFlow(
     return flow as Flow;
 }
 
-export function updateBalance(
-    accountId: string,
-    tokenId: string
-): AccountWithToken {
+export function updateBalance(accountId: string, tokenId: string): void {
     let accountWithToken = fetchAccountWithToken(accountId, tokenId);
     log.info("Token updateBalance: {}", [tokenId]);
     let tokenContract = SuperToken.bind(Address.fromString(tokenId));
-    let underlyingAddress = tokenContract.try_getUnderlyingToken();
-    if (underlyingAddress.reverted) {
-        log.info("REVERTED", []);
-    }
-    // log.info("Token underlyingAddress: {}", [underlyingAddress.toString()]);
-    // let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
+    // if (tokenId === "0x74907ff590422742eed1c8253d844c574f70bae9") return;
+    // let symbol = tokenContract.try_symbol();
+    // if (symbol.reverted) {
+    //     log.info("REVERTED", []);
+    // }
+    // log.info("Token symbol: {}", [symbol.value.toString()]);
+    // let underlyingAddress = tokenContract.try_getUnderlyingToken();
+    // if (underlyingAddress.reverted) {
+    //     log.info("REVERTED", []);
+    // }
+    // log.info("Token underlyingAddress: {}", [
+    //     underlyingAddress.value.toString(),
+    // ]);
+    let newBalance = tokenContract.try_balanceOf(Address.fromString(accountId));
+    // if (newBalance.reverted) {
+    //     log.info("REVERTED", []);
+    // }
+    log.info("Token balanceOf: {}", [newBalance.value.toString()]);
     // log.debug(newBalance.toString(), []);
     // accountWithToken.balance = newBalance.toBigDecimal();
-    // accountWithToken.save();
-    return accountWithToken as AccountWithToken;
+    accountWithToken.balance = BigDecimal.fromString("1");
+    accountWithToken.save();
+    return;
 }

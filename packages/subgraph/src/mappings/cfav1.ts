@@ -52,4 +52,6 @@ export function handleFlowUpdated(event: FlowUpdatedEvent): void {
     ev.flowRate = flowRate;
     ev.sum = sum;
     ev.save();
+
+    // TODO: Update balances here as well
 }

@@ -1,4 +1,4 @@
-import { dataSource } from "@graphprotocol/graph-ts";
+import { log } from "@graphprotocol/graph-ts";
 
 import {
     // ISuperToken as SuperToken,
@@ -25,7 +25,7 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     let account = fetchAccount(event.params.account.toHex());
     account.save();
     let amount = event.params.amount;
-    let tokenId = dataSource.address().toHex();
+    let tokenId = event.address.toHex();
     let currentTimestamp = event.block.timestamp;
 
     let ev = new TokenUpgraded(createEventID(event));
@@ -36,19 +36,14 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     ev.save();
 
     // Increase user balance
-    updateBalance(
-        account.id,
-        tokenId,
-        amount.toBigDecimal(),
-        true,
-        currentTimestamp
-    );
+    updateBalance(account.id, tokenId);
 }
 
 export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     let account = fetchAccount(event.params.account.toHex());
+    account.save();
     let amount = event.params.amount;
-    let tokenId = dataSource.address().toHex();
+    let tokenId = event.address.toHex();
     let currentTimestamp = event.block.timestamp;
 
     let ev = new TokenDowngraded(createEventID(event));
@@ -59,20 +54,14 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     ev.save();
 
     // Decrease user balance
-    updateBalance(
-        account.id,
-        tokenId,
-        amount.toBigDecimal(),
-        false,
-        currentTimestamp
-    );
+    updateBalance(account.id, tokenId);
 }
 
 export function handleTransfer(event: TransferEvent): void {
     let fromAccount = fetchAccount(event.params.from.toHex());
     let toAccount = fetchAccount(event.params.to.toHex());
     let value = event.params.value;
-    let tokenId = dataSource.address().toHex();
+    let tokenId = event.address.toHex();
     let currentTimestamp = event.block.timestamp;
 
     let ev = new TokenTransfer(createEventID(event));
@@ -84,18 +73,6 @@ export function handleTransfer(event: TransferEvent): void {
     ev.save();
 
     // Update user balances
-    updateBalance(
-        toAccount.id,
-        tokenId,
-        value.toBigDecimal(),
-        true,
-        currentTimestamp
-    );
-    updateBalance(
-        fromAccount.id,
-        tokenId,
-        value.toBigDecimal(),
-        false,
-        currentTimestamp
-    );
+    updateBalance(toAccount.id, tokenId);
+    updateBalance(fromAccount.id, tokenId);
 }

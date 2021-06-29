@@ -1,3 +1,8 @@
+tracking the errors
+
+handleTokenUpgraded
+handleTranser
+
 IDA will be needed to account for balance changes
 
 -   just use balanceOf whenever an event occurs

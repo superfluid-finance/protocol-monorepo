@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: AGPLv3
-/* solhint-disable not-rely-on-time */
 pragma solidity 0.7.6;
 
 import {
@@ -20,6 +19,7 @@ import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol"
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { SlotsBitmapLibrary } from "./SlotsBitmapLibrary.sol";
 
 
 contract InstantDistributionAgreementV1 is
@@ -42,6 +42,8 @@ contract InstantDistributionAgreementV1 is
     using SafeCast for uint256;
     using UInt128SafeMath for uint128;
     using SignedSafeMath for int256;
+
+    address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
     /// @dev Subscriber state slot id for storing subs bitmap
     uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
@@ -1012,29 +1014,12 @@ contract InstantDistributionAgreementV1 is
         private
         returns (uint32 subId)
     {
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
+        return SlotsBitmapLibrary.findEmptySlotAndFill(
+            token,
             subscriber,
-            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
-        for (subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
-            if ((uint256(subsBitmap >> subId) & 1) == 0) {
-                // update slot data
-                bytes32[] memory slotData = new bytes32[](1);
-                slotData[0] = iId;
-                token.updateAgreementStateSlot(
-                    subscriber,
-                    _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId,
-                    slotData);
-                // update slot map
-                slotData[0] = bytes32(subsBitmap | (1 << uint256(subId)));
-                token.updateAgreementStateSlot(
-                    subscriber,
-                    _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
-                    slotData);
-                // update the slots
-                break;
-            }
-        }
+            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START,
+            iId);
     }
 
     function _clearSubsBitmap(
@@ -1044,17 +1029,11 @@ contract InstantDistributionAgreementV1 is
     )
         private
     {
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
-            subscriber,
-            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
-        bytes32[] memory slotData = new bytes32[](1);
-        slotData[0] = bytes32(subsBitmap & ~(1 << uint256(subId)));
-        // zero the data
-        token.updateAgreementStateSlot(
+        SlotsBitmapLibrary.clearSlot(
+            token,
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
-            slotData);
+            subId);
     }
 
     function _listSubscriptionIds(
@@ -1064,26 +1043,15 @@ contract InstantDistributionAgreementV1 is
        private view
        returns (bytes32[] memory sidList)
     {
-       uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-           address(this),
-           subscriber,
-           _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID, 1)[0]);
-
-       sidList = new bytes32[](_MAX_NUM_SUBS);
-       // read all slots
-       uint nSlots;
-       for (uint32 subId = 0; subId < _MAX_NUM_SUBS; ++subId) {
-           if ((uint256(subsBitmap >> subId) & 1) == 0) continue;
-           bytes32 iId = token.getAgreementStateSlot(
-               address(this),
-               subscriber,
-               _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
-           sidList[nSlots++] = _getSubscriptionId(subscriber, iId);
-       }
-       // resize memory arrays
-       assembly {
-           mstore(sidList, nSlots)
-       }
+        sidList = SlotsBitmapLibrary.listData(
+            token,
+            subscriber,
+            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START);
+        // map data to subId
+        for (uint slotId = 0; slotId < sidList.length; ++slotId) {
+            sidList[slotId] = _getSubscriptionId(subscriber, sidList[slotId]);
+        }
     }
 
 }

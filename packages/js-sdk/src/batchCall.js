@@ -102,6 +102,7 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
      *     abi.decode(data, (bytes calldata, bytes userdata)
      * )
      */
+
     if (operationType === OPERATION_TYPES.SUPERFLUID_CALL_AGREEMENT) {
         if (!agreementType)
             throw new Error(getMissingArgumentError(
@@ -118,10 +119,10 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
             )}`);
 
         const agreementAddress =
-            sf.agreements[AGREEMENT_TYPES[agreementType]].address;
-        const callData = sf[AGREEMENT_TYPES[agreementType]].contract.methods[
+            this.agreements[AGREEMENT_TYPES[agreementType]].address;
+        const callData = this.agreements[AGREEMENT_TYPES[agreementType]].contract.methods[
             method
-        ](arguments).encodeABI();
+        ](...arguments).encodeABI();
         return [
             operationType,
             agreementAddress,
@@ -189,12 +190,13 @@ const parse = ({ index, type, data }) => {
     }
 };
 
-const batchCall = (calls) => {
+const batchCall = ({agreements, calls }) => {
     if(!calls || !Array.isArray(calls))
         throw new Error(getErrorResponse(
             "You must provide an array of calls",
             "batchCall"
         ));
+    this.agreements = agreements;
     return calls.map((call, index) => parse({ index, ...call }));
 };
 

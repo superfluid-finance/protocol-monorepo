@@ -29,8 +29,10 @@ contract("batchCall helper class", (accounts) => {
         await t.reset();
         sf = t.sf;
         sf.batchCall = (calls) => {
-            console.log(batchCall(calls));
-            return sf.host.batchCall(batchCall(calls));
+            console.log(batchCall({ agreements: sf.agreements, calls:calls }));
+            return sf.host.batchCall(
+                batchCall({ agreements: sf.agreements, calls:calls })
+            );
         }
     });
 
@@ -421,8 +423,7 @@ contract("batchCall helper class", (accounts) => {
     });
 
     describe("Tokens Operations", () => {
-        it.only("Upgrade and Approve", async () => {
-            
+        it("Upgrade and Approve", async () => {
                 await testToken.approve(superToken.address, "1000000000000000000");
                 await sf.batchCall([
                     {
@@ -442,6 +443,36 @@ contract("batchCall helper class", (accounts) => {
                     },
                 ]);
                 await superToken.transferFrom(adminAddress, aliceAddress, "1000000000000000000", {from: aliceAddress});
+                assert.equal(
+                    (await superToken.balanceOf(aliceAddress)).toString(),
+                    "1000000000000000000",
+                    "no right balance amount"
+                );
         });
+
+        it("Get funds and start stream", async () => {
+            await sf.batchCall([
+                {
+                    type: "SUPERTOKEN_UPGRADE",
+                    data: {
+                        token: superToken.address,
+                        amount: "1000000000000000000"
+                    }
+                },
+                {
+                    type: "SUPERFLUID_CALL_AGREEMENT",
+                    data: {
+                        agreementType: "CFA",
+                        method: "createFlow",
+                        arguments: [
+                            superToken.address,
+                            aliceAddress,
+                            "1000000000",
+                            "0x",
+                        ],
+                    },
+                },
+            ]);
+    });
     });
 });

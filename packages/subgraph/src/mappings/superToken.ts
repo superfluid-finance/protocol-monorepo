@@ -64,8 +64,8 @@ export function handleTransfer(event: TransferEvent): void {
 
     let ev = new TokenTransfer(createEventID(event));
     ev.transaction = logTransaction(event).id;
-    ev.from = fromAccount.id;
-    ev.to = toAccount.id;
+    ev.from = fromAccount.id.concat("-").concat(tokenId);
+    ev.to = toAccount.id.concat("-").concat(tokenId);
     ev.value = value;
     ev.token = tokenId;
     ev.save();

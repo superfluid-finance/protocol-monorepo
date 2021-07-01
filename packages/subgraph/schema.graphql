@@ -39,6 +39,9 @@ type AccountWithToken @entity {
     # ---------------------------------- state ----------------------------------
     balance: BigDecimal!
     # ---------------------------------- links ----------------------------------
+    # TODO: Move all events here, instead of Account entity
+    transferEventsReceived: [TokenTransfer!]! @derivedFrom(field: "to")
+    transferEventsSent: [TokenTransfer!]! @derivedFrom(field: "from")
     account: Account!
     token: Token!
 }
@@ -102,8 +105,8 @@ type TokenDowngraded implements Event @entity {
 type TokenTransfer implements Event @entity {
     id: ID!
     transaction: Transaction!
-    from: Account!
-    to: Account!
+    from: AccountWithToken!
+    to: AccountWithToken!
     value: BigInt!
     token: Token!
 }

@@ -12,6 +12,8 @@ const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
 );
 
+const WalletMock = artifacts.require("MockSmartWallet");
+
 const TestEnvironment = require("../../TestEnvironment");
 
 contract("SuperToken's Non Standard Functions", (accounts) => {
@@ -25,6 +27,7 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
     let superfluid;
     let testToken;
     let superToken;
+    let mockWallet;
 
     before(async () => {
         await t.reset();
@@ -33,6 +36,7 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
     beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
         ({ superfluid, testToken, superToken } = t.contracts);
+        mockWallet = await WalletMock.new();
     });
 
     describe("#1 upgradability", () => {
@@ -507,6 +511,46 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
                 (await superToken.balanceOf.call(mock.address)).toString(),
                 toWad(4).toString()
             );
+        });
+
+        it("#2.11 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract", async () => {
+            await web3tx(testToken.transfer, "send token from alice to wallet")(
+                mockWallet.address,
+                toWad(2),
+                {
+                    from: alice,
+                }
+            );
+             await web3tx(
+                mockWallet.approveTest,
+                "mockWallet.approve - from Wallet to SuperToken"
+            )(testToken.address, superToken.address, MAX_UINT256, {
+                from: alice,
+            });
+            await web3tx(
+                mockWallet.upgradeToTest,
+                "mockWallet.upgradeToTest"
+            )(superToken.address, mockWallet.address, toWad(2), "0x");
+            assert.equal(
+                (await superToken.balanceOf.call(mockWallet.address)).toString(),
+                toWad(2).toString(),
+                "0x"
+            );
+        });
+
+        it("#2.12 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
+            const reason = "SuperToken: not an ERC777TokensRecipient";
+            await web3tx(testToken.approve, "TestToken.approve - from alice to SuperToken")(
+                superToken.address,
+                MAX_UINT256,
+                {
+                    from: alice,
+                }
+            );
+            
+            await expectRevert(superToken.upgradeTo(mockWallet.address, toWad(2), "0x", {
+                from: alice,
+            }), reason);
         });
     });
 

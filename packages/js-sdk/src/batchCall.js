@@ -24,8 +24,13 @@ const AGREEMENT_TYPES = {
 const parseERC20Operation = ({ index, operationType, data }) => {
     const { token, spender, sender, recipient, amount } = data;
     if (!amount)
-        throw new Error(getMissingArgumentError("amount", getBatchCallHelpText(index)));
-    if (!token) throw new Error(getMissingArgumentError("token", getBatchCallHelpText(index)));
+        throw new Error(
+            getMissingArgumentError("amount", getBatchCallHelpText(index))
+        );
+    if (!token)
+        throw new Error(
+            getMissingArgumentError("token", getBatchCallHelpText(index))
+        );
 
     /**
      * @dev ERC20.approve batch operation type
@@ -36,7 +41,9 @@ const parseERC20Operation = ({ index, operationType, data }) => {
      */
     if (operationType === OPERATION_TYPES.ERC20_APPROVE) {
         if (!spender)
-            throw new Error(getMissingArgumentError("spender", getBatchCallHelpText(index)));
+            throw new Error(
+                getMissingArgumentError("spender", getBatchCallHelpText(index))
+            );
         return [
             operationType,
             token,
@@ -51,7 +58,9 @@ const parseERC20Operation = ({ index, operationType, data }) => {
      * )
      */
     if (!sender)
-        throw new Error(getMissingArgumentError("sender", getBatchCallHelpText(index)));
+        throw new Error(
+            getMissingArgumentError("sender", getBatchCallHelpText(index))
+        );
     return [
         operationType,
         token,
@@ -65,8 +74,13 @@ const parseERC20Operation = ({ index, operationType, data }) => {
 const parseSuperTokenOperation = ({ index, operationType, data }) => {
     const { amount, token } = data;
     if (!amount)
-        throw new Error(getMissingArgumentError("amount", getBatchCallHelpText(index)));
-    if (!token) throw new Error(getMissingArgumentError("token", getBatchCallHelpText(index)));
+        throw new Error(
+            getMissingArgumentError("amount", getBatchCallHelpText(index))
+        );
+    if (!token)
+        throw new Error(
+            getMissingArgumentError("token", getBatchCallHelpText(index))
+        );
 
     /**
      * @dev SuperToken.upgrade batch operation type
@@ -90,7 +104,7 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
         superApp,
         agreementType,
         method,
-        arguments,
+        args,
         userData = "0x",
         callData,
     } = data;
@@ -105,24 +119,35 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
 
     if (operationType === OPERATION_TYPES.SUPERFLUID_CALL_AGREEMENT) {
         if (!agreementType)
-            throw new Error(getMissingArgumentError(
-                "agreementType",
-                getBatchCallHelpText(index)
-            ));
+            throw new Error(
+                getMissingArgumentError(
+                    "agreementType",
+                    getBatchCallHelpText(index)
+                )
+            );
         if (!method)
-            throw new Error(getMissingArgumentError("method", getBatchCallHelpText(index)));
-        if (!arguments)
-            throw new Error(getMissingArgumentError("arguments", getBatchCallHelpText(index)));
+            throw new Error(
+                getMissingArgumentError("method", getBatchCallHelpText(index))
+            );
+        if (!args)
+            throw new Error(
+                getMissingArgumentError(
+                    "arguments",
+                    getBatchCallHelpText(index)
+                )
+            );
         if (!Object.keys(AGREEMENT_TYPES).includes(agreementType))
-            throw new Error(`You provided an invalid agreementType${getBatchCallHelpText(
-                index
-            )}`);
+            throw new Error(
+                `You provided an invalid agreementType${getBatchCallHelpText(
+                    index
+                )}`
+            );
 
         const agreementAddress =
             this.agreements[AGREEMENT_TYPES[agreementType]].address;
-        const callData = this.agreements[AGREEMENT_TYPES[agreementType]].contract.methods[
-            method
-        ](...arguments).encodeABI();
+        const callData = this.agreements[
+            AGREEMENT_TYPES[agreementType]
+        ].contract.methods[method](...args).encodeABI();
         return [
             operationType,
             agreementAddress,
@@ -138,26 +163,36 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
      * )
      */
     if (!superApp)
-        throw new Error(getMissingArgumentError("superApp", getBatchCallHelpText(index)));
+        throw new Error(
+            getMissingArgumentError("superApp", getBatchCallHelpText(index))
+        );
     if (!callData)
-        throw new Error(getMissingArgumentError("callData", getBatchCallHelpText(index)));
+        throw new Error(
+            getMissingArgumentError("callData", getBatchCallHelpText(index))
+        );
     return [operationType, superApp, callData];
 };
 
 const parse = ({ index, type, data }) => {
     try {
         if (!type)
-            throw new Error(getMissingArgumentError("type", getBatchCallHelpText(index)));
+            throw new Error(
+                getMissingArgumentError("type", getBatchCallHelpText(index))
+            );
         if (!data)
-            throw new Error(getMissingArgumentError("data", getBatchCallHelpText(index)));
+            throw new Error(
+                getMissingArgumentError("data", getBatchCallHelpText(index))
+            );
 
         // Opertation type
         let operationType = type;
         if (typeof type !== Number) {
             if (!Object.keys(OPERATION_TYPES).includes(type))
-                throw new Error(`You provided an invalid operation type "${
-                    type
-                }"${getBatchCallHelpText(index)}`);
+                throw new Error(
+                    `You provided an invalid operation type "${type}"${getBatchCallHelpText(
+                        index
+                    )}`
+                );
             operationType = OPERATION_TYPES[type];
         }
 
@@ -182,20 +217,21 @@ const parse = ({ index, type, data }) => {
             ].includes(operationType)
         )
             return parseSuperFluidOperation({ index, operationType, data });
-        throw new Error(`You provided an invalid operation type "${
-            type
-        }"${getBatchCallHelpText(index)}`);
+        throw new Error(
+            `You provided an invalid operation type "${type}"${getBatchCallHelpText(
+                index
+            )}`
+        );
     } catch (e) {
         throw new Error(getErrorResponse(e, "batchCall"));
     }
 };
 
-const batchCall = ({agreements, calls }) => {
-    if(!calls || !Array.isArray(calls))
-        throw new Error(getErrorResponse(
-            "You must provide an array of calls",
-            "batchCall"
-        ));
+const batchCall = ({ agreements, calls }) => {
+    if (!calls || !Array.isArray(calls))
+        throw new Error(
+            getErrorResponse("You must provide an array of calls", "batchCall")
+        );
     this.agreements = agreements;
     return calls.map((call, index) => parse({ index, ...call }));
 };

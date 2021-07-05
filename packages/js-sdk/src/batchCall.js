@@ -104,7 +104,7 @@ const parseSuperFluidOperation = ({ index, operationType, data }) => {
         superApp,
         agreementType,
         method,
-        args,
+        arguments: args,
         userData = "0x",
         callData,
     } = data;

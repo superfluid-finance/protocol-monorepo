@@ -138,7 +138,7 @@ library BatchOperation {
      */
     uint32 constant internal OPERATION_TYPE_SUPERTOKEN_DOWNGRADE = 2 + 100;
     /**
-     * @dev ERC20 Approve batch operation type
+     * @dev Superfluid.callAgreement batch operation type
      *
      * Call spec:
      * callAgreement(
@@ -148,7 +148,7 @@ library BatchOperation {
      */
     uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT = 1 + 200;
     /**
-     * @dev ERC20 Approve batch operation type
+     * @dev Superfluid.callAppAction batch operation type
      *
      * Call spec:
      * callAppAction(

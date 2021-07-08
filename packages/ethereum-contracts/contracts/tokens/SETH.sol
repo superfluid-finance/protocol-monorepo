@@ -3,7 +3,8 @@ pragma solidity 0.7.6;
 
 import {
     ISuperToken,
-    CustomSuperTokenProxyBase
+    CustomSuperTokenProxyBase,
+    UUPSProxy
 }
 from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
 import { ISETHCustom } from "../interfaces/tokens/ISETH.sol";
@@ -55,7 +56,7 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase {
     function _implementation() internal override view returns (address)
     {
         if (msg.data.length > 0) {
-            return _implementation();
+            return UUPSProxy._implementation();
         } else {
             // do not provide receive() fallback otherwise it can't
             // withdraw WETH

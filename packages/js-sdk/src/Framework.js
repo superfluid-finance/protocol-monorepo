@@ -161,10 +161,6 @@ module.exports = class Framework {
         this.cfa = new ConstantFlowAgreementV1Helper(this);
         this.ida = new InstantDistributionAgreementV1Helper(this);
 
-        // load tokens
-        this.tokens = {};
-        this.superTokens = {};
-
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {
             const defaultGasPrice = await this.web3.eth.getGasPrice();

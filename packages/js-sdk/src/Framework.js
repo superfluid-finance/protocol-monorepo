@@ -1,5 +1,3 @@
-const { id } = require("@ethersproject/hash");
-
 const loadContracts = require("./loadContracts");
 const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
@@ -111,15 +109,28 @@ module.exports = class Framework {
         console.debug("Resolver at", resolverAddress);
         this.resolver = await this.contracts.IResolver.at(resolverAddress);
 
-        // load superfluid host contract
-        console.debug("Resolving contracts with version", this.version);
-        const superfluidAddress = await this.resolver.get(
-            `Superfluid.${this.version}`
+        // get framework loader and load
+        this.loader = await this.contracts.SuperfluidLoader.at(
+            await this.resolver.get("SuperfluidLoader")
         );
-        this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
+        console.debug("Resolving contracts with version", this.version);
+        const loaderResult = await this.loader.loadFramework(this.version);
+
         console.debug(
             "Superfluid host contract: TruffleContract .host",
-            superfluidAddress
+            loaderResult.superfluid
+        );
+        console.debug(
+            "SuperTokenFactory address:",
+            loaderResult.superTokenFactory
+        );
+        console.debug(
+            "ConstantFlowAgreementV1: TruffleContract .agreements.cfa | Helper .cfa",
+            loaderResult.agreementCFAv1
+        );
+        console.debug(
+            "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
+            loaderResult.agreementIDAv1
         );
 
         this.agreements = {};
@@ -127,64 +138,32 @@ module.exports = class Framework {
         this.superTokens = {};
 
         // load agreement classes
-        [this.agreements.cfa, this.agreements.ida] = await Promise.all([
-            // load agreements
-            ...[
-                [
-                    id(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    ),
-                    this.contracts.IConstantFlowAgreementV1,
-                ],
-                [
-                    id(
-                        "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-                    ),
-                    this.contracts.IInstantDistributionAgreementV1,
-                ],
-            ].map(async (data) => {
-                const address = await this.host.getAgreementClass(data[0]);
-                return await data[1].at(address);
-            }),
-            // load tokens
-            ...[
-                ...(this._options.tokens ? this._options.tokens : []),
-                ...(this._options.loadSuperNativeToken &&
-                this.config.nativeTokenSymbol
-                    ? [this.config.nativeTokenSymbol]
-                    : []),
-            ].map(this.loadToken.bind(this)),
-        ]);
+        [this.host, this.agreements.cfa, this.agreements.ida] =
+            await Promise.all([
+                this.contracts.ISuperfluid.at(loaderResult.superfluid),
+                this.contracts.IConstantFlowAgreementV1.at(
+                    loaderResult.agreementCFAv1
+                ),
+                this.contracts.IConstantFlowAgreementV1.at(
+                    loaderResult.agreementIDAv1
+                ),
+                // load tokens
+                ...[
+                    ...(this._options.tokens ? this._options.tokens : []),
+                    ...(this._options.loadSuperNativeToken &&
+                    this.config.nativeTokenSymbol
+                        ? [this.config.nativeTokenSymbol]
+                        : []),
+                ].map(this.loadToken.bind(this)),
+            ]);
 
         // load agreement helpers
         this.cfa = new ConstantFlowAgreementV1Helper(this);
         this.ida = new InstantDistributionAgreementV1Helper(this);
 
-        console.debug(
-            "ConstantFlowAgreementV1: TruffleContract .agreements.cfa | Helper .cfa",
-            this.agreements.cfa.address
-        );
-        console.debug(
-            "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
-            this.agreements.ida.address
-        );
-        const superTokenFactoryAddress = await this.host.getSuperTokenFactory();
-        console.debug(
-            `SuperTokenFactory contract: ${superTokenFactoryAddress}`
-        );
-
         // load tokens
         this.tokens = {};
         this.superTokens = {};
-        await Promise.all(
-            [
-                ...(this._options.tokens ? this._options.tokens : []),
-                ...(this._options.loadSuperNativeToken &&
-                this.config.nativeTokenSymbol
-                    ? [this.config.nativeTokenSymbol]
-                    : []),
-            ].map(this.loadToken.bind(this))
-        );
 
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {
@@ -252,10 +231,12 @@ module.exports = class Framework {
             throw new Error(`Super Token for ${tokenKey} cannot be found`);
         }
         let superToken;
+        let superTokenCustomType = "";
         if (tokenKey !== this.config.nativeTokenSymbol) {
             superToken = await this.contracts.ISuperToken.at(superTokenAddress);
         } else {
             superToken = await this.contracts.ISETH.at(superTokenAddress);
+            superTokenCustomType = "SETH";
         }
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
@@ -295,7 +276,7 @@ module.exports = class Framework {
         superToken.underlyingToken = underlyingToken;
 
         console.debug(
-            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"]`,
+            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"] ${superTokenCustomType}`,
             superTokenAddress
         );
     }

@@ -2,8 +2,8 @@
     "IERC20",
     "TokenInfo",
     "ERC20WithTokenInfo",
-    "TestToken",
     "IResolver",
+    "SuperfluidLoader",
     "ISuperfluid",
     "ISuperToken",
     "ISuperTokenFactory",
@@ -11,5 +11,6 @@
     "ISuperfluidGovernance",
     "IConstantFlowAgreementV1",
     "IInstantDistributionAgreementV1",
-    "ISETH"
+    "ISETH",
+    "TestToken"
 ]

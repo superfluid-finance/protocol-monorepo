@@ -139,6 +139,7 @@ module.exports = async function (callback, options = {}) {
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
             "TestResolver",
+            "SuperfluidLoader",
             "Superfluid",
             "SuperTokenFactory",
             "SuperTokenFactoryHelper",
@@ -160,6 +161,7 @@ module.exports = async function (callback, options = {}) {
             IMultiSigWallet,
             SuperfluidGovernanceBase,
             TestResolver,
+            SuperfluidLoader,
             Superfluid,
             SuperfluidMock,
             SuperTokenFactory,
@@ -209,6 +211,19 @@ module.exports = async function (callback, options = {}) {
                 }
             );
         }
+
+        // deploy superfluid loader
+        await deployAndRegisterContractIf(
+            SuperfluidLoader,
+            "SuperfluidLoader",
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                return await web3tx(
+                    SuperfluidLoader.new,
+                    "SuperfluidLoader.new"
+                )(testResolver.address);
+            }
+        );
 
         // deploy new superfluid host contract
         const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;

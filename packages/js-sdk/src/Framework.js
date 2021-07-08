@@ -144,7 +144,7 @@ module.exports = class Framework {
                 this.contracts.IConstantFlowAgreementV1.at(
                     loaderResult.agreementCFAv1
                 ),
-                this.contracts.IConstantFlowAgreementV1.at(
+                this.contracts.IInstantDistributionAgreementV1.at(
                     loaderResult.agreementIDAv1
                 ),
                 // load tokens

@@ -102,7 +102,7 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 3,
-            gas: 8e6,
+            gas: 7.9e6,
             gasPrice: 10e9, // 10 GWEI
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)

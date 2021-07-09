@@ -521,18 +521,22 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
                     from: alice,
                 }
             );
-             await web3tx(
+            await web3tx(
                 mockWallet.approveTest,
                 "mockWallet.approve - from Wallet to SuperToken"
             )(testToken.address, superToken.address, MAX_UINT256, {
                 from: alice,
             });
-            await web3tx(
-                mockWallet.upgradeToTest,
-                "mockWallet.upgradeToTest"
-            )(superToken.address, mockWallet.address, toWad(2), "0x");
+            await web3tx(mockWallet.upgradeToTest, "mockWallet.upgradeToTest")(
+                superToken.address,
+                mockWallet.address,
+                toWad(2),
+                "0x"
+            );
             assert.equal(
-                (await superToken.balanceOf.call(mockWallet.address)).toString(),
+                (
+                    await superToken.balanceOf.call(mockWallet.address)
+                ).toString(),
                 toWad(2).toString(),
                 "0x"
             );
@@ -540,17 +544,19 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
 
         it("#2.12 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
             const reason = "SuperToken: not an ERC777TokensRecipient";
-            await web3tx(testToken.approve, "TestToken.approve - from alice to SuperToken")(
-                superToken.address,
-                MAX_UINT256,
-                {
-                    from: alice,
-                }
-            );
-            
-            await expectRevert(superToken.upgradeTo(mockWallet.address, toWad(2), "0x", {
+            await web3tx(
+                testToken.approve,
+                "TestToken.approve - from alice to SuperToken"
+            )(superToken.address, MAX_UINT256, {
                 from: alice,
-            }), reason);
+            });
+
+            await expectRevert(
+                superToken.upgradeTo(mockWallet.address, toWad(2), "0x", {
+                    from: alice,
+                }),
+                reason
+            );
         });
     });
 

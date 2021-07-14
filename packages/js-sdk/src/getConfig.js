@@ -63,9 +63,9 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
         },
 
         //
-        // ARBITRUM
+        // ARBITRUM (testnet rinkeby)
         //
-        79377087078960: {
+        421611: {
             // arbitrum testnet
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
         },

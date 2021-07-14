@@ -659,7 +659,7 @@ contract SuperToken is
     *************************************************************************/
 
     modifier onlySelf() {
-        require(msg.sender == address(this), "SuperToken: only self allowed");
+        require(msg.sender == address(this), "SuperToken: only self allowed.");
         _;
     }
 

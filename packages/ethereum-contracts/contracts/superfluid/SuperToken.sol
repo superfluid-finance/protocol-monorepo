@@ -112,7 +112,7 @@ contract SuperToken is
     }
 
     function updateCode(address newAddress) external override {
-        require(msg.sender == address(_host), "only host can update code");
+        require(msg.sender == address(_host), "SuperToken: only host can update code");
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 
@@ -659,7 +659,7 @@ contract SuperToken is
     *************************************************************************/
 
     modifier onlySelf() {
-        require(msg.sender == address(this), "SuperToken: only self allowed.");
+        require(msg.sender == address(this), "SuperToken: only self allowed");
         _;
     }
 

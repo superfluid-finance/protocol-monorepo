@@ -54,7 +54,7 @@ contract("SuperTokenFactory Contract", (accounts) => {
             assert.equal(await factory.getHost.call(), superfluid.address);
             await expectRevert(
                 factory.updateCode(ZERO_ADDRESS),
-                "only host can update code"
+                "SuperTokenFactory: only host can update code"
             );
         });
 

@@ -53,14 +53,6 @@
         "ethereumjs-util": "7.0.10",
         "stack-trace": "0.0.10"
     },
-    "peerDependencies": {
-        "arb-ethers-web3-bridge": "^0.7.3"
-    },
-    "peerDependenciesMeta": {
-        "arb-ethers-web3-bridge": {
-            "optional": true
-        }
-    },
     "devDependencies": {
         "@openzeppelin/test-helpers": "0.5.11",
         "@truffle/hdwallet-provider": "^1.4.0",

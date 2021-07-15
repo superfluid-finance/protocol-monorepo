@@ -32,7 +32,13 @@ async function hasCode(web3, address) {
     return code.length > 3;
 }
 
-async function codeChanged(web3, contract, address) {
+async function codeChanged(
+    web3,
+    contract,
+    address,
+    replacements = [],
+    debug = false
+) {
     // use .binary instead of .bytecode
     // since .binary will have the linked library addresses
     const binaryFromCompiler = contract.binary;
@@ -43,11 +49,26 @@ async function codeChanged(web3, contract, address) {
 
     // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
     // find the second occurance of the init code
-    const codeTrimed = code.slice(code.lastIndexOf("6080604052")).toLowerCase();
+    let codeTrimed = code.slice(code.lastIndexOf("6080604052")).toLowerCase();
     const binaryTrimed = binaryFromCompiler
         .slice(binaryFromCompiler.lastIndexOf("6080604052"))
         .toLowerCase();
 
+    // extra replacements usually for constructor parameters
+    replacements.forEach((r) => {
+        let codeTrimed2 = codeTrimed.replace(
+            new RegExp(r, "g"),
+            "0".repeat(r.length)
+        );
+        if (codeTrimed === codeTrimed2)
+            throw new Error("Code replacement not found");
+        codeTrimed = codeTrimed2;
+    });
+
+    if (debug) {
+        console.debug(codeTrimed);
+        console.debug(binaryTrimed);
+    }
     // console.log(code);
     // console.log(bytecodeFromCompiler);
     // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));

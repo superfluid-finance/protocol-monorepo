@@ -18,7 +18,7 @@ npx truffle --network $TRUFFLE_NETWORK run etherscan SuperTokenFactory@${SUPERFL
 
 echo SUPERFLUID_SUPER_TOKEN_LOGIC
 # it is required to provide the constructor arguments manually, because the super token logic is created through a contract not an EOA
-SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log(("0".repeat(64)+("'${SUPERFLUID_HOST_PROXY}'".slice(2))).slice(-64))')
+SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log("'${SUPERFLUID_HOST_PROXY}'".toLowerCase().slice(2).padStart(64, "0"))')
 npx truffle --network $TRUFFLE_NETWORK run etherscan SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC} --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
 
 echo CFA
@@ -31,7 +31,7 @@ npx truffle --network $TRUFFLE_NETWORK run etherscan SlotsBitmapLibrary@${SLOTS_
 echo IDA
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${IDA_PROXY}
 # HACK: do library link ourselves
-cp build/contracts/InstantDistributionAgreementV1.json build/contracts/InstantDistributionAgreementV1.json.bak
+cp -f build/contracts/InstantDistributionAgreementV1.json build/contracts/InstantDistributionAgreementV1.json.bak
 jq -s '.[0] * .[1]' \
     build/contracts/InstantDistributionAgreementV1.json.bak \
     <(cat <<EOF
@@ -47,7 +47,7 @@ jq -s '.[0] * .[1]' \
 EOF
     ) > build/contracts/InstantDistributionAgreementV1.json
 npx truffle --network $TRUFFLE_NETWORK run etherscan InstantDistributionAgreementV1@${IDA_LOGIC}
-mv build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
+mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
 
 echo fDAIx
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAI}

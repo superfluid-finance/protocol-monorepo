@@ -1,3 +1,12 @@
-export function getErrorResponse(error: any, className: any, functionName: any): string;
-export function getMissingArgumentError(argumentName: any, helpText: any): string;
-export function getBatchCallHelpText(index: any): string;
+export function getErrorResponse(
+    error: Error | string,
+    className: string,
+    functionName: string
+): string;
+
+export function getMissingArgumentError(
+    argumentName: string,
+    helpText: string
+): string;
+
+export function getBatchCallHelpText(index: number): string;

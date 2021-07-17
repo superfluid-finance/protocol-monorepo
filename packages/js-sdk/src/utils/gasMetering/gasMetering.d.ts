@@ -1,26 +1,44 @@
+import type BN from 'bn.js'
+import type Web3 from 'web3'
+import { GasMeterJSONReporter } from "./gasReporter";
+import { GasMeterHTMLReporter } from "./gasReporter";
+
+type Record = {
+    action: string
+    txHash: string
+    gas: BN
+    gasPrice: BN
+    cost: BN
+}
+
 export = GasMeter;
 declare class GasMeter {
-    constructor(web3: any, outputFormat: any, gasPrice: any);
-    web3: any;
-    BN: any;
+    constructor(
+        web3: Web3,
+        outputFormat: 'JSON'|'HTML'|'TENDERLY',
+        gasPrice: string
+    );
+    web3: Web3;
+    BN: BN;
     reporter: GasMeterJSONReporter | GasMeterHTMLReporter | undefined;
-    gasPrice: any;
-    records: any[];
+    gasPrice: string;
+    records: Record[];
     aggregates: {};
     formatter: Formatter;
     _format(): {
         aggregates: {};
         executedTxs: {}[];
     };
-    pushTx(tx: any, actionName: any): void;
-    generateReport(name: any): void;
+    pushTx(
+        tx: Record,
+        actionName: string
+    ): void;
+    generateReport(name: string): void;
 }
-import { GasMeterJSONReporter } from "./gasReporter";
-import { GasMeterHTMLReporter } from "./gasReporter";
 declare class Formatter {
-    constructor(web3: any);
-    web3: any;
-    BN: any;
-    formatBigNumber(key: any, value: any): any;
-    formatObject(x: any): {};
+    constructor(web3: Web3);
+    web3: Web3;
+    BN: BN;
+    formatBigNumber(key: string, value: number | BN): string;
+    formatObject(x: Record): {};
 }

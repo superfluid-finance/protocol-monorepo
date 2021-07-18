@@ -1,14 +1,21 @@
+import type Framework from './Framework';
+import type BN from 'bn';
+import Transaction from 'web3';
+
+interface UserDetails {
+}
+
 export = User;
 declare class User {
     constructor({ sf, address, token, options }: {
-        sf: any;
-        address: any;
-        token: any;
+        sf: Framework;
+        address: string;
+        token: string;
         options: any;
     });
-    sf: any;
-    address: any;
-    token: any;
+    sf: Framework;
+    address: string;
+    token: string;
     options: any;
     details(): Promise<{
         cfa: {
@@ -16,24 +23,24 @@ declare class User {
             netFlow: any;
         };
         ida: {
-            subscriptions: any;
+            subscriptions: Subscription[];
         };
     }>;
     flow({ recipient, flowRate, ...options }: {
+        recipient: string;
+        flowRate: BN;
         [x: string]: any;
-        recipient: any;
-        flowRate: any;
-    }): Promise<any>;
+    }): Promise<Transaction>;
     createPool({ poolId: indexId }: {
-        poolId: any;
-    }): Promise<any>;
+        poolId: number;
+    }): Promise<Transaction>;
     giveShares({ recipient, shares, poolId: indexId }: {
-        recipient: any;
-        shares: any;
-        poolId: any;
-    }): Promise<any>;
+        recipient: string;
+        shares: BN;
+        poolId: number;
+    }): Promise<Transaction>;
     distributeToPool({ poolId: indexId, amount }: {
-        poolId: any;
-        amount: any;
+        poolId: number;
+        amount: BN;
     }): Promise<void>;
 }

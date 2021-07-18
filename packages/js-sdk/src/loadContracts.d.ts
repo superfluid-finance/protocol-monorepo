@@ -1,11 +1,13 @@
-import { ethers, Contract, utils } from "ethers"; 
-import Web3 from "web3";
+import { ethers, Contract as EthersContract, utils } from "ethers"; 
+import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
+import type Web3 from "web3";
 
 interface EthersWithSigner {
     getSigner(): () => ethers.Signer
 }
 
+export type LoadedContract = Web3Contract | TruffleContract.Contract | EthersContract;
 type AbiContainer = Pick<utils.Interface, "abi">;
 type ContractLoader = (name: string) => AbiContainer;
 
@@ -18,7 +20,7 @@ interface AdaptedContractOpts {
     abi: AbiContainer;
     ethers: EthersWithSigner;
 }
-declare function getAdaptedContract({address, abi, ethers}: AdaptedContractOpts): Contract;
+declare function getAdaptedContract({address, abi, ethers}: AdaptedContractOpts): EthersContract;
 
 declare function loadContracts({ isTruffle, ethers, web3, from, additionalContracts, contractLoader, networkId, }: {
     isTruffle: boolean;
@@ -28,6 +30,6 @@ declare function loadContracts({ isTruffle, ethers, web3, from, additionalContra
     additionalContracts?: string[];
     contractLoader: ContractLoader;
     networkId: number;
-}): Promise<Contract[] | Web3.Eth.Contract[] | TruffleContract.Contract[]>;
+}): Promise<LoadedContract[]>;
 
 export = loadContracts;

@@ -22,16 +22,13 @@ export interface FrameworkOptions {
 }
 declare class Framework {
 
+    constructor(options: FrameworkOptions);
+
     _options: FrameworkOptions;
     version: string;
     web3: Web3;
     ethers: any;
     _gasReportType: GasReportTypeOptions;
-
-    constructor(options: FrameworkOptions);
-
-    initialize(): Promise<any>;
-
     config: any;
     contracts: Promise<Contract[] | Web3.Eth.Contract[] | TruffleContract.Contract[]> | undefined;
     resolver: any;
@@ -44,6 +41,7 @@ declare class Framework {
     utils: Utils | undefined;
     _gasMetering: GasMeter | undefined;
 
+    initialize(): Promise<any>;
     isSuperTokenListed(superTokenKey: string): Promise<boolean>;
     loadToken(tokenKey: string): Promise<void>;
     createERC20Wrapper(tokenInfo: any, { superTokenSymbol, superTokenName, from, upgradability }?: string): Promise<any>;
@@ -56,6 +54,5 @@ declare class Framework {
     _pushTxForGasReport(tx: any, actionName: string): void;
     generateGasReport(name: string): void;
 }
-
 
 export = Framework;

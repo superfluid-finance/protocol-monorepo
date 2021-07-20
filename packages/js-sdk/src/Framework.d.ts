@@ -1,24 +1,34 @@
+import type Web3 from "web3";
+import { ethers, Contract as EthersContract, utils } from "ethers";
+import type { Contract as Web3Contract } from "web3-eth-contract";
+import TruffleContract from "@truffle/contract";
+
 import ConstantFlowAgreementV1Helper from "./ConstantFlowAgreementV1Helper";
 import InstantDistributionAgreementV1Helper from "./InstantDistributionAgreementV1Helper";
 import GasMeter from "./utils/gasMetering/gasMetering";
+import LoadContracts from "./loadContracts";
+import Config from "./getConfig";
 import User from "./User";
 import Utils from "./Utils";
-import type Web3 from "web3";
-import { Contract } from "ethers";
-import TruffleContract from "@truffle/contract";
 
-export declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
+declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
+
+export declare interface Agreements {
+    cfa?: ConstantFlowAgreementV1Helper,
+    ida?: InstantDistributionAgreementV1Helper
+}
+
 export interface FrameworkOptions {
-    version: string,
-    ethers: any,
-    web3: any,
+    version?: string,
     isTruffle: boolean,
+    web3?: Web3,
+    ethers?: LoadContracts.EthersWithSigner,
     gasReportType: GasReportTypeOptions,
-    additionalContracts: Array<any>,
-    tokens: Array<string>,
-    loadSuperNativeToken: boolean,
-    contractLoader: any,
-    resolverAddress: string,
+    additionalContracts?: string[],
+    tokens?: string[],
+    loadSuperNativeToken?: boolean,
+    contractLoader?: LoadContracts.ContractLoader,
+    resolverAddress?: string,
 }
 declare class Framework {
 
@@ -27,15 +37,15 @@ declare class Framework {
     _options: FrameworkOptions;
     version: string;
     web3: Web3;
-    ethers: any;
+    ethers: LoadContracts.EthersWithSigner;
     _gasReportType: GasReportTypeOptions;
-    config: any;
-    contracts: Promise<Contract[] | Web3.Eth.Contract[] | TruffleContract.Contract[]> | undefined;
-    resolver: any;
-    host: any;
-    agreements: {} | undefined;
-    tokens: {} | undefined;
-    superTokens: {} | undefined;
+    config: Config.NetworkConfig;
+    contracts: Promise<LoadContracts.LoadedContract[]> | undefined;
+    resolver: LoadContracts.LoadedContract;
+    host: LoadContracts.LoadedContract;
+    agreements: Agreements;
+    tokens: { [key: string]: any };
+    superTokens: { [key: string]: any };
     cfa: ConstantFlowAgreementV1Helper | undefined;
     ida: InstantDistributionAgreementV1Helper | undefined;
     utils: Utils | undefined;
@@ -51,7 +61,7 @@ declare class Framework {
         options: any;
     }): User;
     batchCall(calls: any): any;
-    _pushTxForGasReport(tx: any, actionName: string): void;
+    _pushTxForGasReport(tx: GasMeter.Record, actionName: string): void;
     generateGasReport(name: string): void;
 }
 

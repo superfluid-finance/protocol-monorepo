@@ -3,13 +3,13 @@ import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
 import type Web3 from "web3";
 
-interface EthersWithSigner {
+export interface EthersWithSigner {
     getSigner(): () => ethers.Signer
 }
 
 export type LoadedContract = Web3Contract | TruffleContract.Contract | EthersContract;
-type AbiContainer = Pick<utils.Interface, "abi">;
-type ContractLoader = (name: string) => AbiContainer;
+export type AbiContainer = Pick<utils.Interface, "abi">;
+export type ContractLoader = (name: string) => AbiContainer;
 
 declare function setTruffleContractDefaults(c: TruffleContract.Contract, networkId: number, from: string): void;
 

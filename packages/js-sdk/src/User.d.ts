@@ -2,8 +2,24 @@ import type Framework from './Framework';
 import type BN from 'bn';
 import Transaction from 'web3';
 
-interface UserDetails {
+type Flow = {
+    sender: string
+    receiver: string
+    flowRate: string
 }
+
+type DetailsType = Promise<{
+    cfa: {
+        flows: {
+            inFlows: Array<Flow>;
+            outFlows: Array<Flow>;
+        }
+        netFlow: string // numeric string
+    };
+    ida: {
+        subscriptions: Array<Subscription>;
+    };
+}>;
 
 export = User;
 declare class User {
@@ -17,15 +33,7 @@ declare class User {
     address: string;
     token: string;
     options: any;
-    details(): Promise<{
-        cfa: {
-            flows: any;
-            netFlow: any;
-        };
-        ida: {
-            subscriptions: Subscription[];
-        };
-    }>;
+    details(): DetailsType;
     flow({ recipient, flowRate, ...options }: {
         recipient: string;
         flowRate: BN;

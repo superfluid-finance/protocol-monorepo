@@ -24,6 +24,12 @@ yarn upgrade @superfluid-finance/ethereum-contracts@dev @superfluid-finance/js-s
 
 ### Copy and Watch
 
+Install [Truffle](https://www.trufflesuite.com/docs/truffle/getting-started/installation) with
+
+```bash
+npm install -g truffle
+```
+
 Now you are ready. If you're editing the Superfluid contracts, start the auto-compiler:
 
 ```bash

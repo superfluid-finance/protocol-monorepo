@@ -3,7 +3,7 @@ import type Web3 from 'web3'
 import { GasMeterJSONReporter } from "./gasReporter";
 import { GasMeterHTMLReporter } from "./gasReporter";
 
-type Record = {
+export type Record = {
     action: string
     txHash: string
     gas: BN

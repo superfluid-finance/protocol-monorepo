@@ -4,11 +4,13 @@ import {
     EthereumEvent,
     Address,
     log,
+    Bytes,
 } from "@graphprotocol/graph-ts";
 
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import { Account, Flow, Token, Transaction } from "../generated/schema";
+import { Account, Flow, Token, Transaction,Index,Subscriber  } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { SubscriptionApproved} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
 
 export function createEventID(event: EthereumEvent): string {
     return event.block.number
@@ -93,4 +95,30 @@ export function fetchFlow(
         token.save();
     }
     return flow as Flow;
+}
+
+//IDA
+
+export function createSubscriptionID(event: SubscriptionApproved): string {
+    return event.params.subscriber.toHexString()+event.params.publisher.toHexString()+event.params.indexId.toHexString()+event.params.token.toHexString()
+}
+
+export function fetchIndex(id:string):Index{
+    let entity = Index.load(id);
+    if(entity==null){
+        entity = new Index(id)
+    }
+    return entity as Index;
+}
+
+export function fetchSubscriber(id:string):Subscriber{
+    let entity = Subscriber.load(id);
+    if(entity==null){
+        entity = new Subscriber(id)
+    }
+    return entity as Subscriber;
+}
+
+export function removeSubscription(subscribers: Bytes[],sub:Bytes): Bytes[] {
+    return subscribers = subscribers.filter(item => item != sub);
 }

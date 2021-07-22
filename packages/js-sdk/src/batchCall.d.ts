@@ -1,19 +1,5 @@
 // TODO set batchCall return type
-
-// Transaction Object
-interface Transaction {
-    hash: string
-    nonce: number
-    blockHash: string | null
-    blockNumber: number | null
-    transactionIndex: number | null
-    from: string
-    to: string | null
-    value: string
-    gasPrice: string
-    gas: number
-    input: string
-}
+import { Transaction } from 'web3-core'
 
 // ERC20 Approve/TransferFrom
 type ERC20OperationType = 'ERC20_APPROVE'| 'ERC20_TRANSFER_FROM' | 1 | 2;
@@ -52,7 +38,7 @@ type CFAMethodType =
 interface SuperTokenCFAData {
     agreementType: 'CFA'
     method: CFAMethodType
-    arguments: Array<string | (() => null)>
+    arguments: Array<string | (() => any)>
 }
 
 // Instant Distribution Agreement
@@ -74,7 +60,7 @@ type IDAMethodType =
 interface SuperTokenIDAData {
     agreementType: 'IDA'
     method: IDAMethodType
-    arguments: Array<string | number | Promise<Transaction> | (()=>null)>
+    arguments: Array<string | number | Promise<Transaction> | (()=>any)>
 }
 
 interface SuperFluidCallAgreement {

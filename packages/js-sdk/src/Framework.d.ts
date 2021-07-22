@@ -58,7 +58,7 @@ declare class Framework {
     user({ address, token, options }: {
         address: string;
         token: string;
-        options: any;
+        options?: any;
     }): User;
     batchCall(calls: any): any;
     _pushTxForGasReport(tx: GasMeter.Record, actionName: string): void;

@@ -8,7 +8,7 @@ type Flow = {
     flowRate: string
 }
 
-type DetailsType = Promise<{
+export type DetailsType = {
     cfa: {
         flows: {
             inFlows: Array<Flow>;
@@ -19,7 +19,7 @@ type DetailsType = Promise<{
     ida: {
         subscriptions: Array<Subscription>;
     };
-}>;
+};
 
 export = User;
 declare class User {
@@ -27,13 +27,13 @@ declare class User {
         sf: Framework;
         address: string;
         token: string;
-        options: any;
+        options?: any;
     });
     sf: Framework;
     address: string;
     token: string;
     options: any;
-    details(): DetailsType;
+    details(): Promise<DetailsType>;
     flow({ recipient, flowRate, ...options }: {
         recipient: string;
         flowRate: BN;

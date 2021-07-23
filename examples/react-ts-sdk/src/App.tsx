@@ -1,21 +1,41 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Navbar from './components/Navbar'
 import SuperfluidSDK from '@superfluid-finance/js-sdk'
 import { Web3Provider } from '@ethersproject/providers'
 import type { DetailsType } from '@superfluid-finance/js-sdk/src/User'
+import Details from './components/Details'
 
 function App() {
+
     // metamask injects .ethereum into window
     const windowWeb3 = window as any
     const [address, setAddress] = useState<string>('')
     const [userDetails, setUserDetails] = useState<undefined|DetailsType>()
-    const fDAIx = '0xF2d68898557cCb2Cf4C10c3Ef2B034b2a69DAD00'
+    const fUSDCx = '0x8ae68021f6170e5a766be613cea0d75236ecca9a'
+
+    const getDetails = useCallback(
+        async () => {
+            const sf = new SuperfluidSDK.Framework({
+                ethers: new Web3Provider(windowWeb3.ethereum)
+            })
+            await sf.initialize()
+            const user = sf.user({
+                address,
+                token: fUSDCx
+            })
+
+            const details = await user.details()
+            setUserDetails(details)
+        },
+        [address, windowWeb3.ethereum]
+    )
 
     useEffect(() => {
         if (address !== '') {
             getDetails()
         }
-    }, [address])
+    }, [address, getDetails])
+    console.log(userDetails)
 
     const handleWallet = async () => {
         const walletAddr = await windowWeb3.ethereum.request({
@@ -25,56 +45,18 @@ function App() {
         setAddress(walletAddr[0])
     }
 
-    const getUser = async () => {
-    }
-
-    const getDetails = async () => {
-        const sf = new SuperfluidSDK.Framework({
-            ethers: new Web3Provider(windowWeb3.ethereum)
-        })
-        await sf.initialize()
-        const user = sf.user({
-            address,
-            token: fDAIx
-        })
-
-        const details = await user.details()
-        setUserDetails(details)
-    }
-
-    const flowList = () => {
-        if (userDetails !== undefined) {
-            const { inFlows, outFlows } = userDetails.cfa.flows
-            const allFlows = inFlows.concat(outFlows)
-            return allFlows.map(flow => {
-                return (
-                    <div>
-                        <p>Sender: {flow.sender}</p>
-                        <p>Receiver: {flow.receiver}</p>
-                        <p>Flow Rate: {flow.flowRate}</p>
-                    </div>
-                )
-            })
-        } else {
-            return null
-        }
-    }
-
     return (
         <main>
             <Navbar/>
             <div className='content'>
                 {
                     userDetails !== undefined ? (
-                        <div className='card'>
-                            <div className='card-header'>
-                                <h3>Superfluid User Details</h3>
-                            </div>
-                            <div className='card-content'>
-                                <p>Net Flow: {userDetails.cfa.netFlow}</p>
-                                {flowList}
-                            </div>
-                        </div>
+                        <Details
+                            address={address}
+                            netFlow={userDetails.cfa.netFlow}
+                            inFlows={userDetails.cfa.flows.inFlows}
+                            outFlows={userDetails.cfa.flows.outFlows}
+                        />
                     ) : (
                         <div className='card'>
                             <div className='card-header'>
@@ -91,4 +73,4 @@ function App() {
     )
 }
 
-export default App;
+export default App

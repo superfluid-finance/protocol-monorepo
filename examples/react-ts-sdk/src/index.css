@@ -6,6 +6,7 @@
 main {
     font-family: Helvetica, sans-serif;
     background: #f0f0f0;
+    line-height: 1.6em;
 }
 
 header {
@@ -23,13 +24,16 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .card {
     border: 1px solid #888;
     border-radius: 4px;
     box-shadow: 4px 4px 4px rgba(0,0,0,0.5);
-    min-width: 300px;
+    width: 350px;
+    background: #f0f0f0;
+    margin: 16px 0;
 }
 
 .card-header {
@@ -41,7 +45,7 @@ header {
 .card-content {
     padding: 8px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
     min-height: 75px;
 }
 
@@ -61,4 +65,39 @@ button:focus {
 
 button:active {
     opacity: 0.5;
+}
+
+.highlight {
+    color: #8117FF;
+    font-weight: bold;
+    padding: 0 8px;
+}
+
+.highlight-secondary {
+    color: #07B337;
+    font-weight: bold;
+}
+
+.flow {
+    border: 1px solid #888;
+    border-left: 4px solid #8117FF;
+    box-shadow: 2px 2px 2px rgba(0,0,0,0.5);
+    border-radius: 4px;
+    padding: 8px;
+    margin: 16px 0;
+    transition: transform 0.2s;
+}
+
+.flow:hover {
+    transform: translateX(2px);
+}
+
+.flow-addr {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 8px;
+}
+
+.details {
+    min-width: 350px;
 }

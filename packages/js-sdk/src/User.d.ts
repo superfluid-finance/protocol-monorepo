@@ -2,7 +2,7 @@ import type Framework from './Framework';
 import type BN from 'bn';
 import Transaction from 'web3';
 
-type Flow = {
+export type Flow = {
     sender: string
     receiver: string
     flowRate: string

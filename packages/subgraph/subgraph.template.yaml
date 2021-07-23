@@ -79,14 +79,14 @@ dataSources:
       name: IInstantDistributionAgreementV1
       network: {{ network }}
       source:
-        address: "{{ idaAddress}}"
+        address: "{{ idaAddress }}"
         abi: IInstantDistributionAgreementV1
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.3
         language: wasm/assemblyscript
-        file: ./src/mapping/idav1.ts
+        file: ./src/mappings/idav1.ts
         entities:
           - IndexCreated
           - IndexSubscribed

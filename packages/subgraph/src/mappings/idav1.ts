@@ -7,8 +7,8 @@ import {
     IndexUnsubscribed,
     SubscriptionRevoked,
     IndexUnitsUpdated,
-    SubscriptionUnitsUpdated } from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
-import { Subscriber,Index, indexUpdate,indexUnitUpdate,indexUnsubscribed,subcriptionApproved,subscriptionRevoked,subscriptionUnitsUpdated, indexSubscribed } from "../generated/schema"
+    SubscriptionUnitsUpdated } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
+import { Subscriber, indexUpdate,indexUnitUpdate,indexUnsubscribed,subcriptionApproved,subscriptionRevoked,subscriptionUnitsUpdated, indexSubscribed } from "../../generated/schema"
 import {createEventID, logTransaction,removeSubscription,fetchIndex} from '../utils'
 
 export function handleIndexCreated(event:IndexCreated): void{

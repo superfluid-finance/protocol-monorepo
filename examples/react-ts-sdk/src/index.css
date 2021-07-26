@@ -20,7 +20,6 @@ header {
 }
 
 .content {
-    height: calc(100vh - 72px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -100,4 +99,14 @@ button:active {
 
 .details {
     min-width: 350px;
+}
+
+input {
+    border: 2px solid #8117FF;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+input:focus {
+    outline: none;
 }

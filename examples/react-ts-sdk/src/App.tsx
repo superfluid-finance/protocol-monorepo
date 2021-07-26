@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import Navbar from './components/Navbar'
 import SuperfluidSDK from '@superfluid-finance/js-sdk'
 import { Web3Provider } from '@ethersproject/providers'
-import type { DetailsType } from '@superfluid-finance/js-sdk/src/User'
+import type { DetailsType } from '@superfluid-finance/js-sdk'
 import Details from './components/Details'
+import NewFlow from './components/NewFlow'
 
 function App() {
 
@@ -50,12 +51,15 @@ function App() {
             <div className='content'>
                 {
                     userDetails !== undefined ? (
-                        <Details
-                            address={address}
-                            netFlow={userDetails.cfa.netFlow}
-                            inFlows={userDetails.cfa.flows.inFlows}
-                            outFlows={userDetails.cfa.flows.outFlows}
-                        />
+                        <>
+                            <Details
+                                address={address}
+                                netFlow={userDetails.cfa.netFlow}
+                                inFlows={userDetails.cfa.flows.inFlows}
+                                outFlows={userDetails.cfa.flows.outFlows}
+                            />
+                            <NewFlow address={address} token={fUSDCx} />
+                        </>
                     ) : (
                         <div className='card'>
                             <div className='card-header'>

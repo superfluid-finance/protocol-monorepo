@@ -1,6 +1,5 @@
-import type { Flow } from '@superfluid-finance/js-sdk/src/User'
+import type { Flow } from '@superfluid-finance/js-sdk'
 import arrow from '../assets/arrow.svg'
-import BN from 'bn.js'
 import Decimal from 'decimal.js'
 
 type DetailsProps = {

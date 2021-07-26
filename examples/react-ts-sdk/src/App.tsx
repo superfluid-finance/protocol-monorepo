@@ -35,7 +35,6 @@ function App() {
             getDetails()
         }
     }, [address, getDetails])
-    console.log(userDetails)
 
     const handleWallet = async () => {
         const walletAddr = await windowWeb3.ethereum.request({

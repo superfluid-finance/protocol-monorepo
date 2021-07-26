@@ -173,19 +173,6 @@ module.exports = class Framework {
             `SuperTokenFactory contract: ${superTokenFactoryAddress}`
         );
 
-        // load tokens
-        this.tokens = {};
-        this.superTokens = {};
-        await Promise.all(
-            [
-                ...(this._options.tokens ? this._options.tokens : []),
-                ...(this._options.loadSuperNativeToken &&
-                this.config.nativeTokenSymbol
-                    ? [this.config.nativeTokenSymbol]
-                    : []),
-            ].map(this.loadToken.bind(this))
-        );
-
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {
             const defaultGasPrice = await this.web3.eth.getGasPrice();

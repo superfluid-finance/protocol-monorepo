@@ -3,11 +3,12 @@ pragma solidity 0.7.6;
 
 import {
     ISuperToken,
-    CustomSuperTokenProxyBase
+    CustomSuperTokenProxyBase,
+    UUPSProxy
 }
 from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
+import { ISETHCustom } from "../interfaces/tokens/ISETH.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 
 /**
@@ -16,38 +17,6 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 interface IWETH is IERC20 {
     function deposit() external payable;
     function withdraw(uint wad) external;
-}
-
-
-/**
- * @dev Super ETH (SETH) custom token functions
- *
- * @author Superfluid
- */
-interface ISETHCustom {
-    // using native token
-    function upgradeByETH() external payable;
-    function upgradeByETHTo(address to) external payable;
-    function downgradeToETH(uint wad) external;
-
-    // using wrapped native token
-    function getUnderlyingToken() external view returns(address tokenAddr);
-    function upgrade(uint256 amount) external;
-    function upgradeTo(address to, uint256 amount, bytes calldata data) external;
-    function downgrade(uint256 amount) external;
-}
-
-/**
- * @dev Super ETH (SETH) full interface
- *
- * @author Superfluid
- */
-// solhint-disable-next-line no-empty-blocks
-interface ISETH is ISETHCustom, ISuperToken {
-    function getUnderlyingToken() external override(ISETHCustom, ISuperToken) view returns(address tokenAddr);
-    function upgrade(uint256 amount) external override(ISETHCustom, ISuperToken);
-    function upgradeTo(address to, uint256 amount, bytes calldata data) external override(ISETHCustom, ISuperToken);
-    function downgrade(uint256 amount) external override(ISETHCustom, ISuperToken);
 }
 
 /**

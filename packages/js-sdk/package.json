@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.4.3",
+    "version": "0.4.4",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -20,7 +20,6 @@
         "watch": "webpack --watch",
         "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
         "lint": "run-s lint:*",
-        "lint:js-prettier": "prettier --check **/*.js && echo '✔  Your .js files look pretty.'",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "run-s pre-commit:*",
@@ -31,7 +30,6 @@
     },
     "lint-staged": {
         "**/*.+(js|jsx|ts|tsx)": [
-            "yarn lint:js-prettier",
             "yarn lint:js-eslint"
         ]
     },
@@ -49,7 +47,7 @@
         "@ethersproject/contracts": "^5.0.12",
         "@ethersproject/providers": "^5.0.24",
         "@openzeppelin/test-helpers": "^0.5.10",
-        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.4",
+        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.5",
         "@truffle/contract": "^4.3.9",
         "chai-as-promised": "^7.1.1",
         "truffle": "5.1.49",

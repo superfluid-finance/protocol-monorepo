@@ -4,7 +4,7 @@ import TruffleContract from "@truffle/contract";
 import type Web3 from "web3";
 
 export interface EthersWithSigner {
-    getSigner(): () => ethers.Signer
+    getSigner(): () => any
 }
 
 export type LoadedContract = Web3Contract | TruffleContract.Contract | EthersContract;

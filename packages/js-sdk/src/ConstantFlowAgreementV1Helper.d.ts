@@ -3,13 +3,13 @@ import Framework from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from "bn.js";
 
-type Flow = {
+export type Flow = {
   sender: string;
   receiver: string;
   flowRate: string;
 };
 
-type ListFlowsType = Promise<{
+export type ListFlowsType = Promise<{
   inFlows: Array<Flow>;
   outFlows: Array<Flow>;
 }>;

@@ -1,12 +1,7 @@
 import type Framework from './Framework';
 import type BN from 'bn';
 import Transaction from 'web3';
-
-export type Flow = {
-    sender: string
-    receiver: string
-    flowRate: string
-}
+import type { Flow } from './ConstantFlowAgreementV1Helper'
 
 export type DetailsType = {
     cfa: {

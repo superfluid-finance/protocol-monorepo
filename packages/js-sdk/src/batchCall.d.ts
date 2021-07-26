@@ -82,7 +82,7 @@ interface CallAppAction {
 // Combines superfluid ida/cfa type with call app action type
 type SuperFluidOperation = SuperFluidCallAgreement | CallAppAction;
 
-type Agreement = ERC20Operation | SuperTokenOperation | SuperFluidOperation;
+export type Agreement = ERC20Operation | SuperTokenOperation | SuperFluidOperation;
 
 export var agreements: Array<Agreement>;
 

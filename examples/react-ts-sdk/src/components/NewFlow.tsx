@@ -32,10 +32,16 @@ export default function NewFlow({ address, token }: NewFlowProps) {
             </div>
             <div className='card-content'>
                 <p>Recipient Address: </p>
-                <input />
+                <input
+                    onChange={e => setRecipient(e.target.value)}
+                    value={recipient}
+                />
                 <p>Flow Rate: </p>
                 <div style={{ display: 'flex' }}>
-                    <input/>
+                    <input
+                        onChange={e => setFlowRate(e.target.value)}
+                        value={flowRate}
+                    />
                     <p style={{ marginLeft: 4 }}>per second</p>
                 </div>
                 <button

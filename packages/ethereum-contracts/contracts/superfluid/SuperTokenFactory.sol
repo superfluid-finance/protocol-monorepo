@@ -59,7 +59,7 @@ abstract contract SuperTokenFactoryBase is
     }
 
     function updateCode(address newAddress) external override {
-        require(msg.sender == address(_host), "only host can update code");
+        require(msg.sender == address(_host), "SuperTokenFactory: only host can update code");
         _updateCodeAddress(newAddress);
         _updateSuperTokenLogic();
     }

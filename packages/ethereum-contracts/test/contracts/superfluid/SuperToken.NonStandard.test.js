@@ -58,7 +58,7 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
         it("#1.3 only host can update the code", async () => {
             await expectRevert(
                 superToken.updateCode(ZERO_ADDRESS),
-                "only host can update code"
+                "SuperToken: only host can update code"
             );
         });
 

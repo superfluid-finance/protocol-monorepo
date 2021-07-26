@@ -1,4 +1,5 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
+const { setWeb3Provider } = require("@decentral.ee/web3-helpers/src/config");
 const TestResolver = artifacts.require("TestResolver");
 const getConfig = require("./getConfig");
 
@@ -23,9 +24,12 @@ module.exports = async function (callback, argv) {
             callback();
         }
 
-        const chainId = await web3.eth.net.getId(); // FIXME use eth.getChainId;
+        const networkId = await web3.eth.net.getId();
+        console.log("network ID: ", networkId);
+        // make sure that we are using the same web3 provider in the helpers
+        setWeb3Provider(web3.currentProvider);
 
-        const config = getConfig(chainId);
+        const config = getConfig(networkId);
 
         let testResolver;
         if (config.resolverAddress) {

@@ -63,9 +63,9 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
         },
 
         //
-        // ARBITRUM
+        // ARBITRUM (testnet rinkeby)
         //
-        79377087078960: {
+        421611: {
             // arbitrum testnet
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
         },
@@ -74,6 +74,6 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
     const configs = { ...DEFAULT_CONFIGS[chainId] };
     // overriding environment variables
     configs.resolverAddress =
-        configs.resolverAddress || process.env.TEST_RESOLVER_ADDRESS;
+        process.env.TEST_RESOLVER_ADDRESS || configs.resolverAddress;
     return configs;
 };

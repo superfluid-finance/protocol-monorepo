@@ -1,7 +1,6 @@
 import { Transaction } from "web3-core";
 import Framework from "./Framework";
 import type { LoadedContract } from "./loadContracts";
-import type BN from "bn.js";
 
 export type Flow = {
   sender: string;
@@ -62,7 +61,7 @@ declare class ConstantFlowAgreementV1Helper {
     superToken: string;
     sender: string;
     receiver: string;
-    flowRate: BN | string;
+    flowRate: string;
     userData: any;
     onTransaction: () => void;
   }): Promise<Transaction>;
@@ -87,7 +86,7 @@ declare class ConstantFlowAgreementV1Helper {
     superToken: string;
     sender: string;
     receiver: string;
-    flowRate: BN | string;
+    flowRate: string;
     userData: any;
     onTransaction: () => void;
   }): Promise<Transaction>;

@@ -31,7 +31,7 @@ declare class User {
     details(): Promise<DetailsType>;
     flow({ recipient, flowRate, ...options }: {
         recipient: string;
-        flowRate: BN;
+        flowRate: string;
         [x: string]: any;
     }): Promise<Transaction>;
     createPool({ poolId: indexId }: {

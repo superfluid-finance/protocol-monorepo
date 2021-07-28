@@ -1,8 +1,11 @@
 // eslint-disable-next-line no-global-assign
 if (typeof module === "undefined") module = {};
 
-// eslint-disable-next-line no-undef
-Superfluid_getConfig = module.exports = function getConfig(chainId) {
+/**
+ * @param {number} chainId - The id of the chain.
+ * @return {object} config - Configuration for the chain.
+ */
+module.exports = function getConfig(chainId) {
     const DEFAULT_CONFIGS = {
         //
         // ETHEREUM

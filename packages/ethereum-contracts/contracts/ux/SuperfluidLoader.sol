@@ -11,6 +11,15 @@ import {
 import { Strings } from "../utils/Strings.sol";
 
 
+/**
+ * @dev Superfluid Loader
+ *
+ * A on-chain utility contract for loading framework objects in one view function.
+ *
+ * NOTE:
+ * Q: Why don't we just use https://www.npmjs.com/package/ethereum-multicall?
+ * A: Well, no strong reason other than also allowing on-chain one view function loading.
+ */
 contract SuperfluidLoader {
 
     IResolver private immutable _resolver;
@@ -26,6 +35,10 @@ contract SuperfluidLoader {
         _resolver = resolver;
     }
 
+    /**
+     * @dev Load framework objects
+     * @param releaseVersion Protocol release version of the deployment
+     */
     function loadFramework(string calldata releaseVersion)
         external view
         returns (Framework memory result)
@@ -42,10 +55,4 @@ contract SuperfluidLoader {
             keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
         );
     }
-
-    /* function loadToken(string memory tokenNameOrAddress)
-        public view
-    {
-
-    } */
 }

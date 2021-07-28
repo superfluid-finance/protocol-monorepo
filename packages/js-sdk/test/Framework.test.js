@@ -211,6 +211,32 @@ contract("Framework class", (accounts) => {
                 );
             });
 
+            it("load by superToken address", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    version: "test",
+                });
+                await sf.initialize();
+
+                const fDAIxAddress = (
+                    await sf.resolver.get("supertokens.test.fDAIx")
+                ).toLowerCase();
+                await sf.loadToken(fDAIxAddress);
+
+                assert.equal(
+                    sf.superTokens[fDAIxAddress].address.toLowerCase(),
+                    fDAIxAddress
+                );
+                assert.equal(
+                    await sf.superTokens[fDAIxAddress].symbol(),
+                    "fDAIx"
+                );
+                assert.equal(
+                    await sf.superTokens[fDAIxAddress].underlyingToken.symbol(),
+                    "fDAI"
+                );
+            });
+
             it("registered in resolver", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,

@@ -228,7 +228,7 @@ module.exports = async function (callback, options = {}) {
         // deploy superfluid loader
         await deployAndRegisterContractIf(
             SuperfluidLoader,
-            "SuperfluidLoader",
+            "SuperfluidLoader-v1",
             async (contractAddress) => contractAddress === ZERO_ADDRESS,
             async () => {
                 return await web3tx(

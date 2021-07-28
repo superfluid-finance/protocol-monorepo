@@ -5,7 +5,7 @@ declare class Utils {
     _sf: Framework;
     normalizeTokenParam(param: string): string;
     normalizeAddressParam(param: string): string;
-    normalizeFlowRateParam(param: string): BN;
+    normalizeFlowRateParam(param: BN|string): string;
 }
 
 export = Utils;

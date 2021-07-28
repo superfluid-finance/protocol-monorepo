@@ -16,6 +16,6 @@ module.exports = class Utils {
     }
 
     normalizeFlowRateParam(param) {
-        return BN.isBN(param) ? param : new BN(param);
+        return BN.isBN(param) ? param.toString() : param;
     }
 };

@@ -180,10 +180,29 @@ module.exports = class Framework {
      * @param {String} superTokenKey super token key used to query resolver
      */
     async isSuperTokenListed(superTokenKey) {
-        const superTokenAddress = await this.resolver.get(
-            `supertokens.${this.version}.${superTokenKey}`
-        );
-        return superTokenAddress !== ZERO_ADDRESS;
+        if (!isAddress(superTokenKey)) {
+            const superTokenAddress = await this.resolver.get(
+                `supertokens.${this.version}.${superTokenKey}`
+            );
+            return superTokenAddress !== ZERO_ADDRESS;
+        } else {
+            try {
+                const superToken = await this.contracts.ISuperToken.at(
+                    superTokenKey
+                );
+                const symbol = await superToken.symbol();
+                const superTokenAddress = await this.resolver.get(
+                    `supertokens.${this.version}.${symbol}`
+                );
+                return (
+                    superToken.address.toLowerCase() ==
+                    superTokenAddress.toLowerCase()
+                );
+            } catch (error) {
+                console.warn("Invalid super token address", superTokenKey);
+                return false;
+            }
+        }
     }
 
     /**

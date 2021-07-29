@@ -157,6 +157,7 @@ contract("Framework class", (accounts) => {
             it("isSuperTokenListed", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
+                    tokens: ["ETH", "fUSDC", "fDAI"],
                     version: "test",
                 });
                 await sf.initialize();
@@ -170,6 +171,14 @@ contract("Framework class", (accounts) => {
                 assert.isFalse(await sf.isSuperTokenListed("fDAI"));
                 assert.isFalse(await sf.isSuperTokenListed("fTUSDx"));
                 assert.isFalse(await sf.isSuperTokenListed("ABC"));
+
+                assert.isFalse(await sf.isSuperTokenListed(sf.address));
+                assert.isFalse(
+                    await sf.isSuperTokenListed(sf.tokens.fUSDC.address)
+                );
+                assert.isTrue(
+                    await sf.isSuperTokenListed(sf.tokens.fUSDCx.address)
+                );
             });
 
             it("load all tokens", async () => {

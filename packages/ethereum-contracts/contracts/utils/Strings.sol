@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable
-// COPIED FROM: https://github.com/Arachnid/solidity-stringutils/blob/master/src/strings.sol
+// ADAPTED FROM: https://github.com/Arachnid/solidity-stringutils/blob/master/src/strings.sol
 
 /*
  * @title String & slice utility library for Solidity contracts.
@@ -237,108 +237,6 @@ library Strings {
      */
     function equals(slice memory self, slice memory other) internal pure returns (bool) {
         return compare(self, other) == 0;
-    }
-
-    /*
-     * @dev Extracts the first rune in the slice into `rune`, advancing the
-     *      slice to point to the next rune and returning `self`.
-     * @param self The slice to operate on.
-     * @param rune The slice that will contain the first rune.
-     * @return `rune`.
-     */
-    function nextRune(slice memory self, slice memory rune) internal pure returns (slice memory) {
-        rune._ptr = self._ptr;
-
-        if (self._len == 0) {
-            rune._len = 0;
-            return rune;
-        }
-
-        uint l;
-        uint b;
-        // Load the first byte of the rune into the LSBs of b
-        assembly { b := and(mload(sub(mload(add(self, 32)), 31)), 0xFF) }
-        if (b < 0x80) {
-            l = 1;
-        } else if(b < 0xE0) {
-            l = 2;
-        } else if(b < 0xF0) {
-            l = 3;
-        } else {
-            l = 4;
-        }
-
-        // Check for truncated codepoints
-        if (l > self._len) {
-            rune._len = self._len;
-            self._ptr += self._len;
-            self._len = 0;
-            return rune;
-        }
-
-        self._ptr += l;
-        self._len -= l;
-        rune._len = l;
-        return rune;
-    }
-
-    /*
-     * @dev Returns the first rune in the slice, advancing the slice to point
-     *      to the next rune.
-     * @param self The slice to operate on.
-     * @return A slice containing only the first rune from `self`.
-     */
-    function nextRune(slice memory self) internal pure returns (slice memory ret) {
-        nextRune(self, ret);
-    }
-
-    /*
-     * @dev Returns the number of the first codepoint in the slice.
-     * @param self The slice to operate on.
-     * @return The number of the first codepoint in the slice.
-     */
-    function ord(slice memory self) internal pure returns (uint ret) {
-        if (self._len == 0) {
-            return 0;
-        }
-
-        uint word;
-        uint length;
-        uint divisor = 2 ** 248;
-
-        // Load the rune into the MSBs of b
-        assembly { word:= mload(mload(add(self, 32))) }
-        uint b = word / divisor;
-        if (b < 0x80) {
-            ret = b;
-            length = 1;
-        } else if(b < 0xE0) {
-            ret = b & 0x1F;
-            length = 2;
-        } else if(b < 0xF0) {
-            ret = b & 0x0F;
-            length = 3;
-        } else {
-            ret = b & 0x07;
-            length = 4;
-        }
-
-        // Check for truncated codepoints
-        if (length > self._len) {
-            return 0;
-        }
-
-        for (uint i = 1; i < length; i++) {
-            divisor = divisor / 256;
-            b = (word / divisor) & 0xFF;
-            if (b & 0xC0 != 0x80) {
-                // Invalid UTF-8 sequence
-                return 0;
-            }
-            ret = (ret * 64) | (b & 0x3F);
-        }
-
-        return ret;
     }
 
     /*

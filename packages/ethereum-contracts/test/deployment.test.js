@@ -42,7 +42,7 @@ contract("Embeded deployment scripts", () => {
         const testResolver = await TestResolver.at(
             process.env.TEST_RESOLVER_ADDRESS
         );
-        const superfluidLoader = await testResolver.get("SuperfluidLoader");
+        const superfluidLoader = await testResolver.get("SuperfluidLoader-v1");
         const superfluid = await Superfluid.at(
             await testResolver.get(superfluidName)
         );

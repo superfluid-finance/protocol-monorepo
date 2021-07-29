@@ -20,7 +20,7 @@
         "dev": "nodemon -e sol,js -i build -x 'yarn test 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
-        "test": "run-s test:*",
+        "test": "run-s test:*:*",
         "test:contracts:js": "truffle test test/contracts.test.js",
         "test:contracts:sol": "truffle test test/contracts/*/*.sol",
         "test:deployment:embeded": "truffle test test/deployment.test.js",

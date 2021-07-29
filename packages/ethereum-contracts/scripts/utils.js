@@ -2,17 +2,25 @@ const path = require("path");
 const { promisify } = require("util");
 const readline = require("readline");
 
-// promisify the readline
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-});
-// Prepare readline.question for promisification
-rl.question[promisify.custom] = (question) => {
-    return new Promise((resolve) => {
-        rl.question(question, resolve);
+async function rl() {
+    // promisify the readline
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
     });
-};
+    // Prepare readline.question for promisification
+    rl.question[promisify.custom] = (question) => {
+        return new Promise((resolve) => {
+            rl.question(question, resolve);
+        });
+    };
+
+    const answer = await promisify(rl.question).apply(null, arguments);
+
+    rl.close();
+
+    return answer;
+}
 
 // Provide arguments to the script through ":" separator
 function parseColonArgs(argv) {
@@ -235,7 +243,7 @@ module.exports = {
     isProxiable,
     extractWeb3Options,
     detectTruffleAndConfigure,
-    rl: promisify(rl.question),
+    rl,
     builtTruffleContractLoader,
     setResolver,
     sendGovernanceAction,

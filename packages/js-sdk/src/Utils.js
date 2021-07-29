@@ -1,3 +1,4 @@
+const BN = require("bn.js");
 /**
  * @dev Utility class
  */
@@ -15,6 +16,6 @@ module.exports = class Utils {
     }
 
     normalizeFlowRateParam(param) {
-        return param;
+        return BN.isBN(param) ? param.toString() : param;
     }
 };

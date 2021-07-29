@@ -28,7 +28,7 @@ Now you are ready. If you're editing the Superfluid contracts, start the auto-co
 
 ```bash
 cd packages/ethereum-contracts
-truffle watch
+npx truffle watch
 ```
 
 Then, copy-and-watch the changes into your Superfluid App.

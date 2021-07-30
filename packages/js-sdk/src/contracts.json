@@ -1,4 +1,5 @@
 [
+    "UUPSProxiable",
     "IERC20",
     "TokenInfo",
     "ERC20WithTokenInfo",

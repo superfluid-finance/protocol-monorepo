@@ -35,10 +35,7 @@ module.exports = async function (callback, argv, options = {}) {
             version: process.env.RELEASE_VERSION || "test",
             tokens,
             loadSuperNativeToken: true,
-            additionalContracts: [
-                "UUPSProxiable",
-                "InstantDistributionAgreementV1",
-            ],
+            additionalContracts: ["UUPSProxiable"],
         });
         await sf.initialize();
 

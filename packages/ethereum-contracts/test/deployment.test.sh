@@ -26,7 +26,7 @@ ganache_running() {
 }
 
 start_ganache() {
-    npx ganache-cli --port "$GANACHE_PORT" > /dev/null &
+    npx ganache-cli --networkId 5777 --port "$GANACHE_PORT" > /dev/null &
     ganache_pid=$!
 }
 
@@ -61,6 +61,4 @@ npx truffle --network ganache exec scripts/deploy-test-environment.js | tee >(ta
 source $ENVFILE
 
 npx truffle --network ganache exec scripts/print-addresses.js : >(cat)
-npx truffle --network ganache exec scripts/inspect-account.js : 0x00000000219ab540356cbb839cbe05303d7705fa
-npx truffle --network ganache exec scripts/show-protocol-info.js
-npx truffle --network ganache exec scripts/transfer-framework-ownership.js: 0x00000000219ab540356cbb839cbe05303d7705fa
+npx truffle --network ganache exec scripts/inspect-account.js : 0x00000000219ab540356cbb839cbe05303d7705fa # check vitalik

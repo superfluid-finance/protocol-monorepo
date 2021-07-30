@@ -1,10 +1,8 @@
-const { id } = require("@ethersproject/hash");
-
 const loadContracts = require("./loadContracts");
 const getConfig = require("./getConfig");
 const GasMeter = require("./utils/gasMetering/gasMetering");
 const { getErrorResponse } = require("./utils/error");
-const { validateAddress } = require("./utils/general");
+const { isAddress, validateAddress } = require("./utils/general");
 const { batchCall } = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
@@ -111,15 +109,28 @@ module.exports = class Framework {
         console.debug("Resolver at", resolverAddress);
         this.resolver = await this.contracts.IResolver.at(resolverAddress);
 
-        // load superfluid host contract
-        console.debug("Resolving contracts with version", this.version);
-        const superfluidAddress = await this.resolver.get(
-            `Superfluid.${this.version}`
+        // get framework loader and load
+        this.loader = await this.contracts.SuperfluidLoader.at(
+            await this.resolver.get("SuperfluidLoader-v1")
         );
-        this.host = await this.contracts.ISuperfluid.at(superfluidAddress);
+        console.debug("Loading framework with release version", this.version);
+        const loaderResult = await this.loader.loadFramework(this.version);
+
         console.debug(
             "Superfluid host contract: TruffleContract .host",
-            superfluidAddress
+            loaderResult.superfluid
+        );
+        console.debug(
+            "SuperTokenFactory address:",
+            loaderResult.superTokenFactory
+        );
+        console.debug(
+            "ConstantFlowAgreementV1: TruffleContract .agreements.cfa | Helper .cfa",
+            loaderResult.agreementCFAv1
+        );
+        console.debug(
+            "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
+            loaderResult.agreementIDAv1
         );
 
         this.agreements = {};
@@ -127,51 +138,28 @@ module.exports = class Framework {
         this.superTokens = {};
 
         // load agreement classes
-        [this.agreements.cfa, this.agreements.ida] = await Promise.all([
-            // load agreements
-            ...[
-                [
-                    id(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    ),
-                    this.contracts.IConstantFlowAgreementV1,
-                ],
-                [
-                    id(
-                        "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-                    ),
-                    this.contracts.IInstantDistributionAgreementV1,
-                ],
-            ].map(async (data) => {
-                const address = await this.host.getAgreementClass(data[0]);
-                return await data[1].at(address);
-            }),
-            // load tokens
-            ...[
-                ...(this._options.tokens ? this._options.tokens : []),
-                ...(this._options.loadSuperNativeToken &&
-                this.config.nativeTokenSymbol
-                    ? [this.config.nativeTokenSymbol]
-                    : []),
-            ].map(this.loadToken.bind(this)),
-        ]);
+        [this.host, this.agreements.cfa, this.agreements.ida] =
+            await Promise.all([
+                this.contracts.ISuperfluid.at(loaderResult.superfluid),
+                this.contracts.IConstantFlowAgreementV1.at(
+                    loaderResult.agreementCFAv1
+                ),
+                this.contracts.IInstantDistributionAgreementV1.at(
+                    loaderResult.agreementIDAv1
+                ),
+                // load tokens
+                ...[
+                    ...(this._options.tokens ? this._options.tokens : []),
+                    ...(this._options.loadSuperNativeToken &&
+                    this.config.nativeTokenSymbol
+                        ? [this.config.nativeTokenSymbol]
+                        : []),
+                ].map(this.loadToken.bind(this)),
+            ]);
 
         // load agreement helpers
         this.cfa = new ConstantFlowAgreementV1Helper(this);
         this.ida = new InstantDistributionAgreementV1Helper(this);
-
-        console.debug(
-            "ConstantFlowAgreementV1: TruffleContract .agreements.cfa | Helper .cfa",
-            this.agreements.cfa.address
-        );
-        console.debug(
-            "InstantDistributionAgreementV1: TruffleContract .agreements.ida | Helper .ida",
-            this.agreements.ida.address
-        );
-        const superTokenFactoryAddress = await this.host.getSuperTokenFactory();
-        console.debug(
-            `SuperTokenFactory contract: ${superTokenFactoryAddress}`
-        );
 
         this.utils = new (require("./Utils"))(this);
         if (this._gasReportType) {
@@ -192,10 +180,29 @@ module.exports = class Framework {
      * @param {String} superTokenKey super token key used to query resolver
      */
     async isSuperTokenListed(superTokenKey) {
-        const superTokenAddress = await this.resolver.get(
-            `supertokens.${this.version}.${superTokenKey}`
-        );
-        return superTokenAddress !== ZERO_ADDRESS;
+        if (!isAddress(superTokenKey)) {
+            const superTokenAddress = await this.resolver.get(
+                `supertokens.${this.version}.${superTokenKey}`
+            );
+            return superTokenAddress !== ZERO_ADDRESS;
+        } else {
+            try {
+                const superToken = await this.contracts.ISuperToken.at(
+                    superTokenKey
+                );
+                const symbol = await superToken.symbol();
+                const superTokenAddress = await this.resolver.get(
+                    `supertokens.${this.version}.${symbol}`
+                );
+                return (
+                    superToken.address.toLowerCase() ==
+                    superTokenAddress.toLowerCase()
+                );
+            } catch (error) {
+                console.warn("Invalid super token address", superTokenKey);
+                return false;
+            }
+        }
     }
 
     /**
@@ -203,47 +210,68 @@ module.exports = class Framework {
      * @param {String} tokenKey token key used to query resolver (in order of preference):
      *    - super chain-native token symbol (see getConfig.js),
      *    - underlying token resolver key (tokens.{KEY}),
-     *    - super token key  (supertokens.{protocol_release_version}.{KEY})
+     *    - super token key (supertokens.{protocol_release_version}.{KEY})
+     *    - super token address
+     *
+     * As a result:
+     * - sf.tokens[tokenKey] and sf.superTokens[tokenKey] is the loaded SuperToken Object.
+     * - Additionally, superTokenObject.underlyingToken is the underlying token object.
+     * - If tokenKey is a super token address, it is normalized to lower case.
      */
     async loadToken(tokenKey) {
         // load underlying token
-        //  but we don't need to load native tokens
+        // but we don't need to load native tokens
+        let checkUnderlyingToken = false;
         let underlyingToken;
-        let checkUnderlyingToken;
         let superTokenKey;
-        if (tokenKey !== this.config.nativeTokenSymbol) {
-            const tokenAddress = await this.resolver.get(`tokens.${tokenKey}`);
-            if (tokenAddress !== ZERO_ADDRESS) {
-                underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
-                    tokenAddress
+        let superToken;
+        let superTokenCustomType = "";
+
+        if (!isAddress(tokenKey)) {
+            if (tokenKey !== this.config.nativeTokenSymbol) {
+                const tokenAddress = await this.resolver.get(
+                    `tokens.${tokenKey}`
                 );
-                this.tokens[tokenKey] = underlyingToken;
-                console.debug(
-                    `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"]`,
-                    tokenAddress
-                );
-                superTokenKey = tokenKey + "x";
+                if (tokenAddress !== ZERO_ADDRESS) {
+                    underlyingToken =
+                        await this.contracts.ERC20WithTokenInfo.at(
+                            tokenAddress
+                        );
+                    this.tokens[tokenKey] = underlyingToken;
+                    console.debug(
+                        `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"]`,
+                        tokenAddress
+                    );
+                    superTokenKey = tokenKey + "x";
+                } else {
+                    superTokenKey = tokenKey;
+                }
+                checkUnderlyingToken = true;
             } else {
-                superTokenKey = tokenKey;
+                superTokenKey = this.config.nativeTokenSymbol + "x";
             }
-            checkUnderlyingToken = true;
+
+            // load super token
+            const superTokenAddress = await this.resolver.get(
+                `supertokens.${this.version}.${superTokenKey}`
+            );
+            if (superTokenAddress === ZERO_ADDRESS) {
+                throw new Error(`Super Token for ${tokenKey} cannot be found`);
+            }
+            if (tokenKey !== this.config.nativeTokenSymbol) {
+                superToken = await this.contracts.ISuperToken.at(
+                    superTokenAddress
+                );
+            } else {
+                superToken = await this.contracts.ISETH.at(superTokenAddress);
+                superTokenCustomType = "SETH";
+            }
         } else {
-            superTokenKey = this.config.nativeTokenSymbol + "x";
+            superTokenKey = tokenKey.toLowerCase();
+            superToken = await this.contracts.ISETH.at(superTokenKey);
+            checkUnderlyingToken = true;
         }
 
-        // load super token
-        const superTokenAddress = await this.resolver.get(
-            `supertokens.${this.version}.${superTokenKey}`
-        );
-        if (superTokenAddress === ZERO_ADDRESS) {
-            throw new Error(`Super Token for ${tokenKey} cannot be found`);
-        }
-        let superToken;
-        if (tokenKey !== this.config.nativeTokenSymbol) {
-            superToken = await this.contracts.ISuperToken.at(superTokenAddress);
-        } else {
-            superToken = await this.contracts.ISETH.at(superTokenAddress);
-        }
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
 
@@ -282,8 +310,8 @@ module.exports = class Framework {
         superToken.underlyingToken = underlyingToken;
 
         console.debug(
-            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"]`,
-            superTokenAddress
+            `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"] ${superTokenCustomType}`,
+            superToken.address
         );
     }
 

@@ -11,6 +11,10 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
             // for local testing (truffle internal ganache)
             nativeTokenSymbol: "ETH",
         },
+        5777: {
+            // for local testing (external ganache)
+            nativeTokenSymbol: "ETH",
+        },
         5: {
             // goerli
             nativeTokenSymbol: "ETH",

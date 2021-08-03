@@ -1,6 +1,6 @@
 <h1 align="center">Welcome to superfluid protocol-monorepo 👋</h1>
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-3-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <p>
   <a href="#superfluid-financeethereum-contracts" target="_blank">
@@ -82,6 +82,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://www.joshua-trujillo.com/"><img src="https://avatars.githubusercontent.com/u/41972979?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Joshua Trujillo</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=JoshuaTrujillo15" title="Code">💻</a></td>
     <td align="center"><a href="https://manavdarji.notelet.so/"><img src="https://avatars.githubusercontent.com/u/36959497?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Manav Darji</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=manav2401" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Drewsapple"><img src="https://avatars.githubusercontent.com/u/4532572?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Drew Fisher</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=Drewsapple" title="Code">💻</a></td>
   </tr>
 </table>
 

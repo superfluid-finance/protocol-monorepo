@@ -13,6 +13,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "manav2401",
+      "name": "Manav Darji",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36959497?v=4",
+      "profile": "https://manavdarji.notelet.so/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -20,5 +29,5 @@
   "projectOwner": "superfluid-finance",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": false
 }

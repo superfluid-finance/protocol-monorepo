@@ -35,18 +35,11 @@ module.exports = async function (callback, argv, options = {}) {
             version: process.env.RELEASE_VERSION || "test",
             tokens,
             loadSuperNativeToken: true,
-            additionalContracts: [
-                "UUPSProxiable",
-                "InstantDistributionAgreementV1",
-            ],
+            additionalContracts: ["UUPSProxiable"],
         });
         await sf.initialize();
 
-        const {
-            UUPSProxiable,
-            ISuperTokenFactory,
-            InstantDistributionAgreementV1,
-        } = sf.contracts;
+        const { UUPSProxiable, ISuperTokenFactory } = sf.contracts;
 
         let output = "";
         output += `NETWORK_ID=${networkId}\n`;
@@ -64,9 +57,15 @@ module.exports = async function (callback, argv, options = {}) {
             sf.agreements.cfa.address
         )}\n`;
         output += `IDA_PROXY=${sf.agreements.ida.address}\n`;
-        output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${await (
-            await InstantDistributionAgreementV1.at(sf.agreements.ida.address)
-        ).SLOTS_BITMAP_LIBRARY_ADDRESS.call()}\n`;
+        output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${
+            "0x" +
+            (
+                await web3.eth.call({
+                    to: sf.agreements.ida.address,
+                    data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY_ADDRESS()
+                })
+            ).slice(-40)
+        }\n`;
         output += `IDA_LOGIC=${await getCodeAddress(
             UUPSProxiable,
             sf.agreements.ida.address

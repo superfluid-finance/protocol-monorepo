@@ -51,7 +51,7 @@ jobs:
       - name: Install, lint and build
         if: env.BUILD_ETHEREUM_CONTRACTS == 1
         run: |
-          yarn install --frozen-lockfilepull_request
+          yarn install --frozen-lockfile
           yarn lint
           yarn build
 

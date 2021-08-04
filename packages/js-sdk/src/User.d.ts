@@ -16,8 +16,7 @@ export type DetailsType = {
     };
 };
 
-export = User;
-declare class User {
+export declare class User {
     constructor({ sf, address, token, options }: {
         sf: Framework;
         address: string;

@@ -1,8 +1,6 @@
-export declare interface NetworkConfig {
+export interface NetworkConfig {
     nativeTokenSymbol?: string,
     resolverAddress?: string
 }
 
-declare function getConfig(chainId: number): NetworkConfig;
-
-export = getConfig;
+export function getConfig(chainId: number): NetworkConfig;

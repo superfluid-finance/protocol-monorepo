@@ -1,4 +1,3 @@
-import type Framework from '../Framework'
 import { Transaction } from 'web3-core'
 
 export function validateAddress(address: string): void;

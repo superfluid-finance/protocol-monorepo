@@ -103,22 +103,37 @@ export function createSubscriptionID(event: SubscriptionApproved): string {
     return event.params.subscriber.toHexString()+event.params.publisher.toHexString()+event.params.indexId.toHexString()+event.params.token.toHexString()
 }
 
-export function fetchIndex(id:string):Index{
-    let entity = Index.load(id);
+export function fetchIndex(publisher:Bytes,token:Bytes,indexId:BigInt):Index{
+    let entity = Index.load(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
     if(entity==null){
-        entity = new Index(id)
+        entity = new Index(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
+        entity.activeSubscribers = [];
+        entity.totalDistribution = new BigInt(0);
+        entity.totalUnits = new BigInt(0);
+        entity.totalUnitsApproved = new BigInt(0);
+        entity.totalUnitsPending = new BigInt(0);
     }
     return entity as Index;
 }
 
-export function fetchSubscriber(id:string):Subscriber{
-    let entity = Subscriber.load(id);
+export function fetchSubscriber(subscriber:Bytes,publisher:Bytes,token:Bytes,indexId:BigInt):Subscriber{
+    let entity = Subscriber.load(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
     if(entity==null){
-        entity = new Subscriber(id)
+        entity = new Subscriber(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
+        entity.subscriber = subscriber;
+        entity.publisher=  publisher;
+        entity.token = token;
+        entity.indexId = indexId;
+        entity.approved = false;
+        entity.revoked = false;
+        entity.totalReceived = new BigInt(0);
+        entity.totalPendingApproval =new BigInt(0); 
+        entity.units = new BigInt(0);
+        entity.index = fetchIndex(publisher,token,indexId).id;
     }
     return entity as Subscriber;
 }
 
 export function removeSubscription(subscribers: Bytes[],sub:Bytes): Bytes[] {
-    return subscribers = subscribers.filter(item => item != sub);
+    return subscribers = subscribers.filter(item => item !== sub);
 }

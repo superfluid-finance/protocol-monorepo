@@ -57,15 +57,15 @@ type Subscriber @entity {
     units: BigInt
     revoked: Boolean
     totalReceived: BigInt
-    totalReceivedPendingApproval: BigInt
+    totalPendingApproval: BigInt
     # ---------------------------------- links ----------------------------------
     index: Index
-    subscriptionApproved: [subcriptionApproved!]!
-        @derivedFrom(field: "subscription")
+    subscriptionApproved: [subscriptionApproved!]!
+        @derivedFrom(field: "subscriber")
     subscriptionRevoked: [subscriptionRevoked!]!
-        @derivedFrom(field: "subscription")
+        @derivedFrom(field: "subscriber")
     subscriptionUnitsUpdated: [subscriptionUnitsUpdated!]!
-        @derivedFrom(field: "subscription")
+        @derivedFrom(field: "subscriber")
 }
 
 type Index @entity {
@@ -170,21 +170,21 @@ type indexUnsubscribed implements Event @entity {
     transaction: Transaction!
 }
 
-type subcriptionApproved implements Event @entity {
+type subscriptionApproved implements Event @entity {
     id: ID!
-    subscription: Subscriber
+    subscriber: Subscriber
     userData: Bytes
     transaction: Transaction!
 }
 type subscriptionRevoked implements Event @entity {
     id: ID!
-    subscription: Subscriber
+    subscriber: Subscriber
     userData: Bytes
     transaction: Transaction!
 }
 type subscriptionUnitsUpdated implements Event @entity {
     id: ID!
-    subscription: Subscriber
+    subscriber: Subscriber
     userData: Bytes
     units: BigInt
     transaction: Transaction!

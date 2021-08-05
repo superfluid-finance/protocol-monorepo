@@ -8,17 +8,13 @@ import {
     SubscriptionRevoked,
     IndexUnitsUpdated,
     SubscriptionUnitsUpdated } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
-import { Subscriber, indexUpdate,indexUnitUpdate,indexUnsubscribed,subcriptionApproved,subscriptionRevoked,subscriptionUnitsUpdated, indexSubscribed } from "../../generated/schema"
-import {createEventID, logTransaction,removeSubscription,fetchIndex} from '../utils'
+import { indexUpdate,indexUnitUpdate,indexUnsubscribed,subscriptionApproved,subscriptionRevoked,subscriptionUnitsUpdated, indexSubscribed, Subscriber } from "../../generated/schema"
+import {createEventID, logTransaction,removeSubscription,fetchIndex,fetchSubscriber} from '../utils'
+
 
 export function handleIndexCreated(event:IndexCreated): void{
     
-    let entity = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString());
-    entity.totalDistribution = new BigInt(0);
-    entity.totalUnits = new BigInt(0);
-    entity.totalUnitsApproved = new BigInt(0);
-    entity.totalUnitsPending = new BigInt(0);
-    
+    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     entity.token = event.params.token;
     entity.userData = event.params.userData;
     entity.indexId = event.params.indexId;
@@ -28,34 +24,28 @@ export function handleIndexCreated(event:IndexCreated): void{
 
 export function handleIndexSubscribed(event:IndexSubscribed): void{
     let ind = new indexSubscribed(createEventID(event));
-    ind.index = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString()).id;
+    ind.index = fetchIndex(event.params.publisher,event.params.token,event.params.indexId).id;
     ind.subscriber= event.params.subscriber;
     ind.userData=event.params.userData;
     ind.transaction = logTransaction(event).id;
     ind.save()
 
-    log.log(log.Level.INFO,"Inside IndexSubscribed");
-    let entity = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString());
+    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     // Adding the active subscriber to the index
     if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes))
     {
-        let l = entity.activeSubscribers.length;
-        log.log(log.Level.INFO,"SubSizeIS1 "+l.toString());
-        log.log(log.Level.INFO,"Adding an active subscriber. IndexSubed "+l.toString());
-        log.log(log.Level.INFO,"Adding index "+entity.id);
         let activeSubscribers = entity.activeSubscribers;
-        activeSubscribers.push(event.params.subscriber as Bytes);
+        let newSubscriber = event.params.subscriber as Bytes
+        activeSubscribers.push(newSubscriber);
         entity.activeSubscribers = activeSubscribers;
-        
-        l = entity.activeSubscribers.length;
-        log.log(log.Level.INFO,"SubSizeIS2 "+l.toString());
+        entity.save();
     }
     entity.save();
 }
 
 export function handleIndexUnitsUpdated(event:IndexUnitsUpdated): void{
     let ind = new indexUnitUpdate(createEventID(event));
-    ind.index = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString()).id;
+    ind.index = fetchIndex(event.params.publisher,event.params.token,event.params.indexId).id;
     ind.units = event.params.units;
     ind.subscriber= event.params.subscriber;
     ind.units=event.params.units;
@@ -63,21 +53,15 @@ export function handleIndexUnitsUpdated(event:IndexUnitsUpdated): void{
     ind.transaction = logTransaction(event).id;
     ind.save()
 
-    log.log(log.Level.INFO,"Inside IndexUnitsUpdated");
-    let entity = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString());
+    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     // Adding the active subscriber to the index
-    if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes)&&event.params.units>new BigInt(0))
+    if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes)&&event.params.units>new BigInt(0))//We are also comparing to greater than zero as this function is called when revoke happens
     {
-        let l = entity.activeSubscribers.length;
-        log.log(log.Level.INFO,"SubSize "+l.toString());
-        log.log(log.Level.INFO,"Adding an active subscriber "+event.params.subscriber.toHexString());
-        log.log(log.Level.INFO,"Adding index "+entity.id);
         let activeSubscribers = entity.activeSubscribers;
-        activeSubscribers.push(event.params.subscriber as Bytes);
+        let newSubscriber = event.params.subscriber as Bytes
+        activeSubscribers.push(newSubscriber);
         entity.activeSubscribers = activeSubscribers;
-        
-        l = entity.activeSubscribers.length;
-        log.log(log.Level.INFO,"SubSize2 "+l.toString());
+        entity.save();
     }
     entity.save();
 }
@@ -85,13 +69,12 @@ export function handleIndexUnitsUpdated(event:IndexUnitsUpdated): void{
 export function handleIndexUnsubscribed(event:IndexUnsubscribed): void{
     let ind = new indexUnsubscribed(createEventID(event));
     ind.transaction = logTransaction(event).id;
-    ind.index = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString()).id;
+    ind.index = fetchIndex(event.params.publisher,event.params.token,event.params.indexId).id;
     ind.subscriber = event.params.subscriber;
     ind.userData = event.params.userData;
     ind.save();
 
-    log.log(log.Level.INFO,"Removing an active subscriber "+event.params.subscriber.toHexString());
-    let entity = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString());
+    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     entity.activeSubscribers = removeSubscription(entity.activeSubscribers as Bytes[],event.params.subscriber);
     entity.save();
 }
@@ -99,7 +82,7 @@ export function handleIndexUnsubscribed(event:IndexUnsubscribed): void{
 export function handleIndexUpdated(event:IndexUpdated): void{
     let thisDistribution = event.params.newIndexValue.minus(event.params.oldIndexValue).times(event.params.totalUnitsPending.plus(event.params.totalUnitsApproved));
     let ind = new indexUpdate(createEventID(event));
-    ind.index = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString()).id;
+    ind.index = fetchIndex(event.params.publisher,event.params.token,event.params.indexId).id;
     ind.newIndexValue = event.params.newIndexValue;
     ind.oldIndexValue = event.params.oldIndexValue;
     ind.totalUnitsApproved = event.params.totalUnitsApproved;
@@ -109,7 +92,7 @@ export function handleIndexUpdated(event:IndexUpdated): void{
     ind.transaction = logTransaction(event).id;
     ind.save();
 
-    let entity = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString());
+    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     entity.newIndexValue = event.params.newIndexValue
     entity.oldIndexValue = event.params.oldIndexValue
     entity.totalUnitsApproved = event.params.totalUnitsApproved
@@ -123,78 +106,73 @@ export function handleIndexUpdated(event:IndexUpdated): void{
     if(!entity.totalUnits.equals(new BigInt(0))&&!entity.totalUnits.equals(null))
     {
         let l = entity.activeSubscribers.length;
-        log.log(log.Level.INFO,"Inside per calculation "+l.toString())
 
         var perUnit = thisDistribution.div(entity.totalUnits as BigInt) as BigInt;//Divide by zero handling
 
         if(entity.activeSubscribers.length>0){
-            log.log(log.Level.INFO,"Calculating distribution for subscribers "+l.toString());
-            entity.activeSubscribers.forEach(element => {
-                log.log(log.Level.DEBUG,"DEBUG"+element.toString())
-                let element2 = Subscriber.load(element.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString());
-                if(element2!=null){
-                    element2.totalReceived = element2.totalReceived.plus(perUnit.times(element2.units as BigInt));
-                    element2.save();
-                } 
-            });
+            
+            for (let index = 0; index < entity.activeSubscribers.length; index++) {
+                const elements = entity.activeSubscribers as Bytes[];
+                let element = elements[index] as Bytes;
+                let element2 = fetchSubscriber(element,event.params.publisher,event.params.token,event.params.indexId) as Subscriber;
+                if (element2!=null)
+                {
+                    if(element2.approved){
+                        let totalReceived = element2.totalReceived;
+                        let tots = perUnit.times(element2.units as BigInt)
+                        totalReceived = totalReceived.plus(tots)
+                        element2.totalReceived = totalReceived;
+                    }else{
+                        let totalPendingApproval = element2.totalPendingApproval;
+                        let tots = perUnit.times(element2.units as BigInt)
+                        totalPendingApproval = totalPendingApproval.plus(tots)
+                        element2.totalPendingApproval = totalPendingApproval;
+                    }
+                    
+                    element2.save()
+                }
+            }
         }
     }
 }
 
 export function handleSubscriptionApproved(event:SubscriptionApproved): void{
-    let entity = Subscriber.load(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString());
-    if(entity==null){
-        entity =new Subscriber(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString());
-        entity.revoked = false;
-        entity.totalReceived = new BigInt(0);
-    }
+    let entity = fetchSubscriber(event.params.subscriber,event.params.publisher,event.params.token,event.params.indexId);
     entity.approved = true;
-    entity.publisher = event.params.publisher;
-    entity.indexId = event.params.indexId;
-    entity.subscriber = event.params.subscriber;
-    entity.token = event.params.token;
     entity.userData =event.params.userData;
-    entity.index = fetchIndex(event.params.publisher.toHexString()+"-"+event.params.token.toHexString()+"-"+event.params.indexId.toHexString()).id;
+    let totalPendingApproval = entity.totalPendingApproval;
+    entity.totalReceived = entity.totalReceived.plus(totalPendingApproval as BigInt)
+    entity.totalPendingApproval = new BigInt(0);
     entity.save()
 
-    let ind = new subcriptionApproved(createEventID(event));
-    ind.subscription = Subscriber.load(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString()).id;
+    let ind = new subscriptionApproved(createEventID(event));
+    ind.subscriber = entity.id
     ind.userData = event.params.userData;
     ind.transaction = logTransaction(event).id;
     ind.save();
 }
 
 export function handleSubscriptionRevoked(event:SubscriptionRevoked): void{
+    let entity = fetchSubscriber(event.params.subscriber,event.params.publisher,event.params.token,event.params.indexId);
+    entity.userData =event.params.userData
+    entity.revoked = true
+    entity.save()
+
     let ind = new subscriptionRevoked(createEventID(event));
-    ind.subscription = Subscriber.load(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString()).id;
+    ind.subscriber = entity.id
     ind.userData = event.params.userData;
     ind.transaction = logTransaction(event).id;
     ind.save();
 
-    let entity = Subscriber.load(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString());
-    entity.userData =event.params.userData
-    entity.revoked = true
-    entity.save()
 }
 
 export function handleSubscriptionUnitsUpdated(event:SubscriptionUnitsUpdated): void{
-
-    let entity = Subscriber.load(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString());
-    if(entity==null){
-        entity =new Subscriber(event.params.subscriber.toHexString()+event.params.indexId.toHexString()+event.params.publisher.toHexString()+event.params.token.toHexString());
-        entity.subscriber = event.params.subscriber;
-        entity.publisher=  event.params.publisher;
-        entity.token = event.params.token;
-        entity.indexId = event.params.indexId;
-        entity.approved = false;
-        entity.revoked = false;
-        entity.totalReceived = new BigInt(0);
-    }
+    let entity = fetchSubscriber(event.params.subscriber,event.params.publisher,event.params.token,event.params.indexId);
     entity.units = event.params.units;
     entity.save();
     
     let ind = new subscriptionUnitsUpdated(createEventID(event));
-    ind.subscription = entity.id;
+    ind.subscriber = entity.id;
     ind.userData = event.params.userData;
     ind.transaction = logTransaction(event).id;
     ind.units = event.params.units;

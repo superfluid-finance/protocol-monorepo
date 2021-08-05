@@ -1,0 +1,39 @@
+name: deploy-subgraph-feature
+
+on: 
+  push:
+    branches: "feature*"
+    paths: "packages/subgraph/**"
+
+jobs:
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    env: 
+        working-directory: ./packages/subgraph
+
+    steps:
+      - uses: actions/checkout@v2
+        working-directory: ${{ env.working-directory }}
+
+      - name: "Install node"
+        uses: "actions/setup-node@v2"
+        with:
+          cache: yarn
+          node-version: "16"
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Install dependencies"
+        run: yarn
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Generate subgraph manifest"
+        run: "yarn run prepare:feature"
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Generate AssemblyScript types"
+        run: "yarn run codegen"
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Deploy to feature endpoint"
+        run: "yarn run deploy-feature --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
+        working-directory: ${{ env.working-directory }}

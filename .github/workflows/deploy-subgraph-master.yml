@@ -1,0 +1,51 @@
+name: deploy-subgraph-master
+
+on: 
+  push:
+    branches: "master"
+    paths: "packages/subgraph/**"
+
+jobs:
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    env: 
+        working-directory: ./packages/subgraph
+
+    steps:
+      - uses: actions/checkout@v2
+        working-directory: ${{ env.working-directory }}
+
+      - name: "Install node"
+        uses: "actions/setup-node@v2"
+        with:
+          cache: yarn
+          node-version: "16"
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Install dependencies"
+        run: yarn
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Generate subgraph manifest"
+        run: "yarn run prepare:dev"
+        working-directory: ${{ env.working-directory }}
+      
+      - name: "Generate AssemblyScript types"
+        run: "yarn run codegen"
+        working-directory: ${{ env.working-directory }}
+
+      # - name: "Deploy to all endpoints"
+      #   run: "yarn run deploy-all --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
+      #   working-directory: ${{ env.working-directory }}
+
+      - name: "Deploy to rinkeby endpoint"
+        run: "yarn run deploy:rinkeby --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
+        working-directory: ${{ env.working-directory }}
+
+      # - name: "Deploy to ropsten endpoint"
+      #   run: "yarn run deploy:ropsten --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
+      #   working-directory: ${{ env.working-directory }}
+
+      # - name: "Deploy to kovan endpoint"
+      #   run: "yarn run deploy:kovan --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
+      #   working-directory: ${{ env.working-directory }}

@@ -39,11 +39,11 @@ jobs:
       
       - name: "Generate subgraph manifest"
         run: "yarn run prepare:dev"
-        working-directory: ${{ subgraph-working-directory }}
+        working-directory: ${{ env.subgraph-working-directory }}
       
       - name: "Generate AssemblyScript types"
         run: "yarn run codegen"
-        working-directory: ${{ subgraph-working-directory }}
+        working-directory: ${{ env.subgraph-working-directory }}
 
       # - name: "Deploy to all endpoints"
       #   run: "yarn run deploy-all --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
@@ -51,4 +51,4 @@ jobs:
 
       - name: "Deploy to rinkeby endpoint"
         run: "yarn run deploy:rinkeby --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
-        working-directory: ${{ subgraph-working-directory }}
+        working-directory: ${{ env.subgraph-working-directory }}

@@ -13,14 +13,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        working-directory: ${{ env.working-directory }}
 
       - name: "Install node"
         uses: "actions/setup-node@v2"
         with:
           cache: yarn
           node-version: "16"
-        working-directory: ${{ env.working-directory }}
       
       - name: "Install dependencies"
         run: yarn

@@ -32,6 +32,7 @@ jobs:
         run: "yarn run codegen"
         working-directory: ${{ env.working-directory }}
       
+      # deploys to rinkeby
       - name: "Deploy to feature endpoint"
         run: "yarn run deploy-feature --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
         working-directory: ${{ env.working-directory }}

@@ -78,9 +78,9 @@ module.exports = function getConfig(chainId) {
         //
 
         //
-        // ARBITRUM
+        // ARBITRUM (testnet rinkeby)
         //
-        79377087078960: {
+        421611: {
             // arbitrum testnet
         },
 

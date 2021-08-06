@@ -42,15 +42,10 @@ async function deployAndRegisterContractIf(
     return contractDeployed;
 }
 
-async function deployContractIfCodeChanged(
-    web3,
-    Contract,
-    codeAddress,
-    deployFunc
-) {
+async function deployContractIf(web3, Contract, cond, deployFunc) {
     let newCodeAddress = ZERO_ADDRESS;
     const contractName = Contract.contractName;
-    if (await codeChanged(web3, Contract, codeAddress)) {
+    if (await cond()) {
         console.log(`${contractName} logic code has changed`);
         newCodeAddress = await deployFunc();
         console.log(`${contractName} new logic code address ${newCodeAddress}`);
@@ -60,6 +55,20 @@ async function deployContractIfCodeChanged(
         );
     }
     return newCodeAddress;
+}
+
+async function deployContractIfCodeChanged(
+    web3,
+    Contract,
+    codeAddress,
+    deployFunc
+) {
+    return deployContractIf(
+        web3,
+        Contract,
+        async () => await codeChanged(web3, Contract, codeAddress),
+        deployFunc
+    );
 }
 
 /**
@@ -139,9 +148,11 @@ module.exports = async function (callback, options = {}) {
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
             "TestResolver",
+            "SuperfluidLoader",
             "Superfluid",
             "SuperTokenFactory",
             "SuperTokenFactoryHelper",
+            "SuperToken",
             "TestGovernance",
             "ISuperfluidGovernance",
             "UUPSProxy",
@@ -154,18 +165,22 @@ module.exports = async function (callback, options = {}) {
             "SuperfluidMock",
             "SuperTokenFactoryMock",
             "SuperTokenFactoryMockHelper",
+            "SuperTokenMock",
         ];
         const {
             Ownable,
             IMultiSigWallet,
             SuperfluidGovernanceBase,
             TestResolver,
+            SuperfluidLoader,
             Superfluid,
             SuperfluidMock,
             SuperTokenFactory,
             SuperTokenFactoryHelper,
             SuperTokenFactoryMock,
             SuperTokenFactoryMockHelper,
+            SuperToken,
+            SuperTokenMock,
             TestGovernance,
             ISuperfluidGovernance,
             UUPSProxy,
@@ -209,6 +224,19 @@ module.exports = async function (callback, options = {}) {
                 }
             );
         }
+
+        // deploy superfluid loader
+        await deployAndRegisterContractIf(
+            SuperfluidLoader,
+            "SuperfluidLoader-v1",
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                return await web3tx(
+                    SuperfluidLoader.new,
+                    "SuperfluidLoader.new"
+                )(testResolver.address);
+            }
+        );
 
         // deploy new superfluid host contract
         const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
@@ -431,38 +459,64 @@ module.exports = async function (callback, options = {}) {
         }
 
         // deploy new super token factory logic
+        const SuperTokenFactoryHelperLogic = useMocks
+            ? SuperTokenFactoryMockHelper
+            : SuperTokenFactoryHelper;
         const SuperTokenFactoryLogic = useMocks
             ? SuperTokenFactoryMock
             : SuperTokenFactory;
-        const superTokenFactoryNewLogicAddress =
-            await deployContractIfCodeChanged(
-                web3,
-                SuperTokenFactoryLogic,
-                await superfluid.getSuperTokenFactoryLogic.call(),
-                async () => {
-                    let superTokenLogic;
-                    if (useMocks) {
-                        const helper = await web3tx(
-                            SuperTokenFactoryMockHelper.new,
-                            "SuperTokenFactoryMockHelper.new"
-                        )();
-                        superTokenLogic = await web3tx(
-                            SuperTokenFactoryMock.new,
-                            "SuperTokenFactoryMock.new"
-                        )(superfluid.address, helper.address);
-                    } else {
-                        const helper = await web3tx(
-                            SuperTokenFactoryHelper.new,
-                            "SuperTokenFactoryHelper.new"
-                        )();
-                        superTokenLogic = await web3tx(
-                            SuperTokenFactory.new,
-                            "SuperTokenFactory.new"
-                        )(superfluid.address, helper.address);
-                    }
-                    return superTokenLogic.address;
+        const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
+        const superTokenFactoryNewLogicAddress = await deployContractIf(
+            web3,
+            SuperTokenFactoryLogic,
+            async () => {
+                // check if super token factory or super token logic changed
+                try {
+                    const factoryAddress =
+                        await superfluid.getSuperTokenFactory.call();
+                    if (factoryAddress === ZERO_ADDRESS) return true;
+                    const factory = await SuperTokenFactoryLogic.at(
+                        factoryAddress
+                    );
+                    return (
+                        (await codeChanged(
+                            web3,
+                            SuperTokenFactoryLogic,
+                            await superfluid.getSuperTokenFactoryLogic.call()
+                        )) ||
+                        (await codeChanged(
+                            web3,
+                            SuperTokenLogic,
+                            await factory.getSuperTokenLogic.call(),
+                            // this replacement does not support SuperTokenMock
+                            [
+                                // See SuperToken constructor parameter
+                                superfluid.address
+                                    .toLowerCase()
+                                    .slice(2)
+                                    .padStart(64, "0"),
+                            ]
+                        ))
+                    );
+                } catch (e) {
+                    console.log(e.toString());
+                    // recreate contract on any errors
+                    return true;
                 }
-            );
+            },
+            async () => {
+                let superTokenFactoryLogic;
+                const helper = await web3tx(
+                    SuperTokenFactoryHelperLogic.new,
+                    "SuperTokenFactoryHelperLogic.new"
+                )();
+                superTokenFactoryLogic = await web3tx(
+                    SuperTokenFactoryLogic.new,
+                    "SuperTokenFactoryLogic.new"
+                )(superfluid.address, helper.address);
+                return superTokenFactoryLogic.address;
+            }
+        );
 
         if (
             superfluidNewLogicAddress !== ZERO_ADDRESS ||

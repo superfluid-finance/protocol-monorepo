@@ -20,8 +20,9 @@
         "dev": "nodemon -e sol,js -i build -x 'yarn test 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
-        "test": "run-s test:*",
-        "test:contracts": "truffle test test/contracts.test.js",
+        "test": "run-s test:*:*",
+        "test:contracts:js": "truffle test test/contracts.test.js",
+        "test:contracts:sol": "truffle test test/contracts/*/*.sol",
         "test:deployment:embeded": "truffle test test/deployment.test.js",
         "test:deployment:scripts": "test/deployment.test.sh",
         "test-coverage": "truffle run coverage --file test/contracts.test.js",
@@ -47,19 +48,11 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "3.4.1",
-        "@superfluid-finance/js-sdk": "0.4.4",
+        "@superfluid-finance/js-sdk": "0.5.1",
         "@truffle/contract": "4.3.17",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.0.10",
         "stack-trace": "0.0.10"
-    },
-    "peerDependencies": {
-        "arb-ethers-web3-bridge": "^0.7.3"
-    },
-    "peerDependenciesMeta": {
-        "arb-ethers-web3-bridge": {
-            "optional": true
-        }
     },
     "devDependencies": {
         "@openzeppelin/test-helpers": "0.5.11",
@@ -71,6 +64,6 @@
         "solidity-coverage": "0.7.16",
         "truffle": "5.1.49",
         "truffle-flattener": "^1.5.0",
-        "truffle-plugin-verify": "^0.5.8"
+        "truffle-plugin-verify": "^0.5.11"
     }
 }

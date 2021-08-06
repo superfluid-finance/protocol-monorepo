@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@ethersproject/contracts": "^5.4.0",
+    "@ethersproject/providers": "^5.4.3",
     "@superfluid-finance/js-sdk": "^0.5.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",

@@ -59,7 +59,7 @@ jobs:
         run: |
           if [ -f "scripts/deploy.js" ];then
             export RELEASE_VERSION=test
-            export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
+            export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
             echo "Ganache port: $GANACHE_PORT"
             npx ganache-cli --port $GANACHE_PORT &
             ganache_pid=$!

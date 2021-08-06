@@ -79,6 +79,7 @@ jobs:
             [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build
+            yarn test
           fi
 
   build-examples-done:

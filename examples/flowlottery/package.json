@@ -15,11 +15,11 @@
     "devDependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@openzeppelin/contracts": "^3.4.1",
-        "@openzeppelin/test-helpers": "^0.5.10",
-        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.0",
-        "@superfluid-finance/js-sdk": "^0.4.0",
-        "@truffle/contract": "^4.3.9",
-        "@truffle/hdwallet-provider": "^1.2.2",
+        "@openzeppelin/test-helpers": "^0.5.12",
+        "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.5",
+        "@superfluid-finance/js-sdk": "^0.5.1",
+        "@truffle/contract": "^4.3.27",
+        "@truffle/hdwallet-provider": "^1.4.2",
         "dotenv": "^8.2.0",
         "truffle": "^5.2.2"
     }

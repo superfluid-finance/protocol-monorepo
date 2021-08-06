@@ -15,6 +15,7 @@
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
+        "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
         "deploy-all": "run-s deploy:*",
         "deploy:xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-xdai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
         "deploy:matic": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-matic --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
@@ -30,8 +31,8 @@
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
-        "@graphprotocol/graph-cli": "0.16.1",
-        "@graphprotocol/graph-ts": "0.16.0",
+        "@graphprotocol/graph-cli": "0.18.0",
+        "@graphprotocol/graph-ts": "0.18.0",
         "@superfluid-finance/js-sdk": "0.5.2",
         "ganache-time-traveler": "^1.0.15",
         "mustache": "^4.0.1",

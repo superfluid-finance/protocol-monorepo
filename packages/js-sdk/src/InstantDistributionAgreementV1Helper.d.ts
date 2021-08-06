@@ -10,8 +10,7 @@ export interface Subscription {
     pendingDistribution: BN;
 }
 
-export = InstantDistributionAgreementV1Helper;
-declare class InstantDistributionAgreementV1Helper {
+export declare class InstantDistributionAgreementV1Helper {
     static _sanitizeIndexData({ exist, indexValue, totalUnitsApproved, totalUnitsPending, }: {
         exist: boolean;
         indexValue: any;

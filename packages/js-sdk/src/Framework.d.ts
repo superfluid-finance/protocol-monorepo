@@ -1,8 +1,4 @@
 import type Web3 from "web3";
-import { ethers, Contract as EthersContract, utils } from "ethers";
-import type { Contract as Web3Contract } from "web3-eth-contract";
-import TruffleContract from "@truffle/contract";
-
 import ConstantFlowAgreementV1Helper from "./ConstantFlowAgreementV1Helper";
 import InstantDistributionAgreementV1Helper from "./InstantDistributionAgreementV1Helper";
 import GasMeter from "./utils/gasMetering/gasMetering";
@@ -13,7 +9,7 @@ import Utils from "./Utils";
 
 declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
 
-export declare interface Agreements {
+export interface Agreements {
     cfa?: ConstantFlowAgreementV1Helper,
     ida?: InstantDistributionAgreementV1Helper
 }
@@ -30,7 +26,7 @@ export interface FrameworkOptions {
     contractLoader?: LoadContracts.ContractLoader,
     resolverAddress?: string,
 }
-declare class Framework {
+export declare class Framework {
 
     constructor(options: FrameworkOptions);
 
@@ -54,7 +50,14 @@ declare class Framework {
     initialize(): Promise<any>;
     isSuperTokenListed(superTokenKey: string): Promise<boolean>;
     loadToken(tokenKey: string): Promise<void>;
-    createERC20Wrapper(tokenInfo: any, { superTokenSymbol, superTokenName, from, upgradability }?: string): Promise<any>;
+    createERC20Wrapper(tokenInfo: any, 
+        { superTokenSymbol, superTokenName, from, upgradability }: {
+            superTokenSymbol?: string,
+            superTokenName?: string,
+            from?: string,
+            upgradability?: string
+        }
+    ): Promise<any>;
     user({ address, token, options }: {
         address: string;
         token: string;
@@ -64,5 +67,3 @@ declare class Framework {
     _pushTxForGasReport(tx: GasMeter.Record, actionName: string): void;
     generateGasReport(name: string): void;
 }
-
-export = Framework;

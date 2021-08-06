@@ -22,7 +22,7 @@ interface AdaptedContractOpts {
 }
 declare function getAdaptedContract({address, abi, ethers}: AdaptedContractOpts): EthersContract;
 
-declare function loadContracts({ isTruffle, ethers, web3, from, additionalContracts, contractLoader, networkId, }: {
+export declare function loadContracts({ isTruffle, ethers, web3, from, additionalContracts, contractLoader, networkId, }: {
     isTruffle: boolean;
     ethers?: EthersWithSigner;
     web3?: Web3;
@@ -31,5 +31,3 @@ declare function loadContracts({ isTruffle, ethers, web3, from, additionalContra
     contractLoader: ContractLoader;
     networkId: number;
 }): Promise<LoadedContract[]>;
-
-export = loadContracts;

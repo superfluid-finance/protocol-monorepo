@@ -33,6 +33,10 @@
             "packages/ethereum-contracts",
             "packages/js-sdk",
             "packages/subgraph"
+        ],
+        "nohoist": [
+            "**/webpack",
+            "**/webpack/**"
         ]
     }
 }

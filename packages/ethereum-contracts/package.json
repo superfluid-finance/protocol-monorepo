@@ -49,20 +49,20 @@
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "3.4.1",
         "@superfluid-finance/js-sdk": "0.5.2",
-        "@truffle/contract": "4.3.17",
+        "@truffle/contract": "4.3.27",
         "ethereumjs-tx": "2.1.2",
-        "ethereumjs-util": "7.0.10",
+        "ethereumjs-util": "7.1.0",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
-        "@openzeppelin/test-helpers": "0.5.11",
-        "@truffle/hdwallet-provider": "^1.4.0",
+        "@openzeppelin/test-helpers": "0.5.12",
+        "@truffle/hdwallet-provider": "^1.4.2",
         "dotenv": "10.0.0",
-        "ganache-time-traveler": "1.0.15",
+        "ganache-time-traveler": "1.0.16",
         "readline": "1.3.0",
-        "solhint": "3.3.5",
+        "solhint": "3.3.6",
         "solidity-coverage": "0.7.16",
-        "truffle": "5.1.49",
+        "truffle": "5.4.3",
         "truffle-flattener": "^1.5.0",
         "truffle-plugin-verify": "^0.5.11"
     }

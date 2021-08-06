@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, fix_examples_build]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, react-ts-sdk]
         install: [locked-install, clean-install]
         node-version: [14.x]
 

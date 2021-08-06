@@ -1573,32 +1573,23 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@superfluid-finance/ethereum-contracts@^1.0.0-rc.5":
-  version "1.0.0-rc.5"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.0.0-rc.5.tgz#e941f00695657a29bf89b2b7450c7dbc4c3f03c2"
-  integrity sha512-t7u5DgtlKd2NlFAEq6D2aYf+YJm33gCwbplTGO3dEqyVv6tiWM+9Wx1gI5m+GHM977wAEaJ5SXPSqnBvjFzemQ==
+"@superfluid-finance/ethereum-contracts@^1.0.0-rc.6":
+  version "1.0.0-rc.6"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.0.0-rc.6.tgz#3f799adda52c231a738a5fff2e3f5277d85a07da"
+  integrity sha512-CT7uV2MYBqV09XTK68w4n4h1jwYPZGavcdklwkJqw1YQIKufbdkYZ7xWenkwN0m16BmKrtE7eCjy57w9MqBEjQ==
   dependencies:
     "@decentral.ee/web3-helpers" "0.5.3"
     "@openzeppelin/contracts" "3.4.1"
-    "@superfluid-finance/js-sdk" "0.4.4"
+    "@superfluid-finance/js-sdk" "0.5.2"
     "@truffle/contract" "4.3.17"
     ethereumjs-tx "2.1.2"
     ethereumjs-util "7.0.10"
     stack-trace "0.0.10"
 
-"@superfluid-finance/js-sdk@0.4.4":
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.4.4.tgz#60ee80112f32b3e9332982548d856d57cf327110"
-  integrity sha512-hiPZBDQ2i8t5ouH4BDKT1MTSxJzogkfK9ymbcxw3BcC0q9Slb5p+l5QPHLM0AiZjcH1koZ8jsrth1MiijVW1lg==
-  dependencies:
-    "@ethersproject/abi" "^5.2.0"
-    "@ethersproject/hash" "^5.0.12"
-    auto-bind "^4.0.0"
-
-"@superfluid-finance/js-sdk@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.1.tgz#9912d311d01012f74208a179ff256995a24cbff5"
-  integrity sha512-IXCffPQIyfWj2N6zNd3SprrJMoPNS3aq0zKfrk5e58nGZIkkTvy3ZcM3eW0alyRM4mx8oHcs46hiOjXF4G+8Xw==
+"@superfluid-finance/js-sdk@0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.2.tgz#b9878e153db916449c60c24ee01eb009cf2b67cd"
+  integrity sha512-vT3809MWOl4uMt1OL6PxHkbsIMzfh9t57JvwRb3pbTymGHSTq4LAXaURUkB5xMvY8hz+3JVNN5D/XKaKJ828iA==
   dependencies:
     "@ethersproject/abi" "^5.2.0"
     "@ethersproject/hash" "^5.0.12"

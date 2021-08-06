@@ -76,6 +76,7 @@ jobs:
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
+            rm -rf ../node_modules # do not let parent node_modules affect ui project
             [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build

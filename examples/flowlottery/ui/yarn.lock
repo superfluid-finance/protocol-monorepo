@@ -2081,10 +2081,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@superfluid-finance/js-sdk@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.1.tgz#9912d311d01012f74208a179ff256995a24cbff5"
-  integrity sha512-IXCffPQIyfWj2N6zNd3SprrJMoPNS3aq0zKfrk5e58nGZIkkTvy3ZcM3eW0alyRM4mx8oHcs46hiOjXF4G+8Xw==
+"@superfluid-finance/js-sdk@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/js-sdk/-/js-sdk-0.5.2.tgz#b9878e153db916449c60c24ee01eb009cf2b67cd"
+  integrity sha512-vT3809MWOl4uMt1OL6PxHkbsIMzfh9t57JvwRb3pbTymGHSTq4LAXaURUkB5xMvY8hz+3JVNN5D/XKaKJ828iA==
   dependencies:
     "@ethersproject/abi" "^5.2.0"
     "@ethersproject/hash" "^5.0.12"

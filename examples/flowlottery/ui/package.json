@@ -20,7 +20,7 @@
     "@ethersproject/contracts": "^5.4.1",
     "@ethersproject/providers": "^5.4.3",
     "@openzeppelin/test-helpers": "^0.5.12",
-    "@superfluid-finance/js-sdk": "^0.5.1",
+    "@superfluid-finance/js-sdk": "^0.5.2",
     "@testing-library/dom": "^8.1.0",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",

@@ -1,0 +1,60 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "JoshuaTrujillo15",
+      "name": "Joshua Trujillo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/41972979?v=4",
+      "profile": "https://www.joshua-trujillo.com/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "manav2401",
+      "name": "Manav Darji",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36959497?v=4",
+      "profile": "https://manavdarji.notelet.so/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Drewsapple",
+      "name": "Drew Fisher",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4532572?v=4",
+      "profile": "https://github.com/Drewsapple",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "d10r",
+      "name": "Didi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5479136?v=4",
+      "profile": "https://github.com/d10r",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "samparsky",
+      "name": "Omidiora Samuel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8148384?v=4",
+      "profile": "http://medium.com/@samparsky",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "protocol-monorepo",
+  "projectOwner": "superfluid-finance",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": false
+}

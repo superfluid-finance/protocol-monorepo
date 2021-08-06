@@ -450,14 +450,19 @@ contract ConstantFlowAgreementV1 is
         FlowData memory newFlowData;
         (depositDelta,,newFlowData) = _changeFlow(
             currentContext.timestamp,
+            currentContext.appAllowanceToken,
             token, flowParams, oldFlowData);
 
         // STEP 2: update app allowance used
-        newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
-            ctx,
-            newFlowData.deposit, // allowanceWantedMore
-            depositDelta // allowanceUsedDelta
-        );
+        if (currentContext.appAllowanceToken == token) {
+            newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
+                ctx,
+                newFlowData.deposit, // allowanceWantedMore
+                depositDelta // allowanceUsedDelta
+            );
+        } else {
+            newCtx = ctx;
+        }
     }
 
     /**
@@ -469,7 +474,6 @@ contract ConstantFlowAgreementV1 is
     struct _StackVars_changeFlowToApp {
         bytes cbdata;
         FlowData newFlowData;
-        uint256 appAllowance;
         ISuperfluid.Context appContext;
     }
     function _changeFlowToApp(
@@ -507,17 +511,15 @@ contract ConstantFlowAgreementV1 is
             }
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
-            (,vars.appAllowance,) = _changeFlow(
+            (,cbStates.appAllowanceGranted,) = _changeFlow(
                     currentContext.timestamp,
+                    currentContext.appAllowanceToken,
                     token, flowParams, oldFlowData);
-
+            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted.mul(uint256(currentContext.appLevel + 1));
+            cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             // - each app level can at least "relay" the same amount of input flow rate to others
             // - each app level get a same amount of allowance
-            vars.appAllowance = vars.appAllowance.mul(uint256(currentContext.appLevel + 1));
 
-            // call the after callback
-            cbStates.appAllowanceGranted = vars.appAllowance;
-            cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
             } else if (optype == FlowChangeType.UPDATE_FLOW) {
@@ -533,6 +535,7 @@ contract ConstantFlowAgreementV1 is
         } else {
             (,,vars.newFlowData) = _changeFlow(
                     currentContext.timestamp,
+                    currentContext.appAllowanceToken,
                     token, flowParams, oldFlowData);
         }
 
@@ -579,14 +582,19 @@ contract ConstantFlowAgreementV1 is
                 );
             }
 
-            newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
-                ctx,
-                vars.newFlowData.deposit, // allowanceWantedMore
-                appAllowanceDelta // allowanceUsedDelta
-            );
+            if (address(currentContext.appAllowanceToken) == address(0) ||
+                currentContext.appAllowanceToken == token)
+            {
+                newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
+                    ctx,
+                    vars.newFlowData.deposit, // allowanceWantedMore
+                    appAllowanceDelta // allowanceUsedDelta
+                );
+            }
 
-            // if receiver doesn't have enough available balance to give back app allowance
-            // take it from the sender
+            // if receiver super app doesn't have enough available balance to give back app allowance
+            // revert (non termination callbacks),
+            // or take it from the sender and jail the app
             if (ISuperfluid(msg.sender).isApp(ISuperApp(flowParams.receiver))) {
                 int256 availableBalance;
                 (availableBalance,,) = token.realtimeBalanceOf(flowParams.receiver, currentContext.timestamp);
@@ -597,19 +605,19 @@ contract ConstantFlowAgreementV1 is
                             newCtx,
                             ISuperApp(flowParams.receiver),
                             SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
-                        // calculate user's damange
-                        int256 userDamangeAmount = AgreementLibrary.min(
+                        // calculate user's damage
+                        int256 userDamageAmount = AgreementLibrary.min(
                             // user will take the damage if the app is broke,
                             -availableBalance,
                             // but user's damage is limited to the amount of app allowance it gives to the app
                             AgreementLibrary.max(0, -appAllowanceDelta));
                         token.settleBalance(
                             flowParams.sender,
-                            -userDamangeAmount
+                            -userDamageAmount
                         );
                         token.settleBalance(
                             flowParams.receiver,
-                            userDamangeAmount
+                            userDamageAmount
                         );
                     } else {
                         revert("CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
@@ -628,6 +636,7 @@ contract ConstantFlowAgreementV1 is
      */
     function _changeFlow(
         uint256 currentTimestamp,
+        ISuperfluidToken appAllowanceToken,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData
@@ -635,30 +644,37 @@ contract ConstantFlowAgreementV1 is
         private
         returns (
             int256 depositDelta,
-            uint256 appAllowance,
+            uint256 appAllowanceBase,
             FlowData memory newFlowData
         )
     {
         { // ecnlosed block to avoid stack too deep error
-            //int256 oldDeposit;
 
-            // STEP 1: calculate old and new deposit required for the flow
-            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
-            uint256 liquidationPeriod = gov.getConfigAsUint256(
-                ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+            // STEP 1: calculate deposit required for the flow
+            {
+                ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
+                uint256 liquidationPeriod = gov.getConfigAsUint256(
+                    ISuperfluid(msg.sender), token, _LIQUIDATION_PERIOD_CONFIG_KEY);
+                // rounding up the number for app allowance too
+                // CAFEAT:
+                // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
+                // - The app may be jailed due to negative balance if it does this without its own balance.
+                // Rule of thumbs:
+                // - App can use app allowance to create a flow that has the same incoming flow rate
+                // - But due to deposit clipping, there is no guarantee that the sum of the out going flow
+                //   deposit can be covered by the allowance always.
+                // - It is advisable for the app to check the allowance usages carefully, and if possible
+                //   Always have some its own balances to cover the deposits.
+                appAllowanceBase = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+                depositDelta = appAllowanceBase.toInt256();
+            }
 
-            // rounding up the number for app allowance too
-            // CAFEAT:
-            // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
-            // - The app may be jailed due to negative balance if it does this without its own balance.
-            // Rule of thumbs:
-            // - App can use app allowance to create a flow that has the same incoming flow rate
-            // - But due to deposit clipping, there is no guarantee that the sum of the out going flow
-            //   deposit can be covered by the allowance always.
-            // - It is advisable for the app to check the allowance usages carefully, and if possible
-            //   Always have some its own balances to cover the deposits.
-            appAllowance = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
-            depositDelta = appAllowance.toInt256();
+            // allowance should be of the same token
+            if (address(appAllowanceToken) != address(0) &&
+                appAllowanceToken != token)
+            {
+                appAllowanceBase = 0;
+            }
 
             // STEP 2: calculate deposit delta
             depositDelta = depositDelta
@@ -710,8 +726,9 @@ contract ConstantFlowAgreementV1 is
     )
         private view
     {
-        // do not enforce balance checks during callbacks
-        if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK) {
+        // do not enforce balance checks during callbacks for the appAllowanceToken
+        if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK ||
+            currentContext.appAllowanceToken != token) {
             (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
             require(availableBalance >= 0, "CFA: not enough available balance");
         }

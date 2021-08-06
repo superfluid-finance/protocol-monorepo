@@ -1,6 +1,6 @@
-import BatchTransferForm from 'src/components/BatchTransferForm'
+import BatchForm from 'src/components/BatchForm'
 import { useAuth } from '@redwoodjs/auth'
-import { batchTransfer as callBatchTransfer } from 'src/utils/batchTransfer'
+import { batchCall, BATCH_TRANSFER } from 'src/utils/batch'
 import toast from 'react-hot-toast'
 
 const BatchTransfer = ({ token }) => {
@@ -21,13 +21,17 @@ const BatchTransfer = ({ token }) => {
     })
     // toast.error('Something went wrong')
     // token
-    const { tx, error } = await callBatchTransfer({
+    const { tx, error } = await batchCall({
       recipients,
       amounts,
       tokenAddress: token,
+      type: BATCH_TRANSFER,
     })
 
-    if (error) return toast.error(error.message || error)
+    if (error) {
+      setLoading(false)
+      return toast.error(error.message || error)
+    }
 
     await toast.promise(tx.wait(), {
       loading: 'Waiting for confirmation',
@@ -54,7 +58,7 @@ const BatchTransfer = ({ token }) => {
           <h2 className="rw-heading rw-heading-secondary">Batch Transfer</h2>
         </header>
         <div className="rw-segment-main">
-          <BatchTransferForm
+          <BatchForm
             tokenAddress={token}
             onSave={batchTransfer}
             loading={loading}

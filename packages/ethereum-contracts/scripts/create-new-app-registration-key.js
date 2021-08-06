@@ -31,7 +31,6 @@ module.exports = async function (callback, argv, options = {}) {
         const registrationkey = args.pop();
         const deployer = args.pop();
         console.log("Deployer", deployer);
-        console.log("Registration key", registrationkey);
 
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";

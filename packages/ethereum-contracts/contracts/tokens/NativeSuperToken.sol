@@ -6,26 +6,9 @@ import {
     CustomSuperTokenProxyBase
 }
 from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
+import { INativeSuperTokenCustom } from "../interfaces/tokens/INativeSuperToken.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
-/**
- * @dev Native SuperToken custom token functions
- *
- * @author Superfluid
- */
-interface INativeSuperTokenCustom {
-    function initialize(string calldata name, string calldata symbol, uint256 initialSupply) external;
-}
-
-/**
- * @dev Native SuperToken full interface
- *
- * @author Superfluid
- */
-interface INativeSuperToken is INativeSuperTokenCustom, ISuperToken {
-    function initialize(string calldata name, string calldata symbol, uint256 initialSupply) external override;
-}
 
 /**
  * @dev Native SuperToken custom super token implementation

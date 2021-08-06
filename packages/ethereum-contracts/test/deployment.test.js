@@ -42,6 +42,7 @@ contract("Embeded deployment scripts", () => {
         const testResolver = await TestResolver.at(
             process.env.TEST_RESOLVER_ADDRESS
         );
+        const superfluidLoader = await testResolver.get("SuperfluidLoader-v1");
         const superfluid = await Superfluid.at(
             await testResolver.get(superfluidName)
         );
@@ -64,6 +65,7 @@ contract("Embeded deployment scripts", () => {
             )
         ).getCodeAddress.call();
         const s = {
+            superfluidLoader,
             superfluid,
             superfluidCode,
             gov,
@@ -74,6 +76,11 @@ contract("Embeded deployment scripts", () => {
             ida,
         };
         // validate addresses
+        assert.notEqual(
+            superfluidLoader,
+            ZERO_ADDRESS,
+            "superfluidLoader not set"
+        );
         assert.notEqual(
             s.superfluidCode,
             ZERO_ADDRESS,
@@ -220,6 +227,11 @@ contract("Embeded deployment scripts", () => {
                 await deployFramework(errorHandler, deploymentOptions);
                 const s2 = await getSuperfluidAddresses();
                 assert.equal(
+                    s1.superfluidLoader,
+                    s2.superfluidLoader,
+                    "SuperfluidLoader should stay the same address"
+                );
+                assert.equal(
                     s1.superfluid.address,
                     s2.superfluid.address,
                     "Superfluid proxy should stay the same address"
@@ -250,7 +262,7 @@ contract("Embeded deployment scripts", () => {
                     "superTokenLogic deployment not required"
                 );
                 assert.equal(s1.cfa, s2.cfa, "cfa deployment not required");
-                assert.equal(s1.ida, s2.ida, "cfa deployment not required");
+                assert.equal(s1.ida, s2.ida, "ida deployment not required");
 
                 console.log("==== Reset all");
                 await deployFramework(errorHandler, {

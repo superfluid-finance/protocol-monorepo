@@ -46,6 +46,13 @@ function defaultContractLoader(name) {
     } else throw new Error(`Cannot load contract "${name}"`);
 }
 
+function setTruffleContractDefaults(c, networkId, from) {
+    c.autoGas = true;
+    c.estimateGas = 1.25;
+    networkId && c.setNetwork(networkId);
+    from && c.defaults({ from });
+}
+
 const loadContracts = async ({
     isTruffle,
     ethers,
@@ -53,6 +60,7 @@ const loadContracts = async ({
     from,
     additionalContracts,
     contractLoader,
+    networkId,
 }) => {
     // use set to eliminate duplicated entries
     const allContractNames = Array.from(
@@ -112,7 +120,7 @@ const loadContracts = async ({
                         await contractLoader(name)
                     ));
                     c.setProvider(web3.currentProvider);
-                    c.defaults({ from });
+                    setTruffleContractDefaults(c, networkId, from);
                 })
             );
         } catch (e) {
@@ -131,7 +139,7 @@ const loadContracts = async ({
             }
             allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));
-                from && c.defaults({ from });
+                setTruffleContractDefaults(c, networkId, from);
             });
         } catch (e) {
             throw Error(`could not load truffle artifacts. ${e}`);

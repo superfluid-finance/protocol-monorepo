@@ -5,6 +5,7 @@ const {
     extractWeb3Options,
     detectTruffleAndConfigure,
     builtTruffleContractLoader,
+    setResolver,
 } = require("./utils");
 
 /**
@@ -68,37 +69,7 @@ module.exports = async function (callback, argv, options = {}) {
         if ((await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS) {
             throw new Error("Super token already listed");
         }
-
-        switch (process.env.ADMIN_TYPE) {
-            case "MULTISIG": {
-                console.log("Admin type: MultiSig");
-                // assuming governance owner manages the resolver too...
-                const multis = await sf.contracts.IMultiSigWallet.at(
-                    await (
-                        await sf.contracts.Ownable.at(
-                            await sf.host.getGovernance.call()
-                        )
-                    ).owner()
-                );
-                console.log("MultiSig address: ", multis.address);
-                const data = resolver.contract.methods
-                    .set(superTokenKey, superTokenAddress)
-                    .encodeABI();
-                console.log("MultiSig data", data);
-                console.log("Sending admin action to multisig...");
-                await multis.submitTransaction(resolver.address, 0, data);
-                console.log(
-                    "Admin action sent, but it may still need confirmation(s)."
-                );
-                break;
-            }
-            default: {
-                console.log("Admin type: Direct Ownership (default)");
-                console.log("Executing admin action...");
-                await resolver.set(superTokenKey, superTokenAddress);
-                console.log("Admin action executed.");
-            }
-        }
+        await setResolver(sf, superTokenKey, superTokenAddress);
 
         callback();
     } catch (err) {

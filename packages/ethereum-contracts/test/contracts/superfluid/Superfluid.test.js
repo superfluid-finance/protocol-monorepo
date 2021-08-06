@@ -631,7 +631,13 @@ contract("Superfluid Host Contract", (accounts) => {
                     )
                 );
                 await expectRevert.unspecified(
-                    superfluid.appCallbackPush("0x", ZERO_ADDRESS, 0, 0)
+                    superfluid.appCallbackPush(
+                        "0x",
+                        ZERO_ADDRESS,
+                        0,
+                        0,
+                        ZERO_ADDRESS
+                    )
                 );
                 await expectRevert.unspecified(
                     superfluid.appCallbackPop("0x", 0)

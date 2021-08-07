@@ -26,7 +26,7 @@ jobs:
       - name: "Set deployment type for master/dev push"
         if: ${{ github.event_name == 'push' }}
           run: |
-            echo "deploy-type=$(basename ${{ github.ref }})" >> $ GITHUB_ENV
+            echo "deploy-type=master" >> $ GITHUB_ENV
       
       - name: "Set deployment type for PRs"
         if: ${{ github.event_name == 'pull_request' }}

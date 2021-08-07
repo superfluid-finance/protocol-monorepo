@@ -22,16 +22,16 @@ jobs:
         with:
           cache: yarn
           node-version: "16"
-      
+  
       - name: "Set deployment type for master/dev push"
         if: github.event_name == 'push'
-        run: |
-          echo "deploy-type=$(basename ${{ github.ref }})" >> $ GITHUB_ENV
+        run: 
+          echo "deploy-type=$(basename ${{ github.ref }})" >> $GITHUB_ENV
       
       - name: "Set deployment type for PRs"
         if: github.event_name == 'pull_request'
         run: |
-          echo "deploy-type=feature" >> $ GITHUB_ENV
+          echo "deploy-type=feature" >> $GITHUB_ENV
       
       - name: "Install contract dependencies"
         run: yarn

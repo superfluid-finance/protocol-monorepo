@@ -17,6 +17,7 @@
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
         "deploy-all": "run-s deploy:*",
         "deploy": "graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
+        "deploy-master": "yarn prepare:rinkeby && SUBGRAPH_NAME=0xdavinchee/superfluid-rinkeby yarn deploy",
         "deploy-feature": "yarn prepare:feature && SUBGRAPH_NAME=0xdavinchee/superfluid-feature yarn deploy",
         "deploy-dev": "yarn prepare:dev && SUBGRAPH_NAME=0xdavinchee/superfluid-dev yarn deploy",
         "deploy:xdai": "yarn prepare:xdai && SUBGRAPH_NAME=0xdavinchee/superfluid-xdai yarn deploy",

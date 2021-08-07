@@ -58,5 +58,5 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to endpoint"
-        run: "yarn run deploy-"${{ env.deploy-type }}" --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}"
+        run: yarn run deploy-"${{ env.deploy-type }}" --access-token ${{ secrets.GRAPH_ACCESS_TOKEN }}
         working-directory: ${{ env.subgraph-working-directory }}

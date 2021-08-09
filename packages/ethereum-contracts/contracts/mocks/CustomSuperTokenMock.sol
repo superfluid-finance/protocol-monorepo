@@ -6,11 +6,10 @@ import {
     ISuperToken
 }
 from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
-
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 
-abstract contract CustomSuperTokenBaseMock is CustomSuperTokenProxyBase {
+abstract contract CustomSuperTokenBaseMock is CustomSuperTokenProxyBase, UUPSProxy {
     function getFirstCustomTokenStorageSlot() external pure virtual returns (uint slot);
 
     function callSelfBurn(

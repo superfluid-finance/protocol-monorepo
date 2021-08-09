@@ -4,7 +4,6 @@ pragma solidity >= 0.7.0;
 import {
     ISuperToken
 } from "../../interfaces/superfluid/ISuperToken.sol";
-import { UUPSProxy } from "../../upgradability/UUPSProxy.sol";
 
 
 /**
@@ -17,7 +16,7 @@ import { UUPSProxy } from "../../upgradability/UUPSProxy.sol";
  *   with reserved storages used by the Super Token implementation.
  * - Refer to SETH.sol for an example how it is used.
  */
-abstract contract CustomSuperTokenProxyBase is UUPSProxy {
+abstract contract CustomSuperTokenProxyBase {
     // This is the hard-coded number of storage slots used by the super token
     uint256[32] internal _storagePaddings;
 }

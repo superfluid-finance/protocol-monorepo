@@ -13,7 +13,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.3
+          apiVersion: 0.0.4
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
@@ -24,6 +24,9 @@ dataSources:
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+            # TODO: remove here ISuperfluid once the cfaAddres issue is resolved
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
@@ -33,7 +36,7 @@ dataSources:
     #   name: Host
     #   network: {{ network }}
     #   source:
-    #       abi: Superfluid
+    #       abi: ISuperfluid
     #       address: "{{ hostAddress }}"
     #       startBlock: {{ hostStartBlock }}
     #   mapping:
@@ -41,14 +44,14 @@ dataSources:
     #       apiVersion: 0.0.3
     #       language: wasm/assemblyscript
     #       file: ./src/mappings/host.ts
-    #       entities:
-    #           - Transaction
-    #           - Account
-    #           - Transfer
-    #       abis:
-    #           - name: ISuperfluid
-    #             file: ./abis/Superfluid.json
-    #       eventHandlers:
+          # entities:
+          #     - Transaction
+          #     - Account
+          #     - Transfer
+          # abis:
+          #     - name: ISuperfluid
+          #       file: ./abis/Superfluid.json
+          # eventHandlers:
 
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1
@@ -59,12 +62,13 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.3
+          apiVersion: 0.0.4
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
               - Transaction
               - Account
+              - AccountWithToken
               - Transfer
               - Token
           abis:
@@ -83,12 +87,13 @@ templates:
       abi: ISuperToken
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.1
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
         - Token
         - SuperToken
+        - AccountWithToken
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
@@ -97,3 +102,5 @@ templates:
           handler: handleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)
           handler: handleTokenDowngraded
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer

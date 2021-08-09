@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, react-ts-sdk]
         install: [locked-install, clean-install]
         node-version: [14.x]
 
@@ -59,7 +59,7 @@ jobs:
         run: |
           if [ -f "scripts/deploy.js" ];then
             export RELEASE_VERSION=test
-            export GANACHE_PORT=$(( 38555 + $RANDOM % 10000 ))
+            export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
             echo "Ganache port: $GANACHE_PORT"
             npx ganache-cli --port $GANACHE_PORT &
             ganache_pid=$!
@@ -76,9 +76,11 @@ jobs:
         run: |
           if [ -f "ui/package.json" ];then
             cd ui
+            rm -rf ../node_modules # do not let parent node_modules affect ui project
             [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
             yarn install --frozen-lockfile
             yarn build
+            yarn test
           fi
 
   build-examples-done:

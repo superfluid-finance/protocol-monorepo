@@ -116,6 +116,9 @@ dataSources:
             handler: handleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
+        callHandlers:
+          - function: claim(address,address,uint32,address,bytes)
+            handler: handleClaim
 templates:
   - name: SuperToken
     kind: ethereum/contract

@@ -1,5 +1,7 @@
 import { BigInt, Bytes, log } from "@graphprotocol/graph-ts"
+
 import {
+    IInstantDistributionAgreementV1,
     IndexCreated,
     IndexUpdated,
     IndexSubscribed,
@@ -7,7 +9,7 @@ import {
     IndexUnsubscribed,
     SubscriptionRevoked,
     IndexUnitsUpdated,
-    SubscriptionUnitsUpdated } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
+    SubscriptionUnitsUpdated,ClaimCall } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
 import { indexUpdate,indexUnitUpdate,indexUnsubscribed,subscriptionApproved,subscriptionRevoked,subscriptionUnitsUpdated, indexSubscribed, Subscriber } from "../../generated/schema"
 import {createEventID, logTransaction,removeSubscription,fetchIndex,fetchSubscriber} from '../utils'
 
@@ -177,4 +179,11 @@ export function handleSubscriptionUnitsUpdated(event:SubscriptionUnitsUpdated): 
     ind.transaction = logTransaction(event).id;
     ind.units = event.params.units;
     ind.save();
+}
+
+export function handleClaim(call:ClaimCall):void{
+    let contract = IInstantDistributionAgreementV1.bind(call.transaction.from)
+    
+    let sub = contract.getSubscription(call.inputs.token,call.inputs.publisher,call.inputs.indexId,call.inputs.subscriber)
+    
 }

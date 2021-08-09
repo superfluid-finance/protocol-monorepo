@@ -3,10 +3,11 @@ pragma solidity 0.7.6;
 
 import {
     ISuperToken,
-    CustomSuperTokenProxyBase
+    CustomSuperTokenBase
 }
-from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
+from "../interfaces/superfluid/CustomSuperTokenBase.sol";
 import { INativeSuperTokenCustom } from "../interfaces/tokens/INativeSuperToken.sol";
+import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
@@ -18,7 +19,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  *
  * @author Superfluid
  */
-contract NativeSuperTokenProxy is INativeSuperTokenCustom, CustomSuperTokenProxyBase {
+contract NativeSuperTokenProxy is INativeSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
     function initialize(string calldata name, string calldata symbol, uint256 initialSupply)
         external override
     {

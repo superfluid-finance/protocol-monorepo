@@ -2,15 +2,14 @@
 pragma solidity 0.7.6;
 
 import {
-    CustomSuperTokenProxyBase,
+    CustomSuperTokenBase,
     ISuperToken
 }
-from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
-
+from "../interfaces/superfluid/CustomSuperTokenBase.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 
-abstract contract CustomSuperTokenBaseMock is CustomSuperTokenProxyBase {
+abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
     function getFirstCustomTokenStorageSlot() external pure virtual returns (uint slot);
 
     function callSelfBurn(

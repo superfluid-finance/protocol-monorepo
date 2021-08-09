@@ -3,9 +3,9 @@ pragma solidity 0.7.6;
 
 import {
     ISuperToken,
-    CustomSuperTokenProxyBase
+    CustomSuperTokenBase
 }
-from "../interfaces/superfluid/CustomSuperTokenProxyBase.sol";
+from "../interfaces/superfluid/CustomSuperTokenBase.sol";
 import { ISETHCustom } from "../interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -43,7 +43,7 @@ contract SETHReceiveLogic {
  *
  * @author Superfluid
  */
-contract SETHProxy is ISETHCustom, CustomSuperTokenProxyBase, UUPSProxy {
+contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
 
     IWETH immutable private _weth;
     SETHReceiveLogic private _receiveLogic;

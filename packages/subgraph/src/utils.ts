@@ -135,5 +135,13 @@ export function fetchSubscriber(subscriber:Bytes,publisher:Bytes,token:Bytes,ind
 }
 
 export function removeSubscription(subscribers: Bytes[],sub:Bytes): Bytes[] {
-    return subscribers = subscribers.filter(item => item !== sub);
+    let temp:Bytes[]=[]
+    var ss =sub.toHexString()
+    for (let index = 0; index < subscribers.length; index++) {
+        let element = subscribers[index].toHexString();
+        if(ss!=element){
+            temp.push(subscribers[index])
+        }
+    }
+    return temp;
 }

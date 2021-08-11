@@ -36,11 +36,10 @@ export function handleIndexSubscribed(event:IndexSubscribed): void{
     // Adding the active subscriber to the index
     if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes))
     {
-        let activeSubscribers = entity.activeSubscribers;
-        let newSubscriber = event.params.subscriber as Bytes
+        var activeSubscribers = entity.activeSubscribers;
+        var newSubscriber = event.params.subscriber as Bytes
         activeSubscribers.push(newSubscriber);
         entity.activeSubscribers = activeSubscribers;
-        entity.save();
     }
     entity.save();
 }
@@ -59,11 +58,10 @@ export function handleIndexUnitsUpdated(event:IndexUnitsUpdated): void{
     // Adding the active subscriber to the index
     if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes)&&event.params.units>new BigInt(0))//We are also comparing to greater than zero as this function is called when revoke happens
     {
-        let activeSubscribers = entity.activeSubscribers;
-        let newSubscriber = event.params.subscriber as Bytes
+        var activeSubscribers = entity.activeSubscribers;
+        var newSubscriber = event.params.subscriber as Bytes
         activeSubscribers.push(newSubscriber);
         entity.activeSubscribers = activeSubscribers;
-        entity.save();
     }
     entity.save();
 }
@@ -75,7 +73,7 @@ export function handleIndexUnsubscribed(event:IndexUnsubscribed): void{
     ind.subscriber = event.params.subscriber;
     ind.userData = event.params.userData;
     ind.save();
-
+    log.log(log.Level.INFO,"Inside index unsubscribed")
     let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     entity.activeSubscribers = removeSubscription(entity.activeSubscribers as Bytes[],event.params.subscriber);
     entity.save();
@@ -114,7 +112,7 @@ export function handleIndexUpdated(event:IndexUpdated): void{
         if(entity.activeSubscribers.length>0){
             
             for (let index = 0; index < entity.activeSubscribers.length; index++) {
-                const elements = entity.activeSubscribers as Bytes[];
+                let elements = entity.activeSubscribers as Bytes[];
                 let element = elements[index] as Bytes;
                 let element2 = fetchSubscriber(element,event.params.publisher,event.params.token,event.params.indexId) as Subscriber;
                 if (element2!=null)
@@ -179,11 +177,4 @@ export function handleSubscriptionUnitsUpdated(event:SubscriptionUnitsUpdated): 
     ind.transaction = logTransaction(event).id;
     ind.units = event.params.units;
     ind.save();
-}
-
-export function handleClaim(call:ClaimCall):void{
-    let contract = IInstantDistributionAgreementV1.bind(call.transaction.from)
-    
-    let sub = contract.getSubscription(call.inputs.token,call.inputs.publisher,call.inputs.indexId,call.inputs.subscriber)
-    
 }

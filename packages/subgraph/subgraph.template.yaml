@@ -79,6 +79,47 @@ dataSources:
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated
+    - kind: ethereum/contract
+      name: IInstantDistributionAgreementV1
+      network: {{ network }}
+      source:
+        address: "{{ idaAddress }}"
+        abi: IInstantDistributionAgreementV1
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.3
+        language: wasm/assemblyscript
+        file: ./src/mappings/idav1.ts
+        entities:
+          - IndexCreated
+          - IndexSubscribed
+          - IndexUnitsUpdated
+          - IndexUnsubscribed
+          - IndexUpdated
+          - SubscriptionApproved
+          - SubscriptionRevoked
+          - SubscriptionUnitsUpdated
+        abis:
+          - name: IInstantDistributionAgreementV1
+            file: ./abis/IInstantDistributionAgreementV1.json
+        eventHandlers:
+          - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
+            handler: handleIndexCreated
+          - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
+            handler: handleIndexSubscribed
+          - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
+            handler: handleIndexUnitsUpdated
+          - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
+            handler: handleIndexUnsubscribed
+          - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
+            handler: handleIndexUpdated
+          - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
+            handler: handleSubscriptionApproved
+          - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
+            handler: handleSubscriptionRevoked
+          - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
+            handler: handleSubscriptionUnitsUpdated
 templates:
   - name: SuperToken
     kind: ethereum/contract

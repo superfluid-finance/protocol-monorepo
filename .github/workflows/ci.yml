@@ -133,6 +133,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    if: always()
     needs: [test-ethereum-contracts, test-js-sdk, test-subgraph]
 
     steps:

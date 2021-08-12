@@ -15,6 +15,7 @@
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
+        "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
         "deploy-all": "run-s deploy:*",
         "deploy:xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-xdai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
         "deploy:matic": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-matic --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",

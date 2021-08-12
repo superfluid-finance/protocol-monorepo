@@ -1,4 +1,7 @@
 <h1 align="center">Welcome to superfluid protocol-monorepo 👋</h1>
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 <p>
   <a href="#superfluid-financeethereum-contracts" target="_blank">
     <img alt="npm" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts?label=ethereum-contracts">
@@ -67,3 +70,28 @@ See [examples/](examples/) for some Superfluid app examples.
 ## Contributing
 
 Contributions, issues, and feature suggestions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+
+## Contributors ✨
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://www.joshua-trujillo.com/"><img src="https://avatars.githubusercontent.com/u/41972979?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Joshua Trujillo</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=JoshuaTrujillo15" title="Code">💻</a></td>
+    <td align="center"><a href="https://manavdarji.notelet.so/"><img src="https://avatars.githubusercontent.com/u/36959497?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Manav Darji</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=manav2401" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Drewsapple"><img src="https://avatars.githubusercontent.com/u/4532572?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Drew Fisher</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=Drewsapple" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/d10r"><img src="https://avatars.githubusercontent.com/u/5479136?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Didi</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=d10r" title="Code">💻</a></td>
+    <td align="center"><a href="http://medium.com/@samparsky"><img src="https://avatars.githubusercontent.com/u/8148384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Omidiora Samuel</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=samparsky" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/iamsahu"><img src="https://avatars.githubusercontent.com/u/46891804?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Prafful</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=iamsahu" title="Code">💻</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

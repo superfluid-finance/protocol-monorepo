@@ -13,6 +13,7 @@ type Account @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
+    accountWithToken: [AccountWithToken!]! @derivedFrom(field: "account")
     flowsOwned: [Flow!]! @derivedFrom(field: "owner")
     flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
     upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "account")
@@ -27,9 +28,22 @@ type Token @entity {
     underlyingAddress: Bytes! # Underlying ERC20
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
+    accountWithToken: [AccountWithToken!]! @derivedFrom(field: "token")
     flows: [Flow!]! @derivedFrom(field: "token")
     upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "token")
     downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "token")
+}
+
+type AccountWithToken @entity {
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    balance: BigDecimal!
+    # ---------------------------------- links ----------------------------------
+    # TODO: Move all events here, instead of Account entity
+    transferEventsReceived: [TokenTransfer!]! @derivedFrom(field: "to")
+    transferEventsSent: [TokenTransfer!]! @derivedFrom(field: "from")
+    account: Account!
+    token: Token!
 }
 
 type Flow @entity {
@@ -186,4 +200,13 @@ type subscriptionUnitsUpdated implements Event @entity {
     userData: Bytes
     units: BigInt
     transaction: Transaction!
+}
+
+type TokenTransfer implements Event @entity {
+    id: ID!
+    transaction: Transaction!
+    from: AccountWithToken!
+    to: AccountWithToken!
+    value: BigInt!
+    token: Token!
 }

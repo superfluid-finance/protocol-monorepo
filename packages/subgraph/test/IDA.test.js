@@ -2,14 +2,11 @@ const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
-const traveler = require("ganache-time-traveler");
-
 const chai = require("chai");
 const fetch = require("node-fetch");
 const chaiAsPromised = require("chai-as-promised");
 chai.use(chaiAsPromised);
 
-const TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
 const INIT_BALANCE = toWad(100);
 
 contract("IInstantDistributionAgreementV1", (accounts) => {
@@ -56,15 +53,6 @@ contract("IInstantDistributionAgreementV1", (accounts) => {
         bob = sf.user({ address: bobAddress, token: daix.address });
         carol = sf.user({ address: carolAddress, token: daix.address });
     });
-
-    async function _timeTravelOnce(time = TEST_TRAVEL_TIME) {
-        const block1 = await web3.eth.getBlock("latest");
-        console.log("current block time", block1.timestamp);
-        console.log(`time traveler going to the future +${time}...`);
-        await traveler.advanceTimeAndBlock(time);
-        const block2 = await web3.eth.getBlock("latest");
-        console.log("new block time", block2.timestamp);
-    }
 
     describe("IDAs", () => {
         it("IDA with 1 member, not subscribed (showing unclaimed tokens)", async () => {
@@ -428,7 +416,8 @@ contract("IInstantDistributionAgreementV1", (accounts) => {
             // });
             // assert.equal(sub["approved"], true);
         });
-        it("IDA with multiple members, partial subscribed. Followed by a claim for the unsubscribed members", async () => {
+
+        it("IDA with multiple members, partial subscribe and a claim", async () => {
             await alice.createPool({ poolId: 6 });
             await alice.giveShares({ poolId: 6, recipient: bob, shares: 50 });
             await alice.giveShares({ poolId: 6, recipient: carol, shares: 50 });

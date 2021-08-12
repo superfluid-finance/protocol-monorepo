@@ -6,6 +6,7 @@ const contracts = [
     "ISuperTokenFactory",
     "ISuperToken",
     "ISuperfluid",
+    "IInstantDistributionAgreementV1",
 ];
 
 const directoryPath = path.join(
@@ -13,7 +14,7 @@ const directoryPath = path.join(
     "../../ethereum-contracts/build/contracts"
 );
 
-fs.mkdir("abis/", err => {
+fs.mkdir("abis/", (err) => {
     if (err) return; //console.error(err);
     console.log("abis/ directory created");
 });
@@ -21,12 +22,12 @@ fs.mkdir("abis/", err => {
 fs.readdir(directoryPath, (err, files) => {
     if (err) return console.log(err);
     console.log("Fetched ABIs for the following contracts:");
-    files.forEach(fileName => {
+    files.forEach((fileName) => {
         const contractName = fileName.split(".")[0];
         if (!contracts.includes(contractName)) return;
         const data = require(path.join(directoryPath, fileName));
         const abi = data.abi;
-        fs.writeFile(`abis/${fileName}`, JSON.stringify(abi), err => {
+        fs.writeFile(`abis/${fileName}`, JSON.stringify(abi), (err) => {
             if (err) throw err;
             console.log(`- ${contractName}`);
         });

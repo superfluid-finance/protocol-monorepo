@@ -124,9 +124,9 @@ jobs:
       - name: Install, lint and build
         run: |
           yarn install --frozen-lockfilepull_request
-          cd packages/subgraph
           yarn lint
           yarn build
+          # yarn workspace @superfluid-finance/subgraph build
 
   all-packages-tested:
     name: All packages tested (Feature Branch)
@@ -138,4 +138,16 @@ jobs:
 
     steps:
       - name: Test Results
-        run: echo "All packages tested (or skipped)."
+        run: |
+          if [ ! -z "${{ needs.check.outputs.build_ethereum_contracts }}" ];then
+            Check if ethereum-contracts package test passes...
+            test [ "${{ needs.test-ethereum-contracts.result }}" != "success" ]
+          fi
+          if [ ! -z "${{ needs.check.outputs.build_js_sdk }}" ];then
+            Check if js-sdk package test passes...
+            test [ "${{ needs.test-js-sdk.result }}" != "success" ]
+          fi
+          if [ ! -z "${{ needs.check.outputs.build_subgraph }}" ];then
+            Check if subgraph package test passes...
+            test [ "${{ needs.test-subgraph.result }}" != "success" ]
+          fi

@@ -55,7 +55,6 @@ type Subscriber @entity {
     # ---------------------------------- state ----------------------------------
     approved: Boolean
     units: BigInt
-    revoked: Boolean
     totalReceived: BigInt
     totalPendingApproval: BigInt
     # ---------------------------------- links ----------------------------------
@@ -81,7 +80,6 @@ type Index @entity {
     totalUnitsApproved: BigInt
     totalUnits: BigInt
     totalDistribution: BigInt
-    activeSubscribers: [Bytes!]
     # ---------------------------------- links ----------------------------------
     subscribers: [Subscriber!]! @derivedFrom(field: "index")
     indexUpdate: [indexUpdate!]! @derivedFrom(field: "index")

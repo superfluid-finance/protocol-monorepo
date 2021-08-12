@@ -1,7 +1,7 @@
 import { BigInt, Bytes, log } from "@graphprotocol/graph-ts"
 
 import {
-    IInstantDistributionAgreementV1,
+    
     IndexCreated,
     IndexUpdated,
     IndexSubscribed,
@@ -9,7 +9,7 @@ import {
     IndexUnsubscribed,
     SubscriptionRevoked,
     IndexUnitsUpdated,
-    SubscriptionUnitsUpdated,ClaimCall } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
+    SubscriptionUnitsUpdated, } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
 import { indexUpdate,indexUnitUpdate,indexUnsubscribed,subscriptionApproved,subscriptionRevoked,subscriptionUnitsUpdated, indexSubscribed, Subscriber } from "../../generated/schema"
 import {createEventID, logTransaction,removeSubscription,fetchIndex,fetchSubscriber} from '../utils'
 
@@ -32,16 +32,16 @@ export function handleIndexSubscribed(event:IndexSubscribed): void{
     ind.transaction = logTransaction(event).id;
     ind.save()
 
-    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
+    // let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     // Adding the active subscriber to the index
-    if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes))
-    {
-        var activeSubscribers = entity.activeSubscribers;
-        var newSubscriber = event.params.subscriber as Bytes
-        activeSubscribers.push(newSubscriber);
-        entity.activeSubscribers = activeSubscribers;
-    }
-    entity.save();
+    // if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes))
+    // {
+    //     var activeSubscribers = entity.activeSubscribers;
+    //     var newSubscriber = event.params.subscriber as Bytes
+    //     activeSubscribers.push(newSubscriber);
+    //     entity.activeSubscribers = activeSubscribers;
+    // }
+    // entity.save();
 }
 
 export function handleIndexUnitsUpdated(event:IndexUnitsUpdated): void{
@@ -54,16 +54,16 @@ export function handleIndexUnitsUpdated(event:IndexUnitsUpdated): void{
     ind.transaction = logTransaction(event).id;
     ind.save()
 
-    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
+    // let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
     // Adding the active subscriber to the index
-    if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes)&&event.params.units>new BigInt(0))//We are also comparing to greater than zero as this function is called when revoke happens
-    {
-        var activeSubscribers = entity.activeSubscribers;
-        var newSubscriber = event.params.subscriber as Bytes
-        activeSubscribers.push(newSubscriber);
-        entity.activeSubscribers = activeSubscribers;
-    }
-    entity.save();
+    // if(!entity.activeSubscribers.includes(event.params.subscriber as Bytes)&&event.params.units>new BigInt(0))//We are also comparing to greater than zero as this function is called when revoke happens
+    // {
+    //     var activeSubscribers = entity.activeSubscribers;
+    //     var newSubscriber = event.params.subscriber as Bytes
+    //     activeSubscribers.push(newSubscriber);
+    //     entity.activeSubscribers = activeSubscribers;
+    // }
+    // entity.save();
 }
 
 export function handleIndexUnsubscribed(event:IndexUnsubscribed): void{
@@ -73,10 +73,10 @@ export function handleIndexUnsubscribed(event:IndexUnsubscribed): void{
     ind.subscriber = event.params.subscriber;
     ind.userData = event.params.userData;
     ind.save();
-    log.log(log.Level.INFO,"Inside index unsubscribed")
-    let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
-    entity.activeSubscribers = removeSubscription(entity.activeSubscribers as Bytes[],event.params.subscriber);
-    entity.save();
+    
+    // let entity = fetchIndex(event.params.publisher,event.params.token,event.params.indexId);
+    // entity.activeSubscribers = removeSubscription(entity.activeSubscribers as Bytes[],event.params.subscriber);
+    // entity.save();
 }
 
 export function handleIndexUpdated(event:IndexUpdated): void{
@@ -103,37 +103,33 @@ export function handleIndexUpdated(event:IndexUpdated): void{
     entity.save()
 
     // Code for calculating distribution for each subscriber.
-    if(!entity.totalUnits.equals(new BigInt(0))&&!entity.totalUnits.equals(null))
-    {
-        let l = entity.activeSubscribers.length;
-
-        var perUnit = thisDistribution.div(entity.totalUnits as BigInt) as BigInt;//Divide by zero handling
-
-        if(entity.activeSubscribers.length>0){
-            
-            for (let index = 0; index < entity.activeSubscribers.length; index++) {
-                let elements = entity.activeSubscribers as Bytes[];
-                let element = elements[index] as Bytes;
-                let element2 = fetchSubscriber(element,event.params.publisher,event.params.token,event.params.indexId) as Subscriber;
-                if (element2!=null)
-                {
-                    if(element2.approved){
-                        let totalReceived = element2.totalReceived;
-                        let tots = perUnit.times(element2.units as BigInt)
-                        totalReceived = totalReceived.plus(tots)
-                        element2.totalReceived = totalReceived;
-                    }else{
-                        let totalPendingApproval = element2.totalPendingApproval;
-                        let tots = perUnit.times(element2.units as BigInt)
-                        totalPendingApproval = totalPendingApproval.plus(tots)
-                        element2.totalPendingApproval = totalPendingApproval;
-                    }
-                    
-                    element2.save()
-                }
-            }
-        }
-    }
+    // if(!entity.totalUnits.equals(new BigInt(0))&&!entity.totalUnits.equals(null))
+    // {
+    //     let l = entity.activeSubscribers.length;
+    //     var perUnit = thisDistribution.div(entity.totalUnits as BigInt) as BigInt;//Divide by zero handling
+    //     if(entity.activeSubscribers.length>0){
+    //         for (let index = 0; index < entity.activeSubscribers.length; index++) {
+    //             let elements = entity.activeSubscribers as Bytes[];
+    //             let element = elements[index] as Bytes;
+    //             let element2 = fetchSubscriber(element,event.params.publisher,event.params.token,event.params.indexId) as Subscriber;
+    //             if (element2!=null)
+    //             {
+    //                 if(element2.approved){
+    //                     let totalReceived = element2.totalReceived;
+    //                     let tots = perUnit.times(element2.units as BigInt)
+    //                     totalReceived = totalReceived.plus(tots)
+    //                     element2.totalReceived = totalReceived;
+    //                 }else{
+    //                     let totalPendingApproval = element2.totalPendingApproval;
+    //                     let tots = perUnit.times(element2.units as BigInt)
+    //                     totalPendingApproval = totalPendingApproval.plus(tots)
+    //                     element2.totalPendingApproval = totalPendingApproval;
+    //                 }
+    //                 element2.save()
+    //             }
+    //         }
+    //     }
+    // }
 }
 
 export function handleSubscriptionApproved(event:SubscriptionApproved): void{
@@ -154,8 +150,8 @@ export function handleSubscriptionApproved(event:SubscriptionApproved): void{
 
 export function handleSubscriptionRevoked(event:SubscriptionRevoked): void{
     let entity = fetchSubscriber(event.params.subscriber,event.params.publisher,event.params.token,event.params.indexId);
-    entity.userData =event.params.userData
-    entity.revoked = true
+    entity.userData =event.params.userData;
+    entity.approved=false;
     entity.save()
 
     let ind = new subscriptionRevoked(createEventID(event));

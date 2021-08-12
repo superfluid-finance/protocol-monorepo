@@ -107,7 +107,6 @@ export function fetchIndex(publisher:Bytes,token:Bytes,indexId:BigInt):Index{
     let entity = Index.load(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
     if(entity==null){
         entity = new Index(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
-        entity.activeSubscribers = [];
         entity.totalDistribution = new BigInt(0);
         entity.totalUnits = new BigInt(0);
         entity.totalUnitsApproved = new BigInt(0);
@@ -125,7 +124,6 @@ export function fetchSubscriber(subscriber:Bytes,publisher:Bytes,token:Bytes,ind
         entity.token = token;
         entity.indexId = indexId;
         entity.approved = false;
-        entity.revoked = false;
         entity.totalReceived = new BigInt(0);
         entity.totalPendingApproval =new BigInt(0); 
         entity.units = new BigInt(0);

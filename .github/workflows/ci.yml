@@ -141,13 +141,13 @@ jobs:
         run: |
           if [ ! -z "${{ needs.check.outputs.build_ethereum_contracts }}" ];then
             echo "Check if ethereum-contracts package test passes..."
-            test [ "${{ needs.test-ethereum-contracts.result }}" == "success" ]
+            test "${{ needs.test-ethereum-contracts.result }}" == "success"
           fi
           if [ ! -z "${{ needs.check.outputs.build_js_sdk }}" ];then
             echo "Check if js-sdk package test passes..."
-            test [ "${{ needs.test-js-sdk.result }}" == "success" ]
+            test "${{ needs.test-js-sdk.result }}" == "success"
           fi
           if [ ! -z "${{ needs.check.outputs.build_subgraph }}" ];then
             echo "Check if subgraph package test passes..."
-            test [ "${{ needs.test-subgraph.result }}" == "success" ]
+            test "${{ needs.test-subgraph.result }}" == "success"
           fi

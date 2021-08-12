@@ -124,6 +124,7 @@ jobs:
       - name: Install, lint and build
         run: |
           yarn install --frozen-lockfilepull_request
+          cd packages/subgraph
           yarn lint
           yarn build
 

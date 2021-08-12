@@ -19,14 +19,15 @@ import {
     Token,
     Transaction,
     AccountWithToken,
+    Subscriber,
+    Index
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
 import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
 
-import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import { Account, Flow, Token, Transaction,Index,Subscriber  } from "../generated/schema";
-import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+
+
 import { SubscriptionApproved} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
 
 export function createEventID(event: ethereum.Event): string {
@@ -142,6 +143,7 @@ export function updateBalance(accountId: string, tokenId: string): void {
     accountWithToken.balance = newBalance.toBigDecimal();
     accountWithToken.save();
     return;
+}
 //IDA
 
 export function createSubscriptionID(event: SubscriptionApproved): string {

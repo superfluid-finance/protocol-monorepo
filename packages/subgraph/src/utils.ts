@@ -24,7 +24,6 @@ import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISu
 import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
 import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
 
-
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { Account, Flow, Token, Transaction,Index,Subscriber  } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";

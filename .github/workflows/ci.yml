@@ -42,7 +42,7 @@ jobs:
 
     needs: [check]
 
-    if: needs.outputs.check.build_ethereum_contracts
+    if: needs.check.outputs.build_ethereum_contracts
 
     strategy:
       matrix:
@@ -76,7 +76,7 @@ jobs:
 
     needs: [check]
 
-    if: needs.outputs.check.build_js_sdk
+    if: needs.check.outputs.build_js_sdk
 
     strategy:
       matrix:
@@ -107,7 +107,7 @@ jobs:
 
     needs: [check]
 
-    if: needs.outputs.check.build_subgraph
+    if: needs.check.outputs.build_subgraph
 
     strategy:
       matrix:

@@ -18,7 +18,7 @@ jobs:
       build_subgraph: ${{ env.BUILD_SUBGRAH }}
 
     # triggered by internal pushes or external PRs
-    if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo' }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
 
     steps:
       - name: Show contexts
@@ -133,7 +133,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: always()
+    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
     needs: [check, test-ethereum-contracts, test-js-sdk, test-subgraph]
 
     steps:

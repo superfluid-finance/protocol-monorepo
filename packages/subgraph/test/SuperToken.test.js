@@ -8,7 +8,7 @@ chai.use(chaiAsPromised);
 
 const INIT_BALANCE = toWad(100);
 
-contract("ConstantFlowAgreementV1", accounts => {
+contract("ConstantFlowAgreementV1", (accounts) => {
     const [aliceAddress, bobAddress, carolAddress] = accounts;
 
     let sf;
@@ -18,7 +18,7 @@ contract("ConstantFlowAgreementV1", accounts => {
     // let bob;
     // let carol;
 
-    before(async function() {
+    before(async function () {
         sf = new SuperfluidSDK.Framework({
             web3,
             version: "test",
@@ -36,10 +36,11 @@ contract("ConstantFlowAgreementV1", accounts => {
                     INIT_BALANCE,
                     { from: account }
                 );
-                await web3tx(
-                    dai.approve,
-                    `Account ${i} approves daix`
-                )(daix.address, toWad(100), { from: account });
+                await web3tx(dai.approve, `Account ${i} approves daix`)(
+                    daix.address,
+                    toWad(100),
+                    { from: account }
+                );
             })
         );
 

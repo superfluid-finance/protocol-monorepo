@@ -1,6 +1,5 @@
 {
-    "name": "superfluid-subgraph",
-    "private": true,
+    "name": "@superfluid-finance/subgraph",
     "version": "0.0.1",
     "description": "Subgraph for the Superfluid Ethereum contracts",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
@@ -25,7 +24,6 @@
         "deploy:kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-kovan --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
         "deploy:mumbai": "mustache config/mumbai.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-mumbai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
         "lint": "run-s lint:*",
-        "lint:js-prettier": "prettier --check  **/*.js && echo '✔  Your .js files look pretty.'",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "pre-commit": "true"
     },

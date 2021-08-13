@@ -17,7 +17,10 @@ contract("batchCall helper class", (accounts) => {
     let testToken;
 
     before(async () => {
-        await t.reset();
+        await t.reset(
+            {},
+            { resolverAddress: process.env.TEST_RESOLVER_ADDRESS }
+        );
         sf = t.sf;
         sf.batchCall = (calls) => {
             console.log(batchCall({ agreements: sf.agreements, calls: calls }));

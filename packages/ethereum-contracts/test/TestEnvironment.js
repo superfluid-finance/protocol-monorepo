@@ -62,7 +62,7 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     /// reset the system
-    async reset(deployOpts = {}) {
+    async reset(deployOpts = {}, frameworkOpts = {}) {
         console.log("Aliases", this.aliases);
 
         // deploy framework
@@ -80,6 +80,7 @@ module.exports = class TestEnvironment {
             gasReportType: this.gasReportType,
             isTruffle: this.isTruffle,
             version: process.env.RELEASE_VERSION || "test",
+            ...frameworkOpts,
         });
         await this.sf.initialize();
 

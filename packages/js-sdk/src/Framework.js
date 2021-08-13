@@ -104,6 +104,7 @@ module.exports = class Framework {
             networkId: networkId,
         });
 
+        /** @dev resolverAddress cannot be undefined after this point. */
         const resolverAddress =
             this._options.resolverAddress || this.config.resolverAddress;
         console.debug("Resolver at", resolverAddress);

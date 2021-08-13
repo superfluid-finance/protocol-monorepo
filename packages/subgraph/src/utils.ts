@@ -19,10 +19,16 @@ import {
     Token,
     Transaction,
     AccountWithToken,
+    Subscriber,
+    Index
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
 import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
+
+
+
+import { SubscriptionApproved} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
 
 export function createEventID(event: ethereum.Event): string {
     return event.block.number
@@ -137,4 +143,50 @@ export function updateBalance(accountId: string, tokenId: string): void {
     accountWithToken.balance = newBalance.toBigDecimal();
     accountWithToken.save();
     return;
+}
+//IDA
+
+export function createSubscriptionID(event: SubscriptionApproved): string {
+    return event.params.subscriber.toHexString()+event.params.publisher.toHexString()+event.params.indexId.toHexString()+event.params.token.toHexString()
+}
+
+export function fetchIndex(publisher:Bytes,token:Bytes,indexId:BigInt):Index{
+    let entity = Index.load(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
+    if(entity==null){
+        entity = new Index(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
+        entity.totalDistribution = new BigInt(0);
+        entity.totalUnits = new BigInt(0);
+        entity.totalUnitsApproved = new BigInt(0);
+        entity.totalUnitsPending = new BigInt(0);
+    }
+    return entity as Index;
+}
+
+export function fetchSubscriber(subscriber:Bytes,publisher:Bytes,token:Bytes,indexId:BigInt):Subscriber{
+    let entity = Subscriber.load(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
+    if(entity==null){
+        entity = new Subscriber(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
+        entity.subscriber = subscriber;
+        entity.publisher=  publisher;
+        entity.token = token;
+        entity.indexId = indexId;
+        entity.approved = false;
+        entity.totalReceived = new BigInt(0);
+        entity.totalPendingApproval =new BigInt(0); 
+        entity.units = new BigInt(0);
+        entity.index = fetchIndex(publisher,token,indexId).id;
+    }
+    return entity as Subscriber;
+}
+
+export function removeSubscription(subscribers: Bytes[],sub:Bytes): Bytes[] {
+    let temp:Bytes[]=[]
+    var ss =sub.toHexString()
+    for (let index = 0; index < subscribers.length; index++) {
+        let element = subscribers[index].toHexString();
+        if(ss!=element){
+            temp.push(subscribers[index])
+        }
+    }
+    return temp;
 }

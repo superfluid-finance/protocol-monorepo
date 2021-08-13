@@ -3,6 +3,8 @@ name: Build Examples
 on:
   push:
     branches-ignore: ["master", "dev"]
+    paths:
+      - 'examples/**'
   # after a new release is published
   workflow_run:
     workflows: ["Publish Release Package"]

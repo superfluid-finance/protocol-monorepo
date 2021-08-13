@@ -134,7 +134,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [check, test-ethereum-contracts, test-js-sdk, test-subgraph]
+    needs: [test-ethereum-contracts, test-js-sdk, test-subgraph]
 
     steps:
       - name: Test Results
@@ -150,6 +150,6 @@ jobs:
               echo "Passed."
             fi
           }
-          check_result "ethereum-contracts" ${{ needs.test-ethereum-contracts.result }}
-          check_result "js_sdk" ${{ needs.test-js_sdk.result }})
-          check_result "subgraph" ${{ needs.test-subgraph.result }})
+          check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
+          check_result js_sdk ${{ needs.test-js_sdk.result }}
+          check_result subgraph ${{ needs.test-subgraph.result }}

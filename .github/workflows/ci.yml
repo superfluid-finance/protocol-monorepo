@@ -151,5 +151,5 @@ jobs:
             fi
           }
           check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
-          check_result js_sdk ${{ needs.test-js_sdk.result }}
+          check_result js-sdk ${{ needs.test-js-sdk.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}

@@ -28,7 +28,10 @@ contract("User helper class", (accounts) => {
     let carol;
 
     before(async () => {
-        await t.reset();
+        await t.reset(
+            {},
+            { resolverAddress: process.env.TEST_RESOLVER_ADDRESS }
+        );
         sf = t.sf;
     });
 

@@ -36,7 +36,10 @@ contract("User helper class", (accounts) => {
     let carol;
 
     before(async () => {
-        await t.reset();
+        await t.reset(
+            {},
+            { resolverAddress: process.env.TEST_RESOLVER_ADDRESS }
+        );
         sf = new SuperfluidSDK.Framework({
             ethers: new Web3Provider(web3.currentProvider),
             version: "test",

@@ -13,7 +13,10 @@ contract("Framework class", (accounts) => {
     const { admin } = t.aliases;
 
     before(async () => {
-        await t.reset();
+        await t.reset(
+            {},
+            { resolverAddress: process.env.TEST_RESOLVER_ADDRESS }
+        );
         await deployTestToken(t.errorHandler, [":", "fDAI"], {
             isTruffle: true,
         });

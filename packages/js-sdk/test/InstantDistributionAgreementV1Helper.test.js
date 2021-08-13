@@ -9,7 +9,10 @@ contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
     let superToken;
 
     before(async () => {
-        await t.reset();
+        await t.reset(
+            {},
+            { resolverAddress: process.env.TEST_RESOLVER_ADDRESS }
+        );
         sf = t.sf;
     });
 

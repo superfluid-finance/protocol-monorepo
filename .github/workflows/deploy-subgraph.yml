@@ -2,7 +2,9 @@ name: deploy-subgraph
 
 on:
   push:
-    paths: "packages/subgraph/**"
+    paths:
+      - "packages/subgraph/**"
+      - .github/workflows/deploy-subgraph.yml
 
   pull_request:
 

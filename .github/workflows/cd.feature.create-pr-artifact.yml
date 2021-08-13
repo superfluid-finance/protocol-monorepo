@@ -1,10 +1,8 @@
 name: Create PR Artifact
 
 on:
-  workflow_run:
-    workflows: ["CI Feature Branches"]
-    types:
-      - completed
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
 
 jobs:
   create_pr_artifact:

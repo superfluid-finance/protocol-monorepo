@@ -1,17 +1,17 @@
-name: Deploy Subgraph (Feature Branch)
+name: Deploy Subgraph (Canary)
 
 on:
   # manual trigger
   workflow_dispatch:
   # delivery after CI
   workflow_run:
-    workflows: ["CI Feature Branches"]
+    workflows: ["CI Canary"]
     types:
       - completed
 
 jobs:
   deploy-subgraph:
-    name: Deploy Subgraph (Feature Branch)
+    name: Deploy Subgraph (Canary)
 
     runs-on: ubuntu-latest
 
@@ -55,7 +55,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to endpoint"
-        run: "yarn run deploy:feature"
+        run: "yarn run deploy:dev"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THEGRAPH_ACCESS_TOKEN: ${{ secrets.THEGRAPH_ACCESS_TOKEN }}

@@ -139,15 +139,17 @@ jobs:
     steps:
       - name: Test Results
         run: |
-          if [ ! -z "${{ needs.check.outputs.build_ethereum_contracts }}" ];then
-            echo "Check if ethereum-contracts package test passes..."
-            test "${{ needs.test-ethereum-contracts.result }}" == "success"
-          fi
-          if [ ! -z "${{ needs.check.outputs.build_js_sdk }}" ];then
-            echo "Check if js-sdk package test passes..."
-            test "${{ needs.test-js-sdk.result }}" == "success"
-          fi
-          if [ ! -z "${{ needs.check.outputs.build_subgraph }}" ];then
-            echo "Check if subgraph package test passes..."
-            test "${{ needs.test-subgraph.result }}" == "success"
-          fi
+          function check_result() {
+            local package_name="$1"
+            local result="$2"
+            if [ "$result" == "skipped" ];then
+              echo "Skipped $package_name package."
+            else
+              echo "Checking if $package_name package test passes..."
+              test "$result" == "success"
+              echo "Passed."
+            fi
+          }
+          check_result("ethereum-contracts", ${{ needs.test-ethereum-contracts.result }})
+          check_result("js_sdk", ${{ needs.test-js_sdk.result }})
+          check_result("subgraph", ${{ needs.test-subgraph.result }})

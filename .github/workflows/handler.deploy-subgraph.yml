@@ -1,8 +1,12 @@
-name: Deploy Subgraph (Feature Branch)
+name: Deploy Subgraph
 
 on:
-  # manual trigger
   workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Release branch (feature/dev/v1 ...)'
+        required: true
+        default: 'feature'
 
 jobs:
   deploy-subgraph:
@@ -48,7 +52,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to endpoint"
-        run: "yarn run deploy:feature"
+        run: "yarn run deploy:${{ github.event.inputs.release_branch }}"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THEGRAPH_ACCESS_TOKEN: ${{ secrets.THEGRAPH_ACCESS_TOKEN }}

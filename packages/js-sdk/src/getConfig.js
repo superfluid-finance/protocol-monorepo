@@ -85,7 +85,10 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
 
     const configs = { ...DEFAULT_CONFIGS[chainId] };
     // overriding environment variables
-    configs.resolverAddress =
-        process.env.TEST_RESOLVER_ADDRESS || configs.resolverAddress;
+
+    if (process && process.env) {
+        configs.resolverAddress = process.env.TEST_RESOLVER_ADDRESS;
+    }
+
     return configs;
 };

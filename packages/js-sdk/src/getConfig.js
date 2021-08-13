@@ -7,6 +7,14 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
         //
         // ETHEREUM
         //
+        31337: {
+            // for local testing hardhat
+            nativeTokenSymbol: "ETH",
+        },
+        1337: {
+            // for local testing localhost
+            nativeTokenSymbol: "ETH",
+        },
         4447: {
             // for local testing (truffle internal ganache)
             nativeTokenSymbol: "ETH",

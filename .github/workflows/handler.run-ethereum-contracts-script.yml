@@ -1,0 +1,69 @@
+name: Run Ethereum Contracts Script
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Protocol release version (test/master/v1/etc.)'
+        required: true
+        default: 'v1'
+      network:
+        description: 'Network for the script to run on'
+        required: true
+      owner_type:
+        description: 'Choose the owner type: MULTISIG, or default (OWNABLE)'
+        required: true
+      script_name:
+        description: 'Script name'
+        required: true
+      script_args:
+        description: 'Script arguments'
+        required: false
+
+jobs:
+
+  run-ethereum-contracts-script:
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+      ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
+      GOVERNANCE_TYPE: ${{ github.event.inputs.owner_type }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Execute truffle script
+        run: |
+          cd packages/ethereum-contracts
+          npx truffle \
+            --network ${{ github.event.inputs.network }} \
+            exec \
+            ${{ github.event.inputs.script_name }} \
+            ${{ github.event.inputs.script_args }}
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+          GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          RINKEBY_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          RINKEBY_PROVIDER_URL: ${{ secrets.RINKEBY_PROVIDER_URL }}
+          ROPSTEN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          ROPSTEN_PROVIDER_URL: ${{ secrets.ROPSTEN_PROVIDER_URL }}
+          MUMBAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          MUMBAI_PROVIDER_URL: ${{ secrets.MUMBAI_PROVIDER_URL }}
+          KOVAN_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          KOVAN_PROVIDER_URL: ${{ secrets.KOVAN_PROVIDER_URL }}
+          XDAI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          XDAI_PROVIDER_URL: ${{ secrets.XDAI_PROVIDER_URL }}
+          MATIC_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
+          MATIC_PROVIDER_URL: ${{ secrets.MATIC_PROVIDER_URL }}

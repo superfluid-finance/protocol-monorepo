@@ -1,6 +1,5 @@
 {
-    "name": "superfluid-subgraph",
-    "private": true,
+    "name": "@superfluid-finance/subgraph",
     "version": "0.0.1",
     "description": "Subgraph for the Superfluid Ethereum contracts",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
@@ -16,27 +15,41 @@
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
-        "deploy-all": "run-s deploy:*",
-        "deploy:xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-xdai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy:matic": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-matic --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy:goerli": "mustache config/goerli.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-goerli --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy:rinkeby": "mustache config/rinkeby.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-rinkeby --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy:ropsten": "mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-ropsten --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy:kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-kovan --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
-        "deploy:mumbai": "mustache config/mumbai.json subgraph.template.yaml > subgraph.yaml && graph deploy superfluid-finance/superfluid-mumbai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs",
+
+        "deploy": "graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs --access-token $THEGRAPH_ACCESS_TOKEN",
+
+        "deploy:feature": "run-s deploy:feature:*",
+        "prepare:feature:goerli": "mustache config/goerli.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:feature:goerli": "yarn prepare:feature:goerli && SUBGRAPH_NAME=superfluid-finance/protocol-feature-goerli yarn deploy",
+
+        "deploy:dev": "run-s deploy:dev:*",
+        "prepare:dev:goerli": "mustache config/goerli.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:goerli": "yarn prepare:dev:goerli && SUBGRAPH_NAME=superfluid-finance/protocol-dev-goerli yarn deploy",
+        "prepare:dev:rinkeby": "mustache config/rinkeby.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:rinkeby": "yarn prepare:dev:rinkeby && SUBGRAPH_NAME=superfluid-finance/protocol-dev-rinkeby yarn deploy",
+        "prepare:dev:ropsten": "mustache config/ropsten.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:ropsten": "yarn prepare:dev:ropsten && SUBGRAPH_NAME=superfluid-finance/protocol-dev-ropsten yarn deploy",
+        "prepare:dev:kovan": "mustache config/kovan.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:kovan": "yarn prepare:dev:kovan && SUBGRAPH_NAME=superfluid-finance/protocol-dev-kovan yarn deploy",
+        "prepare:dev:mumbai": "mustache config/mumbai.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:mumbai": "yarn prepare:dev:mumbai && SUBGRAPH_NAME=superfluid-finance/protocol-dev-mumbai yarn deploy",
+        "prepare:dev:xdai": "mustache config/xdai.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:xdai": "yarn prepare:dev:xdai && SUBGRAPH_NAME=superfluid-finance/protocol-dev-xdai yarn deploy",
+        "prepare:dev:matic": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml",
+        "deploy:dev:matic": "yarn prepare:dev:matic && SUBGRAPH_NAME=superfluid-finance/protocol-dev-matic yarn deploy",
+
         "lint": "run-s lint:*",
-        "lint:js-prettier": "prettier --check  **/*.js && echo '✔  Your .js files look pretty.'",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "pre-commit": "true"
     },
     "dependencies": {
         "@decentral.ee/web3-helpers": "^0.5.3",
-        "@graphprotocol/graph-cli": "0.18.0",
-        "@graphprotocol/graph-ts": "0.18.0",
+        "@graphprotocol/graph-cli": "0.21.1",
+        "@graphprotocol/graph-ts": "0.20.0",
         "@superfluid-finance/js-sdk": "0.5.2",
-        "ganache-time-traveler": "^1.0.15",
-        "mustache": "^4.0.1",
-        "truffle": "^5.2.3"
+        "ganache-time-traveler": "^1.0.16",
+        "mustache": "^4.2.0",
+        "truffle": "^5.4.5"
     },
     "workspaces": {
         "nohoist": [

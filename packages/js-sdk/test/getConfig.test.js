@@ -10,5 +10,10 @@ contract("SuperfluidSDK JS SDK", () => {
         // defaultConfig
         const defaultConfig = SuperfluidSDK.getConfig(8888);
         assert.isUndefined(defaultConfig.resolverAddress);
+        // test environment
+        process.env.TEST_RESOLVER_ADDRESS = "0x42";
+        const testConfig = SuperfluidSDK.getConfig(5555);
+        assert.equal(testConfig.resolverAddress, "0x42");
+        delete process.env.TEST_RESOLVER_ADDRESS;
     });
 });

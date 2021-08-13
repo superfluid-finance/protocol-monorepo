@@ -1,12 +1,10 @@
-name: deploy-subgraph
+name: Deploy Subgraph (Feature Branch)
 
 on:
-  push:
-    paths:
-      - "packages/subgraph/**"
-      - .github/workflows/deploy-subgraph.yml
-
-  pull_request:
+  workflow_run:
+    workflows: ["CI Feature Branches"]
+    types:
+      - completed
 
 jobs:
   deploy-subgraph:
@@ -24,17 +22,7 @@ jobs:
         uses: "actions/setup-node@v2"
         with:
           cache: yarn
-          node-version: "16"
-
-      - name: "Set deployment type for master/dev push"
-        if: github.event_name == 'push' && github.ref == "dev"
-        run: |
-          echo "deploy-type=dev" >> $GITHUB_ENV
-
-      - name: "Set deployment type for PRs"
-        if: github.event_name == 'pull_request'
-        run: |
-          echo "deploy-type=feature" >> $GITHUB_ENV
+          node-version: "14"
 
       - name: "Install contract dependencies"
         run: yarn
@@ -61,7 +49,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to endpoint"
-        run: "yarn run deploy:${{ env.deploy-type }}"
+        run: "yarn run deploy:feature"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THEGRAPH_ACCESS_TOKEN: ${{ secrets.THEGRAPH_ACCESS_TOKEN }}

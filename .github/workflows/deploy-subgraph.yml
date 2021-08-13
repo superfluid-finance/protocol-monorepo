@@ -9,8 +9,10 @@ on:
   pull_request:
 
 jobs:
-  continuous-deployment:
+  deploy-subgraph:
+
     runs-on: ubuntu-latest
+
     env:
         subgraph-working-directory: ./packages/subgraph
         contracts-working-directory: ./packages/ethereum-contracts
@@ -25,9 +27,9 @@ jobs:
           node-version: "16"
 
       - name: "Set deployment type for master/dev push"
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && github.ref == "dev"
         run: |
-          echo "deploy-type=$(basename ${{ github.ref }})" >> $GITHUB_ENV
+          echo "deploy-type=dev" >> $GITHUB_ENV
 
       - name: "Set deployment type for PRs"
         if: github.event_name == 'pull_request'

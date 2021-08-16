@@ -23,8 +23,7 @@ module.exports = async function (callback, argv) {
         console.log("chain ID: ", chainId);
         const config = getConfig(chainId);
 
-        const tokens = config.testTokens;
-        tokens.push("ETHx");
+        const tokens = config.tokenList;
         const sf = new SuperfluidSDK.Framework({
             version: process.env.RELEASE_VERSION || "test",
             web3,

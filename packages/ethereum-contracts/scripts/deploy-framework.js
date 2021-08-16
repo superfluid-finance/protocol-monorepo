@@ -352,7 +352,7 @@ module.exports = async function (callback, options = {}) {
                 "SlotsBitmapLibrary",
                 lib.address
             );
-            return lib;
+            return lib.address;
         };
         const deployIDAv1 = async () => {
             await deploySlotsBitmapLibrary();

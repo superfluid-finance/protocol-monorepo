@@ -3,5 +3,6 @@
     "hostStartBlock": 0,
     "hostAddress": "0x72D802E9afAb5852B4309236550B0Dac5ebCd301",
     "cfaAddress": "0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416",
-    "superTokenFactoryAddress": "0xB943B512e574E958eD9A5561d79BA453f7427664"
+    "superTokenFactoryAddress": "0xB943B512e574E958eD9A5561d79BA453f7427664",
+    "idaAddress": "0xdb594725203c59F20F9b5fB2D360947523dabd27"
 }

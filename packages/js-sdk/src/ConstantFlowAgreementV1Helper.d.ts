@@ -13,8 +13,7 @@ export type ListFlowsType = Promise<{
   outFlows: Array<Flow>;
 }>;
 
-export = ConstantFlowAgreementV1Helper;
-declare class ConstantFlowAgreementV1Helper {
+export declare class ConstantFlowAgreementV1Helper {
   static _sanitizeflowInfo({
     timestamp,
     flowRate,

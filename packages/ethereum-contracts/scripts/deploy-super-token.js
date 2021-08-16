@@ -75,7 +75,7 @@ module.exports = async function (callback, argv, options = {}) {
 
         let tokenSymbol;
         let tokenAddress;
-        if (web3.utils.isAddress) {
+        if (web3.utils.isAddress(tokenSymbolOrAddress)) {
             tokenAddress = tokenSymbolOrAddress;
             tokenSymbol = await (
                 await ERC20WithTokenInfo.at(tokenAddress)

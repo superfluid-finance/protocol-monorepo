@@ -13,6 +13,7 @@
         "build": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
         "test": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i test;done",
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
+        "show-versions": "lerna ls --long",
         "postinstall": "husky install"
     },
     "devDependencies": {
@@ -38,5 +39,6 @@
             "**/webpack",
             "**/webpack/**"
         ]
-    }
+    },
+    "version": "0.0.0"
 }

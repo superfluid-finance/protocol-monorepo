@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Subgraph for the Superfluid Ethereum contracts",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -15,13 +15,10 @@
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
         "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
-
         "deploy": "graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs --access-token $THEGRAPH_ACCESS_TOKEN",
-
         "deploy:feature": "run-s deploy:feature:*",
         "prepare:feature:goerli": "mustache config/goerli.json subgraph.template.yaml > subgraph.yaml",
         "deploy:feature:goerli": "yarn prepare:feature:goerli && SUBGRAPH_NAME=superfluid-finance/protocol-feature-goerli yarn deploy",
-
         "deploy:dev": "run-s deploy:dev:*",
         "prepare:dev:goerli": "mustache config/goerli.json subgraph.template.yaml > subgraph.yaml",
         "deploy:dev:goerli": "yarn prepare:dev:goerli && SUBGRAPH_NAME=superfluid-finance/protocol-dev-goerli yarn deploy",
@@ -37,7 +34,6 @@
         "deploy:dev:xdai": "yarn prepare:dev:xdai && SUBGRAPH_NAME=superfluid-finance/protocol-dev-xdai yarn deploy",
         "prepare:dev:matic": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml",
         "deploy:dev:matic": "yarn prepare:dev:matic && SUBGRAPH_NAME=superfluid-finance/protocol-dev-matic yarn deploy",
-
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
         "pre-commit": "true"
@@ -46,7 +42,7 @@
         "@decentral.ee/web3-helpers": "^0.5.3",
         "@graphprotocol/graph-cli": "0.21.1",
         "@graphprotocol/graph-ts": "0.20.0",
-        "@superfluid-finance/js-sdk": "0.5.2",
+        "@superfluid-finance/js-sdk": "0.5.3",
         "ganache-time-traveler": "^1.0.16",
         "mustache": "^4.2.0",
         "truffle": "^5.4.5"

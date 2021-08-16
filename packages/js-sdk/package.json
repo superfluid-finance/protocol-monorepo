@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -43,7 +43,7 @@
         "@ethersproject/contracts": "^5.4.1",
         "@ethersproject/providers": "^5.4.3",
         "@openzeppelin/test-helpers": "^0.5.12",
-        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.6",
+        "@superfluid-finance/ethereum-contracts": "1.0.0-rc.7",
         "@truffle/contract": "^4.3.9",
         "chai-as-promised": "^7.1.1",
         "truffle": "5.4.5",

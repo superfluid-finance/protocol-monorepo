@@ -54,23 +54,23 @@ module.exports = function getConfig(chainId) {
         //
         // MATIC: https://docs.matic.network/docs/develop/network-details/network/
         //
-        137: {
-            // (matic) mainnet
-            liquidationPeriod: 3600 * 4,
-            testTokens: [],
-        },
         80001: {
             // (matic) mumbai testnet
             liquidationPeriod: 3600,
             biconomyForwarder: "0x2B99251eC9650e507936fa9530D11dE4d6C9C05c",
         },
+        137: {
+            // (matic) mainnet
+            liquidationPeriod: 3600 * 4,
+            tokenList: ["DAIx", "USDCx", "ETHx"],
+        },
 
         //
         // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
         //
-        0x64: {
+        100: {
             liquidationPeriod: 3600 * 4,
-            testTokens: [],
+            tokenList: ["ETHx"],
         },
 
         //
@@ -95,8 +95,10 @@ module.exports = function getConfig(chainId) {
     return {
         // global default configs
         ...{
+            // default liquidation period for the test deployments
             liquidationPeriod: 3600,
-            testTokens: ["fDAI", "fUSDC", "fTUSD"],
+            // default token list for the test deployments
+            tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
         },
         // network specific configs
         ...DEFAULT_CONFIGS[chainId],

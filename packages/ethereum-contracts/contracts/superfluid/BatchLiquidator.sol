@@ -38,12 +38,17 @@ contract BatchLiquidator is Ownable {
                 )
             );
         }
+        _transferFrom(
+            superToken,
+            msg.sender,
+            ERC20(superToken).balanceOf(address(this))
+        );
     }
 
     function transfer(address token) external onlyOwner {
         assert(
-            ERC20(token).transferFrom(
-                address(this),
+            _transferFrom(
+                token,
                 owner(),
                 ERC20(token).balanceOf(address(this))
             )
@@ -51,7 +56,11 @@ contract BatchLiquidator is Ownable {
     }
 
     function transferTo(address token, address to, uint256 amount) external onlyOwner {
-        assert(ERC20(token).transferFrom(address(this), to, amount));
+        assert(_transferFrom(token, to, amount));
+    }
+
+    function _transferFrom(address token, address to, uint256 amount) internal returns(bool) {
+        return ERC20(token).transferFrom(address(this), to, amount);
     }
 }
 

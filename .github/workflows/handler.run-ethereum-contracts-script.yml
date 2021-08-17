@@ -49,6 +49,7 @@ jobs:
       - name: Execute truffle script
         run: |
           cd packages/ethereum-contracts
+          echo "Admin type: ${{ github.event.inputs.admin_type }}"
           echo "${{ github.event.inputs.environments }}" | sed 's/,/\n/' > .env
           npx truffle \
             --network ${{ github.event.inputs.network }} \

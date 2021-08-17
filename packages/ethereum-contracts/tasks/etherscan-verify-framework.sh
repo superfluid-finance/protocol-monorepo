@@ -10,7 +10,16 @@ npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPERFLUID_HOST
 npx truffle --network $TRUFFLE_NETWORK run etherscan Superfluid@${SUPERFLUID_HOST_LOGIC}
 
 echo SUPERFLUID_GOVERNANCE
-npx truffle --network $TRUFFLE_NETWORK run etherscan TestGovernance@${SUPERFLUID_GOVERNANCE}
+case $TRUFFLE_NETWORK in
+    goerli | rinkeby | ropsten | kovan | mumbai )
+        IS_TESTNET=1
+esac
+
+if [ ! -z "$IS_TESTNET" ];then
+    npx truffle --network $TRUFFLE_NETWORK run etherscan TestGovernance@${SUPERFLUID_GOVERNANCE}
+else
+    npx truffle --network $TRUFFLE_NETWORK run etherscan SuperfluidOwnableGovernance@${SUPERFLUID_GOVERNANCE}
+fi
 
 echo SUPERFLUID_SUPER_TOKEN_FACTORY
 npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}
@@ -49,16 +58,19 @@ EOF
 npx truffle --network $TRUFFLE_NETWORK run etherscan InstantDistributionAgreementV1@${IDA_LOGIC}
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
 
-echo fDAIx
-npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAI}
 
-echo fUSDCx
-npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FUSDC}
+if [ ! -z "${IS_TESTNET}" ];then
+    echo fDAIx
+    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAI}
 
-echo fTUSDx
-npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FTUSD}
+    echo fUSDCx
+    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FUSDC}
 
-echo ETHx
-npx truffle --network $TRUFFLE_NETWORK run etherscan SETHProxy@${SUPER_TOKEN_ETHX}
+    echo fTUSDx
+    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FTUSD}
+
+    echo ETHx
+    npx truffle --network $TRUFFLE_NETWORK run etherscan SETHProxy@${SUPER_TOKEN_ETHX}
+fi
 
 set +x

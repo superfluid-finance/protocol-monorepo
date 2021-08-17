@@ -10,8 +10,8 @@ on:
       network:
         description: 'Network for the script to run on'
         required: true
-      owner_type:
-        description: 'Choose the owner type: MULTISIG, or default (OWNABLE)'
+      admin_type:
+        description: 'Choose the admin type: MULTISIG, or OWNABLE'
         required: true
       script_name:
         description: 'Script name'
@@ -30,8 +30,8 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-      RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
-      GOVERNANCE_ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
+      RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
+      GOVERNANCE_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
 
     steps:
       - uses: actions/checkout@v2

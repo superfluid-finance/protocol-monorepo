@@ -74,15 +74,19 @@ module.exports = async function (callback, argv, options = {}) {
         output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${await (
             await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
         ).getSuperTokenLogic()}\n`;
-        await Promise.all(config.tokenList.map(async (tokenName) => {
-            output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
-                sf.tokens[tokenName].address
-            }\n`;
-            const underlyingTokenSymbol = await sf.tokens[tokenName].underlyingToken.symbol.call();
-            output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
-                sf.tokens[tokenName].underlyingToken.address
-            }\n`;
-        }));
+        await Promise.all(
+            config.tokenList.map(async (tokenName) => {
+                output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
+                    sf.tokens[tokenName].address
+                }\n`;
+                const underlyingTokenSymbol = await sf.tokens[
+                    tokenName
+                ].underlyingToken.symbol.call();
+                output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
+                    sf.tokens[tokenName].underlyingToken.address
+                }\n`;
+            })
+        );
         if (sf.config.nativeTokenSymbol) {
             output += `SUPER_TOKEN_${sf.config.nativeTokenSymbol.toUpperCase()}X=${
                 sf.tokens[sf.config.nativeTokenSymbol + "x"].address

@@ -113,6 +113,7 @@ module.exports = class Framework {
         this.loader = await this.contracts.SuperfluidLoader.at(
             await this.resolver.get("SuperfluidLoader-v1")
         );
+        console.debug("Superfluid Loader v1", this.loader.address);
         console.debug("Loading framework with release version", this.version);
         const loaderResult = await this.loader.loadFramework(this.version);
 

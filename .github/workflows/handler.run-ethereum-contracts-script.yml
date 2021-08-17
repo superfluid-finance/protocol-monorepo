@@ -19,6 +19,9 @@ on:
       script_args:
         description: 'Script arguments'
         required: false
+      environments:
+        description: 'Additional environments, separated by semicolons'
+        required: false
 
 jobs:
 
@@ -27,8 +30,8 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-      ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
-      GOVERNANCE_TYPE: ${{ github.event.inputs.owner_type }}
+      RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
+      GOVERNANCE_ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
 
     steps:
       - uses: actions/checkout@v2
@@ -46,6 +49,7 @@ jobs:
       - name: Execute truffle script
         run: |
           cd packages/ethereum-contracts
+          echo "${{ github.event.inputs.environments }}" | sed 's/,/\n/' > .env
           npx truffle \
             --network ${{ github.event.inputs.network }} \
             exec \

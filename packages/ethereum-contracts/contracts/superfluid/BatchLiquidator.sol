@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPLv3
 pragma solidity >= 0.7.0;
 
 
@@ -38,11 +39,14 @@ contract BatchLiquidator is Ownable {
                 )
             );
         }
-        _transferFrom(
-            superToken,
-            msg.sender,
-            ERC20(superToken).balanceOf(address(this))
-        );
+        uint256 balance = ERC20(superToken).balanceOf(address(this));
+        if(balance > 0) {
+            _transferFrom(
+                superToken,
+                msg.sender,
+                balance
+            );
+        }
     }
 
     function transfer(address token) external onlyOwner {

@@ -4,7 +4,6 @@ pragma solidity >= 0.7.0;
 
 import { ISuperfluid, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
@@ -13,7 +12,7 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @author Superfluid
  */
 
-contract BatchLiquidator is Ownable {
+contract BatchLiquidator {
 
     function deleteFlows(
         address host,
@@ -21,6 +20,7 @@ contract BatchLiquidator is Ownable {
         address superToken,
         address[] calldata senders, address[] calldata receivers
     ) external {
+        require(senders.length == receivers.length, "arrays different sizes");
         for (uint i = 0; i < senders.length; ++i) {
             bool success;
             // solhint-disable-next-line avoid-low-level-calls
@@ -47,20 +47,6 @@ contract BatchLiquidator is Ownable {
                 balance
             );
         }
-    }
-
-    function transfer(address token) external onlyOwner {
-        assert(
-            _transferFrom(
-                token,
-                owner(),
-                ERC20(token).balanceOf(address(this))
-            )
-        );
-    }
-
-    function transferTo(address token, address to, uint256 amount) external onlyOwner {
-        assert(_transferFrom(token, to, amount));
     }
 
     function _transferFrom(address token, address to, uint256 amount) internal returns(bool) {

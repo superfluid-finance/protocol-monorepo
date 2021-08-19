@@ -80,7 +80,7 @@ module.exports = class TestEnvironment {
             gasReportType: this.gasReportType,
             isTruffle: this.isTruffle,
             version: process.env.RELEASE_VERSION || "test",
-            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+            resolverAddress: process.env.TEST_RESOLVER_ADDRESS || undefined,
         });
         await this.sf.initialize();
 

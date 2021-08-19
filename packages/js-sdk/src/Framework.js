@@ -168,9 +168,7 @@ module.exports = class Framework {
             this._gasMetering = new GasMeter(
                 this.web3,
                 this._gasReportType,
-                defaultGasPrice,
-                "USD",
-                "500"
+                defaultGasPrice
             );
         }
         console.log("Superfluid Framework initialized.");

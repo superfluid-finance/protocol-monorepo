@@ -61,13 +61,13 @@ mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/In
 
 if [ ! -z "${IS_TESTNET}" ];then
     echo fDAIx
-    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAI}
+    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FDAIX}
 
     echo fUSDCx
-    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FUSDC}
+    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FUSDCX}
 
     echo fTUSDx
-    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FTUSD}
+    npx truffle --network $TRUFFLE_NETWORK run etherscan UUPSProxy@${SUPER_TOKEN_FTUSDX}
 
     echo ETHx
     npx truffle --network $TRUFFLE_NETWORK run etherscan SETHProxy@${SUPER_TOKEN_ETHX}

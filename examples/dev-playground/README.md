@@ -16,19 +16,19 @@
 
 #### Step 1.
 
-```sh
-yarn install
-
-yarn rw db save
-yarn rw db up
-```
-
-#### Step 2.
-
 copy `.env.template` to `.env` and add the required variables. You can use this to generate a string for `ETHEREUM_JWT_SECRET`:
 
 ```bash
 openssl rand -base64 48
+```
+
+#### Step 2.
+
+```sh
+yarn install
+
+yarn prisma migrate save --experimental --schema "./api/db/schema.prisma"
+yarn prisma migrate up --experimental --schema "./api/db/schema.prisma"
 ```
 
 ## Usage

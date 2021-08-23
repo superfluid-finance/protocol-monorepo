@@ -8,11 +8,11 @@ Before interacting with the Superfluid community, please read and understand our
 
 ### Installing Dependencies
 
-Before you do anything, you should run `yarn install` in the root directory of your local-copy of the protocol-monorepo to install the necessary dependencies.
+Before you do anything, you should run `yarn install && yarn build` in the root directory of your local-copy of the protocol-monorepo to install and build the necessary dependencies.
 
 ```bash
 cd protocol-monorepo
-yarn install
+yarn install && yarn build
 ```
 
 You'll also want to upgrade your Superfluid App to the canary, so you have the most recent changes.
@@ -63,7 +63,7 @@ truffle run test-coverage
 
 ## Testing
 
-See the individual packages for specific details on testing.
+See the individual packages for specific details on testing or run all the tests from the root `npm run test` (smart contract tests can run over an hour).
 
 ## Linting
 
@@ -102,6 +102,22 @@ yarn install @superfluid-finance/ethereum-contracts@0.2.4-dev.265
 
 ### Pull Request `@PRxxx`
 
-Pull request packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-finance/packages?repo_name=protocol-monorepo). A Github releases should not be created.
+Pull request packages are automatically published to our [Github packages](https://github.com/orgs/superfluid-finance/packages?repo_name=protocol-monorepo). A Github release should not be created.
 
 See the bot message in the PR for how to install these packages.
+
+## Known Local Development Issues
+
+### `node-jq` error when Node.js is installed through Snap Store
+#### Problem
+Error message when running `yarn install`:
+```
+error /protocol-monorepo/node_modules/node-jq: Command failed.
+Exit code: 243
+Command: npm run install-binary
+Arguments:
+```
+* [Relevant StackOverflow question](https://stackoverflow.com/questions/67475457/why-cant-i-just-run-npm-install-via-a-child-process-exec-call-npm-exit-243-wit)
+
+#### Solutions
+* Re-install Node.js through other means than Snap Store.

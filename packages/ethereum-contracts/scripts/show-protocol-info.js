@@ -1,6 +1,9 @@
 const _ = require("lodash");
+const async = require("async");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const { detectTruffleAndConfigure, extractWeb3Options } = require("./utils");
+
+const MAX_REQUESTS = 100;
 
 async function fetchLatestChanges(contract, eventName, filter) {
     const changes = await contract.getPastEvents(eventName, {
@@ -210,6 +213,8 @@ module.exports = async function (callback, argv, options = {}) {
                         await superToken.getUnderlyingToken.call(),
                 });
             }
+            console.log("");
+
             {
                 const latests = [
                     ...(await superTokenFactory.getPastEvents(
@@ -227,34 +232,42 @@ module.exports = async function (callback, argv, options = {}) {
                         }
                     )),
                 ];
-                const superTokens = [];
-                for (let i = 0; i < latests.length; ++i) {
-                    const superToken = await sf.contracts.SuperToken.at(
-                        latests[i].args.token
-                    );
-                    const symbol = await superToken.symbol.call();
-                    const superTokenLogicAddress =
-                        await superToken.getCodeAddress();
-                    const isListed =
-                        (
-                            await sf.resolver.get(
-                                `supertokens.${sf.version}.${symbol}`
-                            )
-                        ).toLowerCase() == superToken.address.toLowerCase();
-                    superTokens.push({
-                        symbol,
-                        name: await superToken.name.call(),
-                        tokenAddress: superToken.address,
-                        superTokenLogicAddress,
-                        underlyingTokenAddress:
-                            await superToken.getUnderlyingToken.call(),
-                        isListed,
-                    });
-                }
+                const superTokens = await async.mapLimit(
+                    latests,
+                    MAX_REQUESTS,
+                    async (pastEvent) => {
+                        const superToken = await sf.contracts.SuperToken.at(
+                            pastEvent.args.token
+                        );
+                        const symbol = await superToken.symbol.call();
+                        const superTokenLogicAddress =
+                            await superToken.getCodeAddress();
+                        const isListed =
+                            (
+                                await sf.resolver.get.call(
+                                    `supertokens.${sf.version}.${symbol}`
+                                )
+                            ).toLowerCase() == superToken.address.toLowerCase();
+                        return {
+                            symbol,
+                            name: await superToken.name.call(),
+                            tokenAddress: superToken.address,
+                            superTokenLogicAddress,
+                            underlyingTokenAddress:
+                                await superToken.getUnderlyingToken.call(),
+                            isListed,
+                        };
+                    }
+                );
+
                 console.log("## Listed Super Tokens");
                 superTokens.filter((s) => s.isListed).forEach(printSuperToken);
+                console.log("");
+
                 console.log("## Unlisted Super Tokens");
                 superTokens.filter((s) => !s.isListed).forEach(printSuperToken);
+                console.log("");
+
                 console.log("* - Needs super token logic update");
             }
         }

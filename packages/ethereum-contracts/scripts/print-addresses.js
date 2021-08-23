@@ -1,3 +1,4 @@
+const getConfig = require("./getConfig");
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
@@ -17,6 +18,7 @@ const {
  * Usage: npx truffle exec scripts/print-addresses : output_file
  */
 module.exports = async function (callback, argv, options = {}) {
+    let output = "";
     try {
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
 
@@ -28,12 +30,12 @@ module.exports = async function (callback, argv, options = {}) {
 
         const networkId = await web3.eth.net.getId();
         console.log("network ID: ", networkId);
+        const config = getConfig(networkId);
 
-        const tokens = ["fDAI", "fUSDC", "fTUSD"];
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
             version: process.env.RELEASE_VERSION || "test",
-            tokens,
+            tokens: config.tokenList,
             loadSuperNativeToken: true,
             additionalContracts: ["UUPSProxiable"],
         });
@@ -41,7 +43,6 @@ module.exports = async function (callback, argv, options = {}) {
 
         const { UUPSProxiable, ISuperTokenFactory } = sf.contracts;
 
-        let output = "";
         output += `NETWORK_ID=${networkId}\n`;
         output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
         output += `SUPERFLUID_HOST_LOGIC=${await getCodeAddress(
@@ -73,14 +74,19 @@ module.exports = async function (callback, argv, options = {}) {
         output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${await (
             await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
         ).getSuperTokenLogic()}\n`;
-        tokens.forEach((tokenName) => {
-            output += `TEST_TOKEN_${tokenName.toUpperCase()}=${
-                sf.tokens[tokenName].address
-            }\n`;
-            output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
-                sf.tokens[tokenName + "x"].address
-            }\n`;
-        });
+        await Promise.all(
+            config.tokenList.map(async (tokenName) => {
+                output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
+                    sf.tokens[tokenName].address
+                }\n`;
+                const underlyingTokenSymbol = await sf.tokens[
+                    tokenName
+                ].underlyingToken.symbol.call();
+                output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
+                    sf.tokens[tokenName].underlyingToken.address
+                }\n`;
+            })
+        );
         if (sf.config.nativeTokenSymbol) {
             output += `SUPER_TOKEN_${sf.config.nativeTokenSymbol.toUpperCase()}X=${
                 sf.tokens[sf.config.nativeTokenSymbol + "x"].address
@@ -89,6 +95,7 @@ module.exports = async function (callback, argv, options = {}) {
 
         await fs.writeFile(outputFilename, output, callback);
     } catch (err) {
+        console.log("Output so far:\n", output);
         callback(err);
     }
 };

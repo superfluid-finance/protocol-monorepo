@@ -24,10 +24,10 @@ contract("Superfluid Liquidator Contract", (accounts) => {
 
     beforeEach(async function () {
         await t.createNewToken({ doUpgrade: false });
-        ({ superToken, testToken } = t.contracts);
+        ({ superToken } = t.contracts);
     });
 
-    async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
+    async function timeTravelOnce(time) {
         const block1 = await web3.eth.getBlock("latest");
         console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);

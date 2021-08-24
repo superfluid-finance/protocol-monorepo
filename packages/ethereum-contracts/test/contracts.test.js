@@ -8,4 +8,5 @@ require("./contracts/gov/SuperfluidOwnableGovernance.test.js");
 require("./contracts/tokens/SETH.test.js");
 require("./contracts/tokens/NativeSuperToken.test.js");
 require("./contracts/ux/SuperUpgrader.test.js");
+require("./contracts/utils/BatchLiquidator.test.js");
 require("./contracts/misc.test.js");

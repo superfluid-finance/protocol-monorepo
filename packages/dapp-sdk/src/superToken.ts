@@ -1,4 +1,4 @@
-export interface Token {
+export interface SuperToken {
   address: string,
   symbol: string
 }

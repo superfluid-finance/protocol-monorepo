@@ -1,21 +1,35 @@
-import { Framework } from '@superfluid-finance/js-sdk/src/Framework';
+// import { Framework } from '@superfluid-finance/js-sdk/src/Framework';
 
-import { store } from './store';
+import { Account } from './Account';
+import { mockAccountSource, setAccount } from './accountsSlice';
+import { mockNetworkSource, setNetwork } from './networksSlice';
+import { store, StoreType } from './store';
 
-// TODO: Should we constrain to certain tokens?
-export class DAppSDK {
-  constructor(public readonly superfluidJsSdk: Framework) { // TODO: Abstract away browser storage.
-    this.reduxStore = store;
-  }
+export interface DAppSDK {
+    reduxStore : StoreType,
+    subscribe(networkId: string, accountAddress: string): Promise<void>;
+    scope(account: Account): void;
+}
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
-  public subscribe(chainId: string, accountAddress: string) {
+export const createDAppSDK = () => {
+    return {
+        reduxStore: store,
+        subscribe(networkId: string, accountAddress: string): Promise<void> {
+            const network = mockNetworkSource.find(x => x.id === networkId);
+            if (!network)
+                return Promise.reject("Network not found.");
 
-  }
+            const account = mockAccountSource.find(x => x.address === accountAddress && x.networkId === networkId);
+            if (!account)
+                return Promise.reject("Address from network not found.");
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  private readonly reduxStore;
+            this.reduxStore.dispatch(setAccount(account));
+            this.reduxStore.dispatch(setNetwork(network));
+
+            return Promise.resolve();
+        },
+        scope() {
+
+        }
+    }
 }

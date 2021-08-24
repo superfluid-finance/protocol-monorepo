@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import addressReducer from './accountsSlice';
-import chainReducer from './chainsSlice';
+import accountsReducer from './accountsSlice';
+import networksReducer from './networksSlice';
 
 export const store = configureStore({
     reducer: {
-        chains: chainReducer,
-        addresses: addressReducer
+        networks: networksReducer,
+        accounts: accountsReducer
     }
 });
 
@@ -14,3 +14,4 @@ export const store = configureStore({
 export type RootState = ReturnType<typeof store.getState>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
+export type StoreType = typeof store;

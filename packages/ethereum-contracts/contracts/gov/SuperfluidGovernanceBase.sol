@@ -25,7 +25,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     }
 
     // host => superToken => config
-    mapping (address => mapping (address => mapping (bytes32 => Value))) private _configs;
+    mapping (address => mapping (address => mapping (bytes32 => Value))) internal _configs;
 
     /**************************************************************************
     /* ISuperfluidGovernance interface

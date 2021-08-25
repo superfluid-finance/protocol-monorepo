@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$/examples/continuous-auction">
       <sourceFolder url="file://$MODULE_DIR$/examples/continuous-auction/test" isTestSource="true" />
     </content>
+    <content url="file://$MODULE_DIR$/examples/dapp-sdk-react-typescript" />
     <content url="file://$MODULE_DIR$/examples/dev-playground" />
     <content url="file://$MODULE_DIR$/examples/flowlottery">
       <sourceFolder url="file://$MODULE_DIR$/examples/flowlottery/test" isTestSource="true" />
@@ -15,6 +16,7 @@
     <content url="file://$MODULE_DIR$/examples/tradeable-cashflow">
       <sourceFolder url="file://$MODULE_DIR$/examples/tradeable-cashflow/test" isTestSource="true" />
     </content>
+    <content url="file://$MODULE_DIR$/packages/dapp-sdk" />
     <content url="file://$MODULE_DIR$/packages/ethereum-contracts">
       <sourceFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/test" isTestSource="true" />
     </content>

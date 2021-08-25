@@ -17,9 +17,7 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 /**
  * @dev Base superfluid governance implementation
  */
-abstract contract SuperfluidGovernanceBase is
-    UUPSProxiable,
-    ISuperfluidGovernance
+abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 {
     struct Value {
         bool set;
@@ -27,25 +25,7 @@ abstract contract SuperfluidGovernanceBase is
     }
 
     // host => superToken => config
-    mapping (address => mapping (address => mapping (bytes32 => Value))) internal _configs;
-
-    /**************************************************************************
-    * UUPSProxiable
-    **************************************************************************/
-
-    // TODO: do we need initialize() here?
-
-    function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.SuperfluidGovernance.implementation");
-    }
-
-    function updateCode(address newAddress)
-        external override
-        //onlyAuthorized(host)
-        // TODO: permissioning missing
-    {
-        _updateCodeAddress(newAddress);
-    }
+    mapping (address => mapping (address => mapping (bytes32 => Value))) private _configs;
 
     /**************************************************************************
     /* ISuperfluidGovernance interface

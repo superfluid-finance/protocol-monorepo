@@ -11,6 +11,7 @@ import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
  * @dev A proxy for governance which is both ownable and upgradable
  * IMPORTANT! Make sure the inheritance order remains in sync with the logic contract (Ownable first)!
  */
+// solhint-disable-next-line no-empty-blocks
 contract SuperfluidGovernanceIIProxy is Ownable, UUPSProxy { }
 
 contract SuperfluidGovernanceII is

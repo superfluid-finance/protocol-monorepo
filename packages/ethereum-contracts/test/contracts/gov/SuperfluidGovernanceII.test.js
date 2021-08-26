@@ -1,6 +1,8 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const { web3tx } = require("@decentral.ee/web3-helpers");
-const SuperfluidGovernanceIIProxy = artifacts.require("SuperfluidGovernanceIIProxy");
+const SuperfluidGovernanceIIProxy = artifacts.require(
+    "SuperfluidGovernanceIIProxy"
+);
 const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -24,14 +26,19 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
     before(async () => {
         await t.reset();
         ({ governance, superfluid } = t.contracts);
-        const newGovProxy = await SuperfluidGovernanceIIProxy.new({ from: alice });
+        const newGovProxy = await SuperfluidGovernanceIIProxy.new({
+            from: alice,
+        });
         const newGovLogic = await SuperfluidGovernanceII.new({ from: alice });
         await newGovProxy.initializeProxy(newGovLogic.address);
         await web3tx(
             governance.replaceGovernance,
             "governance.replaceGovernance"
         )(superfluid.address, newGovProxy.address);
-        assert.equal(await superfluid.getGovernance.call(), newGovProxy.address);
+        assert.equal(
+            await superfluid.getGovernance.call(),
+            newGovProxy.address
+        );
         governance = await SuperfluidGovernanceII.at(newGovProxy.address);
     });
 
@@ -61,7 +68,9 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const T = artifacts.require("SuperfluidGovernanceIIUpgradabilityTester");
+            const T = artifacts.require(
+                "SuperfluidGovernanceIIUpgradabilityTester"
+            );
             const tester = await T.new();
             await tester.validateStorageLayout.call();
         });
@@ -92,7 +101,6 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
             assert.equal(await governance.getCodeAddress(), newLogic.address);
         });
     });
-
 
     describe("#2 configurations", () => {
         it("#2.1 RewardAddress", async () => {

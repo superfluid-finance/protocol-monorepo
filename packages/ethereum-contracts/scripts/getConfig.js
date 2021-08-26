@@ -64,7 +64,7 @@ module.exports = function getConfig(networkId) {
             liquidationPeriod: 3600 * 4,
             tokenList: ["DAIx", "USDCx", "ETHx"],
             // governance default configs
-            enableAppWhiteListing: true,
+            gov_enableAppWhiteListing: true,
             // matic node eth_getLogs is no longer functional
             hack_disableGetLogs: true,
         },
@@ -76,7 +76,7 @@ module.exports = function getConfig(networkId) {
             liquidationPeriod: 3600 * 4,
             tokenList: ["ETHx"],
             // governance default configs
-            enableAppWhiteListing: true,
+            gov_enableAppWhiteListing: true,
         },
 
         //

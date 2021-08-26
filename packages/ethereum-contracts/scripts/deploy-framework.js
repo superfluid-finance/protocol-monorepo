@@ -126,7 +126,7 @@ module.exports = async function (callback, options = {}) {
         nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
         appWhiteListing =
             appWhiteListing ||
-            config.enableAppWhiteListing ||
+            config.gov_enableAppWhiteListing ||
             !!process.env.ENABLE_APP_WHITELISTING;
         if (newTestResolver) {
             console.log("**** !ATTN! CREATING NEW RESOLVER ****");
@@ -136,6 +136,9 @@ module.exports = async function (callback, options = {}) {
         }
         if (nonUpgradable) {
             console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
+        }
+        if (appWhiteListing) {
+            console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
         }
 
         await deployERC1820(

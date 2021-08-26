@@ -214,7 +214,7 @@ module.exports = async function (callback, options = {}) {
         // deploy new governance contract
         let governanceInitializationRequired = false;
         let governance;
-        if (config.gov_noNewGovernance || !process.env.NO_NEW_GOVERNANCE) {
+        if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
             governance = await deployAndRegisterContractIf(
                 TestGovernance,
                 `TestGovernance.${protocolReleaseVersion}`,

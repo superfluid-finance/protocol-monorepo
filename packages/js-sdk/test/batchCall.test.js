@@ -61,7 +61,7 @@ contract("batchCall helper class", (accounts) => {
                 assert.equal(
                     err.message,
                     // eslint-disable-next-line
-                    'Error: @superfluid-finance/js-sdk batchCall: You did not provide a required argument for "data"  in item #0 in your batch call array. Please see https://docs.superfluid.finance/batchCall for more help'
+                    'Error: @superfluid-finance/js-sdk batchCall: You did not provide a required argument for "data"  in item #0 in your batch call array. Please see https://docs.superfluid.finance/superfluid/docs/batch-call for more help'
                 );
             }
         });

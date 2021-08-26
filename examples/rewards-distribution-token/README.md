@@ -1,7 +1,7 @@
 Rewards Distribution Token
 ==========================
 
-A ERC20 token that tokenizes units in the [Instant Distribution Agreements](https://docs.superfluid.finance/tutorials/instant-distribution/).
+A ERC20 token that tokenizes units in the [Instant Distribution Agreements](https://docs.superfluid.finance/superfluid/protocol-tutorials/perform-an-instant-distribution/).
 
 All holders of the rights tokens can receive cash token rewards in one distribution transaction in two ways:
 

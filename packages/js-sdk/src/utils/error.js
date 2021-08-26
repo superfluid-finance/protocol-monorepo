@@ -10,7 +10,7 @@ const getMissingArgumentError = (argumentName, helpText) => {
 };
 
 const getBatchCallHelpText = (index) =>
-    ` in item #${index} in your batch call array. Please see https://docs.superfluid.finance/batchCall for more help`;
+    ` in item #${index} in your batch call array. Please see https://docs.superfluid.finance/superfluid/docs/batch-call for more help`;
 
 module.exports = {
     getErrorResponse,

@@ -83,7 +83,7 @@ contract("Superfluid Liquidator Contract", (accounts) => {
                 receiver: accounts[5],
             });
 
-            await superToken.transferAll(accounts[9], {from: alice});
+            await superToken.transferAll(accounts[9], { from: alice });
             await timeTravelOnce(1);
             await batch.deleteFlows(
                 t.sf.host.address,

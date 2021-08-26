@@ -16,7 +16,10 @@
     <content url="file://$MODULE_DIR$/examples/tradeable-cashflow">
       <sourceFolder url="file://$MODULE_DIR$/examples/tradeable-cashflow/test" isTestSource="true" />
     </content>
-    <content url="file://$MODULE_DIR$/packages/dapp-sdk" />
+    <content url="file://$MODULE_DIR$/packages/dapp-sdk">
+      <sourceFolder url="file://$MODULE_DIR$/packages/dapp-sdk/test" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/dapp-sdk/build" />
+    </content>
     <content url="file://$MODULE_DIR$/packages/ethereum-contracts">
       <sourceFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/test" isTestSource="true" />
     </content>

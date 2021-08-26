@@ -5,7 +5,7 @@ import {useState} from 'react';
 import {DisplaySelectedAccountAndNetwork} from "./components/DisplaySelectedAccountAndNetwork";
 
 interface AccountScoperProps {
-    networkId: string;
+    networkId: number;
     accountAddress: string;
 }
 

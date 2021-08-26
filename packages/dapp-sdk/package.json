@@ -15,7 +15,7 @@
     "fix": "run-s fix:*",
     "fix:prettier": "prettier \"src/**/*.ts\" --write",
     "fix:lint": "eslint src --ext .ts --fix",
-    "test": "run-s build test:*",
+    "test": "jest",
     "test:lint": "eslint src --ext .ts",
     "test:prettier": "prettier \"src/**/*.ts\" --list-different",
     "test:unit": "nyc --silent ava",
@@ -43,15 +43,17 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.1",
     "@superfluid-finance/js-sdk": "^0.5.3",
-    "ethers": "^5.4.5"
+    "@types/jest": "^27.0.1",
+    "ethers": "^5.4.5",
+    "jest-mock-extended": "^2.0.2-beta2",
+    "lodash": "^4.17.21",
+    "ts-jest": "^27.0.5"
   },
   "devDependencies": {
-    "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/jest": "^27.0.1",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
-    "ava": "^3.12.1",
     "codecov": "^3.5.0",
     "cspell": "^4.1.0",
     "cz-conventional-changelog": "^3.3.0",
@@ -80,18 +82,6 @@
     "LICENSE",
     "README.md"
   ],
-  "ava": {
-    "failFast": true,
-    "timeout": "60s",
-    "typescript": {
-      "rewritePaths": {
-        "src/": "build/main/"
-      }
-    },
-    "files": [
-      "!build/module/**"
-    ]
-  },
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
@@ -99,11 +89,5 @@
   },
   "prettier": {
     "singleQuote": true
-  },
-  "nyc": {
-    "extends": "@istanbuljs/nyc-config-typescript",
-    "exclude": [
-      "**/*.spec.js"
-    ]
   }
 }

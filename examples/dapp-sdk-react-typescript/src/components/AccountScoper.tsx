@@ -10,7 +10,7 @@ export interface AccountAndNetworkScopedContextState {
 }
 
 interface Props {
-    networkId: string;
+    networkId: number;
     accountAddress: string;
 }
 

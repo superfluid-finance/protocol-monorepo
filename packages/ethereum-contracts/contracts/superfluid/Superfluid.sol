@@ -84,8 +84,8 @@ contract Superfluid is
     /// @dev Ctx stamp of the current transaction, it should always be cleared to
     ///      zero before transaction finishes
     bytes32 internal _ctxStamp;
-    /// @dev if app whitelisting is enabled, this is to make sure the secrets are used only once
-    mapping(bytes32 => bool) internal _appSecretsUsed;
+    /// @dev if app whitelisting is enabled, this is to make sure the keys are used only once
+    mapping(bytes32 => bool) internal _appKeysUsed;
 
     constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
@@ -289,45 +289,66 @@ contract Superfluid is
     {
         // check if whitelisting required
         if (APP_WHITE_LISTING_ENABLED) {
-            revert("SF: app registration key required");
+            revert("SF: app registration requires permission");
         }
-
-        _registerApp(configWord);
+        _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
-        bytes32 secretKey = SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey(
-            // solhint-disable-next-line avoid-tx-origin
-            tx.origin,
-            registrationKey);
-        // check if the secret key is enabled
+        bytes32 configKey = SuperfluidGovernanceConfigs.getAppWhiteListingConfigKey(registrationKey);
+        // check if the key is enabled
         require(
             _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
-                secretKey
+                configKey
             ) == 1,
             "SF: invalid registration key"
         );
         require(
-            !_appSecretsUsed[secretKey],
+            !_appKeysUsed[configKey],
             "SF: registration key already used"
         );
         // clear the key so that it can't be reused
-        _appSecretsUsed[secretKey] = true;
-        _registerApp(configWord);
+        _appKeysUsed[configKey] = true;
+        _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
-    function _registerApp(uint256 configWord) private
+    function registerAppByFactory(
+        ISuperApp app,
+        uint256 configWord
+    )
+        external override
     {
-        ISuperApp app = ISuperApp(msg.sender);
+        // msg sender must be a contract
+        {
+            uint256 cs;
+            // solhint-disable-next-line no-inline-assembly
+            assembly { cs := extcodesize(caller()) }
+            require(cs > 0, "SF: factory must be a contract");
+        }
 
-        // check if it is called within the constructor
+        if (APP_WHITE_LISTING_ENABLED) {
+            // check if msg sender is authorized to register
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppDeployerConfigKey(msg.sender);
+            bool isAuthorizedAppDeployer = _gov.getConfigAsUint256(
+                this,
+                ISuperfluidToken(address(0)),
+                configKey) == 1;
+
+            require(isAuthorizedAppDeployer, "SF: authorized factory required");
+        }
+        _registerApp(configWord, app, false);
+    }
+
+    function _registerApp(uint256 configWord, ISuperApp app, bool checkIfInAppConstructor) private
+    {
         // solhint-disable-next-line avoid-tx-origin
         require(msg.sender != tx.origin, "SF: APP_RULE_NO_REGISTRATION_FOR_EOA");
-        {
+
+        if (checkIfInAppConstructor) {
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(app) }
@@ -338,8 +359,8 @@ contract Superfluid is
             SuperAppDefinitions.getAppLevel(configWord) > 0 &&
             (configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0,
             "SF: invalid config word");
-        require(_appManifests[ISuperApp(msg.sender)].configWord == 0 , "SF: app already registered");
-        _appManifests[ISuperApp(msg.sender)] = AppManifest(configWord);
+        require(_appManifests[ISuperApp(app)].configWord == 0 , "SF: app already registered");
+        _appManifests[ISuperApp(app)] = AppManifest(configWord);
         emit AppRegistered(app);
     }
 

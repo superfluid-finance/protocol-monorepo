@@ -314,19 +314,66 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     }
 
     /**
-     * @dev Whitelist a new app using the secret key
+     * @dev Whitelist a new app using a onetime key
      *
      * NOTE:
-     * To generate the secret key, use the SuperfluidGovernanceConfigs.getAppWhiteListingSecretKey
+     * To generate the key, use the SuperfluidGovernanceConfigs.getAppWhiteListingConfigKey
      * offchain.
      */
     function whiteListNewApp(
         ISuperfluid host,
-        bytes32 secretKey
+        bytes32 key
     )
         external
     {
-        _setConfig(host, ISuperfluidToken(address(0)), secretKey, 1);
+        _setConfig(host, ISuperfluidToken(address(0)), key, 1);
+    }
+
+    function isAuthorizedAppDeployer(
+        ISuperfluid host,
+        address deployer
+    )
+        public view
+        returns (bool)
+    {
+        return getConfigAsUint256(
+            host, ISuperfluidToken(address(0)),
+            SuperfluidGovernanceConfigs.getAppDeployerConfigKey(deployer)) == 1;
+    }
+
+    /**
+     * @dev allows the given deployer to deploy new apps without the use of whitelisted disposable keys
+     * @param deployer must be a contract (intended use: factory contracts)
+     */
+    function authorizeAppDeployer(
+        ISuperfluid host,
+        address deployer
+    )
+        public
+    {
+        // check if contract
+        {
+            uint256 cs;
+            // solhint-disable-next-line no-inline-assembly
+            assembly { cs := extcodesize(deployer) }
+            require(cs > 0, "SFGov: deployer must be a contract");
+        }
+
+        _setConfig(
+            host, ISuperfluidToken(address(0)),
+            SuperfluidGovernanceConfigs.getAppDeployerConfigKey(deployer),
+            1);
+    }
+
+    function unauthorizeAppDeployer(
+        ISuperfluid host,
+        address deployer
+    )
+        public
+    {
+        _clearConfig(
+            host, ISuperfluidToken(address(0)),
+            SuperfluidGovernanceConfigs.getAppDeployerConfigKey(deployer));
     }
 
     // TODO: would like to use virtual modifier, but solhint doesn't like it atm

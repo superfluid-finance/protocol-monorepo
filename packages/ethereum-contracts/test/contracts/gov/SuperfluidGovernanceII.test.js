@@ -358,5 +358,68 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
                 }
             );
         });
+
+        it("#2.5 authorizeAppDeployer", async () => {
+            const SuperAppFactoryMock = artifacts.require(
+                "SuperAppFactoryMock"
+            );
+            const appFactory = await SuperAppFactoryMock.new();
+
+            // checks for authorize
+            await expectRevert(
+                governance.authorizeAppDeployer(
+                    superfluid.address,
+                    appFactory.address
+                ),
+                onlyOwnerReason
+            );
+
+            await expectRevert(
+                governance.authorizeAppDeployer(
+                    superfluid.address,
+                    FAKE_ADDRESS1,
+                    { from: alice }
+                ),
+                "SFGov: deployer must be a contract"
+            );
+
+            assert.isFalse(
+                await governance.isAuthorizedAppDeployer(
+                    superfluid.address,
+                    appFactory.address
+                )
+            );
+            await governance.authorizeAppDeployer(
+                superfluid.address,
+                appFactory.address,
+                { from: alice }
+            );
+            assert.isTrue(
+                await governance.isAuthorizedAppDeployer(
+                    superfluid.address,
+                    appFactory.address
+                )
+            );
+
+            // checks for unauthorize
+            await expectRevert(
+                governance.unauthorizeAppDeployer(
+                    superfluid.address,
+                    appFactory.address
+                ),
+                onlyOwnerReason
+            );
+            await governance.unauthorizeAppDeployer(
+                superfluid.address,
+                appFactory.address,
+                { from: alice }
+            );
+            assert.isFalse(
+                await governance.isAuthorizedAppDeployer(
+                    superfluid.address,
+                    appFactory.address
+                )
+            );
+        });
     });
 });

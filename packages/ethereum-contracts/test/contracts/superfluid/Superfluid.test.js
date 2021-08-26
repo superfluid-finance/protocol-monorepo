@@ -3,6 +3,7 @@ const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 const SuperfluidMock = artifacts.require("SuperfluidMock");
 const AgreementMock = artifacts.require("AgreementMock");
 const SuperAppMock = artifacts.require("SuperAppMock");
+const SuperAppFactoryMock = artifacts.require("SuperAppFactoryMock");
 const TestGovernance = artifacts.require("TestGovernance");
 const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
@@ -2218,10 +2219,9 @@ contract("Superfluid Host Contract", (accounts) => {
         function createSecretKey(deployer, registrationkey) {
             return web3.utils.sha3(
                 web3.eth.abi.encodeParameters(
-                    ["string", "address", "string"],
+                    ["string", "string"],
                     [
                         "org.superfluid-finance.superfluid.appWhiteListing.seed",
-                        deployer,
                         registrationkey,
                     ]
                 )
@@ -2235,7 +2235,7 @@ contract("Superfluid Host Contract", (accounts) => {
                     1 /* APP_TYPE_FINAL_LEVEL */,
                     false
                 ),
-                "SF: app registration key required"
+                "SF: app registration requires permission"
             );
         });
 
@@ -2285,6 +2285,69 @@ contract("Superfluid Host Contract", (accounts) => {
                     }
                 ),
                 "SF: registration key already used"
+            );
+        });
+
+        it("#40.5 app registration by unauthorized factory should fail", async () => {
+            const SuperAppMockNotSelfRegistering = artifacts.require(
+                "SuperAppMockNotSelfRegistering"
+            );
+            const appFactory = await SuperAppFactoryMock.new();
+            // governance.authorizeAppDeployer NOT done
+            const app = await SuperAppMockNotSelfRegistering.new();
+            await expectRevert(
+                appFactory.registerAppWithHost(
+                    superfluid.address,
+                    app.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */
+                ),
+                "SF: authorized factory required"
+            );
+        });
+
+        it("#40.6 app registration by authorized factory", async () => {
+            const SuperAppMockNotSelfRegistering = artifacts.require(
+                "SuperAppMockNotSelfRegistering"
+            );
+            const appFactory = await SuperAppFactoryMock.new();
+            await governance.authorizeAppDeployer(
+                superfluid.address,
+                appFactory.address
+            );
+            const app = await SuperAppMockNotSelfRegistering.new();
+            assert.isFalse(await superfluid.isApp(app.address));
+            await appFactory.registerAppWithHost(
+                superfluid.address,
+                app.address,
+                1 /* APP_TYPE_FINAL_LEVEL */
+            );
+            assert.isTrue(await superfluid.isApp(app.address));
+
+            // works for more than once app...
+            const app2 = await SuperAppMockNotSelfRegistering.new();
+            assert.isFalse(await superfluid.isApp(app2.address));
+            await appFactory.registerAppWithHost(
+                superfluid.address,
+                app2.address,
+                1 /* APP_TYPE_FINAL_LEVEL */
+            );
+            assert.isTrue(await superfluid.isApp(app2.address));
+
+            // withdrawal of authorization disallows further apps to be registered ...
+            await governance.unauthorizeAppDeployer(
+                superfluid.address,
+                appFactory.address
+            );
+
+            const app3 = await SuperAppMockNotSelfRegistering.new();
+            assert.isFalse(await superfluid.isApp(app3.address));
+            await expectRevert(
+                appFactory.registerAppWithHost(
+                    superfluid.address,
+                    app3.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */
+                ),
+                "SF: authorized factory required"
             );
         });
     });

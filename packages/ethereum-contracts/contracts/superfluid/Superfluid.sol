@@ -60,7 +60,7 @@ contract Superfluid is
     uint immutable public MAX_APP_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint64 immutable public CALLBACK_GAS_LIMIT = 3000000;
+    uint64 immutable public CALLBACK_GAS_LIMIT = 3000001;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can

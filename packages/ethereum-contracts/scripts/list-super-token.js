@@ -67,7 +67,10 @@ module.exports = async function (callback, argv, options = {}) {
         const resolver = await sf.contracts.TestResolver.at(
             sf.resolver.address
         );
-        if ((await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS && !resetToken) {
+        if (
+            (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
+            !resetToken
+        ) {
             throw new Error("Super token already listed");
         }
         await setResolver(sf, superTokenKey, superTokenAddress);

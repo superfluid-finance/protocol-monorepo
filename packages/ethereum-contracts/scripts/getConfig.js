@@ -5,7 +5,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
  * - https://docs.biconomy.io/misc/contract-addresses
  */
 
-module.exports = function getConfig(chainId) {
+module.exports = function getConfig(networkId) {
     const DEFAULT_CONFIGS = {
         //
         // Local Testing
@@ -63,6 +63,10 @@ module.exports = function getConfig(chainId) {
             // (matic) mainnet
             liquidationPeriod: 3600 * 4,
             tokenList: ["DAIx", "USDCx", "ETHx"],
+            // governance default configs
+            enableAppWhiteListing: true,
+            // matic node eth_getLogs is no longer functional
+            hack_disableGetLogs: true,
         },
 
         //
@@ -71,6 +75,8 @@ module.exports = function getConfig(chainId) {
         100: {
             liquidationPeriod: 3600 * 4,
             tokenList: ["ETHx"],
+            // governance default configs
+            enableAppWhiteListing: true,
         },
 
         //
@@ -101,8 +107,8 @@ module.exports = function getConfig(chainId) {
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
         },
         // network specific configs
-        ...DEFAULT_CONFIGS[chainId],
+        ...DEFAULT_CONFIGS[networkId],
         // SDK provided configs
-        ...SuperfluidSDK.getConfig(chainId),
+        ...SuperfluidSDK.getConfig(networkId),
     };
 };

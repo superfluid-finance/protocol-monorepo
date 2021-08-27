@@ -2216,13 +2216,13 @@ contract("Superfluid Host Contract", (accounts) => {
             ({ governance, superfluid } = t.contracts);
         });
 
-        function createSecretKey(deployer, registrationkey) {
+        function createAppKey(deployer, registrationKey) {
             return web3.utils.sha3(
                 web3.eth.abi.encodeParameters(
                     ["string", "string"],
                     [
-                        "org.superfluid-finance.superfluid.appWhiteListing.seed",
-                        registrationkey,
+                        "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
+                        registrationKey,
                     ]
                 )
             );
@@ -2251,8 +2251,8 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         it("#40.3 app can register with a correct key", async () => {
-            const secretKey = createSecretKey(bob, "hello world");
-            await governance.whiteListNewApp(superfluid.address, secretKey);
+            const appKey = createAppKey(bob, "hello world");
+            await governance.whiteListNewApp(superfluid.address, appKey);
             const app = await SuperAppMockWithRegistrationkey.new(
                 superfluid.address,
                 1 /* APP_TYPE_FINAL_LEVEL */,
@@ -2265,8 +2265,8 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         it("#40.4 app can register with an used key should fail", async () => {
-            const secretKey = createSecretKey(bob, "hello world again");
-            await governance.whiteListNewApp(superfluid.address, secretKey);
+            const appKey = createAppKey(bob, "hello world again");
+            await governance.whiteListNewApp(superfluid.address, appKey);
             await SuperAppMockWithRegistrationkey.new(
                 superfluid.address,
                 1 /* APP_TYPE_FINAL_LEVEL */,
@@ -2293,7 +2293,7 @@ contract("Superfluid Host Contract", (accounts) => {
                 "SuperAppMockNotSelfRegistering"
             );
             const appFactory = await SuperAppFactoryMock.new();
-            // governance.authorizeAppDeployer NOT done
+            // governance.authorizeAppFactory NOT done
             const app = await SuperAppMockNotSelfRegistering.new();
             await expectRevert(
                 appFactory.registerAppWithHost(
@@ -2310,7 +2310,7 @@ contract("Superfluid Host Contract", (accounts) => {
                 "SuperAppMockNotSelfRegistering"
             );
             const appFactory = await SuperAppFactoryMock.new();
-            await governance.authorizeAppDeployer(
+            await governance.authorizeAppFactory(
                 superfluid.address,
                 appFactory.address
             );
@@ -2334,7 +2334,7 @@ contract("Superfluid Host Contract", (accounts) => {
             assert.isTrue(await superfluid.isApp(app2.address));
 
             // withdrawal of authorization disallows further apps to be registered ...
-            await governance.unauthorizeAppDeployer(
+            await governance.unauthorizeAppFactory(
                 superfluid.address,
                 appFactory.address
             );

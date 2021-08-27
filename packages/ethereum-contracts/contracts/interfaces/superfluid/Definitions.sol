@@ -173,15 +173,15 @@ library SuperfluidGovernanceConfigs {
             forwarder));
     }
 
-    function getAppWhiteListingConfigKey(string memory registrationkey) internal pure returns (bytes32) {
+    function getAppRegistrationConfigKey(string memory registrationKey) internal pure returns (bytes32) {
         return keccak256(abi.encode(
-            "org.superfluid-finance.superfluid.appWhiteListing.seed",
-            registrationkey));
+            "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
+            registrationKey));
     }
 
-    function getAppDeployerConfigKey(address deployer) internal pure returns (bytes32) {
+    function getAppFactoryConfigKey(address factory) internal pure returns (bytes32) {
         return keccak256(abi.encode(
-            "org.superfluid-finance.superfluid.appDeployer",
-            deployer));
+            "org.superfluid-finance.superfluid.appWhiteListing.factory",
+            factory));
     }
 }

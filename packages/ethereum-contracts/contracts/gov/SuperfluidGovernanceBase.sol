@@ -315,9 +315,10 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 
     /**
      * @dev Whitelist a new app using a onetime key
+     * @param key is a hash key which can be used once to register an app
      *
      * NOTE:
-     * To generate the key, use the SuperfluidGovernanceConfigs.getAppWhiteListingConfigKey
+     * To generate the key, use the SuperfluidGovernanceConfigs.getAppRegistrationConfigKey
      * offchain.
      */
     function whiteListNewApp(
@@ -329,25 +330,28 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         _setConfig(host, ISuperfluidToken(address(0)), key, 1);
     }
 
-    function isAuthorizedAppDeployer(
+    /**
+     * @dev tells if the given factory is authorized to register apps
+     */
+    function isAuthorizedAppFactory(
         ISuperfluid host,
-        address deployer
+        address factory
     )
         public view
         returns (bool)
     {
         return getConfigAsUint256(
             host, ISuperfluidToken(address(0)),
-            SuperfluidGovernanceConfigs.getAppDeployerConfigKey(deployer)) == 1;
+            SuperfluidGovernanceConfigs.getAppFactoryConfigKey(factory)) == 1;
     }
 
     /**
-     * @dev allows the given deployer to deploy new apps without the use of whitelisted disposable keys
-     * @param deployer must be a contract (intended use: factory contracts)
+     * @dev allows the given factory to register new apps without requiring onetime keys
+     * @param factory must be an initialized contract
      */
-    function authorizeAppDeployer(
+    function authorizeAppFactory(
         ISuperfluid host,
-        address deployer
+        address factory
     )
         public
     {
@@ -355,25 +359,29 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         {
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
-            assembly { cs := extcodesize(deployer) }
-            require(cs > 0, "SFGov: deployer must be a contract");
+            assembly { cs := extcodesize(factory) }
+            require(cs > 0, "SFGov: factory must be a contract");
         }
 
         _setConfig(
             host, ISuperfluidToken(address(0)),
-            SuperfluidGovernanceConfigs.getAppDeployerConfigKey(deployer),
+            SuperfluidGovernanceConfigs.getAppFactoryConfigKey(factory),
             1);
     }
 
-    function unauthorizeAppDeployer(
+    /**
+     * @dev withdraws authorization from a factory to register new apps.
+     * Doesn't affect apps previously registered by the factory.
+     */
+    function unauthorizeAppFactory(
         ISuperfluid host,
-        address deployer
+        address factory
     )
         public
     {
         _clearConfig(
             host, ISuperfluidToken(address(0)),
-            SuperfluidGovernanceConfigs.getAppDeployerConfigKey(deployer));
+            SuperfluidGovernanceConfigs.getAppFactoryConfigKey(factory));
     }
 
     // TODO: would like to use virtual modifier, but solhint doesn't like it atm

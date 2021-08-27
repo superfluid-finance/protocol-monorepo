@@ -29,7 +29,7 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
         const newGovProxy = await SuperfluidGovernanceIIProxy.new({
             from: alice,
         });
-        const newGovLogic = await SuperfluidGovernanceII.new({ from: alice });
+        const newGovLogic = await SuperfluidGovernanceII.new();
         await newGovProxy.initializeProxy(newGovLogic.address);
         await web3tx(
             governance.replaceGovernance,
@@ -64,6 +64,11 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
             governance.updateSuperTokenLogic(superfluid.address, ZERO_ADDRESS),
             onlyOwnerReason
         );
+
+        await expectRevert(
+            governance.updateCode(FAKE_ADDRESS1),
+            onlyOwnerReason
+        );
     });
 
     describe("#1 upgradability", () => {
@@ -84,14 +89,7 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
             );
         });
 
-        it("#1.3 only owner can update the code", async () => {
-            await expectRevert(
-                governance.updateCode(ZERO_ADDRESS),
-                onlyOwnerReason
-            );
-        });
-
-        it("#1.4 update the code", async () => {
+        it("#1.3 update the code", async () => {
             const newLogic = await SuperfluidGovernanceII.new();
 
             await web3tx(
@@ -99,6 +97,15 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
                 "governance.updateCode to new logic contract"
             )(newLogic.address, { from: alice });
             assert.equal(await governance.getCodeAddress(), newLogic.address);
+        });
+
+        it("#1.4 initializeProxy can't be invoked again", async () => {
+            const govProxy = await SuperfluidGovernanceIIProxy.at(governance.address);
+            const newGovLogic = await SuperfluidGovernanceII.new();
+            await expectRevert(
+                govProxy.initializeProxy(newGovLogic.address),
+                "UUPSProxy: already initialized"
+            );
         });
     });
 
@@ -359,7 +366,7 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
             );
         });
 
-        it("#2.5 authorizeAppDeployer", async () => {
+        it("#2.5 authorizeAppFactory", async () => {
             const SuperAppFactoryMock = artifacts.require(
                 "SuperAppFactoryMock"
             );
@@ -367,7 +374,7 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
 
             // checks for authorize
             await expectRevert(
-                governance.authorizeAppDeployer(
+                governance.authorizeAppFactory(
                     superfluid.address,
                     appFactory.address
                 ),
@@ -375,27 +382,27 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
             );
 
             await expectRevert(
-                governance.authorizeAppDeployer(
+                governance.authorizeAppFactory(
                     superfluid.address,
                     FAKE_ADDRESS1,
                     { from: alice }
                 ),
-                "SFGov: deployer must be a contract"
+                "SFGov: factory must be a contract"
             );
 
             assert.isFalse(
-                await governance.isAuthorizedAppDeployer(
+                await governance.isAuthorizedAppFactory(
                     superfluid.address,
                     appFactory.address
                 )
             );
-            await governance.authorizeAppDeployer(
+            await governance.authorizeAppFactory(
                 superfluid.address,
                 appFactory.address,
                 { from: alice }
             );
             assert.isTrue(
-                await governance.isAuthorizedAppDeployer(
+                await governance.isAuthorizedAppFactory(
                     superfluid.address,
                     appFactory.address
                 )
@@ -403,19 +410,19 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
 
             // checks for unauthorize
             await expectRevert(
-                governance.unauthorizeAppDeployer(
+                governance.unauthorizeAppFactory(
                     superfluid.address,
                     appFactory.address
                 ),
                 onlyOwnerReason
             );
-            await governance.unauthorizeAppDeployer(
+            await governance.unauthorizeAppFactory(
                 superfluid.address,
                 appFactory.address,
                 { from: alice }
             );
             assert.isFalse(
-                await governance.isAuthorizedAppDeployer(
+                await governance.isAuthorizedAppFactory(
                     superfluid.address,
                     appFactory.address
                 )

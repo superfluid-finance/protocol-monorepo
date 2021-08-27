@@ -297,7 +297,7 @@ contract Superfluid is
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
-        bytes32 configKey = SuperfluidGovernanceConfigs.getAppWhiteListingConfigKey(registrationKey);
+        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(registrationKey);
         // check if the key is enabled
         require(
             _gov.getConfigAsUint256(
@@ -332,13 +332,13 @@ contract Superfluid is
 
         if (APP_WHITE_LISTING_ENABLED) {
             // check if msg sender is authorized to register
-            bytes32 configKey = SuperfluidGovernanceConfigs.getAppDeployerConfigKey(msg.sender);
-            bool isAuthorizedAppDeployer = _gov.getConfigAsUint256(
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
+            bool isAuthorizedAppFactory = _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
                 configKey) == 1;
 
-            require(isAuthorizedAppDeployer, "SF: authorized factory required");
+            require(isAuthorizedAppFactory, "SF: authorized factory required");
         }
         _registerApp(configWord, app, false);
     }

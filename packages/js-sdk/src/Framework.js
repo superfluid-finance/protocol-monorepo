@@ -42,15 +42,15 @@ module.exports = class Framework {
 
         if (options.isTruffle && (options.ethers || options.web3))
             throw Error(
-                "@superfluid-finaince/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
+                "@superfluid-finance/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
             );
         if (!options.isTruffle && !options.ethers && !options.web3)
             throw Error(
-                "@superfluid-finaince/js-sdk: You must provide a web3 or ethers instance."
+                "@superfluid-finance/js-sdk: You must provide a web3 or ethers instance."
             );
         if (options.ethers && options.web3)
             throw Error(
-                `@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance.
+                `@superfluid-finance/js-sdk: You cannot provide both a web3 and ethers instance.
                 Please choose only one.`
             );
         this.web3 = options.isTruffle ? global.web3 : options.web3;

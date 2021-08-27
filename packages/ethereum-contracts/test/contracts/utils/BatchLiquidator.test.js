@@ -85,7 +85,7 @@ contract("Superfluid Liquidator Contract", (accounts) => {
 
             await superToken.transferAll(accounts[5], { from: alice });
             await timeTravelOnce(1);
-            const tx = await batch.deleteFlows(
+            await batch.deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,

@@ -173,9 +173,10 @@ library SuperfluidGovernanceConfigs {
             forwarder));
     }
 
-    function getAppRegistrationConfigKey(string memory registrationKey) internal pure returns (bytes32) {
+    function getAppRegistrationConfigKey(address deployer, string memory registrationKey) internal pure returns (bytes32) {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
+            deployer,
             registrationKey));
     }
 

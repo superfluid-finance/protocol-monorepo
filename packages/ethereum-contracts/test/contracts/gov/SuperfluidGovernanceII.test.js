@@ -100,7 +100,9 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
         });
 
         it("#1.4 initializeProxy can't be invoked again", async () => {
-            const govProxy = await SuperfluidGovernanceIIProxy.at(governance.address);
+            const govProxy = await SuperfluidGovernanceIIProxy.at(
+                governance.address
+            );
             const newGovLogic = await SuperfluidGovernanceII.new();
             await expectRevert(
                 govProxy.initializeProxy(newGovLogic.address),

@@ -2219,9 +2219,10 @@ contract("Superfluid Host Contract", (accounts) => {
         function createAppKey(deployer, registrationKey) {
             return web3.utils.sha3(
                 web3.eth.abi.encodeParameters(
-                    ["string", "string"],
+                    ["string", "address", "string"],
                     [
                         "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
+                        deployer,
                         registrationKey,
                     ]
                 )
@@ -2264,7 +2265,23 @@ contract("Superfluid Host Contract", (accounts) => {
             assert.isTrue(await superfluid.isApp(app.address));
         });
 
-        it("#40.4 app can register with an used key should fail", async () => {
+        it("#40.4 app registration with key for different deployer should fail", async () => {
+            const appKey = createAppKey(bob, "hello world");
+            await governance.whiteListNewApp(superfluid.address, appKey);
+            await expectRevert(
+                SuperAppMockWithRegistrationkey.new(
+                    superfluid.address,
+                    1 /* APP_TYPE_FINAL_LEVEL */,
+                    "hello world",
+                    {
+                        from: alice,
+                    }
+                ),
+                "SF: invalid registration key"
+            );
+        });
+
+        it("#40.5 app can register with an used key should fail", async () => {
             const appKey = createAppKey(bob, "hello world again");
             await governance.whiteListNewApp(superfluid.address, appKey);
             await SuperAppMockWithRegistrationkey.new(
@@ -2288,7 +2305,7 @@ contract("Superfluid Host Contract", (accounts) => {
             );
         });
 
-        it("#40.5 app registration by unauthorized factory should fail", async () => {
+        it("#40.6 app registration by unauthorized factory should fail", async () => {
             const SuperAppMockNotSelfRegistering = artifacts.require(
                 "SuperAppMockNotSelfRegistering"
             );
@@ -2305,7 +2322,7 @@ contract("Superfluid Host Contract", (accounts) => {
             );
         });
 
-        it("#40.6 app registration by authorized factory", async () => {
+        it("#40.7 app registration by authorized factory", async () => {
             const SuperAppMockNotSelfRegistering = artifacts.require(
                 "SuperAppMockNotSelfRegistering"
             );

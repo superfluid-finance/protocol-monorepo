@@ -315,7 +315,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
 
     /**
      * @dev Whitelist a new app using a onetime key
-     * @param key is a hash key which can be used once to register an app
+     * @param key is a deployer specific hash key which can be used once to register an app
      *
      * NOTE:
      * To generate the key, use the SuperfluidGovernanceConfigs.getAppRegistrationConfigKey

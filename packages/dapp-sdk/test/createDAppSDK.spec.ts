@@ -13,5 +13,4 @@ it('creates DApp-SDK without error', () => {
     expect(result).toBeInstanceOf(Object);
     expect(result.superfluidSdk).toBe(superfluidSdk);
     expect(result.reduxStore).toBe(store);
-    expect(result.subscribe).toBeInstanceOf(Function);
 });

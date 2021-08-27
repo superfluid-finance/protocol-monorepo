@@ -13,14 +13,12 @@ const AddressAndNetworkForm: FC<Props> = ({onSubmitted}): ReactElement => {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setError(null);
-        dappSdk
-            .subscribe(networkId, accountAddress)
-            .then(() => onSubmitted(networkId, accountAddress))
-            .catch(x => setError(x));
+        onSubmitted(networkId, accountAddress);
     }
 
     return (
         <>
+            <h1>Select account from a network</h1>
             {!!error && <p>{error}</p>}
             <form onSubmit={handleSubmit}>
                 <label>

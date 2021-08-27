@@ -8,8 +8,11 @@ export const DisplaySelectedAccountAndNetwork: FC<any> = (): ReactElement => {
 
     return (
         <>
-            <p>Selected network ID: {accountAndNetworkScopedContext.network.id}</p>
-            <p>Selected account address: {accountAndNetworkScopedContext.account.address}</p>
+            <h1>Selected Account</h1>
+            <h2>Network</h2>
+            <strong>{accountAndNetworkScopedContext.network.id}</strong>
+            <h2>Address</h2>
+            <strong>{accountAndNetworkScopedContext.account.accountAddress}</strong>
         </>
     );
 };

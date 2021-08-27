@@ -1,12 +1,16 @@
-import {ReactElement} from "react";
+import {ReactElement, useState} from "react";
 import {Account, Network, RootState} from "dapp-sdk";
 import {FC} from "react";
 import {createContext} from "react";
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
+import {StreamIndex} from "dapp-sdk/build/main/Account";
+import {fetchAccountStreamIndexes} from "dapp-sdk/build/main/mainSlice";
 
 export interface AccountAndNetworkScopedContextState {
     network: Network,
-    account: Account
+    account: Account,
+    activeStreams?: Array<StreamIndex>,
+    inactiveStreams?: Array<StreamIndex>,
 }
 
 interface Props {
@@ -17,21 +21,45 @@ interface Props {
 // TODO/NOTE: These should never be NULL for consuming components.
 export const AccountAndNetworkScopedContext = createContext<AccountAndNetworkScopedContextState>({
     account: null!,
-    network: null!
+    network: null!,
 });
 
 export const AccountScoper: FC<Props> = ({networkId, accountAddress, children}): ReactElement => {
-    const {network, account} = useSelector((state: RootState) => {
+    const {network, account } = useSelector((state: RootState) => {
         return {
-            network: state.networks.networks[networkId],
-            account: state.accounts.accounts[accountAddress]
+            isLoading: state.main.isLoading,
+            network: state.main.networks[networkId],
+            account: state.main.networks[networkId].accounts[accountAddress]
         }
     });
+    const dispatch = useDispatch();
+    const [hasFetchedActive, setHasFetchedActive] = useState(false);
+    const [hasFetchedInactive, setHasFetchedInactive] = useState(false);
 
     const contextValue = {
         account: account,
-        network: network
+        network: network,
+        activeStreams: account.activeStreams,
+        inactiveStreams: account.inactiveStreams
     };
+
+    if (!account.activeStreams && !hasFetchedActive) {
+        dispatch(fetchAccountStreamIndexes({
+            networkId: account.networkId,
+            accountAddress: account.accountAddress,
+            isActive: true
+        }))
+        setHasFetchedActive(true);
+    } else {
+        if (account.activeStreams && !account.inactiveStreams && !hasFetchedInactive) {
+            dispatch(fetchAccountStreamIndexes({
+                networkId: account.networkId,
+                accountAddress: account.accountAddress,
+                isActive: false
+            }))
+            setHasFetchedInactive(true);
+        }
+    }
 
     return (
         <AccountAndNetworkScopedContext.Provider value={contextValue}>

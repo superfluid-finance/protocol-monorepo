@@ -1,12 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import accountsReducer from './accountsSlice';
-import networksReducer from './networksSlice';
+import { mainSliceReducer} from './mainSlice';
 
 export const store = configureStore({
     reducer: {
-        networks: networksReducer,
-        accounts: accountsReducer,
+        main: mainSliceReducer,
     },
 });
 

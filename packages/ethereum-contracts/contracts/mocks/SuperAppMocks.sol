@@ -594,3 +594,14 @@ contract SuperAppMockWithRegistrationkey {
         _host.registerAppWithKey(configWord, registrationKey);
     }
 }
+
+// minimal fake SuperApp contract
+// solhint-disable-next-line no-empty-blocks
+contract SuperAppMockNotSelfRegistering { }
+
+// Factory which allows anybody to deploy arbitrary contracts as app (do NOT allow this in a real factory!)
+contract SuperAppFactoryMock {
+    function registerAppWithHost(ISuperfluid host, ISuperApp app, uint256 configWord) external {
+        host.registerAppByFactory(app, configWord);
+    }
+}

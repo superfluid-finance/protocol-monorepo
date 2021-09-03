@@ -10,7 +10,8 @@
         "src/**/*.md",
         "src/**/*.d.ts",
         "src/**/*.json",
-        "src/**/*.js"
+        "src/**/*.js",
+        "dist/index.js"
     ],
     "browser": {
         "fs": false,

@@ -26,4 +26,8 @@ module.exports = {
             crypto: false,
         },
     },
+    externals: {
+        "@ethersproject/contracts": "@ethersproject/contracts",
+        "@truffle/contract": "@truffle/contract",
+    },
 };

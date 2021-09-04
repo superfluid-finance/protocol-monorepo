@@ -48,7 +48,7 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        const secretKey = web3.utils.sha3(
+        const appKey = web3.utils.sha3(
             web3.eth.abi.encodeParameters(
                 ["string", "address", "string"],
                 [
@@ -61,7 +61,7 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("App key", appKey);
 
         await sendGovernanceAction(sf, (gov) =>
-            gov.whiteListNewApp(sf.host.address, secretKey)
+            gov.whiteListNewApp(sf.host.address, appKey)
         );
 
         callback();

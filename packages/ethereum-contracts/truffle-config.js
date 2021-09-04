@@ -202,7 +202,7 @@ module.exports = {
             },
             network_id: 137,
             //gas: 8e6,
-            gasPrice: +process.env.MATIC_GAS_PRICE || 10e9,
+            gasPrice: +process.env.MATIC_GAS_PRICE || 25e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -220,7 +220,7 @@ module.exports = {
                 ),
             network_id: 80001,
             //gas: 8e6,
-            gasPrice: +process.env.MUMBAI_GAS_PRICE || 10e9,
+            gasPrice: +process.env.MUMBAI_GAS_PRICE || 20e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )

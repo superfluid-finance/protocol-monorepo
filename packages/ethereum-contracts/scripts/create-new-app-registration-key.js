@@ -52,13 +52,13 @@ module.exports = async function (callback, argv, options = {}) {
             web3.eth.abi.encodeParameters(
                 ["string", "address", "string"],
                 [
-                    "org.superfluid-finance.superfluid.appWhiteListing.seed",
+                    "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
                     deployer,
                     registrationkey,
                 ]
             )
         );
-        console.log("Secret key", secretKey);
+        console.log("App key", appKey);
 
         await sendGovernanceAction(sf, (gov) =>
             gov.whiteListNewApp(sf.host.address, secretKey)

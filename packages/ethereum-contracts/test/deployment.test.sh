@@ -48,6 +48,7 @@ unset RESET_SUPERFLUID_FRAMEWORK
 unset RELEASE_VERSION
 unset USE_MOCKS
 unset NON_UPGRADABLE
+unset ENABLE_APP_WHITELISTING
 
 # force to load artifacts from build folder instead
 export DISABLE_NATIVE_TRUFFLE=1

@@ -140,7 +140,9 @@ module.exports = class Framework {
         // load agreement classes
         [this.host, this.agreements.cfa, this.agreements.ida] =
             await Promise.all([
+                // load host
                 this.contracts.ISuperfluid.at(loaderResult.superfluid),
+                // load agreements
                 this.contracts.IConstantFlowAgreementV1.at(
                     loaderResult.agreementCFAv1
                 ),

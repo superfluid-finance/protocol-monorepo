@@ -224,15 +224,19 @@ module.exports = class Framework {
         let checkUnderlyingToken = false;
         let underlyingToken;
         let superTokenKey;
+        let superTokenContractType;
+        let superTokenAddress;
         let superToken;
         let superTokenCustomType = "";
 
         if (!isAddress(tokenKey)) {
             if (tokenKey !== this.config.nativeTokenSymbol) {
+                // first check if tokenKey is symbol of a listed non-super token
                 const tokenAddress = await this.resolver.get(
                     `tokens.${tokenKey}`
                 );
                 if (tokenAddress !== ZERO_ADDRESS) {
+                    // if it is, we assume its ERC20 super token wrapper is postfixed with "x"
                     underlyingToken =
                         await this.contracts.ERC20WithTokenInfo.at(
                             tokenAddress
@@ -244,34 +248,31 @@ module.exports = class Framework {
                     );
                     superTokenKey = tokenKey + "x";
                 } else {
+                    // if it is not, then we assume it is a listed super token
                     superTokenKey = tokenKey;
                 }
                 checkUnderlyingToken = true;
+                superTokenContractType = this.contracts.ISuperToken;
             } else {
+                // it is the same as native token symbol, we assume it is a
                 superTokenKey = this.config.nativeTokenSymbol + "x";
+                superTokenContractType = this.contracts.ISETH;
+                superTokenCustomType = "SETH";
             }
 
             // load super token
-            const superTokenAddress = await this.resolver.get(
+            superTokenAddress = await this.resolver.get(
                 `supertokens.${this.version}.${superTokenKey}`
             );
             if (superTokenAddress === ZERO_ADDRESS) {
                 throw new Error(`Super Token for ${tokenKey} cannot be found`);
             }
-            if (tokenKey !== this.config.nativeTokenSymbol) {
-                superToken = await this.contracts.ISuperToken.at(
-                    superTokenAddress
-                );
-            } else {
-                superToken = await this.contracts.ISETH.at(superTokenAddress);
-                superTokenCustomType = "SETH";
-            }
         } else {
-            superTokenKey = tokenKey.toLowerCase();
-            superToken = await this.contracts.ISETH.at(superTokenKey);
-            checkUnderlyingToken = true;
+            superTokenAddress = superTokenKey = tokenKey.toLowerCase();
+            superTokenContractType = this.contracts.ISuperToken;
         }
 
+        superToken = await superTokenContractType.at(superTokenKey);
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
 

@@ -42,15 +42,15 @@ module.exports = class Framework {
 
         if (options.isTruffle && (options.ethers || options.web3))
             throw Error(
-                "@superfluid-finaince/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
+                "@superfluid-finance/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
             );
         if (!options.isTruffle && !options.ethers && !options.web3)
             throw Error(
-                "@superfluid-finaince/js-sdk: You must provide a web3 or ethers instance."
+                "@superfluid-finance/js-sdk: You must provide a web3 or ethers instance."
             );
         if (options.ethers && options.web3)
             throw Error(
-                `@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance.
+                `@superfluid-finance/js-sdk: You cannot provide both a web3 and ethers instance.
                 Please choose only one.`
             );
         this.web3 = options.isTruffle ? global.web3 : options.web3;
@@ -76,23 +76,21 @@ module.exports = class Framework {
      */
     async initialize() {
         console.log("Initializing Superfluid Framework...");
-        let networkType;
-        let networkId;
         if (this.ethers) {
             const network = await this.ethers.getNetwork();
-            networkType = network.name;
-            networkId = network.chainId;
+            this.networkType = network.name;
+            this.networkId = network.chainId;
         } else {
             // NOTE: querying network type first,
             // Somehow web3.eth.net.getId may send bogus number if this was not done first
             // It could be a red-herring issue, but it makes it more stable.
-            networkType = await this.web3.eth.net.getNetworkType();
-            networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+            this.networkType = await this.web3.eth.net.getNetworkType();
+            this.networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         }
-        console.log("networkType", networkType);
-        console.log("networkId", networkId);
+        console.log("networkType", this.networkType);
+        console.log("networkId", this.networkId);
 
-        this.config = getConfig(networkId);
+        this.config = getConfig(this.networkId);
 
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,
@@ -101,7 +99,7 @@ module.exports = class Framework {
             from: this._options.from,
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,
-            networkId: networkId,
+            networkId: this.networkId,
         });
 
         const resolverAddress =
@@ -113,6 +111,7 @@ module.exports = class Framework {
         this.loader = await this.contracts.SuperfluidLoader.at(
             await this.resolver.get("SuperfluidLoader-v1")
         );
+        console.debug("Superfluid Loader v1", this.loader.address);
         console.debug("Loading framework with release version", this.version);
         const loaderResult = await this.loader.loadFramework(this.version);
 
@@ -169,9 +168,7 @@ module.exports = class Framework {
             this._gasMetering = new GasMeter(
                 this.web3,
                 this._gasReportType,
-                defaultGasPrice,
-                "USD",
-                "500"
+                defaultGasPrice
             );
         }
         console.log("Superfluid Framework initialized.");

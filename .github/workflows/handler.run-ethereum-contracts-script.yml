@@ -10,14 +10,17 @@ on:
       network:
         description: 'Network for the script to run on'
         required: true
-      owner_type:
-        description: 'Choose the owner type: MULTISIG, or default (OWNABLE)'
+      admin_type:
+        description: 'Choose the admin type: MULTISIG, or OWNABLE'
         required: true
       script_name:
         description: 'Script name'
         required: true
       script_args:
         description: 'Script arguments'
+        required: false
+      environments:
+        description: 'Additional environments, separated by semicolons'
         required: false
 
 jobs:
@@ -27,8 +30,8 @@ jobs:
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
-      ADMIN_TYPE: ${{ github.event.inputs.owner_type }}
-      GOVERNANCE_TYPE: ${{ github.event.inputs.owner_type }}
+      RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
+      GOVERNANCE_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
 
     steps:
       - uses: actions/checkout@v2
@@ -46,6 +49,8 @@ jobs:
       - name: Execute truffle script
         run: |
           cd packages/ethereum-contracts
+          echo "Admin type: ${{ github.event.inputs.admin_type }}"
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle \
             --network ${{ github.event.inputs.network }} \
             exec \

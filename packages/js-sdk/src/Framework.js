@@ -221,15 +221,16 @@ module.exports = class Framework {
      * - If tokenKey is a super token address, it is normalized to lower case.
      */
     async loadToken(tokenKey) {
-        // load underlying token
-        // but we don't need to load native tokens
-        let checkUnderlyingToken = false;
         let underlyingToken;
         let superTokenKey;
         let superTokenContractType;
         let superTokenAddress;
         let superToken;
         let superTokenCustomType = "";
+        // validate if the underlying token matches its corresponding
+        // listed super token underlying token
+        let doValidateUnderlyingToken = false;
+        let isLoadingByAddress = false;
 
         if (!isAddress(tokenKey)) {
             if (tokenKey !== this.config.nativeTokenSymbol) {
@@ -249,11 +250,11 @@ module.exports = class Framework {
                         tokenAddress
                     );
                     superTokenKey = tokenKey + "x";
+                    doValidateUnderlyingToken = true;
                 } else {
                     // if it is not, then we assume it is a listed super token
                     superTokenKey = tokenKey;
                 }
-                checkUnderlyingToken = true;
                 superTokenContractType = this.contracts.ISuperToken;
             } else {
                 // it is the same as native token symbol, we assume it is a
@@ -272,41 +273,42 @@ module.exports = class Framework {
         } else {
             superTokenAddress = superTokenKey = tokenKey.toLowerCase();
             superTokenContractType = this.contracts.ISuperToken;
+            isLoadingByAddress = true;
         }
 
-        superToken = await superTokenContractType.at(superTokenKey);
+        superToken = await superTokenContractType.at(superTokenAddress);
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
 
-        if (checkUnderlyingToken) {
-            const underlyingTokenAddress =
-                await superToken.getUnderlyingToken.call();
+        const underlyingTokenAddress =
+            await superToken.getUnderlyingToken.call();
+        if (doValidateUnderlyingToken) {
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address
                 if (
-                    underlyingToken &&
                     underlyingTokenAddress.toLowerCase() !==
-                        underlyingToken.address.toLowerCase()
+                    underlyingToken.address.toLowerCase()
                 ) {
                     throw new Error(
-                        `Underlying token address are different for ${tokenKey}`
+                        `Underlying token addresses are different for ${tokenKey}`
                     );
-                }
-
-                // if underlying token is null or undefined
-                if (!underlyingToken) {
-                    underlyingToken =
-                        await this.contracts.ERC20WithTokenInfo.at(
-                            underlyingTokenAddress
-                        );
-                    const symbol = await underlyingToken.symbol();
-                    this.tokens[symbol] = underlyingToken;
                 }
             } else {
-                if (underlyingToken) {
-                    throw new Error(
-                        `Unexpected underlying token for ${tokenKey}`
-                    );
+                throw new Error(`Unexpected underlying token for ${tokenKey}`);
+            }
+        }
+
+        // if underlying token is still null or undefined, load it
+        if (!underlyingToken) {
+            if (underlyingTokenAddress !== ZERO_ADDRESS) {
+                underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
+                    underlyingTokenAddress
+                );
+                if (!isLoadingByAddress) {
+                    // do not pollute the tokens namespace if loading a potentially
+                    // unlisted token
+                    const symbol = await underlyingToken.symbol();
+                    this.tokens[symbol] = underlyingToken;
                 }
             }
         }

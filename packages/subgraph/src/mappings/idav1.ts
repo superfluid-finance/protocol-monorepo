@@ -162,6 +162,9 @@ export function handleSubscriptionRevoked(event:SubscriptionRevoked): void{
 
 }
 
+// whenever units change for a subscriber we want to update the totalReceived and totalPendingApproval
+// not when the index is updated - however we msut return all the data necessary to calculate this on the
+// front end (lastIndexValue, currentIndexValue)
 export function handleSubscriptionUnitsUpdated(event:SubscriptionUnitsUpdated): void{
     let entity = fetchSubscriber(event.params.subscriber,event.params.publisher,event.params.token,event.params.indexId);
     entity.units = event.params.units;

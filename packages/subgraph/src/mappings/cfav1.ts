@@ -1,53 +1,61 @@
-import { BigDecimal, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
+import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 
-import {
-    // IConstantFlowAgreementV1 as ConstantFlowAgreementV1,
-    FlowUpdated as FlowUpdatedEvent,
-} from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-
-import {
-    Transaction,
-    Account,
-    Flow,
-    Token,
-    FlowUpdated,
-} from "../../generated/schema";
+import { FlowUpdated } from "../../generated/schema";
 
 import {
     createEventID,
-    fetchFlow,
-    fetchToken,
+    fetchStream,
     logTransaction,
     updateBalance,
 } from "../utils";
 
-export function handleFlowUpdated(event: FlowUpdatedEvent): void {
-    let ownerId = event.params.sender.toHex();
-    let recipientId = event.params.receiver.toHex();
+// this doesn't need to save account because we are doing it in fetchStream
+export function handleStreamUpdated(event: FlowUpdatedEvent): void {
+    let senderId = event.params.sender.toHex();
+    let receiverId = event.params.receiver.toHex();
     let tokenId = event.params.token.toHex();
     let flowRate = event.params.flowRate;
 
     let currentTimestamp = event.block.timestamp;
-    // Get the existing flow
-    let flow = fetchFlow(ownerId, recipientId, tokenId, currentTimestamp);
-    // TODO: No need for BigDecimal here?
-    let oldFlowRate = flow.flowRate;
-    let duration = currentTimestamp.minus(flow.lastUpdate).toBigDecimal();
+    // Get the existing flow / initialize if it doesn't exist
+    let stream = fetchStream(senderId, receiverId, tokenId, currentTimestamp);
 
-    flow.flowRate = flowRate;
-    let sum = flow.sum;
-    sum = sum + oldFlowRate.toBigDecimal().times(duration);
-    flow.sum = sum;
-    flow.save();
+    let oldFlowRate = stream.currentFlowRate;
+    let duration = currentTimestamp.minus(stream.lastUpdate);
+
+    stream.currentFlowRate = flowRate;
+    let oldStreamedUntilLastUpdate = stream.streamedUntilLastUpdate;
+    let newStreamedUntilLastUpdate = oldStreamedUntilLastUpdate.plus(
+        oldFlowRate.times(duration)
+    );
+	stream.lastUpdate = currentTimestamp;
+    stream.streamedUntilLastUpdate = newStreamedUntilLastUpdate;
+    stream.save();
 
     let ev = new FlowUpdated(createEventID(event));
     ev.transaction = logTransaction(event).id;
-    ev.flow = flow.id;
+    ev.token = tokenId;
+    ev.sender = event.params.sender;
+    ev.receiver = event.params.receiver;
     ev.oldFlowRate = oldFlowRate;
     ev.flowRate = flowRate;
-    ev.sum = sum;
+    ev.oldFlowRate = oldFlowRate;
+    ev.totalSenderFlowRate = event.params.totalSenderFlowRate;
+    ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
+    ev.userData = event.params.userData;
+
+    // TODO: ensure that this works as expected
+    let type =
+        ev.oldFlowRate === new BigInt(0)
+            ? "create"
+            : ev.flowRate === new BigInt(0)
+            ? "terminate"
+            : "delete";
+
+    ev.type = type;
     ev.save();
 
-    updateBalance(ownerId, tokenId);
-    updateBalance(recipientId, tokenId);
+    updateBalance(senderId, tokenId);
+    updateBalance(receiverId, tokenId);
 }

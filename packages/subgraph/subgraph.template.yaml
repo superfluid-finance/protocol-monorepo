@@ -17,42 +17,63 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
+              - CustomSuperTokenCreated
+              - SuperTokenCreated
+              - SuperTokenLogicCreated
               - Token
-              - SuperToken
+              - Transaction
           abis:
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
-            # TODO: remove here ISuperfluid once the cfaAddres issue is resolved
-              - name: ISuperfluid
-                file: ./abis/ISuperfluid.json
+            # TODO: removed ISuperfluid.json because I don't think this is using it in any way.
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
               - event: CustomSuperTokenCreated(indexed address)
-                handler: handleSuperTokenCreated
-    # - kind: ethereum/contract
-    #   name: Host
-    #   network: {{ network }}
-    #   source:
-    #       abi: ISuperfluid
-    #       address: "{{ hostAddress }}"
-    #       startBlock: {{ hostStartBlock }}
-    #   mapping:
-    #       kind: ethereum/events
-    #       apiVersion: 0.0.3
-    #       language: wasm/assemblyscript
-    #       file: ./src/mappings/host.ts
-          # entities:
-          #     - Transaction
-          #     - Account
-          #     - Transfer
-          # abis:
-          #     - name: ISuperfluid
-          #       file: ./abis/Superfluid.json
-          # eventHandlers:
-
+                handler: handleCustomSuperTokenCreated
+              - event: SuperTokenLogicCreated(indexed address)
+                handler: handleSuperTokenLogicCreated
+    - kind: ethereum/contract
+      name: Host
+      network: {{ network }}
+      source:
+          abi: ISuperfluid
+          address: "{{ hostAddress }}"
+          startBlock: {{ hostStartBlock }}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.4
+          language: wasm/assemblyscript
+          file: ./src/mappings/host.ts
+          entities:
+              - Transaction
+              - GovernanceReplaced
+              - AgreementClassRegistered
+              - AgreementClassUpdated
+              - SuperTokenFactoryUpdated
+              - SuperTokenLogicUpdated
+              - AppRegistered
+              - Jail
+          abis:
+              - name: ISuperfluid
+                file: ./abis/Superfluid.json
+          eventHandlers:
+              - event: GovernanceReplaced(address, address)
+                handler: handleGovernanceReplaced
+              - event: AgreementClassRegistered(bytes, address)
+                handler: handleAgreementClassRegistered
+              - event: AgreementClassUpdated(bytes, address)
+                handler: handleAgreementClassUpdated
+              - event: SuperTokenFactoryUpdated(address, address)
+                handler: handleSuperTokenFactoryUpdated
+              - event: SuperTokenLogicUpdated(indexed address, address)
+                handler: handleSuperTokenLogicUpdated
+              - event: AppRegistered(indexed address)
+                handler: handleAppRegistered
+              - event: Jail(indexed address, uint256)
+                handler: handleJail
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1
       network: {{ network }}
@@ -66,11 +87,11 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
-              - Transaction
               - Account
-              - AccountWithToken
-              - Transfer
-              - Token
+              - AccountInteractedToken
+              - FlowUpdated
+              - Stream
+              - Transaction
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
@@ -78,7 +99,7 @@ dataSources:
                 file: ./abis/ISuperToken.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleFlowUpdated
+                handler: handleStreamUpdated
     - kind: ethereum/contract
       name: IInstantDistributionAgreementV1
       network: {{ network }}
@@ -88,7 +109,7 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.3
+        apiVersion: 0.0.4
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
@@ -133,8 +154,10 @@ templates:
       file: ./src/mappings/superToken.ts
       entities:
         - Token
-        - SuperToken
-        - AccountWithToken
+        - TokenUpgraded
+        - TokenDowngraded
+        - TokenTransfer
+        - AccountInteractedToken
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json

@@ -15,46 +15,31 @@ import {
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import {
     Account,
-    Flow,
+    Stream,
     Token,
     Transaction,
-    AccountWithToken,
+    AccountInteractedToken,
     Subscriber,
-    Index
+    Index,
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
 import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
 
-
-
-import { SubscriptionApproved} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
+import { SubscriptionApproved } from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 
 export function createEventID(event: ethereum.Event): string {
-    return event.block.number
-        .toString()
+    return event.transaction.hash
+        .toHex()
         .concat("-")
         .concat(event.logIndex.toString());
 }
-
-function createFlowID(owner: string, recipient: string, token: string): string {
-    return owner
-        .concat("-")
-        .concat(recipient)
-        .concat("-")
-        .concat(token);
-}
-
 export function logTransaction(event: ethereum.Event): Transaction {
     let tx = new Transaction(event.transaction.hash.toHex());
     tx.timestamp = event.block.timestamp;
     tx.blockNumber = event.block.number;
     tx.save();
     return tx as Transaction;
-}
-
-export function toDai(value: BigInt): BigDecimal {
-    return value.divDecimal(BigDecimal.fromString("1000000000000000000")); // 18 decimal
 }
 
 export function fetchAccount(id: string): Account {
@@ -77,115 +62,161 @@ export function fetchToken(address: string): Token {
         token.name = name;
         token.symbol = symbol;
         SuperTokenTemplate.create(Address.fromString(address));
-        // Additional context can be added here. See docs: https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
-        // let context = new DataSourceContext();
-        // context.setString("dummyValue", "foo");
-        // SuperTokenTemplate.createWithContext(
-        //     Address.fromString(address),
-        //     context
-        // );
     }
     return token as Token;
 }
 
-export function fetchAccountWithToken(
+export function fetchAccountInteractedToken(
     accountId: string,
     tokenId: string
-): AccountWithToken {
+): AccountInteractedToken {
     let id = accountId.concat("-").concat(tokenId);
-    let accountWithToken = AccountWithToken.load(id);
+    let accountWithToken = AccountInteractedToken.load(id);
     if (accountWithToken == null) {
-        let account = fetchAccount(accountId); // Ensure these exist
-        let token = fetchToken(tokenId);
-        account.save();
-        token.save();
-        accountWithToken = new AccountWithToken(id);
-        accountWithToken.balance = BigDecimal.fromString("0");
+		// NOTE: removed fetchAccount + save as we do this prior to calling this function
+		// everywhere in the code.
+        accountWithToken = new AccountInteractedToken(id);
         accountWithToken.account = accountId;
         accountWithToken.token = tokenId;
     }
-    return accountWithToken as AccountWithToken;
+    return accountWithToken as AccountInteractedToken;
 }
 
-export function fetchFlow(
-    ownerAddress: string,
-    recipientAddress: string,
+function createStreamID(owner: string, recipient: string, token: string): string {
+    return owner.concat("-").concat(recipient).concat("-").concat(token);
+}
+
+
+export function fetchStream(
+    senderAddress: string,
+    receiverAddress: string,
     tokenAddress: string,
     timestamp: BigInt
-): Flow {
-    let id = createFlowID(ownerAddress, recipientAddress, tokenAddress);
-    let flow = Flow.load(id);
-    if (flow == null) {
-        flow = new Flow(id);
-        flow.sum = BigDecimal.fromString("0");
-        flow.flowRate = BigInt.fromI32(0);
-        let token = fetchToken(tokenAddress);
-        flow.token = token.id;
-        flow.owner = ownerAddress;
-        flow.lastUpdate = timestamp;
-        flow.recipient = recipientAddress;
+): Stream {
+    let id = createStreamID(senderAddress, receiverAddress, tokenAddress);
+    let stream = Stream.load(id);
+    if (stream == null) {
+        stream = new Stream(id);
+        stream.token = tokenAddress;
+        stream.sender = senderAddress;
+        stream.receiver = receiverAddress;
+        stream.lastUpdate = timestamp;
+        stream.currentFlowRate = BigInt.fromI32(0);
+        stream.streamedUntilLastUpdate = BigInt.fromI32(0);
 
         // Create accounts and tokens if they do not exist
-        let ownerAccount = fetchAccount(ownerAddress);
-        let recipientAccount = fetchAccount(recipientAddress);
+        // NOTE: Not for tokens, it is impossible to start a stream if the specified token doesn't exist.
+        let ownerAccount = fetchAccount(senderAddress);
+        let receiverAccount = fetchAccount(receiverAddress);
         ownerAccount.save();
-        recipientAccount.save();
-        token.save();
+        receiverAccount.save();
     }
-    return flow as Flow;
+    return stream as Stream;
 }
 
+// is create account necessary? look at all the places calling updateBalance
 export function updateBalance(accountId: string, tokenId: string): void {
-    let accountWithToken = fetchAccountWithToken(accountId, tokenId);
+    let accountInteractedToken = fetchAccountInteractedToken(
+        accountId,
+        tokenId
+    );
     log.info("Token updateBalance: {}", [tokenId]);
-    let tokenContract = SuperToken.bind(Address.fromString(tokenId));
-    let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
-    accountWithToken.balance = newBalance.toBigDecimal();
-    accountWithToken.save();
+    let superTokenContract = SuperToken.bind(Address.fromString(tokenId));
+    let newBalance = superTokenContract.balanceOf(
+        Address.fromString(accountId)
+    );
+    accountInteractedToken.balance = newBalance.toBigDecimal();
+    accountInteractedToken.save();
     return;
 }
-//IDA
 
 export function createSubscriptionID(event: SubscriptionApproved): string {
-    return event.params.subscriber.toHexString()+event.params.publisher.toHexString()+event.params.indexId.toHexString()+event.params.token.toHexString()
+    return (
+        event.params.subscriber.toHexString() +
+        event.params.publisher.toHexString() +
+        event.params.indexId.toHexString() +
+        event.params.token.toHexString()
+    );
 }
 
-export function fetchIndex(publisher:Bytes,token:Bytes,indexId:BigInt):Index{
-    let entity = Index.load(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
-    if(entity==null){
-        entity = new Index(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
-        entity.totalDistribution = new BigInt(0);
-        entity.totalUnits = new BigInt(0);
-        entity.totalUnitsApproved = new BigInt(0);
-        entity.totalUnitsPending = new BigInt(0);
+export function fetchIndex(
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt
+): Index {
+    let index = Index.load(
+        publisherAddress.toHexString() +
+            "-" +
+            tokenAddress.toHexString() +
+            "-" +
+            indexId.toHexString()
+    );
+    if (index == null) {
+        index = new Index(
+            publisherAddress.toHexString() +
+                "-" +
+                tokenAddress.toHexString() +
+                "-" +
+                indexId.toHexString()
+        );
+        index.totalDistribution = new BigInt(0);
+        index.totalUnits = new BigInt(0);
+        index.totalUnitsApproved = new BigInt(0);
+        index.totalUnitsPending = new BigInt(0);
     }
-    return entity as Index;
+    return index as Index;
 }
 
-export function fetchSubscriber(subscriber:Bytes,publisher:Bytes,token:Bytes,indexId:BigInt):Subscriber{
-    let entity = Subscriber.load(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
-    if(entity==null){
-        entity = new Subscriber(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
-        entity.subscriber = subscriber;
-        entity.publisher=  publisher;
-        entity.token = token;
-        entity.indexId = indexId;
-        entity.approved = false;
-        entity.totalReceived = new BigInt(0);
-        entity.totalPendingApproval =new BigInt(0); 
-        entity.units = new BigInt(0);
-        entity.index = fetchIndex(publisher,token,indexId).id;
+// TODO: abstract out the getSubscriberId
+export function fetchSubscriber(
+    subscriberAddress: Bytes,
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt
+): Subscriber {
+    let subscriber = Subscriber.load(
+        subscriberAddress.toHexString() +
+            "-" +
+            publisherAddress.toHexString() +
+            "-" +
+            tokenAddress.toHexString() +
+            "-" +
+            indexId.toHexString()
+    );
+    if (subscriber == null) {
+        subscriber = new Subscriber(
+            subscriberAddress.toHexString() +
+                "-" +
+                publisherAddress.toHexString() +
+                "-" +
+                tokenAddress.toHexString() +
+                "-" +
+                indexId.toHexString()
+        );
+        subscriber.subscriber = subscriberAddress;
+        subscriber.publisher = publisherAddress;
+        subscriber.token = tokenAddress;
+        subscriber.indexId = indexId;
+        subscriber.approved = false;
+        subscriber.totalReceived = new BigInt(0);
+        subscriber.totalPendingApproval = new BigInt(0);
+        subscriber.units = new BigInt(0);
+        subscriber.index = fetchIndex(
+            publisherAddress,
+            tokenAddress,
+            indexId
+        ).id;
     }
-    return entity as Subscriber;
+    return subscriber as Subscriber;
 }
 
-export function removeSubscription(subscribers: Bytes[],sub:Bytes): Bytes[] {
-    let temp:Bytes[]=[]
-    var ss =sub.toHexString()
+export function removeSubscription(subscribers: Bytes[], sub: Bytes): Bytes[] {
+    let temp: Bytes[] = [];
+    var ss = sub.toHexString();
     for (let index = 0; index < subscribers.length; index++) {
         let element = subscribers[index].toHexString();
-        if(ss!=element){
-            temp.push(subscribers[index])
+        if (ss != element) {
+            temp.push(subscribers[index]);
         }
     }
     return temp;

@@ -1,3 +1,11 @@
+#################
+# Event Entities #
+#################
+interface Event {
+    id: ID!
+    transaction: Transaction!
+}
+
 type Transaction @entity {
     id: ID!
     timestamp: BigInt!
@@ -5,133 +13,218 @@ type Transaction @entity {
     events: [Event!]! @derivedFrom(field: "transaction")
 }
 
-####################
-#     Protocol     #
-####################
-
-type Account @entity {
-    id: ID!
-    # ---------------------------------- state ----------------------------------
-    # ---------------------------------- links ----------------------------------
-    accountWithToken: [AccountWithToken!]! @derivedFrom(field: "account")
-    flowsOwned: [Flow!]! @derivedFrom(field: "owner")
-    flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
-    upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "account")
-    downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "account")
+enum FlowActionType {
+	create,
+	update,
+	terminate
 }
 
-type Token @entity {
-    # Note: All Tokens are Super Tokens for this subgraph
-    id: ID!
-    name: String!
-    symbol: String!
-    underlyingAddress: Bytes! # Underlying ERC20
-    # ---------------------------------- state ----------------------------------
-    # ---------------------------------- links ----------------------------------
-    accountWithToken: [AccountWithToken!]! @derivedFrom(field: "token")
-    flows: [Flow!]! @derivedFrom(field: "token")
-    upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "token")
-    downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "token")
-}
-
-type AccountWithToken @entity {
-    id: ID!
-    # ---------------------------------- state ----------------------------------
-    balance: BigDecimal!
-    # ---------------------------------- links ----------------------------------
-    # TODO: Move all events here, instead of Account entity
-    transferEventsReceived: [TokenTransfer!]! @derivedFrom(field: "to")
-    transferEventsSent: [TokenTransfer!]! @derivedFrom(field: "from")
-    account: Account!
-    token: Token!
-}
-
-type Flow @entity {
-    id: ID!
-    # ---------------------------------- state ----------------------------------
-    sum: BigDecimal!
-    flowRate: BigInt!
-    lastUpdate: BigInt!
-    # ---------------------------------- links ----------------------------------
-    token: Token! #@derivedFrom(field: "flows")
-    owner: Account! #@derivedFrom(field: "flowsOwned")
-    recipient: Account! #@derivedFrom(field: "flowsReceived")
-    events: [FlowUpdated!]! @derivedFrom(field: "flow")
-}
-
-type Subscriber @entity {
-    id: ID!
-    token: Bytes
-    subscriber: Bytes
-    publisher: Bytes
-    indexId: BigInt
-    userData: Bytes
-    # ---------------------------------- state ----------------------------------
-    approved: Boolean
-    units: BigInt
-    totalReceived: BigInt
-    totalPendingApproval: BigInt
-    # ---------------------------------- links ----------------------------------
-    index: Index
-    subscriptionApproved: [subscriptionApproved!]!
-        @derivedFrom(field: "subscriber")
-    subscriptionRevoked: [subscriptionRevoked!]!
-        @derivedFrom(field: "subscriber")
-    subscriptionUnitsUpdated: [subscriptionUnitsUpdated!]!
-        @derivedFrom(field: "subscriber")
-}
-
-type Index @entity {
-    id: ID!
-    token: Bytes
-    publisher: Bytes
-    indexId: BigInt
-    userData: Bytes
-    # ---------------------------------- state ----------------------------------
-    oldIndexValue: BigInt
-    newIndexValue: BigInt
-    totalUnitsPending: BigInt
-    totalUnitsApproved: BigInt
-    totalUnits: BigInt
-    totalDistribution: BigInt
-    # ---------------------------------- links ----------------------------------
-    subscribers: [Subscriber!]! @derivedFrom(field: "index")
-    indexUpdate: [indexUpdate!]! @derivedFrom(field: "index")
-    indexUnitUpdate: [indexUnitUpdate!]! @derivedFrom(field: "index")
-    indexSubscribed: [indexSubscribed!]! @derivedFrom(field: "index")
-    indexUnsubscribed: [indexUnsubscribed!]! @derivedFrom(field: "index")
-}
-
-#################
-#     Events    #
-#################
-
-interface Event {
-    id: ID!
-    transaction: Transaction!
-}
-
+#     ConstantFlowAgreementV1    #
 type FlowUpdated implements Event @entity {
-    id: ID!
-    transaction: Transaction!
-    flow: Flow!
-    oldFlowRate: BigInt!
-    flowRate: BigInt!
-    sum: BigDecimal!
+	id: ID! 
+	transaction: Transaction!
+	token: Token!
+	sender: Bytes!
+	receiver: Bytes!
+	flowRate: BigInt!
+	oldFlowRate: BigInt!
+	totalSenderFlowRate: BigInt!
+	totalReceiverFlowRate: BigInt!
+	userData: Bytes!
+	type: FlowActionType
 }
 
-type SuperTokenCreated implements Event @entity {
-    id: ID!
-    transaction: Transaction!
-    address: Bytes!
-    underlyingAddress: Bytes!
-    name: String!
-    symbol: String!
+#  InstantDistributionAgreementV1 #
+type IndexCreated implements Event @entity {
+	id: ID! 
+	transaction: Transaction!
+	token: Token!
+	publisher: Bytes!
+	indexId: BigInt!
+	userData: Bytes!
 }
 
+type IndexUpdated implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	publisher: Bytes!
+	indexId: BigInt!
+	oldIndexValue: BigInt!
+	newIndexValue: BigInt!
+	totalUnitsPending: BigInt!
+	totalUnitsApproved: BigInt!
+	userData: Bytes!
+}
+
+type IndexSubscribed implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	publisher: Bytes!
+	indexId: BigInt!
+	subscriber: Bytes!
+	userData: Bytes!
+}
+
+type IndexUnsubscribed implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	publisher: Bytes!
+	indexId: BigInt!
+	subscriber: Bytes!
+	userData: Bytes!
+}
+
+type SubscriptionApproved implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	subscriber: Bytes!
+	publisher: Bytes!
+	indexId: BigInt!
+	userData: Bytes!
+}
+
+type SubscriptionRevoked implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	subscriber: Bytes!
+	publisher: Bytes!
+	indexId: BigInt!
+	userData: Bytes!
+}
+
+type IndexUnitsUpdated implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	publisher: Bytes!
+	indexId: BigInt!
+	subscriber: Bytes!
+	units: BigInt!
+	userData: Bytes!
+}
+
+type SubscriptionUnitsUpdated implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Token!
+	subscriber: Bytes!
+	publisher: Bytes!
+	indexId: BigInt!
+	units: BigInt!
+	userData: Bytes!
+}
+
+#     Superfluid    #
+type GovernanceReplaced implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	oldGovernance: Bytes!
+	newGovernance: Bytes!
+}
+
+type AgreementClassRegistered implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	agreementType: Bytes!
+	code: Bytes!
+}
+
+type AgreementClassUpdated implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	agreementType: Bytes!
+	code: Bytes!
+}
+
+type SuperTokenFactoryUpdated implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	newFactory: Bytes!
+}
+
+type SuperTokenLogicUpdated implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	token: Bytes!
+	code: Bytes!
+}
+
+type AppRegistered implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	app: Bytes!
+}
+
+type Jail implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	app: Bytes!
+	reason: BigInt!
+}
+
+
+# #     SuperfluidGovernance    #
+type ConfigChanged implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	host: Bytes!
+	superToken: Bytes!
+	key: Bytes!
+	set: Boolean!
+	value: BigInt!
+}
+
+type RewardAddressChanged implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	host: Bytes!
+	superToken: Bytes!
+	set: Boolean!
+	rewardAddress: Bytes!
+}
+
+type CFAv1LiquidationPeriodChanged implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	host: Bytes!
+	superToken: Bytes!
+	set: Boolean!
+	liquidationPeriod: BigInt!
+}
+
+type TrustedForwarderChanged implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	host: Bytes!
+	superToken: Bytes!
+	set: Boolean!
+	forwarder: Bytes!
+	enabled: Boolean!
+}
+
+
+# #     SuperfluidToken    #
+type AgreementLiquidatedBy implements Event @entity {
+	id: ID!
+	transaction: Transaction!
+	liquidatorAccount: Bytes!
+	agreementClass: Bytes!
+	agreementId: Bytes!
+	penaltyAccount: Bytes!
+	bondAccount: Bytes!
+	rewardAmount: BigInt!
+	bailoutAmount: BigInt!
+}
+
+#     SuperToken    #
 type TokenUpgraded implements Event @entity {
     id: ID!
-    account: Account!
+    account: Bytes!
     transaction: Transaction!
     token: Token!
     amount: BigInt!
@@ -139,7 +232,7 @@ type TokenUpgraded implements Event @entity {
 
 type TokenDowngraded implements Event @entity {
     id: ID!
-    account: Account!
+    account: Bytes!
     transaction: Transaction!
     token: Token!
     amount: BigInt!
@@ -148,65 +241,122 @@ type TokenDowngraded implements Event @entity {
 type TokenTransfer implements Event @entity {
     id: ID!
     transaction: Transaction!
-    from: AccountWithToken!
-    to: AccountWithToken!
+    from: Bytes!
+    to: Bytes!
     value: BigInt!
     token: Token!
 }
 
-type indexUpdate implements Event @entity {
+#     SuperTokenFactory    #
+type SuperTokenCreated implements Event @entity {
     id: ID!
-    index: Index
-    newIndexValue: BigInt
-    oldIndexValue: BigInt
-    totalUnitsApproved: BigInt
-    totalUnitsPending: BigInt
-    distribution: BigInt
-    userData: Bytes
     transaction: Transaction!
+	token: Token!
 }
 
-type indexUnitUpdate implements Event @entity {
+type SuperTokenLogicCreated implements Event @entity {
     id: ID!
-    index: Index
-    subscriber: Bytes
-    units: BigInt
-    userData: Bytes
     transaction: Transaction!
+	token: Token!
 }
 
-type indexSubscribed implements Event @entity {
+type CustomSuperTokenCreated implements Event @entity {
     id: ID!
-    index: Index
-    subscriber: Bytes
-    userData: Bytes
     transaction: Transaction!
+	token: Token!
 }
 
-type indexUnsubscribed implements Event @entity {
+
+####################
+#   HOL Entities   #
+####################
+interface BaseEntity {
     id: ID!
-    index: Index
-    subscriber: Bytes
-    userData: Bytes
-    transaction: Transaction!
+	createdAt: BigInt!
+    updatedAt: BigInt!
+}
+# Note: Make sure to implement BaseEntity
+type Account implements BaseEntity @entity {
+    id: ID!
 }
 
-type subscriptionApproved implements Event @entity {
+type Token implements BaseEntity @entity {
+    # Note: All Tokens are Super Tokens for this subgraph
     id: ID!
-    subscriber: Subscriber
-    userData: Bytes
-    transaction: Transaction!
+    name: String!
+    symbol: String!
+    underlyingAddress: Bytes! # Underlying ERC20
 }
-type subscriptionRevoked implements Event @entity {
-    id: ID!
-    subscriber: Subscriber
-    userData: Bytes
-    transaction: Transaction!
+
+type Stream implements BaseEntity @entity {
+	id: ID!
+	token: Token!
+	sender: Account!
+	receiver: Account!
+	lastUpdate: BigInt!
+	currentFlowRate: BigInt!
+	streamedUntilLastUpdate: BigInt!
 }
-type subscriptionUnitsUpdated implements Event @entity {
+
+type Subscriber implements BaseEntity @entity {
     id: ID!
-    subscriber: Subscriber
-    userData: Bytes
-    units: BigInt
-    transaction: Transaction!
+    token: Bytes!
+    subscriber: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    userData: Bytes!
+    # ---------------------------------- state ----------------------------------
+    approved: Boolean!
+    units: BigInt!
+	lastUpdate:
+    totalReceivedUntilLastUpdate: BigInt!
+    totalPendingApproval: BigInt!
+	lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
+type Index implements BaseEntity @entity {
+    id: ID!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    userData: Bytes!
+    # ---------------------------------- state ----------------------------------
+    oldIndexValue: BigInt!
+    newIndexValue: BigInt!
+    totalUnitsPending: BigInt!
+    totalUnitsApproved: BigInt!
+    totalUnits: BigInt!
+    totalDistribution: BigInt!
+}
+
+
+####################
+#  Aggr. Entities  #
+####################
+
+type AccountTokenSnapshot implements BaseEntity @entity {
+	id: ID!
+	account: Account!
+	token: Token!
+	balance: BigInt! # must be updated each time subscription units is updated
+	totalNetFlowRate: BigInt!
+	totalAmountPending: BigInt!
+	totalAmountApproved: BigInt!
+	totalSubscriptions: BigInt!
+	totalApprovedSubscriptions: BigInt!
+}
+
+type TokenStats implements BaseEntity @entity {
+	id: ID!
+	token: Token!
+	totalNumberOfStreams: BigInt!
+	totalFlowRate: BigInt!
+	totalNumberOfIndexes: BigInt!
+	totalAmountPending: BigInt!
+	totalAmountApproved: BigInt!
+	totalAmountDistributed: BigInt!
+	totalSubscribers: BigInt!
+	totalApprovedSubscribers: BigInt!
 }

@@ -1,7 +1,4 @@
-import { log } from "@graphprotocol/graph-ts";
-
 import {
-    // ISuperToken as SuperToken,
     TokenUpgraded as TokenUpgradedEvent,
     TokenDowngraded as TokenDowngradedEvent,
     Transfer as TransferEvent,
@@ -16,7 +13,6 @@ import {
 import {
     createEventID,
     logTransaction,
-    fetchToken,
     fetchAccount,
     updateBalance,
 } from "../utils";
@@ -26,7 +22,6 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     account.save();
     let amount = event.params.amount;
     let tokenId = event.address.toHex();
-    let currentTimestamp = event.block.timestamp;
 
     let ev = new TokenUpgraded(createEventID(event));
     ev.transaction = logTransaction(event).id;
@@ -43,7 +38,6 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     account.save();
     let amount = event.params.amount;
     let tokenId = event.address.toHex();
-    let currentTimestamp = event.block.timestamp;
 
     let ev = new TokenDowngraded(createEventID(event));
     ev.transaction = logTransaction(event).id;
@@ -58,9 +52,11 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
 export function handleTransfer(event: TransferEvent): void {
     let fromAccount = fetchAccount(event.params.from.toHex());
     let toAccount = fetchAccount(event.params.to.toHex());
+    fromAccount.save();
+    toAccount.save();
+
     let value = event.params.value;
     let tokenId = event.address.toHex();
-    let currentTimestamp = event.block.timestamp;
 
     let ev = new TokenTransfer(createEventID(event));
     ev.transaction = logTransaction(event).id;

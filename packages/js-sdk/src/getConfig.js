@@ -7,6 +7,14 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
         //
         // ETHEREUM
         //
+        31337: {
+            // for local testing hardhat
+            nativeTokenSymbol: "ETH",
+        },
+        1337: {
+            // for local testing localhost
+            nativeTokenSymbol: "ETH",
+        },
         4447: {
             // for local testing (truffle internal ganache)
             nativeTokenSymbol: "ETH",
@@ -77,7 +85,10 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
 
     const configs = { ...DEFAULT_CONFIGS[chainId] };
     // overriding environment variables
-    configs.resolverAddress =
-        process.env.TEST_RESOLVER_ADDRESS || configs.resolverAddress;
+
+    if (global.process && global.process.env.TEST_RESOLVER_ADDRESS) {
+        configs.resolverAddress = global.process.env.TEST_RESOLVER_ADDRESS;
+    }
+
     return configs;
 };

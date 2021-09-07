@@ -488,7 +488,7 @@ contract SuperToken is
         onlySelf
     {
         _mint(msg.sender, account, amount,
-            true /* requireReceptionAck */, userData, new bytes(0));
+            false /* requireReceptionAck */, userData, new bytes(0));
     }
 
     function selfBurn(

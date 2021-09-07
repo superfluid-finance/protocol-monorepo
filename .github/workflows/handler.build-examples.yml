@@ -1,0 +1,101 @@
+name: Build Examples
+
+on:
+  push:
+    branches-ignore: ["master", "dev"]
+    paths:
+      - 'examples/**'
+  # after a new release is published
+  workflow_run:
+    workflows: ["Publish Release Package"]
+    types:
+      - completed
+  # manual trigger
+  workflow_dispatch:
+  # every day
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron: '0 8 * * *'
+
+jobs:
+  build-example:
+    name: Build example
+
+    runs-on: ubuntu-latest
+
+    env:
+      CI: false # React UI builds may fail for warnings otherwise
+
+    strategy:
+      fail-fast: false # build all examples independently
+      matrix:
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow, react-ts-sdk]
+        install: [locked-install, clean-install]
+        node-version: [14.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check changeset
+        if: github.event_name == 'push'
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install, build and test
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
+          yarn install --frozen-lockfile
+          yarn build
+          yarn test
+
+      - name: Deployment
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          if [ -f "scripts/deploy.js" ];then
+            export RELEASE_VERSION=test
+            export GANACHE_PORT=$(( 50000 + $RANDOM % 10000 ))
+            echo "Ganache port: $GANACHE_PORT"
+            npx ganache-cli --port $GANACHE_PORT &
+            ganache_pid=$!
+            sleep 10 # wait ganache to start
+            DISABLE_NATIVE_TRUFFLE=1 npx truffle --network ganache exec node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js | tee deploy.ignore.log
+            export "$(tail -n1 deploy.ignore.log | awk '{ print $2 }')" # export the TEST_RESOLVER_ADDRESS, with some precaution to prevent script injection
+            npx truffle --network ganache exec scripts/deploy.js
+            kill -9 $ganache_pid
+          fi
+
+      - name: Build UI project if exist
+        if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
+        working-directory: examples/${{ matrix.example }}
+        run: |
+          if [ -f "ui/package.json" ];then
+            cd ui
+            rm -rf ../node_modules # do not let parent node_modules affect ui project
+            [ "${{ matrix.install }}" == clean-install ] && rm -f yarn.lock
+            yarn install --frozen-lockfile
+            yarn build
+            yarn test
+          fi
+
+  build-examples-done:
+    name: Build examples done # An aggregated job used for PR criteria
+
+    runs-on: ubuntu-latest
+
+    needs: [build-example]
+
+    if: always()
+
+    steps:
+      - name: Report success
+        run: |
+          test "${{ needs.build-example.result }}" == success || \
+          test "${{ needs.build-example.result }}" == skipped

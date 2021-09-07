@@ -42,15 +42,15 @@ module.exports = class Framework {
 
         if (options.isTruffle && (options.ethers || options.web3))
             throw Error(
-                "@superfluid-finaince/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
+                "@superfluid-finance/js-sdk: Flag 'isTruffle' cannot be 'true' when using a web3/ethers instance."
             );
         if (!options.isTruffle && !options.ethers && !options.web3)
             throw Error(
-                "@superfluid-finaince/js-sdk: You must provide a web3 or ethers instance."
+                "@superfluid-finance/js-sdk: You must provide a web3 or ethers instance."
             );
         if (options.ethers && options.web3)
             throw Error(
-                `@superfluid-finaince/js-sdk: You cannot provide both a web3 and ethers instance.
+                `@superfluid-finance/js-sdk: You cannot provide both a web3 and ethers instance.
                 Please choose only one.`
             );
         this.web3 = options.isTruffle ? global.web3 : options.web3;
@@ -76,23 +76,21 @@ module.exports = class Framework {
      */
     async initialize() {
         console.log("Initializing Superfluid Framework...");
-        let networkType;
-        let networkId;
         if (this.ethers) {
             const network = await this.ethers.getNetwork();
-            networkType = network.name;
-            networkId = network.chainId;
+            this.networkType = network.name;
+            this.networkId = network.chainId;
         } else {
             // NOTE: querying network type first,
             // Somehow web3.eth.net.getId may send bogus number if this was not done first
             // It could be a red-herring issue, but it makes it more stable.
-            networkType = await this.web3.eth.net.getNetworkType();
-            networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+            this.networkType = await this.web3.eth.net.getNetworkType();
+            this.networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
         }
-        console.log("networkType", networkType);
-        console.log("networkId", networkId);
+        console.log("networkType", this.networkType);
+        console.log("networkId", this.networkId);
 
-        this.config = getConfig(networkId);
+        this.config = getConfig(this.networkId);
 
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,
@@ -101,7 +99,7 @@ module.exports = class Framework {
             from: this._options.from,
             additionalContracts: this._options.additionalContracts,
             contractLoader: this._options.contractLoader,
-            networkId: networkId,
+            networkId: this.networkId,
         });
 
         const resolverAddress =
@@ -113,6 +111,7 @@ module.exports = class Framework {
         this.loader = await this.contracts.SuperfluidLoader.at(
             await this.resolver.get("SuperfluidLoader-v1")
         );
+        console.debug("Superfluid Loader v1", this.loader.address);
         console.debug("Loading framework with release version", this.version);
         const loaderResult = await this.loader.loadFramework(this.version);
 
@@ -140,7 +139,9 @@ module.exports = class Framework {
         // load agreement classes
         [this.host, this.agreements.cfa, this.agreements.ida] =
             await Promise.all([
+                // load host
                 this.contracts.ISuperfluid.at(loaderResult.superfluid),
+                // load agreements
                 this.contracts.IConstantFlowAgreementV1.at(
                     loaderResult.agreementCFAv1
                 ),
@@ -167,9 +168,7 @@ module.exports = class Framework {
             this._gasMetering = new GasMeter(
                 this.web3,
                 this._gasReportType,
-                defaultGasPrice,
-                "USD",
-                "500"
+                defaultGasPrice
             );
         }
         console.log("Superfluid Framework initialized.");
@@ -219,20 +218,25 @@ module.exports = class Framework {
      * - If tokenKey is a super token address, it is normalized to lower case.
      */
     async loadToken(tokenKey) {
-        // load underlying token
-        // but we don't need to load native tokens
-        let checkUnderlyingToken = false;
         let underlyingToken;
         let superTokenKey;
+        let superTokenContractType;
+        let superTokenAddress;
         let superToken;
         let superTokenCustomType = "";
+        // validate if the underlying token matches its corresponding
+        // listed super token underlying token
+        let doValidateUnderlyingToken = false;
+        let isLoadingByAddress = false;
 
         if (!isAddress(tokenKey)) {
             if (tokenKey !== this.config.nativeTokenSymbol) {
+                // first check if tokenKey is symbol of a listed non-super token
                 const tokenAddress = await this.resolver.get(
                     `tokens.${tokenKey}`
                 );
                 if (tokenAddress !== ZERO_ADDRESS) {
+                    // if it is, we assume its ERC20 super token wrapper is postfixed with "x"
                     underlyingToken =
                         await this.contracts.ERC20WithTokenInfo.at(
                             tokenAddress
@@ -243,67 +247,65 @@ module.exports = class Framework {
                         tokenAddress
                     );
                     superTokenKey = tokenKey + "x";
+                    doValidateUnderlyingToken = true;
                 } else {
+                    // if it is not, then we assume it is a listed super token
                     superTokenKey = tokenKey;
                 }
-                checkUnderlyingToken = true;
+                superTokenContractType = this.contracts.ISuperToken;
             } else {
+                // it is the same as native token symbol, we assume it is a
                 superTokenKey = this.config.nativeTokenSymbol + "x";
+                superTokenContractType = this.contracts.ISETH;
+                superTokenCustomType = "SETH";
             }
 
             // load super token
-            const superTokenAddress = await this.resolver.get(
+            superTokenAddress = await this.resolver.get(
                 `supertokens.${this.version}.${superTokenKey}`
             );
             if (superTokenAddress === ZERO_ADDRESS) {
                 throw new Error(`Super Token for ${tokenKey} cannot be found`);
             }
-            if (tokenKey !== this.config.nativeTokenSymbol) {
-                superToken = await this.contracts.ISuperToken.at(
-                    superTokenAddress
-                );
-            } else {
-                superToken = await this.contracts.ISETH.at(superTokenAddress);
-                superTokenCustomType = "SETH";
-            }
         } else {
-            superTokenKey = tokenKey.toLowerCase();
-            superToken = await this.contracts.ISETH.at(superTokenKey);
-            checkUnderlyingToken = true;
+            superTokenAddress = superTokenKey = tokenKey.toLowerCase();
+            superTokenContractType = this.contracts.ISuperToken;
+            isLoadingByAddress = true;
         }
 
+        superToken = await superTokenContractType.at(superTokenAddress);
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
 
-        if (checkUnderlyingToken) {
-            const underlyingTokenAddress =
-                await superToken.getUnderlyingToken.call();
+        const underlyingTokenAddress =
+            await superToken.getUnderlyingToken.call();
+        if (doValidateUnderlyingToken) {
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address
                 if (
-                    underlyingToken &&
                     underlyingTokenAddress.toLowerCase() !==
-                        underlyingToken.address.toLowerCase()
+                    underlyingToken.address.toLowerCase()
                 ) {
                     throw new Error(
-                        `Underlying token address are different for ${tokenKey}`
+                        `Underlying token addresses are different for ${tokenKey}`
                     );
-                }
-
-                // if underlying token is null or undefined
-                if (!underlyingToken) {
-                    underlyingToken =
-                        await this.contracts.ERC20WithTokenInfo.at(
-                            underlyingTokenAddress
-                        );
-                    const symbol = await underlyingToken.symbol();
-                    this.tokens[symbol] = underlyingToken;
                 }
             } else {
-                if (underlyingToken) {
-                    throw new Error(
-                        `Unexpected underlying token for ${tokenKey}`
-                    );
+                throw new Error(`Unexpected underlying token for ${tokenKey}`);
+            }
+        }
+
+        // if underlying token is still null or undefined, load it
+        if (!underlyingToken) {
+            if (underlyingTokenAddress !== ZERO_ADDRESS) {
+                underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
+                    underlyingTokenAddress
+                );
+                if (!isLoadingByAddress) {
+                    // do not pollute the tokens namespace if loading a potentially
+                    // unlisted token
+                    const symbol = await underlyingToken.symbol();
+                    this.tokens[symbol] = underlyingToken;
                 }
             }
         }

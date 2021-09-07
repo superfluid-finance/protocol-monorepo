@@ -23,7 +23,7 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("======== List new super token ========");
 
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
-        let { protocolReleaseVersion } = options;
+        let { resetToken, protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
         if (args.length !== 1) {
@@ -32,6 +32,7 @@ module.exports = async function (callback, argv, options = {}) {
         const superTokenAddress = args.pop();
         console.log("Super Token Address", superTokenAddress);
 
+        resetToken = resetToken || !!process.env.RESET_TOKEN;
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
         console.log("protocol release version:", protocolReleaseVersion);
@@ -66,7 +67,10 @@ module.exports = async function (callback, argv, options = {}) {
         const resolver = await sf.contracts.TestResolver.at(
             sf.resolver.address
         );
-        if ((await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS) {
+        if (
+            (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
+            !resetToken
+        ) {
             throw new Error("Super token already listed");
         }
         await setResolver(sf, superTokenKey, superTokenAddress);

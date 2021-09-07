@@ -13,6 +13,7 @@ type Account @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
+    accountWithToken: [AccountWithToken!]! @derivedFrom(field: "account")
     flowsOwned: [Flow!]! @derivedFrom(field: "owner")
     flowsReceived: [Flow!]! @derivedFrom(field: "recipient")
     upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "account")
@@ -27,9 +28,22 @@ type Token @entity {
     underlyingAddress: Bytes! # Underlying ERC20
     # ---------------------------------- state ----------------------------------
     # ---------------------------------- links ----------------------------------
+    accountWithToken: [AccountWithToken!]! @derivedFrom(field: "token")
     flows: [Flow!]! @derivedFrom(field: "token")
     upgradeEvents: [TokenUpgraded!]! @derivedFrom(field: "token")
     downgradeEvents: [TokenDowngraded!]! @derivedFrom(field: "token")
+}
+
+type AccountWithToken @entity {
+    id: ID!
+    # ---------------------------------- state ----------------------------------
+    balance: BigDecimal!
+    # ---------------------------------- links ----------------------------------
+    # TODO: Move all events here, instead of Account entity
+    transferEventsReceived: [TokenTransfer!]! @derivedFrom(field: "to")
+    transferEventsSent: [TokenTransfer!]! @derivedFrom(field: "from")
+    account: Account!
+    token: Token!
 }
 
 type Flow @entity {
@@ -43,6 +57,49 @@ type Flow @entity {
     owner: Account! #@derivedFrom(field: "flowsOwned")
     recipient: Account! #@derivedFrom(field: "flowsReceived")
     events: [FlowUpdated!]! @derivedFrom(field: "flow")
+}
+
+type Subscriber @entity {
+    id: ID!
+    token: Bytes
+    subscriber: Bytes
+    publisher: Bytes
+    indexId: BigInt
+    userData: Bytes
+    # ---------------------------------- state ----------------------------------
+    approved: Boolean
+    units: BigInt
+    totalReceived: BigInt
+    totalPendingApproval: BigInt
+    # ---------------------------------- links ----------------------------------
+    index: Index
+    subscriptionApproved: [subscriptionApproved!]!
+        @derivedFrom(field: "subscriber")
+    subscriptionRevoked: [subscriptionRevoked!]!
+        @derivedFrom(field: "subscriber")
+    subscriptionUnitsUpdated: [subscriptionUnitsUpdated!]!
+        @derivedFrom(field: "subscriber")
+}
+
+type Index @entity {
+    id: ID!
+    token: Bytes
+    publisher: Bytes
+    indexId: BigInt
+    userData: Bytes
+    # ---------------------------------- state ----------------------------------
+    oldIndexValue: BigInt
+    newIndexValue: BigInt
+    totalUnitsPending: BigInt
+    totalUnitsApproved: BigInt
+    totalUnits: BigInt
+    totalDistribution: BigInt
+    # ---------------------------------- links ----------------------------------
+    subscribers: [Subscriber!]! @derivedFrom(field: "index")
+    indexUpdate: [indexUpdate!]! @derivedFrom(field: "index")
+    indexUnitUpdate: [indexUnitUpdate!]! @derivedFrom(field: "index")
+    indexSubscribed: [indexSubscribed!]! @derivedFrom(field: "index")
+    indexUnsubscribed: [indexUnsubscribed!]! @derivedFrom(field: "index")
 }
 
 #################
@@ -86,4 +143,70 @@ type TokenDowngraded implements Event @entity {
     transaction: Transaction!
     token: Token!
     amount: BigInt!
+}
+
+type TokenTransfer implements Event @entity {
+    id: ID!
+    transaction: Transaction!
+    from: AccountWithToken!
+    to: AccountWithToken!
+    value: BigInt!
+    token: Token!
+}
+
+type indexUpdate implements Event @entity {
+    id: ID!
+    index: Index
+    newIndexValue: BigInt
+    oldIndexValue: BigInt
+    totalUnitsApproved: BigInt
+    totalUnitsPending: BigInt
+    distribution: BigInt
+    userData: Bytes
+    transaction: Transaction!
+}
+
+type indexUnitUpdate implements Event @entity {
+    id: ID!
+    index: Index
+    subscriber: Bytes
+    units: BigInt
+    userData: Bytes
+    transaction: Transaction!
+}
+
+type indexSubscribed implements Event @entity {
+    id: ID!
+    index: Index
+    subscriber: Bytes
+    userData: Bytes
+    transaction: Transaction!
+}
+
+type indexUnsubscribed implements Event @entity {
+    id: ID!
+    index: Index
+    subscriber: Bytes
+    userData: Bytes
+    transaction: Transaction!
+}
+
+type subscriptionApproved implements Event @entity {
+    id: ID!
+    subscriber: Subscriber
+    userData: Bytes
+    transaction: Transaction!
+}
+type subscriptionRevoked implements Event @entity {
+    id: ID!
+    subscriber: Subscriber
+    userData: Bytes
+    transaction: Transaction!
+}
+type subscriptionUnitsUpdated implements Event @entity {
+    id: ID!
+    subscriber: Subscriber
+    userData: Bytes
+    units: BigInt
+    transaction: Transaction!
 }

@@ -16,6 +16,7 @@ module.exports = {
         fallback: {
             // Webpack 5, we must explicitly exclude @truffle/contract polyfills
             os: false,
+            fs: false,
             url: false,
             assert: false,
             path: false,
@@ -24,5 +25,9 @@ module.exports = {
             http: false,
             crypto: false,
         },
+    },
+    externals: {
+        "@ethersproject/contracts": "@ethersproject/contracts",
+        "@truffle/contract": "@truffle/contract",
     },
 };

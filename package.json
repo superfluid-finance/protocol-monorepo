@@ -11,8 +11,10 @@
     "scripts": {
         "lint": "yarn workspaces run lint",
         "build": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
+        "clean": "rm -rf node_modules; rm -rf packages/*/node_modules",
         "test": "for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i test;done",
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
+        "show-versions": "lerna ls --long",
         "postinstall": "husky install"
     },
     "devDependencies": {
@@ -22,7 +24,6 @@
         "eslint-plugin-prettier": "^3.3.1",
         "husky": "^5.0.9",
         "lerna": "^3.22.1",
-        "lint-staged": "^10.5.4",
         "node-jq": "^1.12.0",
         "npm-run-all": "^4.1.5",
         "prettier": "^2.2.1",
@@ -33,6 +34,11 @@
             "packages/ethereum-contracts",
             "packages/js-sdk",
             "packages/subgraph"
+        ],
+        "nohoist": [
+            "**/webpack",
+            "**/webpack/**"
         ]
-    }
+    },
+    "version": "0.0.0"
 }

@@ -107,7 +107,7 @@ await sf.batchCall([
 
 ## CALL_APP_ACTION
 
-The `@superfluid-finaince/js-sdk` isn't aware of your Super App, so you must encode the method arguments yourself. Here is an example using two different libraries:
+The `@superfluid-finance/js-sdk` isn't aware of your Super App, so you must encode the method arguments yourself. Here is an example using two different libraries:
 
 ```js
 // Example Solidity function in your Super App

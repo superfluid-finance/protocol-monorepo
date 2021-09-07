@@ -175,9 +175,9 @@ function builtTruffleContractLoader(name) {
 async function setResolver(sf, key, value) {
     console.log(`Setting resolver ${key} -> ${value} ...`);
     const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
-    switch (process.env.ADMIN_TYPE) {
+    switch (process.env.RESOLVER_ADMIN_TYPE) {
         case "MULTISIG": {
-            console.log("Admin type: MultiSig");
+            console.log("Resolver Admin type: MultiSig");
             // assuming governance owner manages the resolver too...
             const multis = await sf.contracts.IMultiSigWallet.at(
                 await (
@@ -197,7 +197,7 @@ async function setResolver(sf, key, value) {
             break;
         }
         default: {
-            console.log("Admin type: Direct Ownership (default)");
+            console.log("Resolver Admin type: Direct Ownership (default)");
             console.log("Executing admin action...");
             await resolver.set(key, value);
             console.log("Admin action executed.");
@@ -209,9 +209,9 @@ async function sendGovernanceAction(sf, actionFn) {
     const gov = await sf.contracts.SuperfluidGovernanceBase.at(
         await sf.host.getGovernance.call()
     );
-    switch (process.env.GOVERNANCE_TYPE) {
+    switch (process.env.GOVERNANCE_ADMIN_TYPE) {
         case "MULTISIG": {
-            console.log("Governance type: MultiSig");
+            console.log("Governance Admin Type: MultiSig");
             const multis = await sf.contracts.IMultiSigWallet.at(
                 await (await sf.contracts.Ownable.at(gov.address)).owner()
             );
@@ -226,7 +226,7 @@ async function sendGovernanceAction(sf, actionFn) {
             break;
         }
         default: {
-            console.log("Governance type: Direct Ownership (default)");
+            console.log("Governance Admin Type: Direct Ownership (default)");
             console.log("Executing governance action...");
             await actionFn(gov);
             console.log("Governance action executed.");

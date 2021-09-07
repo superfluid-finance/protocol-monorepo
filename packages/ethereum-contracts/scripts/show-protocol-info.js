@@ -1,9 +1,31 @@
 const _ = require("lodash");
+const async = require("async");
+const getConfig = require("./getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { detectTruffleAndConfigure, extractWeb3Options } = require("./utils");
+const {
+    ZERO_ADDRESS,
+    detectTruffleAndConfigure,
+    extractWeb3Options,
+} = require("./utils");
+
+const MAX_REQUESTS = 100;
+let config;
+
+async function getPastEvents(contract, eventName, filter) {
+    if (!config.hack_disableGetLogs) {
+        return await contract.getPastEvents(eventName, {
+            fromBlock: 0,
+            toBlock: "latest",
+            filter,
+        });
+    } else {
+        console.warn("[WARN] eth_getLogs disabled for", eventName);
+        return [];
+    }
+}
 
 async function fetchLatestChanges(contract, eventName, filter) {
-    const changes = await contract.getPastEvents(eventName, {
+    const changes = await getPastEvents(contract, eventName, {
         fromBlock: 0,
         toBlock: "latest",
         filter,
@@ -48,42 +70,13 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        console.log("===== Protocol Information =====");
+        config = getConfig(sf.networkId);
 
-        {
-            console.log("# Resolver");
-            console.log("address", sf.resolver.address);
-            const ADMIN_ROLE = "0x" + "0".repeat(64);
-            const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
-            const maybeMembers = Array.from(
-                new Set([
-                    ...(
-                        await ac.getPastEvents("RoleGranted", {
-                            fromBlock: 0,
-                            toBlock: "latest",
-                            role: ADMIN_ROLE,
-                        })
-                    ).map((i) => i.args.account),
-                    ...(
-                        await ac.getPastEvents("RoleRevoked", {
-                            fromBlock: 0,
-                            toBlock: "latest",
-                            role: ADMIN_ROLE,
-                        })
-                    ).map((i) => i.args.account),
-                ])
-            );
-            for (let i = 0; i < maybeMembers.length; ++i) {
-                if (await ac.hasRole(ADMIN_ROLE, maybeMembers[i])) {
-                    console.log("admin", i, maybeMembers[i]);
-                }
-            }
-            console.log("\n");
-        }
+        console.log("\n===== Protocol Information =====\n");
 
         let host;
         {
-            console.log("# Host");
+            console.log("# Host\n");
             host = await sf.contracts.Superfluid.at(sf.host.address);
             console.log("address", host.address);
             console.log(
@@ -108,12 +101,12 @@ module.exports = async function (callback, argv, options = {}) {
                 "CALLBACK_GAS_LIMIT",
                 (await host.CALLBACK_GAS_LIMIT.call()).toString()
             );
-            console.log("\n");
+            console.log("");
         }
 
         let gov;
         {
-            console.log("# Governance");
+            console.log("# Governance\n");
             gov = await sf.contracts.SuperfluidGovernanceBase.at(
                 await sf.host.getGovernance.call()
             );
@@ -125,24 +118,33 @@ module.exports = async function (callback, argv, options = {}) {
         }
         {
             console.log("## RewardAddress");
-            const latests = await fetchLatestChanges(
-                gov,
-                "RewardAddressChanged",
-                {
-                    host: host.address,
-                }
+            console.log(
+                "DEFAULT",
+                await gov.getRewardAddress.call(host.address, ZERO_ADDRESS)
             );
+            const latests = (
+                await fetchLatestChanges(gov, "RewardAddressChanged", {
+                    host: host.address,
+                })
+            ).filter((i) => i.superToken !== ZERO_ADDRESS);
             latests.forEach((i) => console.log(i.superToken, i.rewardAddress));
         }
         {
             console.log("## CFAv1LiquidationPeriod");
-            const latests = await fetchLatestChanges(
-                gov,
-                "CFAv1LiquidationPeriodChanged",
-                {
-                    host: host.address,
-                }
+            console.log(
+                "DEFAULT",
+                (
+                    await gov.getCFAv1LiquidationPeriod.call(
+                        host.address,
+                        ZERO_ADDRESS
+                    )
+                ).toString()
             );
+            const latests = (
+                await fetchLatestChanges(gov, "CFAv1LiquidationPeriodChanged", {
+                    host: host.address,
+                })
+            ).filter((i) => i.superToken !== ZERO_ADDRESS);
             latests.forEach((i) =>
                 console.log(i.superToken, i.liquidationPeriod.toString())
             );
@@ -160,9 +162,9 @@ module.exports = async function (callback, argv, options = {}) {
                 .filter((i) => !!i.enabled)
                 .forEach((i) => console.log(i.superToken, i.forwarder));
         }
-        console.log("\n");
+        console.log("");
 
-        console.log("# Super Token Factory");
+        console.log("# Super Token Factory\n");
         let superTokenFactory;
         let latestSuperTokenLogicAddress;
         {
@@ -177,9 +179,9 @@ module.exports = async function (callback, argv, options = {}) {
             latestSuperTokenLogicAddress =
                 await superTokenFactory.getSuperTokenLogic();
         }
-        console.log("\n");
+        console.log("");
 
-        console.log("# Managed Super Tokens");
+        console.log("# Managed Super Tokens\n");
         {
             const printSuperToken = (s) => {
                 const needsUpdate =
@@ -210,53 +212,86 @@ module.exports = async function (callback, argv, options = {}) {
                         await superToken.getUnderlyingToken.call(),
                 });
             }
+            console.log("");
+
             {
                 const latests = [
-                    ...(await superTokenFactory.getPastEvents(
-                        "CustomSuperTokenCreated",
-                        {
-                            fromBlock: 0,
-                            toBlock: "latest",
-                        }
+                    ...(await getPastEvents(
+                        superTokenFactory,
+                        "CustomSuperTokenCreated"
                     )),
-                    ...(await superTokenFactory.getPastEvents(
-                        "SuperTokenCreated",
-                        {
-                            fromBlock: 0,
-                            toBlock: "latest",
-                        }
+                    ...(await getPastEvents(
+                        superTokenFactory,
+                        "SuperTokenCreated"
                     )),
                 ];
-                const superTokens = [];
-                for (let i = 0; i < latests.length; ++i) {
-                    const superToken = await sf.contracts.SuperToken.at(
-                        latests[i].args.token
-                    );
-                    const symbol = await superToken.symbol.call();
-                    const superTokenLogicAddress =
-                        await superToken.getCodeAddress();
-                    const isListed =
-                        (
-                            await sf.resolver.get(
-                                `supertokens.${sf.version}.${symbol}`
-                            )
-                        ).toLowerCase() == superToken.address.toLowerCase();
-                    superTokens.push({
-                        symbol,
-                        name: await superToken.name.call(),
-                        tokenAddress: superToken.address,
-                        superTokenLogicAddress,
-                        underlyingTokenAddress:
-                            await superToken.getUnderlyingToken.call(),
-                        isListed,
-                    });
-                }
+                const superTokens = await async.mapLimit(
+                    latests,
+                    MAX_REQUESTS,
+                    async (pastEvent) => {
+                        const superToken = await sf.contracts.SuperToken.at(
+                            pastEvent.args.token
+                        );
+                        const symbol = await superToken.symbol.call();
+                        const superTokenLogicAddress =
+                            await superToken.getCodeAddress();
+                        const isListed =
+                            (
+                                await sf.resolver.get.call(
+                                    `supertokens.${sf.version}.${symbol}`
+                                )
+                            ).toLowerCase() == superToken.address.toLowerCase();
+                        return {
+                            symbol,
+                            name: await superToken.name.call(),
+                            tokenAddress: superToken.address,
+                            superTokenLogicAddress,
+                            underlyingTokenAddress:
+                                await superToken.getUnderlyingToken.call(),
+                            isListed,
+                        };
+                    }
+                );
+
                 console.log("## Listed Super Tokens");
                 superTokens.filter((s) => s.isListed).forEach(printSuperToken);
+                console.log("");
+
                 console.log("## Unlisted Super Tokens");
                 superTokens.filter((s) => !s.isListed).forEach(printSuperToken);
+                console.log("");
+
                 console.log("* - Needs super token logic update");
             }
+            console.log("");
+        }
+
+        console.log("\n===== Resolver Information =====\n");
+
+        {
+            console.log("address", sf.resolver.address);
+            const ADMIN_ROLE = "0x" + "0".repeat(64);
+            const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
+            const maybeMembers = Array.from(
+                new Set([
+                    ...(
+                        await getPastEvents(ac, "RoleGranted", {
+                            role: ADMIN_ROLE,
+                        })
+                    ).map((i) => i.args.account),
+                    ...(
+                        await getPastEvents(ac, "RoleRevoked", {
+                            role: ADMIN_ROLE,
+                        })
+                    ).map((i) => i.args.account),
+                ])
+            );
+            for (let i = 0; i < maybeMembers.length; ++i) {
+                if (await ac.hasRole(ADMIN_ROLE, maybeMembers[i])) {
+                    console.log("admin", i, maybeMembers[i]);
+                }
+            }
+            console.log("");
         }
 
         callback();

@@ -8,4 +8,4 @@ They should give you an idea of what can be built, as well as a general idea of 
 
 We are in the process of migrating them to the final version of the superfluid contracts
 
-If something doesn't work, or you don't understand it, join us on (our discord)[https://discord.gg/hxMqamer]
+If something doesn't work, or you don't understand it, join us on (our discord)[http://discord.superfluid.finance/]

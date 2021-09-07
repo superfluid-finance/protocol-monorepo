@@ -10,21 +10,22 @@ const {
 } = require("./utils");
 
 /**
- * @dev Deploy listed super token to the network.
+ * @dev Deploy a listed super token (ERC20 wrapper type) to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/deploy-super-token.js : {TOKEN_SYMBOL}
+ * Usage: npx truffle exec scripts/deploy-super-token.js : ${UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS}
  *
  * NOTE:
- * - If the `TOKEN_SYMBOL` is the same as the nativeTokenSymbol defined in the js-sdk, then
- *   the SETH contract will be deployed.
+ * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the same as the nativeTokenSymbol defined in
+ *   the js-sdk, then the SETH contract will be deployed.
  * - Otherwise an ERC20 super token wrapper will be created, the underlying token address
- *   has to be registered in the resolver as `tokens.${TOKEN_SYMBOL}`
- * - An entry in `supertokens.${protocolReleaseVersion}.${TOKEN_SYMBOL}x` will be created
+ *   has to be registered in the resolver as `tokens.${UNDERLYING_TOKEN_SYMBOL}` unless it is
+ *   already a `${UNDERLYING_TOKEN_ADDRESS}`
+ * - An entry in `supertokens.${protocolReleaseVersion}.${UNDERLYING_TOKEN_SYMBOL}x` will be created
  *   for the super token address.
  */
 module.exports = async function (callback, argv, options = {}) {
@@ -38,8 +39,7 @@ module.exports = async function (callback, argv, options = {}) {
         if (args.length !== 1) {
             throw new Error("Not enough arguments");
         }
-        const tokenSymbol = args.pop();
-        console.log("Underlying token name", tokenSymbol);
+        const tokenSymbolOrAddress = args.pop();
 
         resetToken = resetToken || !!process.env.RESET_TOKEN;
         protocolReleaseVersion =
@@ -64,8 +64,29 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        const { TestResolver, UUPSProxiable, ISuperToken, ISETH, SETHProxy } =
-            sf.contracts;
+        const {
+            TestResolver,
+            UUPSProxiable,
+            ERC20WithTokenInfo,
+            ISuperToken,
+            ISETH,
+            SETHProxy,
+        } = sf.contracts;
+
+        let tokenSymbol;
+        let tokenAddress;
+        if (web3.utils.isAddress(tokenSymbolOrAddress)) {
+            tokenAddress = tokenSymbolOrAddress;
+            tokenSymbol = await (
+                await ERC20WithTokenInfo.at(tokenAddress)
+            ).symbol.call();
+        } else {
+            tokenSymbol = tokenSymbolOrAddress;
+            tokenAddress = await sf.resolver.get(`tokens.${tokenSymbol}`);
+        }
+
+        console.log("Underlying token symbol", tokenSymbol);
+        console.log("Underlying token address", tokenAddress);
 
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
             await sf.host.getSuperTokenFactory.call()
@@ -160,7 +181,7 @@ module.exports = async function (callback, argv, options = {}) {
                             superTokenAddress
                         )
                     );
-                    if (!process.env.GOVERNANCE_TYPE) {
+                    if (!process.env.GOVERNANCE_ADMIN_TYPE) {
                         // validate the token logic update for default governance type updates
                         const superTokenLogic3 = await (
                             await UUPSProxiable.at(superTokenAddress)

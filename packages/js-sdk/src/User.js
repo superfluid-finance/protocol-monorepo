@@ -10,20 +10,25 @@ module.exports = class User {
 
     async details() {
         try {
-            const flows = await this.sf.cfa.listFlows({
+            const listFlows = this.sf.cfa.listFlows({
                 superToken: this.token,
                 account: this.address,
             });
-            const netFlow = (
-                await this.sf.cfa.getNetFlow({
+            const getNewFlow = this.sf.cfa
+                .getNetFlow({
                     superToken: this.token,
                     account: this.address,
                 })
-            ).toString();
-            const subscriptions = await this.sf.ida.listSubscriptions({
+                .then((x) => x.toString());
+            const listSubscriptions = this.sf.ida.listSubscriptions({
                 superToken: this.token,
                 subscriber: this.address,
             });
+            const [flows, netFlow, subscriptions] = await Promise.all([
+                listFlows,
+                getNewFlow,
+                listSubscriptions,
+            ]);
             return { cfa: { flows, netFlow }, ida: { subscriptions } };
         } catch (e) {
             throw getErrorResponse(e, "user", "details");

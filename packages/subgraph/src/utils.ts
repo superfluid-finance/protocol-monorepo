@@ -11,7 +11,6 @@ import {
     Index,
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-
 import { SubscriptionApproved } from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 
 export function createEventID(event: ethereum.Event): string {

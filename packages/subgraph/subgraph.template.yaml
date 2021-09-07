@@ -86,11 +86,11 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
+              - Transaction
               - Account
               - AccountInteractedToken
               - FlowUpdated
               - Stream
-              - Transaction
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
@@ -126,18 +126,14 @@ dataSources:
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated
-          - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: handleIndexSubscribed
-          - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
-            handler: handleIndexUnitsUpdated
-          - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: handleIndexUnsubscribed
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
             handler: handleIndexUpdated
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionRevoked
+          - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
+            handler: handleIndexUnitsUpdated
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
 templates:

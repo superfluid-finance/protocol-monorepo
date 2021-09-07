@@ -13,7 +13,7 @@ import {
 import {
     createAndReturnTxn,
     createEventID,
-    fetchAccount,
+    createOrUpdateAccount,
     updateBalance,
 } from "../utils";
 
@@ -34,9 +34,6 @@ export function handleAgreementLiquidatedBy(event: AgreementLiquidatedByEvent): 
 }
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
-    let account = fetchAccount(event.params.account.toHex());
-    account.save();
-
     let ev = new TokenUpgraded(createEventID(event));
     let amount = event.params.amount;
     let tokenId = event.address.toHex();
@@ -47,13 +44,11 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     ev.amount = amount;
     ev.save();
 
+    let account = createOrUpdateAccount(event.params.account.toHex(), event.block.timestamp);
     updateBalance(account.id, tokenId);
 }
 
 export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
-    let account = fetchAccount(event.params.account.toHex());
-    account.save();
-
     let ev = new TokenDowngraded(createEventID(event));
     let amount = event.params.amount;
     let tokenId = event.address.toHex();
@@ -64,15 +59,11 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     ev.amount = amount;
     ev.save();
 
+    let account = createOrUpdateAccount(event.params.account.toHex(), event.block.timestamp);
     updateBalance(account.id, tokenId);
 }
 
 export function handleTransfer(event: TransferEvent): void {
-    let fromAccount = fetchAccount(event.params.from.toHex());
-    let toAccount = fetchAccount(event.params.to.toHex());
-    fromAccount.save();
-    toAccount.save();
-
     let ev = new Transfer(createEventID(event));
     let value = event.params.value;
     let tokenId = event.address.toHex();
@@ -84,6 +75,10 @@ export function handleTransfer(event: TransferEvent): void {
     ev.token = tokenId;
     ev.save();
 
+    let fromAccount = createOrUpdateAccount(event.params.from.toHex(), event.block.timestamp);
+    let toAccount = createOrUpdateAccount(event.params.to.toHex(), event.block.timestamp);
+    fromAccount.save();
+    toAccount.save();
     updateBalance(toAccount.id, tokenId);
     updateBalance(fromAccount.id, tokenId);
 }

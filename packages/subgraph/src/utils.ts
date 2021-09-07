@@ -28,11 +28,23 @@ export function createAndReturnTxn(event: ethereum.Event): Transaction {
     return tx as Transaction;
 }
 
-export function fetchAccount(id: string): Account {
+/**
+ * Creates an account if non exists or updates an existing one.
+ * @param id
+ * @param lastModified
+ * @returns created or modified account
+ */
+export function createOrUpdateAccount(
+    id: string,
+    lastModified: BigInt
+): Account {
     let account = Account.load(id);
     if (account == null) {
         account = new Account(id);
+        account.createdAt = lastModified;
     }
+    account.updatedAt = lastModified;
+    account.save();
     return account as Account;
 }
 
@@ -95,10 +107,8 @@ export function fetchStream(
 
         // Create accounts and tokens if they do not exist
         // NOTE: Not for tokens, it is impossible to start a stream if the specified token doesn't exist.
-        let ownerAccount = fetchAccount(senderAddress);
-        let receiverAccount = fetchAccount(receiverAddress);
-        ownerAccount.save();
-        receiverAccount.save();
+        createOrUpdateAccount(senderAddress, timestamp);
+        createOrUpdateAccount(receiverAddress, timestamp);
     }
     return stream as Stream;
 }

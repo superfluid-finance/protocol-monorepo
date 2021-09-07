@@ -88,7 +88,6 @@ dataSources:
           entities:
               - Transaction
               - Account
-              - AccountInteractedToken
               - FlowUpdated
               - Stream
           abis:
@@ -149,6 +148,10 @@ dataSources:
         file: ./src/mappings/superfluidGovernance.ts
         entities:
           - Transaction
+          - ConfigChanged
+          - RewardAddressChanged
+          - CFAv1LiquidationPeriodChanged
+          - TrustedForwarderChanged
         abis:
           - name: SuperfluidGovernanceBase
             file: ./abis/SuperfluidGovernanceBase.json
@@ -175,11 +178,10 @@ templates:
       entities:
         - Transaction
         - AgreementLiquidatedBy
-        - Token
         - TokenUpgraded
         - TokenDowngraded
         - Transfer
-        - AccountInteractedToken
+        - Account
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json

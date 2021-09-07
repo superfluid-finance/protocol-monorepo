@@ -5,7 +5,10 @@ module.exports = {
         node: true,
         es2020: true
     },
-    plugins: ["prettier"],
+    plugins: [
+        "prettier",
+        "@typescript-eslint"
+    ],
     globals: {
         artifacts: "writable"
     },
@@ -16,5 +19,8 @@ module.exports = {
         quotes: ["error", "double"],
         semi: ["error", "always"],
         "prettier/prettier": "error"
-    }
+    },
+    overrides: [{
+        files: ["**/*.ts", "**/*.tsx"],
+    }],
 };

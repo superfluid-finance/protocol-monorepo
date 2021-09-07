@@ -27,10 +27,11 @@ type FlowUpdated implements Event @entity {
 	sender: Bytes!
 	receiver: Bytes!
 	flowRate: BigInt!
-	oldFlowRate: BigInt!
 	totalSenderFlowRate: BigInt!
 	totalReceiverFlowRate: BigInt!
 	userData: Bytes!
+	# Custom Properties (not on event)
+	oldFlowRate: BigInt!
 	type: FlowActionType
 }
 
@@ -278,11 +279,15 @@ interface BaseEntity {
 # Note: Make sure to implement BaseEntity
 type Account implements BaseEntity @entity {
     id: ID!
+	createdAt: BigInt!
+    updatedAt: BigInt!
 }
 
 type Token implements BaseEntity @entity {
     # Note: All Tokens are Super Tokens for this subgraph
     id: ID!
+	createdAt: BigInt!
+    updatedAt: BigInt!
     name: String!
     symbol: String!
     underlyingAddress: Bytes! # Underlying ERC20
@@ -290,16 +295,19 @@ type Token implements BaseEntity @entity {
 
 type Stream implements BaseEntity @entity {
 	id: ID!
+	createdAt: BigInt!
+    updatedAt: BigInt!
 	token: Token!
 	sender: Account!
 	receiver: Account!
-	lastUpdate: BigInt!
 	currentFlowRate: BigInt!
 	streamedUntilLastUpdate: BigInt!
 }
 
 type Subscriber implements BaseEntity @entity {
     id: ID!
+	createdAt: BigInt!
+    updatedAt: BigInt!
     token: Bytes!
     subscriber: Bytes!
     publisher: Bytes!
@@ -308,7 +316,6 @@ type Subscriber implements BaseEntity @entity {
     # ---------------------------------- state ----------------------------------
     approved: Boolean!
     units: BigInt!
-	lastUpdate:
     totalReceivedUntilLastUpdate: BigInt!
     totalPendingApproval: BigInt!
 	lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
@@ -318,6 +325,8 @@ type Subscriber implements BaseEntity @entity {
 
 type Index implements BaseEntity @entity {
     id: ID!
+	createdAt: BigInt!
+    updatedAt: BigInt!
     token: Bytes!
     publisher: Bytes!
     indexId: BigInt!
@@ -336,7 +345,7 @@ type Index implements BaseEntity @entity {
 #  Aggr. Entities  #
 ####################
 
-type AccountTokenSnapshot implements BaseEntity @entity {
+type AccountTokenSnapshot @entity {
 	id: ID!
 	account: Account!
 	token: Token!
@@ -348,7 +357,7 @@ type AccountTokenSnapshot implements BaseEntity @entity {
 	totalApprovedSubscriptions: BigInt!
 }
 
-type TokenStats implements BaseEntity @entity {
+type TokenStats @entity {
 	id: ID!
 	token: Token!
 	totalNumberOfStreams: BigInt!

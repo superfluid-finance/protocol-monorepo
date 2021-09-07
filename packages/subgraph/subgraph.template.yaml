@@ -27,7 +27,6 @@ dataSources:
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
-            # TODO: removed ISuperfluid.json because I don't think this is using it in any way.
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated

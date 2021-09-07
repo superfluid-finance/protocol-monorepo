@@ -1,16 +1,4 @@
-import {
-    BigInt,
-    BigDecimal,
-    Bytes,
-    ByteArray,
-    ethereum,
-    Address,
-    crypto,
-    log,
-    dataSource,
-    Value,
-    DataSourceContext,
-} from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import {
@@ -23,8 +11,6 @@ import {
     Index,
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
-import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
 
 import { SubscriptionApproved } from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 
@@ -34,7 +20,8 @@ export function createEventID(event: ethereum.Event): string {
         .concat("-")
         .concat(event.logIndex.toString());
 }
-export function logTransaction(event: ethereum.Event): Transaction {
+
+export function createAndReturnTxn(event: ethereum.Event): Transaction {
     let tx = new Transaction(event.transaction.hash.toHex());
     tx.timestamp = event.block.timestamp;
     tx.blockNumber = event.block.number;
@@ -73,8 +60,8 @@ export function fetchAccountInteractedToken(
     let id = accountId.concat("-").concat(tokenId);
     let accountWithToken = AccountInteractedToken.load(id);
     if (accountWithToken == null) {
-		// NOTE: removed fetchAccount + save as we do this prior to calling this function
-		// everywhere in the code.
+        // NOTE: removed fetchAccount + save as we do this prior to calling this function
+        // everywhere in the code.
         accountWithToken = new AccountInteractedToken(id);
         accountWithToken.account = accountId;
         accountWithToken.token = tokenId;
@@ -82,10 +69,13 @@ export function fetchAccountInteractedToken(
     return accountWithToken as AccountInteractedToken;
 }
 
-function createStreamID(owner: string, recipient: string, token: string): string {
+function createStreamID(
+    owner: string,
+    recipient: string,
+    token: string
+): string {
     return owner.concat("-").concat(recipient).concat("-").concat(token);
 }
-
 
 export function fetchStream(
     senderAddress: string,

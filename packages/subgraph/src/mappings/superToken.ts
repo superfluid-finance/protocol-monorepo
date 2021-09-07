@@ -20,6 +20,7 @@ import {
 export function handleAgreementLiquidatedBy(event: AgreementLiquidatedByEvent): void {
 	let ev = new AgreementLiquidatedBy(createEventID(event));
 	ev.transaction = createAndReturnTxn(event).id;
+	ev.token = event.address.toHex();
 	ev.liquidatorAccount = event.params.liquidatorAccount;
 	ev.agreementClass = event.params.agreementClass;
 	ev.agreementId = event.params.id;
@@ -28,6 +29,8 @@ export function handleAgreementLiquidatedBy(event: AgreementLiquidatedByEvent): 
 	ev.rewardAmount = event.params.rewardAmount;
 	ev.bailoutAmount = event.params.bailoutAmount;
 	ev.save();
+
+	// TODO: do we update the balances of the liquidator, penalty and bond account's here? probably yes
 }
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {

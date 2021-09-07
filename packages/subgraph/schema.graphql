@@ -193,6 +193,7 @@ type TrustedForwarderChanged implements Event @entity {
 type AgreementLiquidatedBy implements Event @entity {
 	id: ID!
 	transaction: Transaction!
+	token: Token!
 	liquidatorAccount: Bytes!
 	agreementClass: Bytes!
 	agreementId: Bytes!

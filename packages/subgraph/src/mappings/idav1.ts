@@ -92,9 +92,10 @@ export function handleSubscriptionApproved(
     entity.approved = true;
     entity.userData = event.params.userData;
     let totalPendingApproval = entity.totalPendingApproval;
-    entity.totalReceived = entity.totalReceived.plus(
-        totalPendingApproval as BigInt
-    );
+    entity.totalReceivedUntilLastUpdate =
+        entity.totalReceivedUntilLastUpdate.plus(
+            totalPendingApproval as BigInt
+        );
     entity.totalPendingApproval = new BigInt(0);
     entity.save();
 

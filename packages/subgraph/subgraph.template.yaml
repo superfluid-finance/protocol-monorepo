@@ -57,15 +57,15 @@ dataSources:
               - Jail
           abis:
               - name: ISuperfluid
-                file: ./abis/Superfluid.json
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: GovernanceReplaced(address,address)
                 handler: handleGovernanceReplaced
-              - event: AgreementClassRegistered(bytes,address)
+              - event: AgreementClassRegistered(bytes32,address)
                 handler: handleAgreementClassRegistered
-              - event: AgreementClassUpdated(bytes,address)
+              - event: AgreementClassUpdated(bytes32,address)
                 handler: handleAgreementClassUpdated
-              - event: SuperTokenFactoryUpdated(address,address)
+              - event: SuperTokenFactoryUpdated(address)
                 handler: handleSuperTokenFactoryUpdated
               - event: SuperTokenLogicUpdated(indexed address,address)
                 handler: handleSuperTokenLogicUpdated
@@ -100,7 +100,7 @@ dataSources:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleStreamUpdated
     - kind: ethereum/contract
-      name: IInstantDistributionAgreementV1
+      name: InstantDistributionAgreementV1
       network: {{ network }}
       source:
         address: "{{ idaAddress }}"
@@ -135,6 +135,32 @@ dataSources:
             handler: handleIndexUnitsUpdated
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
+    - kind: ethereum/contract
+      name: SuperfluidGovernance
+      network: {{ network }}
+      source:
+        address: "{{ superfluidGovernanceAddress }}"
+        abi: SuperfluidGovernanceBase
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.4
+        language: wasm/assemblyscript
+        file: ./src/mappings/superfluidGovernance.ts
+        entities:
+          - Transaction
+        abis:
+          - name: SuperfluidGovernanceBase
+            file: ./abis/SuperfluidGovernanceBase.json
+        eventHandlers:
+          - event: ConfigChanged(indexed address,indexed address,bytes32,bool,uint256)
+            handler: handleConfigChanged
+          - event: RewardAddressChanged(indexed address,indexed address,bool,address)
+            handler: handleRewardAddressChanged
+          - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
+            handler: handleCFAv1LiquidationPeriodChanged
+          - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
+            handler: handleTrustedForwarderChanged
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -158,7 +184,7 @@ templates:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
       eventHandlers:
-        - event: AgreementLiquidatedBy(address,indexed address,bytes,indexed address,indexed address,uint256,uint256)
+        - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleAgreementLiquidatedBy
         - event: TokenUpgraded(indexed address,uint256)
           handler: handleTokenUpgraded

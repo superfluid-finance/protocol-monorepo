@@ -8,7 +8,11 @@ import {
     Index,
 } from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { SubscriptionApproved } from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
+import {
+    IndexCreated as IndexCreatedEvent,
+    IndexUpdated as IndexUpdatedEvent,
+    SubscriptionApproved,
+} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 
 export function createEventID(event: ethereum.Event): string {
     return event.transaction.hash
@@ -117,94 +121,95 @@ export function updateBalance(accountId: string, tokenId: string): void {
     return;
 }
 
-export function createSubscriptionID(event: SubscriptionApproved): string {
-    return (
-        event.params.subscriber.toHexString() +
-        event.params.publisher.toHexString() +
-        event.params.indexId.toHexString() +
-        event.params.token.toHexString()
-    );
-}
-
-export function fetchIndex(
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
-    indexId: BigInt
-): Index {
-    let index = Index.load(
-        publisherAddress.toHexString() +
-            "-" +
-            tokenAddress.toHexString() +
-            "-" +
-            indexId.toHexString()
-    );
-    if (index == null) {
-        index = new Index(
-            publisherAddress.toHexString() +
-                "-" +
-                tokenAddress.toHexString() +
-                "-" +
-                indexId.toHexString()
-        );
-        index.totalDistribution = new BigInt(0);
-        index.totalUnits = new BigInt(0);
-        index.totalUnitsApproved = new BigInt(0);
-        index.totalUnitsPending = new BigInt(0);
-    }
-    return index as Index;
-}
-
-// TODO: abstract out the getSubscriberId
-export function fetchSubscriber(
+export function getSubscriberID(
     subscriberAddress: Bytes,
     publisherAddress: Bytes,
     tokenAddress: Bytes,
     indexId: BigInt
-): Subscriber {
-    let subscriber = Subscriber.load(
+): string {
+    return (
         subscriberAddress.toHexString() +
-            "-" +
-            publisherAddress.toHexString() +
-            "-" +
-            tokenAddress.toHexString() +
-            "-" +
-            indexId.toHexString()
+        "-" +
+        publisherAddress.toHexString() +
+        "-" +
+        tokenAddress.toHexString() +
+        "-" +
+        indexId.toString()
     );
-    if (subscriber == null) {
-        subscriber = new Subscriber(
-            subscriberAddress.toHexString() +
-                "-" +
-                publisherAddress.toHexString() +
-                "-" +
-                tokenAddress.toHexString() +
-                "-" +
-                indexId.toHexString()
-        );
-        subscriber.subscriber = subscriberAddress;
-        subscriber.publisher = publisherAddress;
-        subscriber.token = tokenAddress;
-        subscriber.indexId = indexId;
-        subscriber.approved = false;
-        subscriber.totalReceived = new BigInt(0);
-        subscriber.totalPendingApproval = new BigInt(0);
-        subscriber.units = new BigInt(0);
-        subscriber.index = fetchIndex(
-            publisherAddress,
-            tokenAddress,
-            indexId
-        ).id;
-    }
-    return subscriber as Subscriber;
 }
 
-export function removeSubscription(subscribers: Bytes[], sub: Bytes): Bytes[] {
-    let temp: Bytes[] = [];
-    var ss = sub.toHexString();
-    for (let index = 0; index < subscribers.length; index++) {
-        let element = subscribers[index].toHexString();
-        if (ss != element) {
-            temp.push(subscribers[index]);
-        }
+export function getIndexID(
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt
+): string {
+    return (
+        publisherAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        indexId.toString()
+    );
+}
+
+export function getOrInitializeIndex(
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt,
+    lastModified: BigInt
+): Index {
+    let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
+    let index = Index.load(indexEntityId);
+    if (index == null) {
+        let publisherId = publisherAddress.toHex();
+        index = new Index(indexEntityId);
+        index.createdAt = lastModified;
+        index.token = tokenAddress.toHex();
+        index.publisher = publisherId;
+        index.indexId = indexId;
+        index.oldIndexValue = BigInt.fromI32(0);
+        index.newIndexValue = BigInt.fromI32(0);
+        index.totalUnitsPending = BigInt.fromI32(0);
+        index.totalUnitsApproved = BigInt.fromI32(0);
+        index.totalUnits = BigInt.fromI32(0);
+        index.totalUnitsDistributed = BigInt.fromI32(0);
+
+        createOrUpdateAccount(publisherId, lastModified);
     }
-    return temp;
+    index.updatedAt = lastModified;
+    return index as Index;
+}
+
+export function getSubscriber(
+    subscriberAddress: Bytes,
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt,
+    lastModified: BigInt
+): Subscriber {
+    let subscriberEntityId = getSubscriberID(
+        subscriberAddress,
+        publisherAddress,
+        tokenAddress,
+        indexId
+    );
+    let subscriber = Subscriber.load(subscriberEntityId);
+    if (subscriber == null) {
+        let subscriberId = subscriberAddress.toHex();
+        subscriber = new Subscriber(subscriberEntityId);
+        subscriber.createdAt = lastModified;
+        subscriber.token = tokenAddress.toHex();
+        subscriber.subscriber = subscriberId;
+        subscriber.publisher = publisherAddress.toHex();
+        subscriber.indexId = indexId;
+        subscriber.approved = false;
+        subscriber.units = BigInt.fromI32(0);
+        subscriber.totalReceivedUntilLastUpdate = BigInt.fromI32(0);
+        subscriber.totalPendingApproval = BigInt.fromI32(0);
+        subscriber.index = getIndexID(publisherAddress, tokenAddress, indexId);
+
+        createOrUpdateAccount(subscriberId, lastModified);
+    }
+    subscriber.updatedAt = lastModified;
+    return subscriber as Subscriber;
 }

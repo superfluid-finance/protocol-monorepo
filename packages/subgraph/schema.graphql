@@ -78,17 +78,6 @@ type SubscriptionRevoked implements Event @entity {
 	userData: Bytes!
 }
 
-type IndexUnitsUpdated implements Event @entity {
-	id: ID!
-	transaction: Transaction!
-	token: Token!
-	publisher: Bytes!
-	indexId: BigInt!
-	subscriber: Bytes!
-	units: BigInt!
-	userData: Bytes!
-}
-
 type SubscriptionUnitsUpdated implements Event @entity {
 	id: ID!
 	transaction: Transaction!
@@ -288,9 +277,9 @@ type Subscriber implements BaseEntity @entity {
     id: ID!
 	createdAt: BigInt!
     updatedAt: BigInt!
-    token: Bytes!
-    subscriber: Bytes!
-    publisher: Bytes!
+    token: Token!
+    subscriber: Account!
+    publisher: Account!
     indexId: BigInt!
     userData: Bytes!
     # ---------------------------------- state ----------------------------------
@@ -307,17 +296,17 @@ type Index implements BaseEntity @entity {
     id: ID!
 	createdAt: BigInt!
     updatedAt: BigInt!
-    token: Bytes!
-    publisher: Bytes!
+    token: Token!
+    publisher: Account!
     indexId: BigInt!
-    userData: Bytes!
     # ---------------------------------- state ----------------------------------
+    userData: Bytes!
     oldIndexValue: BigInt!
     newIndexValue: BigInt!
     totalUnitsPending: BigInt!
     totalUnitsApproved: BigInt!
     totalUnits: BigInt!
-    totalDistribution: BigInt!
+    totalUnitsDistributed: BigInt!
 }
 
 

@@ -1,16 +1,15 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
     IndexUpdated as IndexUpdatedEvent,
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
-    IndexUnitsUpdated as IndexUnitsUpdatedEvent,
     SubscriptionUnitsUpdated as SubscriptionUnitsUpdatedEvent,
 } from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 import {
     IndexCreated,
-    IndexUnitsUpdated,
     IndexUpdated,
+    Subscriber,
     SubscriptionApproved,
     SubscriptionRevoked,
     SubscriptionUnitsUpdated,
@@ -18,20 +17,20 @@ import {
 import {
     createTxnAndReturn,
     createEventID,
-    fetchIndex,
-    fetchSubscriber,
+    getOrInitializeIndex,
+    getSubscriber,
+    updateBalance,
+    getSubscriberID,
 } from "../utils";
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {
-    let index = fetchIndex(
+    let index = getOrInitializeIndex(
         event.params.publisher,
         event.params.token,
-        event.params.indexId
+        event.params.indexId,
+        event.block.timestamp
     );
-    index.token = event.params.token;
     index.userData = event.params.userData;
-    index.indexId = event.params.indexId;
-    index.publisher = event.params.publisher;
     index.save();
 
     let ev = new IndexCreated(createEventID(event));
@@ -44,29 +43,32 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
 }
 
 export function handleIndexUpdated(event: IndexUpdatedEvent): void {
-    let thisDistribution = event.params.newIndexValue
+    let totalUnits = event.params.totalUnitsPending.plus(
+        event.params.totalUnitsApproved
+    );
+    let distributionSinceOldIndex = event.params.newIndexValue
         .minus(event.params.oldIndexValue)
-        .times(
-            event.params.totalUnitsPending.plus(event.params.totalUnitsApproved)
-        );
+        .times(totalUnits);
 
-    let index = fetchIndex(
+    // update Index entity
+    let index = getOrInitializeIndex(
         event.params.publisher,
         event.params.token,
-        event.params.indexId
-    );
-    index.newIndexValue = event.params.newIndexValue;
-    index.oldIndexValue = event.params.oldIndexValue;
-    index.totalUnitsApproved = event.params.totalUnitsApproved;
-    index.totalUnitsPending = event.params.totalUnitsPending;
-    index.totalUnits = event.params.totalUnitsApproved.plus(
-        event.params.totalUnitsPending
+        event.params.indexId,
+        event.block.timestamp
     );
     index.userData = event.params.userData;
-    index.totalDistribution = index.totalDistribution.plus(thisDistribution);
+    index.oldIndexValue = event.params.oldIndexValue;
+    index.newIndexValue = event.params.newIndexValue;
+    index.totalUnitsPending = event.params.totalUnitsPending;
+    index.totalUnitsApproved = event.params.totalUnitsApproved;
+    index.totalUnits = totalUnits;
+    index.totalUnitsDistributed = index.totalUnitsDistributed.plus(
+        distributionSinceOldIndex
+    );
     index.save();
 
-    // NOTE: Deleted commented out code for calculating distribution for each subscriber due to it not being scalable.
+    // create IndexUpdated event entity
     let ev = new IndexUpdated(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
@@ -80,28 +82,66 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     ev.save();
 }
 
+// it appears we update the users' balance upon approval if a subscription exists
+// otherwise the units are set to 0, but there is nowhere to get this information
 export function handleSubscriptionApproved(
     event: SubscriptionApprovedEvent
 ): void {
-    let entity = fetchSubscriber(
+    let subscriberEntityId = getSubscriberID(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    entity.approved = true;
-    entity.userData = event.params.userData;
-    let totalPendingApproval = entity.totalPendingApproval;
-    entity.totalReceivedUntilLastUpdate =
-        entity.totalReceivedUntilLastUpdate.plus(
-            totalPendingApproval as BigInt
-        );
-    entity.totalPendingApproval = new BigInt(0);
-    entity.save();
+    let subscriptionExists = Subscriber.load(subscriberEntityId) != null;
 
+    // handles the !vars.subscriptionExists case
+    let subscriber = getSubscriber(
+        event.params.subscriber,
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId,
+        event.block.timestamp
+    );
+
+    subscriber.userData = event.params.userData;
+    subscriber.approved = true;
+    let index = getOrInitializeIndex(
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId,
+        event.block.timestamp
+    );
+    subscriber.lastIndexValue = index.newIndexValue;
+
+    // handles the vars.subscriptionExists case
+    let tokenId = event.params.token.toHex();
+
+    if (subscriptionExists) {
+        index.totalUnitsApproved = index.totalUnitsApproved.plus(
+            subscriber.units
+        );
+        index.totalUnitsPending = index.totalUnitsPending.minus(
+            subscriber.units
+        );
+
+        // TODO: maybe this is supposed to be the delta?
+        subscriber.totalReceivedUntilLastUpdate =
+            subscriber.totalReceivedUntilLastUpdate.plus(
+                subscriber.totalPendingApproval
+            );
+        subscriber.totalPendingApproval = new BigInt(0);
+        subscriber.save();
+
+        // trade-off of using balanceOf vs. doing calculations locally for most accurate data
+        updateBalance(event.params.publisher.toHex(), tokenId);
+        updateBalance(event.params.subscriber.toHex(), tokenId);
+    }
+
+    // create SubscriptionApproved event entity
     let ev = new SubscriptionApproved(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;
-    ev.token = event.params.token.toHex();
+    ev.token = tokenId;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -112,15 +152,49 @@ export function handleSubscriptionApproved(
 export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent
 ): void {
-    let entity = fetchSubscriber(
+    let isRevoke = event.params.subscriber == Address.fromI32(0);
+    let index = getOrInitializeIndex(
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId,
+        event.block.timestamp
+    );
+
+    let subscriber = getSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
-        event.params.indexId
+        event.params.indexId,
+        event.block.timestamp
     );
-    entity.userData = event.params.userData;
-    entity.approved = false;
-    entity.save();
+
+    if (isRevoke) {
+        index.totalUnitsApproved.minus(subscriber.units);
+        index.totalUnitsPending.plus(subscriber.units);
+        subscriber.lastIndexValue = index.newIndexValue;
+    }
+
+    if (!subscriber.approved) {
+        updateBalance(
+            event.params.publisher.toHex(),
+            event.params.token.toHex()
+        );
+    }
+
+    // occurs on revoke or delete
+    subscriber.userData = event.params.userData;
+    subscriber.approved = false;
+    subscriber.totalReceivedUntilLastUpdate =
+        subscriber.totalReceivedUntilLastUpdate.plus(
+            subscriber.totalPendingApproval
+        );
+    subscriber.totalPendingApproval = new BigInt(0);
+
+    index.save();
+    subscriber.save();
+
+    // update balance for subscriber/publisher
+    updateBalance(event.params.subscriber.toHex(), event.params.token.toHex());
 
     let ev = new SubscriptionRevoked(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;
@@ -132,32 +206,89 @@ export function handleSubscriptionRevoked(
     ev.save();
 }
 
-export function handleIndexUnitsUpdated(event: IndexUnitsUpdatedEvent): void {
-    let ev = new IndexUnitsUpdated(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
-    ev.token = event.params.token.toHex();
-    ev.publisher = event.params.publisher;
-    ev.indexId = event.params.indexId;
-    ev.subscriber = event.params.subscriber;
-    ev.units = event.params.units;
-    ev.userData = event.params.userData;
-    ev.save();
-}
-
-// whenever units change for a subscriber we want to update the totalReceived and totalPendingApproval
-// not when the index is updated - however we msut return all the data necessary to calculate this on the
-// front end (lastIndexValue, currentIndexValue)
+// IsDeleteSubscription on revokeOrDelete
+// updateSubscription
+/**
+ * This always gets called with handleIndexUnitsUpdated.
+ * @param event
+ */
 export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
-    let entity = fetchSubscriber(
+    let subscriber = getSubscriber(
+        event.params.subscriber,
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId,
+        event.block.timestamp
+    );
+
+    let index = getOrInitializeIndex(
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId,
+        event.block.timestamp
+    );
+    let subscriberEntityId = getSubscriberID(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    entity.units = event.params.units;
-    entity.save();
+    let subscriptionExists = Subscriber.load(subscriberEntityId) != null;
+    let units = event.params.units;
+    let isDeleteSubscription = units === BigInt.fromI32(0);
+
+    if (isDeleteSubscription) {
+        if (subscriber.approved) {
+            index.totalUnitsApproved = index.totalUnitsApproved.minus(
+                subscriber.units
+            );
+        } else {
+            index.totalUnitsPending = index.totalUnitsPending.minus(
+                subscriber.units
+            );
+        }
+
+    // is updateSubscription
+    } else {
+        if (subscriptionExists && subscriber.approved) {
+            index.totalUnitsApproved = index.totalUnitsApproved
+                .plus(units)
+                .minus(subscriber.units);
+        } else if (subscriptionExists) {
+            index.totalUnitsPending = index.totalUnitsPending
+                .plus(units)
+                .minus(subscriber.units);
+        } else {
+            index.totalUnitsPending = index.totalUnitsPending.plus(units);
+        }
+
+        let balanceDelta = index.newIndexValue
+            .minus(subscriber.lastIndexValue)
+            .times(subscriber.units);
+
+        // if the subscriber is approved, totalPendingApproval will not increment
+        // their totalReceivedUnits would incrememnt
+        if (subscriber.approved) {
+            subscriber.totalReceivedUntilLastUpdate =
+                subscriber.totalReceivedUntilLastUpdate.plus(balanceDelta);
+        } else {
+            subscriber.totalPendingApproval =
+                subscriber.totalPendingApproval.plus(balanceDelta);
+            updateBalance(
+                event.params.publisher.toHex(),
+                event.params.token.toHex()
+            );
+        }
+
+        updateBalance(subscriber.id, event.params.token.toHex());
+    }
+
+    subscriber.lastIndexValue = index.newIndexValue;
+    subscriber.units = event.params.units;
+    index.save();
+    subscriber.save();
 
     let ev = new SubscriptionUnitsUpdated(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;

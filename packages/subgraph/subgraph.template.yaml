@@ -112,11 +112,12 @@ dataSources:
         file: ./src/mappings/idav1.ts
         entities:
           - Transaction
+          - Index
           - IndexCreated
           - IndexUpdated
+          - Subscriber
           - SubscriptionApproved
           - SubscriptionRevoked
-          - IndexUnitsUpdated
           - SubscriptionUnitsUpdated
         abis:
           - name: IInstantDistributionAgreementV1
@@ -130,8 +131,6 @@ dataSources:
             handler: handleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionRevoked
-          - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
-            handler: handleIndexUnitsUpdated
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
     - kind: ethereum/contract

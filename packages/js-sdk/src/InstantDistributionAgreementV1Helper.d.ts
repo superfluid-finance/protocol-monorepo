@@ -1,7 +1,7 @@
 import { Transaction } from "web3-core";
 import Framework from "./Framework";
 import type { LoadedContract } from "./loadContracts";
-import type BN from 'bn.js';
+import type BN from "bn.js";
 
 export interface Subscription {
     exist: boolean;
@@ -11,36 +11,50 @@ export interface Subscription {
 }
 
 export declare class InstantDistributionAgreementV1Helper {
-    static _sanitizeIndexData({ exist, indexValue, totalUnitsApproved, totalUnitsPending, }: {
+    static _sanitizeIndexData({
+        exist,
+        indexValue,
+        totalUnitsApproved,
+        totalUnitsPending,
+    }: {
         exist: boolean;
-        indexValue: any;
-        totalUnitsApproved: any;
-        totalUnitsPending: any;
+        indexValue: BN | number;
+        totalUnitsApproved: BN | number;
+        totalUnitsPending: BN | number;
     }): {
         exist: boolean;
         indexValue: string;
         totalUnitsApproved: string;
         totalUnitsPending: string;
     };
-    static _sanitizeSubscriptionData({ exist, approved, units, pendingDistribution, }: {
+    static _sanitizeSubscriptionData({
+        exist,
+        approved,
+        units,
+        pendingDistribution,
+    }: {
         exist: boolean;
         approved: boolean;
-        units: any;
-        pendingDistribution: any;
+        units: BN | number;
+        pendingDistribution: BN | number;
     }): {
         exist: boolean;
         approved: boolean;
         units: string;
         pendingDistribution: string;
     };
-    static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }: {
+    static _sanitizeSubscriptionInfo({
+        publishers,
+        indexIds,
+        unitsList,
+    }: {
         publishers: any[];
-        indexIds: any;
-        unitsList: any;
+        indexIds: BN[] | number[];
+        unitsList: BN[] | number[];
     }): {
-       publisher: string;
-       indexId: string;
-       units: string;
+        publisher: any;
+        indexId: string;
+        units: string;
     }[];
     /**
      * @dev Create new helper class
@@ -59,11 +73,17 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
-    createIndex({ superToken, publisher, indexId, userData, onTransaction, }: {
+    createIndex({
+        superToken,
+        publisher,
+        indexId,
+        userData,
+        onTransaction,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -75,12 +95,19 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
-    distribute({ superToken, publisher, indexId, amount, userData, onTransaction, }: {
+    distribute({
+        superToken,
+        publisher,
+        indexId,
+        amount,
+        userData,
+        onTransaction,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
         amount: BN;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -95,12 +122,19 @@ export declare class InstantDistributionAgreementV1Helper {
      * it has the same effect as doing distribute, but closer to the low level data structure
      * of the index.
      */
-    updateIndex({ superToken, publisher, indexId, indexValue, userData, onTransaction, }: {
-        superToken: string; 
+    updateIndex({
+        superToken,
+        publisher,
+        indexId,
+        indexValue,
+        userData,
+        onTransaction,
+    }: {
+        superToken: string;
         publisher: string;
-        indexId: number; 
+        indexId: number;
         indexValue: BN;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -113,13 +147,21 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {Function} onTransaction function to be called when transaction hash has been generated
      * @return {Promise<Transaction>} web3 transaction object
      */
-    updateSubscription({ superToken, publisher, indexId, subscriber, units, userData, onTransaction, }: {
-        superToken: string; 
-        publisher: string; 
+    updateSubscription({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        units,
+        userData,
+        onTransaction,
+    }: {
+        superToken: string;
+        publisher: string;
         indexId: number;
         subscriber: string;
         units: BN;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -135,12 +177,19 @@ export declare class InstantDistributionAgreementV1Helper {
      * By approving, the subscriber can use the balance the moment the publishder distributes
      * tokens without doing the extra claim step.
      */
-    approveSubscription({ superToken, publisher, indexId, subscriber, userData, onTransaction, }: {
+    approveSubscription({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        userData,
+        onTransaction,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
         subscriber: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -155,12 +204,19 @@ export declare class InstantDistributionAgreementV1Helper {
      * NOTE:
      * By revoking, the subscriber will need to do claim step in order to get the tokens.
      */
-    revokeSubscription({ superToken, indexId, publisher, subscriber, userData, onTransaction, }: {
+    revokeSubscription({
+        superToken,
+        indexId,
+        publisher,
+        subscriber,
+        userData,
+        onTransaction,
+    }: {
         superToken: string;
         indexId: number;
         publisher: string;
         subscriber: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -176,13 +232,21 @@ export declare class InstantDistributionAgreementV1Helper {
      * NOTE:
      * It means both revoking and clear the units of a subscription.
      */
-    deleteSubscription({ superToken, indexId, publisher, subscriber, sender, userData, onTransaction, }: {
+    deleteSubscription({
+        superToken,
+        indexId,
+        publisher,
+        subscriber,
+        sender,
+        userData,
+        onTransaction,
+    }: {
         superToken: string;
         indexId: number;
         publisher: string;
         subscriber: string;
         sender: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -193,7 +257,12 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {addressParam} subscriber Subscriber of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    getSubscription({ superToken, publisher, indexId, subscriber }: {
+    getSubscription({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
@@ -212,13 +281,21 @@ export declare class InstantDistributionAgreementV1Helper {
      * NOTE:
      * If the subscriber has not approved the subscription, anyone can claim the distribution for him.
      */
-    claim({ superToken, publisher, indexId, subscriber, sender, userData, onTransaction, }: {
+    claim({
+        superToken,
+        publisher,
+        indexId,
+        subscriber,
+        sender,
+        userData,
+        onTransaction,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
         subscriber: string;
         sender: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -228,7 +305,11 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    getIndex({ superToken, publisher, indexId }: {
+    getIndex({
+        superToken,
+        publisher,
+        indexId,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
@@ -239,7 +320,10 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {addressParam} publisher Publisher of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    listIndices({ superToken, publisher }: {
+    listIndices({
+        superToken,
+        publisher,
+    }: {
         superToken: string;
         publisher: string;
     }): Promise<Subscription>;
@@ -250,7 +334,11 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    listSubcribers({ superToken, publisher, indexId }: {
+    listSubcribers({
+        superToken,
+        publisher,
+        indexId,
+    }: {
         superToken: string;
         publisher: string;
         indexId: number;
@@ -262,7 +350,10 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    listSubscriptions({ superToken, subscriber }: {
+    listSubscriptions({
+        superToken,
+        subscriber,
+    }: {
         superToken: string;
         subscriber: string;
     }): Promise<Subscription[]>;

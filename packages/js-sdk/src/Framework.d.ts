@@ -6,28 +6,28 @@ import LoadContracts from "./loadContracts";
 import Config from "./getConfig";
 import User from "./User";
 import Utils from "./Utils";
+import { Agreement } from "./batchCall";
 
-declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
+declare type GasReportTypeOptions = "JSON" | "HTML" | "TENDERLY";
 
 export interface Agreements {
-    cfa?: ConstantFlowAgreementV1Helper,
-    ida?: InstantDistributionAgreementV1Helper
+    cfa?: ConstantFlowAgreementV1Helper;
+    ida?: InstantDistributionAgreementV1Helper;
 }
 
 export interface FrameworkOptions {
-    version?: string,
-    isTruffle: boolean,
-    web3?: Web3,
-    ethers?: LoadContracts.EthersWithSigner,
-    gasReportType: GasReportTypeOptions,
-    additionalContracts?: string[],
-    tokens?: string[],
-    loadSuperNativeToken?: boolean,
-    contractLoader?: LoadContracts.ContractLoader,
-    resolverAddress?: string,
+    version?: string;
+    isTruffle: boolean;
+    web3?: Web3;
+    ethers?: LoadContracts.EthersWithSigner;
+    gasReportType: GasReportTypeOptions;
+    additionalContracts?: string[];
+    tokens?: string[];
+    loadSuperNativeToken?: boolean;
+    contractLoader?: LoadContracts.ContractLoader;
+    resolverAddress?: string;
 }
 export declare class Framework {
-
     constructor(options: FrameworkOptions);
 
     _options: FrameworkOptions;
@@ -47,23 +47,33 @@ export declare class Framework {
     utils: Utils | undefined;
     _gasMetering: GasMeter | undefined;
 
-    initialize(): Promise<any>;
+    initialize(): Promise<void>;
     isSuperTokenListed(superTokenKey: string): Promise<boolean>;
     loadToken(tokenKey: string): Promise<void>;
-    createERC20Wrapper(tokenInfo: any, 
-        { superTokenSymbol, superTokenName, from, upgradability }: {
-            superTokenSymbol?: string,
-            superTokenName?: string,
-            from?: string,
-            upgradability?: string
+    createERC20Wrapper(
+        tokenInfo: any,
+        {
+            superTokenSymbol,
+            superTokenName,
+            from,
+            upgradability,
+        }: {
+            superTokenSymbol?: string;
+            superTokenName?: string;
+            from?: string;
+            upgradability?: string;
         }
     ): Promise<any>;
-    user({ address, token, options }: {
+    user({
+        address,
+        token,
+        options,
+    }: {
         address: string;
         token: string;
         options?: any;
     }): User;
-    batchCall(calls: any): any;
+    batchCall(calls: Array<Agreement>): any[][];
     _pushTxForGasReport(tx: GasMeter.Record, actionName: string): void;
     generateGasReport(name: string): void;
 }

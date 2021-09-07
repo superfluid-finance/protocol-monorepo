@@ -8,12 +8,15 @@ import {
     SuperTokenCreated,
     SuperTokenLogicCreated,
 } from "../../generated/schema";
-import { createEventID, createTxnAndReturn, fetchToken } from "../utils";
+import {
+    createEventID,
+    createTxnAndReturn,
+    createOrUpdateToken,
+} from "../utils";
 
 export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
     let tokenAddress = event.params.token.toHex();
-    let token = fetchToken(tokenAddress);
-    token.save();
+    createOrUpdateToken(tokenAddress, event.block.timestamp);
 
     let ev = new SuperTokenCreated(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;
@@ -25,8 +28,7 @@ export function handleCustomSuperTokenCreated(
     event: CustomSuperTokenCreatedEvent
 ): void {
     let tokenAddress = event.params.token.toHex();
-    let token = fetchToken(tokenAddress);
-    token.save();
+    createOrUpdateToken(tokenAddress, event.block.timestamp);
 
     let ev = new CustomSuperTokenCreated(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;
@@ -38,8 +40,7 @@ export function handleSuperTokenLogicCreated(
     event: SuperTokenLogicCreatedEvent
 ): void {
     let tokenAddress = event.params.tokenLogic.toHex();
-    let token = fetchToken(tokenAddress);
-    token.save();
+    createOrUpdateToken(tokenAddress, event.block.timestamp);
 
     let ev = new SuperTokenLogicCreated(createEventID(event));
     ev.transaction = createTxnAndReturn(event).id;

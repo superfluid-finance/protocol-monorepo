@@ -1,12 +1,9 @@
 import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
-
-import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import {
     Account,
     Stream,
     Token,
     Transaction,
-    AccountInteractedToken,
     Subscriber,
     Index,
 } from "../generated/schema";
@@ -29,7 +26,7 @@ export function createTxnAndReturn(event: ethereum.Event): Transaction {
 }
 
 /**
- * Creates an account if non exists or updates an existing one.
+ * Creates an Account entity if non exists or updates an existing one.
  * @param id
  * @param lastModified
  * @returns created or modified account
@@ -48,7 +45,17 @@ export function createOrUpdateAccount(
     return account as Account;
 }
 
-export function fetchToken(address: string): Token {
+/**
+ * Creates a Token (SuperToken) entity if non exists, this function should never be
+ * called more than once for a Token entity (you only create a SuperToken once).
+ * @param address
+ * @param lastModified
+ * @returns created token
+ */
+export function createOrUpdateToken(
+    address: string,
+    lastModified: BigInt
+): Token {
     let token = Token.load(address);
     if (token == null) {
         let tokenContract = SuperToken.bind(Address.fromString(address));
@@ -59,25 +66,12 @@ export function fetchToken(address: string): Token {
         token.underlyingAddress = underlyingAddress;
         token.name = name;
         token.symbol = symbol;
-        SuperTokenTemplate.create(Address.fromString(address));
+        token.createdAt = lastModified;
+        // NOTE: deleted template code, not sure what this was doing
     }
+    token.updatedAt = lastModified;
+    token.save();
     return token as Token;
-}
-
-export function fetchAccountInteractedToken(
-    accountId: string,
-    tokenId: string
-): AccountInteractedToken {
-    let id = accountId.concat("-").concat(tokenId);
-    let accountWithToken = AccountInteractedToken.load(id);
-    if (accountWithToken == null) {
-        // NOTE: removed fetchAccount + save as we do this prior to calling this function
-        // everywhere in the code.
-        accountWithToken = new AccountInteractedToken(id);
-        accountWithToken.account = accountId;
-        accountWithToken.token = tokenId;
-    }
-    return accountWithToken as AccountInteractedToken;
 }
 
 function createStreamID(
@@ -101,7 +95,7 @@ export function fetchStream(
         stream.token = tokenAddress;
         stream.sender = senderAddress;
         stream.receiver = receiverAddress;
-        stream.lastUpdate = timestamp;
+        stream.createdAt = timestamp;
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilLastUpdate = BigInt.fromI32(0);
 
@@ -110,6 +104,7 @@ export function fetchStream(
         createOrUpdateAccount(senderAddress, timestamp);
         createOrUpdateAccount(receiverAddress, timestamp);
     }
+    stream.updatedAt = timestamp;
     return stream as Stream;
 }
 

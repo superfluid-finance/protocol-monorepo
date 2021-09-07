@@ -4,30 +4,27 @@ import { FlowUpdated } from "../../generated/schema";
 import {
     createTxnAndReturn,
     createEventID,
-    fetchStream,
+    getStream,
     updateBalance,
 } from "../utils";
 
-// this doesn't need to save account because we are doing it in fetchStream
 export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let senderId = event.params.sender.toHex();
     let receiverId = event.params.receiver.toHex();
     let tokenId = event.params.token.toHex();
     let flowRate = event.params.flowRate;
-
     let currentTimestamp = event.block.timestamp;
-    // Get the existing flow / initialize if it doesn't exist
-    let stream = fetchStream(senderId, receiverId, tokenId, currentTimestamp);
 
+    // Get the existing stream or initialize if it doesn't exist
+    let stream = getStream(senderId, receiverId, tokenId, currentTimestamp);
     let oldFlowRate = stream.currentFlowRate;
-    let duration = currentTimestamp.minus(stream.lastUpdate);
+    let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAt);
+    let newStreamedUntilLastUpdate = stream.streamedUntilLastUpdate.plus(
+        oldFlowRate.times(timeSinceLastUpdate)
+    );
 
     stream.currentFlowRate = flowRate;
-    let oldStreamedUntilLastUpdate = stream.streamedUntilLastUpdate;
-    let newStreamedUntilLastUpdate = oldStreamedUntilLastUpdate.plus(
-        oldFlowRate.times(duration)
-    );
-    stream.lastUpdate = currentTimestamp;
+    stream.updatedAt = currentTimestamp;
     stream.streamedUntilLastUpdate = newStreamedUntilLastUpdate;
     stream.save();
 
@@ -44,9 +41,9 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
 
     // NOTE: ensure that this works as expected
     let type =
-        oldFlowRate === new BigInt(0)
+        oldFlowRate === BigInt.fromI32(0)
             ? "create"
-            : flowRate === new BigInt(0)
+            : flowRate === BigInt.fromI32(0)
             ? "terminate"
             : "delete";
     ev.type = type;

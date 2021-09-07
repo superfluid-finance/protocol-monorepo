@@ -74,41 +74,34 @@ export function createOrUpdateToken(
     return token as Token;
 }
 
-function createStreamID(
-    owner: string,
-    recipient: string,
-    token: string
-): string {
+function getStreamID(owner: string, recipient: string, token: string): string {
     return owner.concat("-").concat(recipient).concat("-").concat(token);
 }
 
-export function fetchStream(
+export function getStream(
     senderAddress: string,
     receiverAddress: string,
     tokenAddress: string,
     timestamp: BigInt
 ): Stream {
-    let id = createStreamID(senderAddress, receiverAddress, tokenAddress);
+    let id = getStreamID(senderAddress, receiverAddress, tokenAddress);
     let stream = Stream.load(id);
     if (stream == null) {
         stream = new Stream(id);
+        stream.createdAt = timestamp;
         stream.token = tokenAddress;
         stream.sender = senderAddress;
         stream.receiver = receiverAddress;
-        stream.createdAt = timestamp;
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilLastUpdate = BigInt.fromI32(0);
 
-        // Create accounts and tokens if they do not exist
-        // NOTE: Not for tokens, it is impossible to start a stream if the specified token doesn't exist.
+        // Create accounts if they do not exist
         createOrUpdateAccount(senderAddress, timestamp);
         createOrUpdateAccount(receiverAddress, timestamp);
     }
-    stream.updatedAt = timestamp;
     return stream as Stream;
 }
 
-// is create account necessary? look at all the places calling updateBalance
 export function updateBalance(accountId: string, tokenId: string): void {
     let accountInteractedToken = fetchAccountInteractedToken(
         accountId,

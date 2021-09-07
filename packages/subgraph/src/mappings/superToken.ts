@@ -2,13 +2,13 @@ import {
     TokenUpgraded as TokenUpgradedEvent,
     TokenDowngraded as TokenDowngradedEvent,
     Transfer as TransferEvent,
-	AgreementLiquidatedBy as AgreementLiquidatedByEvent,
+    AgreementLiquidatedBy as AgreementLiquidatedByEvent,
 } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     TokenUpgraded,
     TokenDowngraded,
     Transfer,
-	AgreementLiquidatedBy,
+    AgreementLiquidatedBy,
 } from "../../generated/schema";
 import {
     createTxnAndReturn,
@@ -17,20 +17,22 @@ import {
     updateBalance,
 } from "../utils";
 
-export function handleAgreementLiquidatedBy(event: AgreementLiquidatedByEvent): void {
-	let ev = new AgreementLiquidatedBy(createEventID(event));
-	ev.transaction = createTxnAndReturn(event).id;
-	ev.token = event.address.toHex();
-	ev.liquidatorAccount = event.params.liquidatorAccount;
-	ev.agreementClass = event.params.agreementClass;
-	ev.agreementId = event.params.id;
-	ev.penaltyAccount = event.params.penaltyAccount;
-	ev.bondAccount = event.params.bondAccount;
-	ev.rewardAmount = event.params.rewardAmount;
-	ev.bailoutAmount = event.params.bailoutAmount;
-	ev.save();
+export function handleAgreementLiquidatedBy(
+    event: AgreementLiquidatedByEvent
+): void {
+    let ev = new AgreementLiquidatedBy(createEventID(event));
+    ev.transaction = createTxnAndReturn(event).id;
+    ev.token = event.address.toHex();
+    ev.liquidatorAccount = event.params.liquidatorAccount;
+    ev.agreementClass = event.params.agreementClass;
+    ev.agreementId = event.params.id;
+    ev.penaltyAccount = event.params.penaltyAccount;
+    ev.bondAccount = event.params.bondAccount;
+    ev.rewardAmount = event.params.rewardAmount;
+    ev.bailoutAmount = event.params.bailoutAmount;
+    ev.save();
 
-	// TODO: do we update the balances of the liquidator, penalty and bond account's here? probably yes
+    // TODO: do we update the balances of the liquidator, penalty and bond account's here? probably yes
 }
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
@@ -44,7 +46,10 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     ev.amount = amount;
     ev.save();
 
-    let account = createOrUpdateAccount(event.params.account.toHex(), event.block.timestamp);
+    let account = createOrUpdateAccount(
+        event.params.account.toHex(),
+        event.block.timestamp
+    );
     updateBalance(account.id, tokenId);
 }
 
@@ -59,7 +64,10 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     ev.amount = amount;
     ev.save();
 
-    let account = createOrUpdateAccount(event.params.account.toHex(), event.block.timestamp);
+    let account = createOrUpdateAccount(
+        event.params.account.toHex(),
+        event.block.timestamp
+    );
     updateBalance(account.id, tokenId);
 }
 
@@ -75,8 +83,14 @@ export function handleTransfer(event: TransferEvent): void {
     ev.token = tokenId;
     ev.save();
 
-    let fromAccount = createOrUpdateAccount(event.params.from.toHex(), event.block.timestamp);
-    let toAccount = createOrUpdateAccount(event.params.to.toHex(), event.block.timestamp);
+    let fromAccount = createOrUpdateAccount(
+        event.params.from.toHex(),
+        event.block.timestamp
+    );
+    let toAccount = createOrUpdateAccount(
+        event.params.to.toHex(),
+        event.block.timestamp
+    );
     fromAccount.save();
     toAccount.save();
     updateBalance(toAccount.id, tokenId);

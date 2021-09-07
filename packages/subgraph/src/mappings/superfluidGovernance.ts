@@ -10,11 +10,11 @@ import {
     RewardAddressChanged,
     TrustedForwarderChanged,
 } from "../../generated/schema";
-import { createAndReturnTxn, createEventID } from "../utils";
+import { createTxnAndReturn, createEventID } from "../utils";
 
 export function handleConfigChanged(event: ConfigChangedEvent): void {
     let ev = new ConfigChanged(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.key = event.params.key;
@@ -27,7 +27,7 @@ export function handleRewardAddressChanged(
     event: RewardAddressChangedEvent
 ): void {
     let ev = new RewardAddressChanged(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.set = event.params.set;
@@ -39,7 +39,7 @@ export function handleCFAv1LiquidationPeriodChanged(
     event: CFAv1LiquidationPeriodChangedEvent
 ): void {
     let ev = new CFAv1LiquidationPeriodChanged(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.set = event.params.set;
@@ -51,7 +51,7 @@ export function handleTrustedForwarderChanged(
     event: TrustedForwarderChangedEvent
 ): void {
     let ev = new TrustedForwarderChanged(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.set = event.params.set;

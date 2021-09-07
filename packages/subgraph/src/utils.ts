@@ -20,7 +20,7 @@ export function createEventID(event: ethereum.Event): string {
         .concat(event.logIndex.toString());
 }
 
-export function createAndReturnTxn(event: ethereum.Event): Transaction {
+export function createTxnAndReturn(event: ethereum.Event): Transaction {
     let tx = new Transaction(event.transaction.hash.toHex());
     tx.timestamp = event.block.timestamp;
     tx.blockNumber = event.block.number;

@@ -2,7 +2,7 @@ import { BigInt } from "@graphprotocol/graph-ts";
 import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { FlowUpdated } from "../../generated/schema";
 import {
-    createAndReturnTxn,
+    createTxnAndReturn,
     createEventID,
     fetchStream,
     updateBalance,
@@ -32,7 +32,7 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     stream.save();
 
     let ev = new FlowUpdated(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = tokenId;
     ev.sender = event.params.sender;
     ev.receiver = event.params.receiver;

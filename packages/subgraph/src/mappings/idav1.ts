@@ -16,7 +16,7 @@ import {
     SubscriptionUnitsUpdated,
 } from "../../generated/schema";
 import {
-    createAndReturnTxn,
+    createTxnAndReturn,
     createEventID,
     fetchIndex,
     fetchSubscriber,
@@ -35,7 +35,7 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     index.save();
 
     let ev = new IndexCreated(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -68,7 +68,7 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
 
     // NOTE: Deleted commented out code for calculating distribution for each subscriber due to it not being scalable.
     let ev = new IndexUpdated(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -100,7 +100,7 @@ export function handleSubscriptionApproved(
     entity.save();
 
     let ev = new SubscriptionApproved(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -123,7 +123,7 @@ export function handleSubscriptionRevoked(
     entity.save();
 
     let ev = new SubscriptionRevoked(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -134,7 +134,7 @@ export function handleSubscriptionRevoked(
 
 export function handleIndexUnitsUpdated(event: IndexUnitsUpdatedEvent): void {
     let ev = new IndexUnitsUpdated(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -160,7 +160,7 @@ export function handleSubscriptionUnitsUpdated(
     entity.save();
 
     let ev = new SubscriptionUnitsUpdated(createEventID(event));
-    ev.transaction = createAndReturnTxn(event).id;
+    ev.transaction = createTxnAndReturn(event).id;
     ev.token = event.params.token.toHex();
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;

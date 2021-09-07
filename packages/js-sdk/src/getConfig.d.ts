@@ -1,6 +1,6 @@
 export interface NetworkConfig {
-    nativeTokenSymbol?: string,
-    resolverAddress?: string
+    nativeTokenSymbol?: string;
+    resolverAddress?: string;
 }
 
 export function getConfig(chainId: number): NetworkConfig;

@@ -22,7 +22,7 @@ contract CLOWNS is IERC777Recipient {
     IERC1820Registry constant internal _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
-    event NewCLO(address clo, uint256 bond, int96 exitRate);
+    event NewCLO(address clo, /*TODO: add token,*/uint256 bond, int96 exitRate);
 
     constructor(ISuperfluid host_, uint256 minBondDuration_) {
         _host = ISuperfluid(host_);

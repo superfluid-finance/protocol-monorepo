@@ -189,7 +189,7 @@ type TrustedForwarderChanged implements Event @entity {
 }
 
 
-# #     SuperfluidToken    #
+#     SuperToken    #
 type AgreementLiquidatedBy implements Event @entity {
 	id: ID!
 	transaction: Transaction!
@@ -202,7 +202,6 @@ type AgreementLiquidatedBy implements Event @entity {
 	bailoutAmount: BigInt!
 }
 
-#     SuperToken    #
 type TokenUpgraded implements Event @entity {
     id: ID!
     account: Bytes!
@@ -219,7 +218,7 @@ type TokenDowngraded implements Event @entity {
     amount: BigInt!
 }
 
-type TokenTransfer implements Event @entity {
+type Transfer implements Event @entity {
     id: ID!
     transaction: Transaction!
     from: Bytes!

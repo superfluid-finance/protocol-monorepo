@@ -59,19 +59,19 @@ dataSources:
               - name: ISuperfluid
                 file: ./abis/Superfluid.json
           eventHandlers:
-              - event: GovernanceReplaced(address, address)
+              - event: GovernanceReplaced(address,address)
                 handler: handleGovernanceReplaced
-              - event: AgreementClassRegistered(bytes, address)
+              - event: AgreementClassRegistered(bytes,address)
                 handler: handleAgreementClassRegistered
-              - event: AgreementClassUpdated(bytes, address)
+              - event: AgreementClassUpdated(bytes,address)
                 handler: handleAgreementClassUpdated
-              - event: SuperTokenFactoryUpdated(address, address)
+              - event: SuperTokenFactoryUpdated(address,address)
                 handler: handleSuperTokenFactoryUpdated
-              - event: SuperTokenLogicUpdated(indexed address, address)
+              - event: SuperTokenLogicUpdated(indexed address,address)
                 handler: handleSuperTokenLogicUpdated
               - event: AppRegistered(indexed address)
                 handler: handleAppRegistered
-              - event: Jail(indexed address, uint256)
+              - event: Jail(indexed address,uint256)
                 handler: handleJail
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1
@@ -112,13 +112,12 @@ dataSources:
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
+          - Transaction
           - IndexCreated
-          - IndexSubscribed
-          - IndexUnitsUpdated
-          - IndexUnsubscribed
           - IndexUpdated
           - SubscriptionApproved
           - SubscriptionRevoked
+          - IndexUnitsUpdated
           - SubscriptionUnitsUpdated
         abis:
           - name: IInstantDistributionAgreementV1
@@ -148,15 +147,19 @@ templates:
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
+        - Transaction
+        - AgreementLiquidatedBy
         - Token
         - TokenUpgraded
         - TokenDowngraded
-        - TokenTransfer
+        - Transfer
         - AccountInteractedToken
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
       eventHandlers:
+        - event: AgreementLiquidatedBy(address,indexed address,bytes,indexed address,indexed address,uint256,uint256)
+          handler: handleAgreementLiquidatedBy
         - event: TokenUpgraded(indexed address,uint256)
           handler: handleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)

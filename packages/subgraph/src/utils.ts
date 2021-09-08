@@ -28,7 +28,7 @@ export function createOrUpdateAccount(
         account.updatedAt = lastModified;
     }
     account.save();
-    return account as Account;
+    return account;
 }
 
 function getStreamID(owner: string, recipient: string, token: string): string {
@@ -56,7 +56,7 @@ export function getStream(
         createOrUpdateAccount(senderAddress, timestamp);
         createOrUpdateAccount(receiverAddress, timestamp);
     }
-    return stream as Stream;
+    return stream;
 }
 
 export function updateBalance(accountId: string, tokenId: string): void {
@@ -130,7 +130,7 @@ export function getOrInitializeIndex(
         createOrUpdateAccount(publisherId, lastModified);
     }
     index.updatedAt = lastModified;
-    return index as Index;
+    return index;
 }
 
 export function getSubscriber(
@@ -139,7 +139,7 @@ export function getSubscriber(
     tokenAddress: Bytes,
     indexId: BigInt,
     lastModified: BigInt
-): Subscriber {
+): [Subscriber, boolean] {
     let subscriberEntityId = getSubscriberID(
         subscriberAddress,
         publisherAddress,
@@ -151,6 +151,7 @@ export function getSubscriber(
         let subscriberId = subscriberAddress.toHex();
         subscriber = new Subscriber(subscriberEntityId);
         subscriber.createdAt = lastModified;
+        subscriber.updatedAt = lastModified;
         subscriber.token = tokenAddress.toHex();
         subscriber.subscriber = subscriberId;
         subscriber.publisher = publisherAddress.toHex();
@@ -162,7 +163,8 @@ export function getSubscriber(
         subscriber.index = getIndexID(publisherAddress, tokenAddress, indexId);
 
         createOrUpdateAccount(subscriberId, lastModified);
+        return [subscriber, false];
     }
     subscriber.updatedAt = lastModified;
-    return subscriber as Subscriber;
+    return [subscriber, true];
 }

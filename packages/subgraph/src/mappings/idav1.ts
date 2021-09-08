@@ -61,22 +61,15 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     );
     index.save();
 
+    updateBalance(event.params.publisher.toHex(), event.params.token.toHex());
     createIndexUpdatedEntity(event);
 }
 
 export function handleSubscriptionApproved(
     event: SubscriptionApprovedEvent
 ): void {
-    let subscriberEntityId = getSubscriberID(
-        event.params.subscriber,
-        event.params.publisher,
-        event.params.token,
-        event.params.indexId
-    );
-    let subscriptionExists = Subscriber.load(subscriberEntityId) != null;
-
-    // if a subscription doesn't exist we create one with
-    let subscriber = getSubscriber(
+    // this first part occurs whether or not a subscription exists
+    let [subscriber, subscriptionExists] = getSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -105,7 +98,6 @@ export function handleSubscriptionApproved(
             subscriber.units
         );
 
-        // TODO: maybe this is supposed to be the delta?
         subscriber.totalReceivedUntilLastUpdate =
             subscriber.totalReceivedUntilLastUpdate.plus(
                 subscriber.totalPendingApproval
@@ -132,7 +124,7 @@ export function handleSubscriptionRevoked(
         event.block.timestamp
     );
 
-    let subscriber = getSubscriber(
+    let [subscriber] = getSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -141,21 +133,21 @@ export function handleSubscriptionRevoked(
     );
 
     if (isRevoke) {
-        index.totalUnitsApproved.minus(subscriber.units);
-        index.totalUnitsPending.plus(subscriber.units);
-        subscriber.lastIndexValue = index.newIndexValue;
-    }
-
-    if (!subscriber.approved) {
-        updateBalance(
-            event.params.publisher.toHex(),
-            event.params.token.toHex()
+        index.totalUnitsApproved = index.totalUnitsApproved.minus(
+            subscriber.units
         );
+        index.totalUnitsPending = index.totalUnitsPending.plus(
+            subscriber.units
+        );
+        subscriber.lastIndexValue = index.newIndexValue;
     }
 
     // occurs on revoke or delete
     subscriber.userData = event.params.userData;
     subscriber.approved = false;
+
+    // user should receive any pending/unclaimed units
+    // and then we set this to 0
     subscriber.totalReceivedUntilLastUpdate =
         subscriber.totalReceivedUntilLastUpdate.plus(
             subscriber.totalPendingApproval
@@ -164,9 +156,6 @@ export function handleSubscriptionRevoked(
 
     index.save();
     subscriber.save();
-
-    // update balance for subscriber/publisher
-    updateBalance(event.params.subscriber.toHex(), event.params.token.toHex());
 
     createSubscriptionApprovedRevokedEntity(event, false);
 }
@@ -178,7 +167,7 @@ export function handleSubscriptionRevoked(
 export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
-    let subscriber = getSubscriber(
+    let [subscriber, subscriptionExists] = getSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -192,16 +181,10 @@ export function handleSubscriptionUnitsUpdated(
         event.params.indexId,
         event.block.timestamp
     );
-    let subscriberEntityId = getSubscriberID(
-        event.params.subscriber,
-        event.params.publisher,
-        event.params.token,
-        event.params.indexId
-    );
-    let subscriptionExists = Subscriber.load(subscriberEntityId) != null;
     let units = event.params.units;
     let isDeleteSubscription = units === BigInt.fromI32(0);
 
+    // handle deletion in _revokeOrDeleteSubscription function
     if (isDeleteSubscription) {
         if (subscriber.approved) {
             index.totalUnitsApproved = index.totalUnitsApproved.minus(
@@ -212,9 +195,12 @@ export function handleSubscriptionUnitsUpdated(
                 subscriber.units
             );
         }
-
-        // is updateSubscription
+        // NOTE: we don't update the totalReceivedUntilLastUpdate in this 
+		// block of code as handleSubscriptionRevoked does that for 
+		// revoke/deletion and SubscriptionRevoked event is emmitted if this 
+		// block of code runs.
     } else {
+        // is updateSubscription
         if (subscriptionExists && subscriber.approved) {
             index.totalUnitsApproved = index.totalUnitsApproved
                 .plus(units)
@@ -232,21 +218,25 @@ export function handleSubscriptionUnitsUpdated(
             .times(subscriber.units);
 
         // if the subscriber is approved, totalPendingApproval will not increment
-        // their totalReceivedUnits would incrememnt
+        // their totalReceivedUnits would increment and vice versa
         if (subscriber.approved) {
             subscriber.totalReceivedUntilLastUpdate =
                 subscriber.totalReceivedUntilLastUpdate.plus(balanceDelta);
         } else {
             subscriber.totalPendingApproval =
                 subscriber.totalPendingApproval.plus(balanceDelta);
-            updateBalance(
-                event.params.publisher.toHex(),
-                event.params.token.toHex()
-            );
         }
-
-        updateBalance(subscriber.id, event.params.token.toHex());
     }
+
+    // NOTE: this handles the balance updates for both updateSubscription and
+    // revokeOrDeleteSubscription functions
+    if (!subscriber.approved) {
+        updateBalance(
+            event.params.publisher.toHex(),
+            event.params.token.toHex()
+        );
+    }
+    updateBalance(subscriber.id, event.params.token.toHex());
 
     subscriber.lastIndexValue = index.newIndexValue;
     subscriber.units = event.params.units;

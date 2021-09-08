@@ -37,7 +37,7 @@ function createOrUpdateToken(address: string, lastModified: BigInt): Token {
     }
     token.updatedAt = lastModified;
     token.save();
-    return token as Token;
+    return token;
 }
 
 export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {

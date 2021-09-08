@@ -1,18 +1,6 @@
 import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
-import {
-    Account,
-    Stream,
-    Token,
-    Transaction,
-    Subscriber,
-    Index,
-} from "../generated/schema";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import {
-    IndexCreated as IndexCreatedEvent,
-    IndexUpdated as IndexUpdatedEvent,
-    SubscriptionApproved,
-} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
+import { Account, Stream, Subscriber, Index } from "../generated/schema";
 
 export function createEventID(event: ethereum.Event): string {
     return event.transaction.hash
@@ -21,16 +9,10 @@ export function createEventID(event: ethereum.Event): string {
         .concat(event.logIndex.toString());
 }
 
-export function createTxnAndReturn(event: ethereum.Event): Transaction {
-    let tx = new Transaction(event.transaction.hash.toHex());
-    tx.timestamp = event.block.timestamp;
-    tx.blockNumber = event.block.number;
-    tx.save();
-    return tx as Transaction;
-}
-
 /**
  * Creates an Account entity if non exists or updates an existing one.
+ * this should technically only be updated once as no property on account
+ * changes currently.
  * @param id
  * @param lastModified
  * @returns created or modified account
@@ -43,39 +25,10 @@ export function createOrUpdateAccount(
     if (account == null) {
         account = new Account(id);
         account.createdAt = lastModified;
+        account.updatedAt = lastModified;
     }
-    account.updatedAt = lastModified;
     account.save();
     return account as Account;
-}
-
-/**
- * Creates a Token (SuperToken) entity if non exists, this function should never be
- * called more than once for a Token entity (you only create a SuperToken once).
- * @param address
- * @param lastModified
- * @returns created token
- */
-export function createOrUpdateToken(
-    address: string,
-    lastModified: BigInt
-): Token {
-    let token = Token.load(address);
-    if (token == null) {
-        let tokenContract = SuperToken.bind(Address.fromString(address));
-        let underlyingAddress = tokenContract.getUnderlyingToken();
-        let name = tokenContract.name();
-        let symbol = tokenContract.symbol();
-        token = new Token(address);
-        token.underlyingAddress = underlyingAddress;
-        token.name = name;
-        token.symbol = symbol;
-        token.createdAt = lastModified;
-        // NOTE: deleted template code, not sure what this was doing
-    }
-    token.updatedAt = lastModified;
-    token.save();
-    return token as Token;
 }
 
 function getStreamID(owner: string, recipient: string, token: string): string {

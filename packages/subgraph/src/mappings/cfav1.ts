@@ -1,12 +1,35 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { FlowUpdated } from "../../generated/schema";
-import {
-    createTxnAndReturn,
-    createEventID,
-    getStream,
-    updateBalance,
-} from "../utils";
+import { createEventID, getStream, updateBalance } from "../utils";
+
+function createFlowUpdatedEntity(
+    event: FlowUpdatedEvent,
+    oldFlowRate: BigInt
+): void {
+    let ev = new FlowUpdated(createEventID(event));
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
+    ev.token = event.params.token.toHex();
+    ev.sender = event.params.sender;
+    ev.receiver = event.params.receiver;
+    ev.flowRate = event.params.flowRate;
+    ev.totalSenderFlowRate = event.params.totalSenderFlowRate;
+    ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
+    ev.userData = event.params.userData;
+    ev.oldFlowRate = oldFlowRate;
+
+    // NOTE: ensure that this works as expected
+    let type =
+        oldFlowRate === BigInt.fromI32(0)
+            ? "create"
+            : event.params.flowRate === BigInt.fromI32(0)
+            ? "terminate"
+            : "delete";
+    ev.type = type;
+    ev.save();
+}
 
 export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let senderId = event.params.sender.toHex();
@@ -28,26 +51,7 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     stream.streamedUntilLastUpdate = newStreamedUntilLastUpdate;
     stream.save();
 
-    let ev = new FlowUpdated(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
-    ev.token = tokenId;
-    ev.sender = event.params.sender;
-    ev.receiver = event.params.receiver;
-    ev.flowRate = flowRate;
-    ev.totalSenderFlowRate = event.params.totalSenderFlowRate;
-    ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
-    ev.userData = event.params.userData;
-    ev.oldFlowRate = oldFlowRate;
-
-    // NOTE: ensure that this works as expected
-    let type =
-        oldFlowRate === BigInt.fromI32(0)
-            ? "create"
-            : flowRate === BigInt.fromI32(0)
-            ? "terminate"
-            : "delete";
-    ev.type = type;
-    ev.save();
+    createFlowUpdatedEntity(event, oldFlowRate);
 
     // TODO: create/update the necessary aggregate functions in here.
     updateBalance(senderId, tokenId);

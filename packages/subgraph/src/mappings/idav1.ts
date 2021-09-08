@@ -15,7 +15,6 @@ import {
     SubscriptionUnitsUpdated,
 } from "../../generated/schema";
 import {
-    createTxnAndReturn,
     createEventID,
     getOrInitializeIndex,
     getSubscriber,
@@ -33,13 +32,7 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     index.userData = event.params.userData;
     index.save();
 
-    let ev = new IndexCreated(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
-    ev.token = event.params.token.toHex();
-    ev.publisher = event.params.publisher;
-    ev.indexId = event.params.indexId;
-    ev.userData = event.params.userData;
-    ev.save();
+    createIndexCreatedEntity(event);
 }
 
 export function handleIndexUpdated(event: IndexUpdatedEvent): void {
@@ -68,22 +61,9 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     );
     index.save();
 
-    // create IndexUpdated event entity
-    let ev = new IndexUpdated(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
-    ev.token = event.params.token.toHex();
-    ev.publisher = event.params.publisher;
-    ev.indexId = event.params.indexId;
-    ev.oldIndexValue = event.params.oldIndexValue;
-    ev.newIndexValue = event.params.newIndexValue;
-    ev.totalUnitsPending = event.params.totalUnitsPending;
-    ev.totalUnitsApproved = event.params.totalUnitsApproved;
-    ev.userData = event.params.userData;
-    ev.save();
+    createIndexUpdatedEntity(event);
 }
 
-// it appears we update the users' balance upon approval if a subscription exists
-// otherwise the units are set to 0, but there is nowhere to get this information
 export function handleSubscriptionApproved(
     event: SubscriptionApprovedEvent
 ): void {
@@ -95,7 +75,7 @@ export function handleSubscriptionApproved(
     );
     let subscriptionExists = Subscriber.load(subscriberEntityId) != null;
 
-    // handles the !vars.subscriptionExists case
+    // if a subscription doesn't exist we create one with
     let subscriber = getSubscriber(
         event.params.subscriber,
         event.params.publisher,
@@ -138,15 +118,7 @@ export function handleSubscriptionApproved(
         updateBalance(event.params.subscriber.toHex(), tokenId);
     }
 
-    // create SubscriptionApproved event entity
-    let ev = new SubscriptionApproved(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
-    ev.token = tokenId;
-    ev.subscriber = event.params.subscriber;
-    ev.publisher = event.params.publisher;
-    ev.indexId = event.params.indexId;
-    ev.userData = event.params.userData;
-    ev.save();
+    createSubscriptionApprovedRevokedEntity(event, true);
 }
 
 export function handleSubscriptionRevoked(
@@ -196,18 +168,9 @@ export function handleSubscriptionRevoked(
     // update balance for subscriber/publisher
     updateBalance(event.params.subscriber.toHex(), event.params.token.toHex());
 
-    let ev = new SubscriptionRevoked(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
-    ev.token = event.params.token.toHex();
-    ev.subscriber = event.params.subscriber;
-    ev.publisher = event.params.publisher;
-    ev.indexId = event.params.indexId;
-    ev.userData = event.params.userData;
-    ev.save();
+    createSubscriptionApprovedRevokedEntity(event, false);
 }
 
-// IsDeleteSubscription on revokeOrDelete
-// updateSubscription
 /**
  * This always gets called with handleIndexUnitsUpdated.
  * @param event
@@ -250,7 +213,7 @@ export function handleSubscriptionUnitsUpdated(
             );
         }
 
-    // is updateSubscription
+        // is updateSubscription
     } else {
         if (subscriptionExists && subscriber.approved) {
             index.totalUnitsApproved = index.totalUnitsApproved
@@ -290,8 +253,65 @@ export function handleSubscriptionUnitsUpdated(
     index.save();
     subscriber.save();
 
+    createSubscriptionUnitsUpdatedEntity(event);
+}
+
+/**************************************************************************
+ * Create Event Entity Helper Functions
+ *************************************************************************/
+function createIndexCreatedEntity(event: IndexCreatedEvent): void {
+    let ev = new IndexCreated(createEventID(event));
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
+    ev.token = event.params.token.toHex();
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.userData = event.params.userData;
+    ev.save();
+}
+
+function createIndexUpdatedEntity(event: IndexUpdatedEvent): void {
+    let ev = new IndexUpdated(createEventID(event));
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
+    ev.token = event.params.token.toHex();
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.oldIndexValue = event.params.oldIndexValue;
+    ev.newIndexValue = event.params.newIndexValue;
+    ev.totalUnitsPending = event.params.totalUnitsPending;
+    ev.totalUnitsApproved = event.params.totalUnitsApproved;
+    ev.userData = event.params.userData;
+    ev.save();
+}
+
+function createSubscriptionApprovedRevokedEntity(
+    event: SubscriptionApprovedEvent | SubscriptionRevokedEvent,
+    isApproved: boolean
+): void {
+    let ev = isApproved
+        ? new SubscriptionApproved(createEventID(event))
+        : new SubscriptionRevoked(createEventID(event));
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
+    ev.token = event.params.token.toHex();
+    ev.subscriber = event.params.subscriber;
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.userData = event.params.userData;
+    ev.save();
+}
+
+function createSubscriptionUnitsUpdatedEntity(
+    event: SubscriptionUnitsUpdatedEvent
+): void {
     let ev = new SubscriptionUnitsUpdated(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.token = event.params.token.toHex();
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;

@@ -10,11 +10,13 @@ import {
     RewardAddressChanged,
     TrustedForwarderChanged,
 } from "../../generated/schema";
-import { createTxnAndReturn, createEventID } from "../utils";
+import { createEventID } from "../utils";
 
 export function handleConfigChanged(event: ConfigChangedEvent): void {
     let ev = new ConfigChanged(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.key = event.params.key;
@@ -27,7 +29,9 @@ export function handleRewardAddressChanged(
     event: RewardAddressChangedEvent
 ): void {
     let ev = new RewardAddressChanged(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.set = event.params.set;
@@ -39,7 +43,9 @@ export function handleCFAv1LiquidationPeriodChanged(
     event: CFAv1LiquidationPeriodChangedEvent
 ): void {
     let ev = new CFAv1LiquidationPeriodChanged(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.set = event.params.set;
@@ -51,7 +57,9 @@ export function handleTrustedForwarderChanged(
     event: TrustedForwarderChangedEvent
 ): void {
     let ev = new TrustedForwarderChanged(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.set = event.params.set;

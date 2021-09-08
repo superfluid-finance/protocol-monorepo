@@ -10,18 +10,15 @@ import {
     Transfer,
     AgreementLiquidatedBy,
 } from "../../generated/schema";
-import {
-    createTxnAndReturn,
-    createEventID,
-    createOrUpdateAccount,
-    updateBalance,
-} from "../utils";
+import { createEventID, createOrUpdateAccount, updateBalance } from "../utils";
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
     let ev = new AgreementLiquidatedBy(createEventID(event));
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.token = event.address.toHex();
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -41,7 +38,9 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     let tokenId = event.address.toHex();
 
     ev.account = event.params.account;
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.token = tokenId;
     ev.amount = amount;
     ev.save();
@@ -59,7 +58,9 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     let tokenId = event.address.toHex();
 
     ev.account = event.params.account;
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.token = tokenId;
     ev.amount = amount;
     ev.save();
@@ -76,7 +77,9 @@ export function handleTransfer(event: TransferEvent): void {
     let value = event.params.value;
     let tokenId = event.address.toHex();
 
-    ev.transaction = createTxnAndReturn(event).id;
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
     ev.from = event.params.from;
     ev.to = event.params.to;
     ev.value = value;

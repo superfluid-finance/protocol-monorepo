@@ -280,6 +280,10 @@ type CustomSuperTokenCreated implements Event @entity {
 ####################
 #   HOL Entities   #
 ####################
+# State is defined as properties that will change outside
+# of the BaseEntity properties.
+# Links is defined as a property which links the current
+# entity to another HOL entity.
 interface BaseEntity {
     id: ID!
     createdAt: BigInt!
@@ -290,6 +294,7 @@ type Account implements BaseEntity @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
+    _autoIncrement: Int!
 }
 
 type Token implements BaseEntity @entity {
@@ -306,11 +311,13 @@ type Stream implements BaseEntity @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
+    # ---------------------------------- state ----------------------------------
+    currentFlowRate: BigInt!
+    streamedUntilLastUpdate: BigInt!
+    # ---------------------------------- links ----------------------------------
     token: Token!
     sender: Account!
     receiver: Account!
-    currentFlowRate: BigInt!
-    streamedUntilLastUpdate: BigInt!
 }
 
 type Subscriber implements BaseEntity @entity {
@@ -336,8 +343,6 @@ type Index implements BaseEntity @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
-    token: Token!
-    publisher: Account!
     indexId: BigInt!
     # ---------------------------------- state ----------------------------------
     userData: Bytes!
@@ -347,34 +352,39 @@ type Index implements BaseEntity @entity {
     totalUnitsApproved: BigInt!
     totalUnits: BigInt!
     totalUnitsDistributed: BigInt!
+    # ---------------------------------- links ----------------------------------
+    token: Token!
+    publisher: Account!
 }
 
 ####################
 #  Aggr. Entities  #
 ####################
-## TODO: Reevaluate the schema design if you have accounted for all cases where you
-## need to update the aggregate entities
 type AccountTokenSnapshot @entity {
     id: ID!
-    account: Account!
-    token: Token!
+    # ---------------------------------- state ----------------------------------
     balance: BigInt! # must be updated each time subscription units is updated
+    totalNumberOfStreams: BigInt!
     totalNetFlowRate: BigInt!
-    totalAmountPending: BigInt!
-    totalAmountApproved: BigInt!
+    totalUnitsPending: BigInt!
+    totalUnitsReceived: BigInt!
     totalSubscriptions: BigInt!
     totalApprovedSubscriptions: BigInt!
+    # ---------------------------------- links ----------------------------------
+    account: Account!
+    token: Token!
 }
 
 type TokenStats @entity {
     id: ID!
-    token: Token!
+    # ---------------------------------- state ----------------------------------
     totalNumberOfStreams: BigInt!
-    totalFlowRate: BigInt!
+    totalOutflowRate: BigInt!
     totalNumberOfIndexes: BigInt!
-    totalAmountPending: BigInt!
-    totalAmountApproved: BigInt!
-    totalAmountDistributed: BigInt!
+    totalUnitsPending: BigInt! # TODO: implement
+    totalUnitsDistributed: BigInt! # TODO: implement
     totalSubscribers: BigInt!
     totalApprovedSubscribers: BigInt!
+    # ---------------------------------- links ----------------------------------
+    token: Token!
 }

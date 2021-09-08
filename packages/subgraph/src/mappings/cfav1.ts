@@ -1,7 +1,13 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { FlowUpdated } from "../../generated/schema";
-import { createEventID, getStream, updateBalance } from "../utils";
+import {
+    createEventID,
+    getStream,
+    updateATSBalance,
+    updateATSFlowRates,
+    updateAggregateEntityStreamData,
+} from "../utils";
 
 function createFlowUpdatedEntity(
     event: FlowUpdatedEvent,
@@ -41,10 +47,16 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     // Get the existing stream or initialize if it doesn't exist
     let stream = getStream(senderId, receiverId, tokenId, currentTimestamp);
     let oldFlowRate = stream.currentFlowRate;
+
+    // TODO: if the user is creating a stream, we want to create a new stream object
+
     let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAt);
     let newStreamedUntilLastUpdate = stream.streamedUntilLastUpdate.plus(
         oldFlowRate.times(timeSinceLastUpdate)
     );
+    let flowRateDelta = flowRate.minus(oldFlowRate);
+    let isCreate = oldFlowRate === BigInt.fromI32(0);
+    let isDelete = flowRate === BigInt.fromI32(0);
 
     stream.currentFlowRate = flowRate;
     stream.updatedAt = currentTimestamp;
@@ -53,7 +65,15 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
 
     createFlowUpdatedEntity(event, oldFlowRate);
 
-    // TODO: create/update the necessary aggregate functions in here.
-    updateBalance(senderId, tokenId);
-    updateBalance(receiverId, tokenId);
+    updateATSBalance(senderId, tokenId);
+    updateATSBalance(receiverId, tokenId);
+    updateATSFlowRates(senderId, receiverId, tokenId, flowRateDelta);
+    updateAggregateEntityStreamData(
+        senderId,
+        receiverId,
+        tokenId,
+        flowRateDelta,
+        isCreate,
+        isDelete
+    );
 }

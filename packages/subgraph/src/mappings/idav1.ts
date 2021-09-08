@@ -9,7 +9,6 @@ import {
 import {
     IndexCreated,
     IndexUpdated,
-    Subscriber,
     SubscriptionApproved,
     SubscriptionRevoked,
     SubscriptionUnitsUpdated,
@@ -18,8 +17,9 @@ import {
     createEventID,
     getOrInitializeIndex,
     getSubscriber,
-    updateBalance,
-    getSubscriberID,
+    updateATSBalance,
+    updateAggregateIDASubscriptionsData,
+    updateATSIDAUnitsData,
 } from "../utils";
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {
@@ -61,7 +61,10 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     );
     index.save();
 
-    updateBalance(event.params.publisher.toHex(), event.params.token.toHex());
+    updateATSBalance(
+        event.params.publisher.toHex(),
+        event.params.token.toHex()
+    );
     createIndexUpdatedEntity(event);
 }
 
@@ -98,18 +101,31 @@ export function handleSubscriptionApproved(
             subscriber.units
         );
 
+        let totalReceivedDelta = subscriber.totalPendingApproval;
+
         subscriber.totalReceivedUntilLastUpdate =
-            subscriber.totalReceivedUntilLastUpdate.plus(
-                subscriber.totalPendingApproval
-            );
+            subscriber.totalReceivedUntilLastUpdate.plus(totalReceivedDelta);
         subscriber.totalPendingApproval = new BigInt(0);
         subscriber.save();
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
-        updateBalance(event.params.publisher.toHex(), tokenId);
-        updateBalance(event.params.subscriber.toHex(), tokenId);
+        updateATSBalance(event.params.publisher.toHex(), tokenId);
+        updateATSBalance(event.params.subscriber.toHex(), tokenId);
+        updateATSIDAUnitsData(
+            event.params.subscriber.toHex(),
+            event.params.token.toHex(),
+            totalReceivedDelta,
+            totalReceivedDelta.neg()
+        );
     }
 
+    updateAggregateIDASubscriptionsData(
+        event.params.subscriber.toHex(),
+        event.params.token.toHex(),
+        subscriptionExists,
+        false,
+        true
+    );
     createSubscriptionApprovedRevokedEntity(event, true);
 }
 
@@ -140,6 +156,21 @@ export function handleSubscriptionRevoked(
             subscriber.units
         );
         subscriber.lastIndexValue = index.newIndexValue;
+        updateAggregateIDASubscriptionsData(
+            event.params.subscriber.toHex(),
+            event.params.token.toHex(),
+            true,
+            false,
+            false
+        );
+    } else {
+        updateAggregateIDASubscriptionsData(
+            event.params.subscriber.toHex(),
+            event.params.token.toHex(),
+            true,
+            true,
+            false
+        );
     }
 
     // occurs on revoke or delete
@@ -148,11 +179,20 @@ export function handleSubscriptionRevoked(
 
     // user should receive any pending/unclaimed units
     // and then we set this to 0
+    // NOTE: refactor this, it is repeated here and handleSubscriptionApproved
+    let totalReceivedDelta = subscriber.totalPendingApproval;
     subscriber.totalReceivedUntilLastUpdate =
         subscriber.totalReceivedUntilLastUpdate.plus(
             subscriber.totalPendingApproval
         );
     subscriber.totalPendingApproval = new BigInt(0);
+
+    updateATSIDAUnitsData(
+        event.params.subscriber.toHex(),
+        event.params.token.toHex(),
+        totalReceivedDelta,
+        totalReceivedDelta.neg()
+    );
 
     index.save();
     subscriber.save();
@@ -195,10 +235,10 @@ export function handleSubscriptionUnitsUpdated(
                 subscriber.units
             );
         }
-        // NOTE: we don't update the totalReceivedUntilLastUpdate in this 
-		// block of code as handleSubscriptionRevoked does that for 
-		// revoke/deletion and SubscriptionRevoked event is emmitted if this 
-		// block of code runs.
+        // NOTE: we don't update the totalReceivedUntilLastUpdate in this
+        // block of code as handleSubscriptionRevoked does that for
+        // revoke/deletion and SubscriptionRevoked event is emmitted if this
+        // block of code runs.
     } else {
         // is updateSubscription
         if (subscriptionExists && subscriber.approved) {
@@ -211,32 +251,52 @@ export function handleSubscriptionUnitsUpdated(
                 .minus(subscriber.units);
         } else {
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
+            updateAggregateIDASubscriptionsData(
+                event.params.subscriber.toHex(),
+                event.params.token.toHex(),
+                subscriptionExists,
+                false,
+                false
+            );
         }
 
         let balanceDelta = index.newIndexValue
             .minus(subscriber.lastIndexValue)
             .times(subscriber.units);
+        let zeroBigInt = BigInt.fromI32(0);
 
         // if the subscriber is approved, totalPendingApproval will not increment
         // their totalReceivedUnits would increment and vice versa
         if (subscriber.approved) {
             subscriber.totalReceivedUntilLastUpdate =
                 subscriber.totalReceivedUntilLastUpdate.plus(balanceDelta);
+            updateATSIDAUnitsData(
+                event.params.subscriber.toHex(),
+                event.params.token.toHex(),
+                balanceDelta,
+                zeroBigInt
+            );
         } else {
             subscriber.totalPendingApproval =
                 subscriber.totalPendingApproval.plus(balanceDelta);
+            updateATSIDAUnitsData(
+                event.params.subscriber.toHex(),
+                event.params.token.toHex(),
+                zeroBigInt,
+                balanceDelta
+            );
         }
     }
 
     // NOTE: this handles the balance updates for both updateSubscription and
     // revokeOrDeleteSubscription functions
     if (!subscriber.approved) {
-        updateBalance(
+        updateATSBalance(
             event.params.publisher.toHex(),
             event.params.token.toHex()
         );
     }
-    updateBalance(subscriber.id, event.params.token.toHex());
+    updateATSBalance(subscriber.id, event.params.token.toHex());
 
     subscriber.lastIndexValue = index.newIndexValue;
     subscriber.units = event.params.units;

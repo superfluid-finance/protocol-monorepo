@@ -10,7 +10,11 @@ import {
     Transfer,
     AgreementLiquidatedBy,
 } from "../../generated/schema";
-import { createEventID, createOrUpdateAccount, updateBalance } from "../utils";
+import {
+    createEventID,
+    createOrUpdateAccount,
+    updateATSBalance,
+} from "../utils";
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
@@ -49,7 +53,7 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
         event.params.account.toHex(),
         event.block.timestamp
     );
-    updateBalance(account.id, tokenId);
+    updateATSBalance(account.id, tokenId);
 }
 
 export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
@@ -69,7 +73,7 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
         event.params.account.toHex(),
         event.block.timestamp
     );
-    updateBalance(account.id, tokenId);
+    updateATSBalance(account.id, tokenId);
 }
 
 export function handleTransfer(event: TransferEvent): void {
@@ -96,6 +100,6 @@ export function handleTransfer(event: TransferEvent): void {
     );
     fromAccount.save();
     toAccount.save();
-    updateBalance(toAccount.id, tokenId);
-    updateBalance(fromAccount.id, tokenId);
+    updateATSBalance(toAccount.id, tokenId);
+    updateATSBalance(fromAccount.id, tokenId);
 }

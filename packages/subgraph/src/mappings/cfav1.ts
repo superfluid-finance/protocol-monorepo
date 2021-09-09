@@ -19,7 +19,7 @@ function createFlowUpdatedEntity(
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = event.params.token.toHex();
+    ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.receiver = event.params.receiver;
     ev.flowRate = event.params.flowRate;

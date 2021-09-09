@@ -20,7 +20,7 @@ type FlowUpdated implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
-    token: Token!
+    token: Bytes!
     sender: Bytes!
     receiver: Bytes!
     flowRate: BigInt!

@@ -22,6 +22,7 @@ import {
     updateAggregateIDASubscriptionsData,
     updateATSIDAUnitsData,
     updateTokenStatsIDAUnitsData,
+    BIG_INT_ZERO,
 } from "../utils";
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {
@@ -241,7 +242,7 @@ export function handleSubscriptionUnitsUpdated(
         event.block.timestamp
     );
     let units = event.params.units;
-    let isDeleteSubscription = units === BigInt.fromI32(0);
+    let isDeleteSubscription = units === BIG_INT_ZERO;
 
     // handle deletion in _revokeOrDeleteSubscription function
     if (isDeleteSubscription) {
@@ -252,7 +253,7 @@ export function handleSubscriptionUnitsUpdated(
             updateTokenStatsIDAUnitsData(
                 event.params.token.toHex(),
                 subscriber.units.neg(),
-                BigInt.fromI32(0)
+                BIG_INT_ZERO
             );
         } else {
             index.totalUnitsPending = index.totalUnitsPending.minus(
@@ -260,7 +261,7 @@ export function handleSubscriptionUnitsUpdated(
             );
             updateTokenStatsIDAUnitsData(
                 event.params.token.toHex(),
-                BigInt.fromI32(0),
+                BIG_INT_ZERO,
                 subscriber.units.neg()
             );
         }
@@ -278,21 +279,21 @@ export function handleSubscriptionUnitsUpdated(
             updateTokenStatsIDAUnitsData(
                 event.params.token.toHex(),
                 totalUnitsDelta,
-                BigInt.fromI32(0)
+                BIG_INT_ZERO
             );
         } else if (subscriptionExists) {
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
             updateTokenStatsIDAUnitsData(
                 event.params.token.toHex(),
-                BigInt.fromI32(0),
+                BIG_INT_ZERO,
                 totalUnitsDelta
             );
         } else {
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             updateTokenStatsIDAUnitsData(
                 event.params.token.toHex(),
-                BigInt.fromI32(0),
+                BIG_INT_ZERO,
                 units
             );
             updateAggregateIDASubscriptionsData(
@@ -307,7 +308,7 @@ export function handleSubscriptionUnitsUpdated(
         let balanceDelta = index.newIndexValue
             .minus(subscriber.lastIndexValue)
             .times(subscriber.units);
-        let zeroBigInt = BigInt.fromI32(0);
+        let zeroBigInt = BIG_INT_ZERO;
 
         // if the subscriber is approved, totalPendingApproval will not increment
         // their totalReceivedUnits would increment and vice versa

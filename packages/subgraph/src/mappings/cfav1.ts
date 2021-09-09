@@ -7,6 +7,7 @@ import {
     updateATSBalance,
     updateATSFlowRates,
     updateAggregateEntityStreamData,
+    BIG_INT_ZERO,
 } from "../utils";
 
 function createFlowUpdatedEntity(
@@ -28,9 +29,9 @@ function createFlowUpdatedEntity(
 
     // NOTE: ensure that this works as expected
     let type =
-        oldFlowRate === BigInt.fromI32(0)
+        oldFlowRate === BIG_INT_ZERO
             ? "create"
-            : event.params.flowRate === BigInt.fromI32(0)
+            : event.params.flowRate === BIG_INT_ZERO
             ? "terminate"
             : "delete";
     ev.type = type;
@@ -55,8 +56,8 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
         oldFlowRate.times(timeSinceLastUpdate)
     );
     let flowRateDelta = flowRate.minus(oldFlowRate);
-    let isCreate = oldFlowRate === BigInt.fromI32(0);
-    let isDelete = flowRate === BigInt.fromI32(0);
+    let isCreate = oldFlowRate === BIG_INT_ZERO;
+    let isDelete = flowRate === BIG_INT_ZERO;
 
     stream.currentFlowRate = flowRate;
     stream.updatedAt = currentTimestamp;

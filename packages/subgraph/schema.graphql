@@ -332,7 +332,6 @@ type Subscriber implements BaseEntity @entity {
     approved: Boolean!
     units: BigInt!
     totalUnitsReceivedUntilUpdatedAt: BigInt!
-    totalUnitsPendingApproval: BigInt!
     lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
     # ---------------------------------- links ----------------------------------
     index: Index!
@@ -347,6 +346,7 @@ type Index implements BaseEntity @entity {
     userData: Bytes!
     oldIndexValue: BigInt!
     newIndexValue: BigInt!
+    totalSubscribers: Int!
     totalUnitsPending: BigInt!
     totalUnitsApproved: BigInt!
     totalUnits: BigInt!
@@ -373,8 +373,6 @@ type AccountTokenSnapshot @entity {
     balance: BigInt! # must be updated each time subscription units is updated
     totalNumberOfStreams: BigInt!
     totalNetFlowRate: BigInt!
-    totalUnitsPending: BigInt!
-    totalUnitsReceived: BigInt!
     totalSubscriptions: BigInt!
     totalApprovedSubscriptions: BigInt!
     # ---------------------------------- links ----------------------------------

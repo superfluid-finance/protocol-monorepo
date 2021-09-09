@@ -61,9 +61,9 @@ function getStreamRevisionID(
 
 /**
  * Gets or initializes the Stream Revision helper entity.
- * @param senderId 
- * @param recipientId 
- * @param tokenId 
+ * @param senderId
+ * @param recipientId
+ * @param tokenId
  * @returns [StreamRevision, boolean: whether the streamRevision existed]
  */
 export function getOrInitStreamRevision(
@@ -174,6 +174,7 @@ export function getOrInitIndex(
         index.token = tokenAddress.toHex();
         index.publisher = publisherId;
         index.indexId = indexId;
+        index.totalSubscribers = BIG_INT_ZERO;
         index.oldIndexValue = BIG_INT_ZERO;
         index.newIndexValue = BIG_INT_ZERO;
         index.totalUnitsPending = BIG_INT_ZERO;
@@ -201,6 +202,7 @@ export function getOrInitSubscriber(
         indexId
     );
     let subscriber = Subscriber.load(subscriberEntityId);
+    let index = Index.load(getIndexID(publisherAddress, tokenAddress, indexId));
     if (subscriber == null) {
         let subscriberId = subscriberAddress.toHex();
         subscriber = new Subscriber(subscriberEntityId);
@@ -213,8 +215,8 @@ export function getOrInitSubscriber(
         subscriber.approved = false;
         subscriber.units = BIG_INT_ZERO;
         subscriber.totalUnitsReceivedUntilUpdatedAt = BIG_INT_ZERO;
-        subscriber.totalUnitsPendingApproval = BIG_INT_ZERO;
         subscriber.index = getIndexID(publisherAddress, tokenAddress, indexId);
+        index.totalSubscribers = index.totalSubscribers + 1;
 
         getOrInitAccount(subscriberId, lastModified);
         return [subscriber, false];
@@ -243,8 +245,6 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.token = tokenId;
         accountTokenSnapshot.balance = BIG_INT_ZERO;
         accountTokenSnapshot.totalNumberOfStreams = BIG_INT_ZERO;
-        accountTokenSnapshot.totalUnitsPending = BIG_INT_ZERO;
-        accountTokenSnapshot.totalUnitsReceived = BIG_INT_ZERO;
         accountTokenSnapshot.totalSubscriptions = BIG_INT_ZERO;
         accountTokenSnapshot.totalApprovedSubscriptions = BIG_INT_ZERO;
     }
@@ -296,23 +296,6 @@ export function updateATSFlowRates(
 
     senderATS.save();
     receiverATS.save();
-}
-
-export function updateATSIDAUnitsData(
-    accountId: string,
-    tokenId: string,
-    totalUnitsReceivedDelta: BigInt,
-    totalUnitsPendingDelta: BigInt
-): void {
-    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
-        accountId,
-        tokenId
-    );
-    accountTokenSnapshot.totalUnitsReceived =
-        accountTokenSnapshot.totalUnitsReceived.plus(totalUnitsReceivedDelta);
-    accountTokenSnapshot.totalUnitsPending =
-        accountTokenSnapshot.totalUnitsPending.plus(totalUnitsPendingDelta);
-    accountTokenSnapshot.save();
 }
 
 export function getOrInitTokenStats(tokenId: string): TokenStats {

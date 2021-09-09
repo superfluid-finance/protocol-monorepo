@@ -20,7 +20,6 @@ import {
     getOrInitTokenStats,
     updateATSBalance,
     updateAggregateIDASubscriptionsData,
-    updateATSIDAUnitsData,
     updateTokenStatsIDAUnitsData,
     BIG_INT_ZERO,
 } from "../utils";
@@ -86,6 +85,8 @@ export function handleSubscriptionApproved(
     );
 
     // this first part occurs whether or not a subscription exists
+    // creates a subscription if one doesn't exist and increments
+    // total number of subscriptions on index
     let [subscriber, subscriptionExists] = getOrInitSubscriber(
         event.params.subscriber,
         event.params.publisher,
@@ -93,6 +94,10 @@ export function handleSubscriptionApproved(
         event.params.indexId,
         event.block.timestamp
     );
+
+    let balanceDelta = index.newIndexValue
+        .minus(subscriber.lastIndexValue)
+        .times(subscriber.units);
 
     subscriber.userData = event.params.userData;
     subscriber.approved = true;
@@ -116,24 +121,15 @@ export function handleSubscriptionApproved(
             subscriber.units.neg()
         );
 
-        let totalReceivedDelta = subscriber.totalUnitsPendingApproval;
-
+        // NOTE: it is possible that this might be incorrect and should actually be
+        // subscriber.units
         subscriber.totalUnitsReceivedUntilUpdatedAt =
-            subscriber.totalUnitsReceivedUntilUpdatedAt.plus(
-                totalReceivedDelta
-            );
-        subscriber.totalUnitsPendingApproval = new BigInt(0);
+            subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
         subscriber.save();
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
         updateATSBalance(event.params.publisher.toHex(), tokenId);
         updateATSBalance(event.params.subscriber.toHex(), tokenId);
-        updateATSIDAUnitsData(
-            event.params.subscriber.toHex(),
-            event.params.token.toHex(),
-            totalReceivedDelta,
-            totalReceivedDelta.neg()
-        );
     }
 
     updateAggregateIDASubscriptionsData(
@@ -166,6 +162,10 @@ export function handleSubscriptionRevoked(
         event.block.timestamp
     );
 
+    let balanceDelta = index.newIndexValue
+        .minus(subscriber.lastIndexValue)
+        .times(subscriber.units);
+
     if (isRevoke) {
         index.totalUnitsApproved = index.totalUnitsApproved.minus(
             subscriber.units
@@ -188,6 +188,7 @@ export function handleSubscriptionRevoked(
             false
         );
     } else {
+        // deleting subscription
         updateAggregateIDASubscriptionsData(
             event.params.subscriber.toHex(),
             event.params.token.toHex(),
@@ -195,27 +196,14 @@ export function handleSubscriptionRevoked(
             true,
             false
         );
+        index.totalSubscribers = index.totalSubscribers - 1;
     }
 
-    // user should receive any pending/unclaimed units
-    // and then we set this to 0
-    let totalReceivedDelta = subscriber.totalUnitsPendingApproval;
-    subscriber.totalUnitsReceivedUntilUpdatedAt =
-        subscriber.totalUnitsReceivedUntilUpdatedAt.plus(
-            subscriber.totalUnitsPendingApproval
-        );
-    subscriber.totalUnitsPendingApproval = new BigInt(0);
-
     // occurs on revoke or delete
+    subscriber.totalUnitsReceivedUntilUpdatedAt =
+        subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
     subscriber.userData = event.params.userData;
     subscriber.approved = false;
-
-    updateATSIDAUnitsData(
-        event.params.subscriber.toHex(),
-        event.params.token.toHex(),
-        totalReceivedDelta,
-        totalReceivedDelta.neg()
-    );
 
     index.save();
     subscriber.save();
@@ -294,6 +282,7 @@ export function handleSubscriptionUnitsUpdated(
             );
         } else {
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
+            index.totalSubscribers = index.totalSubscribers + 1;
             updateTokenStatsIDAUnitsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
@@ -317,21 +306,6 @@ export function handleSubscriptionUnitsUpdated(
         if (subscriber.approved) {
             subscriber.totalUnitsReceivedUntilUpdatedAt =
                 subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
-            updateATSIDAUnitsData(
-                event.params.subscriber.toHex(),
-                event.params.token.toHex(),
-                balanceDelta,
-                BIG_INT_ZERO
-            );
-        } else {
-            subscriber.totalUnitsPendingApproval =
-                subscriber.totalUnitsPendingApproval.plus(balanceDelta);
-            updateATSIDAUnitsData(
-                event.params.subscriber.toHex(),
-                event.params.token.toHex(),
-                BIG_INT_ZERO,
-                balanceDelta
-            );
         }
     }
 

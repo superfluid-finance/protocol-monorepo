@@ -312,7 +312,7 @@ type Stream implements BaseEntity @entity {
     updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
     currentFlowRate: BigInt!
-    streamedUntilLastUpdate: BigInt!
+    streamedUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
     sender: Account!
@@ -331,8 +331,8 @@ type Subscriber implements BaseEntity @entity {
     # ---------------------------------- state ----------------------------------
     approved: Boolean!
     units: BigInt!
-    totalReceivedUntilLastUpdate: BigInt!
-    totalPendingApproval: BigInt!
+    totalUnitsReceivedUntilUpdatedAt: BigInt!
+    totalUnitsPendingApproval: BigInt!
     lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
     # ---------------------------------- links ----------------------------------
     index: Index!

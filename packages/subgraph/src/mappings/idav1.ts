@@ -114,11 +114,13 @@ export function handleSubscriptionApproved(
             subscriber.units.neg()
         );
 
-        let totalReceivedDelta = subscriber.totalPendingApproval;
+        let totalReceivedDelta = subscriber.totalUnitsPendingApproval;
 
-        subscriber.totalReceivedUntilLastUpdate =
-            subscriber.totalReceivedUntilLastUpdate.plus(totalReceivedDelta);
-        subscriber.totalPendingApproval = new BigInt(0);
+        subscriber.totalUnitsReceivedUntilUpdatedAt =
+            subscriber.totalUnitsReceivedUntilUpdatedAt.plus(
+                totalReceivedDelta
+            );
+        subscriber.totalUnitsPendingApproval = new BigInt(0);
         subscriber.save();
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
@@ -195,12 +197,12 @@ export function handleSubscriptionRevoked(
 
     // user should receive any pending/unclaimed units
     // and then we set this to 0
-    let totalReceivedDelta = subscriber.totalPendingApproval;
-    subscriber.totalReceivedUntilLastUpdate =
-        subscriber.totalReceivedUntilLastUpdate.plus(
-            subscriber.totalPendingApproval
+    let totalReceivedDelta = subscriber.totalUnitsPendingApproval;
+    subscriber.totalUnitsReceivedUntilUpdatedAt =
+        subscriber.totalUnitsReceivedUntilUpdatedAt.plus(
+            subscriber.totalUnitsPendingApproval
         );
-    subscriber.totalPendingApproval = new BigInt(0);
+    subscriber.totalUnitsPendingApproval = new BigInt(0);
 
     // occurs on revoke or delete
     subscriber.userData = event.params.userData;
@@ -312,8 +314,8 @@ export function handleSubscriptionUnitsUpdated(
         // if the subscriber is approved, totalPendingApproval will not increment
         // their totalReceivedUnits would increment and vice versa
         if (subscriber.approved) {
-            subscriber.totalReceivedUntilLastUpdate =
-                subscriber.totalReceivedUntilLastUpdate.plus(balanceDelta);
+            subscriber.totalUnitsReceivedUntilUpdatedAt =
+                subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
             updateATSIDAUnitsData(
                 event.params.subscriber.toHex(),
                 event.params.token.toHex(),
@@ -321,8 +323,8 @@ export function handleSubscriptionUnitsUpdated(
                 zeroBigInt
             );
         } else {
-            subscriber.totalPendingApproval =
-                subscriber.totalPendingApproval.plus(balanceDelta);
+            subscriber.totalUnitsPendingApproval =
+                subscriber.totalUnitsPendingApproval.plus(balanceDelta);
             updateATSIDAUnitsData(
                 event.params.subscriber.toHex(),
                 event.params.token.toHex(),

@@ -118,7 +118,7 @@ export function getOrInitStream(
         stream.sender = senderAddress;
         stream.receiver = receiverAddress;
         stream.currentFlowRate = BIG_INT_ZERO;
-        stream.streamedUntilLastUpdate = BIG_INT_ZERO;
+        stream.streamedUntilUpdatedAt = BIG_INT_ZERO;
     }
     return stream;
 }
@@ -207,8 +207,8 @@ export function getOrInitSubscriber(
         subscriber.indexId = indexId;
         subscriber.approved = false;
         subscriber.units = BIG_INT_ZERO;
-        subscriber.totalReceivedUntilLastUpdate = BIG_INT_ZERO;
-        subscriber.totalPendingApproval = BIG_INT_ZERO;
+        subscriber.totalUnitsReceivedUntilUpdatedAt = BIG_INT_ZERO;
+        subscriber.totalUnitsPendingApproval = BIG_INT_ZERO;
         subscriber.index = getIndexID(publisherAddress, tokenAddress, indexId);
 
         createOrUpdateAccount(subscriberId, lastModified);

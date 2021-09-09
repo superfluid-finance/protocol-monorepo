@@ -1,4 +1,4 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { Address } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
     IndexUpdated as IndexUpdatedEvent,
@@ -22,6 +22,8 @@ import {
     updateAggregateIDASubscriptionsData,
     updateTokenStatsIDAUnitsData,
     BIG_INT_ZERO,
+    getSubscriberID,
+    subscriptionExists,
 } from "../utils";
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {
@@ -87,7 +89,7 @@ export function handleSubscriptionApproved(
     // this first part occurs whether or not a subscription exists
     // creates a subscription if one doesn't exist and increments
     // total number of subscriptions on index
-    let [subscriber, subscriptionExists] = getOrInitSubscriber(
+    let subscriber = getOrInitSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -106,7 +108,15 @@ export function handleSubscriptionApproved(
     // handles the vars.subscriptionExists case
     let tokenId = event.params.token.toHex();
 
-    if (subscriptionExists) {
+    let subscriberId = getSubscriberID(
+        event.params.subscriber,
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId
+    );
+    let hasSubscription = subscriptionExists(subscriberId);
+
+    if (hasSubscription) {
         index.totalUnitsApproved = index.totalUnitsApproved.plus(
             subscriber.units
         );
@@ -135,12 +145,12 @@ export function handleSubscriptionApproved(
     updateAggregateIDASubscriptionsData(
         event.params.subscriber.toHex(),
         event.params.token.toHex(),
-        subscriptionExists,
+        hasSubscription,
         false,
         true
     );
 
-    createSubscriptionApprovedRevokedEntity(event, true);
+    createSubscriptionApprovedEntity(event);
 }
 
 export function handleSubscriptionRevoked(
@@ -154,7 +164,7 @@ export function handleSubscriptionRevoked(
         event.block.timestamp
     );
 
-    let [subscriber] = getOrInitSubscriber(
+    let subscriber = getOrInitSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -208,7 +218,7 @@ export function handleSubscriptionRevoked(
     index.save();
     subscriber.save();
 
-    createSubscriptionApprovedRevokedEntity(event, false);
+    createSubscriptionRevokedEntity(event);
 }
 
 /**
@@ -218,7 +228,7 @@ export function handleSubscriptionRevoked(
 export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
-    let [subscriber, subscriptionExists] = getOrInitSubscriber(
+    let subscriber = getOrInitSubscriber(
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -234,6 +244,13 @@ export function handleSubscriptionUnitsUpdated(
     );
     let units = event.params.units;
     let isDeleteSubscription = units === BIG_INT_ZERO;
+    let subscriberId = getSubscriberID(
+        event.params.subscriber,
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId
+    );
+    let hasSubscription = subscriptionExists(subscriberId);
 
     // handle deletion in _revokeOrDeleteSubscription function
     if (isDeleteSubscription) {
@@ -264,7 +281,7 @@ export function handleSubscriptionUnitsUpdated(
         // is updateSubscription
         let totalUnitsDelta = units.minus(subscriber.units);
 
-        if (subscriptionExists && subscriber.approved) {
+        if (hasSubscription && subscriber.approved) {
             index.totalUnitsApproved =
                 index.totalUnitsApproved.plus(totalUnitsDelta);
             updateTokenStatsIDAUnitsData(
@@ -272,7 +289,7 @@ export function handleSubscriptionUnitsUpdated(
                 totalUnitsDelta,
                 BIG_INT_ZERO
             );
-        } else if (subscriptionExists) {
+        } else if (hasSubscription) {
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
             updateTokenStatsIDAUnitsData(
@@ -291,7 +308,7 @@ export function handleSubscriptionUnitsUpdated(
             updateAggregateIDASubscriptionsData(
                 event.params.subscriber.toHex(),
                 event.params.token.toHex(),
-                subscriptionExists,
+                hasSubscription,
                 false,
                 false
             );
@@ -358,13 +375,25 @@ function createIndexUpdatedEntity(event: IndexUpdatedEvent): void {
     ev.save();
 }
 
-function createSubscriptionApprovedRevokedEntity(
-    event: SubscriptionApprovedEvent | SubscriptionRevokedEvent,
-    isApproved: boolean
+function createSubscriptionApprovedEntity(
+    event: SubscriptionApprovedEvent
 ): void {
-    let ev = isApproved
-        ? new SubscriptionApproved(createEventID(event))
-        : new SubscriptionRevoked(createEventID(event));
+    let ev = new SubscriptionApproved(createEventID(event));
+    ev.blockNumber = event.block.number;
+    ev.timestamp = event.block.timestamp;
+    ev.transactionHash = event.transaction.hash;
+    ev.token = event.params.token;
+    ev.subscriber = event.params.subscriber;
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.userData = event.params.userData;
+    ev.save();
+}
+
+function createSubscriptionRevokedEntity(
+    event: SubscriptionRevokedEvent
+): void {
+    let ev = new SubscriptionRevoked(createEventID(event));
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;

@@ -11,6 +11,11 @@ import {
     getOrInitStreamRevision,
 } from "../utils";
 
+enum FlowActionType {
+    create,
+    update,
+    terminate,
+}
 function createFlowUpdatedEntity(
     event: FlowUpdatedEvent,
     oldFlowRate: BigInt
@@ -31,10 +36,10 @@ function createFlowUpdatedEntity(
     // NOTE: ensure that this works as expected
     let type =
         oldFlowRate === BIG_INT_ZERO
-            ? "create"
+            ? FlowActionType.create
             : event.params.flowRate === BIG_INT_ZERO
-            ? "terminate"
-            : "delete";
+            ? FlowActionType.terminate
+            : FlowActionType.update;
     ev.type = type;
     ev.save();
 }
@@ -61,14 +66,12 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let flowRateDelta = flowRate.minus(oldFlowRate);
     let isCreate = oldFlowRate === BIG_INT_ZERO;
     let isDelete = flowRate === BIG_INT_ZERO;
-
     stream.currentFlowRate = flowRate;
     stream.updatedAt = currentTimestamp;
     stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
     stream.save();
-
     if (isDelete) {
-        let [streamRevision] = getOrInitStreamRevision(
+        let streamRevision = getOrInitStreamRevision(
             senderId,
             receiverId,
             tokenId

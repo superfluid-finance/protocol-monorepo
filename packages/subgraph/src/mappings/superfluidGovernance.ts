@@ -20,7 +20,7 @@ export function handleConfigChanged(event: ConfigChangedEvent): void {
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.key = event.params.key;
-    ev.set = event.params.set;
+    ev.isSet = event.params.set;
     ev.value = event.params.value;
     ev.save();
 }
@@ -34,7 +34,7 @@ export function handleRewardAddressChanged(
     ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
-    ev.set = event.params.set;
+    ev.isSet = event.params.set;
     ev.rewardAddress = event.params.rewardAddress;
     ev.save();
 }
@@ -48,7 +48,7 @@ export function handleCFAv1LiquidationPeriodChanged(
     ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
-    ev.set = event.params.set;
+    ev.isSet = event.params.set;
     ev.liquidationPeriod = event.params.liquidationPeriod;
     ev.save();
 }
@@ -62,7 +62,7 @@ export function handleTrustedForwarderChanged(
     ev.transactionHash = event.transaction.hash;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
-    ev.set = event.params.set;
+    ev.isSet = event.params.set;
     ev.forwarder = event.params.forwarder;
     ev.enabled = event.params.enabled;
     ev.save();

@@ -29,18 +29,21 @@ export function handleAgreementLiquidatedBy(
     ev.bailoutAmount = event.params.bailoutAmount;
     ev.save();
 
-    const accounts = [
-        event.params.liquidatorAccount,
-        event.params.penaltyAccount,
-        event.params.bondAccount,
-    ];
-    for (let i = 0; i < accounts.length; i++) {
-        let account = getOrInitAccount(
-            accounts[i].toHex(),
-            event.block.timestamp
-        );
-        updateATSBalance(account.id, event.address.toHex());
-    }
+    let liquidatorAccount = getOrInitAccount(
+        event.params.liquidatorAccount.toHex(),
+        event.block.timestamp
+    );
+    let penaltyAccount = getOrInitAccount(
+        event.params.penaltyAccount.toHex(),
+        event.block.timestamp
+    );
+    let bondAccount = getOrInitAccount(
+        event.params.bondAccount.toHex(),
+        event.block.timestamp
+    );
+    updateATSBalance(liquidatorAccount.id, event.address.toHex());
+    updateATSBalance(penaltyAccount.id, event.address.toHex());
+    updateATSBalance(bondAccount.id, event.address.toHex());
 }
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {

@@ -8,12 +8,6 @@ interface Event {
     transactionHash: Bytes!
 }
 
-enum FlowActionType {
-    create
-    update
-    terminate
-}
-
 #     ConstantFlowAgreementV1    #
 type FlowUpdated implements Event @entity {
     id: ID!
@@ -29,7 +23,10 @@ type FlowUpdated implements Event @entity {
     userData: Bytes!
     # Custom Properties (not on event)
     oldFlowRate: BigInt!
-    type: FlowActionType
+    type: Int!
+    # 0 = create
+    # 1 = update
+    # 2 = terminate
 }
 
 #  InstantDistributionAgreementV1 #
@@ -167,7 +164,7 @@ type ConfigChanged implements Event @entity {
     host: Bytes!
     superToken: Bytes!
     key: Bytes!
-    set: Boolean!
+    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
     value: BigInt!
 }
 
@@ -178,7 +175,7 @@ type RewardAddressChanged implements Event @entity {
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
-    set: Boolean!
+    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
     rewardAddress: Bytes!
 }
 
@@ -189,7 +186,7 @@ type CFAv1LiquidationPeriodChanged implements Event @entity {
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
-    set: Boolean!
+    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
     liquidationPeriod: BigInt!
 }
 
@@ -200,7 +197,7 @@ type TrustedForwarderChanged implements Event @entity {
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
-    set: Boolean!
+    isSet: Boolean! # changed from Set due to strange bug w/ TheGraph
     forwarder: Bytes!
     enabled: Boolean!
 }
@@ -370,11 +367,11 @@ type StreamRevision @entity {
 type AccountTokenSnapshot @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
+    totalNumberOfStreams: Int!
+    totalSubscriptions: Int!
+    totalApprovedSubscriptions: Int!
     balance: BigInt! # must be updated each time subscription units is updated
-    totalNumberOfStreams: BigInt!
     totalNetFlowRate: BigInt!
-    totalSubscriptions: BigInt!
-    totalApprovedSubscriptions: BigInt!
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
@@ -383,14 +380,14 @@ type AccountTokenSnapshot @entity {
 type TokenStats @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
-    totalNumberOfStreams: BigInt!
+    totalNumberOfStreams: Int!
+    totalNumberOfIndexes: Int!
+    totalSubscribers: Int!
+    totalApprovedSubscribers: Int!
     totalOutflowRate: BigInt!
-    totalNumberOfIndexes: BigInt!
     totalUnitsPending: BigInt!
     totalUnitsApproved: BigInt!
     totalUnitsDistributed: BigInt!
-    totalSubscribers: BigInt!
-    totalApprovedSubscribers: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
 }

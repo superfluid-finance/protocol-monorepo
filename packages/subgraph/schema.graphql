@@ -381,8 +381,9 @@ type TokenStats @entity {
     totalNumberOfStreams: BigInt!
     totalOutflowRate: BigInt!
     totalNumberOfIndexes: BigInt!
-    totalUnitsPending: BigInt! # TODO: implement
-    totalUnitsDistributed: BigInt! # TODO: implement
+    totalUnitsPending: BigInt!
+    totalUnitsApproved: BigInt!
+    totalUnitsDistributed: BigInt!
     totalSubscribers: BigInt!
     totalApprovedSubscribers: BigInt!
     # ---------------------------------- links ----------------------------------

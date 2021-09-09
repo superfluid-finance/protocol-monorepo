@@ -123,7 +123,7 @@ export function getIndexID(
     );
 }
 
-export function getOrInitializeIndex(
+export function getOrInitIndex(
     publisherAddress: Bytes,
     tokenAddress: Bytes,
     indexId: BigInt,
@@ -151,7 +151,7 @@ export function getOrInitializeIndex(
     return index;
 }
 
-export function getSubscriber(
+export function getOrInitSubscriber(
     subscriberAddress: Bytes,
     publisherAddress: Bytes,
     tokenAddress: Bytes,
@@ -195,7 +195,7 @@ function getAccountTokenSnapshotID(accountId: string, tokenId: string): string {
     return accountId.concat("-").concat(tokenId);
 }
 
-export function getAccountTokenSnapshot(
+export function getOrInitAccountTokenSnapshot(
     accountId: string,
     tokenId: string
 ): AccountTokenSnapshot {
@@ -225,7 +225,7 @@ export function getAccountTokenSnapshot(
  * @param tokenId
  */
 export function updateATSBalance(accountId: string, tokenId: string): void {
-    let accountTokenSnapshot = getAccountTokenSnapshot(accountId, tokenId);
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(accountId, tokenId);
     log.info("Token updateBalance: {}", [tokenId]);
     let superTokenContract = SuperToken.bind(Address.fromString(tokenId));
     let newBalance = superTokenContract.balanceOf(
@@ -250,8 +250,8 @@ export function updateATSFlowRates(
     tokenId: string,
     flowRateDelta: BigInt
 ): void {
-    let senderAccountTokenSnapshot = getAccountTokenSnapshot(senderId, tokenId);
-    let receiverAccountTokenSnapshot = getAccountTokenSnapshot(
+    let senderAccountTokenSnapshot = getOrInitAccountTokenSnapshot(senderId, tokenId);
+    let receiverAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
         receiverId,
         tokenId
     );
@@ -271,7 +271,7 @@ export function updateATSIDAUnitsData(
     totalUnitsReceivedDelta: BigInt,
     totalUnitsPendingDelta: BigInt
 ): void {
-    let accountTokenSnapshot = getAccountTokenSnapshot(accountId, tokenId);
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(accountId, tokenId);
     accountTokenSnapshot.totalUnitsReceived =
         accountTokenSnapshot.totalUnitsReceived.plus(totalUnitsReceivedDelta);
     accountTokenSnapshot.totalUnitsPending =
@@ -279,7 +279,7 @@ export function updateATSIDAUnitsData(
     accountTokenSnapshot.save();
 }
 
-export function getTokenStats(tokenId: string): TokenStats {
+export function getOrInitTokenStats(tokenId: string): TokenStats {
     let tokenStats = TokenStats.load(tokenId);
     if (tokenStats == null) {
         tokenStats = new TokenStats(tokenId);
@@ -287,12 +287,35 @@ export function getTokenStats(tokenId: string): TokenStats {
         tokenStats.totalNumberOfStreams = BigInt.fromI32(0);
         tokenStats.totalNumberOfIndexes = BigInt.fromI32(0);
         tokenStats.totalOutflowRate = BigInt.fromI32(0);
+        tokenStats.totalUnitsApproved = BigInt.fromI32(0);
         tokenStats.totalUnitsPending = BigInt.fromI32(0);
         tokenStats.totalUnitsDistributed = BigInt.fromI32(0);
         tokenStats.totalSubscribers = BigInt.fromI32(0);
         tokenStats.totalApprovedSubscribers = BigInt.fromI32(0);
     }
     return tokenStats;
+}
+
+/**
+ * Updates the totalUnitsApproved and totalUnitsPending
+ * properties on the TokenStats aggregate entity.
+ * @param tokenId
+ * @param totalUnitsApprovedDelta
+ * @param totalUnitsPendingDelta
+ */
+export function updateTokenStatsIDAUnitsData(
+    tokenId: string,
+    totalUnitsApprovedDelta: BigInt,
+    totalUnitsPendingDelta: BigInt
+): void {
+    let tokenStats = getOrInitTokenStats(tokenId);
+    tokenStats.totalUnitsApproved = tokenStats.totalUnitsApproved.plus(
+        totalUnitsApprovedDelta
+    );
+    tokenStats.totalUnitsPending = tokenStats.totalUnitsPending.plus(
+        totalUnitsPendingDelta
+    );
+    tokenStats.save();
 }
 
 export function updateAggregateIDASubscriptionsData(
@@ -302,8 +325,8 @@ export function updateAggregateIDASubscriptionsData(
     isDeletingSubscription: boolean,
     isApproving: boolean
 ): void {
-    let accountTokenSnapshot = getAccountTokenSnapshot(accountId, tokenId);
-    let tokenStats = getTokenStats(tokenId);
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(accountId, tokenId);
+    let tokenStats = getOrInitTokenStats(tokenId);
     let bigIntOne = BigInt.fromI32(1);
     let totalSubscriptionsDelta = isDeletingSubscription
         ? accountTokenSnapshot.totalSubscriptions.minus(bigIntOne)
@@ -342,7 +365,7 @@ export function updateAggregateEntityStreamData(
     isCreate: boolean,
     isDelete: boolean
 ): void {
-    let tokenStats = TokenStats.load(tokenId);
+    let tokenStats = getOrInitTokenStats(tokenId);
     let totalNumberOfStreamsDelta = isCreate
         ? BigInt.fromI32(1)
         : isDelete
@@ -355,8 +378,8 @@ export function updateAggregateEntityStreamData(
     );
     tokenStats.save();
 
-    let receiverATS = getAccountTokenSnapshot(receiverId, tokenId);
-    let senderATS = getAccountTokenSnapshot(senderId, tokenId);
+    let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId);
+    let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId);
     receiverATS.totalNumberOfStreams = receiverATS.totalNumberOfStreams.plus(
         totalNumberOfStreamsDelta
     );

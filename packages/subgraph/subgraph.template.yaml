@@ -21,6 +21,7 @@ dataSources:
               - SuperTokenCreated
               - SuperTokenLogicCreated
               - Token
+              - TokenStats
               - Transaction
           abis:
               - name: ISuperTokenFactory
@@ -86,10 +87,12 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
-              - Transaction
               - Account
+              - AccountTokenSnapshot
               - FlowUpdated
               - Stream
+              - TokenStats
+              - Transaction
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
@@ -111,10 +114,12 @@ dataSources:
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
-          - Transaction
+          - AccountTokenSnapshot
           - Index
           - IndexCreated
           - IndexUpdated
+          - TokenStats
+          - Transaction
           - Subscriber
           - SubscriptionApproved
           - SubscriptionRevoked
@@ -175,12 +180,13 @@ templates:
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
-        - Transaction
-        - AgreementLiquidatedBy
-        - TokenUpgraded
-        - TokenDowngraded
-        - Transfer
         - Account
+        - AccountTokenSnapshot
+        - AgreementLiquidatedBy
+        - TokenDowngraded
+        - TokenUpgraded
+        - Transaction
+        - Transfer
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json

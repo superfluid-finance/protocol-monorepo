@@ -11,7 +11,7 @@ import {
     SuperTokenLogicCreated,
     Token,
 } from "../../generated/schema";
-import { createEventID } from "../utils";
+import { createEventID, getOrInitTokenStats } from "../utils";
 
 /**
  * Creates a HOL Token (SuperToken) entity if non exists, this function should
@@ -43,6 +43,8 @@ function createOrUpdateToken(address: string, lastModified: BigInt): Token {
 export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
     let tokenAddress = event.params.token.toHex();
     createOrUpdateToken(tokenAddress, event.block.timestamp);
+    let tokenStats = getOrInitTokenStats(tokenAddress);
+    tokenStats.save();
 
     let ev = new SuperTokenCreated(createEventID(event));
     ev.blockNumber = event.block.number;
@@ -57,6 +59,8 @@ export function handleCustomSuperTokenCreated(
 ): void {
     let tokenAddress = event.params.token.toHex();
     createOrUpdateToken(tokenAddress, event.block.timestamp);
+    let tokenStats = getOrInitTokenStats(tokenAddress);
+    tokenStats.save();
 
     let ev = new CustomSuperTokenCreated(createEventID(event));
     ev.blockNumber = event.block.number;
@@ -70,7 +74,6 @@ export function handleSuperTokenLogicCreated(
     event: SuperTokenLogicCreatedEvent
 ): void {
     let tokenAddress = event.params.tokenLogic.toHex();
-    createOrUpdateToken(tokenAddress, event.block.timestamp);
 
     let ev = new SuperTokenLogicCreated(createEventID(event));
     ev.blockNumber = event.block.number;

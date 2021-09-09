@@ -91,6 +91,7 @@ dataSources:
               - AccountTokenSnapshot
               - FlowUpdated
               - Stream
+              - StreamRevision
               - TokenStats
               - Transaction
           abis:

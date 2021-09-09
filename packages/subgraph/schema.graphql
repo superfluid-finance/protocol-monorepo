@@ -294,7 +294,6 @@ type Account implements BaseEntity @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
-    _autoIncrement: Int!
 }
 
 type Token implements BaseEntity @entity {
@@ -355,6 +354,14 @@ type Index implements BaseEntity @entity {
     # ---------------------------------- links ----------------------------------
     token: Token!
     publisher: Account!
+}
+
+####################
+#  Helper Entities #
+####################
+type StreamRevision @entity {
+    id: ID!
+    revisionIndex: Int!
 }
 
 ####################

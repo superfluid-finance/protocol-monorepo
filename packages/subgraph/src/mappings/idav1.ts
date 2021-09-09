@@ -195,7 +195,6 @@ export function handleSubscriptionRevoked(
 
     // user should receive any pending/unclaimed units
     // and then we set this to 0
-    // NOTE: refactor this, it is repeated here and handleSubscriptionApproved
     let totalReceivedDelta = subscriber.totalPendingApproval;
     subscriber.totalReceivedUntilLastUpdate =
         subscriber.totalReceivedUntilLastUpdate.plus(
@@ -267,12 +266,12 @@ export function handleSubscriptionUnitsUpdated(
         }
         // NOTE: we don't update the totalReceivedUntilLastUpdate in this
         // block of code as handleSubscriptionRevoked does that for
-        // revoke/deletion and SubscriptionRevoked event is emmitted if this
-        // block of code runs.
+        // revoke and deletion of subscription and SubscriptionRevoked
+        // event is emmitted if this block of code runs.
     } else {
+        // is updateSubscription
         let totalUnitsDelta = units.minus(subscriber.units);
 
-        // is updateSubscription
         if (subscriptionExists && subscriber.approved) {
             index.totalUnitsApproved =
                 index.totalUnitsApproved.plus(totalUnitsDelta);

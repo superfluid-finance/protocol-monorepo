@@ -33,7 +33,19 @@ export function handleAgreementLiquidatedBy(
     ev.bailoutAmount = event.params.bailoutAmount;
     ev.save();
 
-    // TODO: do we update the balances of the liquidator, penalty and bond account's here? probably yes
+    const accounts = [
+        event.params.liquidatorAccount,
+        event.params.penaltyAccount,
+        event.params.bondAccount,
+    ];
+    for (let i = 0; i < accounts.length; i++) {
+        let account = createOrUpdateAccount(
+            accounts[i].toHex(),
+            event.block.timestamp
+        );
+        account.save();
+        updateATSBalance(account.id, event.address.toHex());
+    }
 }
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {

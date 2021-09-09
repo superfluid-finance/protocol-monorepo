@@ -2,10 +2,11 @@ import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import {
     Account,
-    Stream,
-    Subscriber,
     Index,
     AccountTokenSnapshot,
+    Stream,
+    StreamRevision,
+    Subscriber,
     TokenStats,
 } from "../generated/schema";
 
@@ -48,42 +49,66 @@ export function createOrUpdateAccount(
         account = new Account(id);
         account.createdAt = lastModified;
         account.updatedAt = lastModified;
-        account._autoIncrement = 0;
     }
     account.save();
     return account;
 }
 
-// TODO: add _autoIncrement for ordering?
-function getStreamID(
-    owner: string,
-    recipient: string,
-    token: string,
-    autoIncrement: number
+function getStreamRevisionID(
+    senderId: string,
+    recipientId: string,
+    tokenId: string
 ): string {
-    return owner
-        .concat("-")
-        .concat(recipient)
-        .concat("-")
-        .concat(token)
-        .concat("-")
-        .concat(autoIncrement.toString());
+    return senderId.concat("-").concat(recipientId).concat("-").concat(tokenId);
 }
 
-export function getStream(
+export function getOrInitStreamRevision(
+    senderId: string,
+    recipientId: string,
+    tokenId: string
+): [StreamRevision, boolean] {
+    let streamRevisionId = getStreamRevisionID(senderId, recipientId, tokenId);
+    let streamRevision = StreamRevision.load(streamRevisionId);
+    if (streamRevision == null) {
+        streamRevision = new StreamRevision(streamRevisionId);
+        streamRevision.revisionIndex = 0;
+        return [streamRevision, false];
+    }
+    return [streamRevision, true];
+}
+
+function getStreamID(
+    senderId: string,
+    receiverId: string,
+    tokenId: string,
+    revisionIndex: number
+): string {
+    return getStreamRevisionID(senderId, receiverId, tokenId)
+        .concat("-")
+        .concat(revisionIndex.toString());
+}
+
+export function getOrInitStream(
     senderAddress: string,
     receiverAddress: string,
     tokenAddress: string,
     timestamp: BigInt
 ): Stream {
     // Create accounts if they do not exist
-    let senderAccount = createOrUpdateAccount(senderAddress, timestamp);
     createOrUpdateAccount(receiverAddress, timestamp);
+    let [streamRevision, streamRevisionExists] = getOrInitStreamRevision(
+        senderAddress,
+        receiverAddress,
+        tokenAddress
+    );
+    if (!streamRevisionExists) {
+        streamRevision.save();
+    }
     let id = getStreamID(
         senderAddress,
         receiverAddress,
         tokenAddress,
-        senderAccount._autoIncrement
+        streamRevision.revisionIndex
     );
     let stream = Stream.load(id);
     if (stream == null) {
@@ -97,7 +122,7 @@ export function getStream(
     }
     return stream;
 }
-// TODO: add _autoIncrement for ordering?
+
 export function getSubscriberID(
     subscriberAddress: Bytes,
     publisherAddress: Bytes,
@@ -115,7 +140,6 @@ export function getSubscriberID(
     );
 }
 
-// TODO: add _autoIncrement for ordering?
 export function getIndexID(
     publisherAddress: Bytes,
     tokenAddress: Bytes,
@@ -210,7 +234,6 @@ export function getOrInitAccountTokenSnapshot(
     let accountTokenSnapshot = AccountTokenSnapshot.load(
         accountTokenSnapshotId
     );
-    // TODO: constants for BigInt 0 and 1
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(accountTokenSnapshotId);
         accountTokenSnapshot.account = accountId;

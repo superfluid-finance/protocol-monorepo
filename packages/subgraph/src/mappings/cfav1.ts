@@ -3,11 +3,12 @@ import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgr
 import { FlowUpdated } from "../../generated/schema";
 import {
     createEventID,
-    getStream,
+    getOrInitStream,
     updateATSBalance,
     updateATSFlowRates,
     updateAggregateEntityStreamData,
     BIG_INT_ZERO,
+    getOrInitStreamRevision,
 } from "../utils";
 
 function createFlowUpdatedEntity(
@@ -45,11 +46,13 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let flowRate = event.params.flowRate;
     let currentTimestamp = event.block.timestamp;
 
-    // Get the existing stream or initialize if it doesn't exist
-    let stream = getStream(senderId, receiverId, tokenId, currentTimestamp);
+    let stream = getOrInitStream(
+        senderId,
+        receiverId,
+        tokenId,
+        currentTimestamp
+    );
     let oldFlowRate = stream.currentFlowRate;
-
-    // TODO: if the user is creating a stream, we want to create a new stream object
 
     let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAt);
     let newStreamedUntilLastUpdate = stream.streamedUntilLastUpdate.plus(
@@ -63,6 +66,16 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     stream.updatedAt = currentTimestamp;
     stream.streamedUntilLastUpdate = newStreamedUntilLastUpdate;
     stream.save();
+
+    if (isDelete) {
+        let [streamRevision] = getOrInitStreamRevision(
+            senderId,
+            receiverId,
+            tokenId
+        );
+        streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
+        streamRevision.save();
+    }
 
     createFlowUpdatedEntity(event, oldFlowRate);
 

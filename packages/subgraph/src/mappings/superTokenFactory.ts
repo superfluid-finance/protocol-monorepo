@@ -33,7 +33,6 @@ function createOrUpdateToken(address: string, lastModified: BigInt): Token {
         token.name = name;
         token.symbol = symbol;
         token.createdAt = lastModified;
-        // NOTE: deleted template code, not sure what this was doing
     }
     token.updatedAt = lastModified;
     token.save();

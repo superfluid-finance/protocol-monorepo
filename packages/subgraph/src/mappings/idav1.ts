@@ -108,6 +108,8 @@ export function handleSubscriptionApproved(
         index.totalUnitsPending = index.totalUnitsPending.minus(
             subscriber.units
         );
+        index.save();
+
         updateTokenStatsIDAUnitsData(
             event.params.token.toHex(),
             subscriber.units,
@@ -309,10 +311,9 @@ export function handleSubscriptionUnitsUpdated(
         let balanceDelta = index.newIndexValue
             .minus(subscriber.lastIndexValue)
             .times(subscriber.units);
-        let zeroBigInt = BIG_INT_ZERO;
 
-        // if the subscriber is approved, totalPendingApproval will not increment
-        // their totalReceivedUnits would increment and vice versa
+        // if approved, totalUnitsReceivedUntilUpdatedAt will increment
+        // else totalUnitsPendingApproval will increment
         if (subscriber.approved) {
             subscriber.totalUnitsReceivedUntilUpdatedAt =
                 subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
@@ -320,7 +321,7 @@ export function handleSubscriptionUnitsUpdated(
                 event.params.subscriber.toHex(),
                 event.params.token.toHex(),
                 balanceDelta,
-                zeroBigInt
+                BIG_INT_ZERO
             );
         } else {
             subscriber.totalUnitsPendingApproval =
@@ -328,7 +329,7 @@ export function handleSubscriptionUnitsUpdated(
             updateATSIDAUnitsData(
                 event.params.subscriber.toHex(),
                 event.params.token.toHex(),
-                zeroBigInt,
+                BIG_INT_ZERO,
                 balanceDelta
             );
         }
@@ -360,7 +361,7 @@ function createIndexCreatedEntity(event: IndexCreatedEvent): void {
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = event.params.token.toHex();
+    ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
     ev.userData = event.params.userData;
@@ -372,7 +373,7 @@ function createIndexUpdatedEntity(event: IndexUpdatedEvent): void {
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = event.params.token.toHex();
+    ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
     ev.oldIndexValue = event.params.oldIndexValue;
@@ -393,7 +394,7 @@ function createSubscriptionApprovedRevokedEntity(
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = event.params.token.toHex();
+    ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -408,7 +409,7 @@ function createSubscriptionUnitsUpdatedEntity(
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = event.params.token.toHex();
+    ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;

@@ -23,7 +23,7 @@ export const BIG_INT_ONE = BigInt.fromI32(1);
 
 export function createEventID(event: ethereum.Event): string {
     return event.transaction.hash
-        .toHex()
+        .toString()
         .concat("-")
         .concat(event.logIndex.toString());
 }
@@ -34,23 +34,20 @@ export function createEventID(event: ethereum.Event): string {
 
 /**
  * Creates an Account entity if non exists or updates an existing one.
- * this should technically only be updated once as no property on account
- * changes currently.
+ * this should technically only be "updated" on creation as account
+ * holds no dynamic state.
  * @param id
  * @param lastModified
  * @returns created or modified account
  */
-export function createOrUpdateAccount(
-    id: string,
-    lastModified: BigInt
-): Account {
+export function getOrInitAccount(id: string, lastModified: BigInt): Account {
     let account = Account.load(id);
     if (account == null) {
         account = new Account(id);
         account.createdAt = lastModified;
         account.updatedAt = lastModified;
+        account.save();
     }
-    account.save();
     return account;
 }
 
@@ -62,6 +59,13 @@ function getStreamRevisionID(
     return senderId.concat("-").concat(recipientId).concat("-").concat(tokenId);
 }
 
+/**
+ * Gets or initializes the Stream Revision helper entity.
+ * @param senderId 
+ * @param recipientId 
+ * @param tokenId 
+ * @returns [StreamRevision, boolean: whether the streamRevision existed]
+ */
 export function getOrInitStreamRevision(
     senderId: string,
     recipientId: string,
@@ -95,7 +99,8 @@ export function getOrInitStream(
     timestamp: BigInt
 ): Stream {
     // Create accounts if they do not exist
-    createOrUpdateAccount(receiverAddress, timestamp);
+    getOrInitAccount(senderAddress, timestamp);
+    getOrInitAccount(receiverAddress, timestamp);
     let [streamRevision, streamRevisionExists] = getOrInitStreamRevision(
         senderAddress,
         receiverAddress,
@@ -176,7 +181,7 @@ export function getOrInitIndex(
         index.totalUnits = BIG_INT_ZERO;
         index.totalUnitsDistributed = BIG_INT_ZERO;
 
-        createOrUpdateAccount(publisherId, lastModified);
+        getOrInitAccount(publisherId, lastModified);
     }
     index.updatedAt = lastModified;
     return index;
@@ -211,7 +216,7 @@ export function getOrInitSubscriber(
         subscriber.totalUnitsPendingApproval = BIG_INT_ZERO;
         subscriber.index = getIndexID(publisherAddress, tokenAddress, indexId);
 
-        createOrUpdateAccount(subscriberId, lastModified);
+        getOrInitAccount(subscriberId, lastModified);
         return [subscriber, false];
     }
     subscriber.updatedAt = lastModified;
@@ -230,12 +235,10 @@ export function getOrInitAccountTokenSnapshot(
     accountId: string,
     tokenId: string
 ): AccountTokenSnapshot {
-    let accountTokenSnapshotId = getAccountTokenSnapshotID(accountId, tokenId);
-    let accountTokenSnapshot = AccountTokenSnapshot.load(
-        accountTokenSnapshotId
-    );
+    let atsId = getAccountTokenSnapshotID(accountId, tokenId);
+    let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
     if (accountTokenSnapshot == null) {
-        accountTokenSnapshot = new AccountTokenSnapshot(accountTokenSnapshotId);
+        accountTokenSnapshot = new AccountTokenSnapshot(atsId);
         accountTokenSnapshot.account = accountId;
         accountTokenSnapshot.token = tokenId;
         accountTokenSnapshot.balance = BIG_INT_ZERO;
@@ -283,22 +286,16 @@ export function updateATSFlowRates(
     tokenId: string,
     flowRateDelta: BigInt
 ): void {
-    let senderAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
-        senderId,
-        tokenId
-    );
-    let receiverAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
-        receiverId,
-        tokenId
-    );
+    let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId);
+    let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId);
 
-    senderAccountTokenSnapshot.totalNetFlowRate =
-        senderAccountTokenSnapshot.totalNetFlowRate.plus(flowRateDelta.neg());
-    receiverAccountTokenSnapshot.totalNetFlowRate =
-        senderAccountTokenSnapshot.totalNetFlowRate.plus(flowRateDelta);
+    senderATS.totalNetFlowRate =
+        senderATS.totalNetFlowRate.minus(flowRateDelta);
+    receiverATS.totalNetFlowRate =
+        senderATS.totalNetFlowRate.plus(flowRateDelta);
 
-    senderAccountTokenSnapshot.save();
-    receiverAccountTokenSnapshot.save();
+    senderATS.save();
+    receiverATS.save();
 }
 
 export function updateATSIDAUnitsData(
@@ -427,4 +424,6 @@ export function updateAggregateEntityStreamData(
     senderATS.totalNumberOfStreams = senderATS.totalNumberOfStreams.plus(
         totalNumberOfStreamsDelta
     );
+    receiverATS.save();
+    senderATS.save();
 }

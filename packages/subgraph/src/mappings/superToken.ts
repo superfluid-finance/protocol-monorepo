@@ -10,11 +10,7 @@ import {
     Transfer,
     AgreementLiquidatedBy,
 } from "../../generated/schema";
-import {
-    createEventID,
-    createOrUpdateAccount,
-    updateATSBalance,
-} from "../utils";
+import { createEventID, getOrInitAccount, updateATSBalance } from "../utils";
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
@@ -23,7 +19,7 @@ export function handleAgreementLiquidatedBy(
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = event.address.toHex();
+    ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
     ev.agreementId = event.params.id;
@@ -39,11 +35,10 @@ export function handleAgreementLiquidatedBy(
         event.params.bondAccount,
     ];
     for (let i = 0; i < accounts.length; i++) {
-        let account = createOrUpdateAccount(
+        let account = getOrInitAccount(
             accounts[i].toHex(),
             event.block.timestamp
         );
-        account.save();
         updateATSBalance(account.id, event.address.toHex());
     }
 }
@@ -57,11 +52,11 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = tokenId;
+    ev.token = event.address;
     ev.amount = amount;
     ev.save();
 
-    let account = createOrUpdateAccount(
+    let account = getOrInitAccount(
         event.params.account.toHex(),
         event.block.timestamp
     );
@@ -77,11 +72,11 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     ev.blockNumber = event.block.number;
     ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
-    ev.token = tokenId;
+    ev.token = event.address;
     ev.amount = amount;
     ev.save();
 
-    let account = createOrUpdateAccount(
+    let account = getOrInitAccount(
         event.params.account.toHex(),
         event.block.timestamp
     );
@@ -99,19 +94,17 @@ export function handleTransfer(event: TransferEvent): void {
     ev.from = event.params.from;
     ev.to = event.params.to;
     ev.value = value;
-    ev.token = tokenId;
+    ev.token = event.address;
     ev.save();
 
-    let fromAccount = createOrUpdateAccount(
+    let fromAccount = getOrInitAccount(
         event.params.from.toHex(),
         event.block.timestamp
     );
-    let toAccount = createOrUpdateAccount(
+    let toAccount = getOrInitAccount(
         event.params.to.toHex(),
         event.block.timestamp
     );
-    fromAccount.save();
-    toAccount.save();
     updateATSBalance(toAccount.id, tokenId);
     updateATSBalance(fromAccount.id, tokenId);
 }

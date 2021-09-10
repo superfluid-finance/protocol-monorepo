@@ -128,6 +128,8 @@ dataSources:
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
+          - name: ISuperToken
+            file: ./abis/ISuperToken.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated

@@ -5,7 +5,7 @@ import {
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
     SubscriptionUnitsUpdated as SubscriptionUnitsUpdatedEvent,
-} from "../../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1";
+} from "../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 import {
     IndexCreated,
     IndexUpdated,
@@ -334,7 +334,7 @@ export function handleSubscriptionUnitsUpdated(
             event.params.token.toHex()
         );
     }
-    updateATSBalance(subscriber.id, event.params.token.toHex());
+    updateATSBalance(subscriber.subscriber, event.params.token.toHex());
 
     subscriber.lastIndexValue = index.newIndexValue;
     subscriber.units = event.params.units;

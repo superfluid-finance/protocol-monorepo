@@ -185,9 +185,12 @@ export function getOrInitIndex(
         index.totalUnitsApproved = BIG_INT_ZERO;
         index.totalUnits = BIG_INT_ZERO;
         index.totalUnitsDistributed = BIG_INT_ZERO;
+        index.userData = new Bytes(0);
 
         getOrInitAccount(publisherId, lastModified);
     }
+    // NOTE: do we want this to also change when something like
+    // totalSubscribers changes?
     index.updatedAt = lastModified;
     return index as Index;
 }
@@ -210,12 +213,19 @@ export function getOrInitSubscriber(
         indexId
     );
     let subscriber = Subscriber.load(subscriberEntityId);
-    let index = Index.load(getIndexID(publisherAddress, tokenAddress, indexId));
+    let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
+
+    // NOTE: shouldn't index always exist here?
+    let index = getOrInitIndex(
+        publisherAddress,
+        tokenAddress,
+        indexId,
+        lastModified
+    );
     if (subscriber == null) {
         let subscriberId = subscriberAddress.toHex();
         subscriber = new Subscriber(subscriberEntityId);
         subscriber.createdAt = lastModified;
-        subscriber.updatedAt = lastModified;
         subscriber.token = tokenAddress.toHex();
         subscriber.subscriber = subscriberId;
         subscriber.publisher = publisherAddress.toHex();
@@ -223,7 +233,9 @@ export function getOrInitSubscriber(
         subscriber.approved = false;
         subscriber.units = BIG_INT_ZERO;
         subscriber.totalUnitsReceivedUntilUpdatedAt = BIG_INT_ZERO;
-        subscriber.index = getIndexID(publisherAddress, tokenAddress, indexId);
+        subscriber.index = indexEntityId;
+        subscriber.userData = new Bytes(0);
+        subscriber.lastIndexValue = index.newIndexValue;
         index.totalSubscribers = index.totalSubscribers + 1;
 
         getOrInitAccount(subscriberId, lastModified);
@@ -248,13 +260,13 @@ export function getOrInitAccountTokenSnapshot(
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
-        accountTokenSnapshot.account = accountId;
-        accountTokenSnapshot.token = tokenId;
-        accountTokenSnapshot.balance = BIG_INT_ZERO;
-        accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalNumberOfStreams = 0;
         accountTokenSnapshot.totalSubscriptions = 0;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
+        accountTokenSnapshot.balance = BIG_INT_ZERO;
+        accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.account = accountId;
+        accountTokenSnapshot.token = tokenId;
     }
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
@@ -310,7 +322,6 @@ export function getOrInitTokenStats(tokenId: string): TokenStats {
     let tokenStats = TokenStats.load(tokenId);
     if (tokenStats == null) {
         tokenStats = new TokenStats(tokenId);
-        tokenStats.token = tokenId;
         tokenStats.totalNumberOfStreams = 0;
         tokenStats.totalNumberOfIndexes = 0;
         tokenStats.totalSubscribers = 0;
@@ -319,6 +330,7 @@ export function getOrInitTokenStats(tokenId: string): TokenStats {
         tokenStats.totalUnitsApproved = BIG_INT_ZERO;
         tokenStats.totalUnitsPending = BIG_INT_ZERO;
         tokenStats.totalUnitsDistributed = BIG_INT_ZERO;
+        tokenStats.token = tokenId;
     }
     return tokenStats as TokenStats;
 }

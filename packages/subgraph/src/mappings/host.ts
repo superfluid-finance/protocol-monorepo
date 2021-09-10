@@ -15,7 +15,7 @@ import {
     Jail as JailEvent,
     SuperTokenFactoryUpdated as SuperTokenFactoryUpdatedEvent,
     SuperTokenLogicUpdated as SuperTokenLogicUpdatedEvent,
-} from "../../generated/SuperTokenFactory/ISuperfluid";
+} from "../../generated/Host/ISuperfluid";
 import { createEventID } from "../utils";
 
 export function handleGovernanceReplaced(event: GovernanceReplacedEvent): void {

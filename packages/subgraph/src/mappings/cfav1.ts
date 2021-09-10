@@ -44,6 +44,10 @@ function createFlowUpdatedEntity(
     ev.save();
 }
 
+// TODO: token is null, it appears that tokens don't only get created
+// in super token factory, I will do a check for if the token exists
+// and create if it does, also streamRevision doesn't seem to be
+// incrementing - maybe do .plus(1)
 export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let senderId = event.params.sender.toHex();
     let receiverId = event.params.receiver.toHex();

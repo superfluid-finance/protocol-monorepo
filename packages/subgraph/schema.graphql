@@ -385,8 +385,8 @@ type TokenStats @entity {
     totalSubscribers: Int!
     totalApprovedSubscribers: Int!
     totalOutflowRate: BigInt!
-    totalUnitsPending: BigInt!
     totalUnitsApproved: BigInt!
+    totalUnitsPending: BigInt!
     totalUnitsDistributed: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!

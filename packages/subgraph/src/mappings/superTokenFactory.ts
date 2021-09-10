@@ -1,81 +1,48 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     CustomSuperTokenCreated as CustomSuperTokenCreatedEvent,
     SuperTokenCreated as SuperTokenCreatedEvent,
     SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
 } from "../../generated/SuperTokenFactory/ISuperTokenFactory";
-import { ISuperToken as SuperToken } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     CustomSuperTokenCreated,
     SuperTokenCreated,
     SuperTokenLogicCreated,
-    Token,
 } from "../../generated/schema";
-import { createEventID, getOrInitTokenStats } from "../utils";
-
-/**
- * Creates a HOL Token (SuperToken) entity if non exists, this function should
- * never be called more than once for the Token entity (you only create a
- * SuperToken once).
- * @param address
- * @param lastModified
- * @returns created token
- */
-function getOrInitToken(address: string, lastModified: BigInt): Token {
-    let token = Token.load(address);
-    if (token == null) {
-        let tokenContract = SuperToken.bind(Address.fromString(address));
-        let underlyingAddress = tokenContract.getUnderlyingToken();
-        let name = tokenContract.name();
-        let symbol = tokenContract.symbol();
-        token = new Token(address);
-        token.underlyingAddress = underlyingAddress;
-        token.name = name;
-        token.symbol = symbol;
-        token.createdAt = lastModified;
-        token.updatedAt = lastModified;
-        token.save();
-    }
-    return token as Token;
-}
+import { createEventID, getOrInitToken } from "../utils";
 
 export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
-    let tokenAddress = event.params.token.toHex();
-    getOrInitToken(tokenAddress, event.block.timestamp);
-    let tokenStats = getOrInitTokenStats(tokenAddress);
-    tokenStats.save();
-
     let ev = new SuperTokenCreated(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.save();
+
+    let tokenAddress = event.params.token.toHex();
+    getOrInitToken(tokenAddress, event.block.timestamp);
 }
 
 export function handleCustomSuperTokenCreated(
     event: CustomSuperTokenCreatedEvent
 ): void {
-    let tokenAddress = event.params.token.toHex();
-    getOrInitToken(tokenAddress, event.block.timestamp);
-    let tokenStats = getOrInitTokenStats(tokenAddress);
-    tokenStats.save();
-
     let ev = new CustomSuperTokenCreated(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.save();
+
+    let tokenAddress = event.params.token.toHex();
+    getOrInitToken(tokenAddress, event.block.timestamp);
 }
 
 export function handleSuperTokenLogicCreated(
     event: SuperTokenLogicCreatedEvent
 ): void {
     let ev = new SuperTokenLogicCreated(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.tokenLogic = event.params.tokenLogic;
     ev.save();
 }

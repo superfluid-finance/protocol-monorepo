@@ -67,6 +67,7 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     let tokenStats = getOrInitTokenStats(event.params.token.toHex());
     tokenStats.totalUnitsDistributed =
         tokenStats.totalUnitsDistributed.plus(distributionDelta);
+    tokenStats.save();
 
     updateATSBalance(
         event.params.publisher.toHex(),
@@ -86,9 +87,6 @@ export function handleSubscriptionApproved(
         event.block.timestamp
     );
 
-    // this first part occurs whether or not a subscription exists
-    // creates a subscription if one doesn't exist and increments
-    // total number of subscriptions on index
     let subscriber = getOrInitSubscriber(
         event.params.subscriber,
         event.params.publisher,
@@ -105,7 +103,6 @@ export function handleSubscriptionApproved(
     subscriber.approved = true;
     subscriber.lastIndexValue = index.newIndexValue;
 
-    // handles the vars.subscriptionExists case
     let tokenId = event.params.token.toHex();
 
     let subscriberId = getSubscriberID(
@@ -131,8 +128,6 @@ export function handleSubscriptionApproved(
             subscriber.units.neg()
         );
 
-        // NOTE: it is possible that this might be incorrect and should actually be
-        // subscriber.units
         subscriber.totalUnitsReceivedUntilUpdatedAt =
             subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
         subscriber.save();
@@ -156,7 +151,7 @@ export function handleSubscriptionApproved(
 export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent
 ): void {
-    let isRevoke = event.params.subscriber == Address.fromI32(0);
+    let isRevoke = event.params.subscriber.equals(Address.fromI32(0));
     let index = getOrInitIndex(
         event.params.publisher,
         event.params.token,
@@ -243,7 +238,7 @@ export function handleSubscriptionUnitsUpdated(
         event.block.timestamp
     );
     let units = event.params.units;
-    let isDeleteSubscription = units === BIG_INT_ZERO;
+    let isDeleteSubscription = units.equals(BIG_INT_ZERO);
     let subscriberId = getSubscriberID(
         event.params.subscriber,
         event.params.publisher,
@@ -318,8 +313,7 @@ export function handleSubscriptionUnitsUpdated(
             .minus(subscriber.lastIndexValue)
             .times(subscriber.units);
 
-        // if approved, totalUnitsReceivedUntilUpdatedAt will increment
-        // else totalUnitsPendingApproval will increment
+        // if approved, we increment totalUnitsReceivedUntilUpdatedAt
         if (subscriber.approved) {
             subscriber.totalUnitsReceivedUntilUpdatedAt =
                 subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
@@ -338,6 +332,7 @@ export function handleSubscriptionUnitsUpdated(
 
     subscriber.lastIndexValue = index.newIndexValue;
     subscriber.units = event.params.units;
+
     index.save();
     subscriber.save();
 
@@ -349,9 +344,9 @@ export function handleSubscriptionUnitsUpdated(
  *************************************************************************/
 function createIndexCreatedEntity(event: IndexCreatedEvent): void {
     let ev = new IndexCreated(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -361,9 +356,9 @@ function createIndexCreatedEntity(event: IndexCreatedEvent): void {
 
 function createIndexUpdatedEntity(event: IndexUpdatedEvent): void {
     let ev = new IndexUpdated(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -379,9 +374,9 @@ function createSubscriptionApprovedEntity(
     event: SubscriptionApprovedEvent
 ): void {
     let ev = new SubscriptionApproved(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -394,9 +389,9 @@ function createSubscriptionRevokedEntity(
     event: SubscriptionRevokedEvent
 ): void {
     let ev = new SubscriptionRevoked(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -409,9 +404,9 @@ function createSubscriptionUnitsUpdatedEntity(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
     let ev = new SubscriptionUnitsUpdated(createEventID(event));
-    ev.blockNumber = event.block.number;
-    ev.timestamp = event.block.timestamp;
     ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;

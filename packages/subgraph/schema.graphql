@@ -93,7 +93,7 @@ type SubscriptionUnitsUpdated implements Event @entity {
     userData: Bytes!
 }
 
-#     Superfluid    #
+#     Host    #
 type GovernanceReplaced implements Event @entity {
     id: ID!
     transactionHash: Bytes!

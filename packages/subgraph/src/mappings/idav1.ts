@@ -17,7 +17,7 @@ import {
     createEventID,
     getOrInitIndex,
     getOrInitSubscriber,
-    getOrInitTokenStats,
+    getOrInitTokenStatistic,
     updateATSBalance,
     updateAggregateIDASubscriptionsData,
     updateTokenStatsIDAUnitsData,
@@ -64,7 +64,7 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
         index.totalUnitsDistributed.plus(distributionDelta);
     index.save();
 
-    let tokenStats = getOrInitTokenStats(event.params.token.toHex());
+    let tokenStats = getOrInitTokenStatistic(event.params.token.toHex());
     tokenStats.totalUnitsDistributed =
         tokenStats.totalUnitsDistributed.plus(distributionDelta);
     tokenStats.save();

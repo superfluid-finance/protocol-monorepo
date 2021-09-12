@@ -7,7 +7,7 @@ import {
     Stream,
     StreamRevision,
     Subscriber,
-    TokenStats,
+    TokenStatistic,
     Token,
 } from "../generated/schema";
 
@@ -55,18 +55,18 @@ export function getOrInitAccount(id: string, lastModified: BigInt): Account {
  * Creates a HOL Token (SuperToken) entity if non exists, this function should
  * never be called more than once for the Token entity (you only create a
  * SuperToken once). We also create tkoen stats in here if it doesn't exist yet.
- * @param id
+ * @param tokenId
  * @param lastModified
  * @returns created token
  */
-export function getOrInitToken(id: string, lastModified: BigInt): Token {
-    let token = Token.load(id);
+export function getOrInitToken(tokenId: string, lastModified: BigInt): Token {
+    let token = Token.load(tokenId);
     if (token == null) {
-        let tokenContract = SuperToken.bind(Address.fromString(id));
+        let tokenContract = SuperToken.bind(Address.fromString(tokenId));
         let underlyingAddress = tokenContract.getUnderlyingToken();
         let name = tokenContract.name();
         let symbol = tokenContract.symbol();
-        token = new Token(id);
+        token = new Token(tokenId);
         token.createdAt = lastModified;
         token.updatedAt = lastModified;
         token.name = name;
@@ -76,7 +76,7 @@ export function getOrInitToken(id: string, lastModified: BigInt): Token {
 
         // Note: we initalize and create tokenStats whenever we create a
         // token as well.
-        let tokenStats = getOrInitTokenStats(id);
+        let tokenStats = getOrInitTokenStatistic(tokenId);
         tokenStats.save();
     }
     return token as Token;
@@ -318,11 +318,11 @@ export function getOrInitAccountTokenSnapshot(
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
 
-export function getOrInitTokenStats(tokenId: string): TokenStats {
+export function getOrInitTokenStatistic(tokenId: string): TokenStatistic {
     let tokenStatsId = getTokenStatsID(tokenId);
-    let tokenStats = TokenStats.load(tokenStatsId);
+    let tokenStats = TokenStatistic.load(tokenStatsId);
     if (tokenStats == null) {
-        tokenStats = new TokenStats(tokenStatsId);
+        tokenStats = new TokenStatistic(tokenStatsId);
         tokenStats.totalNumberOfStreams = 0;
         tokenStats.totalNumberOfIndexes = 0;
         tokenStats.totalSubscribers = 0;
@@ -333,7 +333,7 @@ export function getOrInitTokenStats(tokenId: string): TokenStats {
         tokenStats.totalUnitsDistributed = BIG_INT_ZERO;
         tokenStats.token = tokenId;
     }
-    return tokenStats as TokenStats;
+    return tokenStats as TokenStatistic;
 }
 
 /**
@@ -348,7 +348,7 @@ export function updateTokenStatsIDAUnitsData(
     totalUnitsApprovedDelta: BigInt,
     totalUnitsPendingDelta: BigInt
 ): void {
-    let tokenStats = getOrInitTokenStats(tokenId);
+    let tokenStats = getOrInitTokenStatistic(tokenId);
     tokenStats.totalUnitsApproved = tokenStats.totalUnitsApproved.plus(
         totalUnitsApprovedDelta
     );
@@ -369,13 +369,17 @@ export function updateAggregateIDASubscriptionsData(
         accountId,
         tokenId
     );
-    let tokenStats = getOrInitTokenStats(tokenId);
+    let tokenStats = getOrInitTokenStatistic(tokenId);
     let totalSubscriptionsDelta = isDeletingSubscription
         ? -1
         : subscriptionExists
         ? 0
         : 1;
-    let totalApprovedSubscriptionsDelta = isApproving ? 1 : -1;
+    let totalApprovedSubscriptionsDelta = isApproving
+        ? 1
+        : subscriptionExists
+        ? -1
+        : 0;
 
     // update ATS Subscriber data
     accountTokenSnapshot.totalSubscriptions =
@@ -449,7 +453,7 @@ export function updateAggregateEntitiesStreamData(
     isCreate: boolean,
     isDelete: boolean
 ): void {
-    let tokenStats = getOrInitTokenStats(tokenId);
+    let tokenStats = getOrInitTokenStatistic(tokenId);
     let totalNumberOfStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
     tokenStats.totalOutflowRate =
         tokenStats.totalOutflowRate.plus(flowRateDelta);

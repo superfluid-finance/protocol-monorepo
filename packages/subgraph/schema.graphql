@@ -286,14 +286,16 @@ interface BaseEntity {
     createdAt: BigInt!
     updatedAt: BigInt!
 }
-# Note: Make sure to implement BaseEntity
-type Account implements BaseEntity @entity {
+
+# Note: If two entities implement the same interface
+# they cannot have the same id.
+type Account @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
 }
 
-type Token implements BaseEntity @entity {
+type Token @entity {
     # Note: All Tokens are Super Tokens for this subgraph
     id: ID!
     createdAt: BigInt!
@@ -377,7 +379,8 @@ type AccountTokenSnapshot @entity {
     token: Token!
 }
 
-type TokenStats @entity {
+# Note: naming of entities must be singular.
+type TokenStatistic @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
     totalNumberOfStreams: Int!

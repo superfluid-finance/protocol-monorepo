@@ -1,15 +1,16 @@
-import { configureStore } from '@reduxjs/toolkit';
+import {configureStore} from '@reduxjs/toolkit';
 
-import { mainSliceReducer} from './mainSlice';
+import {consoleDataApi} from "./features/console/consoleDataApi";
+import {normalizedDataSlice} from './features/normalized/normalizedDataSlice';
 
-export const store = configureStore({
+export const dappSdkStore = configureStore({
     reducer: {
-        main: mainSliceReducer,
+        normalizedData: normalizedDataSlice.reducer,
+        [consoleDataApi.reducerPath]: consoleDataApi.reducer
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(consoleDataApi.middleware),
 });
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>;
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
-export type AppDispatch = typeof store.dispatch;
-export type StoreType = typeof store;
+export type DAppSdkRootState = ReturnType<typeof dappSdkStore.getState>;
+export type DAppSdkDispatch = typeof dappSdkStore.dispatch;
+export type DAppSdkStoreType = typeof dappSdkStore;

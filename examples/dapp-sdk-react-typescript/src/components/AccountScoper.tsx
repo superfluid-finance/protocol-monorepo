@@ -1,5 +1,5 @@
 import {ReactElement, useState} from "react";
-import {Account, Network, RootState} from "dapp-sdk";
+import {Account, Network, DAppSdkRootState} from "dapp-sdk";
 import {FC} from "react";
 import {createContext} from "react";
 import {useDispatch, useSelector} from "react-redux";
@@ -25,11 +25,11 @@ export const AccountAndNetworkScopedContext = createContext<AccountAndNetworkSco
 });
 
 export const AccountScoper: FC<Props> = ({networkId, accountAddress, children}): ReactElement => {
-    const {network, account } = useSelector((state: RootState) => {
+    const {network, account } = useSelector((state: DAppSdkRootState) => {
         return {
-            isLoading: state.main.isLoading,
-            network: state.main.networks[networkId],
-            account: state.main.networks[networkId].accounts[accountAddress]
+            isLoading: state.normalizedData.isLoading,
+            network: state.normalizedData.networks[networkId],
+            account: state.normalizedData.networks[networkId].accounts[accountAddress]
         }
     });
     const dispatch = useDispatch();
@@ -45,7 +45,7 @@ export const AccountScoper: FC<Props> = ({networkId, accountAddress, children}):
 
     if (!account.activeStreams && !hasFetchedActive) {
         dispatch(fetchAccountStreamIndexes({
-            networkId: account.networkId,
+            chainId: account.chainId,
             accountAddress: account.accountAddress,
             isActive: true
         }))
@@ -53,7 +53,7 @@ export const AccountScoper: FC<Props> = ({networkId, accountAddress, children}):
     } else {
         if (account.activeStreams && !account.inactiveStreams && !hasFetchedInactive) {
             dispatch(fetchAccountStreamIndexes({
-                networkId: account.networkId,
+                chainId: account.chainId,
                 accountAddress: account.accountAddress,
                 isActive: false
             }))

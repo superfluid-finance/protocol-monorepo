@@ -1,12 +1,13 @@
 import {createAsyncThunk, createSlice, Draft} from '@reduxjs/toolkit';
 import _ from "lodash";
 
+import {DAppSdkRootState} from "../../store";
+
 import {Account, AccountCompositeKey, StreamIndex} from "./Account";
 import {Network, StreamCompositeKey, StreamDetails} from './Network';
 import {asyncMockDataSource} from "./asyncDataSource";
-import {RootState} from "./store";
 
-export interface MainState {
+export interface NormalizedDataState {
     isLoading: boolean,
     error: string | null,
     networks: { [id: number]: Network },
@@ -14,12 +15,12 @@ export interface MainState {
 
 export const fetchAccount = createAsyncThunk<Account,
     AccountCompositeKey,
-    { state: RootState; rejectValue: string }>(
+    { state: DAppSdkRootState; rejectValue: string }>(
     'fetchAccount',
     async (arg: AccountCompositeKey, thunkApi) => {
-        const state = thunkApi.getState().main;
+        const state = thunkApi.getState().normalizedData;
 
-        if (!_.has(state.networks, arg.networkId))
+        if (!_.has(state.networks, arg.chainId))
             return thunkApi.rejectWithValue('Network not found.');
 
         const account = await asyncMockDataSource.fetchAccount(arg);
@@ -35,31 +36,31 @@ interface FetchAccountStreamIndexesArgs extends AccountCompositeKey {
     isActive: boolean
 }
 
-export const fetchAccountStreamIndexes = createAsyncThunk<StreamIndex[], FetchAccountStreamIndexesArgs, { state: RootState; rejectValue: string }>(
+export const fetchAccountStreamIndexes = createAsyncThunk<StreamIndex[], FetchAccountStreamIndexesArgs, { state: DAppSdkRootState; rejectValue: string }>(
     'fetchAccountStreamIndexes',
     async (arg: FetchAccountStreamIndexesArgs, thunkApi) => {
-        const {networkId, accountAddress, isActive} = arg;
-        const state = thunkApi.getState().main;
+        const {chainId, accountAddress, isActive} = arg;
+        const state = thunkApi.getState().normalizedData;
 
-        if (!_.has(state.networks, networkId)) {
+        if (!_.has(state.networks, chainId)) {
             return thunkApi.rejectWithValue('Network not found.');
         }
 
-        if (!_.has(state.networks[networkId].accounts, accountAddress)) {
+        if (!_.has(state.networks[chainId].accounts, accountAddress)) {
             return thunkApi.rejectWithValue('Account not found.');
         }
 
         return await asyncMockDataSource.fetchAccountStreamIndexes(
-            networkId,
+            chainId,
             accountAddress,
             isActive
         );
     })
 
-export const fetchStreamDetails = createAsyncThunk<StreamDetails, StreamCompositeKey, { state: RootState; rejectValue: string }>(
+export const fetchStreamDetails = createAsyncThunk<StreamDetails, StreamCompositeKey, { state: DAppSdkRootState; rejectValue: string }>(
     'fetchStreamDetails',
     async (arg: StreamCompositeKey, thunkApi) => {
-        const state = thunkApi.getState().main;
+        const state = thunkApi.getState().normalizedData;
 
         if (!_.has(state.networks, arg.networkId)) {
             return thunkApi.rejectWithValue('Network not found.');
@@ -72,7 +73,7 @@ export const fetchStreamDetails = createAsyncThunk<StreamDetails, StreamComposit
         return streamDetails;
     })
 
-const initialState: MainState = {
+const initialState: NormalizedDataState = {
     isLoading: false,
     error: null,
     networks: {
@@ -194,55 +195,55 @@ const initialState: MainState = {
     },
 };
 
-export const mainSlice = createSlice({
-    name: 'main',
+export const normalizedDataSlice = createSlice({
+    name: 'normalized',
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
             // #Loading
-            .addCase(fetchAccount.pending, (state: Draft<MainState>) => {
+            .addCase(fetchAccount.pending, (state: Draft<NormalizedDataState>) => {
                 state.error = null;
                 state.isLoading = true;
             })
-            .addCase(fetchAccountStreamIndexes.pending, (state: Draft<MainState>) => {
+            .addCase(fetchAccountStreamIndexes.pending, (state: Draft<NormalizedDataState>) => {
                 state.error = null;
                 state.isLoading = true;
             })
-            .addCase(fetchStreamDetails.pending, (state: Draft<MainState>) => {
+            .addCase(fetchStreamDetails.pending, (state: Draft<NormalizedDataState>) => {
                 state.error = null;
                 state.isLoading = true;
             })
             // end #Loading
 
             // #Error
-            .addCase(fetchAccount.rejected, (state: Draft<MainState>, action) => {
+            .addCase(fetchAccount.rejected, (state: Draft<NormalizedDataState>, action) => {
                 state.isLoading = false;
                 state.error = action.payload || "Error.";
             })
-            .addCase(fetchAccountStreamIndexes.rejected, (state: Draft<MainState>, action) => {
+            .addCase(fetchAccountStreamIndexes.rejected, (state: Draft<NormalizedDataState>, action) => {
                 state.isLoading = false;
                 state.error = action.payload || "Error.";
             })
-            .addCase(fetchStreamDetails.rejected, (state: Draft<MainState>, action) => {
+            .addCase(fetchStreamDetails.rejected, (state: Draft<NormalizedDataState>, action) => {
                 state.isLoading = false;
                 state.error = action.payload || "Error.";
             })
             // end #Error
 
             // #Fulfilled
-            .addCase(fetchAccount.fulfilled, (state: Draft<MainState>, action) => {
-                const {networkId, accountAddress} = action.meta.arg;
+            .addCase(fetchAccount.fulfilled, (state: Draft<NormalizedDataState>, action) => {
+                const {chainId, accountAddress} = action.meta.arg;
 
-                const previous = state.networks[networkId].accounts[accountAddress];
-                state.networks[networkId].accounts[accountAddress] = {...previous, ...action.payload};
+                const previous = state.networks[chainId].accounts[accountAddress];
+                state.networks[chainId].accounts[accountAddress] = {...previous, ...action.payload};
 
                 state.isLoading = false;
             })
-            .addCase(fetchAccountStreamIndexes.fulfilled, (state: Draft<MainState>, action) => {
-                const {networkId, accountAddress, isActive} = action.meta.arg;
+            .addCase(fetchAccountStreamIndexes.fulfilled, (state: Draft<NormalizedDataState>, action) => {
+                const {chainId, accountAddress, isActive} = action.meta.arg;
 
-                const account = state.networks[networkId].accounts[accountAddress];
+                const account = state.networks[chainId].accounts[accountAddress];
                 if (isActive) {
                     account.activeStreams = action.payload;
                 } else {
@@ -251,7 +252,7 @@ export const mainSlice = createSlice({
 
                 state.isLoading = false;
             })
-            .addCase(fetchStreamDetails.fulfilled, (state: Draft<MainState>, action) => {
+            .addCase(fetchStreamDetails.fulfilled, (state: Draft<NormalizedDataState>, action) => {
                 const {networkId, transactionHash} = action.meta.arg;
 
                 const previous = state.networks[networkId].streamDetails[transactionHash];
@@ -260,8 +261,5 @@ export const mainSlice = createSlice({
                 state.isLoading = false;
             })
             // end #Fulfilled
-
     }
 });
-
-export const mainSliceReducer = mainSlice.reducer;

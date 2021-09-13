@@ -1,7 +1,6 @@
-import { Account } from './Account';
-import { DAppSDK } from './DAppSDK';
-import { Network } from './Network';
-import { createDAppSDK } from './createDAppSDK';
-import { RootState } from './store';
-
-export { createDAppSDK, DAppSDK, Network, Account, RootState };
+export * from './features/normalized/Account';
+export * from './DAppSDK';
+export * from './features/normalized/Network';
+export * from './createDAppSDK';
+export * from "./features/console/consoleDataApi"
+export * from "./store"

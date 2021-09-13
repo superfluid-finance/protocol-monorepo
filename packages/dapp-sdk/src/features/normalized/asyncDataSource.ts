@@ -30,15 +30,15 @@ const allAccounts: Array<Account> =
     [
         {
             accountAddress: 'address1',
-            networkId: 137,
+            chainId: 137,
         },
         {
             accountAddress: 'address2',
-            networkId: 421611,
+            chainId: 421611,
         },
         {
             accountAddress: 'address3',
-            networkId: 137,
+            chainId: 137,
         }
     ]
 
@@ -46,7 +46,7 @@ export const asyncMockDataSource = {
     fetchAccount(arg: AccountCompositeKey): Promise<Account | undefined> {
         return new Promise<Account | undefined>((resolve) => {
             setTimeout(() => {
-                resolve(allAccounts.find(x => x.accountAddress === arg.accountAddress && x.networkId === arg.networkId));
+                resolve(allAccounts.find(x => x.accountAddress === arg.accountAddress && x.chainId === arg.chainId));
             }, 2000)
         })
     },

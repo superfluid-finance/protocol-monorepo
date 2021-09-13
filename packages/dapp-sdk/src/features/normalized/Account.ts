@@ -1,6 +1,6 @@
 export interface AccountCompositeKey {
     accountAddress: string; // TODO: Make hash a value object. Or use types from Ethers.js?
-    networkId: number;
+    chainId: number;
 }
 
 export interface Account extends AccountCompositeKey {

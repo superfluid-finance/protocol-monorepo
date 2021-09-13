@@ -3,10 +3,10 @@ import AddressAndNetworkForm from "./components/AddressAndNetworkForm";
 import {AccountScoper} from "./components/AccountScoper";
 import {useState} from 'react';
 import {DisplaySelectedAccountAndNetwork} from "./components/DisplaySelectedAccountAndNetwork";
-import {useDispatch, useSelector} from "react-redux";
-import {RootState} from "dapp-sdk";
+import { useSelector} from "react-redux";
+import { DAppSdkRootState } from "dapp-sdk";
+
 import {Streams} from "./components/Streams";
-import {fetchAccount} from "dapp-sdk/build/main/mainSlice";
 
 interface AccountScoperProps {
     networkId: number;
@@ -15,12 +15,9 @@ interface AccountScoperProps {
 
 function App() {
     const [accountScoperProps, setAccountScoperProps] = useState<AccountScoperProps | null>();
-    const error = useSelector((state: RootState) => state.main.error)
-    const isLoading = useSelector((state: RootState) => state.main.isLoading)
-    const isAccountLoaded = useSelector((state: RootState) => state.main.networks[accountScoperProps?.networkId || 0]?.accounts[accountScoperProps?.accountAddress || 0])
-    // const useThunkDispatch = () => useDispatch<typeof store.dispatch>();
-    // const thunkDispatch = useThunkDispatch();
-    const dispatch = useDispatch();
+    const error = useSelector((state: DAppSdkRootState) => state.normalizedData.error)
+    const isLoading = useSelector((state: DAppSdkRootState) => state.normalizedData.isLoading)
+    const isAccountLoaded = useSelector((state: DAppSdkRootState) => state.normalizedData.networks[accountScoperProps?.networkId || 0]?.accounts[accountScoperProps?.accountAddress || 0])
 
     return (
         <>
@@ -62,10 +59,6 @@ function App() {
             <AddressAndNetworkForm
                 onSubmitted={(networkId, accountAddress) => {
                     setAccountScoperProps({networkId, accountAddress})
-                    dispatch(fetchAccount({
-                        networkId,
-                        accountAddress
-                    }))
                 }}>
             </AddressAndNetworkForm>
             {

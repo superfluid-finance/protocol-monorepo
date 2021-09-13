@@ -5,7 +5,6 @@
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/kasparkallas/dapp-sdk",
   "license": "MIT",
   "keywords": [],
   "scripts": {
@@ -45,6 +44,7 @@
     "@superfluid-finance/js-sdk": "^0.5.3",
     "@types/jest": "^27.0.1",
     "ethers": "^5.4.5",
+    "graphql-request": "^3.5.0",
     "jest-mock-extended": "^2.0.2-beta2",
     "lodash": "^4.17.21",
     "ts-jest": "^27.0.5"
@@ -89,5 +89,13 @@
   },
   "prettier": {
     "singleQuote": true
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/kasparkallas/dapp-sdk/issues"
+  },
+  "homepage": "https://github.com/kasparkallas/dapp-sdk#readme",
+  "directories": {
+    "test": "test"
+  },
+  "author": ""
 }

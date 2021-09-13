@@ -20,7 +20,7 @@ import {
     getOrInitTokenStatistic,
     updateATSBalance,
     updateAggregateIDASubscriptionsData,
-    updateTokenStatsIDAUnitsData,
+    updateTokenStatisticIDAUnitsData,
     BIG_INT_ZERO,
     getSubscriberID,
     subscriptionExists,
@@ -35,6 +35,10 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     );
     index.userData = event.params.userData;
     index.save();
+
+    let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
+    tokenStatistic.totalNumberOfIndexes =
+        tokenStatistic.totalNumberOfIndexes + 1;
 
     createIndexCreatedEntity(event);
 }
@@ -64,10 +68,10 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
         index.totalUnitsDistributed.plus(distributionDelta);
     index.save();
 
-    let tokenStats = getOrInitTokenStatistic(event.params.token.toHex());
-    tokenStats.totalUnitsDistributed =
-        tokenStats.totalUnitsDistributed.plus(distributionDelta);
-    tokenStats.save();
+    let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
+    tokenStatistic.totalUnitsDistributed =
+        tokenStatistic.totalUnitsDistributed.plus(distributionDelta);
+    tokenStatistic.save();
 
     updateATSBalance(
         event.params.publisher.toHex(),
@@ -122,7 +126,7 @@ export function handleSubscriptionApproved(
         );
         index.save();
 
-        updateTokenStatsIDAUnitsData(
+        updateTokenStatisticIDAUnitsData(
             event.params.token.toHex(),
             subscriber.units,
             subscriber.units.neg()
@@ -180,7 +184,7 @@ export function handleSubscriptionRevoked(
         );
         subscriber.lastIndexValue = index.newIndexValue;
 
-        updateTokenStatsIDAUnitsData(
+        updateTokenStatisticIDAUnitsData(
             event.params.token.toHex(),
             subscriber.units.neg(),
             subscriber.units
@@ -253,7 +257,7 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnitsApproved = index.totalUnitsApproved.minus(
                 subscriber.units
             );
-            updateTokenStatsIDAUnitsData(
+            updateTokenStatisticIDAUnitsData(
                 event.params.token.toHex(),
                 subscriber.units.neg(),
                 BIG_INT_ZERO
@@ -262,7 +266,7 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnitsPending = index.totalUnitsPending.minus(
                 subscriber.units
             );
-            updateTokenStatsIDAUnitsData(
+            updateTokenStatisticIDAUnitsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
                 subscriber.units.neg()
@@ -279,7 +283,7 @@ export function handleSubscriptionUnitsUpdated(
         if (hasSubscription && subscriber.approved) {
             index.totalUnitsApproved =
                 index.totalUnitsApproved.plus(totalUnitsDelta);
-            updateTokenStatsIDAUnitsData(
+            updateTokenStatisticIDAUnitsData(
                 event.params.token.toHex(),
                 totalUnitsDelta,
                 BIG_INT_ZERO
@@ -287,7 +291,7 @@ export function handleSubscriptionUnitsUpdated(
         } else if (hasSubscription) {
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
-            updateTokenStatsIDAUnitsData(
+            updateTokenStatisticIDAUnitsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
                 totalUnitsDelta
@@ -295,7 +299,7 @@ export function handleSubscriptionUnitsUpdated(
         } else {
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
-            updateTokenStatsIDAUnitsData(
+            updateTokenStatisticIDAUnitsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
                 units

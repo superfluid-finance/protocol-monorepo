@@ -21,7 +21,7 @@ dataSources:
               - SuperTokenCreated
               - SuperTokenLogicCreated
               - Token
-              - TokenStats
+              - TokenStatistic
               - Transaction
           abis:
               - name: ISuperTokenFactory
@@ -92,7 +92,7 @@ dataSources:
               - FlowUpdated
               - Stream
               - StreamRevision
-              - TokenStats
+              - TokenStatistic
               - Transaction
           abis:
               - name: IConstantFlowAgreementV1
@@ -115,11 +115,13 @@ dataSources:
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
+          - Account
           - AccountTokenSnapshot
           - Index
           - IndexCreated
           - IndexUpdated
-          - TokenStats
+          - Token
+          - TokenStatistic
           - Transaction
           - Subscriber
           - SubscriptionApproved

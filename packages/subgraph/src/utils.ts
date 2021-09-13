@@ -74,10 +74,10 @@ export function getOrInitToken(tokenId: string, lastModified: BigInt): Token {
         token.underlyingAddress = underlyingAddress;
         token.save();
 
-        // Note: we initalize and create tokenStats whenever we create a
+        // Note: we initalize and create tokenStatistic whenever we create a
         // token as well.
-        let tokenStats = getOrInitTokenStatistic(tokenId);
-        tokenStats.save();
+        let tokenStatistic = getOrInitTokenStatistic(tokenId);
+        tokenStatistic.save();
     }
     return token as Token;
 }
@@ -319,43 +319,42 @@ export function getOrInitAccountTokenSnapshot(
 }
 
 export function getOrInitTokenStatistic(tokenId: string): TokenStatistic {
-    let tokenStatsId = getTokenStatsID(tokenId);
-    let tokenStats = TokenStatistic.load(tokenStatsId);
-    if (tokenStats == null) {
-        tokenStats = new TokenStatistic(tokenStatsId);
-        tokenStats.totalNumberOfStreams = 0;
-        tokenStats.totalNumberOfIndexes = 0;
-        tokenStats.totalSubscribers = 0;
-        tokenStats.totalApprovedSubscribers = 0;
-        tokenStats.totalOutflowRate = BIG_INT_ZERO;
-        tokenStats.totalUnitsApproved = BIG_INT_ZERO;
-        tokenStats.totalUnitsPending = BIG_INT_ZERO;
-        tokenStats.totalUnitsDistributed = BIG_INT_ZERO;
-        tokenStats.token = tokenId;
+    let tokenStatistic = TokenStatistic.load(tokenId);
+    if (tokenStatistic == null) {
+        tokenStatistic = new TokenStatistic(tokenId);
+        tokenStatistic.totalNumberOfStreams = 0;
+        tokenStatistic.totalNumberOfIndexes = 0;
+        tokenStatistic.totalSubscribers = 0;
+        tokenStatistic.totalApprovedSubscribers = 0;
+        tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
+        tokenStatistic.totalUnitsApproved = BIG_INT_ZERO;
+        tokenStatistic.totalUnitsPending = BIG_INT_ZERO;
+        tokenStatistic.totalUnitsDistributed = BIG_INT_ZERO;
+        tokenStatistic.token = tokenId;
     }
-    return tokenStats as TokenStatistic;
+    return tokenStatistic as TokenStatistic;
 }
 
 /**
  * Updates the totalUnitsApproved and totalUnitsPending
- * properties on the TokenStats aggregate entity.
+ * properties on the TokenStatistic aggregate entity.
  * @param tokenId
  * @param totalUnitsApprovedDelta
  * @param totalUnitsPendingDelta
  */
-export function updateTokenStatsIDAUnitsData(
+export function updateTokenStatisticIDAUnitsData(
     tokenId: string,
     totalUnitsApprovedDelta: BigInt,
     totalUnitsPendingDelta: BigInt
 ): void {
-    let tokenStats = getOrInitTokenStatistic(tokenId);
-    tokenStats.totalUnitsApproved = tokenStats.totalUnitsApproved.plus(
+    let tokenStatistic = getOrInitTokenStatistic(tokenId);
+    tokenStatistic.totalUnitsApproved = tokenStatistic.totalUnitsApproved.plus(
         totalUnitsApprovedDelta
     );
-    tokenStats.totalUnitsPending = tokenStats.totalUnitsPending.plus(
+    tokenStatistic.totalUnitsPending = tokenStatistic.totalUnitsPending.plus(
         totalUnitsPendingDelta
     );
-    tokenStats.save();
+    tokenStatistic.save();
 }
 
 export function updateAggregateIDASubscriptionsData(
@@ -369,7 +368,7 @@ export function updateAggregateIDASubscriptionsData(
         accountId,
         tokenId
     );
-    let tokenStats = getOrInitTokenStatistic(tokenId);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId);
     let totalSubscriptionsDelta = isDeletingSubscription
         ? -1
         : subscriptionExists
@@ -388,14 +387,15 @@ export function updateAggregateIDASubscriptionsData(
         accountTokenSnapshot.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
 
-    // update TokenStats Subscriber data
-    tokenStats.totalSubscribers =
-        tokenStats.totalSubscribers + totalSubscriptionsDelta;
-    tokenStats.totalApprovedSubscribers =
-        tokenStats.totalApprovedSubscribers + totalApprovedSubscriptionsDelta;
+    // update tokenStatistic Subscriber data
+    tokenStatistic.totalSubscribers =
+        tokenStatistic.totalSubscribers + totalSubscriptionsDelta;
+    tokenStatistic.totalApprovedSubscribers =
+        tokenStatistic.totalApprovedSubscribers +
+        totalApprovedSubscriptionsDelta;
 
     accountTokenSnapshot.save();
-    tokenStats.save();
+    tokenStatistic.save();
 }
 
 /**
@@ -453,13 +453,13 @@ export function updateAggregateEntitiesStreamData(
     isCreate: boolean,
     isDelete: boolean
 ): void {
-    let tokenStats = getOrInitTokenStatistic(tokenId);
+    let tokenStatistic = getOrInitTokenStatistic(tokenId);
     let totalNumberOfStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
-    tokenStats.totalOutflowRate =
-        tokenStats.totalOutflowRate.plus(flowRateDelta);
-    tokenStats.totalNumberOfStreams =
-        tokenStats.totalNumberOfStreams + totalNumberOfStreamsDelta;
-    tokenStats.save();
+    tokenStatistic.totalOutflowRate =
+        tokenStatistic.totalOutflowRate.plus(flowRateDelta);
+    tokenStatistic.totalNumberOfStreams =
+        tokenStatistic.totalNumberOfStreams + totalNumberOfStreamsDelta;
+    tokenStatistic.save();
 
     let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId);
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId);
@@ -474,8 +474,4 @@ export function updateAggregateEntitiesStreamData(
 // Get Aggregate ID functions
 function getAccountTokenSnapshotID(accountId: string, tokenId: string): string {
     return accountId.concat("-").concat(tokenId);
-}
-
-function getTokenStatsID(tokenId: string): string {
-    return tokenId.concat("-").concat("stats");
 }

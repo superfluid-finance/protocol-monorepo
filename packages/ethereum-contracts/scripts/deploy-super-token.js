@@ -181,7 +181,7 @@ module.exports = async function (callback, argv, options = {}) {
                             superTokenAddress
                         )
                     );
-                    if (!process.env.GOVERNANCE_TYPE) {
+                    if (!process.env.GOVERNANCE_ADMIN_TYPE) {
                         // validate the token logic update for default governance type updates
                         const superTokenLogic3 = await (
                             await UUPSProxiable.at(superTokenAddress)

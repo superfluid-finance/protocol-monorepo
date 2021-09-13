@@ -240,6 +240,8 @@ contract("Framework class", (accounts) => {
                     await sf.superTokens[fDAIxAddress].symbol(),
                     "fDAIx"
                 );
+                assert.isUndefined(await sf.tokens.fDAI);
+                assert.isUndefined(await sf.tokens.fDAIx);
                 assert.equal(
                     await sf.superTokens[fDAIxAddress].underlyingToken.symbol(),
                     "fDAI"

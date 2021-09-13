@@ -1,53 +1,98 @@
-import { BigDecimal, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
-
-import {
-    // IConstantFlowAgreementV1 as ConstantFlowAgreementV1,
-    FlowUpdated as FlowUpdatedEvent,
-} from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-
-import {
-    Transaction,
-    Account,
-    Flow,
-    Token,
-    FlowUpdated,
-} from "../../generated/schema";
-
+import { BigInt } from "@graphprotocol/graph-ts";
+import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { FlowUpdated } from "../../generated/schema";
 import {
     createEventID,
-    fetchFlow,
-    fetchToken,
-    logTransaction,
-    updateBalance,
+    getOrInitStream,
+    updateATSBalance,
+    updateATSFlowRates,
+    updateAggregateEntitiesStreamData,
+    BIG_INT_ZERO,
+    getOrInitStreamRevision,
 } from "../utils";
 
-export function handleFlowUpdated(event: FlowUpdatedEvent): void {
-    let ownerId = event.params.sender.toHex();
-    let recipientId = event.params.receiver.toHex();
+enum FlowActionType {
+    create,
+    update,
+    terminate,
+}
+
+function createFlowUpdatedEntity(
+    event: FlowUpdatedEvent,
+    oldFlowRate: BigInt
+): void {
+    let ev = new FlowUpdated(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.sender = event.params.sender;
+    ev.receiver = event.params.receiver;
+    ev.flowRate = event.params.flowRate;
+    ev.totalSenderFlowRate = event.params.totalSenderFlowRate;
+    ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
+    ev.userData = event.params.userData;
+    ev.oldFlowRate = oldFlowRate;
+
+    let type = oldFlowRate.equals(BIG_INT_ZERO)
+        ? FlowActionType.create
+        : event.params.flowRate.equals(BIG_INT_ZERO)
+        ? FlowActionType.terminate
+        : FlowActionType.update;
+    ev.type = type;
+    ev.save();
+}
+
+export function handleStreamUpdated(event: FlowUpdatedEvent): void {
+    let senderId = event.params.sender.toHex();
+    let receiverId = event.params.receiver.toHex();
     let tokenId = event.params.token.toHex();
     let flowRate = event.params.flowRate;
-
     let currentTimestamp = event.block.timestamp;
-    // Get the existing flow
-    let flow = fetchFlow(ownerId, recipientId, tokenId, currentTimestamp);
-    // TODO: No need for BigDecimal here?
-    let oldFlowRate = flow.flowRate;
-    let duration = currentTimestamp.minus(flow.lastUpdate).toBigDecimal();
 
-    flow.flowRate = flowRate;
-    let sum = flow.sum;
-    sum = sum + oldFlowRate.toBigDecimal().times(duration);
-    flow.sum = sum;
-    flow.save();
+    let stream = getOrInitStream(
+        senderId,
+        receiverId,
+        tokenId,
+        currentTimestamp
+    );
+    let oldFlowRate = stream.currentFlowRate;
 
-    let ev = new FlowUpdated(createEventID(event));
-    ev.transaction = logTransaction(event).id;
-    ev.flow = flow.id;
-    ev.oldFlowRate = oldFlowRate;
-    ev.flowRate = flowRate;
-    ev.sum = sum;
-    ev.save();
+    let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAt);
+    let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
+        oldFlowRate.times(timeSinceLastUpdate)
+    );
+    stream.currentFlowRate = flowRate;
+    stream.updatedAt = currentTimestamp;
+    stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
+    stream.save();
 
-    updateBalance(ownerId, tokenId);
-    updateBalance(recipientId, tokenId);
+    let flowRateDelta = flowRate.minus(oldFlowRate);
+    let isCreate = oldFlowRate.equals(BIG_INT_ZERO);
+    let isDelete = flowRate.equals(BIG_INT_ZERO);
+    if (isDelete) {
+        let streamRevision = getOrInitStreamRevision(
+            senderId,
+            receiverId,
+            tokenId
+        );
+        streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
+        streamRevision.save();
+    }
+
+    // create event entity
+    createFlowUpdatedEntity(event, oldFlowRate);
+
+    // update aggregate entities data
+    updateATSBalance(senderId, tokenId);
+    updateATSBalance(receiverId, tokenId);
+    updateATSFlowRates(senderId, receiverId, tokenId, flowRateDelta);
+    updateAggregateEntitiesStreamData(
+        senderId,
+        receiverId,
+        tokenId,
+        flowRateDelta,
+        isCreate,
+        isDelete
+    );
 }

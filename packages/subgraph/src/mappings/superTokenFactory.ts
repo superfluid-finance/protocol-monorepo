@@ -1,19 +1,48 @@
-import { SuperTokenCreated as SuperTokenCreatedEvent } from "../../generated/SuperTokenFactory/ISuperTokenFactory";
-
-import { SuperTokenCreated } from "../../generated/schema";
-
-import { createEventID, logTransaction, fetchToken } from "../utils";
+import {
+    CustomSuperTokenCreated as CustomSuperTokenCreatedEvent,
+    SuperTokenCreated as SuperTokenCreatedEvent,
+    SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
+} from "../../generated/SuperTokenFactory/ISuperTokenFactory";
+import {
+    CustomSuperTokenCreated,
+    SuperTokenCreated,
+    SuperTokenLogicCreated,
+} from "../../generated/schema";
+import { createEventID, getOrInitToken } from "../utils";
 
 export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
-    let address = event.params.token.toHex();
-    let token = fetchToken(address);
-    token.save();
-
     let ev = new SuperTokenCreated(createEventID(event));
-    ev.transaction = logTransaction(event).id;
-    ev.address = event.params.token;
-    ev.underlyingAddress = token.underlyingAddress;
-    ev.symbol = token.symbol;
-    ev.name = token.name;
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.save();
+
+    let tokenAddress = event.params.token.toHex();
+    getOrInitToken(tokenAddress, event.block.timestamp);
+}
+
+export function handleCustomSuperTokenCreated(
+    event: CustomSuperTokenCreatedEvent
+): void {
+    let ev = new CustomSuperTokenCreated(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.save();
+
+    let tokenAddress = event.params.token.toHex();
+    getOrInitToken(tokenAddress, event.block.timestamp);
+}
+
+export function handleSuperTokenLogicCreated(
+    event: SuperTokenLogicCreatedEvent
+): void {
+    let ev = new SuperTokenLogicCreated(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.tokenLogic = event.params.tokenLogic;
     ev.save();
 }

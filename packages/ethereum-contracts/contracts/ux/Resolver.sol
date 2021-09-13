@@ -2,10 +2,10 @@
 pragma solidity 0.7.6;
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
-import { IResolver } from "../interfaces/misc/IResolver.sol";
+import { IResolver } from "../interfaces/ux/IResolver.sol";
 
 
-contract TestResolver is IResolver, AccessControl {
+contract Resolver is IResolver, AccessControl {
 
     mapping(string => address) private _registry;
 

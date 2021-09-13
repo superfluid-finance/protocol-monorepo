@@ -65,7 +65,6 @@ contract("Superfluid Liquidator Contract", (accounts) => {
             );
         });
 
-
         it("#1.2 Terminate all sender flows in one tx - rewards go to bond", async () => {
             const rewardAccount = await t.contracts.governance.getRewardAddress(
                 t.sf.host.address,
@@ -91,7 +90,7 @@ contract("Superfluid Liquidator Contract", (accounts) => {
                 superToken.address,
                 Array(7).fill(alice),
                 accounts.slice(1, 8),
-                { from: admin}
+                { from: admin }
             );
             assert.ok(
                 (await superToken.balanceOf(rewardAccount)).gt(rewardBalance)
@@ -116,7 +115,7 @@ contract("Superfluid Liquidator Contract", (accounts) => {
                 receiver: accounts[5],
             });
 
-            await superToken.transferAll(accounts[5], {from: alice});
+            await superToken.transferAll(accounts[5], { from: alice });
             await timeTravelOnce(5 * 3600);
             await batch.deleteFlows(
                 t.sf.host.address,

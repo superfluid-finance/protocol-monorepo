@@ -2,7 +2,7 @@
 pragma abicoder v2;
 pragma solidity 0.7.6;
 
-import { IResolver } from "../interfaces/misc/IResolver.sol";
+import { IResolver } from "../interfaces/ux/IResolver.sol";
 import {
     ISuperfluid,
     ISuperTokenFactory,

@@ -68,11 +68,11 @@ contract("Miscellaneous for test coverages", (accounts) => {
         });
     });
 
-    describe("TestResolver", () => {
-        const TestResolver = artifacts.require("TestResolver");
+    describe("Resolver", () => {
+        const Resolver = artifacts.require("Resolver");
 
-        it("TestResolver.set should only be called by admin", async () => {
-            const resolver = await TestResolver.new({ from: admin });
+        it("Resolver.set should only be called by admin", async () => {
+            const resolver = await Resolver.new({ from: admin });
             await expectRevert(
                 resolver.set("alice", alice, { from: alice }),
                 "Caller is not an admin"

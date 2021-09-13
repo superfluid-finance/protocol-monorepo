@@ -43,7 +43,7 @@ module.exports = async function (callback, argv, options = {}) {
                 "Ownable",
                 "IMultiSigWallet",
                 "SuperfluidGovernanceBase",
-                "TestResolver",
+                "Resolver",
                 "UUPSProxiable",
                 "SETHProxy",
             ],

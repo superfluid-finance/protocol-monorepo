@@ -15,7 +15,7 @@ const {
 } = require("./utils");
 
 let resetSuperfluidFramework;
-let testResolver;
+let resolver;
 
 async function deployAndRegisterContractIf(
     Contract,
@@ -25,13 +25,13 @@ async function deployAndRegisterContractIf(
 ) {
     let contractDeployed;
     const contractName = Contract.contractName;
-    const contractAddress = await testResolver.get(resolverKey);
+    const contractAddress = await resolver.get(resolverKey);
     console.log(`${resolverKey} address`, contractAddress);
     if (resetSuperfluidFramework || (await cond(contractAddress))) {
         console.log(`${contractName} needs new deployment.`);
         contractDeployed = await deployFunc();
         console.log(`${resolverKey} deployed to`, contractDeployed.address);
-        await web3tx(testResolver.set, `Resolver set ${resolverKey}`)(
+        await web3tx(resolver.set, `Resolver set ${resolverKey}`)(
             resolverKey,
             contractDeployed.address
         );
@@ -76,14 +76,14 @@ async function deployContractIfCodeChanged(
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.newTestResolver Force to create a new resolver (overridng env: NEW_TEST_RESOLVER)
- * @param {boolean} options.useMocks Use mock contracts instead (overridng env: USE_MOCKS)
+ * @param {boolean} options.newResolver Force to create a new resolver (overriding env: NEW_RESOLVER)
+ * @param {boolean} options.useMocks Use mock contracts instead (overriding env: USE_MOCKS)
  * @param {boolean} options.nonUpgradable Deploy contracts configured to be non-upgradable
- *                  (overridng env: NON_UPGRADABLE)
+ *                  (overriding env: NON_UPGRADABLE)
  * @param {boolean} options.appWhiteListing Deploy contracts configured to require app white listing
- *                  (overridng env: ENABLE_APP_WHITELISTING)
+ *                  (overriding env: ENABLE_APP_WHITELISTING)
  * @param {boolean} options.resetSuperfluidFramework Reset the superfluid framework deployment
- *                  (overridng env: RESET_SUPERFLUID_FRAMEWORK)
+ *                  (overriding env: RESET_SUPERFLUID_FRAMEWORK)
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *                  (overriding env: RELEASE_VERSION)
  *
@@ -95,7 +95,7 @@ module.exports = async function (callback, options = {}) {
 
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let {
-            newTestResolver,
+            newResolver,
             useMocks,
             nonUpgradable,
             appWhiteListing,
@@ -121,14 +121,14 @@ module.exports = async function (callback, options = {}) {
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
 
-        newTestResolver = newTestResolver || !!process.env.NEW_TEST_RESOLVER;
+        newResolver = newResolver || !!process.env.NEW_TEST_RESOLVER;
         useMocks = useMocks || !!process.env.USE_MOCKS;
         nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
         appWhiteListing =
             appWhiteListing ||
             config.gov_enableAppWhiteListing ||
             !!process.env.ENABLE_APP_WHITELISTING;
-        if (newTestResolver) {
+        if (newResolver) {
             console.log("**** !ATTN! CREATING NEW RESOLVER ****");
         }
         if (useMocks) {
@@ -152,7 +152,7 @@ module.exports = async function (callback, options = {}) {
             "Ownable",
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
-            "TestResolver",
+            "Resolver",
             "SuperfluidLoader",
             "Superfluid",
             "SuperTokenFactory",
@@ -176,7 +176,7 @@ module.exports = async function (callback, options = {}) {
             Ownable,
             IMultiSigWallet,
             SuperfluidGovernanceBase,
-            TestResolver,
+            Resolver,
             SuperfluidLoader,
             Superfluid,
             SuperfluidMock,
@@ -202,14 +202,14 @@ module.exports = async function (callback, options = {}) {
             networkId,
         });
 
-        if (!newTestResolver && config.resolverAddress) {
-            testResolver = await TestResolver.at(config.resolverAddress);
+        if (!newResolver && config.resolverAddress) {
+            resolver = await Resolver.at(config.resolverAddress);
         } else {
-            testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+            resolver = await web3tx(Resolver.new, "Resolver.new")();
             // make it available for the sdk for testing purpose
-            process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+            process.env.TEST_RESOLVER_ADDRESS = resolver.address;
         }
-        console.log("Resolver address", testResolver.address);
+        console.log("Resolver address", resolver.address);
 
         // deploy new governance contract
         let governanceInitializationRequired = false;
@@ -239,7 +239,7 @@ module.exports = async function (callback, options = {}) {
                 return await web3tx(
                     SuperfluidLoader.new,
                     "SuperfluidLoader.new"
-                )(testResolver.address);
+                )(resolver.address);
             }
         );
 

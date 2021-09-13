@@ -56,7 +56,7 @@ module.exports = async function (callback, argv, options = {}) {
                 "Ownable",
                 "IMultiSigWallet",
                 "SuperfluidGovernanceBase",
-                "TestResolver",
+                "Resolver",
                 "UUPSProxiable",
                 "SETHProxy",
             ],
@@ -65,7 +65,7 @@ module.exports = async function (callback, argv, options = {}) {
         await sf.initialize();
 
         const {
-            TestResolver,
+            Resolver,
             UUPSProxiable,
             ERC20WithTokenInfo,
             ISuperToken,
@@ -202,8 +202,8 @@ module.exports = async function (callback, argv, options = {}) {
             const superToken = await deploymentFn();
             console.log("Wrapper created at", superToken.address);
             console.log("Resolver setting new address...");
-            const testResolver = await TestResolver.at(sf.resolver.address);
-            await testResolver.set(superTokenKey, superToken.address);
+            const resolver = await Resolver.at(sf.resolver.address);
+            await resolver.set(superTokenKey, superToken.address);
             console.log("Resolver set done.");
         }
 

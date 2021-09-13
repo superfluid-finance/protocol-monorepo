@@ -42,8 +42,8 @@ fi
 #
 
 # unset potential interfering environment varibles
-unset TEST_RESOLVER_ADDRESS
-unset NEW_TEST_RESOLVER
+unset RESOLVER_ADDRESS
+unset NEW_RESOLVER
 unset RESET_SUPERFLUID_FRAMEWORK
 unset RELEASE_VERSION
 unset USE_MOCKS
@@ -58,7 +58,7 @@ set -xe
 
 > $ENVFILE
 npx truffle --network ganache exec scripts/deploy-test-environment.js | tee >(tail -n1 > $ENVFILE)
-# read the TEST_RESOLVER_ADDRESS variable
+# read the RESOLVER_ADDRESS variable
 source $ENVFILE
 
 npx truffle --network ganache exec scripts/print-addresses.js : >(cat)

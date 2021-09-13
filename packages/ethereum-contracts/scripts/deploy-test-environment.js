@@ -50,12 +50,12 @@ module.exports = async function (callback, options = {}) {
             options
         );
 
-        if (process.env.TEST_RESOLVER_ADDRESS) {
+        if (process.env.RESOLVER_ADDRESS) {
             console.log(
                 "=============== TEST ENVIRONMENT RESOLVER ======================"
             );
             console.log(
-                `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
+                `export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`
             );
         }
 

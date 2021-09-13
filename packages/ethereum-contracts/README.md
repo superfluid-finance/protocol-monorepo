@@ -130,20 +130,20 @@ DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superf
 If you want to deploy to a public network:
 
 ```sh
-NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+NEW_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
-Note `NEW_TEST_RESOLVER=1`, it is to avoid using the official resolver address. Doing so
+Note `NEW_RESOLVER=1`, it is to avoid using the official resolver address. Doing so
 after the command finishes, you should see:
 
 ```
 ...
 ======== Super token deployed ========
 =============== TEST ENVIRONMENT RESOLVER ======================
-export TEST_RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
+export RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
 ```
 
-Run the export command to save TEST_RESOLVER_ADDRESS to your local environment.
+Run the export command to save RESOLVER_ADDRESS to your local environment.
 Whenever you run additional tests/scripts this will be the address used to find the SF Framework contracts.
 
 ### Examples

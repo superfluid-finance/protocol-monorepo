@@ -37,7 +37,7 @@ module.exports = async function (callback, argv) {
         } else {
             resolver = await web3tx(Resolver.new, "Resolver.new")();
             // make it available for the sdk for testing purpose
-            process.env.TEST_RESOLVER_ADDRESS = resolver.address;
+            process.env.RESOLVER_ADDRESS = resolver.address;
         }
         console.log("Resolver address", resolver.address);
 

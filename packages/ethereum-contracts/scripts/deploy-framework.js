@@ -121,7 +121,7 @@ module.exports = async function (callback, options = {}) {
             "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
         );
 
-        newResolver = newResolver || !!process.env.NEW_TEST_RESOLVER;
+        newResolver = newResolver || !!process.env.NEW_RESOLVER;
         useMocks = useMocks || !!process.env.USE_MOCKS;
         nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
         appWhiteListing =
@@ -207,7 +207,7 @@ module.exports = async function (callback, options = {}) {
         } else {
             resolver = await web3tx(Resolver.new, "Resolver.new")();
             // make it available for the sdk for testing purpose
-            process.env.TEST_RESOLVER_ADDRESS = resolver.address;
+            process.env.RESOLVER_ADDRESS = resolver.address;
         }
         console.log("Resolver address", resolver.address);
 
@@ -549,12 +549,12 @@ module.exports = async function (callback, options = {}) {
 
         console.log("======== Superfluid framework deployed ========");
 
-        if (process.env.TEST_RESOLVER_ADDRESS) {
+        if (process.env.RESOLVER_ADDRESS) {
             console.log(
                 "=============== TEST ENVIRONMENT RESOLVER ======================"
             );
             console.log(
-                `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
+                `export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`
             );
         }
 

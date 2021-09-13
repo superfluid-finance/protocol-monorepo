@@ -64,9 +64,7 @@ module.exports = async function (callback, argv, options = {}) {
         const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
         console.log("Super token key", superTokenKey);
 
-        const resolver = await sf.contracts.Resolver.at(
-            sf.resolver.address
-        );
+        const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
         if (
             (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
             !resetToken

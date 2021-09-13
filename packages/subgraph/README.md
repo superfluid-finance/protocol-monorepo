@@ -133,12 +133,12 @@ yarn build
 Now come back here in `packages/subgraph` and run the following command to deploy contracts:
 
 ```bash
-NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
+NEW_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
 
 > .......
 > ConstantFlowAgreementV1: TruffleContract .agreements.cfa @0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416 | Helper .cfa
 > =============== TEST ENVIRONMENT RESOLVER ======================
-> export TEST_RESOLVER_ADDRESS=0xa36FfB4643C11307515F9851f2320a0556fD2687
+> export RESOLVER_ADDRESS=0xa36FfB4643C11307515F9851f2320a0556fD2687
 ```
 
 Copy the `export` command from your output and run it. NOTE: you must load this environment variable in the same terminal which you run `yarn test`.
@@ -224,7 +224,7 @@ Run the test to generate some activity on your local ganache contracts
 yarn test
 ```
 
-If you get an error like `Error: Invalid address passed to IResolver.at(): undefined`, then your resolver environment variable is not found. Fix this by running the `export TEST_RESOLVER_ADDRESS=0xa` command again.
+If you get an error like `Error: Invalid address passed to IResolver.at(): undefined`, then your resolver environment variable is not found. Fix this by running the `export RESOLVER_ADDRESS=0xa` command again.
 
 ## Troubleshooting
 

@@ -39,6 +39,7 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
     tokenStatistic.totalNumberOfIndexes =
         tokenStatistic.totalNumberOfIndexes + 1;
+    tokenStatistic.save();
 
     createIndexCreatedEntity(event);
 }

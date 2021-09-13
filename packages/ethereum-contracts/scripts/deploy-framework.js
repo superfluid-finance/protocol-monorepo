@@ -103,6 +103,17 @@ module.exports = async function (callback, options = {}) {
         } = options;
         resetSuperfluidFramework = options.resetSuperfluidFramework;
 
+        resetSuperfluidFramework =
+            resetSuperfluidFramework ||
+            !!process.env.RESET_SUPERFLUID_FRAMEWORK;
+        protocolReleaseVersion =
+            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
+        const networkId = await web3.eth.net.getId();
+        console.log("reset superfluid framework: ", resetSuperfluidFramework);
+        console.log("network ID: ", networkId);
+        console.log("protocol release version:", protocolReleaseVersion);
+        const config = getConfig(networkId);
+
         const CFAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
         );
@@ -114,7 +125,9 @@ module.exports = async function (callback, options = {}) {
         useMocks = useMocks || !!process.env.USE_MOCKS;
         nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
         appWhiteListing =
-            appWhiteListing || !!process.env.ENABLE_APP_WHITELISTING;
+            appWhiteListing ||
+            config.gov_enableAppWhiteListing ||
+            !!process.env.ENABLE_APP_WHITELISTING;
         if (newTestResolver) {
             console.log("**** !ATTN! CREATING NEW RESOLVER ****");
         }
@@ -124,16 +137,9 @@ module.exports = async function (callback, options = {}) {
         if (nonUpgradable) {
             console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
         }
-
-        resetSuperfluidFramework =
-            resetSuperfluidFramework ||
-            !!process.env.RESET_SUPERFLUID_FRAMEWORK;
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const networkId = await web3.eth.net.getId();
-        console.log("reset superfluid framework: ", resetSuperfluidFramework);
-        console.log("network ID: ", networkId);
-        console.log("protocol release version:", protocolReleaseVersion);
+        if (appWhiteListing) {
+            console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
+        }
 
         await deployERC1820(
             (err) => {
@@ -142,7 +148,6 @@ module.exports = async function (callback, options = {}) {
             { web3, ...(options.from ? { from: options.from } : {}) }
         );
 
-        const config = getConfig(networkId);
         const contracts = [
             "Ownable",
             "IMultiSigWallet",
@@ -209,7 +214,7 @@ module.exports = async function (callback, options = {}) {
         // deploy new governance contract
         let governanceInitializationRequired = false;
         let governance;
-        if (!process.env.NO_NEW_GOVERNANCE) {
+        if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
             governance = await deployAndRegisterContractIf(
                 TestGovernance,
                 `TestGovernance.${protocolReleaseVersion}`,

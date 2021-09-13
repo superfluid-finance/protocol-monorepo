@@ -13,4 +13,5 @@ interface IResolver {
      */
     function get(string calldata name) external view returns (address);
 
+    event Set(string indexed name, address target);
 }

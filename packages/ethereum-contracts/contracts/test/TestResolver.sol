@@ -16,6 +16,7 @@ contract TestResolver is IResolver, AccessControl {
     function set(string calldata name, address target) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Caller is not an admin");
         _registry[name] = target;
+        emit Set(name, target);
     }
 
     function get(string calldata name) external view override returns (address) {

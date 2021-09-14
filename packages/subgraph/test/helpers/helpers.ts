@@ -1,8 +1,10 @@
 import { ethers } from "hardhat";
+import { request, gql } from "graphql-request";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { IMeta } from "../interfaces";
 
-// the resolver address should be consistent as long as you use the 
+// the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
 // 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
 const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
@@ -18,10 +20,10 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
  */
 export const beforeSetup = async (tokenAmount: number) => {
     let names: { [address: string]: string } = {};
-    const [Deployer, Alice, Bob] = (await ethers.getSigners()).map(
+    const [Deployer, Alice, Bob, Charlie] = (await ethers.getSigners()).map(
         (x) => x.address
     );
-    const userAddresses = [Deployer, Alice, Bob];
+    const userAddresses = [Deployer, Alice, Bob, Charlie];
     names[Deployer] = "Deployer";
     names[Alice] = "Alice";
     names[Bob] = "Bob";
@@ -29,7 +31,7 @@ export const beforeSetup = async (tokenAmount: number) => {
         web3: (global as any).web3,
         version: "test",
         tokens: ["fDAI"],
-		resolverAddress: RESOLVER_ADDRESS
+        resolverAddress: RESOLVER_ADDRESS,
     });
 
     console.log("\n");
@@ -64,4 +66,60 @@ export const beforeSetup = async (tokenAmount: number) => {
     );
 
     return [names, userAddresses, sf, dai, daix];
+};
+
+export const monthlyToSecondRate = (monthlyRate: number) => {
+    const days = 30;
+    const hours = days * 24;
+    const minutes = hours * 60;
+    const seconds = minutes * 60;
+    return Math.round((monthlyRate / seconds) * 10 ** 18);
+};
+
+export const getCurrentBlockNumber = async () => {
+    const query = gql`
+        query {
+            _meta {
+                block {
+                    number
+                }
+            }
+        }
+    `;
+    const data = await subgraphRequest<IMeta>(
+        "http://localhost:8000/subgraphs/name/superfluid-test",
+        query
+    );
+    return data._meta.block.number;
+};
+
+export const subgraphRequest = async <T>(
+    query: string,
+    variables?: any
+): Promise<T> => {
+    try {
+        const response = await request<T>(
+            "http://localhost:8000/subgraphs/name/superfluid-test",
+            query,
+            variables
+        );
+        return response;
+    } catch (err) {
+        console.error(
+            `Failed call to subgraph with query ${query} and error ${err}`
+        );
+        // TODO: should I implement retry?
+    }
+};
+
+function asleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export const waitUntilBlockIndexed = async (txnBlockNumber: number) => {
+    let currentBlock: number;
+    do {
+        currentBlock = await getCurrentBlockNumber();
+        await asleep(50);
+    } while (txnBlockNumber > currentBlock);
 };

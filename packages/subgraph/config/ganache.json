@@ -1,9 +1,9 @@
 {
     "network": "mainnet",
     "hostStartBlock": 0,
-    "hostAddress": "0xc3e53F4d16Ae77Db1c982e75a937B9f60FE63690",
-    "cfaAddress": "0xa37aE2b259D35aF4aBdde122eC90B204323ED304",
-    "idaAddress": "0xe3ADd897e69010709498738e5116C06B4D81e672",
-    "superTokenFactoryAddress": "0x08957fd2346e89192C452c47a5f6631c63c91Eac",
-    "superfluidGovernanceAddress": "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F"
+    "hostAddress": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+    "cfaAddress": "0x9bd03768a7DCc129555dE410FF8E85528A4F88b5",
+    "idaAddress": "0x440C0fCDC317D69606eabc35C0F676D1a8251Ee1",
+    "superTokenFactoryAddress": "0x80E2E2367C5E9D070Ae2d6d50bF0cdF6360a7151",
+    "superfluidGovernanceAddress": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
 }

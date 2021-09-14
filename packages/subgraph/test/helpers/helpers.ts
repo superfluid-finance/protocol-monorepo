@@ -2,6 +2,11 @@ import { ethers } from "hardhat";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 
+// the resolver address should be consistent as long as you use the 
+// first account retrieved by hardhat's ethers.getSigners():
+// 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
+const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+
 /**************************************************************************
  * Test Helper Functions
  *************************************************************************/
@@ -24,6 +29,7 @@ export const beforeSetup = async (tokenAmount: number) => {
         web3: (global as any).web3,
         version: "test",
         tokens: ["fDAI"],
+		resolverAddress: RESOLVER_ADDRESS
     });
 
     console.log("\n");

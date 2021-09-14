@@ -11,8 +11,7 @@ export type Record = {
     cost: BN
 }
 
-export = GasMeter;
-declare class GasMeter {
+export declare class GasMeter {
     constructor(
         web3: Web3,
         outputFormat: 'JSON'|'HTML'|'TENDERLY',

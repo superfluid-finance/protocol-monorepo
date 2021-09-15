@@ -294,6 +294,8 @@ type Account @entity {
     createdAt: BigInt!
     updatedAt: BigInt!
 }
+# TODO: research how to add isEOA property
+# TODO: can check if is super app
 
 type Token @entity {
     # Note: All Tokens are Super Tokens for this subgraph

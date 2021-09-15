@@ -25,8 +25,8 @@ query getFlowUpdatedEvent($id: ID!) {
 
 export const getFlowUpdatedEventsQuery = (options: IQueryOptions) => gql`
     query getFlowUpdatedEvents($sender: Bytes!, $receiver: Bytes!) {
-        flowUpdateds(where: { sender: $sender, receiver: $receiver } ${formatQueryOptions(
-            options
-        )} ) ${flowUpdatedEventProperties}
+        flowUpdateds(where: { sender: $sender, receiver: $receiver } 
+		${formatQueryOptions(options)}) 
+		${flowUpdatedEventProperties}
     }
 `;

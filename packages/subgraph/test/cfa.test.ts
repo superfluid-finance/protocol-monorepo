@@ -1,17 +1,21 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { ContractReceipt } from "ethers";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import {
     beforeSetup,
-	getEventId,
+    getEventId,
     monthlyToSecondRate,
-	subgraphRequest,
+    subgraphRequest,
     waitUntilBlockIndexed,
 } from "./helpers/helpers";
-import { getFlowUpdatedEventQuery, getFlowUpdatedEventsQuery } from "./queries/eventQueries";
-import { IFlowUpdated, IQueryOptions } from "./interfaces";
+import { getFlowUpdatedEventQuery } from "./queries/eventQueries";
+import { IFlowUpdated, ITokenStatistic } from "./interfaces";
+import { validateEventData } from "./validation/validators";
+import localAddresses from "../config/ganache.json";
+import cfaABI from "../abis/IConstantFlowAgreementV1.json";
 
-describe("ConstantFlowAgreemntV1 Subgraph Tests", () => {
+describe("Subgraph Tests", () => {
     let names: { [address: string]: string } = {};
     let userAddresses: string[] = [];
     let sf: Framework;
@@ -25,30 +29,72 @@ describe("ConstantFlowAgreemntV1 Subgraph Tests", () => {
         sf = SF;
         dai = DAI;
         daix = DAIx;
+        // const cfa = await ethers.getContractAt(
+        //     cfaABI,
+        //     localAddresses.cfaAddress
+        // );
     });
 
-    it("Should be able to create a flow.", async () => {
-        const txn = await sf.cfa!.createFlow({
-            superToken: daix.address,
-            sender: userAddresses[0],
-            receiver: userAddresses[3],
-            flowRate: monthlyToSecondRate(100),
+    describe("ConstantFlowAgreementV1 Tests", () => {
+        it("Should return correct data after creating a flow.", async () => {
+            const token = daix.address;
+            const sender = userAddresses[0];
+            const receiver = userAddresses[1];
+            const flowRate = monthlyToSecondRate(100);
+            const txn = await sf.cfa!.createFlow({
+                superToken: token,
+                sender,
+                receiver,
+                flowRate,
+            });
+
+            const receipt: ContractReceipt = txn.receipt;
+
+            await waitUntilBlockIndexed(receipt.blockNumber);
+
+            const variables = {
+                id: getEventId(receipt),
+            };
+
+            const flowUpdatedEvent = await subgraphRequest<IFlowUpdated>(
+                getFlowUpdatedEventQuery,
+                variables
+            );
+
+            validateEventData(
+                flowUpdatedEvent,
+                {
+                    token: token.toLowerCase(),
+                    sender: sender.toLowerCase(),
+                    receiver: receiver.toLowerCase(),
+                    flowRate: flowRate.toString(),
+                    totalSenderFlowRate: (-flowRate).toString(),
+                    totalReceiverFlowRate: flowRate.toString(),
+                    oldFlowRate: "0",
+                    type: 0,
+                },
+                receipt
+            );
+
+            console.log(flowUpdatedEvent);
         });
 
-        await waitUntilBlockIndexed(txn.receipt.blockNumber);
+        it("Should return correct data after creating multiple flows from one person to a few.", () => {});
 
-        const variables = {
-            id: getEventId(txn.receipt)
-        };
+        it("Should return correct data after creating multiple flows from a few to one person.", () => {});
 
-        const data = await subgraphRequest<IFlowUpdated>(
-            getFlowUpdatedEventQuery,
-            variables
-        );
-        console.log(data);
+        it("Should return correct data after updating a single flow.", () => {});
+
+        it("Should return correct data after updating multiple flows from one person to a few.", () => {});
+
+        it("Should return correct data after updating multiple flows from a few to one person.", () => {});
+
+        it("Should return correct data after deleting a created flow.", () => {});
+
+        it("Should return correct data after deleting an updated flow.", () => {});
+
+		it("Should return correct data after creating a flow after deleting.", () => {});
+
+		it("Should return correct data after creating and updating a flow after deleting.", () => {});
     });
-
-    it("Should be able to create multiple flows from one person to a few.", () => {});
-
-    it("Should be able to create multiple flows from a few to one person.", () => {});
 });

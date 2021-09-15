@@ -1,8 +1,9 @@
 import { ethers } from "hardhat";
+import { ContractReceipt } from "ethers";
 import { request, gql } from "graphql-request";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import { IMeta } from "../interfaces";
+import { IMeta, IQueryOptions } from "../interfaces";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -86,16 +87,13 @@ export const getCurrentBlockNumber = async () => {
             }
         }
     `;
-    const data = await subgraphRequest<IMeta>(
-        "http://localhost:8000/subgraphs/name/superfluid-test",
-        query
-    );
+    const data = await subgraphRequest<IMeta>(query);
     return data._meta.block.number;
 };
 
 export const subgraphRequest = async <T>(
     query: string,
-    variables?: any
+    variables?: { [key: string]: any }
 ): Promise<T> => {
     try {
         const response = await request<T>(
@@ -108,8 +106,18 @@ export const subgraphRequest = async <T>(
         console.error(
             `Failed call to subgraph with query ${query} and error ${err}`
         );
-        // TODO: should I implement retry?
     }
+};
+
+export const formatQueryOptions = (options: IQueryOptions) => {
+    const optionsLimit = options.limit ? ", first: " + options.limit : null;
+    const optionsDirection = options.direction
+        ? ", orderDirection: " + options.direction
+        : null;
+    const optionsOrderBy = options.orderByProperty
+        ? ", orderBy: " + options.orderByProperty + optionsDirection
+        : null;
+    return `${optionsLimit} ${optionsOrderBy}`;
 };
 
 function asleep(ms: number) {
@@ -122,4 +130,10 @@ export const waitUntilBlockIndexed = async (txnBlockNumber: number) => {
         currentBlock = await getCurrentBlockNumber();
         await asleep(50);
     } while (txnBlockNumber > currentBlock);
+};
+
+export const getEventId = (receipt: ContractReceipt) => {
+    return (
+        receipt.transactionHash.toLowerCase() + "-" + receipt.transactionIndex
+    );
 };

@@ -1,12 +1,15 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { request, gql } from "graphql-request";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import {
     beforeSetup,
+	getEventId,
     monthlyToSecondRate,
+	subgraphRequest,
     waitUntilBlockIndexed,
 } from "./helpers/helpers";
+import { getFlowUpdatedEventQuery, getFlowUpdatedEventsQuery } from "./queries/eventQueries";
+import { IFlowUpdated, IQueryOptions } from "./interfaces";
 
 describe("ConstantFlowAgreemntV1 Subgraph Tests", () => {
     let names: { [address: string]: string } = {};
@@ -24,7 +27,7 @@ describe("ConstantFlowAgreemntV1 Subgraph Tests", () => {
         daix = DAIx;
     });
 
-    it("Should be able to create a flow.", async function (done: Mocha.Done) {
+    it("Should be able to create a flow.", async () => {
         const txn = await sf.cfa!.createFlow({
             superToken: daix.address,
             sender: userAddresses[0],
@@ -33,29 +36,16 @@ describe("ConstantFlowAgreemntV1 Subgraph Tests", () => {
         });
 
         await waitUntilBlockIndexed(txn.receipt.blockNumber);
+
         const variables = {
-            sender: userAddresses[0],
-            receiver: userAddresses[3],
+            id: getEventId(txn.receipt)
         };
-        const query = gql`
-            query getStreamEvent($sender: Bytes!, $receiver: Bytes!) {
-                flowUpdateds(where: { sender: $sender, receiver: $receiver }) {
-                    id
-                    sender
-                    receiver
-                    flowRate
-                    totalSenderFlowRate
-                    totalReceiverFlowRate
-                }
-            }
-        `;
-        const data = await request(
-            "http://localhost:8000/subgraphs/name/superfluid-test",
-            query,
+
+        const data = await subgraphRequest<IFlowUpdated>(
+            getFlowUpdatedEventQuery,
             variables
         );
         console.log(data);
-        done();
     });
 
     it("Should be able to create multiple flows from one person to a few.", () => {});

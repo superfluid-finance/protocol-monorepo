@@ -2,8 +2,8 @@ name: CI Test Subgraph Locally
 
 on:
   # triggered by internal pushes
-  push:
-    branches-ignore: ["master", "dev"]
+  # push:
+  #   branches-ignore: ["master", "dev"]
   # triggered by external PRs (filtered in the `check` job)
   pull_request:
 
@@ -29,7 +29,7 @@ jobs:
       - name: "Install yarn"
         run: npm install -g yarn ganache-cli
       
-      # at some point we want to install ganache-cli
+      # # at some point we want to install ganache-cli
 
       - name: "Install contract dependencies"
         run: yarn install
@@ -61,27 +61,27 @@ jobs:
         run: npx hardhat run test/deployContractsAndToken.ts --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "install docker compose"
-        run: npm install -g docker-compose
-
-
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v2
         with:
           repository: graphprotocol/graph-node
-          path: docker
-          token: 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
+          path: graph-node
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "test???"
+      - name: "Run setup because linux and docker-compose"
         run: |
-          ls -la
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
           chmod +x setup.sh
           ./setup.sh
-          docker-compose up &
-        working-directory: ./docker/docker
+        working-directory: ./graph-node/docker
+      
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ./graph-node/docker
 
       - name: "Prepare, build and deploy subgraph locally"
-        run: yarn prepare && yarn build && deploy-local
+        run: yarn prepare-local && yarn codegen && yarn build && yarn deploy-local
         working-directory: ${{ env.subgraph-working-directory }}
 
       

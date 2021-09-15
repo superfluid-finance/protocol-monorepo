@@ -19,6 +19,7 @@ export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
     ev.save();
 
     let tokenAddress = event.params.token.toHex();
+	// anything that is not expected host
     getOrInitToken(tokenAddress, event.block.timestamp);
 }
 

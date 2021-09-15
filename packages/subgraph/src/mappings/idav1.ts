@@ -36,6 +36,7 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     index.userData = event.params.userData;
     index.save();
 
+	// update to not  do it here
     let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
     tokenStatistic.totalNumberOfIndexes =
         tokenStatistic.totalNumberOfIndexes + 1;

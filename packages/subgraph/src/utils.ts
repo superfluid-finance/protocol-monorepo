@@ -94,7 +94,7 @@ export function getOrInitStreamRevision(
     recipientId: string,
     tokenId: string
 ): StreamRevision {
-    let streamRevisionId = getStreamRevisionID(senderId, recipientId, tokenId);
+    let streamRevisionId = getStreamRevisionPrefix(senderId, recipientId, tokenId);
     let streamRevision = StreamRevision.load(streamRevisionId);
     if (streamRevision == null) {
         streamRevision = new StreamRevision(streamRevisionId);
@@ -117,7 +117,7 @@ export function getOrInitStream(
     let streamRevision = getOrInitStreamRevision(senderId, receiverId, tokenId);
     if (
         !streamRevisionExists(
-            getStreamRevisionID(senderId, receiverId, tokenId)
+            getStreamRevisionPrefix(senderId, receiverId, tokenId)
         )
     ) {
         streamRevision.save();
@@ -232,7 +232,7 @@ export function getOrInitSubscriber(
 }
 
 // Get HOL ID functions
-function getStreamRevisionID(
+function getStreamRevisionPrefix(
     senderId: string,
     recipientId: string,
     tokenId: string
@@ -246,7 +246,7 @@ function getStreamID(
     tokenId: string,
     revisionIndex: number
 ): string {
-    return getStreamRevisionID(senderId, receiverId, tokenId)
+    return getStreamRevisionPrefix(senderId, receiverId, tokenId)
         .concat("-")
         .concat(revisionIndex.toString());
 }

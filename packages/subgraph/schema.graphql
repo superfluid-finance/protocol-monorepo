@@ -317,7 +317,7 @@ type Stream implements BaseEntity @entity {
     sender: Account!
     receiver: Account!
 }
-
+# add comments/docs about each entity
 type Subscriber implements BaseEntity @entity {
     id: ID!
     createdAt: BigInt!
@@ -330,7 +330,7 @@ type Subscriber implements BaseEntity @entity {
     # ---------------------------------- state ----------------------------------
     approved: Boolean!
     units: BigInt!
-    totalUnitsReceivedUntilUpdatedAt: BigInt!
+    totalUnitsReceivedUntilUpdatedAt: BigInt! # change to totalAmounts
     lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
     # ---------------------------------- links ----------------------------------
     index: Index!
@@ -377,20 +377,26 @@ type AccountTokenSnapshot @entity {
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
+	# totalAmountStreamedUntilLastUpdate
+	# totalAmountTransferred
 }
 
 # Note: naming of entities must be singular.
 type TokenStatistic @entity {
     id: ID!
     # ---------------------------------- state ----------------------------------
-    totalNumberOfStreams: Int!
-    totalNumberOfIndexes: Int!
+    totalNumberOfStreams: Int! # rename to activeStreams
+	# totalNumberOfClosedStreams
+    totalNumberOfIndexes: Int! # only count totalNumberOfIndexes w/ units, add a totalNumberOfActiveIndexes
     totalSubscribers: Int!
     totalApprovedSubscribers: Int!
     totalOutflowRate: BigInt!
-    totalUnitsApproved: BigInt!
+	# totalAmountStreamedUntilLastUpdate
+	# totalAmountTransferred
+    totalUnitsApproved: BigInt! # clarify approved - users w/ units 
     totalUnitsPending: BigInt!
-    totalUnitsDistributed: BigInt!
+	# remove totalUnits properties and add in totalAccountsApproved + totalAccountsPending
+    totalUnitsDistributed: BigInt! # rename to totalAmountDistributed
     # ---------------------------------- links ----------------------------------
     token: Token!
 }

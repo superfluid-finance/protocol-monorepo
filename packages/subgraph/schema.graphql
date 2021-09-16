@@ -375,7 +375,7 @@ type AccountTokenSnapshot @entity {
     totalNumberOfClosedStreams: Int!
     totalSubscriptions: Int!
     totalApprovedSubscriptions: Int!
-    balance: BigInt! # must be updated each time subscription units is updated
+    balance: BigInt!
     totalNetFlowRate: BigInt!
     totalInflowRate: BigInt!
     totalOutflowRate: BigInt!

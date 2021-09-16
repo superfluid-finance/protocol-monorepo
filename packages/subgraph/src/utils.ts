@@ -349,10 +349,13 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
         accountTokenSnapshot.updatedAt = lastModified;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
+        accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptions = 0;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.balance = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalInflowRate = 0;
+        accountTokenSnapshot.totalOutflowRate = 0;
         accountTokenSnapshot.account = accountId;
         accountTokenSnapshot.token = tokenId;
     }
@@ -368,6 +371,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic = new TokenStatistic(tokenId);
         tokenStatistic.updatedAt = lastModified;
         tokenStatistic.totalNumberOfActiveStreams = 0;
+        tokenStatistic.totalNumberOfClosedStreams = 0;
         tokenStatistic.totalNumberOfIndexes = 0;
         tokenStatistic.totalSubscribers = 0;
         tokenStatistic.totalApprovedSubscribers = 0;

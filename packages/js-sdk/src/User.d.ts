@@ -1,6 +1,6 @@
 import type { Framework } from './Framework';
 import type BN from 'bn.js';
-import Transaction from 'web3';
+import type { Transaction } from 'web3';
 import type { Flow } from './ConstantFlowAgreementV1Helper';
 import type { Subscription } from './InstantDistributionAgreementV1Helper';
 

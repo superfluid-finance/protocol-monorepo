@@ -1,8 +1,8 @@
-import { ethers, Contract as EthersContract, utils } from "ethers"; 
+import type { ethers, Contract as EthersContract, utils } from "ethers"; 
 import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
 import type Web3 from "web3";
-import type { Contract } from 'ethers'
+import type { Contract, ContractInterface } from 'ethers'
 
 type SuperfluidContractNames =
   | 'ERC20WithTokenInfo'
@@ -22,7 +22,7 @@ type SuperfluidContractNames =
   | 'UUPSProxiable';
 
 export type SuperfluidContractObject = {
-  abi: any;
+  abi: ContractInterface;
   contractName: SuperfluidContractNames;
   at: (address: string) => Contract;
 }

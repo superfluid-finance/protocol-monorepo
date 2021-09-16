@@ -1,7 +1,7 @@
 import type BN from 'bn.js'
 import type Web3 from 'web3'
-import { GasMeterJSONReporter } from "./gasReporter";
-import { GasMeterHTMLReporter } from "./gasReporter";
+import type { GasMeterJSONReporter } from "./gasReporter";
+import type { GasMeterHTMLReporter } from "./gasReporter";
 
 export type Record = {
     action: string

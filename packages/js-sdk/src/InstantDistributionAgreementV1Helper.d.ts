@@ -1,4 +1,4 @@
-import { Transaction } from "web3-core";
+import type { Transaction } from "web3-core";
 import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from 'bn.js';

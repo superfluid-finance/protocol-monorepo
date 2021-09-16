@@ -293,6 +293,7 @@ type Account @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
+    # TODO: update the updatedAt every time the account is updated in some way
     isSuperApp: Boolean!
 }
 
@@ -379,8 +380,8 @@ type AccountTokenSnapshot @entity {
     totalNetFlowRate: BigInt!
     totalInflowRate: BigInt!
     totalOutflowRate: BigInt!
-    totalAmountStreamedUntilUpdatedAt: BigInt! # TODO: implement
-    totalAmountTransferred: BigInt! # TODO: implement
+    totalAmountStreamedUntilUpdatedAt: BigInt!
+    totalAmountTransferred: BigInt!
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
@@ -398,8 +399,8 @@ type TokenStatistic @entity {
     totalSubscribers: Int!
     totalApprovedSubscribers: Int!
     totalOutflowRate: BigInt!
-    totalAmountStreamedUntilUpdatedAt: BigInt! # TODO: implement
-    totalAmountTransferred: BigInt! # TODO: implement
+    totalAmountStreamedUntilUpdatedAt: BigInt!
+    totalAmountTransferred: BigInt!
     totalAccountsApproved: Int! # TODO: implement
     totalAccountsPending: Int! # TODO: implement
     totalAmountDistributed: BigInt!

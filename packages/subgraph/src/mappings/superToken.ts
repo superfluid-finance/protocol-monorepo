@@ -10,7 +10,12 @@ import {
     Transfer,
     AgreementLiquidatedBy,
 } from "../../generated/schema";
-import { createEventID, getOrInitAccount, updateATSBalance } from "../utils";
+import {
+    createEventID,
+    getOrInitAccount,
+    updateAggregateEntitiesTransferData,
+    updateATSBalance,
+} from "../utils";
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
@@ -85,6 +90,13 @@ export function handleTransfer(event: TransferEvent): void {
     let tokenId = event.address.toHex();
     updateATSBalance(toAccount.id, tokenId, currentTimestamp);
     updateATSBalance(fromAccount.id, tokenId, currentTimestamp);
+
+    updateAggregateEntitiesTransferData(
+        event.params.from.toHex(),
+        tokenId,
+        currentTimestamp,
+        event.params.value
+    );
 }
 
 /**************************************************************************

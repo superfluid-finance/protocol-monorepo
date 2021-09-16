@@ -60,8 +60,9 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let oldFlowRate = stream.currentFlowRate;
 
     let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAt);
+    let amountStreamedSinceLastUpdate = oldFlowRate.times(timeSinceLastUpdate);
     let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
-        oldFlowRate.times(timeSinceLastUpdate)
+        amountStreamedSinceLastUpdate
     );
     stream.currentFlowRate = flowRate;
     stream.updatedAt = currentTimestamp;
@@ -105,6 +106,7 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
         flowRateDelta,
         isCreate,
         isDelete,
-        currentTimestamp
+        currentTimestamp,
+        amountStreamedSinceLastUpdate
     );
 }

@@ -354,8 +354,10 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.balance = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
-        accountTokenSnapshot.totalInflowRate = 0;
-        accountTokenSnapshot.totalOutflowRate = 0;
+        accountTokenSnapshot.totalInflowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalOutflowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
+        accountTokenSnapshot.totalAmountTransferred = BIG_INT_ZERO;
         accountTokenSnapshot.account = accountId;
         accountTokenSnapshot.token = tokenId;
     }
@@ -376,6 +378,8 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalSubscribers = 0;
         tokenStatistic.totalApprovedSubscribers = 0;
         tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
+        tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
+        tokenStatistic.totalAmountTransferred = BIG_INT_ZERO;
         tokenStatistic.totalAccountsApproved = BIG_INT_ZERO;
         tokenStatistic.totalAccountsPending = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributed = BIG_INT_ZERO;
@@ -528,7 +532,8 @@ export function updateAggregateEntitiesStreamData(
     flowRateDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
-    lastModified: BigInt
+    lastModified: BigInt,
+    amountStreamedSinceLastUpdate: BigInt
 ): void {
     let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
     let totalNumberOfStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
@@ -536,6 +541,10 @@ export function updateAggregateEntitiesStreamData(
         tokenStatistic.totalOutflowRate.plus(flowRateDelta);
     tokenStatistic.totalNumberOfActiveStreams =
         tokenStatistic.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
+    tokenStatistic.totalAmountStreamedUntilUpdatedAt =
+        tokenStatistic.totalAmountStreamedUntilUpdatedAt.plus(
+            amountStreamedSinceLastUpdate
+        );
     tokenStatistic.updatedAt = lastModified;
 
     let senderATS = getOrInitAccountTokenSnapshot(
@@ -551,6 +560,10 @@ export function updateAggregateEntitiesStreamData(
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     senderATS.updatedAt = lastModified;
+    senderATS.totalAmountStreamedUntilUpdatedAt =
+        senderATS.totalAmountStreamedUntilUpdatedAt.plus(
+            amountStreamedSinceLastUpdate
+        );
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     receiverATS.updatedAt = lastModified;
@@ -560,7 +573,7 @@ export function updateAggregateEntitiesStreamData(
             tokenStatistic.totalNumberOfClosedStreams + 1;
 
         senderATS.totalNumberOfClosedStreams =
-            sender.ATS.totalNumberOfClosedStreams + 1;
+            senderATS.totalNumberOfClosedStreams + 1;
         receiverATS.totalNumberOfClosedStreams =
             receiverATS.totalNumberOfClosedStreams + 1;
     }
@@ -573,4 +586,26 @@ export function updateAggregateEntitiesStreamData(
 // Get Aggregate ID functions
 function getAccountTokenSnapshotID(accountId: string, tokenId: string): string {
     return accountId.concat("-").concat(tokenId);
+}
+
+export function updateAggregateEntitiesTransferData(
+    transferAccountId: string,
+    tokenId: string,
+    currentTimestamp: BigInt,
+    value: BigInt
+) {
+    let fromAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
+        transferAccountId,
+        tokenId,
+        currentTimestamp
+    );
+    fromAccountTokenSnapshot.totalAmountTransferred =
+        fromAccountTokenSnapshot.totalAmountTransferred.plus(value);
+    fromAccountTokenSnapshot.updatedAt = currentTimestamp;
+    fromAccountTokenSnapshot.save();
+
+    let tokenStatistic = getOrInitTokenStatistic(tokenId, currentTimestamp);
+    tokenStatistic.totalAmountTransferred =
+        tokenStatistic.totalAmountTransferred.plus(value);
+    tokenStatistic.save();
 }

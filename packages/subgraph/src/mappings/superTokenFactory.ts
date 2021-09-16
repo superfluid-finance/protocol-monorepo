@@ -18,9 +18,7 @@ export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
     ev.token = event.params.token;
     ev.save();
 
-    let tokenAddress = event.params.token.toHex();
-	// anything that is not expected host
-    getOrInitToken(tokenAddress, event.block.timestamp);
+    getOrInitToken(event, event.params.token, event.block.timestamp);
 }
 
 export function handleCustomSuperTokenCreated(
@@ -33,8 +31,7 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    let tokenAddress = event.params.token.toHex();
-    getOrInitToken(tokenAddress, event.block.timestamp);
+    getOrInitToken(event, event.params.token, event.block.timestamp);
 }
 
 export function handleSuperTokenLogicCreated(

@@ -20,7 +20,7 @@ import {
     getOrInitTokenStatistic,
     updateATSBalance,
     updateAggregateIDASubscriptionsData,
-    updateTokenStatisticIDAUnitsData,
+    updateTokenStatisticIDAAccountsData,
     BIG_INT_ZERO,
     getSubscriberID,
     subscriptionExists,
@@ -28,6 +28,7 @@ import {
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {
     let index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -36,16 +37,18 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     index.userData = event.params.userData;
     index.save();
 
-	// update to not  do it here
-    let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
-    tokenStatistic.totalNumberOfIndexes =
-        tokenStatistic.totalNumberOfIndexes + 1;
-    tokenStatistic.save();
+    // TODO: we will only track active indexes, remove this from here, but increment
+    // when units are actually distributed below
+    // let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
+    // tokenStatistic.totalNumberOfIndexes =
+    //     tokenStatistic.totalNumberOfIndexes + 1;
+    // tokenStatistic.save();
 
     createIndexCreatedEntity(event);
 }
 
 export function handleIndexUpdated(event: IndexUpdatedEvent): void {
+    let currentTimestamp = event.block.timestamp;
     let totalUnits = event.params.totalUnitsPending.plus(
         event.params.totalUnitsApproved
     );
@@ -55,10 +58,11 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
 
     // update Index entity
     let index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
     index.userData = event.params.userData;
     index.oldIndexValue = event.params.oldIndexValue;
@@ -66,18 +70,23 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     index.totalUnitsPending = event.params.totalUnitsPending;
     index.totalUnitsApproved = event.params.totalUnitsApproved;
     index.totalUnits = totalUnits;
-    index.totalUnitsDistributed =
-        index.totalUnitsDistributed.plus(distributionDelta);
+    index.totalAmountDistributed =
+        index.totalAmountDistributed.plus(distributionDelta);
     index.save();
 
-    let tokenStatistic = getOrInitTokenStatistic(event.params.token.toHex());
-    tokenStatistic.totalUnitsDistributed =
-        tokenStatistic.totalUnitsDistributed.plus(distributionDelta);
+    let tokenStatistic = getOrInitTokenStatistic(
+        event.params.token.toHex(),
+        currentTimestamp
+    );
+    tokenStatistic.totalAmountDistributed =
+        tokenStatistic.totalAmountDistributed.plus(distributionDelta);
+    tokenStatistic.updatedAt = currentTimestamp;
     tokenStatistic.save();
 
     updateATSBalance(
         event.params.publisher.toHex(),
-        event.params.token.toHex()
+        event.params.token.toHex(),
+        currentTimestamp
     );
 
     createIndexUpdatedEntity(event);
@@ -86,19 +95,22 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
 export function handleSubscriptionApproved(
     event: SubscriptionApprovedEvent
 ): void {
+    let currentTimestamp = event.block.timestamp;
     let index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
 
     let subscriber = getOrInitSubscriber(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
 
     let balanceDelta = index.newIndexValue
@@ -128,19 +140,28 @@ export function handleSubscriptionApproved(
         );
         index.save();
 
-        updateTokenStatisticIDAUnitsData(
+        updateTokenStatisticIDAAccountsData(
             event.params.token.toHex(),
             subscriber.units,
-            subscriber.units.neg()
+            subscriber.units.neg(),
+            currentTimestamp
         );
 
-        subscriber.totalUnitsReceivedUntilUpdatedAt =
-            subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
+        subscriber.totalAmountReceivedUntilUpdatedAt =
+            subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
         subscriber.save();
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
-        updateATSBalance(event.params.publisher.toHex(), tokenId);
-        updateATSBalance(event.params.subscriber.toHex(), tokenId);
+        updateATSBalance(
+            event.params.publisher.toHex(),
+            tokenId,
+            currentTimestamp
+        );
+        updateATSBalance(
+            event.params.subscriber.toHex(),
+            tokenId,
+            currentTimestamp
+        );
     }
 
     updateAggregateIDASubscriptionsData(
@@ -148,7 +169,8 @@ export function handleSubscriptionApproved(
         event.params.token.toHex(),
         hasSubscription,
         false,
-        true
+        true,
+        currentTimestamp
     );
 
     createSubscriptionApprovedEntity(event);
@@ -158,19 +180,23 @@ export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent
 ): void {
     let isRevoke = event.params.subscriber.equals(Address.fromI32(0));
+    let currentTimestamp = event.block.timestamp;
+
     let index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
 
     let subscriber = getOrInitSubscriber(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
 
     let balanceDelta = index.newIndexValue
@@ -186,17 +212,19 @@ export function handleSubscriptionRevoked(
         );
         subscriber.lastIndexValue = index.newIndexValue;
 
-        updateTokenStatisticIDAUnitsData(
+        updateTokenStatisticIDAAccountsData(
             event.params.token.toHex(),
             subscriber.units.neg(),
-            subscriber.units
+            subscriber.units,
+            currentTimestamp
         );
         updateAggregateIDASubscriptionsData(
             event.params.subscriber.toHex(),
             event.params.token.toHex(),
             true,
             false,
-            false
+            false,
+            currentTimestamp
         );
     } else {
         // deleting subscription
@@ -205,14 +233,15 @@ export function handleSubscriptionRevoked(
             event.params.token.toHex(),
             true,
             true,
-            false
+            false,
+            currentTimestamp
         );
         index.totalSubscribers = index.totalSubscribers - 1;
     }
 
     // occurs on revoke or delete
-    subscriber.totalUnitsReceivedUntilUpdatedAt =
-        subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
+    subscriber.totalAmountReceivedUntilUpdatedAt =
+        subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
     subscriber.userData = event.params.userData;
     subscriber.approved = false;
 
@@ -229,19 +258,23 @@ export function handleSubscriptionRevoked(
 export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
+    let currentTimestamp = event.block.timestamp;
+
     let subscriber = getOrInitSubscriber(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
 
     let index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block.timestamp
+        currentTimestamp
     );
     let units = event.params.units;
     let isDeleteSubscription = units.equals(BIG_INT_ZERO);
@@ -259,19 +292,21 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnitsApproved = index.totalUnitsApproved.minus(
                 subscriber.units
             );
-            updateTokenStatisticIDAUnitsData(
+            updateTokenStatisticIDAAccountsData(
                 event.params.token.toHex(),
                 subscriber.units.neg(),
-                BIG_INT_ZERO
+                BIG_INT_ZERO,
+                currentTimestamp
             );
         } else {
             index.totalUnitsPending = index.totalUnitsPending.minus(
                 subscriber.units
             );
-            updateTokenStatisticIDAUnitsData(
+            updateTokenStatisticIDAAccountsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
-                subscriber.units.neg()
+                subscriber.units.neg(),
+                currentTimestamp
             );
         }
         // NOTE: we don't update the totalReceivedUntilLastUpdate in this
@@ -285,33 +320,37 @@ export function handleSubscriptionUnitsUpdated(
         if (hasSubscription && subscriber.approved) {
             index.totalUnitsApproved =
                 index.totalUnitsApproved.plus(totalUnitsDelta);
-            updateTokenStatisticIDAUnitsData(
+            updateTokenStatisticIDAAccountsData(
                 event.params.token.toHex(),
                 totalUnitsDelta,
-                BIG_INT_ZERO
+                BIG_INT_ZERO,
+                currentTimestamp
             );
         } else if (hasSubscription) {
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
-            updateTokenStatisticIDAUnitsData(
+            updateTokenStatisticIDAAccountsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
-                totalUnitsDelta
+                totalUnitsDelta,
+                currentTimestamp
             );
         } else {
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
-            updateTokenStatisticIDAUnitsData(
+            updateTokenStatisticIDAAccountsData(
                 event.params.token.toHex(),
                 BIG_INT_ZERO,
-                units
+                units,
+                currentTimestamp
             );
             updateAggregateIDASubscriptionsData(
                 event.params.subscriber.toHex(),
                 event.params.token.toHex(),
                 hasSubscription,
                 false,
-                false
+                false,
+                currentTimestamp
             );
         }
 
@@ -319,10 +358,10 @@ export function handleSubscriptionUnitsUpdated(
             .minus(subscriber.lastIndexValue)
             .times(subscriber.units);
 
-        // if approved, we increment totalUnitsReceivedUntilUpdatedAt
+        // if approved, we increment totalAmountReceivedUntilUpdatedAt
         if (subscriber.approved) {
-            subscriber.totalUnitsReceivedUntilUpdatedAt =
-                subscriber.totalUnitsReceivedUntilUpdatedAt.plus(balanceDelta);
+            subscriber.totalAmountReceivedUntilUpdatedAt =
+                subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
         }
     }
 
@@ -331,10 +370,15 @@ export function handleSubscriptionUnitsUpdated(
     if (!subscriber.approved) {
         updateATSBalance(
             event.params.publisher.toHex(),
-            event.params.token.toHex()
+            event.params.token.toHex(),
+            currentTimestamp
         );
     }
-    updateATSBalance(subscriber.subscriber, event.params.token.toHex());
+    updateATSBalance(
+        subscriber.subscriber,
+        event.params.token.toHex(),
+        currentTimestamp
+    );
 
     subscriber.lastIndexValue = index.newIndexValue;
     subscriber.units = event.params.units;

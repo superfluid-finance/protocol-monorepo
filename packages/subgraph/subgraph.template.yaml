@@ -28,6 +28,8 @@ dataSources:
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
@@ -99,6 +101,8 @@ dataSources:
                 file: ./abis/IConstantFlowAgreementV1.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleStreamUpdated
@@ -132,6 +136,8 @@ dataSources:
             file: ./abis/IInstantDistributionAgreementV1.json
           - name: ISuperToken
             file: ./abis/ISuperToken.json
+          - name: ISuperfluid
+            file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated
@@ -195,6 +201,8 @@ templates:
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
+        - name: ISuperfluid
+          file: ./abis/ISuperfluid.json
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleAgreementLiquidatedBy

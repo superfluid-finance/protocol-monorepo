@@ -17,59 +17,74 @@ export function handleAgreementLiquidatedBy(
 ): void {
     createAgreementLiquidatedByEntity(event);
 
+    let currentTimestamp = event.block.timestamp;
     let liquidatorAccount = getOrInitAccount(
-        event.params.liquidatorAccount.toHex(),
-        event.block.timestamp
+        event,
+        event.params.liquidatorAccount,
+        currentTimestamp
     );
     let penaltyAccount = getOrInitAccount(
-        event.params.penaltyAccount.toHex(),
-        event.block.timestamp
+        event,
+        event.params.penaltyAccount,
+        currentTimestamp
     );
     let bondAccount = getOrInitAccount(
-        event.params.bondAccount.toHex(),
-        event.block.timestamp
+        event,
+        event.params.bondAccount,
+        currentTimestamp
     );
-    updateATSBalance(liquidatorAccount.id, event.address.toHex());
-    updateATSBalance(penaltyAccount.id, event.address.toHex());
-    updateATSBalance(bondAccount.id, event.address.toHex());
+    updateATSBalance(
+        liquidatorAccount.id,
+        event.address.toHex(),
+        currentTimestamp
+    );
+    updateATSBalance(
+        penaltyAccount.id,
+        event.address.toHex(),
+        currentTimestamp
+    );
+    updateATSBalance(bondAccount.id, event.address.toHex(), currentTimestamp);
 }
 
 export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
     createTokenUpgradedEntity(event);
 
+    let currentTimestamp = event.block.timestamp;
     let account = getOrInitAccount(
-        event.params.account.toHex(),
-        event.block.timestamp
+        event,
+        event.params.account,
+        currentTimestamp
     );
     let tokenId = event.address.toHex();
-    updateATSBalance(account.id, tokenId);
+    updateATSBalance(account.id, tokenId, currentTimestamp);
 }
 
 export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
     createTokenDowngradedEntity(event);
 
+    let currentTimestamp = event.block.timestamp;
     let account = getOrInitAccount(
-        event.params.account.toHex(),
-        event.block.timestamp
+        event,
+        event.params.account,
+        currentTimestamp
     );
     let tokenId = event.address.toHex();
-    updateATSBalance(account.id, tokenId);
+    updateATSBalance(account.id, tokenId, currentTimestamp);
 }
 
 export function handleTransfer(event: TransferEvent): void {
     createTransferEntity(event);
 
+    let currentTimestamp = event.block.timestamp;
     let fromAccount = getOrInitAccount(
-        event.params.from.toHex(),
-        event.block.timestamp
+        event,
+        event.params.from,
+        currentTimestamp
     );
-    let toAccount = getOrInitAccount(
-        event.params.to.toHex(),
-        event.block.timestamp
-    );
+    let toAccount = getOrInitAccount(event, event.params.to, currentTimestamp);
     let tokenId = event.address.toHex();
-    updateATSBalance(toAccount.id, tokenId);
-    updateATSBalance(fromAccount.id, tokenId);
+    updateATSBalance(toAccount.id, tokenId, currentTimestamp);
+    updateATSBalance(fromAccount.id, tokenId, currentTimestamp);
 }
 
 /**************************************************************************

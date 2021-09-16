@@ -293,6 +293,7 @@ type Account @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
+    isSuperApp: Boolean!
 }
 
 type Token @entity {
@@ -330,8 +331,8 @@ type Subscriber implements BaseEntity @entity {
     # ---------------------------------- state ----------------------------------
     approved: Boolean!
     units: BigInt!
-    totalUnitsReceivedUntilUpdatedAt: BigInt! # change to totalAmounts
-    lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
+    totalAmountReceivedUntilUpdatedAt: BigInt!
+    lastIndexValue: BigInt! # used to calculate the "totalAmountReceived"
     # ---------------------------------- links ----------------------------------
     index: Index!
 }
@@ -349,7 +350,7 @@ type Index implements BaseEntity @entity {
     totalUnitsPending: BigInt!
     totalUnitsApproved: BigInt!
     totalUnits: BigInt!
-    totalUnitsDistributed: BigInt!
+    totalAmountDistributed: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
     publisher: Account!
@@ -368,35 +369,38 @@ type StreamRevision @entity {
 ####################
 type AccountTokenSnapshot @entity {
     id: ID!
+    updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
-    totalNumberOfStreams: Int!
+    totalNumberOfActiveStreams: Int!
     totalSubscriptions: Int!
     totalApprovedSubscriptions: Int!
     balance: BigInt! # must be updated each time subscription units is updated
     totalNetFlowRate: BigInt!
+    totalOutflowRate: BigInt! # TODO: implement
+    totalAmountStreamedUntilUpdatedAt: BigInt! # TODO: implement
+    totalAmountTransferred: BigInt! # TODO: implement
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
-	# totalAmountStreamedUntilLastUpdate
-	# totalAmountTransferred
 }
 
 # Note: naming of entities must be singular.
 type TokenStatistic @entity {
     id: ID!
+    updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
-    totalNumberOfStreams: Int! # rename to activeStreams
-	# totalNumberOfClosedStreams
+    totalNumberOfActiveStreams: Int!
+    totalNumberOfClosedStreams: Int! # TODO: implement
     totalNumberOfIndexes: Int! # only count totalNumberOfIndexes w/ units, add a totalNumberOfActiveIndexes
+    totalNumberOfActiveIndexes: Int! # TODO: implement
     totalSubscribers: Int!
     totalApprovedSubscribers: Int!
     totalOutflowRate: BigInt!
-	# totalAmountStreamedUntilLastUpdate
-	# totalAmountTransferred
-    totalUnitsApproved: BigInt! # clarify approved - users w/ units 
-    totalUnitsPending: BigInt!
-	# remove totalUnits properties and add in totalAccountsApproved + totalAccountsPending
-    totalUnitsDistributed: BigInt! # rename to totalAmountDistributed
+    totalAmountStreamedUntilUpdatedAt: BigInt! # TODO: implement
+    totalAmountTransferred: BigInt! # TODO: implement
+    totalAccountsApproved: Int! # TODO: implement
+    totalAccountsPending: Int! # TODO: implement
+    totalAmountDistributed: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
 }

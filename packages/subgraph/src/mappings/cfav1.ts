@@ -44,16 +44,17 @@ function createFlowUpdatedEntity(
 }
 
 export function handleStreamUpdated(event: FlowUpdatedEvent): void {
-    let senderId = event.params.sender.toHex();
-    let receiverId = event.params.receiver.toHex();
-    let tokenId = event.params.token.toHex();
+    let senderAddress = event.params.sender;
+    let receiverAddress = event.params.receiver;
+    let tokenAddress = event.params.token;
     let flowRate = event.params.flowRate;
     let currentTimestamp = event.block.timestamp;
 
     let stream = getOrInitStream(
-        senderId,
-        receiverId,
-        tokenId,
+        event,
+        senderAddress,
+        receiverAddress,
+        tokenAddress,
         currentTimestamp
     );
     let oldFlowRate = stream.currentFlowRate;
@@ -66,6 +67,10 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     stream.updatedAt = currentTimestamp;
     stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
     stream.save();
+
+    let senderId = senderAddress.toHex();
+    let receiverId = receiverAddress.toHex();
+    let tokenId = tokenAddress.toHex();
 
     let flowRateDelta = flowRate.minus(oldFlowRate);
     let isCreate = oldFlowRate.equals(BIG_INT_ZERO);
@@ -84,15 +89,22 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     createFlowUpdatedEntity(event, oldFlowRate);
 
     // update aggregate entities data
-    updateATSBalance(senderId, tokenId);
-    updateATSBalance(receiverId, tokenId);
-    updateATSFlowRates(senderId, receiverId, tokenId, flowRateDelta);
+    updateATSBalance(senderId, tokenId, currentTimestamp);
+    updateATSBalance(receiverId, tokenId, currentTimestamp);
+    updateATSFlowRates(
+        senderId,
+        receiverId,
+        tokenId,
+        flowRateDelta,
+        currentTimestamp
+    );
     updateAggregateEntitiesStreamData(
         senderId,
         receiverId,
         tokenId,
         flowRateDelta,
         isCreate,
-        isDelete
+        isDelete,
+        currentTimestamp
     );
 }

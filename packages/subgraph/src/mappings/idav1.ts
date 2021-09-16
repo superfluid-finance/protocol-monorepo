@@ -23,7 +23,6 @@ import {
     BIG_INT_ZERO,
     getSubscriberID,
     subscriptionExists,
-    BIG_INT_ONE,
 } from "../utils";
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {

@@ -271,10 +271,10 @@ export function getOrInitSubscriber(
 // Get HOL ID functions
 function getStreamRevisionPrefix(
     senderId: string,
-    recipientId: string,
+    receiverId: string,
     tokenId: string
 ): string {
-    return senderId.concat("-").concat(recipientId).concat("-").concat(tokenId);
+    return senderId.concat("-").concat(receiverId).concat("-").concat(tokenId);
 }
 
 function getStreamID(
@@ -375,7 +375,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalNumberOfIndexes = 0;
         tokenStatistic.totalNumberOfActiveIndexes = 0;
         tokenStatistic.totalSubscriptions = 0;
-        tokenStatistic.totalApprovedSubscribers = 0;
+        tokenStatistic.totalApprovedSubscriptions = 0;
         tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferred = BIG_INT_ZERO;
@@ -421,8 +421,8 @@ export function updateAggregateIDASubscriptionsData(
     // update tokenStatistic Subscriber data
     tokenStatistic.totalSubscriptions =
         tokenStatistic.totalSubscriptions + totalSubscriptionsDelta;
-    tokenStatistic.totalApprovedSubscribers =
-        tokenStatistic.totalApprovedSubscribers +
+    tokenStatistic.totalApprovedSubscriptions =
+        tokenStatistic.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
     tokenStatistic.updatedAt = lastModified;
 

@@ -196,7 +196,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         });
 
         describe("#1.1 createFlow", () => {
-            it("#1.1.1 should create when there is enough balance", async () => {
+            it.only("#1.1.1 should create when there is enough balance", async () => {
                 await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
                 await shouldCreateFlow({

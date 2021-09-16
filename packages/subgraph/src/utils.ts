@@ -505,9 +505,11 @@ export function updateATSFlowRates(
 
     senderATS.totalNetFlowRate =
         senderATS.totalNetFlowRate.minus(flowRateDelta);
+	senderATS.totalOutflowRate = senderATS.totalOutflowRate.plus(flowRateDelta);
     senderATS.updatedAt = lastModified;
     receiverATS.totalNetFlowRate =
         receiverATS.totalNetFlowRate.plus(flowRateDelta);
+	receiverATS.totalInflowRate = receiverATS.totalInflowRate.plus(flowRateDelta);
     receiverATS.updatedAt = lastModified;
 
     senderATS.save();
@@ -532,24 +534,24 @@ export function updateAggregateEntitiesStreamData(
     tokenStatistic.updatedAt = lastModified;
     tokenStatistic.save();
 
-    let receiverATS = getOrInitAccountTokenSnapshot(
-        receiverId,
-        tokenId,
-        lastModified
-    );
     let senderATS = getOrInitAccountTokenSnapshot(
         senderId,
         tokenId,
         lastModified
     );
-    receiverATS.totalNumberOfActiveStreams =
-        receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
-    receiverATS.updatedAt = lastModified;
+    let receiverATS = getOrInitAccountTokenSnapshot(
+        receiverId,
+        tokenId,
+        lastModified
+    );
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     senderATS.updatedAt = lastModified;
-    receiverATS.save();
+    receiverATS.totalNumberOfActiveStreams =
+        receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
+    receiverATS.updatedAt = lastModified;
     senderATS.save();
+    receiverATS.save();
 }
 
 // Get Aggregate ID functions

@@ -20,26 +20,21 @@ const {
     toBN,
 } = require("@decentral.ee/web3-helpers");
 
+/**
+ * @dev Test environment for test cases
+ *
+ */
 module.exports = class TestEnvironment {
+    /**
+     * @dev Constructor
+     * @param accounts Accounts that test cases can use
+     * @param isTruffle Is test environment initialized in a truffle environment
+     */
     constructor(accounts, { isTruffle, useMocks } = {}) {
         this.isTruffle = isTruffle;
         this.useMocks = useMocks;
-        this.aliases = {
-            admin: accounts[0],
-            alice: accounts[1],
-            bob: accounts[2],
-            carol: accounts[3],
-            dan: accounts[4],
-            eve: accounts[5],
-            frank: accounts[6],
-            grace: accounts[7],
-            heidi: accounts[8],
-            ivan: accounts[9],
-        };
-        // delete undefined accounts
-        Object.keys(this.aliases).forEach((alias) => {
-            if (!this.aliases[alias]) delete this.aliases[alias];
-        });
+
+        this.setupDefaultAliases();
 
         this.configs = {
             INIT_BALANCE: toWad(100),
@@ -53,10 +48,6 @@ module.exports = class TestEnvironment {
         );
     }
 
-    errorHandler(err) {
-        if (err) throw err;
-    }
-
     /**************************************************************************
      * Test case setup functions
      *************************************************************************/
@@ -66,12 +57,17 @@ module.exports = class TestEnvironment {
         console.log("Aliases", this.aliases);
 
         // deploy framework
-        await deployFramework(this.errorHandler, {
-            newTestResolver: true,
-            useMocks: this.useMocks,
-            isTruffle: this.isTruffle,
-            ...deployOpts,
-        });
+        await deployFramework(
+            (err) => {
+                if (err) throw err;
+            },
+            {
+                newTestResolver: true,
+                useMocks: this.useMocks,
+                isTruffle: this.isTruffle,
+                ...deployOpts,
+            }
+        );
 
         this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
 
@@ -198,6 +194,25 @@ module.exports = class TestEnvironment {
     /**************************************************************************
      * Alias functions
      *************************************************************************/
+
+    setupDefaultAliases(accounts) {
+        this.aliases = {
+            admin: accounts[0],
+            alice: accounts[1],
+            bob: accounts[2],
+            carol: accounts[3],
+            dan: accounts[4],
+            eve: accounts[5],
+            frank: accounts[6],
+            grace: accounts[7],
+            heidi: accounts[8],
+            ivan: accounts[9],
+        };
+        // delete undefined accounts
+        Object.keys(this.aliases).forEach((alias) => {
+            if (!this.aliases[alias]) delete this.aliases[alias];
+        });
+    }
 
     listAliases() {
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};

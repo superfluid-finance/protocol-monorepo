@@ -505,11 +505,12 @@ export function updateATSFlowRates(
 
     senderATS.totalNetFlowRate =
         senderATS.totalNetFlowRate.minus(flowRateDelta);
-	senderATS.totalOutflowRate = senderATS.totalOutflowRate.plus(flowRateDelta);
+    senderATS.totalOutflowRate = senderATS.totalOutflowRate.plus(flowRateDelta);
     senderATS.updatedAt = lastModified;
     receiverATS.totalNetFlowRate =
         receiverATS.totalNetFlowRate.plus(flowRateDelta);
-	receiverATS.totalInflowRate = receiverATS.totalInflowRate.plus(flowRateDelta);
+    receiverATS.totalInflowRate =
+        receiverATS.totalInflowRate.plus(flowRateDelta);
     receiverATS.updatedAt = lastModified;
 
     senderATS.save();
@@ -532,7 +533,6 @@ export function updateAggregateEntitiesStreamData(
     tokenStatistic.totalNumberOfActiveStreams =
         tokenStatistic.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     tokenStatistic.updatedAt = lastModified;
-    tokenStatistic.save();
 
     let senderATS = getOrInitAccountTokenSnapshot(
         senderId,
@@ -550,6 +550,18 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     receiverATS.updatedAt = lastModified;
+
+    if (isDelete) {
+        tokenStatistic.totalNumberOfClosedStreams =
+            tokenStatistic.totalNumberOfClosedStreams + 1;
+
+        senderATS.totalNumberOfClosedStreams =
+            sender.ATS.totalNumberOfClosedStreams + 1;
+        receiverATS.totalNumberOfClosedStreams =
+            receiverATS.totalNumberOfClosedStreams + 1;
+    }
+
+    tokenStatistic.save();
     senderATS.save();
     receiverATS.save();
 }

@@ -372,7 +372,7 @@ type AccountTokenSnapshot @entity {
     updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
     totalNumberOfActiveStreams: Int!
-    totalNumberOfClosedStreams: Int! # TODO: implement
+    totalNumberOfClosedStreams: Int!
     totalSubscriptions: Int!
     totalApprovedSubscriptions: Int!
     balance: BigInt! # must be updated each time subscription units is updated
@@ -392,7 +392,7 @@ type TokenStatistic @entity {
     updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
     totalNumberOfActiveStreams: Int!
-    totalNumberOfClosedStreams: Int! # TODO: implement
+    totalNumberOfClosedStreams: Int!
     totalNumberOfIndexes: Int! # only count totalNumberOfIndexes w/ units, add a totalNumberOfActiveIndexes
     totalNumberOfActiveIndexes: Int! # TODO: implement
     totalSubscribers: Int!

@@ -80,27 +80,25 @@ export function getOrInitToken(
         let hostContract = Superfluid.bind(event.address);
         let tokenHostAddress = tokenContract.getHost();
 
-        // if the host contract of the token is not our host contract
-        // we will not create an entity for it.
-        if (tokenHostAddress.toHex() != hostContract._address.toHex()) {
-            return;
+        // if the host contract of the token is our host contract,
+        // we will create token and tokenStatistic entities.
+        if (tokenHostAddress.toHex() == hostContract._address.toHex()) {
+            let underlyingAddress = tokenContract.getUnderlyingToken();
+            let name = tokenContract.name();
+            let symbol = tokenContract.symbol();
+            token = new Token(tokenId);
+            token.createdAt = lastModified;
+            token.updatedAt = lastModified;
+            token.name = name;
+            token.symbol = symbol;
+            token.underlyingAddress = underlyingAddress;
+            token.save();
+
+            // Note: we initalize and create tokenStatistic whenever we create a
+            // token as well.
+            let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
+            tokenStatistic.save();
         }
-
-        let underlyingAddress = tokenContract.getUnderlyingToken();
-        let name = tokenContract.name();
-        let symbol = tokenContract.symbol();
-        token = new Token(tokenId);
-        token.createdAt = lastModified;
-        token.updatedAt = lastModified;
-        token.name = name;
-        token.symbol = symbol;
-        token.underlyingAddress = underlyingAddress;
-        token.save();
-
-        // Note: we initalize and create tokenStatistic whenever we create a
-        // token as well.
-        let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
-        tokenStatistic.save();
     }
     return token as Token;
 }
@@ -186,8 +184,8 @@ export function getOrInitStream(
 
 export function getOrInitIndex(
     event: ethereum.Event,
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
+    publisherAddress: Address,
+    tokenAddress: Address,
     indexId: BigInt,
     lastModified: BigInt
 ): Index {
@@ -224,9 +222,9 @@ export function getOrInitIndex(
 
 export function getOrInitSubscriber(
     event: ethereum.Event,
-    subscriberAddress: Bytes,
-    publisherAddress: Bytes,
-    tokenAddress: Bytes,
+    subscriberAddress: Address,
+    publisherAddress: Address,
+    tokenAddress: Address,
     indexId: BigInt,
     lastModified: BigInt
 ): Subscriber {
@@ -375,40 +373,16 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalNumberOfActiveStreams = 0;
         tokenStatistic.totalNumberOfClosedStreams = 0;
         tokenStatistic.totalNumberOfIndexes = 0;
-        tokenStatistic.totalSubscribers = 0;
+        tokenStatistic.totalNumberOfActiveIndexes = 0;
+        tokenStatistic.totalSubscriptions = 0;
         tokenStatistic.totalApprovedSubscribers = 0;
         tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferred = BIG_INT_ZERO;
-        tokenStatistic.totalAccountsApproved = BIG_INT_ZERO;
-        tokenStatistic.totalAccountsPending = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributed = BIG_INT_ZERO;
         tokenStatistic.token = tokenId;
     }
     return tokenStatistic as TokenStatistic;
-}
-
-/**
- * Updates the totalAccountsApproved and totalAccountsPending
- * properties on the TokenStatistic aggregate entity.
- * @param tokenId
- * @param totalAccountsApprovedDelta
- * @param totalAccountsPendingDelta
- * @param lastModified
- */
-export function updateTokenStatisticIDAAccountsData(
-    tokenId: string,
-    totalAccountsApprovedDelta: BigInt,
-    totalAccountsPendingDelta: BigInt,
-    lastModified: BigInt
-): void {
-    let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
-    tokenStatistic.totalAccountsApproved =
-        tokenStatistic.totalAccountsApproved.plus(totalAccountsApprovedDelta);
-    tokenStatistic.totalAccountsPending =
-        tokenStatistic.totalAccountsPending.plus(totalAccountsPendingDelta);
-    tokenStatistic.updatedAt = lastModified;
-    tokenStatistic.save();
 }
 
 export function updateAggregateIDASubscriptionsData(
@@ -445,8 +419,8 @@ export function updateAggregateIDASubscriptionsData(
     accountTokenSnapshot.updatedAt = lastModified;
 
     // update tokenStatistic Subscriber data
-    tokenStatistic.totalSubscribers =
-        tokenStatistic.totalSubscribers + totalSubscriptionsDelta;
+    tokenStatistic.totalSubscriptions =
+        tokenStatistic.totalSubscriptions + totalSubscriptionsDelta;
     tokenStatistic.totalApprovedSubscribers =
         tokenStatistic.totalApprovedSubscribers +
         totalApprovedSubscriptionsDelta;
@@ -593,7 +567,7 @@ export function updateAggregateEntitiesTransferData(
     tokenId: string,
     currentTimestamp: BigInt,
     value: BigInt
-) {
+): void {
     let fromAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
         transferAccountId,
         tokenId,

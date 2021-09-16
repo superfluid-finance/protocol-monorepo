@@ -394,15 +394,13 @@ type TokenStatistic @entity {
     # ---------------------------------- state ----------------------------------
     totalNumberOfActiveStreams: Int!
     totalNumberOfClosedStreams: Int!
-    totalNumberOfIndexes: Int! # only count totalNumberOfIndexes w/ units, add a totalNumberOfActiveIndexes
-    totalNumberOfActiveIndexes: Int! # TODO: implement
-    totalSubscribers: Int!
+    totalNumberOfIndexes: Int!
+    totalNumberOfActiveIndexes: Int!
+    totalSubscriptions: Int!
     totalApprovedSubscribers: Int!
     totalOutflowRate: BigInt!
     totalAmountStreamedUntilUpdatedAt: BigInt!
     totalAmountTransferred: BigInt!
-    totalAccountsApproved: Int! # TODO: implement
-    totalAccountsPending: Int! # TODO: implement
     totalAmountDistributed: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!

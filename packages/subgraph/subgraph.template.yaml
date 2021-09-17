@@ -87,7 +87,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/cfav1.ts
+          file: ./src/mappings/cfav1/{{ network }}CFAv1.ts
           entities:
               - Account
               - AccountTokenSnapshot
@@ -105,7 +105,7 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleStreamUpdated
+                handler: {{ network }}HandleStreamUpdated
     - kind: ethereum/contract
       name: InstantDistributionAgreementV1
       network: {{ network }}

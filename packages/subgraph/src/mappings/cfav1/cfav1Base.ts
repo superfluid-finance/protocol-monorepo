@@ -1,6 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { FlowUpdated } from "../../generated/schema";
+import { FlowUpdated as FlowUpdatedEvent } from "../../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { FlowUpdated } from "../../../generated/schema";
 import {
     createEventID,
     getOrInitStream,
@@ -10,7 +10,7 @@ import {
     BIG_INT_ZERO,
     getOrInitStreamRevision,
     updateAccountUpdatedAt,
-} from "../utils";
+} from "../../utils";
 
 enum FlowActionType {
     create,

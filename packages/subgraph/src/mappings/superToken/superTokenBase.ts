@@ -4,20 +4,20 @@ import {
     TokenDowngraded as TokenDowngradedEvent,
     Transfer as TransferEvent,
     AgreementLiquidatedBy as AgreementLiquidatedByEvent,
-} from "../../generated/templates/SuperToken/ISuperToken";
+} from "../../../generated/templates/SuperToken/ISuperToken";
 import {
     TokenUpgraded,
     TokenDowngraded,
     Transfer,
     AgreementLiquidatedBy,
-} from "../../generated/schema";
+} from "../../../generated/schema";
 import {
     createEventID,
     getOrInitAccount,
     updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
     updateATSBalance,
-} from "../utils";
+} from "../../utils";
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent,

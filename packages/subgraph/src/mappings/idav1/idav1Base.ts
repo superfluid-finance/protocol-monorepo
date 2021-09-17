@@ -5,14 +5,14 @@ import {
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
     SubscriptionUnitsUpdated as SubscriptionUnitsUpdatedEvent,
-} from "../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
+} from "../../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 import {
     IndexCreated,
     IndexUpdated,
     SubscriptionApproved,
     SubscriptionRevoked,
     SubscriptionUnitsUpdated,
-} from "../../generated/schema";
+} from "../../../generated/schema";
 import {
     createEventID,
     getOrInitIndex,
@@ -24,7 +24,7 @@ import {
     getSubscriberID,
     subscriptionExists,
     updateAccountUpdatedAt,
-} from "../utils";
+} from "../../utils";
 
 export function handleIndexCreated(
     event: IndexCreatedEvent,

@@ -3,13 +3,13 @@ import {
     CustomSuperTokenCreated as CustomSuperTokenCreatedEvent,
     SuperTokenCreated as SuperTokenCreatedEvent,
     SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
-} from "../../generated/SuperTokenFactory/ISuperTokenFactory";
+} from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
 import {
     CustomSuperTokenCreated,
     SuperTokenCreated,
     SuperTokenLogicCreated,
-} from "../../generated/schema";
-import { createEventID, getOrInitToken } from "../utils";
+} from "../../../generated/schema";
+import { createEventID, getOrInitToken } from "../../utils";
 
 export function handleSuperTokenCreated(
     event: SuperTokenCreatedEvent,

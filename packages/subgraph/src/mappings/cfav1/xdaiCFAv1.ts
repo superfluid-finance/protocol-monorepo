@@ -3,6 +3,6 @@ import { FlowUpdated as FlowUpdatedEvent } from "../../../generated/ConstantFlow
 import { XDAI_HOST_ADDRESS } from "../../utils";
 import { HandleStreamUpdated } from "./cfav1Base";
 
-export function goerliHandleStreamUpdated(event: FlowUpdatedEvent) {
+export function goerliHandleStreamUpdated(event: FlowUpdatedEvent): void {
     HandleStreamUpdated(event, Address.fromString(XDAI_HOST_ADDRESS));
 }

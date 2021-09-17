@@ -48,13 +48,16 @@ export function getOrInitAccount(
 ): Account {
     let account = Account.load(accountAddress.toHex());
     if (account == null) {
-        let hostContract = Superfluid.bind(event.address);
-        hostContract = Superfluid.bind(hostContract._address);
-        let appManifest = hostContract.getAppManifest(accountAddress);
+        let hostContract = Superfluid.bind(event.address); // TODO: pass in hostAddress as param to func
+        let appManifestResult = hostContract.try_getAppManifest(accountAddress);
         account = new Account(accountAddress.toHex());
         account.createdAt = lastModified;
         account.updatedAt = lastModified;
-        account.isSuperApp = appManifest.value0;
+        if (appManifestResult.reverted) {
+            account.isSuperApp = false;
+        } else {
+            account.isSuperApp = appManifestResult.value.value0;
+        }
         account.save();
     }
     return account as Account;
@@ -77,21 +80,28 @@ export function getOrInitToken(
     let token = Token.load(tokenId);
     if (token == null) {
         let tokenContract = SuperToken.bind(tokenAddress);
-        let hostContract = Superfluid.bind(event.address);
-        let tokenHostAddress = tokenContract.getHost();
+        let hostContract = Superfluid.bind(event.address); // TODO: pass in hostAddress as param to func
+        let tokenHostAddressResult = tokenContract.try_getHost();
 
         // if the host contract of the token is our host contract,
         // we will create token and tokenStatistic entities.
-        if (tokenHostAddress.toHex() == hostContract._address.toHex()) {
-            let underlyingAddress = tokenContract.getUnderlyingToken();
-            let name = tokenContract.name();
-            let symbol = tokenContract.symbol();
+        if (
+            !tokenHostAddressResult.reverted &&
+            tokenHostAddressResult.value.toHex() ==
+                hostContract._address.toHex()
+        ) {
+            let underlyingAddressResult =
+                tokenContract.try_getUnderlyingToken();
+            let nameResult = tokenContract.try_name();
+            let symbolResult = tokenContract.try_symbol();
             token = new Token(tokenId);
             token.createdAt = lastModified;
             token.updatedAt = lastModified;
-            token.name = name;
-            token.symbol = symbol;
-            token.underlyingAddress = underlyingAddress;
+            token.name = nameResult.reverted ? "" : nameResult.value;
+            token.symbol = symbolResult ? "" : symbolResult.value;
+            token.underlyingAddress = underlyingAddressResult.reverted
+                ? new Address(0)
+                : underlyingAddressResult.value;
             token.save();
 
             // Note: we initalize and create tokenStatistic whenever we create a

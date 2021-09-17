@@ -35,20 +35,21 @@ export function createEventID(event: ethereum.Event): string {
  *************************************************************************/
 
 /**
- * Gets the Account entity with id or creates one with it. This should only
- * be called one time as account holds no dynamic state.
- * @param id
+ * Gets the Account entity with id or creates one with it. updatedAt is
+ * updated each time any data associated with the user is updated.
+ * @param hostAddress
+ * @param accountAddress
  * @param lastModified
- * @returns created or modified account
+ * @returns
  */
 export function getOrInitAccount(
-    event: ethereum.Event,
+    hostAddress: Address,
     accountAddress: Address,
     lastModified: BigInt
 ): Account {
     let account = Account.load(accountAddress.toHex());
     if (account == null) {
-        let hostContract = Superfluid.bind(event.address); // TODO: pass in hostAddress as param to func
+        let hostContract = Superfluid.bind(hostAddress);
         let appManifestResult = hostContract.try_getAppManifest(accountAddress);
         account = new Account(accountAddress.toHex());
         account.createdAt = lastModified;
@@ -67,12 +68,13 @@ export function getOrInitAccount(
  * Creates a HOL Token (SuperToken) entity if non exists, this function should
  * never be called more than once for the Token entity (you only create a
  * SuperToken once). We also create token stats in here if it doesn't exist yet.
+ * @param hostAddress
  * @param tokenAddress
  * @param lastModified
- * @returns created token
+ * @returns Token
  */
 export function getOrInitToken(
-    event: ethereum.Event,
+    hostAddress: Address,
     tokenAddress: Address,
     lastModified: BigInt
 ): Token {
@@ -80,7 +82,7 @@ export function getOrInitToken(
     let token = Token.load(tokenId);
     if (token == null) {
         let tokenContract = SuperToken.bind(tokenAddress);
-        let hostContract = Superfluid.bind(event.address); // TODO: pass in hostAddress as param to func
+        let hostContract = Superfluid.bind(hostAddress);
         let tokenHostAddressResult = tokenContract.try_getHost();
 
         // if the host contract of the token is our host contract,
@@ -140,23 +142,23 @@ export function getOrInitStreamRevision(
 
 /**
  * Gets or initializes a Stream, always sets the updatedAt.
- * @param event
+ * @param hostAddress
  * @param senderAddress
  * @param receiverAddress
  * @param tokenAddress
  * @param lastModified
- * @returns
+ * @returns Stream
  */
 export function getOrInitStream(
-    event: ethereum.Event,
+    hostAddress: Address,
     senderAddress: Address,
     receiverAddress: Address,
     tokenAddress: Address,
     lastModified: BigInt
 ): Stream {
     // Create accounts if they do not exist
-    getOrInitAccount(event, senderAddress, lastModified);
-    getOrInitAccount(event, receiverAddress, lastModified);
+    getOrInitAccount(hostAddress, senderAddress, lastModified);
+    getOrInitAccount(hostAddress, receiverAddress, lastModified);
 
     // Create a streamRevision entity for this stream if one doesn't exist.
     let streamRevision = getOrInitStreamRevision(
@@ -194,7 +196,7 @@ export function getOrInitStream(
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         if (!tokenExists(tokenAddress.toHex())) {
-            getOrInitToken(event, tokenAddress, lastModified);
+            getOrInitToken(hostAddress, tokenAddress, lastModified);
         }
     }
     stream.updatedAt = lastModified;
@@ -203,15 +205,15 @@ export function getOrInitStream(
 
 /**
  * Gets or initializes an Index, always sets the updatedAt.
- * @param event
+ * @param hostAddress
  * @param publisherAddress
  * @param tokenAddress
  * @param indexId
  * @param lastModified
- * @returns
+ * @returns Index
  */
 export function getOrInitIndex(
-    event: ethereum.Event,
+    hostAddress: Address,
     publisherAddress: Address,
     tokenAddress: Address,
     indexId: BigInt,
@@ -236,12 +238,12 @@ export function getOrInitIndex(
         index.token = tokenId;
         index.publisher = publisherId;
 
-        getOrInitAccount(event, publisherAddress, lastModified);
+        getOrInitAccount(hostAddress, publisherAddress, lastModified);
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
         if (!tokenExists(tokenId)) {
-            getOrInitToken(event, tokenAddress, lastModified);
+            getOrInitToken(hostAddress, tokenAddress, lastModified);
         }
     }
     index.updatedAt = lastModified;
@@ -250,16 +252,16 @@ export function getOrInitIndex(
 
 /**
  * Gets or initializes a Subscriber, always sets the updatedAt.
- * @param event
+ * @param hostAddress
  * @param subscriberAddress
  * @param publisherAddress
  * @param tokenAddress
  * @param indexId
  * @param lastModified
- * @returns
+ * @returns Subscriber
  */
 export function getOrInitSubscriber(
-    event: ethereum.Event,
+    hostAddress: Address,
     subscriberAddress: Address,
     publisherAddress: Address,
     tokenAddress: Address,
@@ -277,7 +279,7 @@ export function getOrInitSubscriber(
 
     if (subscriber == null) {
         let index = getOrInitIndex(
-            event,
+            hostAddress,
             publisherAddress,
             tokenAddress,
             indexId,
@@ -300,7 +302,7 @@ export function getOrInitSubscriber(
         subscriber.lastIndexValue = index.newIndexValue;
         subscriber.index = indexEntityId;
 
-        getOrInitAccount(event, subscriberAddress, lastModified);
+        getOrInitAccount(hostAddress, subscriberAddress, lastModified);
     }
     subscriber.updatedAt = lastModified;
     return subscriber as Subscriber;
@@ -308,15 +310,16 @@ export function getOrInitSubscriber(
 
 /**
  * Updates the Account entities updatedAt property.
- * @param event
+ * @param hostAddress
  * @param accountAddress
+ * @param lastModified
  */
 export function updateAccountUpdatedAt(
-    event: ethereum.Event,
-    accountAddress: Address
+    hostAddress: Address,
+    accountAddress: Address,
+    lastModified: BigInt
 ): void {
-    let lastModified = event.block.timestamp;
-    let account = getOrInitAccount(event, accountAddress, lastModified);
+    let account = getOrInitAccount(hostAddress, accountAddress, lastModified);
     account.updatedAt = lastModified;
     account.save();
 }

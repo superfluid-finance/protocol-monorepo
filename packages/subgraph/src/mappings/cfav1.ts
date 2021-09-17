@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { FlowUpdated as FlowUpdatedEvent } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { FlowUpdated } from "../../generated/schema";
 import {
@@ -44,7 +44,10 @@ function createFlowUpdatedEntity(
     ev.save();
 }
 
-export function handleStreamUpdated(event: FlowUpdatedEvent): void {
+export function HandleStreamUpdated(
+    event: FlowUpdatedEvent,
+    hostAddress: Address
+): void {
     let senderAddress = event.params.sender;
     let receiverAddress = event.params.receiver;
     let tokenAddress = event.params.token;
@@ -52,7 +55,7 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     let currentTimestamp = event.block.timestamp;
 
     let stream = getOrInitStream(
-        event,
+        hostAddress,
         senderAddress,
         receiverAddress,
         tokenAddress,
@@ -87,8 +90,8 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
     }
 
     // update Account updatedAt field
-    updateAccountUpdatedAt(event, senderAddress);
-    updateAccountUpdatedAt(event, receiverAddress);
+    updateAccountUpdatedAt(hostAddress, senderAddress, currentTimestamp);
+    updateAccountUpdatedAt(hostAddress, receiverAddress, currentTimestamp);
 
     // create event entity
     createFlowUpdatedEntity(event, oldFlowRate);

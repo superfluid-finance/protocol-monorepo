@@ -1,3 +1,4 @@
+import { Address } from "@graphprotocol/graph-ts";
 import {
     CustomSuperTokenCreated as CustomSuperTokenCreatedEvent,
     SuperTokenCreated as SuperTokenCreatedEvent,
@@ -10,7 +11,10 @@ import {
 } from "../../generated/schema";
 import { createEventID, getOrInitToken } from "../utils";
 
-export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
+export function handleSuperTokenCreated(
+    event: SuperTokenCreatedEvent,
+    hostAddress: Address
+): void {
     let ev = new SuperTokenCreated(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -18,11 +22,12 @@ export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitToken(event, event.params.token, event.block.timestamp);
+    getOrInitToken(hostAddress, event.params.token, event.block.timestamp);
 }
 
 export function handleCustomSuperTokenCreated(
-    event: CustomSuperTokenCreatedEvent
+    event: CustomSuperTokenCreatedEvent,
+    hostAddress: Address
 ): void {
     let ev = new CustomSuperTokenCreated(createEventID(event));
     ev.transactionHash = event.transaction.hash;
@@ -31,7 +36,7 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitToken(event, event.params.token, event.block.timestamp);
+    getOrInitToken(hostAddress, event.params.token, event.block.timestamp);
 }
 
 export function handleSuperTokenLogicCreated(

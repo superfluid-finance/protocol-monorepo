@@ -26,10 +26,13 @@ import {
     updateAccountUpdatedAt,
 } from "../utils";
 
-export function handleIndexCreated(event: IndexCreatedEvent): void {
+export function handleIndexCreated(
+    event: IndexCreatedEvent,
+    hostAddress: Address
+): void {
     let currentTimestamp = event.block.timestamp;
     let index = getOrInitIndex(
-        event,
+        hostAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -50,7 +53,10 @@ export function handleIndexCreated(event: IndexCreatedEvent): void {
     createIndexCreatedEntity(event);
 }
 
-export function handleIndexUpdated(event: IndexUpdatedEvent): void {
+export function handleIndexUpdated(
+    event: IndexUpdatedEvent,
+    hostAddress: Address
+): void {
     let currentTimestamp = event.block.timestamp;
     let totalUnits = event.params.totalUnitsPending.plus(
         event.params.totalUnitsApproved
@@ -61,7 +67,7 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
 
     // update Index entity
     let index = getOrInitIndex(
-        event,
+        hostAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -94,7 +100,11 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     tokenStatistic.updatedAt = currentTimestamp;
     tokenStatistic.save();
 
-    updateAccountUpdatedAt(event, event.params.publisher);
+    updateAccountUpdatedAt(
+        hostAddress,
+        event.params.publisher,
+        currentTimestamp
+    );
 
     updateATSBalance(
         event.params.publisher.toHex(),
@@ -106,11 +116,12 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
 }
 
 export function handleSubscriptionApproved(
-    event: SubscriptionApprovedEvent
+    event: SubscriptionApprovedEvent,
+    hostAddress: Address
 ): void {
     let currentTimestamp = event.block.timestamp;
     let index = getOrInitIndex(
-        event,
+        hostAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -118,7 +129,7 @@ export function handleSubscriptionApproved(
     );
 
     let subscriber = getOrInitSubscriber(
-        event,
+        hostAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -169,12 +180,20 @@ export function handleSubscriptionApproved(
         );
 
         // we only update publisher data if hasSubscription is true
-        updateAccountUpdatedAt(event, event.params.publisher);
+        updateAccountUpdatedAt(
+            hostAddress,
+            event.params.publisher,
+            currentTimestamp
+        );
     }
 
     subscriber.save();
 
-    updateAccountUpdatedAt(event, event.params.subscriber);
+    updateAccountUpdatedAt(
+        hostAddress,
+        event.params.subscriber,
+        currentTimestamp
+    );
 
     updateAggregateIDASubscriptionsData(
         event.params.subscriber.toHex(),
@@ -189,13 +208,14 @@ export function handleSubscriptionApproved(
 }
 
 export function handleSubscriptionRevoked(
-    event: SubscriptionRevokedEvent
+    event: SubscriptionRevokedEvent,
+    hostAddress: Address
 ): void {
     let isRevoke = event.params.subscriber.equals(Address.fromI32(0));
     let currentTimestamp = event.block.timestamp;
 
     let index = getOrInitIndex(
-        event,
+        hostAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -203,7 +223,7 @@ export function handleSubscriptionRevoked(
     );
 
     let subscriber = getOrInitSubscriber(
-        event,
+        hostAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -254,7 +274,11 @@ export function handleSubscriptionRevoked(
     index.save();
     subscriber.save();
 
-    updateAccountUpdatedAt(event, event.params.subscriber);
+    updateAccountUpdatedAt(
+        hostAddress,
+        event.params.subscriber,
+        currentTimestamp
+    );
 
     createSubscriptionRevokedEntity(event);
 }
@@ -264,12 +288,13 @@ export function handleSubscriptionRevoked(
  * @param event
  */
 export function handleSubscriptionUnitsUpdated(
-    event: SubscriptionUnitsUpdatedEvent
+    event: SubscriptionUnitsUpdatedEvent,
+    hostAddress: Address
 ): void {
     let currentTimestamp = event.block.timestamp;
 
     let subscriber = getOrInitSubscriber(
-        event,
+        hostAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -278,7 +303,7 @@ export function handleSubscriptionUnitsUpdated(
     );
 
     let index = getOrInitIndex(
-        event,
+        hostAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -352,10 +377,18 @@ export function handleSubscriptionUnitsUpdated(
             currentTimestamp
         );
 
-        updateAccountUpdatedAt(event, event.params.publisher);
+        updateAccountUpdatedAt(
+            hostAddress,
+            event.params.publisher,
+            currentTimestamp
+        );
     }
 
-    updateAccountUpdatedAt(event, event.params.subscriber);
+    updateAccountUpdatedAt(
+        hostAddress,
+        event.params.subscriber,
+        currentTimestamp
+    );
 
     updateATSBalance(
         subscriber.subscriber,

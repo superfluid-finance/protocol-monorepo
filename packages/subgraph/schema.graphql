@@ -15,7 +15,7 @@ interface Event {
 
 #     ConstantFlowAgreementV1    #
 """
-FlowUpdated: An event entity that is emitted
+FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
 type FlowUpdated implements Event @entity {
@@ -46,7 +46,7 @@ type FlowUpdated implements Event @entity {
     """
     oldFlowRate: BigInt!
     """
-    The "type" of the FlowUpdated event.
+    The "type" of the `FlowUpdated` event.
     0 = create
     1 = update
     2 = terminate
@@ -306,6 +306,10 @@ type CustomSuperTokenCreated implements Event @entity {
 # of the BaseEntity properties.
 # Links is defined as a property which links the current
 # entity to another HOL entity.
+
+"""
+BaseEntity: The base interface implemented by all HOL entity types.
+"""
 interface BaseEntity {
     id: ID!
     createdAt: BigInt!
@@ -323,7 +327,7 @@ type Account @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
-    # TODO: update the `updatedAt` every time the account is updated in some way
+
     """
     Indicates whether the address/account is a super app.
     """
@@ -336,18 +340,25 @@ Superfluid's host contract address set as the host).
 """
 type Token @entity {
     # Note: All Tokens are Super Tokens for this subgraph
+    """
+    ID: the token address
+    """
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
     name: String!
     symbol: String!
+
+    """
+    The address of the underlying ERC20 token.
+    """
     underlyingAddress: Bytes! # Underlying ERC20
 }
 
 """
 Stream: A HOL entity that represents the lifetime of a stream between a `sender` and a `receiver`.
 A account can start a stream, update the flow rate, but when they close it, it is
-considered "dead". The next stream you create with the same `sender` and `receiever`
+considered "dead". The next stream you create with the same `sender` and `receiver`
 will create a new stream entity. Therefore, multiple stream entities can be created
 between the same `sender` and `receiver`.
 """
@@ -409,6 +420,9 @@ type Subscriber implements BaseEntity @entity {
 Index: A Index HOL entity.
 """
 type Index implements BaseEntity @entity {
+    """
+    ID composed of: publisherAddress-tokenAddress-IndexId
+    """
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
@@ -463,6 +477,9 @@ AccountTokenSnapshot: An aggregate entity which aggregates data on an account's
 interaction with a `token`.
 """
 type AccountTokenSnapshot @entity {
+    """
+    ID composed of: accountID-tokenID
+    """
     id: ID!
     updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
@@ -488,12 +505,12 @@ type AccountTokenSnapshot @entity {
     totalApprovedSubscriptions: Int!
 
     """
-    Balance of the account as of the `updatedAt` timestamp.
+    Balance of `account` as of the `updatedAt` timestamp.
     """
     balance: BigInt!
 
     """
-    The total net flow rate of the account as of the `updatedAt` timestamp.
+    The total net flow rate of the `account` as of the `updatedAt` timestamp.
     """
     totalNetFlowRate: BigInt!
 
@@ -526,6 +543,9 @@ type AccountTokenSnapshot @entity {
 TokenStatistic: An aggregate entity which aggregates data of a single `token`.
 """
 type TokenStatistic @entity {
+    """
+    ID: tokenID
+    """
     id: ID!
     updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------

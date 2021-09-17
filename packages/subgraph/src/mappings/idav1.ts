@@ -23,6 +23,7 @@ import {
     BIG_INT_ZERO,
     getSubscriberID,
     subscriptionExists,
+    updateAccountUpdatedAt,
 } from "../utils";
 
 export function handleIndexCreated(event: IndexCreatedEvent): void {
@@ -93,6 +94,8 @@ export function handleIndexUpdated(event: IndexUpdatedEvent): void {
     tokenStatistic.updatedAt = currentTimestamp;
     tokenStatistic.save();
 
+    updateAccountUpdatedAt(event, event.params.publisher);
+
     updateATSBalance(
         event.params.publisher.toHex(),
         event.params.token.toHex(),
@@ -152,7 +155,6 @@ export function handleSubscriptionApproved(
 
         subscriber.totalAmountReceivedUntilUpdatedAt =
             subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
-        subscriber.save();
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
         updateATSBalance(
@@ -165,7 +167,14 @@ export function handleSubscriptionApproved(
             tokenId,
             currentTimestamp
         );
+
+        // we only update publisher data if hasSubscription is true
+        updateAccountUpdatedAt(event, event.params.publisher);
     }
+
+    subscriber.save();
+
+    updateAccountUpdatedAt(event, event.params.subscriber);
 
     updateAggregateIDASubscriptionsData(
         event.params.subscriber.toHex(),
@@ -244,6 +253,8 @@ export function handleSubscriptionRevoked(
 
     index.save();
     subscriber.save();
+
+    updateAccountUpdatedAt(event, event.params.subscriber);
 
     createSubscriptionRevokedEntity(event);
 }
@@ -340,7 +351,12 @@ export function handleSubscriptionUnitsUpdated(
             event.params.token.toHex(),
             currentTimestamp
         );
+
+        updateAccountUpdatedAt(event, event.params.publisher);
     }
+
+    updateAccountUpdatedAt(event, event.params.subscriber);
+
     updateATSBalance(
         subscriber.subscriber,
         event.params.token.toHex(),

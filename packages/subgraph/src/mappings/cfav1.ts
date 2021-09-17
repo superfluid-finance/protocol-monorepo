@@ -9,6 +9,7 @@ import {
     updateAggregateEntitiesStreamData,
     BIG_INT_ZERO,
     getOrInitStreamRevision,
+    updateAccountUpdatedAt,
 } from "../utils";
 
 enum FlowActionType {
@@ -65,7 +66,6 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
         amountStreamedSinceLastUpdate
     );
     stream.currentFlowRate = flowRate;
-    stream.updatedAt = currentTimestamp;
     stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
     stream.save();
 
@@ -85,6 +85,10 @@ export function handleStreamUpdated(event: FlowUpdatedEvent): void {
         streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
         streamRevision.save();
     }
+
+    // update Account updatedAt field
+    updateAccountUpdatedAt(event, senderAddress);
+    updateAccountUpdatedAt(event, receiverAddress);
 
     // create event entity
     createFlowUpdatedEntity(event, oldFlowRate);

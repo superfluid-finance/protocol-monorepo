@@ -128,6 +128,15 @@ export function getOrInitStreamRevision(
     return streamRevision as StreamRevision;
 }
 
+/**
+ * Gets or initializes a Stream, always sets the updatedAt.
+ * @param event
+ * @param senderAddress
+ * @param receiverAddress
+ * @param tokenAddress
+ * @param lastModified
+ * @returns
+ */
 export function getOrInitStream(
     event: ethereum.Event,
     senderAddress: Address,
@@ -166,7 +175,6 @@ export function getOrInitStream(
     if (stream == null) {
         stream = new Stream(id);
         stream.createdAt = lastModified;
-        stream.updatedAt = lastModified;
         stream.token = tokenAddress.toHex();
         stream.sender = senderAddress.toHex();
         stream.receiver = receiverAddress.toHex();
@@ -179,9 +187,19 @@ export function getOrInitStream(
             getOrInitToken(event, tokenAddress, lastModified);
         }
     }
+    stream.updatedAt = lastModified;
     return stream as Stream;
 }
 
+/**
+ * Gets or initializes an Index, always sets the updatedAt.
+ * @param event
+ * @param publisherAddress
+ * @param tokenAddress
+ * @param indexId
+ * @param lastModified
+ * @returns
+ */
 export function getOrInitIndex(
     event: ethereum.Event,
     publisherAddress: Address,
@@ -220,6 +238,16 @@ export function getOrInitIndex(
     return index as Index;
 }
 
+/**
+ * Gets or initializes a Subscriber, always sets the updatedAt.
+ * @param event
+ * @param subscriberAddress
+ * @param publisherAddress
+ * @param tokenAddress
+ * @param indexId
+ * @param lastModified
+ * @returns
+ */
 export function getOrInitSubscriber(
     event: ethereum.Event,
     subscriberAddress: Address,
@@ -266,6 +294,21 @@ export function getOrInitSubscriber(
     }
     subscriber.updatedAt = lastModified;
     return subscriber as Subscriber;
+}
+
+/**
+ * Updates the Account entities updatedAt property.
+ * @param event
+ * @param accountAddress
+ */
+export function updateAccountUpdatedAt(
+    event: ethereum.Event,
+    accountAddress: Address
+): void {
+    let lastModified = event.block.timestamp;
+    let account = getOrInitAccount(event, accountAddress, lastModified);
+    account.updatedAt = lastModified;
+    account.save();
 }
 
 // Get HOL ID functions

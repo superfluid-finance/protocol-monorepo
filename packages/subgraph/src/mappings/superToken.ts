@@ -13,6 +13,7 @@ import {
 import {
     createEventID,
     getOrInitAccount,
+    updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
     updateATSBalance,
 } from "../utils";
@@ -38,6 +39,10 @@ export function handleAgreementLiquidatedBy(
         event.params.bondAccount,
         currentTimestamp
     );
+    updateAccountUpdatedAt(event, event.params.liquidatorAccount);
+    updateAccountUpdatedAt(event, event.params.penaltyAccount);
+    updateAccountUpdatedAt(event, event.params.bondAccount);
+
     updateATSBalance(
         liquidatorAccount.id,
         event.address.toHex(),
@@ -61,6 +66,7 @@ export function handleTokenUpgraded(event: TokenUpgradedEvent): void {
         currentTimestamp
     );
     let tokenId = event.address.toHex();
+    updateAccountUpdatedAt(event, event.params.account);
     updateATSBalance(account.id, tokenId, currentTimestamp);
 }
 
@@ -74,6 +80,7 @@ export function handleTokenDowngraded(event: TokenDowngradedEvent): void {
         currentTimestamp
     );
     let tokenId = event.address.toHex();
+    updateAccountUpdatedAt(event, event.params.account);
     updateATSBalance(account.id, tokenId, currentTimestamp);
 }
 
@@ -88,6 +95,10 @@ export function handleTransfer(event: TransferEvent): void {
     );
     let toAccount = getOrInitAccount(event, event.params.to, currentTimestamp);
     let tokenId = event.address.toHex();
+
+    updateAccountUpdatedAt(event, event.params.from);
+    updateAccountUpdatedAt(event, event.params.to);
+
     updateATSBalance(toAccount.id, tokenId, currentTimestamp);
     updateATSBalance(fromAccount.id, tokenId, currentTimestamp);
 

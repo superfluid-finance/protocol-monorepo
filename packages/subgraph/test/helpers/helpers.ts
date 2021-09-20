@@ -88,13 +88,15 @@ export const getCurrentBlockNumber = async () => {
         }
     `;
     const data = await subgraphRequest<IMeta>(query);
+    if (!data) return 0;
+
     return data._meta.block.number;
 };
 
 export const subgraphRequest = async <T>(
     query: string,
     variables?: { [key: string]: any }
-): Promise<T> => {
+): Promise<T | undefined> => {
     try {
         const response = await request<T>(
             "http://localhost:8000/subgraphs/name/superfluid-test",
@@ -103,7 +105,7 @@ export const subgraphRequest = async <T>(
         );
         return response;
     } catch (err) {
-        console.error(
+        throw new Error(
             `Failed call to subgraph with query ${query} and error ${err}`
         );
     }

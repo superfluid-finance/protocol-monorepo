@@ -18,9 +18,9 @@ const flowUpdatedEventProperties = `{
 
 export const getFlowUpdatedEventQuery = gql`
 query getFlowUpdatedEvent($id: ID!) {
-	flowUpdated(id: $id) {
-		${flowUpdatedEventProperties}
-	}
+	flowUpdated(id: $id) 
+	${flowUpdatedEventProperties}
+	
 }`;
 
 export const getFlowUpdatedEventsQuery = (options: IQueryOptions) => gql`

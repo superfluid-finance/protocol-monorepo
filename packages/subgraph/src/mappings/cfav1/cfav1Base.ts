@@ -44,7 +44,7 @@ function createFlowUpdatedEntity(
     ev.save();
 }
 
-export function HandleStreamUpdated(
+export function handleStreamUpdated(
     event: FlowUpdatedEvent,
     hostAddress: Address
 ): void {

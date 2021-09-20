@@ -3,6 +3,6 @@ import { FlowUpdated as FlowUpdatedEvent } from "../../../generated/ConstantFlow
 import { MATIC_HOST_ADDRESS } from "../../utils";
 import { handleStreamUpdated } from "./cfav1Base";
 
-export function goerliHandleStreamUpdated(event: FlowUpdatedEvent): void {
+export function maticHandleStreamUpdated(event: FlowUpdatedEvent): void {
     handleStreamUpdated(event, Address.fromString(MATIC_HOST_ADDRESS));
 }

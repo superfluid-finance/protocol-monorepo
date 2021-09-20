@@ -3,6 +3,6 @@ import { FlowUpdated as FlowUpdatedEvent } from "../../../generated/ConstantFlow
 import { ROPSTEN_HOST_ADDRESS } from "../../utils";
 import { handleStreamUpdated } from "./cfav1Base";
 
-export function goerliHandleStreamUpdated(event: FlowUpdatedEvent): void {
+export function ropstenHandleStreamUpdated(event: FlowUpdatedEvent): void {
     handleStreamUpdated(event, Address.fromString(ROPSTEN_HOST_ADDRESS));
 }

@@ -1,11 +1,11 @@
 import type Web3 from "web3";
-import ConstantFlowAgreementV1Helper from "./ConstantFlowAgreementV1Helper";
-import InstantDistributionAgreementV1Helper from "./InstantDistributionAgreementV1Helper";
-import GasMeter from "./utils/gasMetering/gasMetering";
+import type { ConstantFlowAgreementV1Helper } from "./ConstantFlowAgreementV1Helper";
+import type { InstantDistributionAgreementV1Helper } from "./InstantDistributionAgreementV1Helper";
+import type { GasMeter, Record } from "./utils/gasMetering/gasMetering";
 import LoadContracts from "./loadContracts";
 import Config from "./getConfig";
-import User from "./User";
-import Utils from "./Utils";
+import type { User } from "./User";
+import type { Utils } from "./Utils";
 
 declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
 
@@ -47,7 +47,7 @@ export declare class Framework {
     utils: Utils | undefined;
     _gasMetering: GasMeter | undefined;
 
-    initialize(): Promise<any>;
+    initialize(): Promise<void>;
     isSuperTokenListed(superTokenKey: string): Promise<boolean>;
     loadToken(tokenKey: string): Promise<void>;
     createERC20Wrapper(tokenInfo: any, 
@@ -64,6 +64,6 @@ export declare class Framework {
         options?: any;
     }): User;
     batchCall(calls: any): any;
-    _pushTxForGasReport(tx: GasMeter.Record, actionName: string): void;
+    _pushTxForGasReport(tx: Record, actionName: string): void;
     generateGasReport(name: string): void;
 }

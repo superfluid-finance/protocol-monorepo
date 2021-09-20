@@ -117,7 +117,7 @@ dataSources:
         kind: ethereum/events
         apiVersion: 0.0.4
         language: wasm/assemblyscript
-        file: ./src/mappings/idav1.ts
+        file: ./src/mappings/idav1/{{ network }}IDAv1.ts
         entities:
           - Account
           - AccountTokenSnapshot
@@ -140,15 +140,15 @@ dataSources:
             file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
-            handler: handleIndexCreated
+            handler: {{network}}HandleIndexCreated
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
-            handler: handleIndexUpdated
+            handler: {{network}}HandleIndexUpdated
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
-            handler: handleSubscriptionApproved
+            handler: {{network}}HandleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
-            handler: handleSubscriptionRevoked
+            handler: {{network}}HandleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
-            handler: handleSubscriptionUnitsUpdated
+            handler: {{network}}HandleSubscriptionUnitsUpdated
     - kind: ethereum/contract
       name: SuperfluidGovernance
       network: {{ network }}

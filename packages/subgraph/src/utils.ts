@@ -317,6 +317,34 @@ export function getOrInitSubscriber(
 }
 
 /**
+ * Helper function which finds out whether a token has a valid host address.
+ * If it does not, we should not create any HOL/events related to the token.
+ * @param hostAddress 
+ * @param tokenAddress 
+ * @returns 
+ */
+ export function tokenHasValidHost(
+    hostAddress: Address,
+    tokenAddress: Address
+): boolean {
+    let tokenId = tokenAddress.toHex();
+    let token = Token.load(tokenId);
+    if (token == null) {
+        let tokenContract = SuperToken.bind(tokenAddress);
+        let hostContract = Superfluid.bind(hostAddress);
+        let tokenHostAddressResult = tokenContract.try_getHost();
+
+        return (
+            !tokenHostAddressResult.reverted &&
+            tokenHostAddressResult.value.toHex() ==
+                hostContract._address.toHex()
+        );
+    }
+
+    return true;
+}
+
+/**
  * Updates the Account entities updatedAt property.
  * @param hostAddress
  * @param accountAddress

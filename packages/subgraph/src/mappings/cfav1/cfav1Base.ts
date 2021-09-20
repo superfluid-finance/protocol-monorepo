@@ -10,6 +10,7 @@ import {
     BIG_INT_ZERO,
     getOrInitStreamRevision,
     updateAccountUpdatedAt,
+    tokenHasValidHost,
 } from "../../utils";
 
 enum FlowActionType {
@@ -53,6 +54,11 @@ export function handleStreamUpdated(
     let tokenAddress = event.params.token;
     let flowRate = event.params.flowRate;
     let currentTimestamp = event.block.timestamp;
+
+    let hasValidHost = tokenHasValidHost(hostAddress, tokenAddress);
+    if (!hasValidHost) {
+        return;
+    }
 
     let stream = getOrInitStream(
         hostAddress,

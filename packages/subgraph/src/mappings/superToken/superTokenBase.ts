@@ -14,6 +14,7 @@ import {
 import {
     createEventID,
     getOrInitAccount,
+    tokenHasValidHost,
     updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
     updateATSBalance,
@@ -23,6 +24,11 @@ export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
     createAgreementLiquidatedByEntity(event);
 
     let currentTimestamp = event.block.timestamp;
@@ -74,6 +80,11 @@ export function handleTokenUpgraded(
     event: TokenUpgradedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
     createTokenUpgradedEntity(event);
 
     let currentTimestamp = event.block.timestamp;
@@ -91,6 +102,11 @@ export function handleTokenDowngraded(
     event: TokenDowngradedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
     createTokenDowngradedEntity(event);
 
     let currentTimestamp = event.block.timestamp;
@@ -108,6 +124,11 @@ export function handleTransfer(
     event: TransferEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
     createTransferEntity(event);
 
     let currentTimestamp = event.block.timestamp;

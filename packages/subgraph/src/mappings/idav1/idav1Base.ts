@@ -24,12 +24,18 @@ import {
     getSubscriberID,
     subscriptionExists,
     updateAccountUpdatedAt,
+    tokenHasValidHost,
 } from "../../utils";
 
 export function handleIndexCreated(
     event: IndexCreatedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let currentTimestamp = event.block.timestamp;
     let index = getOrInitIndex(
         hostAddress,
@@ -57,6 +63,11 @@ export function handleIndexUpdated(
     event: IndexUpdatedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let currentTimestamp = event.block.timestamp;
     let totalUnits = event.params.totalUnitsPending.plus(
         event.params.totalUnitsApproved
@@ -119,6 +130,11 @@ export function handleSubscriptionApproved(
     event: SubscriptionApprovedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let currentTimestamp = event.block.timestamp;
     let index = getOrInitIndex(
         hostAddress,
@@ -211,6 +227,11 @@ export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let isRevoke = event.params.subscriber.equals(Address.fromI32(0));
     let currentTimestamp = event.block.timestamp;
 
@@ -291,6 +312,11 @@ export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent,
     hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let currentTimestamp = event.block.timestamp;
 
     let subscriber = getOrInitSubscriber(

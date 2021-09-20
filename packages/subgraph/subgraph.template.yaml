@@ -15,7 +15,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/superTokenFactory.ts
+          file: ./src/mappings/superTokenFactory/{{network}}SuperTokenFactory.ts
           entities:
               - CustomSuperTokenCreated
               - SuperTokenCreated
@@ -28,13 +28,15 @@ dataSources:
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
-                handler: handleSuperTokenCreated
+                handler: {{network}}HandleSuperTokenCreated
               - event: CustomSuperTokenCreated(indexed address)
-                handler: handleCustomSuperTokenCreated
+                handler: {{network}}HandleCustomSuperTokenCreated
               - event: SuperTokenLogicCreated(indexed address)
-                handler: handleSuperTokenLogicCreated
+                handler: {{network}}HandleSuperTokenLogicCreated
     - kind: ethereum/contract
       name: Host
       network: {{ network }}
@@ -85,7 +87,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/cfav1.ts
+          file: ./src/mappings/cfav1/{{ network }}CFAv1.ts
           entities:
               - Account
               - AccountTokenSnapshot
@@ -99,9 +101,11 @@ dataSources:
                 file: ./abis/IConstantFlowAgreementV1.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleStreamUpdated
+                handler: {{ network }}HandleStreamUpdated
     - kind: ethereum/contract
       name: InstantDistributionAgreementV1
       network: {{ network }}
@@ -113,7 +117,7 @@ dataSources:
         kind: ethereum/events
         apiVersion: 0.0.4
         language: wasm/assemblyscript
-        file: ./src/mappings/idav1.ts
+        file: ./src/mappings/idav1/{{ network }}IDAv1.ts
         entities:
           - Account
           - AccountTokenSnapshot
@@ -132,17 +136,19 @@ dataSources:
             file: ./abis/IInstantDistributionAgreementV1.json
           - name: ISuperToken
             file: ./abis/ISuperToken.json
+          - name: ISuperfluid
+            file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
-            handler: handleIndexCreated
+            handler: {{network}}HandleIndexCreated
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
-            handler: handleIndexUpdated
+            handler: {{network}}HandleIndexUpdated
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
-            handler: handleSubscriptionApproved
+            handler: {{network}}HandleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
-            handler: handleSubscriptionRevoked
+            handler: {{network}}HandleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
-            handler: handleSubscriptionUnitsUpdated
+            handler: {{network}}HandleSubscriptionUnitsUpdated
     - kind: ethereum/contract
       name: SuperfluidGovernance
       network: {{ network }}
@@ -183,7 +189,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
-      file: ./src/mappings/superToken.ts
+      file: ./src/mappings/superToken/{{network}}SuperToken.ts
       entities:
         - Account
         - AccountTokenSnapshot
@@ -195,12 +201,14 @@ templates:
       abis:
         - name: ISuperToken
           file: ./abis/ISuperToken.json
+        - name: ISuperfluid
+          file: ./abis/ISuperfluid.json
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
-          handler: handleAgreementLiquidatedBy
+          handler: {{network}}HandleAgreementLiquidatedBy
         - event: TokenUpgraded(indexed address,uint256)
-          handler: handleTokenUpgraded
+          handler: {{network}}HandleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)
-          handler: handleTokenDowngraded
+          handler: {{network}}HandleTokenDowngraded
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: {{network}}HandleTransfer

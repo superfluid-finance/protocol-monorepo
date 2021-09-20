@@ -1,6 +1,11 @@
-#################
+##################
 # Event Entities #
-#################
+##################
+"""
+Event: An interface which is shared by all
+event entities and contains basic transaction
+data.
+"""
 interface Event {
     id: ID!
     blockNumber: BigInt!
@@ -9,24 +14,44 @@ interface Event {
 }
 
 #     ConstantFlowAgreementV1    #
+"""
+FlowUpdated: An `Event` entity that is emitted
+when a flow is created, updated, or deleted.
+"""
 type FlowUpdated implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
+
+    """
+    The address of the `token` being streamed.
+    """
     token: Bytes!
     sender: Bytes!
     receiver: Bytes!
+
+    """
+    The flow rate per second.
+    """
     flowRate: BigInt!
     totalSenderFlowRate: BigInt!
     totalReceiverFlowRate: BigInt!
     userData: Bytes!
+
     # Custom Properties (not on event)
+
+    """
+    The previous flow rate.
+    """
     oldFlowRate: BigInt!
+    """
+    The "type" of the `FlowUpdated` event.
+    0 = create
+    1 = update
+    2 = terminate
+    """
     type: Int!
-    # 0 = create
-    # 1 = update
-    # 2 = terminate
 }
 
 #  InstantDistributionAgreementV1 #
@@ -265,6 +290,8 @@ type SuperTokenLogicCreated implements Event @entity {
     blockNumber: BigInt!
     tokenLogic: Bytes!
 }
+# TODO: research how to add isEOA property
+# TODO: can check if is super app
 
 type CustomSuperTokenCreated implements Event @entity {
     id: ID!
@@ -281,6 +308,10 @@ type CustomSuperTokenCreated implements Event @entity {
 # of the BaseEntity properties.
 # Links is defined as a property which links the current
 # entity to another HOL entity.
+
+"""
+BaseEntity: The base interface implemented by all HOL entity types.
+"""
 interface BaseEntity {
     id: ID!
     createdAt: BigInt!
@@ -289,30 +320,63 @@ interface BaseEntity {
 
 # Note: If two entities implement the same interface
 # they cannot have the same id.
+
+"""
+Account: A HOL entity created for any addresses which interact with
+Superfluid contracts.
+"""
 type Account @entity {
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
-}
-# TODO: research how to add isEOA property
-# TODO: can check if is super app
 
+    """
+    Indicates whether the address/account is a super app.
+    """
+    isSuperApp: Boolean!
+}
+
+"""
+Token: A HOL entity created for super tokens that are "valid" (tokens that have
+Superfluid's host contract address set as the host).
+"""
 type Token @entity {
     # Note: All Tokens are Super Tokens for this subgraph
+    """
+    ID: the token address
+    """
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
     name: String!
     symbol: String!
+
+    """
+    The address of the underlying ERC20 token.
+    """
     underlyingAddress: Bytes! # Underlying ERC20
 }
 
+"""
+Stream: A HOL entity that represents the lifetime of a stream between a `sender` and a `receiver`.
+A account can start a stream, update the flow rate, but when they close it, it is
+considered "dead". The next stream you create with the same `sender` and `receiver`
+will create a new stream entity. Therefore, multiple stream entities can be created
+between the same `sender` and `receiver`.
+"""
 type Stream implements BaseEntity @entity {
+    """
+    ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
+    """
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
     currentFlowRate: BigInt!
+
+    """
+    The amount streamed until the `updatedAt` timestamp on the entity.
+    """
     streamedUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
@@ -320,7 +384,14 @@ type Stream implements BaseEntity @entity {
     receiver: Account!
 }
 
+"""
+Subscriber: A HOL entity that contains data for the `subscriber` account of a particular
+`Index`.
+"""
 type Subscriber implements BaseEntity @entity {
+    """
+    ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
+    """
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
@@ -332,13 +403,28 @@ type Subscriber implements BaseEntity @entity {
     # ---------------------------------- state ----------------------------------
     approved: Boolean!
     units: BigInt!
-    totalUnitsReceivedUntilUpdatedAt: BigInt!
-    lastIndexValue: BigInt! # used to calculate the "totalFundsSent"
+
+    """
+    The total amount of tokens you've received until the `updatedAt`
+    timestamp on this entity.
+    """
+    totalAmountReceivedUntilUpdatedAt: BigInt!
+
+    """
+    The previous index value (used to calculate the `totalAmountReceivedUntilUpdatedAt` field).
+    """
+    lastIndexValue: BigInt!
     # ---------------------------------- links ----------------------------------
     index: Index!
 }
 
+"""
+Index: A Index HOL entity.
+"""
 type Index implements BaseEntity @entity {
+    """
+    ID composed of: publisherAddress-tokenAddress-IndexId
+    """
     id: ID!
     createdAt: BigInt!
     updatedAt: BigInt!
@@ -347,11 +433,31 @@ type Index implements BaseEntity @entity {
     userData: Bytes!
     oldIndexValue: BigInt!
     newIndexValue: BigInt!
+
+    """
+    The number of accounts subscribed to the `Index`.
+    """
     totalSubscribers: Int!
+
+    """
+    The number of units allocated by the `Index` that are pending.
+    """
     totalUnitsPending: BigInt!
+
+    """
+    The number of units allocated by the `Index` that are approved.
+    """
     totalUnitsApproved: BigInt!
+
+    """
+    The sum of `totalUnitsPending` and `totalUnitsApproved`.
+    """
     totalUnits: BigInt!
-    totalUnitsDistributed: BigInt!
+
+    """
+    The total amount distributed from this `Index`.
+    """
+    totalAmountDistributed: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
     publisher: Account!
@@ -368,31 +474,133 @@ type StreamRevision @entity {
 ####################
 #  Aggr. Entities  #
 ####################
+"""
+AccountTokenSnapshot: An aggregate entity which aggregates data on an account's
+interaction with a `token`.
+"""
 type AccountTokenSnapshot @entity {
+    """
+    ID composed of: accountID-tokenID
+    """
     id: ID!
+    updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
-    totalNumberOfStreams: Int!
+    """
+    The number of currently open streams.
+    """
+    totalNumberOfActiveStreams: Int!
+
+    """
+    The number of all-time closed streams.
+    """
+    totalNumberOfClosedStreams: Int!
+
+    """
+    The number of subscriptions that this `account` has with multiple Indexes which
+    are distributing the `token` on this entity.
+    """
     totalSubscriptions: Int!
+
+    """
+    Similar to `totalSubscriptions`, but only counting approved subscriptions.
+    """
     totalApprovedSubscriptions: Int!
-    balance: BigInt! # must be updated each time subscription units is updated
+
+    """
+    Balance of `account` as of the `updatedAt` timestamp.
+    """
+    balance: BigInt!
+
+    """
+    The total net flow rate of the `account` as of the `updatedAt` timestamp.
+    """
     totalNetFlowRate: BigInt!
+
+    """
+    The total inflow rate (receive flowRate per second) of the `account`.
+    """
+    totalInflowRate: BigInt!
+
+    """
+    The total outflow rate (send flowrate per second) of the `account`.
+    """
+    totalOutflowRate: BigInt!
+
+    """
+    The total amount of `token` streamed to this `account` until
+    the `updatedAt` timestamp.
+    """
+    totalAmountStreamedUntilUpdatedAt: BigInt!
+
+    """
+    The total amount of `token` this `account` has transferred.
+    """
+    totalAmountTransferred: BigInt!
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
 }
 
-# Note: naming of entities must be singular.
+"""
+TokenStatistic: An aggregate entity which aggregates data of a single `token`.
+"""
 type TokenStatistic @entity {
+    """
+    ID: tokenID
+    """
     id: ID!
+    updatedAt: BigInt!
     # ---------------------------------- state ----------------------------------
-    totalNumberOfStreams: Int!
+    """
+    The total number of currently active `token` streams.
+    """
+    totalNumberOfActiveStreams: Int!
+
+    """
+    The all-time number of closed streams.
+    """
+    totalNumberOfClosedStreams: Int!
+
+    """
+    The total number of Indexes created with `token`.
+    """
     totalNumberOfIndexes: Int!
-    totalSubscribers: Int!
-    totalApprovedSubscribers: Int!
+
+    """
+    The total number of "active" (has greater than 0 units and has distributed it at
+    least once) Indexes created with `token`.
+    """
+    totalNumberOfActiveIndexes: Int!
+
+    """
+    The number of subscriptions created with Indexes that distribute `token`.
+    """
+    totalSubscriptions: Int!
+
+    """
+    Same as `totalSubscriptions`, but only counts approved subscriptions.
+    """
+    totalApprovedSubscriptions: Int!
+
+    """
+    The total outflow rate of the `token` (how much value is being moved).
+    """
     totalOutflowRate: BigInt!
-    totalUnitsApproved: BigInt!
-    totalUnitsPending: BigInt!
-    totalUnitsDistributed: BigInt!
+
+    """
+    The all-time total amount streamed until the `updatedAt` timestamp.
+    """
+    totalAmountStreamedUntilUpdatedAt: BigInt!
+
+    """
+    The all-time total amount transferred until the `updatedAt` timestamp.
+    """
+    totalAmountTransferred: BigInt!
+
+    """
+    The all-time total amount distributed until the `updatedAt` timestamp.
+    """
+    totalAmountDistributed: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
 }

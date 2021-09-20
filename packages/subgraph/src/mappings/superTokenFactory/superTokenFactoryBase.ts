@@ -1,16 +1,25 @@
+import { Address } from "@graphprotocol/graph-ts";
 import {
     CustomSuperTokenCreated as CustomSuperTokenCreatedEvent,
     SuperTokenCreated as SuperTokenCreatedEvent,
     SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
-} from "../../generated/SuperTokenFactory/ISuperTokenFactory";
+} from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
 import {
     CustomSuperTokenCreated,
     SuperTokenCreated,
     SuperTokenLogicCreated,
-} from "../../generated/schema";
-import { createEventID, getOrInitToken } from "../utils";
+} from "../../../generated/schema";
+import { createEventID, getOrInitToken, tokenHasValidHost } from "../../utils";
 
-export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
+export function handleSuperTokenCreated(
+    event: SuperTokenCreatedEvent,
+    hostAddress: Address
+): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let ev = new SuperTokenCreated(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -18,12 +27,18 @@ export function handleSuperTokenCreated(event: SuperTokenCreatedEvent): void {
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitToken(event.params.token.toHex(), event.block.timestamp);
+    getOrInitToken(hostAddress, event.params.token, event.block.timestamp);
 }
 
 export function handleCustomSuperTokenCreated(
-    event: CustomSuperTokenCreatedEvent
+    event: CustomSuperTokenCreatedEvent,
+    hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    if (!hasValidHost) {
+        return;
+    }
+
     let ev = new CustomSuperTokenCreated(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -31,12 +46,18 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitToken(event.params.token.toHex(), event.block.timestamp);
+    getOrInitToken(hostAddress, event.params.token, event.block.timestamp);
 }
 
 export function handleSuperTokenLogicCreated(
-    event: SuperTokenLogicCreatedEvent
+    event: SuperTokenLogicCreatedEvent,
+    hostAddress: Address
 ): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.params.tokenLogic);
+    if (!hasValidHost) {
+        return;
+    }
+
     let ev = new SuperTokenLogicCreated(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;

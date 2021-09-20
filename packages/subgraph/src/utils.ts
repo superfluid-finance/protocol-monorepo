@@ -319,11 +319,11 @@ export function getOrInitSubscriber(
 /**
  * Helper function which finds out whether a token has a valid host address.
  * If it does not, we should not create any HOL/events related to the token.
- * @param hostAddress 
- * @param tokenAddress 
- * @returns 
+ * @param hostAddress
+ * @param tokenAddress
+ * @returns
  */
- export function tokenHasValidHost(
+export function tokenHasValidHost(
     hostAddress: Address,
     tokenAddress: Address
 ): boolean {
@@ -331,14 +331,14 @@ export function getOrInitSubscriber(
     let token = Token.load(tokenId);
     if (token == null) {
         let tokenContract = SuperToken.bind(tokenAddress);
-        let hostContract = Superfluid.bind(hostAddress);
         let tokenHostAddressResult = tokenContract.try_getHost();
 
-        return (
-            !tokenHostAddressResult.reverted &&
-            tokenHostAddressResult.value.toHex() ==
-                hostContract._address.toHex()
-        );
+        if (tokenHostAddressResult.reverted) {
+            log.error("REVERTED GET HOST = {}", [tokenAddress.toHex()]);
+            return false;
+        }
+
+        return tokenHostAddressResult.value.toHex() == hostAddress.toHex();
     }
 
     return true;

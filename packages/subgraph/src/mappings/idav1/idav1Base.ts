@@ -223,6 +223,14 @@ export function handleSubscriptionApproved(
     createSubscriptionApprovedEntity(event);
 }
 
+/**
+ * This function will be triggered in _revokeOrUpdateSubscription
+ * as well as updateSubscription, but we only handle
+ * _revokeOrUpdateSubscription.
+ * @param event
+ * @param hostAddress
+ * @returns
+ */
 export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent,
     hostAddress: Address
@@ -275,6 +283,15 @@ export function handleSubscriptionRevoked(
         );
     } else {
         // deleting subscription
+        if (subscriber.approved) {
+            index.totalUnitsApproved = index.totalUnitsApproved.minus(
+                subscriber.units
+            );
+        } else {
+            index.totalUnitsPending = index.totalUnitsPending.minus(
+                subscriber.units
+            );
+        }
         updateAggregateIDASubscriptionsData(
             event.params.subscriber.toHex(),
             event.params.token.toHex(),
@@ -305,7 +322,9 @@ export function handleSubscriptionRevoked(
 }
 
 /**
- * This always gets called with handleIndexUnitsUpdated.
+ * This function will be triggered in _revokeOrUpdateSubscription
+ * as well as updateSubscription, but we only handle
+ * updateSubscription.
  * @param event
  */
 export function handleSubscriptionUnitsUpdated(
@@ -345,22 +364,8 @@ export function handleSubscriptionUnitsUpdated(
     );
     let hasSubscription = subscriptionExists(subscriberId);
 
-    // handle deletion in _revokeOrDeleteSubscription function
-    if (isDeleteSubscription) {
-        if (subscriber.approved) {
-            index.totalUnitsApproved = index.totalUnitsApproved.minus(
-                subscriber.units
-            );
-        } else {
-            index.totalUnitsPending = index.totalUnitsPending.minus(
-                subscriber.units
-            );
-        }
-        // NOTE: we don't update the totalReceivedUntilLastUpdate in this
-        // block of code as handleSubscriptionRevoked does that for
-        // revoke and deletion of subscription and SubscriptionRevoked
-        // event is emmitted if this block of code runs.
-    } else {
+    // we only handle updateSubscription in this function
+    if (!isDeleteSubscription) {
         // is updateSubscription
         let totalUnitsDelta = units.minus(subscriber.units);
 
@@ -381,6 +386,13 @@ export function handleSubscriptionUnitsUpdated(
                 false,
                 currentTimestamp
             );
+        }
+
+        // we only update subscription units in updateSubscription
+        // if user hasSubscription
+        if (hasSubscription) {
+            subscriber.lastIndexValue = index.newIndexValue;
+            subscriber.units = event.params.units;
         }
 
         let balanceDelta = index.newIndexValue
@@ -421,9 +433,6 @@ export function handleSubscriptionUnitsUpdated(
         event.params.token.toHex(),
         currentTimestamp
     );
-
-    subscriber.lastIndexValue = index.newIndexValue;
-    subscriber.units = event.params.units;
 
     index.save();
     subscriber.save();

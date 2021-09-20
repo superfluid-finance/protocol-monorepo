@@ -40,7 +40,8 @@ export function handleCustomSuperTokenCreated(
 }
 
 export function handleSuperTokenLogicCreated(
-    event: SuperTokenLogicCreatedEvent
+    event: SuperTokenLogicCreatedEvent,
+    hostAddress: Address
 ): void {
     let ev = new SuperTokenLogicCreated(createEventID(event));
     ev.transactionHash = event.transaction.hash;

@@ -15,7 +15,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/superTokenFactory.ts
+          file: ./src/mappings/superTokenFactory/{{network}}SuperTokenFactory.ts
           entities:
               - CustomSuperTokenCreated
               - SuperTokenCreated
@@ -32,11 +32,11 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
-                handler: handleSuperTokenCreated
+                handler: {{network}}HandleSuperTokenCreated
               - event: CustomSuperTokenCreated(indexed address)
-                handler: handleCustomSuperTokenCreated
+                handler: {{network}}HandleCustomSuperTokenCreated
               - event: SuperTokenLogicCreated(indexed address)
-                handler: handleSuperTokenLogicCreated
+                handler: {{network}}HandleSuperTokenLogicCreated
     - kind: ethereum/contract
       name: Host
       network: {{ network }}

@@ -189,7 +189,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
-      file: ./src/mappings/superToken.ts
+      file: ./src/mappings/superToken/{{network}}SuperToken.ts
       entities:
         - Account
         - AccountTokenSnapshot
@@ -205,10 +205,10 @@ templates:
           file: ./abis/ISuperfluid.json
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
-          handler: handleAgreementLiquidatedBy
+          handler: {{network}}HandleAgreementLiquidatedBy
         - event: TokenUpgraded(indexed address,uint256)
-          handler: handleTokenUpgraded
+          handler: {{network}}HandleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)
-          handler: handleTokenDowngraded
+          handler: {{network}}HandleTokenDowngraded
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleTransfer
+          handler: {{network}}HandleTransfer

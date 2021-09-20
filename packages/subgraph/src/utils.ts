@@ -82,7 +82,6 @@ export function getOrInitAccount(
  * @returns Token
  */
 export function getOrInitToken(
-    hostAddress: Address,
     tokenAddress: Address,
     lastModified: BigInt
 ): Token {
@@ -90,35 +89,24 @@ export function getOrInitToken(
     let token = Token.load(tokenId);
     if (token == null) {
         let tokenContract = SuperToken.bind(tokenAddress);
-        let hostContract = Superfluid.bind(hostAddress);
-        let tokenHostAddressResult = tokenContract.try_getHost();
 
-        // if the host contract of the token is our host contract,
-        // we will create token and tokenStatistic entities.
-        if (
-            !tokenHostAddressResult.reverted &&
-            tokenHostAddressResult.value.toHex() ==
-                hostContract._address.toHex()
-        ) {
-            let underlyingAddressResult =
-                tokenContract.try_getUnderlyingToken();
-            let nameResult = tokenContract.try_name();
-            let symbolResult = tokenContract.try_symbol();
-            token = new Token(tokenId);
-            token.createdAt = lastModified;
-            token.updatedAt = lastModified;
-            token.name = nameResult.reverted ? "" : nameResult.value;
-            token.symbol = symbolResult ? "" : symbolResult.value;
-            token.underlyingAddress = underlyingAddressResult.reverted
-                ? new Address(0)
-                : underlyingAddressResult.value;
-            token.save();
+        let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
+        let nameResult = tokenContract.try_name();
+        let symbolResult = tokenContract.try_symbol();
+        token = new Token(tokenId);
+        token.createdAt = lastModified;
+        token.updatedAt = lastModified;
+        token.name = nameResult.reverted ? "" : nameResult.value;
+        token.symbol = symbolResult ? "" : symbolResult.value;
+        token.underlyingAddress = underlyingAddressResult.reverted
+            ? new Address(0)
+            : underlyingAddressResult.value;
+        token.save();
 
-            // Note: we initalize and create tokenStatistic whenever we create a
-            // token as well.
-            let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
-            tokenStatistic.save();
-        }
+        // Note: we initalize and create tokenStatistic whenever we create a
+        // token as well.
+        let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
+        tokenStatistic.save();
     }
     return token as Token;
 }
@@ -204,7 +192,7 @@ export function getOrInitStream(
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         if (!tokenExists(tokenAddress.toHex())) {
-            getOrInitToken(hostAddress, tokenAddress, lastModified);
+            getOrInitToken(tokenAddress, lastModified);
         }
     }
     stream.updatedAt = lastModified;
@@ -251,7 +239,7 @@ export function getOrInitIndex(
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
         if (!tokenExists(tokenId)) {
-            getOrInitToken(hostAddress, tokenAddress, lastModified);
+            getOrInitToken(tokenAddress, lastModified);
         }
     }
     index.updatedAt = lastModified;

@@ -97,7 +97,7 @@ export function getOrInitToken(
         token.createdAt = lastModified;
         token.updatedAt = lastModified;
         token.name = nameResult.reverted ? "" : nameResult.value;
-        token.symbol = symbolResult ? "" : symbolResult.value;
+        token.symbol = symbolResult.reverted ? "" : symbolResult.value;
         token.underlyingAddress = underlyingAddressResult.reverted
             ? new Address(0)
             : underlyingAddressResult.value;

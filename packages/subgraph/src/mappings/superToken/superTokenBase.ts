@@ -15,7 +15,6 @@ import {
     createEventID,
     getOrInitAccount,
     getOrInitToken,
-    shouldCreateOrUpdateToken,
     tokenHasValidHost,
     updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
@@ -65,9 +64,7 @@ export function handleAgreementLiquidatedBy(
         currentTimestamp
     );
 
-    if (shouldCreateOrUpdateToken(event.address.toHex())) {
-        getOrInitToken(event.address, currentTimestamp);
-    }
+    getOrInitToken(event.address, currentTimestamp);
 
     updateATSBalance(
         liquidatorAccount.id,
@@ -100,9 +97,7 @@ export function handleTokenUpgraded(
         currentTimestamp
     );
 
-    if (shouldCreateOrUpdateToken(event.address.toHex())) {
-        getOrInitToken(event.address, currentTimestamp);
-    }
+    getOrInitToken(event.address, currentTimestamp);
 
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, currentTimestamp);
@@ -127,9 +122,7 @@ export function handleTokenDowngraded(
         currentTimestamp
     );
 
-    if (shouldCreateOrUpdateToken(event.address.toHex())) {
-        getOrInitToken(event.address, currentTimestamp);
-    }
+    getOrInitToken(event.address, currentTimestamp);
 
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, currentTimestamp);
@@ -160,9 +153,7 @@ export function handleTransfer(
     );
     let tokenId = event.address.toHex();
 
-    if (shouldCreateOrUpdateToken(event.address.toHex())) {
-        getOrInitToken(event.address, currentTimestamp);
-    }
+    getOrInitToken(event.address, currentTimestamp);
 
     updateAccountUpdatedAt(hostAddress, event.params.from, currentTimestamp);
     updateAccountUpdatedAt(hostAddress, event.params.to, currentTimestamp);

@@ -101,7 +101,7 @@ export function getOrInitToken(
     lastModified: BigInt
 ): Token {
     let tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId) as Token; // explicit cast to get 
+    let token = Token.load(tokenId);
 
     if (token == null) {
         token = new Token(tokenId);
@@ -114,20 +114,16 @@ export function getOrInitToken(
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
         tokenStatistic.save();
-		return token as Token;
+        return token as Token;
     }
-
-    let isUninitializedNativeToken =
-        token != null &&
-        token.underlyingAddress.equals(new Address(0)) &&
-        (token.name === "" || token.symbol === "");
-
+	// log.critical("hello", []);
     // // we must handle the case when the native token hasn't been initialized
     // // there is no name/symbol, but this may occur later
-    if (isUninitializedNativeToken) {
-        token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token.save();
-    }
+    // if (token.name.length === 0 || token.symbol.length === 0) {
+    // token = getTokenInfoAndReturn(token as Token, tokenAddress);
+		log.critical("hello", []);
+	// token.save();
+    // }
 
     return token as Token;
 }
@@ -214,9 +210,7 @@ export function getOrInitStream(
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         // also handles the fact that custom super tokens are
         // initialized after event is first initialized
-        if (shouldCreateOrUpdateToken(tokenAddress.toHex())) {
-            getOrInitToken(tokenAddress, lastModified);
-        }
+        getOrInitToken(tokenAddress, lastModified);
     }
     stream.updatedAt = lastModified;
     return stream as Stream;
@@ -261,9 +255,7 @@ export function getOrInitIndex(
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
-        if (shouldCreateOrUpdateToken(tokenId)) {
-            getOrInitToken(tokenAddress, lastModified);
-        }
+        getOrInitToken(tokenAddress, lastModified);
     }
     index.updatedAt = lastModified;
     return index as Index;
@@ -443,11 +435,7 @@ export function shouldCreateOrUpdateToken(id: string): boolean {
     if (token == null) {
         return true;
     }
-    if (
-        token != null &&
-        token.underlyingAddress.equals(new Address(0)) &&
-        (token.symbol == "" || token.name == "")
-    ) {
+    if (token.name.length === 0 || token.symbol.length === 0) {
         return true;
     }
 

@@ -312,6 +312,12 @@ export function handleSubscriptionRevoked(
     index.save();
     subscriber.save();
 
+    updateATSBalance(
+        subscriber.subscriber,
+        event.params.token.toHex(),
+        currentTimestamp
+    );
+
     updateAccountUpdatedAt(
         hostAddress,
         event.params.subscriber,

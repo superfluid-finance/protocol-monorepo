@@ -303,6 +303,21 @@ export function handleSubscriptionRevoked(
         index.totalSubscribers = index.totalSubscribers - 1;
     }
 
+    // mimic ida logic more closely
+    if (!subscriber.approved) {
+        updateATSBalance(
+            event.params.publisher.toHex(),
+            event.params.token.toHex(),
+            currentTimestamp
+        );
+
+        updateAccountUpdatedAt(
+            hostAddress,
+            event.params.publisher,
+            currentTimestamp
+        );
+    }
+
     // occurs on revoke or delete
     subscriber.totalAmountReceivedUntilUpdatedAt =
         subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
@@ -382,6 +397,11 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
         } else {
+            // create unallocated subscription
+            subscriber.indexId = event.params.indexId;
+            subscriber.units = event.params.units;
+            subscriber.lastIndexValue = index.newIndexValue;
+
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
             updateAggregateIDASubscriptionsData(
@@ -394,51 +414,49 @@ export function handleSubscriptionUnitsUpdated(
             );
         }
 
+        let balanceDelta = index.newIndexValue
+            .minus(subscriber.lastIndexValue)
+            .times(subscriber.units);
+
+        // token.settleBalance should be the trigger for updating
+        // totalAmountReceivedUntilUpdatedAt and calling
+        // updateATSBalance
+        subscriber.totalAmountReceivedUntilUpdatedAt =
+            subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
+
+        // We move both of these in here as we handle this in revoke or delete
+        // as well, so if we put it outside it will be a duplicate call
+        if (!subscriber.approved) {
+            updateATSBalance(
+                event.params.publisher.toHex(),
+                event.params.token.toHex(),
+                currentTimestamp
+            );
+            updateAccountUpdatedAt(
+                hostAddress,
+                event.params.publisher,
+                currentTimestamp
+            );
+        }
+
+        updateATSBalance(
+            subscriber.subscriber,
+            event.params.token.toHex(),
+            currentTimestamp
+        );
+        updateAccountUpdatedAt(
+            hostAddress,
+            event.params.subscriber,
+            currentTimestamp
+        );
+
         // we only update subscription units in updateSubscription
         // if user hasSubscription
         if (hasSubscription) {
             subscriber.lastIndexValue = index.newIndexValue;
             subscriber.units = event.params.units;
         }
-
-        let balanceDelta = index.newIndexValue
-            .minus(subscriber.lastIndexValue)
-            .times(subscriber.units);
-
-        // if approved, we increment totalAmountReceivedUntilUpdatedAt
-        if (subscriber.approved) {
-            subscriber.totalAmountReceivedUntilUpdatedAt =
-                subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
-        }
     }
-
-    // NOTE: this handles the balance updates for both updateSubscription and
-    // revokeOrDeleteSubscription functions
-    if (!subscriber.approved) {
-        updateATSBalance(
-            event.params.publisher.toHex(),
-            event.params.token.toHex(),
-            currentTimestamp
-        );
-
-        updateAccountUpdatedAt(
-            hostAddress,
-            event.params.publisher,
-            currentTimestamp
-        );
-    }
-
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.subscriber,
-        currentTimestamp
-    );
-
-    updateATSBalance(
-        subscriber.subscriber,
-        event.params.token.toHex(),
-        currentTimestamp
-    );
 
     index.save();
     subscriber.save();

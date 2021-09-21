@@ -72,10 +72,25 @@ export function getOrInitAccount(
     return account as Account;
 }
 
+export function getTokenInfoAndReturn(
+    token: Token,
+    tokenAddress: Address
+): Token {
+    let tokenContract = SuperToken.bind(tokenAddress);
+    let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
+    let nameResult = tokenContract.try_name();
+    let symbolResult = tokenContract.try_symbol();
+    token.underlyingAddress = underlyingAddressResult.reverted
+        ? new Address(0)
+        : underlyingAddressResult.value;
+    token.name = nameResult.reverted ? "" : nameResult.value;
+    token.symbol = symbolResult.reverted ? "" : symbolResult.value;
+    return token;
+}
+
 /**
- * Creates a HOL Token (SuperToken) entity if non exists, this function should
- * never be called more than once for the Token entity (you only create a
- * SuperToken once). We also create token stats in here if it doesn't exist yet.
+ * Creates a HOL Token (SuperToken) entity if non exists.
+ * We also create token stats in here if it doesn't exist yet.
  * @param hostAddress
  * @param tokenAddress
  * @param lastModified
@@ -86,28 +101,34 @@ export function getOrInitToken(
     lastModified: BigInt
 ): Token {
     let tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId);
-    if (token == null) {
-        let tokenContract = SuperToken.bind(tokenAddress);
+    let token = Token.load(tokenId) as Token; // explicit cast to get 
 
-        let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
-        let nameResult = tokenContract.try_name();
-        let symbolResult = tokenContract.try_symbol();
+    if (token == null) {
         token = new Token(tokenId);
         token.createdAt = lastModified;
         token.updatedAt = lastModified;
-        token.name = nameResult.reverted ? "" : nameResult.value;
-        token.symbol = symbolResult.reverted ? "" : symbolResult.value;
-        token.underlyingAddress = underlyingAddressResult.reverted
-            ? new Address(0)
-            : underlyingAddressResult.value;
+        token = getTokenInfoAndReturn(token as Token, tokenAddress);
         token.save();
 
         // Note: we initalize and create tokenStatistic whenever we create a
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenId, lastModified);
         tokenStatistic.save();
+		return token as Token;
     }
+
+    let isUninitializedNativeToken =
+        token != null &&
+        token.underlyingAddress.equals(new Address(0)) &&
+        (token.name === "" || token.symbol === "");
+
+    // // we must handle the case when the native token hasn't been initialized
+    // // there is no name/symbol, but this may occur later
+    if (isUninitializedNativeToken) {
+        token = getTokenInfoAndReturn(token as Token, tokenAddress);
+        token.save();
+    }
+
     return token as Token;
 }
 
@@ -191,7 +212,9 @@ export function getOrInitStream(
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
-        if (!tokenExists(tokenAddress.toHex())) {
+        // also handles the fact that custom super tokens are
+        // initialized after event is first initialized
+        if (shouldCreateOrUpdateToken(tokenAddress.toHex())) {
             getOrInitToken(tokenAddress, lastModified);
         }
     }
@@ -238,7 +261,7 @@ export function getOrInitIndex(
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
-        if (!tokenExists(tokenId)) {
+        if (shouldCreateOrUpdateToken(tokenId)) {
             getOrInitToken(tokenAddress, lastModified);
         }
     }
@@ -400,9 +423,6 @@ export function getIndexID(
 }
 
 // Get HOL Exists Functions
-export function tokenExists(id: string): boolean {
-    return Token.load(id) != null;
-}
 
 export function streamRevisionExists(id: string): boolean {
     return StreamRevision.load(id) != null;
@@ -410,6 +430,28 @@ export function streamRevisionExists(id: string): boolean {
 
 export function subscriptionExists(id: string): boolean {
     return Subscriber.load(id) != null;
+}
+
+/**
+ * Checks if a token exists and if it does, if it is a custom
+ * super token without a symbol or name.
+ * @param id
+ * @returns boolean
+ */
+export function shouldCreateOrUpdateToken(id: string): boolean {
+    let token = Token.load(id) as Token;
+    if (token == null) {
+        return true;
+    }
+    if (
+        token != null &&
+        token.underlyingAddress.equals(new Address(0)) &&
+        (token.symbol == "" || token.name == "")
+    ) {
+        return true;
+    }
+
+    return false;
 }
 
 /**************************************************************************

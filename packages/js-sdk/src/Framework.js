@@ -277,9 +277,8 @@ module.exports = class Framework {
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
 
-        let underlyingTokenAddress = ZERO_ADDRESS
+        let underlyingTokenAddress =  await superToken.getUnderlyingToken.call();
         if (doValidateUnderlyingToken) {
-            underlyingTokenAddress =  await superToken.getUnderlyingToken.call();
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address
                 if (
@@ -310,6 +309,7 @@ module.exports = class Framework {
             }
         }
         superToken.underlyingToken = underlyingToken;
+        superToken.superTokenCustomType = superTokenCustomType;
 
         console.debug(
             `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"] ${superTokenCustomType}`,

@@ -313,7 +313,14 @@ BaseEntity: The base interface implemented by all HOL entity types.
 interface BaseEntity {
     id: ID!
     createdAt: BigInt!
-    updatedAt: BigInt!
+    """
+    The timestamp when this entity was last updated.
+    """
+    updatedAtTimestamp: BigInt!
+    """
+    The block number when this entity was last updated.
+    """
+    updatedAtBlock: BigInt!
 }
 
 # Note: If two entities implement the same interface
@@ -326,7 +333,8 @@ Superfluid contracts.
 type Account @entity {
     id: ID!
     createdAt: BigInt!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
 
     """
     Indicates whether the address/account is a super app.
@@ -345,7 +353,8 @@ type Token @entity {
     """
     id: ID!
     createdAt: BigInt!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
     name: String!
     symbol: String!
 
@@ -368,12 +377,13 @@ type Stream implements BaseEntity @entity {
     """
     id: ID!
     createdAt: BigInt!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
     # ---------------------------------- state ----------------------------------
     currentFlowRate: BigInt!
 
     """
-    The amount streamed until the `updatedAt` timestamp on the entity.
+    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`.
     """
     streamedUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
@@ -392,7 +402,8 @@ type Subscriber implements BaseEntity @entity {
     """
     id: ID!
     createdAt: BigInt!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
     token: Token!
     subscriber: Account!
     publisher: Account!
@@ -403,8 +414,8 @@ type Subscriber implements BaseEntity @entity {
     units: BigInt!
 
     """
-    The total amount of tokens you've received until the `updatedAt`
-    timestamp on this entity.
+    The total amount of tokens you've received via IDA until
+    `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountReceivedUntilUpdatedAt: BigInt!
 
@@ -425,7 +436,8 @@ type Index implements BaseEntity @entity {
     """
     id: ID!
     createdAt: BigInt!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
     indexId: BigInt!
     # ---------------------------------- state ----------------------------------
     userData: Bytes!
@@ -455,7 +467,7 @@ type Index implements BaseEntity @entity {
     """
     The total amount distributed from this `Index`.
     """
-    totalAmountDistributed: BigInt!
+    totalAmountDistributedUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
     publisher: Account!
@@ -481,7 +493,8 @@ type AccountTokenSnapshot @entity {
     ID composed of: accountID-tokenID
     """
     id: ID!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
     # ---------------------------------- state ----------------------------------
     """
     The number of currently open streams.
@@ -505,12 +518,12 @@ type AccountTokenSnapshot @entity {
     totalApprovedSubscriptions: Int!
 
     """
-    Balance of `account` as of the `updatedAt` timestamp.
+    Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
-    balance: BigInt!
+    balanceUntilUpdatedAt: BigInt!
 
     """
-    The total net flow rate of the `account` as of the `updatedAt` timestamp.
+    The total net flow rate of the `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalNetFlowRate: BigInt!
 
@@ -526,14 +539,14 @@ type AccountTokenSnapshot @entity {
 
     """
     The total amount of `token` streamed to this `account` until
-    the `updatedAt` timestamp.
+    the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
 
     """
     The total amount of `token` this `account` has transferred.
     """
-    totalAmountTransferred: BigInt!
+    totalAmountTransferredUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
     account: Account!
     token: Token!
@@ -547,7 +560,8 @@ type TokenStatistic @entity {
     ID: tokenID
     """
     id: ID!
-    updatedAt: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlock: BigInt!
     # ---------------------------------- state ----------------------------------
     """
     The total number of currently active `token` streams.
@@ -586,19 +600,19 @@ type TokenStatistic @entity {
     totalOutflowRate: BigInt!
 
     """
-    The all-time total amount streamed until the `updatedAt` timestamp.
+    The all-time total amount streamed until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
 
     """
-    The all-time total amount transferred until the `updatedAt` timestamp.
+    The all-time total amount transferred until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
-    totalAmountTransferred: BigInt!
+    totalAmountTransferredUntilUpdatedAt: BigInt!
 
     """
-    The all-time total amount distributed until the `updatedAt` timestamp.
+    The all-time total amount distributed until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
-    totalAmountDistributed: BigInt!
+    totalAmountDistributedUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
     token: Token!
 }

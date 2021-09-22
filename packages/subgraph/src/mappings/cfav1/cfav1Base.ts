@@ -65,11 +65,11 @@ export function handleStreamUpdated(
         senderAddress,
         receiverAddress,
         tokenAddress,
-        currentTimestamp
+        event.block
     );
     let oldFlowRate = stream.currentFlowRate;
 
-    let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAt);
+    let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAtTimestamp);
     let amountStreamedSinceLastUpdate = oldFlowRate.times(timeSinceLastUpdate);
     let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
         amountStreamedSinceLastUpdate
@@ -96,21 +96,21 @@ export function handleStreamUpdated(
     }
 
     // update Account updatedAt field
-    updateAccountUpdatedAt(hostAddress, senderAddress, currentTimestamp);
-    updateAccountUpdatedAt(hostAddress, receiverAddress, currentTimestamp);
+    updateAccountUpdatedAt(hostAddress, senderAddress, event.block);
+    updateAccountUpdatedAt(hostAddress, receiverAddress, event.block);
 
     // create event entity
     createFlowUpdatedEntity(event, oldFlowRate);
 
     // update aggregate entities data
-    updateATSBalance(senderId, tokenId, currentTimestamp);
-    updateATSBalance(receiverId, tokenId, currentTimestamp);
+    updateATSBalance(senderId, tokenId, event.block);
+    updateATSBalance(receiverId, tokenId, event.block);
     updateATSFlowRates(
         senderId,
         receiverId,
         tokenId,
         flowRateDelta,
-        currentTimestamp
+        event.block
     );
     updateAggregateEntitiesStreamData(
         senderId,
@@ -119,7 +119,7 @@ export function handleStreamUpdated(
         flowRateDelta,
         isCreate,
         isDelete,
-        currentTimestamp,
+        event.block,
         amountStreamedSinceLastUpdate
     );
 }

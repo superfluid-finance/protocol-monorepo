@@ -42,18 +42,19 @@ export function handleIndexCreated(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
     index.userData = event.params.userData;
     index.save();
 
     let tokenStatistic = getOrInitTokenStatistic(
         event.params.token.toHex(),
-        currentTimestamp
+        event.block
     );
     tokenStatistic.totalNumberOfIndexes =
         tokenStatistic.totalNumberOfIndexes + 1;
-    tokenStatistic.updatedAt = currentTimestamp;
+    tokenStatistic.updatedAtTimestamp = currentTimestamp;
+    tokenStatistic.updatedAtBlock = event.block.number;
     tokenStatistic.save();
 
     createIndexCreatedEntity(event);
@@ -82,22 +83,23 @@ export function handleIndexUpdated(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
-    let previousTotalAmountDistributed = index.totalAmountDistributed;
+    let previousTotalAmountDistributed =
+        index.totalAmountDistributedUntilUpdatedAt;
     index.userData = event.params.userData;
     index.oldIndexValue = event.params.oldIndexValue;
     index.newIndexValue = event.params.newIndexValue;
     index.totalUnitsPending = event.params.totalUnitsPending;
     index.totalUnitsApproved = event.params.totalUnitsApproved;
     index.totalUnits = totalUnits;
-    index.totalAmountDistributed =
-        index.totalAmountDistributed.plus(distributionDelta);
+    index.totalAmountDistributedUntilUpdatedAt =
+        previousTotalAmountDistributed.plus(distributionDelta);
     index.save();
 
     let tokenStatistic = getOrInitTokenStatistic(
         event.params.token.toHex(),
-        currentTimestamp
+        event.block
     );
 
     // Note: only increment active index the first time distribution occurs.
@@ -106,21 +108,20 @@ export function handleIndexUpdated(
             tokenStatistic.totalNumberOfActiveIndexes + 1;
     }
 
-    tokenStatistic.totalAmountDistributed =
-        tokenStatistic.totalAmountDistributed.plus(distributionDelta);
-    tokenStatistic.updatedAt = currentTimestamp;
+    tokenStatistic.totalAmountDistributedUntilUpdatedAt =
+        tokenStatistic.totalAmountDistributedUntilUpdatedAt.plus(
+            distributionDelta
+        );
+    tokenStatistic.updatedAtTimestamp = currentTimestamp;
+    tokenStatistic.updatedAtBlock = event.block.number;
     tokenStatistic.save();
 
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.publisher,
-        currentTimestamp
-    );
+    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
 
     updateATSBalance(
         event.params.publisher.toHex(),
         event.params.token.toHex(),
-        currentTimestamp
+        event.block
     );
 
     createIndexUpdatedEntity(event);
@@ -141,7 +142,7 @@ export function handleSubscriptionApproved(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
 
     let subscriber = getOrInitSubscriber(
@@ -150,7 +151,7 @@ export function handleSubscriptionApproved(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
 
     let balanceDelta = index.newIndexValue
@@ -184,32 +185,20 @@ export function handleSubscriptionApproved(
             subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
-        updateATSBalance(
-            event.params.publisher.toHex(),
-            tokenId,
-            currentTimestamp
-        );
-        updateATSBalance(
-            event.params.subscriber.toHex(),
-            tokenId,
-            currentTimestamp
-        );
+        updateATSBalance(event.params.publisher.toHex(), tokenId, event.block);
+        updateATSBalance(event.params.subscriber.toHex(), tokenId, event.block);
 
         // we only update publisher data if hasSubscription is true
         updateAccountUpdatedAt(
             hostAddress,
             event.params.publisher,
-            currentTimestamp
+            event.block
         );
     }
 
     subscriber.save();
 
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.subscriber,
-        currentTimestamp
-    );
+    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
     updateAggregateIDASubscriptionsData(
         event.params.subscriber.toHex(),
@@ -217,7 +206,7 @@ export function handleSubscriptionApproved(
         hasSubscription,
         false,
         true,
-        currentTimestamp
+        event.block
     );
 
     createSubscriptionApprovedEntity(event);
@@ -248,7 +237,7 @@ export function handleSubscriptionRevoked(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
 
     let subscriber = getOrInitSubscriber(
@@ -257,7 +246,7 @@ export function handleSubscriptionRevoked(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
 
     let balanceDelta = index.newIndexValue
@@ -279,7 +268,7 @@ export function handleSubscriptionRevoked(
             true,
             false,
             false,
-            currentTimestamp
+            event.block
         );
     } else {
         // deleting subscription
@@ -298,7 +287,7 @@ export function handleSubscriptionRevoked(
             true,
             true,
             false,
-            currentTimestamp
+            event.block
         );
         index.totalSubscribers = index.totalSubscribers - 1;
     }
@@ -308,13 +297,13 @@ export function handleSubscriptionRevoked(
         updateATSBalance(
             event.params.publisher.toHex(),
             event.params.token.toHex(),
-            currentTimestamp
+            event.block
         );
 
         updateAccountUpdatedAt(
             hostAddress,
             event.params.publisher,
-            currentTimestamp
+            event.block
         );
     }
 
@@ -330,14 +319,10 @@ export function handleSubscriptionRevoked(
     updateATSBalance(
         subscriber.subscriber,
         event.params.token.toHex(),
-        currentTimestamp
+        event.block
     );
 
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.subscriber,
-        currentTimestamp
-    );
+    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
     createSubscriptionRevokedEntity(event);
 }
@@ -365,7 +350,7 @@ export function handleSubscriptionUnitsUpdated(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
 
     let index = getOrInitIndex(
@@ -373,7 +358,7 @@ export function handleSubscriptionUnitsUpdated(
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        currentTimestamp
+        event.block
     );
     let units = event.params.units;
     let isDeleteSubscription = units.equals(BIG_INT_ZERO);
@@ -410,7 +395,7 @@ export function handleSubscriptionUnitsUpdated(
                 hasSubscription,
                 false,
                 false,
-                currentTimestamp
+                event.block
             );
         }
 
@@ -430,24 +415,24 @@ export function handleSubscriptionUnitsUpdated(
             updateATSBalance(
                 event.params.publisher.toHex(),
                 event.params.token.toHex(),
-                currentTimestamp
+                event.block
             );
             updateAccountUpdatedAt(
                 hostAddress,
                 event.params.publisher,
-                currentTimestamp
+                event.block
             );
         }
 
         updateATSBalance(
             subscriber.subscriber,
             event.params.token.toHex(),
-            currentTimestamp
+            event.block
         );
         updateAccountUpdatedAt(
             hostAddress,
             event.params.subscriber,
-            currentTimestamp
+            event.block
         );
 
         // we only update subscription units in updateSubscription

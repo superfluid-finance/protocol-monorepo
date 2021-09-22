@@ -194,6 +194,7 @@ templates:
         - Account
         - AccountTokenSnapshot
         - AgreementLiquidatedBy
+        - Token
         - TokenDowngraded
         - TokenUpgraded
         - Transaction

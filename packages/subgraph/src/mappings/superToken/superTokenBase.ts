@@ -14,6 +14,7 @@ import {
 import {
     createEventID,
     getOrInitAccount,
+    getOrInitToken,
     tokenHasValidHost,
     updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
@@ -63,6 +64,8 @@ export function handleAgreementLiquidatedBy(
         currentTimestamp
     );
 
+    getOrInitToken(event.address, currentTimestamp);
+
     updateATSBalance(
         liquidatorAccount.id,
         event.address.toHex(),
@@ -93,6 +96,9 @@ export function handleTokenUpgraded(
         event.params.account,
         currentTimestamp
     );
+
+    getOrInitToken(event.address, currentTimestamp);
+
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, currentTimestamp);
     updateATSBalance(account.id, tokenId, currentTimestamp);
@@ -115,6 +121,9 @@ export function handleTokenDowngraded(
         event.params.account,
         currentTimestamp
     );
+
+    getOrInitToken(event.address, currentTimestamp);
+
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, currentTimestamp);
     updateATSBalance(account.id, tokenId, currentTimestamp);
@@ -143,6 +152,8 @@ export function handleTransfer(
         currentTimestamp
     );
     let tokenId = event.address.toHex();
+
+    getOrInitToken(event.address, currentTimestamp);
 
     updateAccountUpdatedAt(hostAddress, event.params.from, currentTimestamp);
     updateAccountUpdatedAt(hostAddress, event.params.to, currentTimestamp);

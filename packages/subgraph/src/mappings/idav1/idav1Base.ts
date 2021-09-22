@@ -223,6 +223,14 @@ export function handleSubscriptionApproved(
     createSubscriptionApprovedEntity(event);
 }
 
+/**
+ * This function will be triggered in _revokeOrUpdateSubscription
+ * as well as updateSubscription, but we only handle
+ * _revokeOrUpdateSubscription.
+ * @param event
+ * @param hostAddress
+ * @returns
+ */
 export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent,
     hostAddress: Address
@@ -275,6 +283,15 @@ export function handleSubscriptionRevoked(
         );
     } else {
         // deleting subscription
+        if (subscriber.approved) {
+            index.totalUnitsApproved = index.totalUnitsApproved.minus(
+                subscriber.units
+            );
+        } else {
+            index.totalUnitsPending = index.totalUnitsPending.minus(
+                subscriber.units
+            );
+        }
         updateAggregateIDASubscriptionsData(
             event.params.subscriber.toHex(),
             event.params.token.toHex(),
@@ -286,6 +303,21 @@ export function handleSubscriptionRevoked(
         index.totalSubscribers = index.totalSubscribers - 1;
     }
 
+    // mimic ida logic more closely
+    if (!subscriber.approved) {
+        updateATSBalance(
+            event.params.publisher.toHex(),
+            event.params.token.toHex(),
+            currentTimestamp
+        );
+
+        updateAccountUpdatedAt(
+            hostAddress,
+            event.params.publisher,
+            currentTimestamp
+        );
+    }
+
     // occurs on revoke or delete
     subscriber.totalAmountReceivedUntilUpdatedAt =
         subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
@@ -294,6 +326,12 @@ export function handleSubscriptionRevoked(
 
     index.save();
     subscriber.save();
+
+    updateATSBalance(
+        subscriber.subscriber,
+        event.params.token.toHex(),
+        currentTimestamp
+    );
 
     updateAccountUpdatedAt(
         hostAddress,
@@ -305,7 +343,9 @@ export function handleSubscriptionRevoked(
 }
 
 /**
- * This always gets called with handleIndexUnitsUpdated.
+ * This function will be triggered in _revokeOrUpdateSubscription
+ * as well as updateSubscription, but we only handle
+ * updateSubscription.
  * @param event
  */
 export function handleSubscriptionUnitsUpdated(
@@ -345,22 +385,8 @@ export function handleSubscriptionUnitsUpdated(
     );
     let hasSubscription = subscriptionExists(subscriberId);
 
-    // handle deletion in _revokeOrDeleteSubscription function
-    if (isDeleteSubscription) {
-        if (subscriber.approved) {
-            index.totalUnitsApproved = index.totalUnitsApproved.minus(
-                subscriber.units
-            );
-        } else {
-            index.totalUnitsPending = index.totalUnitsPending.minus(
-                subscriber.units
-            );
-        }
-        // NOTE: we don't update the totalReceivedUntilLastUpdate in this
-        // block of code as handleSubscriptionRevoked does that for
-        // revoke and deletion of subscription and SubscriptionRevoked
-        // event is emmitted if this block of code runs.
-    } else {
+    // we only handle updateSubscription in this function
+    if (!isDeleteSubscription) {
         // is updateSubscription
         let totalUnitsDelta = units.minus(subscriber.units);
 
@@ -371,6 +397,11 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
         } else {
+            // create unallocated subscription
+            subscriber.indexId = event.params.indexId;
+            subscriber.units = event.params.units;
+            subscriber.lastIndexValue = index.newIndexValue;
+
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
             updateAggregateIDASubscriptionsData(
@@ -387,43 +418,45 @@ export function handleSubscriptionUnitsUpdated(
             .minus(subscriber.lastIndexValue)
             .times(subscriber.units);
 
-        // if approved, we increment totalAmountReceivedUntilUpdatedAt
-        if (subscriber.approved) {
-            subscriber.totalAmountReceivedUntilUpdatedAt =
-                subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
-        }
-    }
+        // token.settleBalance should be the trigger for updating
+        // totalAmountReceivedUntilUpdatedAt and calling
+        // updateATSBalance
+        subscriber.totalAmountReceivedUntilUpdatedAt =
+            subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
-    // NOTE: this handles the balance updates for both updateSubscription and
-    // revokeOrDeleteSubscription functions
-    if (!subscriber.approved) {
+        // We move both of these in here as we handle this in revoke or delete
+        // as well, so if we put it outside it will be a duplicate call
+        if (!subscriber.approved) {
+            updateATSBalance(
+                event.params.publisher.toHex(),
+                event.params.token.toHex(),
+                currentTimestamp
+            );
+            updateAccountUpdatedAt(
+                hostAddress,
+                event.params.publisher,
+                currentTimestamp
+            );
+        }
+
         updateATSBalance(
-            event.params.publisher.toHex(),
+            subscriber.subscriber,
             event.params.token.toHex(),
             currentTimestamp
         );
-
         updateAccountUpdatedAt(
             hostAddress,
-            event.params.publisher,
+            event.params.subscriber,
             currentTimestamp
         );
+
+        // we only update subscription units in updateSubscription
+        // if user hasSubscription
+        if (hasSubscription) {
+            subscriber.lastIndexValue = index.newIndexValue;
+            subscriber.units = event.params.units;
+        }
     }
-
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.subscriber,
-        currentTimestamp
-    );
-
-    updateATSBalance(
-        subscriber.subscriber,
-        event.params.token.toHex(),
-        currentTimestamp
-    );
-
-    subscriber.lastIndexValue = index.newIndexValue;
-    subscriber.units = event.params.units;
 
     index.save();
     subscriber.save();

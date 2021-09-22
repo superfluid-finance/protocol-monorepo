@@ -116,14 +116,13 @@ export function getOrInitToken(
         tokenStatistic.save();
         return token as Token;
     }
-	// log.critical("hello", []);
+
     // // we must handle the case when the native token hasn't been initialized
     // // there is no name/symbol, but this may occur later
-    // if (token.name.length === 0 || token.symbol.length === 0) {
-    // token = getTokenInfoAndReturn(token as Token, tokenAddress);
-		log.critical("hello", []);
-	// token.save();
-    // }
+    if (token.name.length == 0 || token.symbol.length == 0) {
+        token = getTokenInfoAndReturn(token as Token, tokenAddress);
+        token.save();
+    }
 
     return token as Token;
 }
@@ -422,24 +421,6 @@ export function streamRevisionExists(id: string): boolean {
 
 export function subscriptionExists(id: string): boolean {
     return Subscriber.load(id) != null;
-}
-
-/**
- * Checks if a token exists and if it does, if it is a custom
- * super token without a symbol or name.
- * @param id
- * @returns boolean
- */
-export function shouldCreateOrUpdateToken(id: string): boolean {
-    let token = Token.load(id) as Token;
-    if (token == null) {
-        return true;
-    }
-    if (token.name.length === 0 || token.symbol.length === 0) {
-        return true;
-    }
-
-    return false;
 }
 
 /**************************************************************************

@@ -275,7 +275,8 @@ module.exports = class Framework {
 
         superToken = await superTokenContractType.at(superTokenAddress);
         this.tokens[superTokenKey] = superToken;
-        this.superTokens[superTokenKey] = superToken;
+        let superTokenCustomTypePair = {superTokenCustomType: superTokenCustomType};
+        this.superTokens[superTokenKey] = {...superToken, ...superTokenCustomTypePair };
 
         let underlyingTokenAddress =  await superToken.getUnderlyingToken.call();
         if (doValidateUnderlyingToken) {
@@ -309,7 +310,6 @@ module.exports = class Framework {
             }
         }
         superToken.underlyingToken = underlyingToken;
-        superToken.superTokenCustomType = superTokenCustomType;
 
         console.debug(
             `${superTokenKey}: ISuperToken .tokens["${superTokenKey}"] ${superTokenCustomType}`,

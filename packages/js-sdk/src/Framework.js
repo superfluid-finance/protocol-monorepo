@@ -277,7 +277,7 @@ module.exports = class Framework {
         superToken.superTokenCustomType = superTokenCustomType;
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
-        let underlyingTokenAddress =  await superToken.getUnderlyingToken.call();
+        let underlyingTokenAddress = await superToken.getUnderlyingToken.call();
         if (doValidateUnderlyingToken) {
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address

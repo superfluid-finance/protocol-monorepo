@@ -1,16 +1,19 @@
 {
   "include": [
-    "./packages/js-sdk/src/*"
+    "./src/"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules",
+    "reports",
   ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
-
     "types": [
       "bn.js",
       "web3",
       "node"
     ],
-
     /* Basic Options */
     // "incremental": true,                         /* Enable incremental compilation */
     "target": "es5",                                /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */

@@ -1,6 +1,7 @@
-import { Transaction } from "web3-core";
-import Framework from "./Framework";
+import type { Transaction } from "web3-core";
+import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
+import type BN from 'bn.js';
 
 export type Flow = {
   sender: string;
@@ -20,10 +21,10 @@ export declare class ConstantFlowAgreementV1Helper {
     deposit,
     owedDeposit,
   }: {
-    timestamp: any;
-    flowRate: any;
-    deposit: any;
-    owedDeposit: any;
+    timestamp: number | BN;
+    flowRate: number | BN;
+    deposit: number | BN;
+    owedDeposit: number | BN;
   }): {
     timestamp: Date;
     flowRate: string;
@@ -61,7 +62,7 @@ export declare class ConstantFlowAgreementV1Helper {
     sender: string;
     receiver: string;
     flowRate: string;
-    userData: any;
+    userData: string;
     onTransaction: () => void;
   }): Promise<Transaction>;
   /**
@@ -86,7 +87,7 @@ export declare class ConstantFlowAgreementV1Helper {
     sender: string;
     receiver: string;
     flowRate: string;
-    userData: any;
+    userData: string;
     onTransaction: () => void;
   }): Promise<Transaction>;
   /**
@@ -111,7 +112,7 @@ export declare class ConstantFlowAgreementV1Helper {
     sender: string;
     receiver: string;
     by: string;
-    userData: any;
+    userData: string;
     onTransaction: () => void;
   }): Promise<Transaction>;
   /**

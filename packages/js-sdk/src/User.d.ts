@@ -1,7 +1,8 @@
-import type Framework from './Framework';
-import type BN from 'bn';
-import Transaction from 'web3';
-import type { Flow } from './ConstantFlowAgreementV1Helper'
+import type { Framework } from './Framework';
+import type BN from 'bn.js';
+import type { Transaction } from 'web3';
+import type { Flow } from './ConstantFlowAgreementV1Helper';
+import type { Subscription } from './InstantDistributionAgreementV1Helper';
 
 export type DetailsType = {
     cfa: {

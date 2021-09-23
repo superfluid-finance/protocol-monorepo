@@ -9,22 +9,25 @@ const traveler = require("ganache-time-traveler");
 contract("Superfluid Liquidator Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 9), {
         isTruffle: true,
-        useMocks: true,
     });
 
     const FLOW_RATE = toWad("1").div(toBN(3600)); // 1 per hour
     const { admin, alice } = t.aliases;
+    let evmSnapshotId;
     let superToken;
     let batch;
 
     before(async () => {
-        await t.reset();
         batch = await BatchLiquidator.new({ from: accounts[0] });
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST" });
+        evmSnapshotId = await t.takeEvmSnapshot();
+        superToken = t.sf.tokens.TESTx;
     });
 
-    beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken } = t.contracts);
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     async function timeTravelOnce(time) {

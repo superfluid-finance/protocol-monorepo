@@ -9,7 +9,6 @@ const TestEnvironment = require("../../TestEnvironment");
 contract("Superfluid Ownable Governance Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 2), {
         isTruffle: true,
-        useMocks: true,
     });
     const { alice } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
@@ -23,8 +22,9 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
     let governance;
 
     before(async () => {
-        await t.reset();
-        ({ governance, superfluid } = t.contracts);
+        await t.deployFramework();
+        ({ superfluid, governance } = t.contracts);
+
         const newGov = await SuperfluidOwnableGovernance.new({ from: alice });
         await web3tx(
             governance.replaceGovernance,

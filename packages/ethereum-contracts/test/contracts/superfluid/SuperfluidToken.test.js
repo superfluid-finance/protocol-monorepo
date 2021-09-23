@@ -16,12 +16,11 @@ const AgreementMock = artifacts.require("AgreementMock");
 contract("SuperfluidToken implementation", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 3), {
         isTruffle: true,
-        useMocks: true,
     });
     const { admin, alice, bob } = t.aliases;
     const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
 
-    // let token;
+    let evmSnapshotId;
     let superToken;
     let superfluid;
     let governance;
@@ -29,8 +28,10 @@ contract("SuperfluidToken implementation", (accounts) => {
     let acB;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST" });
         ({ superfluid, governance } = t.contracts);
+        superToken = t.sf.tokens.TESTx;
 
         const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
         await web3tx(
@@ -48,14 +49,13 @@ contract("SuperfluidToken implementation", (accounts) => {
         acB = await AgreementMock.at(
             await superfluid.getAgreementClass(web3.utils.sha3("typeB"))
         );
+
+        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
-    beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken } = t.contracts);
-        assert.equal(await availableBalanceOf(admin), "0");
-        assert.equal(await availableBalanceOf(bob), "0");
-        assert.equal(await availableBalanceOf(alice), "0");
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     async function expectRealtimeBalance(person, expectedBalance) {
@@ -528,7 +528,7 @@ contract("SuperfluidToken implementation", (accounts) => {
         });
 
         context("#4.b zero reward account", () => {
-            before(async () => {
+            beforeEach(async () => {
                 await governance.setRewardAddress(
                     superfluid.address,
                     ZERO_ADDRESS,

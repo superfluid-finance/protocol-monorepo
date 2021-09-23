@@ -21,12 +21,12 @@ const MINIMAL_DEPOSIT = toBN(1).shln(32);
 contract("Using ConstantFlowAgreement v1", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 5), {
         isTruffle: true,
-        useMocks: true,
     });
     const { admin, alice, bob, dan } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
     const { LIQUIDATION_PERIOD } = t.configs;
 
+    let evmSnapshotId;
     let superfluid;
     let governance;
     let cfa;
@@ -34,18 +34,23 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
     let superToken;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST" });
+
         ({ superfluid, governance, cfa } = t.contracts);
+        testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
+        superToken = t.sf.tokens.TESTx;
+
+        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
     after(async () => {
         await t.report({ title: "ConstantFlowAgreement.test" });
     });
 
-    beforeEach(async function () {
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
         await t.resetForTestCase();
-        await t.createNewToken();
-        ({ testToken, superToken } = t.contracts);
     });
 
     async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
@@ -196,11 +201,12 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         });
 
         describe("#1.1 createFlow", () => {
-            it.only("#1.1.1 should create when there is enough balance", async () => {
+            it("#1.1.1 should create when there is enough balance", async () => {
                 await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
 
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1,
@@ -262,6 +268,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1,
@@ -308,6 +315,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1,
@@ -317,6 +325,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             it("#1.2.1 can maintain existing flow rate", async () => {
                 await shouldUpdateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1,
@@ -328,6 +337,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             it("#1.2.2 can increase (+10%) existing flow rate", async () => {
                 await shouldUpdateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
@@ -339,6 +349,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             it("#1.2.3 can decrease (-10%) existing flow rate", async () => {
                 await shouldUpdateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1.mul(toBN(9)).div(toBN(10)),
@@ -442,6 +453,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 await t.upgradeBalance(agent, t.configs.INIT_BALANCE);
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1,
@@ -451,6 +463,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             it("#1.3.1.a can delete existing flow by sender", async () => {
                 await shouldDeleteFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     by: sender,
@@ -462,6 +475,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             it("#1.3.1.b can delete existing flow by receiver", async () => {
                 await shouldDeleteFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     by: receiver,
@@ -473,12 +487,14 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             it("#1.3.2 can delete an updated flow", async () => {
                 await shouldUpdateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1.mul(toBN(11)).div(toBN(10)),
                 });
                 await shouldDeleteFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     by: sender,
@@ -573,6 +589,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 await t.upgradeBalance(sender, t.configs.INIT_BALANCE);
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver,
                     flowRate: FLOW_RATE1,
@@ -672,6 +689,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender: "alice",
                     receiver: "bob",
                     flowRate: FLOW_RATE1,
@@ -682,6 +700,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 const flowRate2 = FLOW_RATE1.divn(3);
                 await shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender: "bob",
                     receiver: "alice",
                     flowRate: flowRate2,
@@ -825,6 +844,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
                     await shouldCreateFlow({
                         testenv: t,
+                        superToken,
                         sender: "alice",
                         receiver: "bob",
                         flowRate: flowRate.div(toBN(2)),
@@ -832,6 +852,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
                     await shouldUpdateFlow({
                         testenv: t,
+                        superToken,
                         sender: "alice",
                         receiver: "bob",
                         flowRate: flowRate,
@@ -892,6 +913,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -904,6 +926,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -919,6 +942,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -935,6 +959,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -957,6 +982,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -968,6 +994,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -979,6 +1006,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -991,6 +1019,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             // fully delete everything
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1019,6 +1048,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1035,6 +1065,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1051,6 +1082,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1067,6 +1099,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1097,6 +1130,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1113,6 +1147,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1129,6 +1164,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1145,6 +1181,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1177,6 +1214,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1193,6 +1231,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1209,6 +1248,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldUpdateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1225,6 +1265,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1251,6 +1292,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             await expectRevert(
                 shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver: "mfa",
                     mfa,
@@ -1280,6 +1322,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1309,6 +1352,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             };
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1338,6 +1382,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1394,6 +1439,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1411,6 +1457,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             // fully delete everything by receiver1
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender: "mfa",
                 receiver: receiver1,
                 by: receiver1,
@@ -1441,6 +1488,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1474,6 +1522,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 by: "dan",
@@ -1506,6 +1555,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1618,6 +1668,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver: "mfa",
                 mfa,
@@ -1700,6 +1751,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
             await expectRevert(
                 shouldCreateFlow({
                     testenv: t,
+                    superToken,
                     sender,
                     receiver: "mfa",
                     mfa,
@@ -1914,9 +1966,9 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         it("#3.5 FlowExchangeTestApp", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-            const { superToken: superToken2 } = await t.createNewToken({
+            const { superToken: superToken2 } = await t.deployNewToken({
+                tokenSymbol: "TEST2",
                 doUpgrade: true,
-                doNotSetAsDefault: true,
             });
             const FlowExchangeTestApp = artifacts.require(
                 "FlowExchangeTestApp"
@@ -2039,6 +2091,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "alice",
                 receiver: "bob",
                 flowRate: FLOW_RATE1,
@@ -2049,6 +2102,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "bob",
                 receiver: "alice",
                 flowRate: FLOW_RATE1,
@@ -2068,6 +2122,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "alice",
                 receiver: "bob",
                 flowRate: FLOW_RATE1,
@@ -2079,6 +2134,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "bob",
                 receiver: "carol",
                 flowRate: flowRateBC,
@@ -2090,6 +2146,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "carol",
                 receiver: "alice",
                 flowRate: flowRateCA,
@@ -2109,12 +2166,14 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "alice",
                 receiver: "bob",
                 flowRate: FLOW_RATE1,
             });
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "alice",
                 receiver: "carol",
                 flowRate: FLOW_RATE1,
@@ -2127,6 +2186,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "bob",
                 receiver: "dan",
                 flowRate: flowRateBD,
@@ -2139,6 +2199,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldCreateFlow({
                 testenv: t,
+                superToken,
                 sender: "dan",
                 receiver: "carol",
                 flowRate: flowRateDC,

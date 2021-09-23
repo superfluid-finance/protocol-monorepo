@@ -19,24 +19,33 @@ const TestEnvironment = require("../../TestEnvironment");
 contract("SuperToken's Non Standard Functions", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), {
         isTruffle: true,
-        useMocks: true,
     });
     const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
+    let evmSnapshotId;
     let superfluid;
     let testToken;
     let superToken;
     let mockWallet;
 
-    before(async () => {
-        await t.reset();
+    before(async function () {
+        await t.deployFramework({ useMocks: true });
+        ({ testToken, superToken } = await t.deployNewToken({
+            tokenSymbol: "TEST",
+        }));
+        ({ superfluid } = t.contracts);
+
+        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
     beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superfluid, testToken, superToken } = t.contracts);
         mockWallet = await WalletMock.new();
+    });
+
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     describe("#1 upgradability", () => {
@@ -649,7 +658,7 @@ contract("SuperToken's Non Standard Functions", (accounts) => {
         it("#10.1 should return underlying token", async () => {
             assert.equal(
                 await superToken.getUnderlyingToken.call(),
-                t.contracts.testToken.address
+                testToken.address
             );
         });
 

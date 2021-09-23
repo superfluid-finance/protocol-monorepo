@@ -12,23 +12,27 @@ const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE");
 contract("Superfluid Super Upgrader Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 6), {
         isTruffle: true,
-        useMocks: true,
     });
     const { admin, alice, bob, carol, dan, eve } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
 
     const backend = new Array(bob, carol, dan);
 
+    let evmSnapshotId;
     let superToken;
     let testToken;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST" });
+        evmSnapshotId = await t.takeEvmSnapshot();
+        testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
+        superToken = t.sf.tokens.TESTx;
     });
 
-    beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken, testToken } = t.contracts);
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     describe("#1 SuperUpgrader Deployement", async () => {

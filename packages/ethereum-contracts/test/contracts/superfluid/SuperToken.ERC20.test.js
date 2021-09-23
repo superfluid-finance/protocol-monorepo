@@ -20,24 +20,30 @@ const TestEnvironment = require("../../TestEnvironment");
 contract("SuperToken's ERC20 compliance", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), {
         isTruffle: true,
-        useMocks: true,
     });
     const { alice, bob, carol } = t.aliases;
+    let evmSnapshotId;
     const initialSupply = toBN(100);
 
-    before(async () => {
-        await t.reset();
-    });
+    before(async function () {
+        await t.deployFramework({ useMocks: true });
+        ({ superToken: this.token } = await t.deployNewToken({
+            tokenSymbol: "TEST",
+        }));
 
-    beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        this.token = t.contracts.superToken;
         await web3tx(
             this.token.upgrade,
             `Upgrade initialSupply amount of token for ${alice}`
         )(initialSupply, {
             from: alice,
         });
+
+        evmSnapshotId = await t.takeEvmSnapshot();
+    });
+
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     describe("okay", () => {

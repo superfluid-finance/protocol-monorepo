@@ -1,21 +1,27 @@
 const { toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
-contract("InstantDistributionAgreementV1Helper helper class", (accounts) => {
+contract("InstantDistributionAgreementV1Helper class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const { alice, bob, carol } = t.aliases;
 
+    let evmSnapshotId;
     let sf;
     let superToken;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST", doUpgrade: true });
+        superToken = t.sf.tokens.TESTx;
+
         sf = t.sf;
+
+        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
-    beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: true });
-        ({ superToken } = t.contracts);
+    afterEach(async () => {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     describe("index", async () => {

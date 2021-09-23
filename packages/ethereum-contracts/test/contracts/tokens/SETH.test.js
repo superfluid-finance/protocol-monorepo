@@ -11,22 +11,19 @@ const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
 contract("Super ETH (SETH) Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 3), {
         isTruffle: true,
-        useMocks: true,
     });
     const { alice, bob } = t.aliases;
 
-    let superTokenFactory;
+    let evmSnapshotId;
     let weth;
     let seth;
 
     before(async () => {
-        await t.reset();
-        superTokenFactory = await ISuperTokenFactory.at(
+        await t.deployFramework();
+
+        const superTokenFactory = await ISuperTokenFactory.at(
             await t.contracts.superfluid.getSuperTokenFactory()
         );
-    });
-
-    beforeEach(async () => {
         weth = await WETH9Mock.new();
         const sethProxy = await SETHProxy.new(weth.address);
         seth = await ISETH.at(sethProxy.address);
@@ -40,6 +37,13 @@ contract("Super ETH (SETH) Contract", (accounts) => {
             "Super ETH",
             "SETH"
         );
+
+        evmSnapshotId = await t.takeEvmSnapshot();
+    });
+
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     it("#1.1 upgradeByETH", async () => {

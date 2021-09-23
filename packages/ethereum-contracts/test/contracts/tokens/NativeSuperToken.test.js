@@ -9,16 +9,23 @@ const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 contract("NativeSuperTokenProxy Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 1), {
         isTruffle: true,
-        useMocks: true,
     });
     const { admin } = t.aliases;
+    let evmSnapshotId;
     let superTokenFactory;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+
+        evmSnapshotId = await t.takeEvmSnapshot();
         superTokenFactory = await ISuperTokenFactory.at(
             await t.contracts.superfluid.getSuperTokenFactory()
         );
+    });
+
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     it("#1 create token", async () => {

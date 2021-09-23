@@ -21,7 +21,6 @@ const {
 contract("SuperToken's ERC777 implementation", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 6), {
         isTruffle: true,
-        useMocks: true,
     });
     const [, holder, defaultOperatorA, defaultOperatorB, newOperator, anyone] =
         accounts;
@@ -31,22 +30,29 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
     const data = web3.utils.sha3("OZ777TestData");
     const operatorData = web3.utils.sha3("OZ777TestOperatorData");
 
+    let evmSnapshotId;
     let erc1820;
 
-    before(async () => {
-        await t.reset();
+    before(async function () {
+        await t.deployFramework({ useMocks: true });
+        ({ superToken: this.token } = await t.deployNewToken({
+            tokenSymbol: "TEST",
+        }));
         ({ erc1820 } = t.contracts);
-    });
 
-    beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        this.token = t.contracts.superToken;
         await web3tx(
             this.token.upgrade,
             "Upgrade initialSupply amount of token for holder"
         )(initialSupply, {
             from: holder,
         });
+
+        evmSnapshotId = await t.takeEvmSnapshot();
+    });
+
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     context("with default operators", async () => {

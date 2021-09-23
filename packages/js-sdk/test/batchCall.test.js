@@ -12,12 +12,17 @@ contract("batchCall helper class", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
     const { admin: adminAddress, alice: aliceAddress } = t.aliases;
 
+    let evmSnapshotId;
     let sf;
-    let superToken;
     let testToken;
+    let superToken;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST" });
+        testToken = t.sf.tokens.TEST;
+        superToken = t.sf.tokens.TESTx;
+
         sf = t.sf;
         sf.batchCall = (calls) => {
             console.log(batchCall({ agreements: sf.agreements, calls: calls }));
@@ -25,11 +30,13 @@ contract("batchCall helper class", (accounts) => {
                 batchCall({ agreements: sf.agreements, calls: calls })
             );
         };
+
+        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
-    beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken, testToken } = t.contracts);
+    afterEach(async () => {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     const exampleERC20TransferFromData = {

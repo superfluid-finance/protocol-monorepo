@@ -29,27 +29,37 @@ contract("User helper class", (accounts) => {
         carol: carolAddress,
     } = t.aliases;
 
+    let evmSnapshotId;
     let sf;
     let superToken;
+
     let alice;
     let bob;
     let carol;
 
     before(async () => {
-        await t.reset();
+        await t.deployFramework();
+        await t.deployNewToken({ tokenSymbol: "TEST" });
+        superToken = t.sf.tokens.TESTx;
+
         sf = new SuperfluidSDK.Framework({
             ethers: new Web3Provider(web3.currentProvider),
             version: "test",
         });
         await sf.initialize();
+
+        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
     beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: true });
-        ({ superToken } = t.contracts);
         alice = sf.user({ address: aliceAddress, token: superToken.address });
         bob = sf.user({ address: bobAddress, token: superToken.address });
         carol = sf.user({ address: carolAddress, token: superToken.address });
+    });
+
+    afterEach(async () => {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
     });
 
     describe("initialize", () => {

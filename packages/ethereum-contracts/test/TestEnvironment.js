@@ -1,16 +1,18 @@
 const _ = require("lodash");
 const deployFramework = require("../scripts/deploy-framework");
+const deployTestToken = require("../scripts/deploy-test-token");
+const deploySuperToken = require("../scripts/deploy-super-token");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const IERC1820Registry = artifacts.require("IERC1820Registry");
 const SuperfluidMock = artifacts.require("SuperfluidMock");
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
 const InstantDistributionAgreementV1 = artifacts.require(
     "InstantDistributionAgreementV1"
 );
 const TestGovernance = artifacts.require("TestGovernance");
 const TestToken = artifacts.require("TestToken");
-const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 const { BN } = require("@openzeppelin/test-helpers");
 const {
@@ -30,11 +32,12 @@ module.exports = class TestEnvironment {
      * @param accounts Accounts that test cases can use
      * @param isTruffle Is test environment initialized in a truffle environment
      */
-    constructor(accounts, { isTruffle, useMocks } = {}) {
-        this.isTruffle = isTruffle;
-        this.useMocks = useMocks;
+    constructor(accounts, { isTruffle } = {}) {
+        this.data = {};
 
-        this.setupDefaultAliases();
+        this.isTruffle = isTruffle;
+
+        this.setupDefaultAliases(accounts);
 
         this.configs = {
             INIT_BALANCE: toWad(100),
@@ -46,30 +49,71 @@ module.exports = class TestEnvironment {
             {},
             require("@openzeppelin/test-helpers").constants
         );
+
+        this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
+    }
+
+    createErrorHandler() {
+        return (err) => {
+            if (err) throw err;
+        };
     }
 
     /**************************************************************************
-     * Test case setup functions
+     * Test suite and test case setup functions
      *************************************************************************/
 
-    /// reset the system
-    async reset(deployOpts = {}) {
+    async takeEvmSnapshot() {
+        return new Promise((resolve, reject) => {
+            web3.currentProvider.send(
+                {
+                    jsonrpc: "2.0",
+                    method: "evm_snapshot",
+                    params: [],
+                },
+                (err, result) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    return resolve(result.result);
+                }
+            );
+        });
+    }
+
+    async revertToEvmSnapShot(evmSnapshotId) {
+        return new Promise((resolve, reject) => {
+            web3.currentProvider.send(
+                {
+                    jsonrpc: "2.0",
+                    method: "evm_revert",
+                    params: [evmSnapshotId],
+                },
+                (err, result) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    if (!result.result) {
+                        reject(new Error("revertToEvmSnapShot failed"));
+                    }
+                    // old snapshot is deleted, need to take new snapshot
+                    this.takeEvmSnapshot().then(resolve).catch(reject);
+                }
+            );
+        });
+    }
+
+    /// deploy framework
+    async deployFramework(deployOpts = {}) {
         console.log("Aliases", this.aliases);
 
         // deploy framework
-        await deployFramework(
-            (err) => {
-                if (err) throw err;
-            },
-            {
-                newTestResolver: true,
-                useMocks: this.useMocks,
-                isTruffle: this.isTruffle,
-                ...deployOpts,
-            }
-        );
-
-        this.gasReportType = process.env.ENABLE_GAS_REPORT_TYPE;
+        await deployFramework(this.createErrorHandler(), {
+            isTruffle: this.isTruffle,
+            newTestResolver: true,
+            useMocks: deployOpts.useMocks,
+            ...deployOpts,
+        });
 
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
@@ -79,7 +123,7 @@ module.exports = class TestEnvironment {
         });
         await this.sf.initialize();
 
-        // re-loading contracts with testing/mocking interfaces
+        // load contracts with testing/mocking interfaces
         this.contracts = {};
         await Promise.all([
             // load singletons
@@ -103,14 +147,7 @@ module.exports = class TestEnvironment {
             )),
         ]);
 
-        await this.resetForTestCase();
-    }
-
-    /// reset function for each test case
-    async resetForTestCase() {
-        // test data can be persisted here
-        this.data = {};
-
+        // reset governace parameters
         await Promise.all([
             await web3tx(
                 this.contracts.governance.setCFAv1LiquidationPeriod,
@@ -131,26 +168,20 @@ module.exports = class TestEnvironment {
         ]);
     }
 
-    async report({ title }) {
-        if (this.gasReportType) {
-            await this.sf.generateGasReport(title + ".gasReport");
-        }
-    }
+    /// create a new test token (ERC20) and its super token
+    async deployNewToken({ tokenSymbol, doUpgrade } = {}) {
+        await deployTestToken(this.createErrorHandler(), [":", tokenSymbol], {
+            isTruffle: this.isTruffle,
+        });
+        await deploySuperToken(this.createErrorHandler(), [":", tokenSymbol], {
+            isTruffle: this.isTruffle,
+        });
 
-    /// create a new test token
-    async createNewToken({ doUpgrade, doNotSetAsDefault } = {}) {
-        // test token contract
-        const testToken = await web3tx(TestToken.new, "TestToken.new")(
-            "Test Token",
-            "TEST",
-            18
+        await this.sf.loadToken(tokenSymbol);
+        const testToken = await TestToken.at(
+            this.sf.tokens[tokenSymbol].address
         );
-
-        const superToken = await SuperTokenMock.at(
-            (
-                await this.sf.createERC20Wrapper(testToken)
-            ).address
-        );
+        const superToken = this.sf.tokens[tokenSymbol + "x"];
 
         // mint test tokens to test accounts
         await Promise.all(
@@ -180,15 +211,24 @@ module.exports = class TestEnvironment {
             })
         );
 
-        if (!doNotSetAsDefault) {
-            this.contracts.testToken = testToken;
-            this.contracts.superToken = superToken;
-        }
+        await this.sf.loadToken(tokenSymbol);
 
         return {
-            testToken,
-            superToken,
+            testToken: testToken,
+            superToken: await SuperTokenMock.at(superToken.address),
         };
+    }
+
+    /// reset function for each test case
+    async resetForTestCase() {
+        // test data can be persisted here
+        this.data = {};
+    }
+
+    async report({ title }) {
+        if (this.gasReportType) {
+            await this.sf.generateGasReport(title + ".gasReport");
+        }
     }
 
     /**************************************************************************
@@ -250,9 +290,13 @@ module.exports = class TestEnvironment {
      * Test data functions
      *************************************************************************/
 
-    async upgradeBalance(alias, amount) {
+    async upgradeBalance(alias, amount, tokenSymbol = "TEST") {
+        const testToken = await TestToken.at(
+            this.sf.tokens[tokenSymbol].address
+        );
+        const superToken = this.sf.tokens[tokenSymbol + "x"];
         const account = this.getAddress(alias);
-        await web3tx(this.contracts.testToken.mint, `Mint token for ${alias}`)(
+        await web3tx(testToken.mint, `Mint token for ${alias}`)(
             account,
             this.configs.INIT_BALANCE,
             {
@@ -260,33 +304,34 @@ module.exports = class TestEnvironment {
             }
         );
         await web3tx(
-            this.contracts.superToken.upgrade,
+            superToken.upgrade,
             `Upgrade ${amount.toString()} for account ${alias}`
         )(amount, {
             from: account,
         });
         this.updateAccountBalanceSnapshot(
-            this.contracts.superToken.address,
+            superToken.address,
             account,
-            await this.contracts.superToken.realtimeBalanceOfNow(account)
+            await superToken.realtimeBalanceOfNow(account)
         );
     }
 
-    async transferBalance(from, to, amount) {
+    async transferBalance(from, to, amount, tokenSymbol = "TEST") {
+        const superToken = this.sf.tokens[tokenSymbol + "x"];
         const fromAccount = this.getAddress(from);
         const toAccount = this.getAddress(to);
-        await this.contracts.superToken.transfer(toAccount, amount, {
+        await superToken.transfer(toAccount, amount, {
             from: fromAccount,
         });
         this.updateAccountBalanceSnapshot(
-            this.contracts.superToken.address,
+            superToken.address,
             toAccount,
-            await this.contracts.superToken.realtimeBalanceOfNow(toAccount)
+            await superToken.realtimeBalanceOfNow(toAccount)
         );
         this.updateAccountBalanceSnapshot(
-            this.contracts.superToken.address,
+            superToken.address,
             fromAccount,
-            await this.contracts.superToken.realtimeBalanceOfNow(fromAccount)
+            await superToken.realtimeBalanceOfNow(fromAccount)
         );
     }
 
@@ -415,9 +460,11 @@ module.exports = class TestEnvironment {
      * Invariance tests
      *************************************************************************/
 
-    async validateExpectedBalances(syncExpectedBalancesFn) {
-        //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
-        const { superToken } = this.contracts;
+    async validateExpectedBalances(
+        syncExpectedBalancesFn,
+        tokenSymbol = "TEST"
+    ) {
+        const superToken = this.sf.tokens[tokenSymbol + "x"];
 
         const txBlock = await web3.eth.getBlock("latest");
         const balances2 = {};
@@ -482,7 +529,10 @@ module.exports = class TestEnvironment {
         );
     }
 
-    async validateSystemInvariance({ allowCriticalAccount } = {}) {
+    async validateSystemInvariance({ allowCriticalAccount, tokenSymbol } = {}) {
+        tokenSymbol = tokenSymbol || "TEST";
+        const testToken = this.sf.tokens[tokenSymbol];
+        const superToken = this.sf.tokens[tokenSymbol + "x"];
         console.log("======== validateSystemInvariance begins ========");
 
         const currentBlock = await web3.eth.getBlock("latest");
@@ -491,13 +541,12 @@ module.exports = class TestEnvironment {
         await Promise.all(
             this.listAliases().map(async (alias) => {
                 const userAddress = this.getAddress(alias);
-                const tokenBalance =
-                    await this.contracts.testToken.balanceOf.call(
-                        userAddress
-                        /* TODO query old block currentBlock.timestamp*/
-                    );
+                const tokenBalance = await testToken.balanceOf.call(
+                    userAddress
+                    /* TODO query old block currentBlock.timestamp*/
+                );
                 const superTokenBalance =
-                    await this.contracts.superToken.realtimeBalanceOf.call(
+                    await superToken.realtimeBalanceOf.call(
                         userAddress,
                         currentBlock.timestamp.toString()
                     );
@@ -541,12 +590,10 @@ module.exports = class TestEnvironment {
             rtBalanceSum
         );
 
-        const aum = await this.contracts.testToken.balanceOf.call(
-            this.contracts.superToken.address
-        );
+        const aum = await testToken.balanceOf.call(superToken.address);
         this.printSingleBalance("AUM of super tokens", aum);
 
-        const totalSupply = await this.contracts.superToken.totalSupply.call();
+        const totalSupply = await superToken.totalSupply.call();
         this.printSingleBalance("Total supply of super tokens", totalSupply);
 
         assert.isTrue(

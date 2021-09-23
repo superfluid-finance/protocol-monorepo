@@ -7,7 +7,6 @@ const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenFactoryMockHelper = artifacts.require(
     "SuperTokenFactoryMockHelper"
 );
-const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -17,23 +16,38 @@ const { web3tx } = require("@decentral.ee/web3-helpers");
 contract("SuperTokenFactory Contract", (accounts) => {
     const t = new TestEnvironment(accounts.slice(0, 1), {
         isTruffle: true,
-        useMocks: true,
     });
     //const { admin, alice, bob } = t.aliases;
     const { ZERO_ADDRESS } = t.constants;
 
+    let evmSnapshotId;
+    let superfluid;
+    let governance;
+    let factory;
+    let token1;
+
+    before(async () => {
+        await t.deployFramework({ useMocks: true });
+        ({ superfluid, governance } = t.contracts);
+        factory = await SuperTokenFactory.at(
+            await superfluid.getSuperTokenFactory.call()
+        );
+
+        token1 = await web3tx(TestToken.new, "TestToken.new 1")(
+            "Test Token 1",
+            "TT1",
+            18
+        );
+
+        evmSnapshotId = await t.takeEvmSnapshot();
+    });
+
+    afterEach(async function () {
+        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
+        await t.resetForTestCase();
+    });
+
     describe("#1 upgradability", () => {
-        let superfluid;
-        let factory;
-
-        before(async () => {
-            await t.reset();
-            ({ superfluid } = t.contracts);
-            factory = await SuperTokenFactoryMock.at(
-                await superfluid.getSuperTokenFactory.call()
-            );
-        });
-
         it("#1.1 storage layout", async () => {
             const T = artifacts.require("SuperTokenFactoryStorageLayoutTester");
             const tester = await T.new(superfluid.address);
@@ -67,24 +81,6 @@ contract("SuperTokenFactory Contract", (accounts) => {
     });
 
     describe("#2 createERC20Wrapper", () => {
-        let superfluid;
-        let factory;
-        let governance;
-        let token1;
-
-        beforeEach(async () => {
-            await t.reset();
-            ({ superfluid, governance } = t.contracts);
-            factory = await SuperTokenFactoryMock.at(
-                await superfluid.getSuperTokenFactory.call()
-            );
-            token1 = await web3tx(TestToken.new, "TestToken.new 1")(
-                "Test Token 1",
-                "TT1",
-                18
-            );
-        });
-
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
                 const SuperTokenFactoryMock42 = artifacts.require(

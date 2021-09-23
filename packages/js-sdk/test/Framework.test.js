@@ -13,20 +13,20 @@ contract("Framework class", (accounts) => {
     const { admin } = t.aliases;
 
     before(async () => {
-        await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"], {
+        await t.deployFramework();
+        await deployTestToken(t.createErrorHandler(), [":", "fDAI"], {
             isTruffle: true,
         });
-        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
+        await deployTestToken(t.createErrorHandler(), [":", "fUSDC"], {
             isTruffle: true,
         });
-        await deploySuperToken(t.errorHandler, [":", "ETH"], {
+        await deploySuperToken(t.createErrorHandler(), [":", "ETH"], {
             isTruffle: true,
         });
-        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
+        await deploySuperToken(t.createErrorHandler(), [":", "fDAI"], {
             isTruffle: true,
         });
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
+        await deploySuperToken(t.createErrorHandler(), [":", "fUSDC"], {
             isTruffle: true,
         });
     });
@@ -274,10 +274,14 @@ contract("Framework class", (accounts) => {
             });
 
             it("failed due to no super token wrapper", async () => {
-                await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
-                    from: admin,
-                    isTruffle: true,
-                });
+                await deployTestToken(
+                    t.createErrorHandler(),
+                    [":", "SASHIMI"],
+                    {
+                        from: admin,
+                        isTruffle: true,
+                    }
+                );
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
                     tokens: ["SASHIMI"],
@@ -305,7 +309,7 @@ contract("Framework class", (accounts) => {
         });
 
         it("create new super token", async () => {
-            await deployTestToken(t.errorHandler, [":", "MISO"], {
+            await deployTestToken(t.createErrorHandler(), [":", "MISO"], {
                 isTruffle: true,
                 from: admin,
             });

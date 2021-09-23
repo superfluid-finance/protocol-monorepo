@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { ContractReceipt } from "ethers";
+import { gql } from "graphql-request";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import {
     beforeSetup,
@@ -9,7 +10,10 @@ import {
     subgraphRequest,
     waitUntilBlockIndexed,
 } from "./helpers/helpers";
-import { getFlowUpdatedEventQuery } from "./queries/eventQueries";
+import {
+    getFlowUpdatedEventQuery,
+    getFlowUpdatedEventsQuery,
+} from "./queries/eventQueries";
 import { IFlowUpdated, ITokenStatistic } from "./interfaces";
 import { validateEventData } from "./validation/validators";
 import localAddresses from "../config/ganache.json";
@@ -52,8 +56,8 @@ describe("Subgraph Tests", () => {
          */
         it("Should return correct data after creating a flow.", async () => {
             const token = daix.address;
-            const sender = userAddresses[0];
-            const receiver = userAddresses[1];
+            const sender = userAddresses[1];
+            const receiver = userAddresses[6];
             const flowRate = monthlyToSecondRate(100);
             const txn = await sf.cfa!.createFlow({
                 superToken: token,
@@ -65,32 +69,52 @@ describe("Subgraph Tests", () => {
             const receipt: ContractReceipt = txn.receipt;
 
             await waitUntilBlockIndexed(receipt.blockNumber);
-
             const variables = {
-                id: getEventId(receipt),
+                sender: userAddresses[1],
+                receiver: userAddresses[6],
             };
+			console.log("daniel");
+            const query = gql`
+                query getStreamEvent($sender: Bytes!, $receiver: Bytes!) {
+                    flowUpdateds(
+                        where: { sender: $sender, receiver: $receiver }
+                    ) {
+                        id
+                        sender
+                        receiver
+                        flowRate
+                        totalSenderFlowRate
+                        totalReceiverFlowRate
+                    }
+                }
+            `;
+			console.log("damn");
+            const flowUpdatedEvents = await subgraphRequest<{
+                flowUpdateds: IFlowUpdated[];
+            }>(query, variables);
+            console.log(flowUpdatedEvents);
+            // const flowUpdatedEvent = flowUpdatedEvents.flowUpdateds.find(
+            //     (x) => x.id === getEventId(receipt)
+            // );
+			// console.log("ello", getEventId(receipt));
+            // console.log(flowUpdatedEvent);
 
-            const flowUpdatedEvent = await subgraphRequest<IFlowUpdated>(
-                getFlowUpdatedEventQuery,
-                variables
-            );
+            // if (!flowUpdatedEvent) return;
 
-            if (!flowUpdatedEvent) return;
-
-            validateEventData(
-                flowUpdatedEvent,
-                {
-                    token: token.toLowerCase(),
-                    sender: sender.toLowerCase(),
-                    receiver: receiver.toLowerCase(),
-                    flowRate: flowRate.toString(),
-                    totalSenderFlowRate: (-flowRate).toString(),
-                    totalReceiverFlowRate: flowRate.toString(),
-                    oldFlowRate: "0",
-                    type: 0,
-                },
-                receipt
-            );
+            // validateEventData(
+            //     flowUpdatedEvent,
+            //     {
+            //         token: token.toLowerCase(),
+            //         sender: sender.toLowerCase(),
+            //         receiver: receiver.toLowerCase(),
+            //         flowRate: flowRate.toString(),
+            //         totalSenderFlowRate: (-flowRate).toString(),
+            //         totalReceiverFlowRate: flowRate.toString(),
+            //         oldFlowRate: "0",
+            //         type: 0,
+            //     },
+            //     receipt
+            // );
 
             const [, contractFlowRate] = await cfaV1.getFlow(
                 token,
@@ -98,7 +122,7 @@ describe("Subgraph Tests", () => {
                 receiver
             );
             const stringContractFlowRate = contractFlowRate.toString();
-            expect(stringContractFlowRate).to.equal(flowUpdatedEvent.flowRate);
+            // expect(stringContractFlowRate).to.equal(flowUpdatedEvent.flowRate);
             expect(stringContractFlowRate);
         });
 

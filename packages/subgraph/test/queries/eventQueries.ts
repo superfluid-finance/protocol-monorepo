@@ -23,10 +23,15 @@ query getFlowUpdatedEvent($id: ID!) {
 	
 }`;
 
-export const getFlowUpdatedEventsQuery = (options: IQueryOptions) => gql`
-    query getFlowUpdatedEvents($sender: Bytes!, $receiver: Bytes!) {
-        flowUpdateds(where: { sender: $sender, receiver: $receiver } 
-		${formatQueryOptions(options)}) 
-		${flowUpdatedEventProperties}
+export const getFlowUpdatedEventsQuery = (options?: IQueryOptions) => gql`
+    query getStreamEvent($sender: Bytes!, $receiver: Bytes!) {
+        flowUpdateds(where: { sender: $sender, receiver: $receiver }) {
+            id
+            sender
+            receiver
+            flowRate
+            totalSenderFlowRate
+            totalReceiverFlowRate
+        }
     }
 `;

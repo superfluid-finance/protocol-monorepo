@@ -21,10 +21,10 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
  */
 export const beforeSetup = async (tokenAmount: number) => {
     let names: { [address: string]: string } = {};
-    const [Deployer, Alice, Bob, Charlie] = (await ethers.getSigners()).map(
-        (x) => x.address
-    );
-    const userAddresses = [Deployer, Alice, Bob, Charlie];
+    const [Deployer, Alice, Bob, Charlie, Dave, Ella, Frank] = (
+        await ethers.getSigners()
+    ).map((x) => x.address);
+    const userAddresses = [Deployer, Alice, Bob, Charlie, Dave, Ella, Frank];
     names[Deployer] = "Deployer";
     names[Alice] = "Alice";
     names[Bob] = "Bob";
@@ -96,7 +96,7 @@ export const getCurrentBlockNumber = async () => {
 export const subgraphRequest = async <T>(
     query: string,
     variables?: { [key: string]: any }
-): Promise<T | undefined> => {
+): Promise<T> => {
     try {
         const response = await request<T>(
             "http://localhost:8000/subgraphs/name/superfluid-test",

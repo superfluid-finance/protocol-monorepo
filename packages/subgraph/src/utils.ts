@@ -11,6 +11,7 @@ import {
     TokenStatistic,
     Token,
 } from "../generated/schema";
+import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 
 /**************************************************************************
  * Constants
@@ -117,6 +118,11 @@ export function getOrInitToken(
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
         tokenStatistic.save();
+
+        // Note: this is necessary otherwise we will not be able to capture
+        // template data source events.
+        SuperTokenTemplate.create(tokenAddress);
+
         return token as Token;
     }
 

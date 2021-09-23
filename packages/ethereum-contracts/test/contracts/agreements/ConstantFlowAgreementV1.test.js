@@ -144,6 +144,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver,
                 by,
@@ -181,6 +182,7 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
 
             await shouldDeleteFlow({
                 testenv: t,
+                superToken,
                 sender,
                 receiver,
                 by,
@@ -546,12 +548,14 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.3.6",
+                    superToken,
                     sender,
                     receiver,
                     by: sender,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.3.6",
+                    superToken,
                     sender,
                     receiver,
                     by: sender,
@@ -567,12 +571,14 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.3.7",
+                    superToken,
                     sender,
                     receiver,
                     by: sender,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.3.7",
+                    superToken,
                     sender,
                     receiver,
                     by: sender,
@@ -641,12 +647,14 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.4.4",
+                    superToken,
                     sender,
                     receiver,
                     by: agent,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.4.4",
+                    superToken,
                     sender,
                     receiver,
                     by: agent,
@@ -662,12 +670,14 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
                 });
                 shouldTestLiquidationByAgent({
                     titlePrefix: "#1.4.5",
+                    superToken,
                     sender,
                     receiver,
                     by: agent,
                 });
                 shouldTestSelfLiquidation({
                     titlePrefix: "#1.4.5",
+                    superToken,
                     sender,
                     receiver,
                     by: agent,

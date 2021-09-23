@@ -20,6 +20,10 @@ import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 export let BIG_INT_ZERO = BigInt.fromI32(0);
 export let BIG_INT_ONE = BigInt.fromI32(1);
 
+// the host address will be consistent as long as you use the
+// first account retrieved by hardhat's ethers.getSigners():
+// 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
+export let GANACHE_HOST_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"; // for testing
 export let GOERLI_HOST_ADDRESS = "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9";
 export let KOVAN_HOST_ADDRESS = "0xF0d7d1D47109bA426B9D8A3Cde1941327af1eea3";
 export let MATIC_HOST_ADDRESS = "0x3E14dC1b13c488a8d5D310918780c983bD5982E7";

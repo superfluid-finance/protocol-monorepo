@@ -81,7 +81,7 @@ jobs:
         working-directory: ./graph-node/docker
 
       - name: "Prepare, build and deploy subgraph locally"
-        run: yarn prepare-local && yarn codegen && yarn build && yarn deploy-local
+        run: yarn prepare-local && yarn codegen && yarn create-local && yarn deploy-local
         working-directory: ${{ env.subgraph-working-directory }}
 
       

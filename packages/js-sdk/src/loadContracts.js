@@ -140,9 +140,6 @@ const loadContracts = async ({
             allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));
                 setTruffleContractDefaults(c, networkId, from);
-                // workaround to improve testing speed
-                // see https://github.com/trufflesuite/truffle/issues/3522
-                c.disableConfirmationListener = true;
             });
         } catch (e) {
             throw Error(`could not load truffle artifacts. ${e}`);

@@ -21,7 +21,7 @@
         "build": "tasks/build-abi-js.sh && webpack",
         "testenv:start": "../ethereum-contracts/tasks/testenv-ctl.sh start",
         "testenv:stop": "../ethereum-contracts/tasks/testenv-ctl.sh stop",
-        "pretest": "run-s testenv:start > /dev/null&",
+        "pretest": "run-s testenv:start > /dev/null& && sleep 5",
         "test": "truffle test",
         "posttest": "npm run testenv:stop",
         "watch": "webpack --watch",

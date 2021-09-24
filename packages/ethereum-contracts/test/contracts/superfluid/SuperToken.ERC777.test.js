@@ -63,7 +63,7 @@ contract("SuperToken's ERC777 implementation", (accounts) => {
         describe("basic information", function () {
             it("returns the name", async function () {
                 expect(await this.token.name()).to.equal(
-                    "Super Test Fake Token"
+                    "Super TEST Fake Token"
                 );
             });
 

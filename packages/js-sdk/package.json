@@ -19,7 +19,11 @@
     },
     "scripts": {
         "build": "tasks/build-abi-js.sh && webpack",
+        "testenv:start": "../ethereum-contracts/tasks/testenv-ctl.sh start",
+        "testenv:stop": "../ethereum-contracts/tasks/testenv-ctl.sh stop",
+        "pretest": "run-s testenv:start > /dev/null&",
         "test": "truffle test",
+        "posttest": "npm run testenv:stop",
         "watch": "webpack --watch",
         "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
         "lint": "run-s lint:*",

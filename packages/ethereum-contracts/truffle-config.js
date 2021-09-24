@@ -263,6 +263,17 @@ module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
+        /// For truffle development environment
+        development: {
+            host: "127.0.0.1",
+            network_id: "4447",
+            port: 47545,
+
+            // workaround to improve testing speed
+            // see https://github.com/trufflesuite/truffle/issues/3522
+            disableConfirmationListener: true,
+        },
+
         coverage: {
             host: "localhost",
             network_id: "*",
@@ -270,8 +281,7 @@ module.exports = {
             gas: 0xfffffffffff, // <-- Use this high gas value
             gasPrice: 0x01, // <-- Use this low gas price
 
-            // workaround to improve testing speed
-            // see https://github.com/trufflesuite/truffle/issues/3522
+            // ditto
             disableConfirmationListener: true,
         },
 
@@ -280,14 +290,8 @@ module.exports = {
             host: "127.0.0.1",
             network_id: "*",
             port: process.env.PRIVATE_PROVIDER_PORT || 8545,
-            disableConfirmationListener: true,
-        },
 
-        /// For truffle development environment
-        development: {
-            host: "127.0.0.1",
-            network_id: "4447",
-            port: 47545,
+            // ditto
             disableConfirmationListener: true,
         },
 

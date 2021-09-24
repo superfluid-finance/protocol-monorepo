@@ -269,12 +269,26 @@ module.exports = {
             port: 8555, // <-- If you change this, also set the port option in .solcover.js.
             gas: 0xfffffffffff, // <-- Use this high gas value
             gasPrice: 0x01, // <-- Use this low gas price
+
+            // workaround to improve testing speed
+            // see https://github.com/trufflesuite/truffle/issues/3522
+            disableConfirmationListener: true,
         },
 
-        ganache: {
+        /// For other private test environment
+        private: {
             host: "127.0.0.1",
             network_id: "*",
-            port: process.env.GANACHE_PORT || 8545,
+            port: process.env.PRIVATE_PROVIDER_PORT || 8545,
+            disableConfirmationListener: true,
+        },
+
+        /// For truffle development environment
+        development: {
+            host: "127.0.0.1",
+            network_id: "4447",
+            port: 47545,
+            disableConfirmationListener: true,
         },
 
         // Another network with more advanced options...

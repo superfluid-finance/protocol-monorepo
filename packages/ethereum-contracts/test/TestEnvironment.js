@@ -22,22 +22,15 @@ const {
     toBN,
 } = require("@decentral.ee/web3-helpers");
 
+let _singleton;
+
 /**
  * @dev Test environment for test cases
  *
  */
 module.exports = class TestEnvironment {
-    /**
-     * @dev Constructor
-     * @param accounts Accounts that test cases can use
-     * @param isTruffle Is test environment initialized in a truffle environment
-     */
-    constructor(accounts, { isTruffle } = {}) {
-        this.data = {};
-
-        this.isTruffle = isTruffle;
-
-        this.setupDefaultAliases(accounts);
+    constructor() {
+        this._evmSnapshots = [];
 
         this.configs = {
             INIT_BALANCE: toWad(100),
@@ -59,11 +52,18 @@ module.exports = class TestEnvironment {
         };
     }
 
-    /**************************************************************************
-     * Test suite and test case setup functions
-     *************************************************************************/
+    static getSingleton() {
+        if (!_singleton) {
+            _singleton = new TestEnvironment();
+        }
+        return _singleton;
+    }
 
-    async takeEvmSnapshot() {
+    /**************************************************************************
+     * EVM utilities
+     **************************************************************************/
+
+    async _takeEvmSnapshot() {
         return new Promise((resolve, reject) => {
             web3.currentProvider.send(
                 {
@@ -81,7 +81,7 @@ module.exports = class TestEnvironment {
         });
     }
 
-    async revertToEvmSnapShot(evmSnapshotId) {
+    async _revertToEvmSnapShot(evmSnapshotId) {
         return new Promise((resolve, reject) => {
             web3.currentProvider.send(
                 {
@@ -96,30 +96,59 @@ module.exports = class TestEnvironment {
                     if (!result.result) {
                         reject(new Error("revertToEvmSnapShot failed"));
                     }
-                    // old snapshot is deleted, need to take new snapshot
-                    this.takeEvmSnapshot().then(resolve).catch(reject);
+                    resolve();
                 }
             );
         });
     }
 
-    /// deploy framework
-    async deployFramework(deployOpts = {}) {
-        console.log("Aliases", this.aliases);
+    async pushEvmSnapshots() {
+        let evmSnapshotId = await this._takeEvmSnapshot();
+        this._evmSnapshots.push(evmSnapshotId);
+        console.debug("pushEvmSnapshots", evmSnapshotId, this._evmSnapshots);
+    }
 
-        // deploy framework
-        await deployFramework(this.createErrorHandler(), {
-            isTruffle: this.isTruffle,
-            newTestResolver: true,
-            useMocks: deployOpts.useMocks,
-            ...deployOpts,
-        });
+    async popEvmSnapshots() {
+        let evmSnapshotId = this._evmSnapshots.pop();
+        console.debug("popEvmSnapshots", evmSnapshotId, this._evmSnapshots);
+        await this._revertToEvmSnapShot(evmSnapshotId);
+    }
+
+    /**************************************************************************
+     * Test suite and test case setup functions
+     **************************************************************************/
+
+    /**
+     * @dev Run before the test suite
+     * @param isTruffle Is test environment initialized in a truffle environment
+     * @param nAccounts Number of test accounts to be loaded from web3
+     * @param tokens Tokens to be loaded
+     */
+    async beforeTestSuite({ isTruffle, nAccounts, tokens }) {
+        nAccounts = nAccounts || 0;
+        tokens = typeof tokens === "undefined" ? ["TEST"] : tokens;
+        const accounts = (await web3.eth.getAccounts()).slice(0, nAccounts);
+
+        this.setupDefaultAliases(accounts);
+
+        // deploy default test environment if needed
+        if (this._evmSnapshots.length === 0) {
+            await this.deployFramework({ isTruffle, useMocks: true });
+            await this.deployNewToken("TEST", { isTruffle });
+            await this.pushEvmSnapshots();
+        } else {
+            console.debug("Current evmSnapshots", this._evmSnapshots);
+            // return to the existing snapshot and save the same snapshot again
+            await this.popEvmSnapshots();
+            await this.pushEvmSnapshots();
+        }
 
         // load the SDK
         this.sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
-            isTruffle: this.isTruffle,
+            isTruffle: isTruffle,
             version: process.env.RELEASE_VERSION || "test",
+            tokens,
         });
         await this.sf.initialize();
 
@@ -146,6 +175,18 @@ module.exports = class TestEnvironment {
                 await this.sf.host.getGovernance()
             )),
         ]);
+    }
+
+    /*
+     * @dev Run before each test case
+     */
+    async beforeEachTestCase() {
+        // return to the parent snapshot and save the same snapshot again
+        await this.popEvmSnapshots();
+        await this.pushEvmSnapshots();
+
+        // test data can be persisted here
+        this.data = {};
 
         // reset governace parameters
         await Promise.all([
@@ -168,20 +209,37 @@ module.exports = class TestEnvironment {
         ]);
     }
 
+    /// deploy framework
+    async deployFramework(deployOpts = {}) {
+        // deploy framework
+        await deployFramework(this.createErrorHandler(), {
+            newTestResolver: true,
+            isTruffle: deployOpts.isTruffle,
+            useMocks: deployOpts.useMocks,
+            ...deployOpts,
+        });
+    }
+
     /// create a new test token (ERC20) and its super token
-    async deployNewToken({ tokenSymbol, doUpgrade } = {}) {
+    async deployNewToken(tokenSymbol, { isTruffle, doUpgrade } = {}) {
         await deployTestToken(this.createErrorHandler(), [":", tokenSymbol], {
-            isTruffle: this.isTruffle,
+            isTruffle: isTruffle,
         });
         await deploySuperToken(this.createErrorHandler(), [":", tokenSymbol], {
-            isTruffle: this.isTruffle,
+            isTruffle: isTruffle,
         });
 
-        await this.sf.loadToken(tokenSymbol);
-        const testToken = await TestToken.at(
-            this.sf.tokens[tokenSymbol].address
-        );
-        const superToken = this.sf.tokens[tokenSymbol + "x"];
+        // load the SDK
+        const sf = new SuperfluidSDK.Framework({
+            gasReportType: this.gasReportType,
+            isTruffle: isTruffle,
+            version: process.env.RELEASE_VERSION || "test",
+        });
+        await sf.initialize();
+
+        await sf.loadToken(tokenSymbol);
+        const testToken = await TestToken.at(sf.tokens[tokenSymbol].address);
+        const superToken = sf.tokens[tokenSymbol + "x"];
 
         // mint test tokens to test accounts
         await Promise.all(
@@ -211,18 +269,10 @@ module.exports = class TestEnvironment {
             })
         );
 
-        await this.sf.loadToken(tokenSymbol);
-
         return {
             testToken: testToken,
             superToken: await SuperTokenMock.at(superToken.address),
         };
-    }
-
-    /// reset function for each test case
-    async resetForTestCase() {
-        // test data can be persisted here
-        this.data = {};
     }
 
     async report({ title }) {
@@ -252,6 +302,7 @@ module.exports = class TestEnvironment {
         Object.keys(this.aliases).forEach((alias) => {
             if (!this.aliases[alias]) delete this.aliases[alias];
         });
+        console.log("Aliases", this.aliases);
     }
 
     listAliases() {

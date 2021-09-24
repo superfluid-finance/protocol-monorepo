@@ -15,26 +15,27 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = "42";
 
-contract("Using InstanceDistributionAgreement v1", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 5), {
-        isTruffle: true,
-    });
-    const { alice, bob, carol, dan } = t.aliases;
+describe("Using InstanceDistributionAgreement v1", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
     const { INIT_BALANCE } = t.configs;
 
-    let evmSnapshotId;
+    let alice, bob, carol, dan;
     let superToken;
 
-    before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST" });
-        evmSnapshotId = await t.takeEvmSnapshot();
+    before(async function () {
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 5,
+        });
+        ({ alice, bob, carol, dan } = t.aliases);
+
         superToken = t.sf.tokens.TESTx;
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     async function testExpectedBalances(expectedBalances) {

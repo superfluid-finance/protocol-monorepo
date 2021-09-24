@@ -6,11 +6,10 @@ const SuperfluidOwnableGovernance = artifacts.require(
 
 const TestEnvironment = require("../../TestEnvironment");
 
-contract("Superfluid Ownable Governance Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 2), {
-        isTruffle: true,
-    });
-    const { alice } = t.aliases;
+describe("Superfluid Ownable Governance Contract", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
     const { ZERO_ADDRESS } = t.constants;
     const FAKE_TOKEN_ADDRESS1 = "0x" + "e".repeat(40);
     const FAKE_TOKEN_ADDRESS2 = "0x" + "f".repeat(40);
@@ -18,11 +17,17 @@ contract("Superfluid Ownable Governance Contract", (accounts) => {
     const FAKE_ADDRESS2 = "0x" + "2".repeat(40);
     const onlyOwnerReason = "SFGov: only owner is authorized";
 
+    let alice;
     let superfluid;
     let governance;
 
     before(async () => {
-        await t.deployFramework();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 5,
+        });
+
+        ({ alice } = t.aliases);
         ({ superfluid, governance } = t.contracts);
 
         const newGov = await SuperfluidOwnableGovernance.new({ from: alice });

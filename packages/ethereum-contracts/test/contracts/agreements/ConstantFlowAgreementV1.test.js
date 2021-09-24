@@ -18,39 +18,38 @@ const FLOW_RATE1 = toWad("1").div(toBN(3600)); // 1 per hour
 const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
 const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
-contract("Using ConstantFlowAgreement v1", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 5), {
-        isTruffle: true,
-    });
-    const { admin, alice, bob, dan } = t.aliases;
+describe("Using ConstantFlowAgreement v1", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
     const { ZERO_ADDRESS } = t.constants;
     const { LIQUIDATION_PERIOD } = t.configs;
 
-    let evmSnapshotId;
+    let admin, alice, bob, dan;
     let superfluid;
     let governance;
     let cfa;
     let testToken;
     let superToken;
 
-    before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST" });
+    before(async function () {
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 5,
+        });
+        ({ admin, alice, bob, dan } = t.aliases);
 
         ({ superfluid, governance, cfa } = t.contracts);
         testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
         superToken = t.sf.tokens.TESTx;
-
-        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
-    after(async () => {
+    after(async function () {
         await t.report({ title: "ConstantFlowAgreement.test" });
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     async function timeTravelOnce(time = TEST_TRAVEL_TIME) {
@@ -1976,10 +1975,13 @@ contract("Using ConstantFlowAgreement v1", (accounts) => {
         it("#3.5 FlowExchangeTestApp", async () => {
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
-            const { superToken: superToken2 } = await t.deployNewToken({
-                tokenSymbol: "TEST2",
-                doUpgrade: true,
-            });
+            const { superToken: superToken2 } = await t.deployNewToken(
+                "TEST2",
+                {
+                    doUpgrade: true,
+                    isTruffle: true,
+                }
+            );
             const FlowExchangeTestApp = artifacts.require(
                 "FlowExchangeTestApp"
             );

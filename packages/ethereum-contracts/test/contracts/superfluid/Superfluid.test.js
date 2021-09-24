@@ -12,27 +12,29 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
-contract("Superfluid Host Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 3), {
-        isTruffle: true,
-    });
-    const { admin, alice, bob } = t.aliases;
+describe("Superfluid Host Contract", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
+    let admin, alice, bob;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
     context("Upgradable deployment", () => {
-        let evmSnapshotId;
         let governance;
         let superfluid;
 
         before(async () => {
-            await t.deployFramework({ useMocks: true });
-            evmSnapshotId = await t.takeEvmSnapshot();
+            await t.beforeTestSuite({
+                isTruffle: true,
+                nAccounts: 3,
+            });
+
+            ({ admin, alice, bob } = t.aliases);
             ({ superfluid, governance } = t.contracts);
         });
 
-        afterEach(async function () {
-            evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-            await t.resetForTestCase();
+        beforeEach(async function () {
+            await t.beforeEachTestCase();
         });
 
         describe("#1 upgradability", () => {
@@ -567,7 +569,6 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         describe("#6 Agreement Framework", () => {
-            let evmSnapshotIdSaved;
             let agreement;
             let app;
             let gasLimit;
@@ -590,14 +591,11 @@ contract("Superfluid Host Contract", (accounts) => {
                     )
                 );
 
-                // push parent level snapshot id
-                evmSnapshotIdSaved = evmSnapshotId;
-                evmSnapshotId = await t.takeEvmSnapshot();
+                await t.pushEvmSnapshots();
             });
 
             after(async () => {
-                // pop parent level snapshot id
-                evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotIdSaved);
+                await t.popEvmSnapshots();
             });
 
             beforeEach(async () => {
@@ -1070,7 +1068,8 @@ contract("Superfluid Host Contract", (accounts) => {
                     );
                 });
 
-                it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async () => {
+                it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async function () {
+                    this.timeout(3e3);
                     const actionOverhead = 20000; /* some action overhead */
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(
@@ -1452,7 +1451,6 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         describe("#8 callAppAction", () => {
-            let evmSnapshotIdSaved;
             let agreement;
             let app;
 
@@ -1471,14 +1469,11 @@ contract("Superfluid Host Contract", (accounts) => {
                     )
                 );
 
-                // push parent level snapshot id
-                evmSnapshotIdSaved = evmSnapshotId;
-                evmSnapshotId = await t.takeEvmSnapshot();
+                await t.pushEvmSnapshots();
             });
 
             after(async () => {
-                // pop parent level snapshot id
-                evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotIdSaved);
+                await t.popEvmSnapshots();
             });
 
             beforeEach(async () => {
@@ -1660,7 +1655,6 @@ contract("Superfluid Host Contract", (accounts) => {
         });
 
         describe("#9 Contextual Call Proxies", () => {
-            let evmSnapshotIdSaved;
             let agreement;
             let app;
 
@@ -1679,14 +1673,11 @@ contract("Superfluid Host Contract", (accounts) => {
                     )
                 );
 
-                // push parent level snapshot id
-                evmSnapshotIdSaved = evmSnapshotId;
-                evmSnapshotId = await t.takeEvmSnapshot();
+                await t.pushEvmSnapshots();
             });
 
             after(async () => {
-                // pop parent level snapshot id
-                evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotIdSaved);
+                await t.popEvmSnapshots();
             });
 
             beforeEach(async () => {
@@ -1767,10 +1758,7 @@ contract("Superfluid Host Contract", (accounts) => {
 
         describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
-                const { superToken } = await t.deployNewToken({
-                    tokenSymbol: "TEST",
-                    doUpgrade: false,
-                });
+                const superToken = t.sf.tokens.TESTx;
 
                 await web3tx(superToken.upgrade, "Alice upgrades 10 tokens")(
                     toWad("10"),
@@ -2057,10 +2045,7 @@ contract("Superfluid Host Contract", (accounts) => {
                         from: admin,
                     }
                 );
-                const { superToken } = await t.deployNewToken({
-                    tokenSymbol: "TEST",
-                    doUpgrade: false,
-                });
+                const superToken = t.sf.tokens.TEXTx;
                 await t.upgradeBalance("alice", toWad(1));
                 await web3tx(forwarder.execute, "forwarder.execute")(
                     {
@@ -2160,19 +2145,29 @@ contract("Superfluid Host Contract", (accounts) => {
     });
 
     context("Non-upgradable deployment", () => {
-        let evmSnapshotId;
         let governance;
         let superfluid;
 
         before(async () => {
-            await t.deployFramework({ useMocks: true, nonUpgradable: true });
-            evmSnapshotId = await t.takeEvmSnapshot();
+            await t.deployFramework({
+                isTruffle: true,
+                useMocks: true,
+                nonUpgradable: true,
+            });
+            await t.pushEvmSnapshots();
+
+            await t.beforeTestSuite({
+                isTruffle: true,
+                nAccounts: 3,
+                tokens: [],
+            });
+
+            ({ admin, alice, bob } = t.aliases);
             ({ superfluid, governance } = t.contracts);
         });
 
-        afterEach(async function () {
-            evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-            await t.resetForTestCase();
+        after(async function () {
+            await t.popEvmSnapshots();
         });
 
         describe("#30 non-upgradability", () => {
@@ -2232,19 +2227,29 @@ contract("Superfluid Host Contract", (accounts) => {
             "SuperAppMockWithRegistrationkey"
         );
 
-        let evmSnapshotId;
         let superfluid;
         let governance;
 
         before(async () => {
-            await t.deployFramework({ useMocks: true, appWhiteListing: true });
-            evmSnapshotId = await t.takeEvmSnapshot();
+            await t.deployFramework({
+                isTruffle: true,
+                useMocks: true,
+                appWhiteListing: true,
+            });
+            await t.pushEvmSnapshots();
+
+            await t.beforeTestSuite({
+                isTruffle: true,
+                nAccounts: 3,
+                tokens: [],
+            });
+
+            ({ admin, alice, bob } = t.aliases);
             ({ superfluid, governance } = t.contracts);
         });
 
-        afterEach(async function () {
-            evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-            await t.resetForTestCase();
+        after(async function () {
+            await t.popEvmSnapshots();
         });
 
         function createAppKey(deployer, registrationKey) {

@@ -22,7 +22,7 @@
         "build:contracts": "rm -f build/contracts/*;truffle compile",
         "testenv:start": "tasks/testenv-ctl.sh start",
         "testenv:stop": "tasks/testenv-ctl.sh stop",
-        "pretest": "run-s testenv:start > /dev/null& && sleep 5",
+        "pretest": "{ run-s testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
         "test:contracts:js": "truffle test test/contracts.test.js",
         "test:contracts:sol": "truffle test test/contracts/*/*.sol",

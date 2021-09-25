@@ -30,7 +30,6 @@
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
         "test-coverage": "truffle run coverage --file test/contracts.test.js",
         "posttest": "npm run testenv:stop",
-        "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",

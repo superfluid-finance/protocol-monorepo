@@ -21,7 +21,7 @@ const emptyIda = {
 };
 
 describe("User helper class", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     let adminAddress, aliceAddress, bobAddress, carolAddress;

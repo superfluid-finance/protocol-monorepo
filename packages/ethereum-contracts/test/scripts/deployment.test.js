@@ -483,13 +483,13 @@ contract("Embeded deployment scripts", () => {
         });
 
         it("scripts/deploy-test-environment.js", async () => {
-            await deployTestEnvironment(errorHandler, deploymentOptions);
+            await deployTestEnvironment(errorHandler, [], deploymentOptions);
         });
     });
 
     context("Used in non-native truffle environment (web3)", () => {
         it("scripts/deploy-test-environment.js", async () => {
-            await deployTestEnvironment(errorHandler, {
+            await deployTestEnvironment(errorHandler, [], {
                 web3: new Web3(web3.currentProvider),
             });
         });

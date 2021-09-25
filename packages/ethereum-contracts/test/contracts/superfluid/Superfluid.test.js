@@ -13,7 +13,7 @@ const TestEnvironment = require("../../TestEnvironment");
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
 describe("Superfluid Host Contract", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     let admin, alice, bob;
@@ -303,7 +303,6 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#2.5 cannot register more than 256 agreements", async function () {
-                this.timeout(300e3);
                 const mocks = [];
                 mocks.push(t.contracts.cfa.address);
                 mocks.push(t.contracts.ida.address);

@@ -9,7 +9,7 @@ const SETHProxy = artifacts.require("SETHProxy");
 const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
 
 describe("Super ETH (SETH) Contract", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     let alice, bob;

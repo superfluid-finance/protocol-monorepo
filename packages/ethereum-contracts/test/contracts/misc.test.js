@@ -89,29 +89,6 @@ describe("Miscellaneous for test coverages", function () {
         });
     });
 
-    describe("FullUpgradableSuperTokenProxy", () => {
-        const IERC20 = artifacts.require("IERC20");
-        const FullUpgradableSuperTokenProxy = artifacts.require(
-            "FullUpgradableSuperTokenProxy"
-        );
-
-        it("initialization checks", async () => {
-            const proxy = await FullUpgradableSuperTokenProxy.new({
-                from: admin,
-            });
-            const token = await IERC20.at(proxy.address);
-            await expectRevert(
-                token.transfer(alice, 1, { from: admin }),
-                "Not initialized"
-            );
-            await proxy.initialize({ from: admin });
-            await expectRevert(
-                proxy.initialize({ from: admin }),
-                "Already initialized"
-            );
-        });
-    });
-
     describe("Utils", () => {
         it("Int96SafeMath", async () => {
             const MAX_INT96 = toBN("39614081257132168796771975167");

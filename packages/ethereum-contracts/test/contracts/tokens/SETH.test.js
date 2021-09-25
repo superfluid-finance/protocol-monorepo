@@ -8,18 +8,19 @@ const SETHProxy = artifacts.require("SETHProxy");
 
 const { web3tx, toBN, toWad } = require("@decentral.ee/web3-helpers");
 
-contract("Super ETH (SETH) Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 3), {
-        isTruffle: true,
-    });
-    const { alice, bob } = t.aliases;
+describe("Super ETH (SETH) Contract", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
-    let evmSnapshotId;
+    let alice, bob;
     let weth;
     let seth;
 
     before(async () => {
-        await t.deployFramework();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 3,
+        });
 
         const superTokenFactory = await ISuperTokenFactory.at(
             await t.contracts.superfluid.getSuperTokenFactory()
@@ -38,12 +39,17 @@ contract("Super ETH (SETH) Contract", (accounts) => {
             "SETH"
         );
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        await t.pushEvmSnapshot();
+
+        ({ alice, bob } = t.aliases);
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     it("#1.1 upgradeByETH", async () => {

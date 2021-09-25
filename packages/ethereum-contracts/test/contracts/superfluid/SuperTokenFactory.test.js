@@ -13,38 +13,42 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const { web3tx } = require("@decentral.ee/web3-helpers");
 
-contract("SuperTokenFactory Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 1), {
-        isTruffle: true,
-    });
-    //const { admin, alice, bob } = t.aliases;
+describe("SuperTokenFactory Contract", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
     const { ZERO_ADDRESS } = t.constants;
 
-    let evmSnapshotId;
     let superfluid;
     let governance;
     let factory;
     let token1;
 
     before(async () => {
-        await t.deployFramework({ useMocks: true });
-        ({ superfluid, governance } = t.contracts);
-        factory = await SuperTokenFactory.at(
-            await superfluid.getSuperTokenFactory.call()
-        );
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 50,
+        });
 
         token1 = await web3tx(TestToken.new, "TestToken.new 1")(
             "Test Token 1",
             "TT1",
             18
         );
+        await t.pushEvmSnapshot();
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        ({ superfluid, governance } = t.contracts);
+        factory = await SuperTokenFactory.at(
+            await superfluid.getSuperTokenFactory.call()
+        );
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     describe("#1 upgradability", () => {

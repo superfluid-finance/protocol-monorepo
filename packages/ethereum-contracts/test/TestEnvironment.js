@@ -30,6 +30,7 @@ let _singleton;
  */
 module.exports = class TestEnvironment {
     constructor() {
+        this.data = {};
         this._evmSnapshots = [];
 
         this.configs = {
@@ -102,16 +103,41 @@ module.exports = class TestEnvironment {
         });
     }
 
-    async pushEvmSnapshots() {
+    async pushEvmSnapshot() {
         let evmSnapshotId = await this._takeEvmSnapshot();
-        this._evmSnapshots.push(evmSnapshotId);
-        console.debug("pushEvmSnapshots", evmSnapshotId, this._evmSnapshots);
+        this._evmSnapshots.push({
+            id: evmSnapshotId,
+            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+        });
+        console.debug(
+            "pushEvmSnapshot",
+            evmSnapshotId,
+            JSON.stringify(this._evmSnapshots)
+        );
     }
 
-    async popEvmSnapshots() {
-        let evmSnapshotId = this._evmSnapshots.pop();
-        console.debug("popEvmSnapshots", evmSnapshotId, this._evmSnapshots);
-        await this._revertToEvmSnapShot(evmSnapshotId);
+    async popEvmSnapshot() {
+        this._evmSnapshots.pop();
+        console.debug("popEvmSnapshot", JSON.stringify(this._evmSnapshots));
+    }
+
+    async useLastEvmSnapshot() {
+        let oldEvmSnapshotId;
+        ({
+            id: oldEvmSnapshotId,
+            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+        } = this._evmSnapshots.pop());
+        await this._revertToEvmSnapShot(oldEvmSnapshotId);
+        const newEvmSnapshotId = await this._takeEvmSnapshot();
+        this._evmSnapshots.push({
+            id: newEvmSnapshotId,
+            resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+        });
+        console.debug(
+            "useLastEvmSnapshot",
+            oldEvmSnapshotId,
+            JSON.stringify(this._evmSnapshots)
+        );
     }
 
     /**************************************************************************
@@ -125,22 +151,28 @@ module.exports = class TestEnvironment {
      * @param tokens Tokens to be loaded
      */
     async beforeTestSuite({ isTruffle, nAccounts, tokens }) {
+        const MAX_TEST_ACCOUNTS = 10;
         nAccounts = nAccounts || 0;
+        assert(nAccounts < MAX_TEST_ACCOUNTS);
         tokens = typeof tokens === "undefined" ? ["TEST"] : tokens;
-        const accounts = (await web3.eth.getAccounts()).slice(0, nAccounts);
-
-        this.setupDefaultAliases(accounts);
+        const allAccounts = await web3.eth.getAccounts();
+        const testAccounts = allAccounts.slice(0, nAccounts);
+        this.setupDefaultAliases(testAccounts);
 
         // deploy default test environment if needed
         if (this._evmSnapshots.length === 0) {
             await this.deployFramework({ isTruffle, useMocks: true });
-            await this.deployNewToken("TEST", { isTruffle });
-            await this.pushEvmSnapshots();
+            await this.deployNewToken("TEST", {
+                isTruffle,
+                accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
+            });
+            await this.pushEvmSnapshot();
         } else {
-            console.debug("Current evmSnapshots", this._evmSnapshots);
-            // return to the existing snapshot and save the same snapshot again
-            await this.popEvmSnapshots();
-            await this.pushEvmSnapshots();
+            console.debug(
+                "Current evmSnapshots",
+                JSON.stringify(this._evmSnapshots)
+            );
+            await this.useLastEvmSnapshot();
         }
 
         // load the SDK
@@ -182,8 +214,7 @@ module.exports = class TestEnvironment {
      */
     async beforeEachTestCase() {
         // return to the parent snapshot and save the same snapshot again
-        await this.popEvmSnapshots();
-        await this.pushEvmSnapshots();
+        await this.useLastEvmSnapshot();
 
         // test data can be persisted here
         this.data = {};
@@ -221,7 +252,9 @@ module.exports = class TestEnvironment {
     }
 
     /// create a new test token (ERC20) and its super token
-    async deployNewToken(tokenSymbol, { isTruffle, doUpgrade } = {}) {
+    async deployNewToken(tokenSymbol, { isTruffle, accounts, doUpgrade } = {}) {
+        accounts = accounts || this.accounts;
+
         await deployTestToken(this.createErrorHandler(), [":", tokenSymbol], {
             isTruffle: isTruffle,
         });
@@ -242,32 +275,30 @@ module.exports = class TestEnvironment {
         const superToken = sf.tokens[tokenSymbol + "x"];
 
         // mint test tokens to test accounts
-        await Promise.all(
-            Object.keys(this.aliases).map(async (alias) => {
-                const userAddress = this.aliases[alias];
+        for (let i = 0; i < accounts.length; ++i) {
+            const userAddress = accounts[i];
+            await web3tx(
+                testToken.approve,
+                `TestToken.approve by account[${i}] to SuperToken`
+            )(superToken.address, this.constants.MAX_UINT256, {
+                from: userAddress,
+            });
+            await web3tx(testToken.mint, `Mint token for account[${i}]`)(
+                userAddress,
+                this.configs.INIT_BALANCE,
+                {
+                    from: userAddress,
+                }
+            );
+            if (doUpgrade) {
                 await web3tx(
-                    testToken.approve,
-                    `TestToken.approve by ${alias} to SuperToken`
-                )(superToken.address, this.constants.MAX_UINT256, {
+                    superToken.upgrade,
+                    `Upgrade token for account[${i}]`
+                )(this.configs.INIT_BALANCE, {
                     from: userAddress,
                 });
-                await web3tx(testToken.mint, `Mint token for ${alias}`)(
-                    userAddress,
-                    this.configs.INIT_BALANCE,
-                    {
-                        from: userAddress,
-                    }
-                );
-                if (doUpgrade) {
-                    await web3tx(
-                        superToken.upgrade,
-                        `Upgrade token for ${alias}`
-                    )(this.configs.INIT_BALANCE, {
-                        from: userAddress,
-                    });
-                }
-            })
-        );
+            }
+        }
 
         return {
             testToken: testToken,
@@ -286,6 +317,7 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     setupDefaultAliases(accounts) {
+        this.accounts = accounts;
         this.aliases = {
             admin: accounts[0],
             alice: accounts[1],

@@ -1,27 +1,36 @@
 const { toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
-contract("InstantDistributionAgreementV1Helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const { alice, bob, carol } = t.aliases;
+describe("InstantDistributionAgreementV1Helper class", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
-    let evmSnapshotId;
+    let alice, bob, carol;
     let sf;
     let superToken;
 
     before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST", doUpgrade: true });
-        superToken = t.sf.tokens.TESTx;
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 4,
+        });
 
+        ({ alice, bob, carol } = t.aliases);
         sf = t.sf;
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        ({ superToken } = await t.deployNewToken("TEST2", {
+            isTruffle: true,
+            doUpgrade: true,
+        }));
+        await t.pushEvmSnapshot();
     });
 
-    afterEach(async () => {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     describe("index", async () => {
@@ -109,8 +118,13 @@ contract("InstantDistributionAgreementV1Helper class", (accounts) => {
 
     describe("subscriptions", () => {
         const indexId = 1;
-        const subscriber = bob;
-        const publisher = alice;
+        let subscriber, publisher;
+
+        before(() => {
+            subscriber = bob;
+            publisher = alice;
+        });
+
         beforeEach(async () => {
             await sf.ida.createIndex({
                 superToken: superToken.address,
@@ -191,11 +205,16 @@ contract("InstantDistributionAgreementV1Helper class", (accounts) => {
 
     describe("distribution", () => {
         const indexId = 1;
-        const publisher = alice;
-        const subscriber1 = bob;
+        let publisher, subscriber1, subscriber2;
         const subscriber1Units = toWad("9");
-        const subscriber2 = carol;
         const subscriber2Units = toWad("1");
+
+        before(() => {
+            publisher = alice;
+            subscriber1 = bob;
+            subscriber2 = carol;
+        });
+
         beforeEach(async () => {
             await sf.ida.createIndex({
                 superToken: superToken.address,

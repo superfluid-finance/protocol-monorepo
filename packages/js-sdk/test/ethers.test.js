@@ -20,26 +20,28 @@ const emptyIda = {
     },
 };
 
-contract("User helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const {
-        admin: adminAddress,
-        alice: aliceAddress,
-        bob: bobAddress,
-        carol: carolAddress,
-    } = t.aliases;
+describe("User helper class", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
-    let evmSnapshotId;
+    let adminAddress, aliceAddress, bobAddress, carolAddress;
+    let alice, bob, carol;
     let sf;
     let superToken;
 
-    let alice;
-    let bob;
-    let carol;
-
     before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST" });
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 4,
+        });
+
+        ({
+            admin: adminAddress,
+            alice: aliceAddress,
+            bob: bobAddress,
+            carol: carolAddress,
+        } = t.aliases);
+
         superToken = t.sf.tokens.TESTx;
 
         sf = new SuperfluidSDK.Framework({
@@ -47,19 +49,13 @@ contract("User helper class", (accounts) => {
             version: "test",
         });
         await sf.initialize();
-
-        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
         alice = sf.user({ address: aliceAddress, token: superToken.address });
         bob = sf.user({ address: bobAddress, token: superToken.address });
         carol = sf.user({ address: carolAddress, token: superToken.address });
-    });
-
-    afterEach(async () => {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
     });
 
     describe("initialize", () => {

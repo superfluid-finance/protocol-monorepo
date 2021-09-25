@@ -10,7 +10,7 @@ const DEFAULT_ADMIN_ROLE =
 const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE");
 
 describe("Superfluid Super Upgrader Contract", function () {
-    this.timeout(600e3);
+    this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

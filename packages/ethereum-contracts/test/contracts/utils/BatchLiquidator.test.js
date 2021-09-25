@@ -8,7 +8,7 @@ const { toWad, toBN } = require("@decentral.ee/web3-helpers");
 const traveler = require("ganache-time-traveler");
 
 describe("Superfluid Liquidator Contract", function () {
-    this.timeout(600e3);
+    this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     const FLOW_RATE = toWad("1").div(toBN(3600)); // 1 per hour

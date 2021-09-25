@@ -13,7 +13,7 @@ const {
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 describe("SuperToken's ERC20 compliance", function () {
-    this.timeout(600e3);
+    this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

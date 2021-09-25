@@ -13,7 +13,7 @@ const TestEnvironment = require("../../TestEnvironment");
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
 describe("Superfluid Host Contract", function () {
-    this.timeout(600e3);
+    this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     let admin, alice, bob;
@@ -1069,7 +1069,6 @@ describe("Superfluid Host Contract", function () {
                 });
 
                 it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async function () {
-                    this.timeout(300e3);
                     const actionOverhead = 20000; /* some action overhead */
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(

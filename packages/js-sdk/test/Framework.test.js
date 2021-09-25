@@ -9,13 +9,12 @@ const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts
 const SuperfluidSDK = require("../src");
 
 describe("Framework class", function () {
-    this.timeout(600e3);
+    this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     let admin;
 
     before(async function () {
-        this.timeout(600e3);
         await t.beforeTestSuite({
             isTruffle: true,
             nAccounts: 1,

@@ -64,8 +64,7 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
-          cd packages/ethereum-contracts
-          yarn test-coverage
+          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2

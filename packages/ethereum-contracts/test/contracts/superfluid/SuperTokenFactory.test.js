@@ -27,7 +27,7 @@ describe("SuperTokenFactory Contract", function () {
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
-            nAccounts: 0,
+            nAccounts: 1,
         });
 
         token1 = await web3tx(TestToken.new, "TestToken.new 1")(

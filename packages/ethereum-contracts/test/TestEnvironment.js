@@ -153,7 +153,7 @@ module.exports = class TestEnvironment {
     async beforeTestSuite({ isTruffle, nAccounts, tokens }) {
         const MAX_TEST_ACCOUNTS = 10;
         nAccounts = nAccounts || 0;
-        assert(nAccounts < MAX_TEST_ACCOUNTS);
+        assert(nAccounts <= MAX_TEST_ACCOUNTS);
         tokens = typeof tokens === "undefined" ? ["TEST"] : tokens;
         const allAccounts = await web3.eth.getAccounts();
         const testAccounts = allAccounts.slice(0, nAccounts);
@@ -161,15 +161,29 @@ module.exports = class TestEnvironment {
 
         // deploy default test environment if needed
         if (this._evmSnapshots.length === 0) {
-            await this.deployFramework({ isTruffle, useMocks: true });
-            await this.deployNewToken("TEST", {
-                isTruffle,
-                accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
-            });
-            await this.pushEvmSnapshot();
+            // Can we load from externally saved snapshots?
+            if (!process.env.TESTENV_SNAPSHOT_VARS) {
+                console.log("Creating a new evm snapshot");
+                await this.deployFramework({ isTruffle, useMocks: true });
+                await this.deployNewToken("TEST", {
+                    isTruffle,
+                    accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
+                });
+                await this.pushEvmSnapshot();
+            } else {
+                console.log("Loading from externally saved snapshot");
+                require("dotenv").config({
+                    path: process.env.TESTENV_SNAPSHOT_VARS,
+                });
+                await this._evmSnapshots.push({
+                    id: process.env.TESTENV_EVM_SNAPSHOT_ID,
+                    resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
+                });
+                await this.useLastEvmSnapshot();
+            }
         } else {
             console.debug(
-                "Current evmSnapshots",
+                "Current evm snapshots",
                 JSON.stringify(this._evmSnapshots)
             );
             await this.useLastEvmSnapshot();

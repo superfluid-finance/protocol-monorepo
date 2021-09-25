@@ -19,7 +19,7 @@ const MAXIMUM_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));
 const MINIMAL_DEPOSIT = toBN(1).shln(32);
 
 describe("Using ConstantFlowAgreement v1", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

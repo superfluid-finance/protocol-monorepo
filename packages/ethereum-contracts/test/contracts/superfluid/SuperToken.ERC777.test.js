@@ -19,7 +19,7 @@ const ERC777SenderRecipientMock = artifacts.require(
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 describe("SuperToken's ERC777 implementation", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

@@ -7,7 +7,7 @@ const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 describe("Miscellaneous for test coverages", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

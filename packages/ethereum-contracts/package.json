@@ -28,7 +28,7 @@
         "test:contracts:sol": "truffle test test/contracts/*/*.sol",
         "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
         "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
-        "test-coverage": "truffle run coverage --file test/contracts.test.js",
+        "test-coverage": "truffle run coverage --file testsuites/all-contracts.js",
         "posttest": "npm run testenv:stop",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",

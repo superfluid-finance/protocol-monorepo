@@ -14,7 +14,7 @@ const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
 
 describe("SuperfluidToken implementation", function () {
-    this.timeout(60e3);
+    this.timeout(120e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;

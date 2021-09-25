@@ -3,7 +3,7 @@ const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 describe("ConstantFlowAgreementV1Helper class", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     let admin, alice, bob, carol;

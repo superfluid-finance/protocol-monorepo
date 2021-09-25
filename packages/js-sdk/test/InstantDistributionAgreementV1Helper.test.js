@@ -2,7 +2,7 @@ const { toWad } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
 describe("InstantDistributionAgreementV1Helper class", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     let alice, bob, carol;

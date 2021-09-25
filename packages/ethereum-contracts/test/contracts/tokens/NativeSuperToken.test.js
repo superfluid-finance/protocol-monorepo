@@ -7,7 +7,7 @@ const NativeSuperTokenProxy = artifacts.require("NativeSuperTokenProxy");
 const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
 describe("NativeSuperTokenProxy Contract", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     let admin;

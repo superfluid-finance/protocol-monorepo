@@ -7,7 +7,7 @@ const SuperfluidOwnableGovernance = artifacts.require(
 const TestEnvironment = require("../../TestEnvironment");
 
 describe("Superfluid Ownable Governance Contract", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

@@ -265,9 +265,9 @@ module.exports = {
 
         /// For truffle development environment
         development: {
-            host: "127.0.0.1",
-            network_id: "4447",
+            host: "localhost",
             port: 47545,
+            network_id: "4447",
 
             // workaround to improve testing speed
             // see https://github.com/trufflesuite/truffle/issues/3522
@@ -276,10 +276,7 @@ module.exports = {
 
         coverage: {
             host: "localhost",
-            network_id: "*",
             port: 8555, // <-- If you change this, also set the port option in .solcover.js.
-            gas: 0xfffffffffff, // <-- Use this high gas value
-            gasPrice: 0x01, // <-- Use this low gas price
 
             // ditto
             disableConfirmationListener: true,
@@ -287,9 +284,9 @@ module.exports = {
 
         /// For other private test environment
         private: {
-            host: "127.0.0.1",
-            network_id: "*",
+            host: "localhost",
             port: process.env.PRIVATE_PROVIDER_PORT || 8545,
+            network_id: "*",
 
             // ditto
             disableConfirmationListener: true,

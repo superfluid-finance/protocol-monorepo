@@ -48,20 +48,18 @@ export const beforeSetup = async (tokenAmount: number) => {
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."
     );
     const amount = tokenAmount.toFixed(0);
-    for (let i = 0; i < userAddresses.length; i++) {
-        const address = userAddresses[i];
-        await dai.mint(address, ethers.utils.parseUnits(amount).toString(), {
+    const promises = userAddresses.map((x) => {
+        dai.mint(x, ethers.utils.parseUnits(amount).toString(), {
             from: userAddresses[0],
         });
-        await dai.approve(
-            daix.address,
-            ethers.utils.parseUnits(amount).toString(),
-            { from: address }
-        );
-        await daix.upgrade(ethers.utils.parseUnits(amount).toString(), {
-            from: address,
+        dai.approve(daix.address, ethers.utils.parseUnits(amount).toString(), {
+            from: x,
         });
-    }
+        daix.upgrade(ethers.utils.parseUnits(amount).toString(), {
+            from: x,
+        });
+    });
+    await Promise.all(promises);
     console.log(
         "\n************** Superfluid Framework Setup Complete **************\n"
     );
@@ -138,4 +136,18 @@ export const getEventId = (receipt: ContractReceipt) => {
     return (
         receipt.transactionHash.toLowerCase() + "-" + receipt.transactionIndex
     );
+};
+
+export const getStreamId = (
+    sender: string,
+    receiver: string,
+    token: string,
+    revisionIndex: string
+) => {
+    return [
+        sender.toLowerCase(),
+        receiver.toLowerCase(),
+        token.toLowerCase(),
+        revisionIndex,
+    ].join("-");
 };

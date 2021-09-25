@@ -1,28 +1,28 @@
-import { expect } from "chai";
 import { ethers } from "hardhat";
-import { ContractReceipt } from "ethers";
-import { gql } from "graphql-request";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import {
-    beforeSetup,
-    getEventId,
-    monthlyToSecondRate,
-    subgraphRequest,
-    waitUntilBlockIndexed,
-} from "./helpers/helpers";
-import {
-    getFlowUpdatedEventQuery,
-    getFlowUpdatedEventsQuery,
-} from "./queries/eventQueries";
-import { IFlowUpdated, ITokenStatistic } from "./interfaces";
-import { validateEventData } from "./validation/validators";
-import localAddresses from "../config/ganache.json";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
 import idaABI from "../abis/IInstantDistributionAgreementV1.json";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 import { ERC20 } from "../typechain/ERC20";
 import { SuperToken } from "../typechain/SuperToken";
+import { beforeSetup, monthlyToSecondRate } from "./helpers/helpers";
+import { IAccountTokenSnapshot, ITokenStatistic } from "./interfaces";
+import localAddresses from "../config/ganache.json";
+import { validateModifyFlow } from "./validation/validators";
+
+/**
+ * TODO: it likely makes sense to have several global objects which persists throughout the lifetime of the tests:
+ * - a TokenStatistics object
+ * - a AccountTokenSnapshot object
+ * - something to keep track of flow interactions between two individuals (oldFlowRate, previousUpdatedAt)
+ */
+
+interface IBasicFlowHistory {
+    currentRevisionIndex: string;
+    oldFlowRate: string;
+    previousUpdatedAt: number;
+}
 
 describe("Subgraph Tests", () => {
     let names: { [address: string]: string } = {};
@@ -32,6 +32,14 @@ describe("Subgraph Tests", () => {
     let daix: SuperToken;
     let cfaV1: ConstantFlowAgreementV1;
     let idaV1: InstantDistributionAgreementV1;
+
+    /**
+     * TODO: create helper functions for updating these global properties
+     * based on what is being modified (e.g. flow or ida)
+     */
+    let tokenStatistics: { [id: string]: ITokenStatistic };
+    let accountTokenSnapshots: { [id: string]: IAccountTokenSnapshot };
+    let flowUpdatedHistory: { [id: string]: IBasicFlowHistory };
 
     before(async () => {
         let [Names, UserAddresses, SF, DAI, DAIx] = await beforeSetup(100000);
@@ -55,99 +63,45 @@ describe("Subgraph Tests", () => {
          * Flow Creation Tests
          */
         it("Should return correct data after creating a flow.", async () => {
-            const token = daix.address;
-            const sender = userAddresses[1];
-            const receiver = userAddresses[6];
-            const flowRate = monthlyToSecondRate(100);
-            const txn = await sf.cfa!.createFlow({
-                superToken: token,
-                sender,
-                receiver,
-                flowRate,
-            });
-
-            const receipt: ContractReceipt = txn.receipt;
-
-            await waitUntilBlockIndexed(receipt.blockNumber);
-            const variables = {
-                sender: userAddresses[1],
-                receiver: userAddresses[6],
-            };
-			console.log("daniel");
-            const query = gql`
-                query getStreamEvent($sender: Bytes!, $receiver: Bytes!) {
-                    flowUpdateds(
-                        where: { sender: $sender, receiver: $receiver }
-                    ) {
-                        id
-                        sender
-                        receiver
-                        flowRate
-                        totalSenderFlowRate
-                        totalReceiverFlowRate
-                    }
-                }
-            `;
-			console.log("damn");
-            const flowUpdatedEvents = await subgraphRequest<{
-                flowUpdateds: IFlowUpdated[];
-            }>(query, variables);
-            console.log(flowUpdatedEvents);
-            // const flowUpdatedEvent = flowUpdatedEvents.flowUpdateds.find(
-            //     (x) => x.id === getEventId(receipt)
-            // );
-			// console.log("ello", getEventId(receipt));
-            // console.log(flowUpdatedEvent);
-
-            // if (!flowUpdatedEvent) return;
-
-            // validateEventData(
-            //     flowUpdatedEvent,
-            //     {
-            //         token: token.toLowerCase(),
-            //         sender: sender.toLowerCase(),
-            //         receiver: receiver.toLowerCase(),
-            //         flowRate: flowRate.toString(),
-            //         totalSenderFlowRate: (-flowRate).toString(),
-            //         totalReceiverFlowRate: flowRate.toString(),
-            //         oldFlowRate: "0",
-            //         type: 0,
-            //     },
-            //     receipt
-            // );
-
-            const [, contractFlowRate] = await cfaV1.getFlow(
-                token,
-                sender,
-                receiver
+            await validateModifyFlow(
+                sf,
+                daix.address,
+                userAddresses[0],
+                userAddresses[5],
+                cfaV1,
+                {
+                    actionType: 0,
+                    flowRate: 100,
+                    oldFlowRate: "0",
+                    revisionIndex: "0",
+                },
+                accountTokenSnapshots,
+                tokenStatistics
             );
-            const stringContractFlowRate = contractFlowRate.toString();
-            // expect(stringContractFlowRate).to.equal(flowUpdatedEvent.flowRate);
-            expect(stringContractFlowRate);
         });
 
-        it("Should return correct data after creating multiple flows from one person to a few.", () => {});
+        it("Should return correct data after creating multiple flows from one person to a few.", async () => {});
 
-        it("Should return correct data after creating multiple flows from a few to one person.", () => {});
+        it("Should return correct data after creating multiple flows from a few to one person.", async () => {});
 
         /**
          * Flow Update Tests
          */
-        it("Should return correct data after updating a single flow.", () => {});
+        it("Should return correct data after updating a single flow.", async () => {});
 
-        it("Should return correct data after updating multiple flows from one person to a few.", () => {});
+        it("Should return correct data after updating multiple flows from one person to a few.", async () => {});
 
-        it("Should return correct data after updating multiple flows from a few to one person.", () => {});
+        it("Should return correct data after updating multiple flows from a few to one person.", async () => {});
 
         /**
          * Flow Delete Tests
          */
-        it("Should return correct data after deleting a created flow.", () => {});
+        it("Should return correct data after deleting a created flow.", async () => {});
 
-        it("Should return correct data after deleting an updated flow.", () => {});
+        it("Should return correct data after deleting an updated flow.", async () => {});
 
-        it("Should return correct data after creating a flow after deleting.", () => {});
+        it("Should return correct data after creating a flow after deleting.", async () => {});
 
-        it("Should return correct data after creating and updating a flow after deleting.", () => {});
+        it("Should return correct data after creating and updating a flow after deleting.", async () => {});
     });
 });

@@ -123,10 +123,13 @@ export interface ITransfer extends IEvent {
 interface IBaseEntity {
     readonly id: string;
     readonly createdAt: string;
-    readonly updatedAt: string;
+    readonly updatedAtTimestamp: string;
+    readonly updatedAtBlock: string;
 }
 
-export interface IAccount extends IBaseEntity {}
+export interface IAccount extends IBaseEntity {
+    readonly isSuperApp: boolean;
+}
 
 export interface IToken extends IBaseEntity {
     readonly name: string;
@@ -164,7 +167,7 @@ export interface IIndex extends IBaseEntity {
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
-    readonly totalUnitsDistributed: string;
+    readonly totalUnitsDistributedUntilUpdatedAt: string;
     readonly token: IToken;
     readonly publisher: IAccount;
 }
@@ -172,26 +175,38 @@ export interface IIndex extends IBaseEntity {
 /**
  * Aggregate Entities
  */
-export interface IAccountTokenSnapshot {
+
+export interface IBaseAggregateEntity {
     readonly id: string;
-    readonly totalNumberOfStreams: number;
+    readonly updatedAtTimestamp: string;
+    readonly updatedAtBlock: string;
+}
+
+export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
     readonly totalSubscriptions: number;
     readonly totalApprovedSubscriptions: number;
-    readonly balance: string;
+    readonly balanceUntilUpdatedAt: string;
     readonly totalNetFlowRate: string;
+    readonly totalInflowRate: string;
+    readonly totalOutflowRate: string;
+    readonly totalAmountStreamedUntilUpdatedAt: string;
+    readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly account: IAccount;
     readonly token: IToken;
 }
 
-export interface ITokenStatistic {
-    readonly id: string;
-    readonly totalNumberOfStreams: number;
+export interface ITokenStatistic extends IBaseAggregateEntity {
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
     readonly totalNumberOfIndexes: number;
-    readonly totalSubscribers: number;
-    readonly totalApprovedSubscribers: number;
+    readonly totalNumberOfActiveIndexes: number;
+    readonly totalSubscriptions: number;
+    readonly totalApprovedSubscriptions: number;
     readonly totalOutflowRate: string;
-    readonly totalUnitsApproved: string;
-    readonly totalUnitsPending: string;
-    readonly totalUnitsDistributed: string;
+    readonly totalAmountStreamedUntilUpdatedAt: string;
+    readonly totalAmountTransferredUntilUpdatedAt: string;
+    readonly totalAmountDistributedUntilUpdatedAt: string;
     readonly token: IToken;
 }

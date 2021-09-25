@@ -1,37 +1,33 @@
 import { gql } from "graphql-request";
-import { formatQueryOptions } from "../helpers/helpers";
-import { IQueryOptions } from "../interfaces";
+import { IEvent } from "../interfaces";
 
-const flowUpdatedEventProperties = `{
-	id
-	transactionHash
-	blockNumber
-	token
-	sender
-	receiver
-	flowRate
-	totalSenderFlowRate
-	totalReceiverFlowRate
-	oldFlowRate
-	type
-}`;
+/**
+ * Find single event based on txn hash
+ * @param events
+ * @param txnHash
+ * @returns event entity of type T
+ */
+export const getSingleEvent = <T>(
+    events: IEvent[],
+    txnHash: string
+): T | null => {
+    let event = events.find((x) => x.transactionHash === txnHash);
+    return event ? (event as unknown as T) : null;
+};
 
-export const getFlowUpdatedEventQuery = gql`
-query getFlowUpdatedEvent($id: ID!) {
-	flowUpdated(id: $id) 
-	${flowUpdatedEventProperties}
-	
-}`;
-
-export const getFlowUpdatedEventsQuery = (options?: IQueryOptions) => gql`
-    query getStreamEvent($sender: Bytes!, $receiver: Bytes!) {
+export const getFlowUpdatedEvents = gql`
+    query getFlowUpdatedEvents($sender: Bytes!, $receiver: Bytes!) {
         flowUpdateds(where: { sender: $sender, receiver: $receiver }) {
-            id
+            transactionHash
+            blockNumber
+            token
             sender
             receiver
             flowRate
             totalSenderFlowRate
             totalReceiverFlowRate
+            oldFlowRate
+            type
         }
     }
 `;

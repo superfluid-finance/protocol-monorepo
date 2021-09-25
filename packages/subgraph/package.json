@@ -13,7 +13,7 @@
         "prepare-local": "mustache config/ganache.json test-subgraph.template.yaml > subgraph.yaml",
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
-        "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001",
+        "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v0.0.1",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
         "deploy": "graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs --access-token $THEGRAPH_ACCESS_TOKEN",
         "deploy:feature": "run-s deploy:feature:*",

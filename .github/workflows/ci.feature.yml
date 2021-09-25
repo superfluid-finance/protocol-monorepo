@@ -74,6 +74,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    needs: [check]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -153,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, test-js-sdk, test-subgraph]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph]
 
     steps:
       - name: Test Results

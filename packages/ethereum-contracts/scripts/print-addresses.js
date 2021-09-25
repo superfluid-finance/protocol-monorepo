@@ -93,7 +93,7 @@ module.exports = async function (callback, argv, options = {}) {
             }\n`;
         }
 
-        await fs.writeFile(outputFilename, output, callback);
+        fs.writeFile(outputFilename, output, callback);
     } catch (err) {
         console.log("Output so far:\n", output);
         callback(err);

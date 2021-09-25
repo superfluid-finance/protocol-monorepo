@@ -13,7 +13,7 @@ const TestEnvironment = require("../../TestEnvironment");
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 
 describe("Superfluid Host Contract", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     let admin, alice, bob;

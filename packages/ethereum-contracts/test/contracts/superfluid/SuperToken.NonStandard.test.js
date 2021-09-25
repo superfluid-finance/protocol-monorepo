@@ -18,7 +18,7 @@ const WalletMock = artifacts.require("MockSmartWallet");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 describe("SuperToken's Non Standard Functions", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;

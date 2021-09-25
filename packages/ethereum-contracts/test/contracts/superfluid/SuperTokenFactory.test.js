@@ -14,7 +14,7 @@ const TestEnvironment = require("../../TestEnvironment");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 
 describe("SuperTokenFactory Contract", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     const { ZERO_ADDRESS } = t.constants;

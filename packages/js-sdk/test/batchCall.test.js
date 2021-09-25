@@ -9,7 +9,7 @@ const {
 const { batchCall } = require("../src/batchCall");
 
 describe("batchCall helper class", function () {
-    this.timeout(120e3);
+    this.timeout(600e3);
     const t = TestEnvironment.getSingleton();
 
     let adminAddress, aliceAddress;

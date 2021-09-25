@@ -2,27 +2,36 @@ const { toBN } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
 
-contract("ConstantFlowAgreementV1Helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const { admin, alice, bob, carol } = t.aliases;
+describe("ConstantFlowAgreementV1Helper class", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
-    let evmSnapshotId;
+    let admin, alice, bob, carol;
     let sf;
     let superToken;
 
     before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST", doUpgrade: true });
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 4,
+        });
 
-        superToken = t.sf.tokens.TESTx;
+        ({ admin, alice, bob, carol } = t.aliases);
         sf = t.sf;
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        ({ superToken } = await t.deployNewToken("TEST2", {
+            isTruffle: true,
+            doUpgrade: true,
+        }));
+        await t.pushEvmSnapshot();
     });
 
-    afterEach(async () => {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     it("createFlow", async () => {

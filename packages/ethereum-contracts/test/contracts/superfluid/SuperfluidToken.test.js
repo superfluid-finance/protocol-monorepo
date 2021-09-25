@@ -13,14 +13,13 @@ const {
 const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
 
-contract("SuperfluidToken implementation", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 3), {
-        isTruffle: true,
-    });
-    const { admin, alice, bob } = t.aliases;
+describe("SuperfluidToken implementation", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
     const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
 
-    let evmSnapshotId;
+    let admin, alice, bob;
     let superToken;
     let superfluid;
     let governance;
@@ -28,8 +27,12 @@ contract("SuperfluidToken implementation", (accounts) => {
     let acB;
 
     before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST" });
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 3,
+        });
+
+        ({ admin, alice, bob } = t.aliases);
         ({ superfluid, governance } = t.contracts);
         superToken = t.sf.tokens.TESTx;
 
@@ -50,12 +53,15 @@ contract("SuperfluidToken implementation", (accounts) => {
             await superfluid.getAgreementClass(web3.utils.sha3("typeB"))
         );
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        await t.pushEvmSnapshot();
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     async function expectRealtimeBalance(person, expectedBalance) {

@@ -302,7 +302,8 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#2.5 cannot register more than 256 agreements", async () => {
+            it("#2.5 cannot register more than 256 agreements", async function () {
+                this.timeout(300e3);
                 const mocks = [];
                 mocks.push(t.contracts.cfa.address);
                 mocks.push(t.contracts.ida.address);
@@ -574,6 +575,8 @@ describe("Superfluid Host Contract", function () {
             let gasLimit;
 
             before(async () => {
+                await t.useLastEvmSnapshot();
+
                 gasLimit = (
                     await superfluid.CALLBACK_GAS_LIMIT.call()
                 ).toString();
@@ -591,19 +594,17 @@ describe("Superfluid Host Contract", function () {
                     )
                 );
 
-                await t.pushEvmSnapshots();
-            });
-
-            after(async () => {
-                await t.popEvmSnapshots();
-            });
-
-            beforeEach(async () => {
                 app = await SuperAppMock.new(
                     superfluid.address,
                     1 /* APP_TYPE_FINAL_LEVEL */,
                     false
                 );
+
+                await t.pushEvmSnapshot();
+            });
+
+            after(async () => {
+                await t.popEvmSnapshot();
             });
 
             it("#6.1 only agreement can call the agreement framework", async () => {
@@ -1069,7 +1070,7 @@ describe("Superfluid Host Contract", function () {
                 });
 
                 it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async function () {
-                    this.timeout(3e3);
+                    this.timeout(300e3);
                     const actionOverhead = 20000; /* some action overhead */
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(
@@ -1455,6 +1456,8 @@ describe("Superfluid Host Contract", function () {
             let app;
 
             before(async () => {
+                await t.useLastEvmSnapshot();
+
                 agreement = await AgreementMock.new(
                     web3.utils.sha3("MockAgreement"),
                     0
@@ -1469,19 +1472,17 @@ describe("Superfluid Host Contract", function () {
                     )
                 );
 
-                await t.pushEvmSnapshots();
-            });
-
-            after(async () => {
-                await t.popEvmSnapshots();
-            });
-
-            beforeEach(async () => {
                 app = await SuperAppMock.new(
                     superfluid.address,
                     1 /* APP_TYPE_FINAL_LEVEL */,
                     false
                 );
+
+                await t.pushEvmSnapshot();
+            });
+
+            after(async () => {
+                await t.popEvmSnapshot();
             });
 
             it("#8.1 only super app can be called", async () => {
@@ -1659,6 +1660,8 @@ describe("Superfluid Host Contract", function () {
             let app;
 
             before(async () => {
+                await t.useLastEvmSnapshot();
+
                 agreement = await AgreementMock.new(
                     web3.utils.sha3("MockAgreement"),
                     0
@@ -1673,19 +1676,17 @@ describe("Superfluid Host Contract", function () {
                     )
                 );
 
-                await t.pushEvmSnapshots();
-            });
-
-            after(async () => {
-                await t.popEvmSnapshots();
-            });
-
-            beforeEach(async () => {
                 app = await SuperAppMock.new(
                     superfluid.address,
                     1 /* APP_TYPE_FINAL_LEVEL */,
                     false
                 );
+
+                await t.pushEvmSnapshot();
+            });
+
+            after(async () => {
+                await t.popEvmSnapshot();
             });
 
             it("#9.1 must call with valid ctx", async () => {
@@ -2045,7 +2046,7 @@ describe("Superfluid Host Contract", function () {
                         from: admin,
                     }
                 );
-                const superToken = t.sf.tokens.TEXTx;
+                const superToken = t.sf.tokens.TESTx;
                 await t.upgradeBalance("alice", toWad(1));
                 await web3tx(forwarder.execute, "forwarder.execute")(
                     {
@@ -2149,13 +2150,20 @@ describe("Superfluid Host Contract", function () {
         let superfluid;
 
         before(async () => {
+            await t.beforeTestSuite({
+                isTruffle: true,
+                nAccounts: 0,
+                tokens: [],
+            });
+
             await t.deployFramework({
                 isTruffle: true,
                 useMocks: true,
                 nonUpgradable: true,
             });
-            await t.pushEvmSnapshots();
+            await t.pushEvmSnapshot();
 
+            // load test suite again after new evm snapshot is created
             await t.beforeTestSuite({
                 isTruffle: true,
                 nAccounts: 3,
@@ -2167,7 +2175,7 @@ describe("Superfluid Host Contract", function () {
         });
 
         after(async function () {
-            await t.popEvmSnapshots();
+            await t.popEvmSnapshot();
         });
 
         describe("#30 non-upgradability", () => {
@@ -2231,13 +2239,20 @@ describe("Superfluid Host Contract", function () {
         let governance;
 
         before(async () => {
+            await t.beforeTestSuite({
+                isTruffle: true,
+                nAccounts: 0,
+                tokens: [],
+            });
+
             await t.deployFramework({
                 isTruffle: true,
                 useMocks: true,
                 appWhiteListing: true,
             });
-            await t.pushEvmSnapshots();
+            await t.pushEvmSnapshot();
 
+            // load test suite again after new evm snapshot is created
             await t.beforeTestSuite({
                 isTruffle: true,
                 nAccounts: 3,
@@ -2249,7 +2264,7 @@ describe("Superfluid Host Contract", function () {
         });
 
         after(async function () {
-            await t.popEvmSnapshots();
+            await t.popEvmSnapshot();
         });
 
         function createAppKey(deployer, registrationKey) {

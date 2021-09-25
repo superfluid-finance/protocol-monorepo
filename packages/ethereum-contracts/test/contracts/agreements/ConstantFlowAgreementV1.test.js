@@ -1,3 +1,5 @@
+const TestEnvironment = require("../../TestEnvironment");
+
 const { BN, expectRevert } = require("@openzeppelin/test-helpers");
 const { web3tx, toWad, toBN } = require("@decentral.ee/web3-helpers");
 const {
@@ -7,8 +9,6 @@ const {
     shouldDeleteFlow,
     syncAccountExpectedBalanceDeltas,
 } = require("./ConstantFlowAgreementV1.behavior.js");
-
-const TestEnvironment = require("../../TestEnvironment");
 
 const traveler = require("ganache-time-traveler");
 

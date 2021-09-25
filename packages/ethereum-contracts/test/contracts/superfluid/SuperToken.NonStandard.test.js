@@ -1,3 +1,5 @@
+const TestEnvironment = require("../../TestEnvironment");
+
 const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 
 const {
@@ -13,39 +15,36 @@ const ERC777SenderRecipientMock = artifacts.require(
 );
 
 const WalletMock = artifacts.require("MockSmartWallet");
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 
-const TestEnvironment = require("../../TestEnvironment");
+describe("SuperToken's Non Standard Functions", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
-contract("SuperToken's Non Standard Functions", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), {
-        isTruffle: true,
-    });
-    const { admin, alice, bob } = t.aliases;
     const { MAX_UINT256, ZERO_ADDRESS } = t.constants;
 
-    let evmSnapshotId;
+    let admin, alice, bob;
     let superfluid;
     let testToken;
     let superToken;
     let mockWallet;
 
     before(async function () {
-        await t.deployFramework({ useMocks: true });
-        ({ testToken, superToken } = await t.deployNewToken({
-            tokenSymbol: "TEST",
-        }));
-        ({ superfluid } = t.contracts);
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 4,
+        });
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        testToken = t.sf.tokens.TEST;
+        superToken = t.sf.tokens.TESTx;
+        superToken = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
+        ({ admin, alice, bob } = t.aliases);
+        ({ superfluid } = t.contracts);
     });
 
     beforeEach(async function () {
+        await t.beforeEachTestCase();
         mockWallet = await WalletMock.new();
-    });
-
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
     });
 
     describe("#1 upgradability", () => {

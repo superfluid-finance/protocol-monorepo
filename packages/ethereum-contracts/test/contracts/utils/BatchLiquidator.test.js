@@ -6,28 +6,34 @@ const BatchLiquidator = artifacts.require("BatchLiquidator");
 const { toWad, toBN } = require("@decentral.ee/web3-helpers");
 
 const traveler = require("ganache-time-traveler");
-contract("Superfluid Liquidator Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 9), {
-        isTruffle: true,
-    });
+
+describe("Superfluid Liquidator Contract", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
     const FLOW_RATE = toWad("1").div(toBN(3600)); // 1 per hour
-    const { admin, alice } = t.aliases;
-    let evmSnapshotId;
+
     let superToken;
     let batch;
 
     before(async () => {
-        batch = await BatchLiquidator.new({ from: accounts[0] });
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST" });
-        evmSnapshotId = await t.takeEvmSnapshot();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 10,
+        });
+
+        batch = await BatchLiquidator.new({ from: t.accounts[0] });
+        await t.pushEvmSnapshot();
+
         superToken = t.sf.tokens.TESTx;
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     async function timeTravelOnce(time) {
@@ -41,30 +47,34 @@ contract("Superfluid Liquidator Contract", (accounts) => {
 
     describe("#1 Send multi liquidations", async () => {
         it("#1.1 Terminate all sender flows in one tx", async () => {
-            const liquidatorBalance = await superToken.balanceOf(accounts[9]);
+            const liquidatorBalance = await superToken.balanceOf(t.accounts[9]);
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
             for (let i = 2; i <= 8; i++) {
                 await t.sf.cfa.createFlow({
                     superToken: superToken.address,
-                    sender: accounts[1],
-                    receiver: accounts[i],
+                    sender: t.accounts[1],
+                    receiver: t.accounts[i],
                     flowRate: FLOW_RATE.toString(),
                 });
             }
 
-            await superToken.transferAll(accounts[5], { from: alice });
+            await superToken.transferAll(t.accounts[5], {
+                from: t.accounts[1],
+            });
             await timeTravelOnce(5 * 3600);
             await batch.deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,
-                Array(7).fill(alice),
-                accounts.slice(1, 8),
-                { from: accounts[9] }
+                Array(7).fill(t.accounts[1]),
+                t.accounts.slice(1, 8),
+                { from: t.accounts[9] }
             );
 
             assert.ok(
-                (await superToken.balanceOf(accounts[9])).gt(liquidatorBalance)
+                (await superToken.balanceOf(t.accounts[9])).gt(
+                    liquidatorBalance
+                )
             );
         });
 
@@ -79,21 +89,23 @@ contract("Superfluid Liquidator Contract", (accounts) => {
             for (let i = 2; i <= 8; i++) {
                 await t.sf.cfa.createFlow({
                     superToken: superToken.address,
-                    sender: accounts[1],
-                    receiver: accounts[i],
+                    sender: t.accounts[1],
+                    receiver: t.accounts[i],
                     flowRate: FLOW_RATE.toString(),
                 });
             }
 
-            await superToken.transferAll(accounts[5], { from: alice });
+            await superToken.transferAll(t.accounts[5], {
+                from: t.accounts[1],
+            });
             await timeTravelOnce(1);
             await batch.deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,
-                Array(7).fill(alice),
-                accounts.slice(1, 8),
-                { from: admin }
+                Array(7).fill(t.accounts[1]),
+                t.accounts.slice(1, 8),
+                { from: t.accounts[0] }
             );
             assert.ok(
                 (await superToken.balanceOf(rewardAccount)).gt(rewardBalance)
@@ -101,36 +113,40 @@ contract("Superfluid Liquidator Contract", (accounts) => {
         });
 
         it("#1.3 Terminate all sender flows in one tx with revert in batch", async () => {
-            const liquidatorBalance = await superToken.balanceOf(accounts[9]);
+            const liquidatorBalance = await superToken.balanceOf(t.accounts[9]);
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
             for (let i = 2; i <= 8; i++) {
                 await t.sf.cfa.createFlow({
                     superToken: superToken.address,
-                    sender: accounts[1],
-                    receiver: accounts[i],
+                    sender: t.accounts[1],
+                    receiver: t.accounts[i],
                     flowRate: FLOW_RATE.toString(),
                 });
             }
 
             await t.sf.cfa.deleteFlow({
                 superToken: superToken.address,
-                sender: accounts[1],
-                receiver: accounts[5],
+                sender: t.accounts[1],
+                receiver: t.accounts[5],
             });
 
-            await superToken.transferAll(accounts[5], { from: alice });
+            await superToken.transferAll(t.accounts[5], {
+                from: t.accounts[1],
+            });
             await timeTravelOnce(5 * 3600);
             await batch.deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,
-                Array(7).fill(alice),
-                accounts.slice(1, 8),
-                { from: accounts[9] }
+                Array(7).fill(t.accounts[1]),
+                t.accounts.slice(1, 8),
+                { from: t.accounts[9] }
             );
 
             assert.ok(
-                (await superToken.balanceOf(accounts[9])).gt(liquidatorBalance)
+                (await superToken.balanceOf(t.accounts[9])).gt(
+                    liquidatorBalance
+                )
             );
         });
 
@@ -140,8 +156,8 @@ contract("Superfluid Liquidator Contract", (accounts) => {
                     t.sf.host.address,
                     t.sf.agreements.cfa.address,
                     superToken.address,
-                    Array(8).fill(alice),
-                    accounts.slice(1, 5)
+                    Array(8).fill(t.accounts[1]),
+                    t.accounts.slice(1, 5)
                 ),
                 "arrays different sizes"
             );

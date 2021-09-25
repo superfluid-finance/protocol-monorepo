@@ -8,13 +8,13 @@ const {
 const { expect } = require("chai");
 const { ZERO_ADDRESS } = constants;
 
-function shouldBehaveLikeERC20(
-    errorPrefix,
-    initialSupply,
-    initialHolder,
-    recipient,
-    anotherAccount
-) {
+function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
+    let initialHolder, recipient, anotherAccount;
+
+    before(() => {
+        ({ initialHolder, recipient, anotherAccount } = setupAccounts());
+    });
+
     describe("total supply", function () {
         it("returns the total amount of tokens", async function () {
             expect(await this.token.totalSupply()).to.be.bignumber.equal(
@@ -44,9 +44,11 @@ function shouldBehaveLikeERC20(
     describe("transfer", function () {
         shouldBehaveLikeERC20Transfer(
             errorPrefix,
-            initialHolder,
-            recipient,
             initialSupply,
+            () => ({
+                from: initialHolder,
+                to: recipient,
+            }),
             function (from, to, value) {
                 return this.token.transfer(to, value, { from });
             }
@@ -54,14 +56,16 @@ function shouldBehaveLikeERC20(
     });
 
     describe("transfer from", function () {
-        const spender = recipient;
+        let spender, tokenOwner, to;
+
+        before(() => {
+            spender = recipient;
+            tokenOwner = initialHolder;
+            to = anotherAccount;
+        });
 
         describe("when the token owner is not the zero address", function () {
-            const tokenOwner = initialHolder;
-
             describe("when the recipient is not the zero address", function () {
-                const to = anotherAccount;
-
                 describe("when the spender has enough approved balance", function () {
                     beforeEach(async function () {
                         await this.token.approve(spender, initialSupply, {
@@ -220,7 +224,11 @@ function shouldBehaveLikeERC20(
         describe("when the token owner is the zero address", function () {
             const amount = 0;
             const tokenOwner = ZERO_ADDRESS;
-            const to = recipient;
+            let to;
+
+            before(() => {
+                to = recipient;
+            });
 
             it("reverts", async function () {
                 await expectRevert(
@@ -236,9 +244,11 @@ function shouldBehaveLikeERC20(
     describe("approve", function () {
         shouldBehaveLikeERC20Approve(
             errorPrefix,
-            initialHolder,
-            recipient,
             initialSupply,
+            () => ({
+                owner: initialHolder,
+                spender: recipient,
+            }),
             function (owner, spender, amount) {
                 return this.token.approve(spender, amount, { from: owner });
             }
@@ -248,11 +258,15 @@ function shouldBehaveLikeERC20(
 
 function shouldBehaveLikeERC20Transfer(
     errorPrefix,
-    from,
-    to,
     balance,
+    setupAccounts,
     transfer
 ) {
+    let from, to;
+
+    before(() => {
+        ({ from, to } = setupAccounts());
+    });
     describe("when the recipient is not the zero address", function () {
         describe("when the sender does not have enough balance", function () {
             const amount = balance.addn(1);
@@ -330,11 +344,16 @@ function shouldBehaveLikeERC20Transfer(
 
 function shouldBehaveLikeERC20Approve(
     errorPrefix,
-    owner,
-    spender,
     supply,
+    setupAccounts,
     approve
 ) {
+    let owner, spender;
+
+    before(() => {
+        ({ owner, spender } = setupAccounts());
+    });
+
     describe("when the spender is not the zero address", function () {
         describe("when the sender has enough balance", function () {
             const amount = supply;

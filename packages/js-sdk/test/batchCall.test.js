@@ -8,18 +8,22 @@ const {
 
 const { batchCall } = require("../src/batchCall");
 
-contract("batchCall helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const { admin: adminAddress, alice: aliceAddress } = t.aliases;
+describe("batchCall helper class", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
 
-    let evmSnapshotId;
+    let adminAddress, aliceAddress;
     let sf;
     let testToken;
     let superToken;
 
     before(async () => {
-        await t.deployFramework();
-        await t.deployNewToken({ tokenSymbol: "TEST" });
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 2,
+        });
+
+        ({ admin: adminAddress, alice: aliceAddress } = t.aliases);
         testToken = t.sf.tokens.TEST;
         superToken = t.sf.tokens.TESTx;
 
@@ -30,13 +34,10 @@ contract("batchCall helper class", (accounts) => {
                 batchCall({ agreements: sf.agreements, calls: calls })
             );
         };
-
-        evmSnapshotId = await t.takeEvmSnapshot();
     });
 
-    afterEach(async () => {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     const exampleERC20TransferFromData = {

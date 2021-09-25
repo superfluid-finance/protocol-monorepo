@@ -1,20 +1,26 @@
+const TestEnvironment = require("../TestEnvironment");
+
 const { toBN } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 
-//const TestEnvironment = require("../../TestEnvironment");
-//
-// const {
-//     web3tx,
-//     toWad
-// } = require("@decentral.ee/web3-helpers");
-
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
-const ZERO_ADDRESS = "0x" + "0".repeat(40);
 
-contract("Miscellaneous for test coverages", (accounts) => {
-    const admin = accounts[0];
-    const alice = accounts[1];
+describe("Miscellaneous for test coverages", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
+    const { ZERO_ADDRESS } = t.constants;
+
+    let admin, alice;
+
+    before(async () => {
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 5,
+        });
+        ({ admin, alice } = t.aliases);
+    });
 
     describe("UUPS", () => {
         const UUPSProxy = artifacts.require("UUPSProxy");

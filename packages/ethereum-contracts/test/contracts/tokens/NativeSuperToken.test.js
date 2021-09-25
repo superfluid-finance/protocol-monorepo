@@ -6,26 +6,27 @@ const NativeSuperTokenProxy = artifacts.require("NativeSuperTokenProxy");
 
 const { web3tx, toWad } = require("@decentral.ee/web3-helpers");
 
-contract("NativeSuperTokenProxy Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 1), {
-        isTruffle: true,
-    });
-    const { admin } = t.aliases;
-    let evmSnapshotId;
+describe("NativeSuperTokenProxy Contract", function () {
+    this.timeout(60e3);
+    const t = TestEnvironment.getSingleton();
+
+    let admin;
     let superTokenFactory;
 
     before(async () => {
-        await t.deployFramework();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 1,
+        });
 
-        evmSnapshotId = await t.takeEvmSnapshot();
+        ({ admin } = t.aliases);
         superTokenFactory = await ISuperTokenFactory.at(
             await t.contracts.superfluid.getSuperTokenFactory()
         );
     });
 
-    afterEach(async function () {
-        evmSnapshotId = await t.revertToEvmSnapShot(evmSnapshotId);
-        await t.resetForTestCase();
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     it("#1 create token", async () => {

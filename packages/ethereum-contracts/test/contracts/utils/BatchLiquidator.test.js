@@ -19,7 +19,7 @@ describe("Superfluid Liquidator Contract", function () {
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
-            nAccounts: 10,
+            nAccounts: 0,
         });
 
         batch = await BatchLiquidator.new({ from: t.accounts[0] });

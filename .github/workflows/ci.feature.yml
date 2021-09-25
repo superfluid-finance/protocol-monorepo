@@ -84,10 +84,13 @@ jobs:
         with:
           node-version: 14.x
 
-      - name: Run coverage test
+      - name: Install and build
         run: |
           yarn install --frozen-lockfile
           yarn build
+
+      - name: Run coverage test
+        run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
   test-js-sdk:

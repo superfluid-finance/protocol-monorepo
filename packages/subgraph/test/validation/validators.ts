@@ -1,110 +1,111 @@
-import { expect } from "chai";
 import { ethers } from "hardhat";
 import { ContractReceipt } from "ethers";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import {
     IAccountTokenSnapshot,
-    IEvent,
     IFlowUpdated,
     IStream,
+    IStreamHistory,
+    IStreamTestParams,
     ITokenStatistic,
 } from "../interfaces";
 import {
     getStreamId,
-    monthlyToSecondRate,
     subgraphRequest,
     waitUntilBlockIndexed,
 } from "../helpers/helpers";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { getFlowUpdatedEvents, getSingleEvent } from "../queries/eventQueries";
 import { getStream } from "../queries/holQueries";
+import { getTokenStatistic } from "../queries/aggregateQueries";
 import {
-    getAccountTokenSnapshot,
-    getTokenStatistic,
-} from "../queries/aggregateQueries";
+    FlowActionType,
+    INITIAL_ATS,
+    INITIAL_TOKEN_STATS,
+} from "../helpers/constants";
+import { validateEventData } from "./eventValidators";
+import { validateStreamEntity } from "./holValidators";
+import {
+    getATSDataForFlowUpdated,
+    getTokenStatsData,
+    validateATSEntityForFlowUpdated,
+    validateTokenStatsEntityForFlowUpdated,
+} from "./aggregateValidators";
+import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
 
-// Event Entity Validator Functions
-
-export const validateData = <T>(
-    queriedData: T,
-    expectedData: { [key: string]: any }
+/**
+ * Create/Update/Delete a flow between a sender and receiver.
+ * @param sf
+ * @param cfaV1
+ * @param actionType
+ * @param token
+ * @param sender
+ * @param receiver
+ * @param newFlowRate
+ * @returns txnReceipt, flow updatedAt (on-chain), flowRate (current on-chain)
+ */
+export const modifyFlow = async (
+    sf: Framework,
+    cfaV1: ConstantFlowAgreementV1,
+    actionType: FlowActionType,
+    token: string,
+    sender: string,
+    receiver: string,
+    newFlowRate: number
 ) => {
-    const propertiesToValidate = Object.keys(expectedData);
-    for (let i = 0; i < propertiesToValidate.length; i++) {
-        expect((queriedData as any)[propertiesToValidate[i]]).to.eql(
-            expectedData[propertiesToValidate[i]]
-        );
-    }
-};
-
-// TODO: figure out why the logIndex is inconsistent between
-// receipt and queried data.
-export const validateBaseEventData = (
-    queriedEvent: IEvent,
-    receipt: ContractReceipt
-) => {
-    expect(receipt.transactionHash.toLowerCase()).to.eq(
-        queriedEvent.transactionHash
+    const actionToTypeStringMap = new Map([
+        [FlowActionType.Create, "Create"],
+        [FlowActionType.Update, "Update"],
+        [FlowActionType.Delete, "Delete"],
+    ]);
+    console.log(
+        `********************** ${actionToTypeStringMap.get(
+            actionType
+        )} a flow **********************`
     );
-    expect(receipt.blockNumber.toString()).to.eq(queriedEvent.blockNumber);
-};
+    const sfCFA = sf.cfa as ConstantFlowAgreementV1Helper;
+    // any because it the txn.receipt doesn't exist on
+    // Transaction
+    const txn: any =
+        actionType === FlowActionType.Create
+            ? await sfCFA.createFlow({
+                  superToken: token,
+                  sender,
+                  receiver,
+                  flowRate: newFlowRate.toString(),
+                  userData: "0x",
+                  onTransaction: () => {},
+              })
+            : actionType === FlowActionType.Update
+            ? await sfCFA.updateFlow({
+                  superToken: token,
+                  sender,
+                  receiver,
+                  flowRate: newFlowRate.toString(),
+                  userData: "0x",
+                  onTransaction: () => {},
+              })
+            : await sfCFA.deleteFlow({
+                  superToken: token,
+                  sender,
+                  receiver,
+                  by: "",
+                  userData: "0x",
+                  onTransaction: () => {},
+              });
 
-export const validateEventData = (
-    queriedEvent: IEvent,
-    expectedData: { [key: string]: any },
-    receipt: ContractReceipt
-) => {
-    validateBaseEventData(queriedEvent, receipt);
-    validateData(queriedEvent, expectedData);
-};
-const enum FlowActionType {
-    Create,
-    Update,
-    Delete,
-}
+    const receipt: ContractReceipt = txn.receipt;
 
-const INITIAL_ATS: IAccountTokenSnapshot = {
-    id: ethers.constants.AddressZero,
-    updatedAtBlock: "0",
-    updatedAtTimestamp: "0",
-    totalNumberOfActiveStreams: 0,
-    totalNumberOfClosedStreams: 0,
-    totalSubscriptions: 0,
-    totalApprovedSubscriptions: 0,
-    balanceUntilUpdatedAt: "0",
-    totalNetFlowRate: "0",
-    totalInflowRate: "0",
-    totalOutflowRate: "0",
-    totalAmountStreamedUntilUpdatedAt: "0",
-    totalAmountTransferredUntilUpdatedAt: "0",
-    account: { id: ethers.constants.AddressZero },
-    token: { id: ethers.constants.AddressZero },
-};
-// HOL Entity Validator Functions
+    await waitUntilBlockIndexed(receipt.blockNumber);
 
-interface IStreamTestParams {
-    readonly actionType: FlowActionType;
-    readonly flowRate: number;
-    readonly oldFlowRate: string;
-    readonly previousUpdatedAt?: number;
-    readonly revisionIndex: string;
-}
-
-const validateStreamEntity = (
-    subgraphStream: IStream,
-    flowedAmountSinceUpdatedAt: number,
-    streamId: string,
-    receiverFlowRate: string
-) => {
-    const expectedStreamedUntilUpdatedAt =
-        Number(subgraphStream.streamedUntilUpdatedAt) +
-        flowedAmountSinceUpdatedAt;
-
-    expect(subgraphStream.id).to.be.equal(streamId);
-    expect(subgraphStream.currentFlowRate).to.equal(receiverFlowRate);
-    expect(subgraphStream.streamedUntilUpdatedAt).to.be.equal(
-        expectedStreamedUntilUpdatedAt.toString()
+    const [updatedAt, onChainFlowRate] = await cfaV1.getFlow(
+        token,
+        sender,
+        receiver
     );
+    const stringFlowRate = onChainFlowRate.toString();
+
+    return { receipt, updatedAt, flowRate: stringFlowRate };
 };
 
 // TODO: refactor this to multiple smaller functions
@@ -134,43 +135,24 @@ export const validateModifyFlow = async (
     atsData: { [id: string]: IAccountTokenSnapshot },
     tokenStatsData: { [id: string]: ITokenStatistic }
 ) => {
-    console.log("********************** CREATE A FLOW **********************");
-    const {
+    const { actionType, flowRate: newFlowRate, streamHistory } = testParams;
+    const { oldFlowRate, revisionIndex, previousUpdatedAt } = streamHistory;
+
+    const { receipt, updatedAt, flowRate } = await modifyFlow(
+        sf,
+        cfaV1,
         actionType,
-        flowRate,
-        oldFlowRate,
-        previousUpdatedAt,
-        revisionIndex,
-    } = testParams;
-    const formattedFlowRate = monthlyToSecondRate(flowRate);
-    const flowedAmountSinceUpdatedAt =
-        previousUpdatedAt == null
-            ? 0
-            : (previousUpdatedAt - Number(previousUpdatedAt)) *
-              Number(oldFlowRate);
-
-    const txn = await sf.cfa!.createFlow({
-        superToken: tokenAddress,
-        sender,
-        receiver,
-        flowRate: formattedFlowRate,
-    });
-    const hexTokenAddress = tokenAddress.toLowerCase();
-    const hexSender = sender.toLowerCase();
-    const hexReceiver = receiver.toLowerCase();
-    const receipt: ContractReceipt = txn.receipt;
-
-    await waitUntilBlockIndexed(receipt.blockNumber);
-    const [, onChainFlowRate] = await cfaV1.getFlow(
         tokenAddress,
         sender,
-        receiver
+        receiver,
+        newFlowRate
     );
-    const receiverFlowRate = onChainFlowRate.toString();
-    const senderFlowRate = onChainFlowRate
-        .mul(ethers.BigNumber.from(-1))
-        .toString();
 
+    const hexToken = tokenAddress.toLowerCase();
+    const hexSender = sender.toLowerCase();
+    const hexReceiver = receiver.toLowerCase();
+
+    // ********************** Validate FlowUpdated Entity **********************
     const flowUpdatedVars = {
         sender,
         receiver,
@@ -187,33 +169,33 @@ export const validateModifyFlow = async (
         throw new Error("FlowUpdated entity not found.");
     }
 
-    console.log(
-        "********************** Validate FlowUpdated Entity **********************"
+    const totalSenderFlowRate = await cfaV1.getNetFlow(tokenAddress, sender);
+    const totalReceiverFlowRate = await cfaV1.getNetFlow(
+        tokenAddress,
+        receiver
     );
+
     // validate the event data
     validateEventData(
         flowUpdatedEvent,
         {
-            token: hexTokenAddress,
+            token: hexToken,
             sender: hexSender,
             receiver: hexReceiver,
-            flowRate: receiverFlowRate,
-            totalSenderFlowRate: senderFlowRate,
-            totalReceiverFlowRate: receiverFlowRate,
+            flowRate,
+            totalSenderFlowRate: totalSenderFlowRate.toString(),
+            totalReceiverFlowRate: totalReceiverFlowRate.toString(),
             oldFlowRate: oldFlowRate,
             type: actionType,
         },
         receipt
     );
-
-    console.log(
-        "********************** Validate Stream Entity **********************"
-    );
+    // ********************** Validate Stream Entity **********************
 
     const streamId = getStreamId(
         hexSender,
         hexReceiver,
-        hexTokenAddress,
+        hexToken,
         revisionIndex
     );
 
@@ -228,175 +210,101 @@ export const validateModifyFlow = async (
         throw new Error("Stream entity not found.");
     }
 
+    const flowedAmountSinceUpdatedAt =
+        previousUpdatedAt == null
+            ? 0
+            : (Number(updatedAt.toString()) - Number(previousUpdatedAt)) *
+              Number(oldFlowRate);
+
     validateStreamEntity(
         stream,
         flowedAmountSinceUpdatedAt,
         streamId,
-        receiverFlowRate
+        flowRate
     );
 
-    console.log(
-        "********************** Validate Aggregate Entities For Stream **********************"
+    const updatedStreamHistory: IStreamHistory = {
+        oldFlowRate: newFlowRate.toString(),
+        revisionIndex:
+            actionType === FlowActionType.Delete
+                ? (Number(revisionIndex) + 1).toString()
+                : revisionIndex,
+        previousUpdatedAt: Number(updatedAt.toString()),
+    };
+
+    // ********************** Validate Aggregate Entities For Stream **********************
+
+    const flowRateDelta = newFlowRate - Number(oldFlowRate);
+    const senderATSId = hexSender + "-" + hexToken;
+    const receiverATSId = hexReceiver + "-" + hexToken;
+    const senderATS = atsData[senderATSId] || INITIAL_ATS;
+    const receiverATS = atsData[receiverATSId] || INITIAL_ATS;
+    const tokenStats = tokenStatsData[hexToken] || INITIAL_TOKEN_STATS;
+	console.log("atsData", atsData);
+	console.log("senderATS", senderATS);
+
+    const {
+        expectedATS: expectedSenderATS,
+        graphATS: graphSenderATS,
+        updatedATS: updatedSenderATS,
+    } = await getATSDataForFlowUpdated(
+        senderATSId,
+        senderATS,
+        actionType,
+        flowRateDelta,
+        flowedAmountSinceUpdatedAt,
+        true
     );
 
-    const activeStreamsDelta =
-        actionType === FlowActionType.Create
-            ? 1
-            : actionType === FlowActionType.Update
-            ? 0
-            : -1;
-    const closedStreamsDelta = actionType === FlowActionType.Delete ? 1 : 0;
-    const flowRateDelta = formattedFlowRate - Number(oldFlowRate);
-    const senderATS = atsData[sender] || INITIAL_ATS;
-    const receiverATS = atsData[receiver] || INITIAL_ATS;
+	console.log("expectedSenderATS", expectedSenderATS);
 
-    const senderATSVars = {
-        id: hexSender + "-" + hexTokenAddress,
-    };
-    const receiverATSVars = {
-        id: hexReceiver + "-" + hexTokenAddress,
-    };
-    const { accountTokenSnapshot: senderAccountTokenSnapshot } =
-        await subgraphRequest<{
-            accountTokenSnapshot: IAccountTokenSnapshot | undefined;
-        }>(getAccountTokenSnapshot, senderATSVars);
-    const { accountTokenSnapshot: receiverAccountTokenSnapshot } =
-        await subgraphRequest<{
-            accountTokenSnapshot: IAccountTokenSnapshot | undefined;
-        }>(getAccountTokenSnapshot, receiverATSVars);
-
-    if (!senderAccountTokenSnapshot || !receiverAccountTokenSnapshot) {
-        throw new Error("ATS entity not found.");
-    }
-
-    const expectedSenderATS = {
-        id: senderATSVars.id,
-        updatedAtBlock: senderAccountTokenSnapshot.updatedAtBlock,
-        updatedAtTimestamp: senderAccountTokenSnapshot.updatedAtTimestamp,
-        totalNumberOfActiveStreams:
-            senderATS.totalNumberOfActiveStreams + activeStreamsDelta,
-        totalNumberOfClosedStreams:
-            senderATS.totalNumberOfClosedStreams + closedStreamsDelta,
-        totalNetFlowRate: (
-            Number(senderATS.totalNetFlowRate) - flowRateDelta
-        ).toString(),
-        totalInflowRate: senderATS.totalInflowRate,
-        totalOutflowRate: (
-            Number(senderATS.totalOutflowRate) + flowRateDelta
-        ).toString(),
-        totalAmountStreamedUntilUpdatedAt: (
-            Number(senderATS.totalAmountStreamedUntilUpdatedAt) +
-            flowedAmountSinceUpdatedAt
-        ).toString(),
-        account: { id: sender },
-        token: { id: tokenAddress },
-    };
-    console.log("expectedSenderATS", expectedSenderATS);
     validateATSEntityForFlowUpdated(
-        senderAccountTokenSnapshot,
+        graphSenderATS,
         flowedAmountSinceUpdatedAt,
         expectedSenderATS
     );
-    const expectedReceiverATS = {
-        id: receiverATSVars.id,
-        updatedAtBlock: receiverAccountTokenSnapshot.updatedAtBlock,
-        updatedAtTimestamp: receiverAccountTokenSnapshot.updatedAtTimestamp,
-        totalNumberOfActiveStreams:
-            receiverATS.totalNumberOfActiveStreams + activeStreamsDelta,
-        totalNumberOfClosedStreams:
-            receiverATS.totalNumberOfClosedStreams + closedStreamsDelta,
-        totalNetFlowRate: (
-            Number(receiverATS.totalNetFlowRate) + flowRateDelta
-        ).toString(),
-        totalInflowRate: (
-            Number(receiverATS.totalInflowRate) + flowRateDelta
-        ).toString(),
-        totalOutflowRate: receiverATS.totalOutflowRate,
-        totalAmountStreamedUntilUpdatedAt: (
-            Number(senderATS.totalAmountStreamedUntilUpdatedAt) +
-            flowedAmountSinceUpdatedAt
-        ).toString(),
-        account: { id: receiver },
-        token: { id: tokenAddress },
-    };
-    console.log("expectedReceiverATS", expectedReceiverATS);
+    const {
+        expectedATS: expectedReceiverATS,
+        graphATS: graphReceiverATS,
+        updatedATS: updatedReceiverATS,
+    } = await getATSDataForFlowUpdated(
+        receiverATSId,
+        receiverATS,
+        actionType,
+        flowRateDelta,
+        flowedAmountSinceUpdatedAt,
+        false
+    );
+
     validateATSEntityForFlowUpdated(
-        receiverAccountTokenSnapshot,
+        graphReceiverATS,
         flowedAmountSinceUpdatedAt,
         expectedReceiverATS
     );
 
-    const updatedSenderATS = {
-        ...senderATS,
-        ...expectedSenderATS,
-    };
-    const updatedReceiverATS = {
-        ...receiverATS,
-        ...expectedReceiverATS,
-    };
-    const updatedATSData = {
+    const updatedATS: { [id: string]: IAccountTokenSnapshot } = {
         ...atsData,
-        [senderATSVars.id]: updatedSenderATS,
-        [receiverATSVars.id]: updatedReceiverATS,
+        [senderATSId]: updatedSenderATS,
+        [receiverATSId]: updatedReceiverATS,
     };
-    const hexToken = tokenAddress.toLowerCase();
-    const { tokenStatistic: updatedTokenStatsData } = await subgraphRequest<{
-        tokenStatistic: ITokenStatistic | undefined;
-    }>(getTokenStatistic, { id: hexToken });
 
-    if (!updatedTokenStatsData) {
-        throw new Error("TokenStats entity not found.");
-    }
-    // TODO: token stats tests for flowUpdated to be implemented
+    const { graphTokenStats, expectedTokenStats, updatedTokenStats } =
+        await getTokenStatsData(
+            hexToken,
+            tokenStats,
+            actionType,
+            flowRateDelta,
+            flowedAmountSinceUpdatedAt
+        );
+    validateTokenStatsEntityForFlowUpdated(
+        graphTokenStats,
+        flowedAmountSinceUpdatedAt,
+        expectedTokenStats
+    );
 
     return {
-        updatedATS: updatedATSData,
-        tokenStatistic: updatedTokenStatsData,
+        updatedATS,
+        updatedTokenStats,
+        updatedStreamHistory,
     };
-};
-
-// Aggregate Validator Functions
-
-interface IExpectedTokenStatsData {
-    readonly activeStreams: number;
-    readonly closedStreams: number;
-    readonly outflowRate: string;
-}
-
-interface IExpectedATSData {
-    readonly totalNumberOfActiveStreams: number;
-    readonly totalNumberOfClosedStreams: number;
-    readonly totalInflowRate: string;
-    readonly totalOutflowRate: string;
-    readonly totalNetFlowRate: string;
-}
-
-export const validateATSEntityForFlowUpdated = (
-    accountTokenSnapshot: IAccountTokenSnapshot,
-    flowedAmountSinceUpdatedAt: number,
-    expectedATSData: IExpectedATSData
-) => {
-    const expectedATSStreamedUntilAt = (
-        Number(accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt) +
-        flowedAmountSinceUpdatedAt
-    ).toString();
-    const {
-        totalNumberOfActiveStreams,
-        totalNumberOfClosedStreams,
-        totalInflowRate,
-        totalOutflowRate,
-        totalNetFlowRate,
-    } = expectedATSData;
-    expect(accountTokenSnapshot.totalNumberOfActiveStreams).to.equal(
-        totalNumberOfActiveStreams
-    );
-    expect(accountTokenSnapshot.totalNumberOfClosedStreams).to.equal(
-        totalNumberOfClosedStreams
-    );
-    expect(accountTokenSnapshot.totalInflowRate).to.equal(totalInflowRate);
-    expect(accountTokenSnapshot.totalOutflowRate).to.equal(totalOutflowRate);
-    expect(accountTokenSnapshot.totalNetFlowRate).to.equal(totalNetFlowRate);
-    expect(accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt).to.equal(
-        expectedATSStreamedUntilAt
-    );
 };

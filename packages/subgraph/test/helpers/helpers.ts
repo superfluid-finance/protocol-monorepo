@@ -3,7 +3,7 @@ import { ContractReceipt } from "ethers";
 import { request, gql } from "graphql-request";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import { IMeta, IQueryOptions } from "../interfaces";
+import { IMeta } from "../interfaces";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -50,13 +50,17 @@ export const beforeSetup = async (tokenAmount: number) => {
     const amount = tokenAmount.toFixed(0);
 
     for (let i = 0; i < userAddresses.length; i++) {
-		const address = userAddresses[i];
+        const address = userAddresses[i];
         await dai.mint(address, ethers.utils.parseUnits(amount).toString(), {
             from: userAddresses[0],
         });
-        await dai.approve(daix.address, ethers.utils.parseUnits(amount).toString(), {
-            from: address,
-        });
+        await dai.approve(
+            daix.address,
+            ethers.utils.parseUnits(amount).toString(),
+            {
+                from: address,
+            }
+        );
         await daix.upgrade(ethers.utils.parseUnits(amount).toString(), {
             from: address,
         });
@@ -109,17 +113,6 @@ export const subgraphRequest = async <T>(
             `Failed call to subgraph with query ${query} and error ${err}`
         );
     }
-};
-
-export const formatQueryOptions = (options: IQueryOptions) => {
-    const optionsLimit = options.limit ? ", first: " + options.limit : null;
-    const optionsDirection = options.direction
-        ? ", orderDirection: " + options.direction
-        : null;
-    const optionsOrderBy = options.orderByProperty
-        ? ", orderBy: " + options.orderByProperty + optionsDirection
-        : null;
-    return `${optionsLimit} ${optionsOrderBy}`;
 };
 
 function asleep(ms: number) {

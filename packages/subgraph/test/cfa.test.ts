@@ -6,10 +6,23 @@ import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 import { ERC20 } from "../typechain/ERC20";
 import { SuperToken } from "../typechain/SuperToken";
-import { beforeSetup, monthlyToSecondRate } from "./helpers/helpers";
-import { IAccountTokenSnapshot, ITokenStatistic } from "./interfaces";
+import {
+    beforeSetup,
+    getStreamId,
+    monthlyToSecondRate,
+} from "./helpers/helpers";
+import {
+    IAccountTokenSnapshot,
+    IStreamHistory,
+    ITokenStatistic,
+} from "./interfaces";
 import localAddresses from "../config/ganache.json";
 import { validateModifyFlow } from "./validation/validators";
+import {
+    FlowActionType,
+    INITIAL_ATS,
+    INITIAL_STREAM_HISTORY,
+} from "./helpers/constants";
 
 /**
  * TODO: it likely makes sense to have several global objects which persists throughout the lifetime of the tests:
@@ -18,11 +31,9 @@ import { validateModifyFlow } from "./validation/validators";
  * - something to keep track of flow interactions between two individuals (oldFlowRate, previousUpdatedAt)
  */
 
-interface IStreamHistory {
-    currentRevisionIndex: string;
-    oldFlowRate: string;
-    previousUpdatedAt: number;
-}
+/**
+ * TODO: change up mapping to break the tests
+ */
 
 describe("Subgraph Tests", () => {
     let names: { [address: string]: string } = {};
@@ -39,7 +50,142 @@ describe("Subgraph Tests", () => {
      */
     let tokenStatistics: { [id: string]: ITokenStatistic } = {}; // id is tokenStatsId
     let accountTokenSnapshots: { [id: string]: IAccountTokenSnapshot } = {}; // id is atsId
-    let flowUpdatedHistory: { [id: string]: IStreamHistory } = {}; // id is streamId
+    let streamHistory: { [id: string]: IStreamHistory } = {}; // id is streamId
+    let revisionIndexes: { [id: string]: number | undefined } = {}; // id is sender-recipient-token
+
+    async function validateModifyFlowAndUpdateGlobalProperties(
+        sender: string,
+        receiver: string,
+        actionType: FlowActionType,
+        flowRate: number
+    ) {
+        // streamHistory should be obtained within this function
+        // if revisionIndex of sender-receipient, token is null
+        // we use INITIAL_STREAM_HISTORY
+        const currentRevisionIndex =
+            revisionIndexes[
+                sender.toLowerCase() +
+                    "-" +
+                    receiver.toLowerCase() +
+                    "-" +
+                    daix.address.toLowerCase()
+            ];
+        const currentStreamHistory = currentRevisionIndex
+            ? streamHistory[
+                  getStreamId(
+                      sender,
+                      receiver,
+                      daix.address,
+                      currentRevisionIndex.toString()
+                  )
+              ]
+            : INITIAL_STREAM_HISTORY;
+        console.log("accountTokenSnapshots", accountTokenSnapshots);
+        const { updatedATS, updatedTokenStats, updatedStreamHistory } =
+            await validateModifyFlow(
+                sf,
+                daix.address,
+                sender,
+                receiver,
+                cfaV1,
+                {
+                    actionType,
+                    flowRate,
+                    streamHistory: currentStreamHistory,
+                },
+                accountTokenSnapshots,
+                tokenStatistics
+            );
+
+        updateAndPrintGlobalProperties(
+            sender,
+            receiver,
+            updatedTokenStats,
+            updatedATS,
+            updatedStreamHistory
+        );
+    }
+
+    async function updateAndPrintGlobalProperties(
+        sender: string,
+        receiver: string,
+        updatedTokenStats: ITokenStatistic,
+        updatedATS: { [id: string]: IAccountTokenSnapshot },
+        updatedStreamHistory?: IStreamHistory
+    ) {
+        const hexSender = sender.toLowerCase();
+        const hexReceiver = receiver.toLowerCase();
+        const hexToken = daix.address.toLowerCase();
+        const senderATSId =
+            sender.toLowerCase() + "-" + daix.address.toLowerCase();
+        const receiverATSId =
+            receiver.toLowerCase() + "-" + daix.address.toLowerCase();
+        const oldTokenStats = tokenStatistics[hexToken];
+        const oldSenderATS = accountTokenSnapshots[senderATSId];
+        const oldReceiverATS = accountTokenSnapshots[receiverATSId];
+
+        tokenStatistics[hexToken] = {
+            ...tokenStatistics[hexToken],
+            ...updatedTokenStats,
+        };
+        accountTokenSnapshots[senderATSId] = {
+            ...accountTokenSnapshots[senderATSId],
+            ...updatedATS[senderATSId],
+        };
+        accountTokenSnapshots[receiverATSId] = {
+            ...accountTokenSnapshots[receiverATSId],
+            ...updatedATS[receiverATSId],
+        };
+
+        console.log("Previous Token Stats: ", oldTokenStats);
+        console.log("Updated Token Stats: ", tokenStatistics[hexToken], "\n");
+        console.log("Previous Sender ATS: ", oldSenderATS);
+        console.log(
+            "Updated Sender ATS: ",
+            accountTokenSnapshots[senderATSId],
+            "\n"
+        );
+        console.log("Previous Receiver ATS: ", oldReceiverATS);
+        console.log(
+            "Updated Receiver ATS: ",
+            accountTokenSnapshots[receiverATSId],
+            "\n"
+        );
+
+        if (updatedStreamHistory) {
+            const revisionIndexId =
+                hexSender + "-" + hexReceiver + "-" + hexToken;
+            const revisionIndex = revisionIndexes[revisionIndexId];
+            const oldStreamId = getStreamId(
+                hexSender,
+                hexReceiver,
+                hexToken,
+                revisionIndex ? revisionIndex.toString() : "0"
+            );
+            console.log(
+                "Previous Stream History: ",
+                streamHistory[oldStreamId]
+            );
+            const streamId = getStreamId(
+                hexSender,
+                hexReceiver,
+                hexToken,
+                updatedStreamHistory.revisionIndex
+            );
+            revisionIndexes[revisionIndexId] = Number(
+                updatedStreamHistory.revisionIndex
+            );
+            streamHistory[streamId] = {
+                ...streamHistory[streamId],
+                ...updatedStreamHistory,
+            };
+            console.log(
+                "Updated Stream History: ",
+                streamHistory[streamId],
+                "\n"
+            );
+        }
+    }
 
     before(async () => {
         let [Names, UserAddresses, SF, DAI, DAIx] = await beforeSetup(100000);
@@ -65,36 +211,28 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after creating a flow.", async () => {
             const sender = userAddresses[0];
             const receiver = userAddresses[1];
-            const { updatedATS, tokenStatistic } = await validateModifyFlow(
-                sf,
-                daix.address,
+            await validateModifyFlowAndUpdateGlobalProperties(
                 sender,
                 receiver,
-                cfaV1,
-                {
-                    actionType: 0,
-                    flowRate: 100,
-                    oldFlowRate: "0", // must be formattedFlowRate
-                    revisionIndex: "0",
-                },
-                accountTokenSnapshots,
-                tokenStatistics
+                FlowActionType.Create,
+                monthlyToSecondRate(100)
             );
-
-            // update ATS data
-            const senderATSId =
-                sender.toLowerCase() + "-" + daix.address.toLowerCase();
-            const receiverATSId =
-                receiver.toLowerCase() + "-" + daix.address.toLowerCase();
-            accountTokenSnapshots[senderATSId] = updatedATS[senderATSId];
-            accountTokenSnapshots[receiverATSId] = updatedATS[receiverATSId];
-
-            // TODO: update token stats, update flowUpdatedHistory
         });
 
-        it("Should return correct data after creating multiple flows from one person to a few.", async () => {});
+        it("Should return correct data after creating multiple flows from one person to many.", async () => {
+            const sender = userAddresses[1];
+            for (let i = 2; i < userAddresses.length; i++) {
+                let receiver = userAddresses[i];
+                await validateModifyFlowAndUpdateGlobalProperties(
+                    sender,
+                    receiver,
+                    FlowActionType.Create,
+                    monthlyToSecondRate(250)
+                );
+            }
+        });
 
-        it("Should return correct data after creating multiple flows from a few to one person.", async () => {});
+        it("Should return correct data after creating multiple flows from many to one person.", async () => {});
 
         /**
          * Flow Update Tests

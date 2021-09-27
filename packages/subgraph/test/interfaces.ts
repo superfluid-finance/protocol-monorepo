@@ -1,15 +1,8 @@
 /**************************************************************************
- * Param interfaces
- *************************************************************************/
-export interface IQueryOptions {
-    readonly orderByProperty?: string;
-    readonly direction?: "asc" | "desc";
-    readonly limit?: number;
-}
-
-/**************************************************************************
  * GraphQL Entity Types
  *************************************************************************/
+
+import { FlowActionType } from "./helpers/constants";
 
 /**
  * Event Entities
@@ -214,4 +207,35 @@ export interface ITokenStatistic extends IBaseAggregateEntity {
 /** Sub-entity Entities */
 export interface ILightEntity {
     readonly id: string;
+}
+
+/**************************************************************************
+ * Internal Interfaces
+ *************************************************************************/
+export interface IStreamHistory {
+    revisionIndex: string;
+    oldFlowRate: string;
+    previousUpdatedAt?: number;
+}
+
+export interface IStreamTestParams {
+    readonly actionType: FlowActionType;
+    readonly flowRate: number;
+    readonly streamHistory: IStreamHistory;
+}
+
+export interface IExpectedATSData {
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
+    readonly totalInflowRate: string;
+    readonly totalOutflowRate: string;
+    readonly totalNetFlowRate: string;
+	readonly totalAmountStreamedUntilUpdatedAt: string;
+}
+
+export interface IExpectedTokenStats {
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
+    readonly totalOutflowRate: string;
+    readonly totalAmountStreamedUntilUpdatedAt: string;
 }

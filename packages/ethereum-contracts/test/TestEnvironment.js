@@ -83,6 +83,7 @@ module.exports = class TestEnvironment {
     }
 
     async _revertToEvmSnapShot(evmSnapshotId) {
+        // NOTE: the evm snapshot is actually deleted
         return new Promise((resolve, reject) => {
             web3.currentProvider.send(
                 {

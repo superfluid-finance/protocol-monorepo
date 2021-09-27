@@ -1,6 +1,6 @@
-export type { getConfig } from './getConfig';
-export type { loadContracts } from './loadContracts';
-export type { Framework } from './Framework';
+export { getConfig } from './getConfig';
+export { loadContracts } from './loadContracts';
+export { Framework } from './Framework';
 
 export type { Record } from './utils/gasMetering/gasMetering';
 

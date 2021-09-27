@@ -2,6 +2,7 @@ import type { ethers, Contract as EthersContract, utils, ContractInterface } fro
 import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
 import type Web3 from "web3";
+import { Web3Provider as EthersWithSigner } from "@ethersproject/providers";
 
 type SuperfluidContractNames =
   | 'ERC20WithTokenInfo'
@@ -27,10 +28,6 @@ export type SuperfluidContractObject = {
 }
 
 export type SuperfluidContracts = Record<SuperfluidContractNames, SuperfluidContractObject>
-
-export interface EthersWithSigner {
-    getSigner(): () => any
-}
 
 export type LoadedContract = Web3Contract | TruffleContract.Contract | EthersContract;
 export type AbiContainer = Pick<utils.Interface, "abi">;

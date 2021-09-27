@@ -40,8 +40,8 @@ export declare class Framework {
     resolver: LoadContracts.LoadedContract;
     host: LoadContracts.LoadedContract;
     agreements: Agreements;
-    tokens: { [key: string]: any };
-    superTokens: { [key: string]: any };
+    tokens: { [key: string]: string };
+    superTokens: { [key: string]: string };
     cfa: ConstantFlowAgreementV1Helper | undefined;
     ida: InstantDistributionAgreementV1Helper | undefined;
     utils: Utils | undefined;

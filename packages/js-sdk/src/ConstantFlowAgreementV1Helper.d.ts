@@ -62,8 +62,8 @@ export declare class ConstantFlowAgreementV1Helper {
     sender: string;
     receiver: string;
     flowRate: string;
-    userData: string;
-    onTransaction: () => void;
+    userData?: string;
+    onTransaction?: () => void;
   }): Promise<Transaction>;
   /**
    * @dev Update a new flow with a new flow rate
@@ -87,8 +87,8 @@ export declare class ConstantFlowAgreementV1Helper {
     sender: string;
     receiver: string;
     flowRate: string;
-    userData: string;
-    onTransaction: () => void;
+    userData?: string;
+    onTransaction?: () => void;
   }): Promise<Transaction>;
   /**
    * @dev Delete a existing flow
@@ -112,8 +112,8 @@ export declare class ConstantFlowAgreementV1Helper {
     sender: string;
     receiver: string;
     by: string;
-    userData: string;
-    onTransaction: () => void;
+    userData?: string;
+    onTransaction?: () => void;
   }): Promise<Transaction>;
   /**
    * @dev Get information of a existing flow
@@ -190,7 +190,7 @@ export declare class ConstantFlowAgreementV1Helper {
   }: {
     superToken: string;
     account: string;
-    onlyInFlows: boolean;
-    onlyOutFlows: boolean;
+    onlyInFlows?: boolean;
+    onlyOutFlows?: boolean;
   }): ListFlowsType;
 }

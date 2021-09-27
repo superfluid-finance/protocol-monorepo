@@ -140,15 +140,15 @@ export interface IToken extends IBaseEntity {
 export interface IStream extends IBaseEntity {
     readonly currentFlowRate: string;
     readonly streamedUntilUpdatedAt: string;
-    readonly token: IToken;
-    readonly sender: IAccount;
-    readonly receiver: IAccount;
+    readonly token: ILightEntity;
+    readonly sender: ILightEntity;
+    readonly receiver: ILightEntity;
 }
 
 export interface ISubscriber extends IBaseEntity {
     readonly token: IToken;
-    readonly subscriber: IAccount;
-    readonly publisher: IAccount;
+    readonly subscriber: ILightEntity;
+    readonly publisher: ILightEntity;
     readonly indexId: string;
     readonly userData: string;
     readonly approved: boolean;
@@ -168,8 +168,8 @@ export interface IIndex extends IBaseEntity {
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
     readonly totalUnitsDistributedUntilUpdatedAt: string;
-    readonly token: IToken;
-    readonly publisher: IAccount;
+    readonly token: ILightEntity;
+    readonly publisher: ILightEntity;
 }
 
 /**
@@ -193,8 +193,8 @@ export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
     readonly totalOutflowRate: string;
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
-    readonly account: IAccount;
-    readonly token: IToken;
+    readonly account: ILightEntity;
+    readonly token: ILightEntity;
 }
 
 export interface ITokenStatistic extends IBaseAggregateEntity {
@@ -208,5 +208,10 @@ export interface ITokenStatistic extends IBaseAggregateEntity {
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly totalAmountDistributedUntilUpdatedAt: string;
-    readonly token: IToken;
+    readonly token: ILightEntity;
+}
+
+/** Sub-entity Entities */
+export interface ILightEntity {
+    readonly id: string;
 }

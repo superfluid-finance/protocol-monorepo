@@ -48,18 +48,20 @@ export const beforeSetup = async (tokenAmount: number) => {
         "Mint fDAI, approve fDAIx allowance and upgrade fDAI to fDAIx for users..."
     );
     const amount = tokenAmount.toFixed(0);
-    const promises = userAddresses.map((x) => {
-        dai.mint(x, ethers.utils.parseUnits(amount).toString(), {
+
+    for (let i = 0; i < userAddresses.length; i++) {
+		const address = userAddresses[i];
+        await dai.mint(address, ethers.utils.parseUnits(amount).toString(), {
             from: userAddresses[0],
         });
-        dai.approve(daix.address, ethers.utils.parseUnits(amount).toString(), {
-            from: x,
+        await dai.approve(daix.address, ethers.utils.parseUnits(amount).toString(), {
+            from: address,
         });
-        daix.upgrade(ethers.utils.parseUnits(amount).toString(), {
-            from: x,
+        await daix.upgrade(ethers.utils.parseUnits(amount).toString(), {
+            from: address,
         });
-    });
-    await Promise.all(promises);
+    }
+
     console.log(
         "\n************** Superfluid Framework Setup Complete **************\n"
     );
@@ -148,6 +150,6 @@ export const getStreamId = (
         sender.toLowerCase(),
         receiver.toLowerCase(),
         token.toLowerCase(),
-        revisionIndex,
+        revisionIndex + ".0",
     ].join("-");
 };

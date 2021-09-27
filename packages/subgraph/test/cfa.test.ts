@@ -18,7 +18,7 @@ import { validateModifyFlow } from "./validation/validators";
  * - something to keep track of flow interactions between two individuals (oldFlowRate, previousUpdatedAt)
  */
 
-interface IBasicFlowHistory {
+interface IStreamHistory {
     currentRevisionIndex: string;
     oldFlowRate: string;
     previousUpdatedAt: number;
@@ -37,9 +37,9 @@ describe("Subgraph Tests", () => {
      * TODO: create helper functions for updating these global properties
      * based on what is being modified (e.g. flow or ida)
      */
-    let tokenStatistics: { [id: string]: ITokenStatistic };
-    let accountTokenSnapshots: { [id: string]: IAccountTokenSnapshot };
-    let flowUpdatedHistory: { [id: string]: IBasicFlowHistory };
+    let tokenStatistics: { [id: string]: ITokenStatistic } = {}; // id is tokenStatsId
+    let accountTokenSnapshots: { [id: string]: IAccountTokenSnapshot } = {}; // id is atsId
+    let flowUpdatedHistory: { [id: string]: IStreamHistory } = {}; // id is streamId
 
     before(async () => {
         let [Names, UserAddresses, SF, DAI, DAIx] = await beforeSetup(100000);
@@ -63,21 +63,33 @@ describe("Subgraph Tests", () => {
          * Flow Creation Tests
          */
         it("Should return correct data after creating a flow.", async () => {
-            await validateModifyFlow(
+            const sender = userAddresses[0];
+            const receiver = userAddresses[1];
+            const { updatedATS, tokenStatistic } = await validateModifyFlow(
                 sf,
                 daix.address,
-                userAddresses[0],
-                userAddresses[5],
+                sender,
+                receiver,
                 cfaV1,
                 {
                     actionType: 0,
                     flowRate: 100,
-                    oldFlowRate: "0",
+                    oldFlowRate: "0", // must be formattedFlowRate
                     revisionIndex: "0",
                 },
                 accountTokenSnapshots,
                 tokenStatistics
             );
+
+            // update ATS data
+            const senderATSId =
+                sender.toLowerCase() + "-" + daix.address.toLowerCase();
+            const receiverATSId =
+                receiver.toLowerCase() + "-" + daix.address.toLowerCase();
+            accountTokenSnapshots[senderATSId] = updatedATS[senderATSId];
+            accountTokenSnapshots[receiverATSId] = updatedATS[receiverATSId];
+
+            // TODO: update token stats, update flowUpdatedHistory
         });
 
         it("Should return correct data after creating multiple flows from one person to a few.", async () => {});

@@ -58,7 +58,7 @@ jobs:
         working-directory: ${{ env.sdk-working-directory }}
 
       - name: "Deploy contracts and token locally"
-        run: npx hardhat run test/deployContractsAndToken.ts --network localhost
+        run: npx hardhat run scripts/deployContractsAndToken.ts --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Checkout graph node repo and set up local graph node"
@@ -82,6 +82,10 @@ jobs:
 
       - name: "Prepare, build and deploy subgraph locally"
         run: yarn prepare-local && yarn codegen && yarn create-local && yarn deploy-local
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Run test suite"
+        run: npx hardhat test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
 
       

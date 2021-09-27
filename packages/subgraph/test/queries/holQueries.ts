@@ -2,36 +2,38 @@ import { gql } from "graphql-request";
 
 export const getStream = gql`
     query getStream($id: ID!) {
-        stream(where: { sender: $sender, receiver: $receiver })
-        id
-        currentFlowRate
-        streamedUntilLastUpdatedAt
-        token {
+        stream(id: $id) {
             id
-        }
-        sender {
-            id
-        }
-        receiver {
-            id
+            currentFlowRate
+            streamedUntilUpdatedAt
+            token {
+                id
+            }
+            sender {
+                id
+            }
+            receiver {
+                id
+            }
         }
     }
 `;
 
 export const getStreams = gql`
     query getStreams($id: ID!) {
-        streams(where: { sender: $sender, receiver: $receiver })
-        id
-        currentFlowRate
-        streamedUntilLastUpdatedAt
-        token {
+        streams(where: { sender: $sender, receiver: $receiver }) {
             id
-        }
-        sender {
-            id
-        }
-        receiver {
-            id
+            currentFlowRate
+            streamedUntilUpdatedAt
+            token {
+                id
+            }
+            sender {
+                id
+            }
+            receiver {
+                id
+            }
         }
     }
 `;

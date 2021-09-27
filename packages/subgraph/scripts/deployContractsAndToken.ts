@@ -28,7 +28,13 @@ async function main() {
             from: Deployer,
         }
     );
-	process.exit(1);
 }
 
-main();
+main()
+    .then(() => {
+        process.exit(0);
+    })
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });

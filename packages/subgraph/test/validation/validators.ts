@@ -62,6 +62,24 @@ const enum FlowActionType {
     Update,
     Delete,
 }
+
+const INITIAL_ATS: IAccountTokenSnapshot = {
+    id: ethers.constants.AddressZero,
+    updatedAtBlock: "0",
+    updatedAtTimestamp: "0",
+    totalNumberOfActiveStreams: 0,
+    totalNumberOfClosedStreams: 0,
+    totalSubscriptions: 0,
+    totalApprovedSubscriptions: 0,
+    balanceUntilUpdatedAt: "0",
+    totalNetFlowRate: "0",
+    totalInflowRate: "0",
+    totalOutflowRate: "0",
+    totalAmountStreamedUntilUpdatedAt: "0",
+    totalAmountTransferredUntilUpdatedAt: "0",
+    account: { id: ethers.constants.AddressZero },
+    token: { id: ethers.constants.AddressZero },
+};
 // HOL Entity Validator Functions
 
 interface IStreamTestParams {
@@ -85,13 +103,17 @@ const validateStreamEntity = (
     expect(subgraphStream.id).to.be.equal(streamId);
     expect(subgraphStream.currentFlowRate).to.equal(receiverFlowRate);
     expect(subgraphStream.streamedUntilUpdatedAt).to.be.equal(
-        expectedStreamedUntilUpdatedAt
+        expectedStreamedUntilUpdatedAt.toString()
     );
 };
 
 // TODO: refactor this to multiple smaller functions
+// make sure it's composable and easy to utilize the different parts
 /**
  * Validates Create/Update/Delete flow.
+ * Validates the event entity.
+ * Validates the Stream entity.
+ * Validates the relevant properties on the aggregate entities.
  * @param sf
  * @param tokenAddress
  * @param sender
@@ -99,8 +121,8 @@ const validateStreamEntity = (
  * @param cfaV1
  * @param testParams
  * @param atsData
- * @param tokenSnapshotData
- * @returns [updatedATSData, updatedTokenStatsData]
+ * @param tokenStatsData
+ * @returns object containing updatedATSData, updatedTokenStatsData
  */
 export const validateModifyFlow = async (
     sf: Framework,
@@ -110,7 +132,7 @@ export const validateModifyFlow = async (
     cfaV1: ConstantFlowAgreementV1,
     testParams: IStreamTestParams,
     atsData: { [id: string]: IAccountTokenSnapshot },
-    tokenSnapshotData: { [id: string]: ITokenStatistic }
+    tokenStatsData: { [id: string]: ITokenStatistic }
 ) => {
     console.log("********************** CREATE A FLOW **********************");
     const {
@@ -133,15 +155,12 @@ export const validateModifyFlow = async (
         receiver,
         flowRate: formattedFlowRate,
     });
-    console.log("here1");
     const hexTokenAddress = tokenAddress.toLowerCase();
     const hexSender = sender.toLowerCase();
     const hexReceiver = receiver.toLowerCase();
-    console.log("here2");
     const receipt: ContractReceipt = txn.receipt;
 
     await waitUntilBlockIndexed(receipt.blockNumber);
-    console.log("here3");
     const [, onChainFlowRate] = await cfaV1.getFlow(
         tokenAddress,
         sender,
@@ -156,17 +175,13 @@ export const validateModifyFlow = async (
         sender,
         receiver,
     };
-    console.log("here4");
     const { flowUpdateds } = await subgraphRequest<{
         flowUpdateds: IFlowUpdated[];
     }>(getFlowUpdatedEvents, flowUpdatedVars);
-    console.log(flowUpdateds);
     const flowUpdatedEvent = getSingleEvent<IFlowUpdated>(
         flowUpdateds,
         receipt.transactionHash
     );
-    console.log("flowUpdatedEvent", flowUpdatedEvent);
-    console.log("receipt", receipt);
 
     if (!flowUpdatedEvent) {
         throw new Error("FlowUpdated entity not found.");
@@ -195,24 +210,23 @@ export const validateModifyFlow = async (
         "********************** Validate Stream Entity **********************"
     );
 
-    const streamVars = {
-        sender: hexSender,
-        receiver: hexReceiver,
-    };
-    const { stream } = await subgraphRequest<{ stream: IStream | undefined }>(
-        getStream,
-        streamVars
-    );
-
-    if (!stream) {
-        throw new Error("Stream entity not found.");
-    }
     const streamId = getStreamId(
         hexSender,
         hexReceiver,
         hexTokenAddress,
         revisionIndex
     );
+
+    const { stream } = await subgraphRequest<{ stream: IStream | undefined }>(
+        getStream,
+        {
+            id: streamId,
+        }
+    );
+
+    if (!stream) {
+        throw new Error("Stream entity not found.");
+    }
 
     validateStreamEntity(
         stream,
@@ -232,9 +246,9 @@ export const validateModifyFlow = async (
             ? 0
             : -1;
     const closedStreamsDelta = actionType === FlowActionType.Delete ? 1 : 0;
-    const flowRateDelta = Number(flowRate) - Number(oldFlowRate);
-    const senderATS = atsData[sender];
-    const receiverATS = atsData[receiver];
+    const flowRateDelta = formattedFlowRate - Number(oldFlowRate);
+    const senderATS = atsData[sender] || INITIAL_ATS;
+    const receiverATS = atsData[receiver] || INITIAL_ATS;
 
     const senderATSVars = {
         id: hexSender + "-" + hexTokenAddress,
@@ -256,37 +270,56 @@ export const validateModifyFlow = async (
     }
 
     const expectedSenderATS = {
-        activeStreams:
+        id: senderATSVars.id,
+        updatedAtBlock: senderAccountTokenSnapshot.updatedAtBlock,
+        updatedAtTimestamp: senderAccountTokenSnapshot.updatedAtTimestamp,
+        totalNumberOfActiveStreams:
             senderATS.totalNumberOfActiveStreams + activeStreamsDelta,
-        closedStreams:
+        totalNumberOfClosedStreams:
             senderATS.totalNumberOfClosedStreams + closedStreamsDelta,
-        inflowRate: senderATS.totalInflowRate,
-        outflowRate: (
-            Number(senderATS.totalOutflowRate) + flowRateDelta
-        ).toString(),
-        netFlowRate: (
+        totalNetFlowRate: (
             Number(senderATS.totalNetFlowRate) - flowRateDelta
         ).toString(),
+        totalInflowRate: senderATS.totalInflowRate,
+        totalOutflowRate: (
+            Number(senderATS.totalOutflowRate) + flowRateDelta
+        ).toString(),
+        totalAmountStreamedUntilUpdatedAt: (
+            Number(senderATS.totalAmountStreamedUntilUpdatedAt) +
+            flowedAmountSinceUpdatedAt
+        ).toString(),
+        account: { id: sender },
+        token: { id: tokenAddress },
     };
+    console.log("expectedSenderATS", expectedSenderATS);
     validateATSEntityForFlowUpdated(
         senderAccountTokenSnapshot,
         flowedAmountSinceUpdatedAt,
         expectedSenderATS
     );
     const expectedReceiverATS = {
-        activeStreams:
+        id: receiverATSVars.id,
+        updatedAtBlock: receiverAccountTokenSnapshot.updatedAtBlock,
+        updatedAtTimestamp: receiverAccountTokenSnapshot.updatedAtTimestamp,
+        totalNumberOfActiveStreams:
             receiverATS.totalNumberOfActiveStreams + activeStreamsDelta,
-        closedStreams:
+        totalNumberOfClosedStreams:
             receiverATS.totalNumberOfClosedStreams + closedStreamsDelta,
-        inflowRate: (
-            Number(receiverATS.totalInflowRate) + flowRateDelta
-        ).toString(),
-        outflowRate: receiverATS.totalOutflowRate,
-        netFlowRate: (
+        totalNetFlowRate: (
             Number(receiverATS.totalNetFlowRate) + flowRateDelta
         ).toString(),
+        totalInflowRate: (
+            Number(receiverATS.totalInflowRate) + flowRateDelta
+        ).toString(),
+        totalOutflowRate: receiverATS.totalOutflowRate,
+        totalAmountStreamedUntilUpdatedAt: (
+            Number(senderATS.totalAmountStreamedUntilUpdatedAt) +
+            flowedAmountSinceUpdatedAt
+        ).toString(),
+        account: { id: receiver },
+        token: { id: tokenAddress },
     };
-
+    console.log("expectedReceiverATS", expectedReceiverATS);
     validateATSEntityForFlowUpdated(
         receiverAccountTokenSnapshot,
         flowedAmountSinceUpdatedAt,
@@ -297,30 +330,29 @@ export const validateModifyFlow = async (
         ...senderATS,
         ...expectedSenderATS,
     };
-    const updatedReceiverAts = {
+    const updatedReceiverATS = {
         ...receiverATS,
         ...expectedReceiverATS,
     };
-    const updatedATS = {
+    const updatedATSData = {
         ...atsData,
-        [sender]: updatedSenderATS,
-        [receiver]: updatedReceiverAts,
+        [senderATSVars.id]: updatedSenderATS,
+        [receiverATSVars.id]: updatedReceiverATS,
     };
-
-    const { tokenStatistic } = await subgraphRequest<{
+    const hexToken = tokenAddress.toLowerCase();
+    const { tokenStatistic: updatedTokenStatsData } = await subgraphRequest<{
         tokenStatistic: ITokenStatistic | undefined;
-    }>(getTokenStatistic);
+    }>(getTokenStatistic, { id: hexToken });
 
-    if (!tokenStatistic) {
+    if (!updatedTokenStatsData) {
         throw new Error("TokenStats entity not found.");
     }
+    // TODO: token stats tests for flowUpdated to be implemented
 
-    expect(tokenStatistic.totalNumberOfActiveStreams).to.equal(
-        tokenStatistic.totalNumberOfActiveStreams
-    );
-
-    // TODO: return updated ATS, tokenStats objects
-    return [updatedATS];
+    return {
+        updatedATS: updatedATSData,
+        tokenStatistic: updatedTokenStatsData,
+    };
 };
 
 // Aggregate Validator Functions
@@ -332,11 +364,11 @@ interface IExpectedTokenStatsData {
 }
 
 interface IExpectedATSData {
-    readonly activeStreams: number;
-    readonly closedStreams: number;
-    readonly inflowRate: string;
-    readonly outflowRate: string;
-    readonly netFlowRate: string;
+    readonly totalNumberOfActiveStreams: number;
+    readonly totalNumberOfClosedStreams: number;
+    readonly totalInflowRate: string;
+    readonly totalOutflowRate: string;
+    readonly totalNetFlowRate: string;
 }
 
 export const validateATSEntityForFlowUpdated = (
@@ -349,21 +381,21 @@ export const validateATSEntityForFlowUpdated = (
         flowedAmountSinceUpdatedAt
     ).toString();
     const {
-        activeStreams,
-        closedStreams,
-        inflowRate,
-        outflowRate,
-        netFlowRate,
+        totalNumberOfActiveStreams,
+        totalNumberOfClosedStreams,
+        totalInflowRate,
+        totalOutflowRate,
+        totalNetFlowRate,
     } = expectedATSData;
     expect(accountTokenSnapshot.totalNumberOfActiveStreams).to.equal(
-        activeStreams
+        totalNumberOfActiveStreams
     );
     expect(accountTokenSnapshot.totalNumberOfClosedStreams).to.equal(
-        closedStreams
+        totalNumberOfClosedStreams
     );
-    expect(accountTokenSnapshot.totalInflowRate).to.equal(inflowRate);
-    expect(accountTokenSnapshot.totalOutflowRate).to.equal(outflowRate);
-    expect(accountTokenSnapshot.totalNetFlowRate).to.equal(netFlowRate);
+    expect(accountTokenSnapshot.totalInflowRate).to.equal(totalInflowRate);
+    expect(accountTokenSnapshot.totalOutflowRate).to.equal(totalOutflowRate);
+    expect(accountTokenSnapshot.totalNetFlowRate).to.equal(totalNetFlowRate);
     expect(accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt).to.equal(
         expectedATSStreamedUntilAt
     );

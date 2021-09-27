@@ -16,10 +16,10 @@ export interface Agreements {
 
 export interface FrameworkOptions {
     version?: string,
-    isTruffle: boolean,
+    isTruffle?: boolean,
     web3?: Web3,
     ethers?: LoadContracts.EthersWithSigner,
-    gasReportType: GasReportTypeOptions,
+    gasReportType?: GasReportTypeOptions,
     additionalContracts?: string[],
     tokens?: string[],
     loadSuperNativeToken?: boolean,

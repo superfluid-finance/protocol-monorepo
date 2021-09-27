@@ -14,6 +14,9 @@ cleanup() {
 }
 yarn testenv:start >/dev/null &
 
+# wait for the test environment to boot
+sleep 5
+
 #
 # Test the scripts
 #

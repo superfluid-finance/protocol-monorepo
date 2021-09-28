@@ -8,6 +8,7 @@ import { ERC20 } from "../typechain/ERC20";
 import { SuperToken } from "../typechain/SuperToken";
 import {
     beforeSetup,
+    getRandomFlowRate,
     getStreamId,
     monthlyToSecondRate,
 } from "./helpers/helpers";
@@ -70,21 +71,21 @@ describe("Subgraph Tests", () => {
                     "-" +
                     daix.address.toLowerCase()
             ];
-        const currentStreamHistory = currentRevisionIndex
-            ? streamHistory[
-                  getStreamId(
-                      sender,
-                      receiver,
-                      daix.address,
-                      currentRevisionIndex.toString()
-                  )
-              ]
-            : INITIAL_STREAM_HISTORY;
-        console.log("accountTokenSnapshots", accountTokenSnapshots);
+        const currentStreamHistory =
+            currentRevisionIndex != null
+                ? streamHistory[
+                      getStreamId(
+                          sender,
+                          receiver,
+                          daix.address,
+                          currentRevisionIndex.toString()
+                      )
+                  ]
+                : INITIAL_STREAM_HISTORY;
         const { updatedATS, updatedTokenStats, updatedStreamHistory } =
             await validateModifyFlow(
                 sf,
-                daix.address,
+                daix,
                 sender,
                 receiver,
                 cfaV1,
@@ -96,11 +97,10 @@ describe("Subgraph Tests", () => {
                 accountTokenSnapshots,
                 tokenStatistics
             );
-
         updateAndPrintGlobalProperties(
             sender,
             receiver,
-            updatedTokenStats,
+            updatedTokenStats as ITokenStatistic,
             updatedATS,
             updatedStreamHistory
         );
@@ -116,10 +116,8 @@ describe("Subgraph Tests", () => {
         const hexSender = sender.toLowerCase();
         const hexReceiver = receiver.toLowerCase();
         const hexToken = daix.address.toLowerCase();
-        const senderATSId =
-            sender.toLowerCase() + "-" + daix.address.toLowerCase();
-        const receiverATSId =
-            receiver.toLowerCase() + "-" + daix.address.toLowerCase();
+        const senderATSId = hexSender + "-" + hexToken;
+        const receiverATSId = hexReceiver + "-" + hexToken;
         const oldTokenStats = tokenStatistics[hexToken];
         const oldSenderATS = accountTokenSnapshots[senderATSId];
         const oldReceiverATS = accountTokenSnapshots[receiverATSId];
@@ -137,20 +135,20 @@ describe("Subgraph Tests", () => {
             ...updatedATS[receiverATSId],
         };
 
-        console.log("Previous Token Stats: ", oldTokenStats);
-        console.log("Updated Token Stats: ", tokenStatistics[hexToken], "\n");
-        console.log("Previous Sender ATS: ", oldSenderATS);
-        console.log(
-            "Updated Sender ATS: ",
-            accountTokenSnapshots[senderATSId],
-            "\n"
-        );
-        console.log("Previous Receiver ATS: ", oldReceiverATS);
-        console.log(
-            "Updated Receiver ATS: ",
-            accountTokenSnapshots[receiverATSId],
-            "\n"
-        );
+        // console.log("Previous Token Stats: ", oldTokenStats);
+        // console.log("Updated Token Stats: ", tokenStatistics[hexToken], "\n");
+        // console.log("Previous Sender ATS: ", oldSenderATS);
+        // console.log(
+        //     "Updated Sender ATS: ",
+        //     accountTokenSnapshots[senderATSId],
+        //     "\n"
+        // );
+        // console.log("Previous Receiver ATS: ", oldReceiverATS);
+        // console.log(
+        //     "Updated Receiver ATS: ",
+        //     accountTokenSnapshots[receiverATSId],
+        //     "\n"
+        // );
 
         if (updatedStreamHistory) {
             const revisionIndexId =
@@ -208,40 +206,78 @@ describe("Subgraph Tests", () => {
         /**
          * Flow Creation Tests
          */
-        it("Should return correct data after creating a flow.", async () => {
-            const sender = userAddresses[0];
-            const receiver = userAddresses[1];
-            await validateModifyFlowAndUpdateGlobalProperties(
-                sender,
-                receiver,
-                FlowActionType.Create,
-                monthlyToSecondRate(100)
-            );
-        });
-
-        it("Should return correct data after creating multiple flows from one person to many.", async () => {
-            const sender = userAddresses[1];
-            for (let i = 2; i < userAddresses.length; i++) {
-                let receiver = userAddresses[i];
+        it.only("Should return correct data after creating multiple flows from one person to many.", async () => {
+            // Deployer to Alice...Frank
+            for (let i = 1; i < userAddresses.length; i++) {
+                const randomFlowRate = getRandomFlowRate(1000);
                 await validateModifyFlowAndUpdateGlobalProperties(
-                    sender,
-                    receiver,
+                    userAddresses[0],
+                    userAddresses[i],
                     FlowActionType.Create,
-                    monthlyToSecondRate(250)
+                    monthlyToSecondRate(randomFlowRate)
                 );
             }
         });
 
-        it("Should return correct data after creating multiple flows from many to one person.", async () => {});
+        it("Should return correct data after creating multiple flows from many to one person.", async () => {
+            // Alice...Frank to Deployer
+            for (let i = 1; i < userAddresses.length; i++) {
+                const randomFlowRate = getRandomFlowRate(1000);
+                await validateModifyFlowAndUpdateGlobalProperties(
+                    userAddresses[i],
+                    userAddresses[0],
+                    FlowActionType.Create,
+                    monthlyToSecondRate(randomFlowRate)
+                );
+            }
+        });
 
         /**
          * Flow Update Tests
          */
-        it("Should return correct data after updating a single flow.", async () => {});
+        it("Should return correct data after updating multiple flows from one person to many.", async () => {
+            let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
+            for (let i = 1; i < userAddresses.length; i++) {
+                await validateModifyFlowAndUpdateGlobalProperties(
+                    userAddresses[0], // sender
+                    userAddresses[i], // receiver
+                    FlowActionType.Update,
+                    monthlyToSecondRate(randomFlowRate)
+                );
+            }
 
-        it("Should return correct data after updating multiple flows from one person to a few.", async () => {});
+            for (let i = 1; i < userAddresses.length; i++) {
+                randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
+                await validateModifyFlowAndUpdateGlobalProperties(
+                    userAddresses[0], // sender
+                    userAddresses[i], // receiver
+                    FlowActionType.Update,
+                    monthlyToSecondRate(randomFlowRate)
+                );
+            }
+        });
 
-        it("Should return correct data after updating multiple flows from a few to one person.", async () => {});
+        it("Should return correct data after updating multiple flows from many to one person.", async () => {
+            let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
+            for (let i = 1; i < userAddresses.length; i++) {
+                await validateModifyFlowAndUpdateGlobalProperties(
+                    userAddresses[i], // sender
+                    userAddresses[0], // receiver
+                    FlowActionType.Update,
+                    monthlyToSecondRate(randomFlowRate)
+                );
+            }
+
+            for (let i = 1; i < userAddresses.length; i++) {
+                randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
+                await validateModifyFlowAndUpdateGlobalProperties(
+                    userAddresses[i], // sender
+                    userAddresses[0], // receiver
+                    FlowActionType.Update,
+                    monthlyToSecondRate(randomFlowRate)
+                );
+            }
+        });
 
         /**
          * Flow Delete Tests

@@ -81,6 +81,9 @@ export const monthlyToSecondRate = (monthlyRate: number) => {
     return Math.round((monthlyRate / seconds) * 10 ** 18);
 };
 
+export const getRandomFlowRate = (max: number) =>
+    Math.floor(Math.random() * max);
+
 export const getCurrentBlockNumber = async () => {
     const query = gql`
         query {
@@ -145,4 +148,16 @@ export const getStreamId = (
         token.toLowerCase(),
         revisionIndex + ".0",
     ].join("-");
+};
+
+export const getTotalAmountStreamed = (
+    streamedSoFar: string,
+    currentTime: string,
+    lastUpdatedAtTime: string,
+    netFlow: string
+) => {
+    return (
+        Number(streamedSoFar) +
+        Number(netFlow) * (Number(currentTime) - Number(lastUpdatedAtTime))
+    );
 };

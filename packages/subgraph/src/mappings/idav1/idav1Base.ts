@@ -69,7 +69,6 @@ export function handleIndexUpdated(
         return;
     }
 
-    let currentTimestamp = event.block.timestamp;
     let totalUnits = event.params.totalUnitsPending.plus(
         event.params.totalUnitsApproved
     );
@@ -112,7 +111,7 @@ export function handleIndexUpdated(
         tokenStatistic.totalAmountDistributedUntilUpdatedAt.plus(
             distributionDelta
         );
-    tokenStatistic.updatedAtTimestamp = currentTimestamp;
+    tokenStatistic.updatedAtTimestamp = event.block.timestamp;
     tokenStatistic.updatedAtBlock = event.block.number;
     tokenStatistic.save();
 
@@ -136,7 +135,6 @@ export function handleSubscriptionApproved(
         return;
     }
 
-    let currentTimestamp = event.block.timestamp;
     let index = getOrInitIndex(
         hostAddress,
         event.params.publisher,
@@ -230,7 +228,6 @@ export function handleSubscriptionRevoked(
     }
 
     let isRevoke = event.params.subscriber.equals(Address.fromI32(0));
-    let currentTimestamp = event.block.timestamp;
 
     let index = getOrInitIndex(
         hostAddress,
@@ -341,8 +338,6 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
-
-    let currentTimestamp = event.block.timestamp;
 
     let subscriber = getOrInitSubscriber(
         hostAddress,

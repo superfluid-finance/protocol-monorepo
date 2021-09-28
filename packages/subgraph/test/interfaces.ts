@@ -215,6 +215,7 @@ export interface ILightEntity {
 export interface IStreamHistory {
     revisionIndex: string;
     oldFlowRate: string;
+    streamedUntilUpdatedAt: string;
     previousUpdatedAt?: number;
 }
 
@@ -227,10 +228,11 @@ export interface IStreamTestParams {
 export interface IExpectedATSData {
     readonly totalNumberOfActiveStreams: number;
     readonly totalNumberOfClosedStreams: number;
+    readonly balanceUntilUpdatedAt: string;
     readonly totalInflowRate: string;
     readonly totalOutflowRate: string;
     readonly totalNetFlowRate: string;
-	readonly totalAmountStreamedUntilUpdatedAt: string;
+    readonly totalAmountStreamedUntilUpdatedAt: string;
 }
 
 export interface IExpectedTokenStats {

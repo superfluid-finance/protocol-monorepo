@@ -1,6 +1,8 @@
 import { expect } from "chai";
+import { ethers } from "ethers";
+import { SuperToken } from "../../typechain/SuperToken";
 import { FlowActionType } from "../helpers/constants";
-import { subgraphRequest } from "../helpers/helpers";
+import { getTotalAmountStreamed, subgraphRequest } from "../helpers/helpers";
 import {
     IAccountTokenSnapshot,
     IExpectedATSData,
@@ -14,10 +16,10 @@ import {
 
 export const getATSDataForFlowUpdated = async (
     atsId: string,
+    superToken: SuperToken,
     currentATSData: IAccountTokenSnapshot,
     actionType: FlowActionType,
     flowRateDelta: number,
-    amountStreamedSinceLastUpdate: number,
     isSender: boolean
 ) => {
     const atsVars = {
@@ -34,9 +36,18 @@ export const getATSDataForFlowUpdated = async (
 
     const activeStreamsDelta = getActiveStreamsDelta(actionType);
     const closedStreamsDelta = getClosedStreamsDelta(actionType);
+    const balance = await superToken.balanceOf(
+        ethers.utils.getAddress(accountId)
+    );
+    const expectedTotalAmountStreamedUntilUpdatedAt =
+        Number(currentATSData.totalAmountStreamedUntilUpdatedAt) +
+        (Number(graphATS.updatedAtTimestamp) -
+            Number(currentATSData.updatedAtTimestamp)) *
+            Number(currentATSData.totalOutflowRate);
 
     const expectedATS = {
         id: atsVars.id,
+        balanceUntilUpdatedAt: balance.toString(),
         updatedAtBlock: graphATS.updatedAtBlock,
         updatedAtTimestamp: graphATS.updatedAtTimestamp,
         totalNumberOfActiveStreams:
@@ -61,10 +72,7 @@ export const getATSDataForFlowUpdated = async (
               ).toString()
             : currentATSData.totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt: isSender
-            ? (
-                  Number(currentATSData.totalAmountStreamedUntilUpdatedAt) +
-                  amountStreamedSinceLastUpdate
-              ).toString()
+            ? expectedTotalAmountStreamedUntilUpdatedAt.toString()
             : currentATSData.totalAmountStreamedUntilUpdatedAt,
         account: { id: accountId },
         token: { id: tokenId },
@@ -82,7 +90,7 @@ export const getTokenStatsData = async (
     currentTokenStats: ITokenStatistic,
     actionType: FlowActionType,
     flowRateDelta: number,
-    amountStreamedSinceLastUpdate: number
+    atsData: { [id: string]: IAccountTokenSnapshot }
 ) => {
     const { tokenStatistic: graphTokenStats } = await subgraphRequest<{
         tokenStatistic: ITokenStatistic | undefined;
@@ -95,6 +103,17 @@ export const getTokenStatsData = async (
     const activeStreamsDelta = getActiveStreamsDelta(actionType);
     const closedStreamsDelta = getClosedStreamsDelta(actionType);
 
+    const expectedAmountStreamedSinceLastUpdate = Object.values(atsData)
+        .map((x) =>
+            getTotalAmountStreamed(
+                x.totalAmountStreamedUntilUpdatedAt,
+                graphTokenStats.updatedAtTimestamp,
+                x.updatedAtTimestamp,
+                x.totalOutflowRate
+            )
+        )
+        .reduce((x, y) => x + y, 0);
+
     const expectedTokenStats = {
         id: tokenId,
         updatedAtBlock: graphTokenStats.updatedAtBlock,
@@ -106,10 +125,8 @@ export const getTokenStatsData = async (
         totalOutflowRate: (
             Number(currentTokenStats.totalOutflowRate) + flowRateDelta
         ).toString(),
-        totalAmountStreamedUntilUpdatedAt: (
-            Number(currentTokenStats.totalAmountStreamedUntilUpdatedAt) +
-            amountStreamedSinceLastUpdate
-        ).toString(),
+        totalAmountStreamedUntilUpdatedAt:
+            expectedAmountStreamedSinceLastUpdate.toString(),
         token: { id: tokenId },
     };
 
@@ -133,16 +150,15 @@ const getClosedStreamsDelta = (actionType: FlowActionType) =>
 /**
  * Validates the ATS entity when a flow is updated.
  * @param graphATSData
- * @param flowedAmountSinceUpdatedAt
  * @param expectedATSData
  */
 export const validateATSEntityForFlowUpdated = (
     graphATSData: IAccountTokenSnapshot,
-    flowedAmountSinceUpdatedAt: number,
     expectedATSData: IExpectedATSData
 ) => {
     const {
-        totalAmountStreamedUntilUpdatedAt,
+        balanceUntilUpdatedAt,
+        totalAmountStreamedUntilUpdatedAt: expectedATSStreamedUntilAt,
         totalNumberOfActiveStreams,
         totalNumberOfClosedStreams,
         totalInflowRate,
@@ -150,50 +166,68 @@ export const validateATSEntityForFlowUpdated = (
         totalNetFlowRate,
     } = expectedATSData;
 
-    const expectedATSStreamedUntilAt = (
-        Number(totalAmountStreamedUntilUpdatedAt) + flowedAmountSinceUpdatedAt
-    ).toString();
-    expect(graphATSData.totalNumberOfActiveStreams).to.equal(
-        totalNumberOfActiveStreams
+    expect(
+        graphATSData.balanceUntilUpdatedAt,
+        "ATS: graphATSData.balanceUntilUpdatedAt"
+    ).to.equal(balanceUntilUpdatedAt);
+    expect(
+        graphATSData.totalNumberOfActiveStreams,
+        "ATS: totalNumberOfActiveStreams error"
+    ).to.equal(totalNumberOfActiveStreams);
+    expect(
+        graphATSData.totalNumberOfClosedStreams,
+        "ATS: totalNumberOfClosedStreams error"
+    ).to.equal(totalNumberOfClosedStreams);
+    expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
+        totalInflowRate
     );
-    expect(graphATSData.totalNumberOfClosedStreams).to.equal(
-        totalNumberOfClosedStreams
-    );
-    expect(graphATSData.totalInflowRate).to.equal(totalInflowRate);
-    expect(graphATSData.totalOutflowRate).to.equal(totalOutflowRate);
-    expect(graphATSData.totalNetFlowRate).to.equal(totalNetFlowRate);
-    expect(graphATSData.totalAmountStreamedUntilUpdatedAt).to.equal(
-        expectedATSStreamedUntilAt
-    );
+    expect(
+        graphATSData.totalOutflowRate,
+        "ATS: totalOutflowRate error"
+    ).to.equal(totalOutflowRate);
+    expect(
+        graphATSData.totalNetFlowRate,
+        "ATS: totalNetFlowRate error"
+    ).to.equal(totalNetFlowRate);
+    expect(
+        graphATSData.totalAmountStreamedUntilUpdatedAt,
+        "ATS: totalAmountStreamedUntilUpdatedAt error"
+    ).to.equal(expectedATSStreamedUntilAt);
 };
 
 // CFA TokenStats Validators
 export const validateTokenStatsEntityForFlowUpdated = (
     graphTokenStats: ITokenStatistic,
-    flowedAmountSinceUpdatedAt: number,
     expectedTokenStats: IExpectedTokenStats
 ) => {
     const {
-        totalAmountStreamedUntilUpdatedAt,
+        totalAmountStreamedUntilUpdatedAt:
+            expectedTotalAmountStreamedUntilUpdatedAt,
         totalNumberOfActiveStreams,
         totalNumberOfClosedStreams,
         totalOutflowRate,
     } = expectedTokenStats;
 
-    const expectedTokenStatsStreamedUntilAt = (
-        Number(totalAmountStreamedUntilUpdatedAt) + flowedAmountSinceUpdatedAt
+    const expectedTokenStatsStreamedUntilAt = Number(
+        expectedTotalAmountStreamedUntilUpdatedAt
     ).toString();
 
-    expect(graphTokenStats.totalNumberOfActiveStreams).to.equal(
-        totalNumberOfActiveStreams
-    );
-    expect(graphTokenStats.totalNumberOfClosedStreams).to.equal(
-        totalNumberOfClosedStreams
-    );
-    expect(graphTokenStats.totalOutflowRate).to.equal(totalOutflowRate);
-    expect(graphTokenStats.totalAmountStreamedUntilUpdatedAt).to.equal(
-        expectedTokenStatsStreamedUntilAt
-    );
+    expect(
+        graphTokenStats.totalNumberOfActiveStreams,
+        "TokenStats: totalNumberOfActiveStreams error"
+    ).to.equal(totalNumberOfActiveStreams);
+    expect(
+        graphTokenStats.totalNumberOfClosedStreams,
+        "TokenStats: totalNumberOfClosedStreams error"
+    ).to.equal(totalNumberOfClosedStreams);
+    expect(
+        graphTokenStats.totalOutflowRate,
+        "TokenStats: totalOutflowRate error"
+    ).to.equal(totalOutflowRate);
+    expect(
+        graphTokenStats.totalAmountStreamedUntilUpdatedAt,
+        "TokenStats: totalAmountStreamedUntilUpdatedAt error"
+    ).to.equal(expectedTokenStatsStreamedUntilAt);
 };
 
 // IDA AccountTokenSnapshot Validators

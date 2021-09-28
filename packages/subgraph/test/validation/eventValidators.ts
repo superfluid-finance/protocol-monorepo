@@ -11,7 +11,7 @@ export const validateData = <T>(
     const propertiesToValidate = Object.keys(expectedData);
     for (let i = 0; i < propertiesToValidate.length; i++) {
         expect((queriedData as any)[propertiesToValidate[i]]).to.eql(
-            expectedData[propertiesToValidate[i]]
+            expectedData[propertiesToValidate[i]], propertiesToValidate[i] + " expect error"
         );
     }
 };

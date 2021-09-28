@@ -1,20 +1,19 @@
 import { expect } from "chai";
 import { IStream } from "../interfaces";
 
-
 export const validateStreamEntity = (
     subgraphStream: IStream,
-    flowedAmountSinceUpdatedAt: number,
+    expectedStreamedUntilUpdatedAt: string,
     streamId: string,
     receiverFlowRate: string
 ) => {
-    const expectedStreamedUntilUpdatedAt =
-        Number(subgraphStream.streamedUntilUpdatedAt) +
-        flowedAmountSinceUpdatedAt;
-
-    expect(subgraphStream.id).to.be.equal(streamId);
-    expect(subgraphStream.currentFlowRate).to.equal(receiverFlowRate);
-    expect(subgraphStream.streamedUntilUpdatedAt).to.be.equal(
-        expectedStreamedUntilUpdatedAt.toString()
-    );
+    expect(subgraphStream.id, "Stream: id error").to.be.equal(streamId);
+    expect(
+        subgraphStream.currentFlowRate,
+        "Stream: currentFlowRate error"
+    ).to.equal(receiverFlowRate);
+    expect(
+        subgraphStream.streamedUntilUpdatedAt,
+        "Stream: streamedUntilUpdatedAt error"
+    ).to.be.equal(expectedStreamedUntilUpdatedAt);
 };

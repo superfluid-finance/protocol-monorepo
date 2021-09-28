@@ -44,5 +44,6 @@ export const INITIAL_TOKEN_STATS: ITokenStatistic = {
 
 export const INITIAL_STREAM_HISTORY: IStreamHistory = {
 	revisionIndex: "0",
-	oldFlowRate: "0"
+	oldFlowRate: "0",
+	streamedUntilUpdatedAt: "0"
 }

@@ -218,6 +218,8 @@ export function getOrInitStream(
         stream.receiver = receiverAddress.toHex();
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
+        stream.updatedAtTimestamp = currentTimestamp;
+        stream.updatedAtBlock = block.number;
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
@@ -225,8 +227,6 @@ export function getOrInitStream(
         // initialized after event is first initialized
         getOrInitToken(tokenAddress, block);
     }
-    stream.updatedAtTimestamp = currentTimestamp;
-    stream.updatedAtBlock = block.number;
     return stream as Stream;
 }
 
@@ -616,31 +616,38 @@ export function updateAggregateEntitiesStreamData(
     flowRateDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
-    block: ethereum.Block,
-    amountStreamedSinceLastUpdate: BigInt
+    block: ethereum.Block
 ): void {
     let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
     let totalNumberOfStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
+    let tokenStatsAmountStreamedSinceLastUpdate =
+        tokenStatistic.totalOutflowRate.times(
+            block.timestamp.minus(tokenStatistic.updatedAtTimestamp)
+        );
     tokenStatistic.totalOutflowRate =
         tokenStatistic.totalOutflowRate.plus(flowRateDelta);
     tokenStatistic.totalNumberOfActiveStreams =
         tokenStatistic.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     tokenStatistic.totalAmountStreamedUntilUpdatedAt =
         tokenStatistic.totalAmountStreamedUntilUpdatedAt.plus(
-            amountStreamedSinceLastUpdate
+            tokenStatsAmountStreamedSinceLastUpdate
         );
     tokenStatistic.updatedAtTimestamp = block.timestamp;
     tokenStatistic.updatedAtBlock = block.number;
 
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
     let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
+    let senderATSAmountStreamedSinceLastUpdate =
+        senderATS.totalOutflowRate.times(
+            block.timestamp.minus(senderATS.updatedAtTimestamp)
+        );
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     senderATS.updatedAtTimestamp = block.timestamp;
     senderATS.updatedAtBlock = block.number;
     senderATS.totalAmountStreamedUntilUpdatedAt =
         senderATS.totalAmountStreamedUntilUpdatedAt.plus(
-            amountStreamedSinceLastUpdate
+            senderATSAmountStreamedSinceLastUpdate
         );
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;

@@ -70,12 +70,15 @@ export function handleStreamUpdated(
     let oldFlowRate = stream.currentFlowRate;
 
     let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAtTimestamp);
-    let amountStreamedSinceLastUpdate = oldFlowRate.times(timeSinceLastUpdate);
+    let userAmountStreamedSinceLastUpdate =
+        oldFlowRate.times(timeSinceLastUpdate);
     let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
-        amountStreamedSinceLastUpdate
+        userAmountStreamedSinceLastUpdate
     );
     stream.currentFlowRate = flowRate;
     stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
+    stream.updatedAtTimestamp = currentTimestamp;
+    stream.updatedAtBlock = event.block.number;
     stream.save();
 
     let senderId = senderAddress.toHex();
@@ -119,7 +122,6 @@ export function handleStreamUpdated(
         flowRateDelta,
         isCreate,
         isDelete,
-        event.block,
-        amountStreamedSinceLastUpdate
+        event.block
     );
 }

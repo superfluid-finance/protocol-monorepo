@@ -274,11 +274,10 @@ module.exports = class Framework {
         }
 
         superToken = await superTokenContractType.at(superTokenAddress);
+        superToken.superTokenCustomType = superTokenCustomType;
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
-
-        const underlyingTokenAddress =
-            await superToken.getUnderlyingToken.call();
+        let underlyingTokenAddress = await superToken.getUnderlyingToken.call();
         if (doValidateUnderlyingToken) {
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
                 // if underlying token is not undefined and not equal to getUnderlyingToken() returned address

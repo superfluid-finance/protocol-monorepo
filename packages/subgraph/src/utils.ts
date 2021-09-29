@@ -612,7 +612,7 @@ export function updateATSStreamedUntilUpdatedAt(
     let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
         block.timestamp,
         ats.updatedAtTimestamp,
-        ats.updatedAtTimestamp
+        ats.totalOutflowRate
     );
     ats.totalAmountStreamedUntilUpdatedAt =
         ats.totalAmountStreamedUntilUpdatedAt.plus(
@@ -629,7 +629,7 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
     let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
         block.timestamp,
         tokenStats.updatedAtTimestamp,
-        tokenStats.updatedAtTimestamp
+        tokenStats.totalOutflowRate
     );
     tokenStats.totalAmountStreamedUntilUpdatedAt =
         tokenStats.totalAmountStreamedUntilUpdatedAt.plus(
@@ -650,8 +650,10 @@ export function updateAggregateEntitiesStreamData(
     let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
     let totalNumberOfStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
     let tokenStatsAmountStreamedSinceLastUpdate =
-        tokenStatistic.totalOutflowRate.times(
-            block.timestamp.minus(tokenStatistic.updatedAtTimestamp)
+        getAmountStreamedSinceLastUpdatedAt(
+            block.timestamp,
+            tokenStatistic.updatedAtTimestamp,
+            tokenStatistic.totalOutflowRate
         );
 
     tokenStatistic.totalOutflowRate =
@@ -667,8 +669,10 @@ export function updateAggregateEntitiesStreamData(
 
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
     let senderATSAmountStreamedSinceLastUpdate =
-        senderATS.totalOutflowRate.times(
-            block.timestamp.minus(senderATS.updatedAtTimestamp)
+        getAmountStreamedSinceLastUpdatedAt(
+            block.timestamp,
+            senderATS.updatedAtTimestamp,
+            senderATS.totalOutflowRate
         );
     senderATS.totalNetFlowRate =
         senderATS.totalNetFlowRate.minus(flowRateDelta);

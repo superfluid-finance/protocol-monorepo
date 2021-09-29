@@ -3,16 +3,64 @@ import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from 'bn.js';
 
-export interface Flow {
+// returned from listFlows
+export interface FlowList {
+  inFlows: {
+    sender: string;
+    receiver: string;
+    flowRate: string;
+  }[];
+  outFlows: {
+    sender: string;
+    receiver: string;
+    flowRate: string;
+  }[];
+}
+
+// from CFAv1 contract
+// returned from _sanitizeflowInfo
+// returned from getFlow and getAccountFlowInfo
+export interface FlowInfo {
+  timestamp: Date;
+  flowRate: string;
+  deposit: string;
+  owedDeposit: string;
+}
+
+// Same interface used for create and update flow
+export interface CreateFlowOptions {
+  superToken: string;
   sender: string;
   receiver: string;
   flowRate: string;
-};
+  userData?: string;
+  onTransaction?: ()=>any
+}
+export type UpdateFlowOptions = CreateFlowOptions
 
-export interface FlowList {
-  inFlows: Array<Flow>;
-  outFlows: Array<Flow>;
-};
+// MUST include 'by' type, it's only diff between create and update
+export interface DeleteFlowOptions {
+  superToken: string;
+  sender: string;
+  receiver: string;
+  flowRate: string;
+  by: string;
+  userData?: string;
+  onTransaction?: ()=>any
+}
+
+export interface GetFlowOptions {
+  superToken: string;
+  sender: string;
+  receiver: string;
+}
+
+export interface GetNetFlowOptions {
+  superToken: string;
+  account: string;
+}
+
+export type GetAccountFlowInfoOptions = GetNetFlowOptions
 
 export declare class ConstantFlowAgreementV1Helper {
   static _sanitizeflowInfo({
@@ -21,16 +69,11 @@ export declare class ConstantFlowAgreementV1Helper {
     deposit,
     owedDeposit,
   }: {
-    timestamp: number | BN;
-    flowRate: number | BN;
-    deposit: number | BN;
-    owedDeposit: number | BN;
-  }): {
-    timestamp: Date;
-    flowRate: string;
-    deposit: string;
-    owedDeposit: string;
-  };
+    timestamp: number | BN,
+    flowRate: number | BN,
+    deposit: number | BN,
+    owedDeposit: number | BN
+  }): FlowInfo;
   /**
    * @dev Create new helper class
    * @param {Framework} sf Superfluid Framework object
@@ -57,14 +100,7 @@ export declare class ConstantFlowAgreementV1Helper {
     flowRate,
     userData,
     onTransaction,
-  }: {
-    superToken: string;
-    sender: string;
-    receiver: string;
-    flowRate: string;
-    userData?: string;
-    onTransaction?: () => void;
-  }): Promise<Transaction>;
+  }: CreateFlowOptions): Promise<Transaction>;
   /**
    * @dev Update a new flow with a new flow rate
    * @param {tokenParam} superToken superToken for the flow
@@ -82,14 +118,7 @@ export declare class ConstantFlowAgreementV1Helper {
     flowRate,
     userData,
     onTransaction,
-  }: {
-    superToken: string;
-    sender: string;
-    receiver: string;
-    flowRate: string;
-    userData?: string;
-    onTransaction?: () => void;
-  }): Promise<Transaction>;
+  }: UpdateFlowOptions): Promise<Transaction>;
   /**
    * @dev Delete a existing flow
    * @param {tokenParam} superToken superToken for the flow
@@ -107,14 +136,7 @@ export declare class ConstantFlowAgreementV1Helper {
     by,
     userData,
     onTransaction,
-  }: {
-    superToken: string;
-    sender: string;
-    receiver: string;
-    by: string;
-    userData?: string;
-    onTransaction?: () => void;
-  }): Promise<Transaction>;
+  }: DeleteFlowOptions): Promise<Transaction>;
   /**
    * @dev Get information of a existing flow
    * @param {tokenParam} superToken superToken for the flow
@@ -130,16 +152,7 @@ export declare class ConstantFlowAgreementV1Helper {
     superToken,
     sender,
     receiver,
-  }: {
-    superToken: string;
-    sender: string;
-    receiver: string;
-  }): Promise<{
-    timestamp: Date;
-    flowRate: string;
-    deposit: string;
-    owedDeposit: string;
-  }>;
+  }: GetFlowOptions): Promise<FlowInfo>;
   /**
    * @dev Get information of the net flow of an account
    * @param {tokenParam} superToken superToken for the flow
@@ -149,10 +162,7 @@ export declare class ConstantFlowAgreementV1Helper {
   getNetFlow({
     superToken,
     account,
-  }: {
-    superToken: string;
-    account: string;
-  }): Promise<string>;
+  }: GetNetFlowOptions): Promise<string>;
   /**
    * @dev Get information of the net flow of an account
    * @param {tokenParam} superToken superToken for the flow
@@ -162,10 +172,7 @@ export declare class ConstantFlowAgreementV1Helper {
   getAccountFlowInfo({
     superToken,
     account,
-  }: {
-    superToken: string;
-    account: string;
-  }): Promise<string>;
+  }: GetAccountFlowInfoOptions): Promise<FlowInfo>;
 
   getFlowEvents({
     token,
@@ -175,7 +182,7 @@ export declare class ConstantFlowAgreementV1Helper {
     token: string;
     receiver?: string;
     sender?: string;
-  }): Promise<string[]>;
+  }): Promise<any[]>;
   /**
    * @dev List flows of the account
    * @param {tokenParam} superToken superToken for the flow

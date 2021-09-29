@@ -2,7 +2,7 @@ import type { ethers, Contract as EthersContract, utils, ContractInterface } fro
 import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
 import type Web3 from "web3";
-import { Web3Provider as EthersWithSigner } from "@ethersproject/providers";
+import type { Web3Provider } from "@ethersproject/providers";
 
 type SuperfluidContractNames =
   | 'ERC20WithTokenInfo'
@@ -40,13 +40,13 @@ declare function defaultContractLoader(name: string): {contractName: string, abi
 interface AdaptedContractOpts {
     address: string;
     abi: AbiContainer;
-    ethers: EthersWithSigner;
+    ethers: Web3Provider;
 }
 declare function getAdaptedContract({address, abi, ethers}: AdaptedContractOpts): EthersContract;
 
 export declare function loadContracts({ isTruffle, ethers, web3, from, additionalContracts, contractLoader, networkId, }: {
     isTruffle: boolean;
-    ethers?: EthersWithSigner;
+    ethers?: Web3Provider;
     web3?: Web3;
     from: string;
     additionalContracts?: string[];

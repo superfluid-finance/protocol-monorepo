@@ -3,16 +3,16 @@ import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from 'bn.js';
 
-export type Flow = {
+export interface Flow {
   sender: string;
   receiver: string;
   flowRate: string;
 };
 
-export type ListFlowsType = Promise<{
+export interface FlowList {
   inFlows: Array<Flow>;
   outFlows: Array<Flow>;
-}>;
+};
 
 export declare class ConstantFlowAgreementV1Helper {
   static _sanitizeflowInfo({
@@ -192,5 +192,5 @@ export declare class ConstantFlowAgreementV1Helper {
     account: string;
     onlyInFlows?: boolean;
     onlyOutFlows?: boolean;
-  }): ListFlowsType;
+  }): Promise<FlowList>;
 }

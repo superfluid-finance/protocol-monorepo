@@ -4,8 +4,7 @@ import { FlowUpdated } from "../../../generated/schema";
 import {
     createEventID,
     getOrInitStream,
-    updateATSBalance,
-    updateATSFlowRates,
+    updateATSBalanceAndUpdatedAt,
     updateAggregateEntitiesStreamData,
     BIG_INT_ZERO,
     getOrInitStreamRevision,
@@ -106,15 +105,6 @@ export function handleStreamUpdated(
     createFlowUpdatedEntity(event, oldFlowRate);
 
     // update aggregate entities data
-    updateATSBalance(senderId, tokenId, event.block);
-    updateATSBalance(receiverId, tokenId, event.block);
-    updateATSFlowRates(
-        senderId,
-        receiverId,
-        tokenId,
-        flowRateDelta,
-        event.block
-    );
     updateAggregateEntitiesStreamData(
         senderId,
         receiverId,
@@ -124,4 +114,6 @@ export function handleStreamUpdated(
         isDelete,
         event.block
     );
+    updateATSBalanceAndUpdatedAt(senderId, tokenId, event.block);
+    updateATSBalanceAndUpdatedAt(receiverId, tokenId, event.block);
 }

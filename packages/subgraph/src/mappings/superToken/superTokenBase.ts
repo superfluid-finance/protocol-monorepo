@@ -18,7 +18,9 @@ import {
     tokenHasValidHost,
     updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
-    updateATSBalance,
+    updateATSBalanceAndUpdatedAt,
+    updateATSStreamedUntilUpdatedAt,
+    updateTokenStatsStreamedUntilUpdatedAt,
 } from "../../utils";
 
 export function handleAgreementLiquidatedBy(
@@ -62,9 +64,37 @@ export function handleAgreementLiquidatedBy(
 
     getOrInitToken(event.address, event.block);
 
-    updateATSBalance(liquidatorAccount.id, event.address.toHex(), event.block);
-    updateATSBalance(penaltyAccount.id, event.address.toHex(), event.block);
-    updateATSBalance(bondAccount.id, event.address.toHex(), event.block);
+    updateATSStreamedUntilUpdatedAt(
+        liquidatorAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedUntilUpdatedAt(
+        penaltyAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedUntilUpdatedAt(
+        bondAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+
+    updateATSBalanceAndUpdatedAt(
+        liquidatorAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(
+        penaltyAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(
+        bondAccount.id,
+        event.address.toHex(),
+        event.block
+    );
 }
 
 export function handleTokenUpgraded(
@@ -88,7 +118,14 @@ export function handleTokenUpgraded(
 
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, event.block);
-    updateATSBalance(account.id, tokenId, event.block);
+
+    updateATSStreamedUntilUpdatedAt(
+        account.id,
+        event.address.toHex(),
+        event.block
+    );
+
+    updateATSBalanceAndUpdatedAt(account.id, tokenId, event.block);
 }
 
 export function handleTokenDowngraded(
@@ -112,7 +149,12 @@ export function handleTokenDowngraded(
 
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, event.block);
-    updateATSBalance(account.id, tokenId, event.block);
+    updateATSStreamedUntilUpdatedAt(
+        account.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(account.id, tokenId, event.block);
 }
 
 export function handleTransfer(
@@ -139,8 +181,20 @@ export function handleTransfer(
     updateAccountUpdatedAt(hostAddress, event.params.from, event.block);
     updateAccountUpdatedAt(hostAddress, event.params.to, event.block);
 
-    updateATSBalance(toAccount.id, tokenId, event.block);
-    updateATSBalance(fromAccount.id, tokenId, event.block);
+    updateATSStreamedUntilUpdatedAt(
+        toAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateATSStreamedUntilUpdatedAt(
+        fromAccount.id,
+        event.address.toHex(),
+        event.block
+    );
+    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+
+    updateATSBalanceAndUpdatedAt(toAccount.id, tokenId, event.block);
+    updateATSBalanceAndUpdatedAt(fromAccount.id, tokenId, event.block);
 
     updateAggregateEntitiesTransferData(
         event.params.from.toHex(),

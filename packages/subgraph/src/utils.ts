@@ -13,6 +13,11 @@ import {
 } from "../generated/schema";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 
+// TODO: GET DATA 100% ACCURATE
+// THEN: WORK ON MAPPING OPTIMIZATION
+// e.g. don't save in the modifier functions, instead let it take the object in
+// and save outside of the util functions.
+
 /**************************************************************************
  * Constants
  *************************************************************************/
@@ -499,6 +504,15 @@ export function getOrInitTokenStatistic(
     return tokenStatistic as TokenStatistic;
 }
 
+/**
+ * Updates ATS and TokenStats IDA Subscriptions data.
+ * @param accountId
+ * @param tokenId
+ * @param subscriptionExists
+ * @param isDeletingSubscription
+ * @param isApproving
+ * @param block
+ */
 export function updateAggregateIDASubscriptionsData(
     accountId: string,
     tokenId: string,
@@ -548,12 +562,13 @@ export function updateAggregateIDASubscriptionsData(
 
 /**
  * Updates the balance property on the ATS entity.
+ * Also updates the updatedAt time.
  * Note: ATS = AccountTokenSnapshot
  * @param accountId
  * @param tokenId
  * @param block
  */
-export function updateATSBalance(
+export function updateATSBalanceAndUpdatedAt(
     accountId: string,
     tokenId: string,
     block: ethereum.Block
@@ -573,40 +588,54 @@ export function updateATSBalance(
     accountTokenSnapshot.save();
 }
 
+function getAmountStreamedSinceLastUpdatedAt(
+    currentTime: BigInt,
+    lastUpdatedTime: BigInt,
+    totalOutflowRate: BigInt
+): BigInt {
+    let timeDelta = currentTime.minus(lastUpdatedTime);
+    return timeDelta.times(totalOutflowRate);
+}
+
 /**
- * Updates the net flow rates of the sender and receiver on their respective
- * ATS entities.
- * Note: ATS = AccountTokenSnapshot
- * @param senderId
- * @param receiverId
+ * @dev Must call before updatedAt is updated.
+ * @param accountId
  * @param tokenId
- * @param flowRateDelta
  * @param block
  */
-export function updateATSFlowRates(
-    senderId: string,
-    receiverId: string,
+export function updateATSStreamedUntilUpdatedAt(
+    accountId: string,
     tokenId: string,
-    flowRateDelta: BigInt,
     block: ethereum.Block
 ): void {
-    let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
-    let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
+    let ats = getOrInitAccountTokenSnapshot(accountId, tokenId, block);
+    let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
+        block.timestamp,
+        ats.updatedAtTimestamp,
+        ats.updatedAtTimestamp
+    );
+    ats.totalAmountStreamedUntilUpdatedAt =
+        ats.totalAmountStreamedUntilUpdatedAt.plus(
+            amountStreamedSinceLastUpdatedAt
+        );
+    ats.save();
+}
 
-    senderATS.totalNetFlowRate =
-        senderATS.totalNetFlowRate.minus(flowRateDelta);
-    senderATS.totalOutflowRate = senderATS.totalOutflowRate.plus(flowRateDelta);
-    senderATS.updatedAtTimestamp = block.timestamp;
-    senderATS.updatedAtBlock = block.number;
-    receiverATS.totalNetFlowRate =
-        receiverATS.totalNetFlowRate.plus(flowRateDelta);
-    receiverATS.totalInflowRate =
-        receiverATS.totalInflowRate.plus(flowRateDelta);
-    receiverATS.updatedAtTimestamp = block.timestamp;
-    receiverATS.updatedAtBlock = block.number;
-
-    senderATS.save();
-    receiverATS.save();
+export function updateTokenStatsStreamedUntilUpdatedAt(
+    tokenId: string,
+    block: ethereum.Block
+): void {
+    let tokenStats = getOrInitTokenStatistic(tokenId, block);
+    let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
+        block.timestamp,
+        tokenStats.updatedAtTimestamp,
+        tokenStats.updatedAtTimestamp
+    );
+    tokenStats.totalAmountStreamedUntilUpdatedAt =
+        tokenStats.totalAmountStreamedUntilUpdatedAt.plus(
+            amountStreamedSinceLastUpdatedAt
+        );
+    tokenStats.save();
 }
 
 export function updateAggregateEntitiesStreamData(
@@ -624,6 +653,7 @@ export function updateAggregateEntitiesStreamData(
         tokenStatistic.totalOutflowRate.times(
             block.timestamp.minus(tokenStatistic.updatedAtTimestamp)
         );
+
     tokenStatistic.totalOutflowRate =
         tokenStatistic.totalOutflowRate.plus(flowRateDelta);
     tokenStatistic.totalNumberOfActiveStreams =
@@ -636,32 +666,42 @@ export function updateAggregateEntitiesStreamData(
     tokenStatistic.updatedAtBlock = block.number;
 
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
-    let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
     let senderATSAmountStreamedSinceLastUpdate =
         senderATS.totalOutflowRate.times(
             block.timestamp.minus(senderATS.updatedAtTimestamp)
         );
+    senderATS.totalNetFlowRate =
+        senderATS.totalNetFlowRate.minus(flowRateDelta);
+    senderATS.totalOutflowRate = senderATS.totalOutflowRate.plus(flowRateDelta);
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
-    senderATS.updatedAtTimestamp = block.timestamp;
-    senderATS.updatedAtBlock = block.number;
     senderATS.totalAmountStreamedUntilUpdatedAt =
         senderATS.totalAmountStreamedUntilUpdatedAt.plus(
             senderATSAmountStreamedSinceLastUpdate
         );
+
+    let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
+    receiverATS.totalNetFlowRate =
+        receiverATS.totalNetFlowRate.plus(flowRateDelta);
+    receiverATS.totalInflowRate =
+        receiverATS.totalInflowRate.plus(flowRateDelta);
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
-    receiverATS.updatedAtTimestamp = block.timestamp;
-    receiverATS.updatedAtBlock = block.number;
 
     if (isDelete) {
         tokenStatistic.totalNumberOfClosedStreams =
             tokenStatistic.totalNumberOfClosedStreams + 1;
+        tokenStatistic.totalNumberOfActiveStreams =
+            tokenStatistic.totalNumberOfActiveStreams - 1;
 
         senderATS.totalNumberOfClosedStreams =
             senderATS.totalNumberOfClosedStreams + 1;
+        senderATS.totalNumberOfActiveStreams =
+            senderATS.totalNumberOfActiveStreams - 1;
         receiverATS.totalNumberOfClosedStreams =
             receiverATS.totalNumberOfClosedStreams + 1;
+        receiverATS.totalNumberOfActiveStreams =
+            receiverATS.totalNumberOfActiveStreams - 1;
     }
 
     tokenStatistic.save();

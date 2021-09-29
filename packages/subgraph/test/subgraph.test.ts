@@ -8,22 +8,33 @@ import { ERC20 } from "../typechain/ERC20";
 import { SuperToken } from "../typechain/SuperToken";
 import {
     beforeSetup,
+    getOrInitAccountTokenSnapshot,
+    getOrInitRevisionIndex,
+    getOrInitStreamData,
+    getOrInitTokenStatic,
     getRandomFlowRate,
+    getRevisionIndexId,
     getStreamId,
     monthlyToSecondRate,
+    toBN,
+    updateAndReturnATSOnFlowUpdated,
+    updateAndReturnStreamData,
+    updateAndReturnTokenStatsOnFlowUpdated,
 } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
-    IStreamHistory,
+    IStreamData,
     ITokenStatistic,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
-import { validateModifyFlow } from "./validation/validators";
+import { modifyFlowAndReturnCreatedFlowData } from "./validation/validators";
+import { FlowActionType } from "./helpers/constants";
+import { fetchFlowUpdatedEventAndValidate } from "./validation/eventValidators";
+import { fetchStreamAndValidate } from "./validation/holValidators";
 import {
-    FlowActionType,
-    INITIAL_ATS,
-    INITIAL_STREAM_HISTORY,
-} from "./helpers/constants";
+    fetchATSAndValidate,
+    fetchTokenStatsAndValidate,
+} from "./validation/aggregateValidators";
 
 /**
  * TODO: it likely makes sense to have several global objects which persists throughout the lifetime of the tests:
@@ -45,144 +56,174 @@ describe("Subgraph Tests", () => {
     let cfaV1: ConstantFlowAgreementV1;
     let idaV1: InstantDistributionAgreementV1;
 
-    /**
-     * TODO: create helper functions for updating these global properties
-     * based on what is being modified (e.g. flow or ida)
-     */
-    let tokenStatistics: { [id: string]: ITokenStatistic } = {}; // id is tokenStatsId
-    let accountTokenSnapshots: { [id: string]: IAccountTokenSnapshot } = {}; // id is atsId
-    let streamHistory: { [id: string]: IStreamHistory } = {}; // id is streamId
+    // A set of locally updated variables to compare with data from the Graph.
+    // The data in here comes from
     let revisionIndexes: { [id: string]: number | undefined } = {}; // id is sender-recipient-token
+    let streamData: { [id: string]: IStreamData | undefined } = {}; // id is streamId
+    let accountTokenSnapshots: {
+        [id: string]: IAccountTokenSnapshot | undefined;
+    } = {}; // id is atsId
+    let tokenStatistics: { [id: string]: ITokenStatistic | undefined } = {}; // id is tokenStatsId
 
-    async function validateModifyFlowAndUpdateGlobalProperties(
+    async function validateModifyFlow(
+        actionType: FlowActionType,
+        newFlowRate: number,
         sender: string,
         receiver: string,
-        actionType: FlowActionType,
-        flowRate: number
+        token: string
     ) {
-        // streamHistory should be obtained within this function
-        // if revisionIndex of sender-receipient, token is null
-        // we use INITIAL_STREAM_HISTORY
-        const currentRevisionIndex =
-            revisionIndexes[
-                sender.toLowerCase() +
-                    "-" +
-                    receiver.toLowerCase() +
-                    "-" +
-                    daix.address.toLowerCase()
-            ];
-        const currentStreamHistory =
-            currentRevisionIndex != null
-                ? streamHistory[
-                      getStreamId(
-                          sender,
-                          receiver,
-                          daix.address,
-                          currentRevisionIndex.toString()
-                      )
-                  ]
-                : INITIAL_STREAM_HISTORY;
-        const { updatedATS, updatedTokenStats, updatedStreamHistory } =
-            await validateModifyFlow(
+        // CREATE A FLOW
+        const { receipt, updatedAtTimestamp, flowRate } =
+            await modifyFlowAndReturnCreatedFlowData(
                 sf,
-                daix,
+                cfaV1,
+                actionType,
+                daix.address,
                 sender,
                 receiver,
-                cfaV1,
-                {
-                    actionType,
-                    flowRate,
-                    streamHistory: currentStreamHistory,
-                },
-                accountTokenSnapshots,
-                tokenStatistics
+                monthlyToSecondRate(newFlowRate)
             );
-        updateAndPrintGlobalProperties(
+        const lastUpdatedAtTimestamp = updatedAtTimestamp.toString();
+        const lastUpdatedBlockNumber = receipt.blockNumber.toString();
+        const tokenId = token.toLowerCase();
+
+        // GET OR INIT THE DATA
+        const revisionIndexId = getRevisionIndexId(sender, receiver, token);
+        const currentRevisionIndex = getOrInitRevisionIndex(
+            revisionIndexes,
+            revisionIndexId
+        );
+        const streamId = getStreamId(
             sender,
             receiver,
-            updatedTokenStats as ITokenStatistic,
-            updatedATS,
-            updatedStreamHistory
+            token,
+            currentRevisionIndex.toString()
         );
+        const pastStreamData = getOrInitStreamData(
+            streamData,
+            streamId,
+            lastUpdatedAtTimestamp
+        );
+        const currentSenderATS = getOrInitAccountTokenSnapshot(
+            accountTokenSnapshots,
+            sender.toLowerCase(),
+            tokenId,
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp
+        );
+        const currentReceiverATS = getOrInitAccountTokenSnapshot(
+            accountTokenSnapshots,
+            receiver.toLowerCase(),
+            tokenId,
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp
+        );
+        const currentTokenStats = getOrInitTokenStatic(
+            tokenStatistics,
+            tokenId,
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp
+        );
+
+        // newFlowRate - previousFlowRate
+        const flowRateDelta = flowRate.sub(toBN(pastStreamData.oldFlowRate));
+
+        // Update the data - we use this for comparison
+        const updatedSenderATS = await updateAndReturnATSOnFlowUpdated(
+            daix,
+            currentSenderATS,
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp,
+            actionType,
+            true,
+            flowRate,
+            flowRateDelta
+        );
+        const updatedReceiverATS = await updateAndReturnATSOnFlowUpdated(
+            daix,
+            currentReceiverATS,
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp,
+            actionType,
+            false,
+            flowRate,
+            flowRateDelta
+        );
+        const updatedTokenStats = updateAndReturnTokenStatsOnFlowUpdated(
+            currentTokenStats,
+            Object.values(accountTokenSnapshots).filter(
+                (x) => x != undefined
+            ) as IAccountTokenSnapshot[],
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp,
+            actionType,
+            flowRate,
+            flowRateDelta
+        );
+        const streamedAmountSinceUpdatedAt = toBN(lastUpdatedAtTimestamp)
+            .sub(toBN(pastStreamData.lastUpdatedAtTimestamp))
+            .mul(toBN(pastStreamData.oldFlowRate));
+
+        // validate FlowUpdatedEvent
+        await fetchFlowUpdatedEventAndValidate(
+            cfaV1,
+            receipt,
+            token,
+            sender,
+            receiver,
+            flowRate.toString(),
+            pastStreamData.oldFlowRate,
+            actionType
+        );
+
+        // validate Stream HOL
+        await fetchStreamAndValidate(
+            pastStreamData,
+            streamedAmountSinceUpdatedAt,
+            flowRate.toString()
+        );
+
+        // validate sender ATS
+        await fetchATSAndValidate(currentSenderATS.id, updatedSenderATS);
+
+        // validate receiver ATS
+        await fetchATSAndValidate(currentReceiverATS.id, updatedReceiverATS);
+
+        // validate token stats
+        await fetchTokenStatsAndValidate(tokenId, updatedTokenStats);
+
+        let updatedStreamData = updateAndReturnStreamData(
+            pastStreamData,
+            actionType,
+            flowRate.toString(),
+            lastUpdatedAtTimestamp,
+            streamedAmountSinceUpdatedAt
+        );
+
+        return {
+            revisionIndexId,
+            updatedStreamData,
+            updatedReceiverATS,
+            updatedSenderATS,
+            updatedTokenStats,
+        };
     }
 
-    async function updateAndPrintGlobalProperties(
-        sender: string,
-        receiver: string,
-        updatedTokenStats: ITokenStatistic,
-        updatedATS: { [id: string]: IAccountTokenSnapshot },
-        updatedStreamHistory?: IStreamHistory
+    function updateGlobalObjects(
+        revisionIndexId: string,
+        updatedStreamData: IStreamData,
+        updatedSenderATS: IAccountTokenSnapshot,
+        updatedReceiverATS: IAccountTokenSnapshot,
+        updatedTokenStats: ITokenStatistic
     ) {
-        const hexSender = sender.toLowerCase();
-        const hexReceiver = receiver.toLowerCase();
-        const hexToken = daix.address.toLowerCase();
-        const senderATSId = hexSender + "-" + hexToken;
-        const receiverATSId = hexReceiver + "-" + hexToken;
-        const oldTokenStats = tokenStatistics[hexToken];
-        const oldSenderATS = accountTokenSnapshots[senderATSId];
-        const oldReceiverATS = accountTokenSnapshots[receiverATSId];
-
-        tokenStatistics[hexToken] = {
-            ...tokenStatistics[hexToken],
-            ...updatedTokenStats,
-        };
-        accountTokenSnapshots[senderATSId] = {
-            ...accountTokenSnapshots[senderATSId],
-            ...updatedATS[senderATSId],
-        };
-        accountTokenSnapshots[receiverATSId] = {
-            ...accountTokenSnapshots[receiverATSId],
-            ...updatedATS[receiverATSId],
-        };
-
-        // console.log("Previous Token Stats: ", oldTokenStats);
-        // console.log("Updated Token Stats: ", tokenStatistics[hexToken], "\n");
-        // console.log("Previous Sender ATS: ", oldSenderATS);
-        // console.log(
-        //     "Updated Sender ATS: ",
-        //     accountTokenSnapshots[senderATSId],
-        //     "\n"
-        // );
-        // console.log("Previous Receiver ATS: ", oldReceiverATS);
-        // console.log(
-        //     "Updated Receiver ATS: ",
-        //     accountTokenSnapshots[receiverATSId],
-        //     "\n"
-        // );
-
-        if (updatedStreamHistory) {
-            const revisionIndexId =
-                hexSender + "-" + hexReceiver + "-" + hexToken;
-            const revisionIndex = revisionIndexes[revisionIndexId];
-            const oldStreamId = getStreamId(
-                hexSender,
-                hexReceiver,
-                hexToken,
-                revisionIndex ? revisionIndex.toString() : "0"
-            );
-            console.log(
-                "Previous Stream History: ",
-                streamHistory[oldStreamId]
-            );
-            const streamId = getStreamId(
-                hexSender,
-                hexReceiver,
-                hexToken,
-                updatedStreamHistory.revisionIndex
-            );
-            revisionIndexes[revisionIndexId] = Number(
-                updatedStreamHistory.revisionIndex
-            );
-            streamHistory[streamId] = {
-                ...streamHistory[streamId],
-                ...updatedStreamHistory,
-            };
-            console.log(
-                "Updated Stream History: ",
-                streamHistory[streamId],
-                "\n"
-            );
-        }
+        revisionIndexes[revisionIndexId] = Number(
+            updatedStreamData.revisionIndex
+        );
+        streamData[updatedStreamData.id] = updatedStreamData;
+        accountTokenSnapshots[updatedSenderATS.id] = updatedSenderATS;
+        accountTokenSnapshots[updatedReceiverATS.id] = updatedReceiverATS;
+        console.log("updatedTokenStats", updatedTokenStats);
+        tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
     }
 
     before(async () => {
@@ -206,15 +247,31 @@ describe("Subgraph Tests", () => {
         /**
          * Flow Creation Tests
          */
-        it.only("Should return correct data after creating multiple flows from one person to many.", async () => {
+        it("Should return correct data after creating multiple flows from one person to many.", async () => {
             // Deployer to Alice...Frank
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
-                await validateModifyFlowAndUpdateGlobalProperties(
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
+                    FlowActionType.Create,
+                    randomFlowRate,
                     userAddresses[0],
                     userAddresses[i],
-                    FlowActionType.Create,
-                    monthlyToSecondRate(randomFlowRate)
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
                 );
             }
         });
@@ -223,36 +280,84 @@ describe("Subgraph Tests", () => {
             // Alice...Frank to Deployer
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
-                await validateModifyFlowAndUpdateGlobalProperties(
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
+                    FlowActionType.Create,
+                    randomFlowRate,
                     userAddresses[i],
                     userAddresses[0],
-                    FlowActionType.Create,
-                    monthlyToSecondRate(randomFlowRate)
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
                 );
             }
         });
 
-        /**
-         * Flow Update Tests
-         */
+        // /**
+        //  * Flow Update Tests
+        //  */
         it("Should return correct data after updating multiple flows from one person to many.", async () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
-                await validateModifyFlowAndUpdateGlobalProperties(
-                    userAddresses[0], // sender
-                    userAddresses[i], // receiver
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
                     FlowActionType.Update,
-                    monthlyToSecondRate(randomFlowRate)
+                    randomFlowRate,
+                    userAddresses[0],
+                    userAddresses[i],
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
                 );
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
-                await validateModifyFlowAndUpdateGlobalProperties(
-                    userAddresses[0], // sender
-                    userAddresses[i], // receiver
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
                     FlowActionType.Update,
-                    monthlyToSecondRate(randomFlowRate)
+                    randomFlowRate,
+                    userAddresses[0],
+                    userAddresses[i],
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
                 );
             }
         });
@@ -260,21 +365,53 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after updating multiple flows from many to one person.", async () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
-                await validateModifyFlowAndUpdateGlobalProperties(
-                    userAddresses[i], // sender
-                    userAddresses[0], // receiver
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
                     FlowActionType.Update,
-                    monthlyToSecondRate(randomFlowRate)
+                    randomFlowRate,
+                    userAddresses[i],
+                    userAddresses[0],
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
                 );
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
-                await validateModifyFlowAndUpdateGlobalProperties(
-                    userAddresses[i], // sender
-                    userAddresses[0], // receiver
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
                     FlowActionType.Update,
-                    monthlyToSecondRate(randomFlowRate)
+                    randomFlowRate,
+                    userAddresses[i],
+                    userAddresses[0],
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
                 );
             }
         });
@@ -282,9 +419,11 @@ describe("Subgraph Tests", () => {
         /**
          * Flow Delete Tests
          */
-        it("Should return correct data after deleting a created flow.", async () => {});
+        it("Should return correct data after deleting a created flow.", async () => {
+		});
 
-        it("Should return correct data after deleting an updated flow.", async () => {});
+        it("Should return correct data after deleting an updated flow.", async () => {
+		});
 
         it("Should return correct data after creating a flow after deleting.", async () => {});
 

@@ -212,17 +212,18 @@ export interface ILightEntity {
 /**************************************************************************
  * Internal Interfaces
  *************************************************************************/
-export interface IStreamHistory {
+export interface IStreamData {
+	id: string;
     revisionIndex: string;
     oldFlowRate: string;
     streamedUntilUpdatedAt: string;
-    previousUpdatedAt?: number;
+    lastUpdatedAtTimestamp: string;
 }
 
 export interface IStreamTestParams {
     readonly actionType: FlowActionType;
     readonly flowRate: number;
-    readonly streamHistory: IStreamHistory;
+    readonly streamHistory: IStreamData;
 }
 
 export interface IExpectedATSData {

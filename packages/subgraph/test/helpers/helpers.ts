@@ -1,9 +1,20 @@
 import { ethers } from "hardhat";
-import { ContractReceipt } from "ethers";
+import { BigNumber, ContractReceipt } from "ethers";
 import { request, gql } from "graphql-request";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import { IMeta } from "../interfaces";
+import {
+    IAccountTokenSnapshot,
+    IMeta,
+    IStreamData,
+    ITokenStatistic,
+} from "../interfaces";
+import {
+    actionTypeToActiveStreamsDeltaMap,
+    actionTypeToClosedStreamsDeltaMap,
+    FlowActionType,
+} from "./constants";
+import { SuperToken } from "../../typechain/SuperToken";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -21,13 +32,11 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
  */
 export const beforeSetup = async (tokenAmount: number) => {
     let names: { [address: string]: string } = {};
-    const [Deployer, Alice, Bob, Charlie, Dave, Ella, Frank] = (
+    const [Deployer, Alpha, Bravo, Charlie, Delta, Echo] = (
         await ethers.getSigners()
     ).map((x) => x.address);
-    const userAddresses = [Deployer, Alice, Bob, Charlie, Dave, Ella, Frank];
-    names[Deployer] = "Deployer";
-    names[Alice] = "Alice";
-    names[Bob] = "Bob";
+    const userAddresses = [Deployer, Alpha, Bravo, Charlie, Delta, Echo];
+    // names[Bob] = "Bob";
     const sf: Framework = new SuperfluidSDK.Framework({
         web3: (global as any).web3,
         version: "test",
@@ -118,6 +127,13 @@ export const subgraphRequest = async <T>(
     }
 };
 
+/**
+ * To ethers.BigNumber
+ */
+export function toBN(num: any) {
+    return ethers.BigNumber.from(num);
+}
+
 function asleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -130,6 +146,19 @@ export const waitUntilBlockIndexed = async (txnBlockNumber: number) => {
     } while (txnBlockNumber > currentBlock);
 };
 
+export const getCurrentTotalAmountStreamed = (
+    streamedSoFar: string,
+    currentTime: string,
+    lastUpdatedAtTime: string,
+    outflowRate: string
+) => {
+    return toBN(streamedSoFar).add(
+        toBN(outflowRate).mul(toBN(currentTime).sub(toBN(lastUpdatedAtTime)))
+    );
+};
+
+// ID Getters for Entities
+
 export const getEventId = (receipt: ContractReceipt) => {
     return (
         receipt.transactionHash.toLowerCase() + "-" + receipt.transactionIndex
@@ -141,23 +170,265 @@ export const getStreamId = (
     receiver: string,
     token: string,
     revisionIndex: string
-) => {
-    return [
+) =>
+    [
         sender.toLowerCase(),
         receiver.toLowerCase(),
         token.toLowerCase(),
         revisionIndex + ".0",
     ].join("-");
+
+export const getRevisionIndexId = (
+    sender: string,
+    receiver: string,
+    token: string
+) =>
+    [sender.toLowerCase(), receiver.toLowerCase(), token.toLowerCase()].join(
+        "-"
+    );
+
+// Get Or Init Entities
+
+export const getOrInitRevisionIndex = (
+    revisionIndex: { [id: string]: number | undefined },
+    revisionIndexId: string
+) => {
+    return revisionIndex[revisionIndexId] || 0;
 };
 
-export const getTotalAmountStreamed = (
-    streamedSoFar: string,
-    currentTime: string,
-    lastUpdatedAtTime: string,
-    netFlow: string
+export const getOrInitStreamData = (
+    streamData: { [id: string]: IStreamData | undefined },
+    streamId: string,
+    lastUpdatedAtTimestamp: string
 ) => {
-    return (
-        Number(streamedSoFar) +
-        Number(netFlow) * (Number(currentTime) - Number(lastUpdatedAtTime))
+    const existingStreamData = streamData[streamId];
+    if (existingStreamData == null) {
+        return {
+            id: streamId,
+            revisionIndex: "0",
+            oldFlowRate: "0",
+            streamedUntilUpdatedAt: "0",
+            lastUpdatedAtTimestamp,
+        };
+    }
+    return existingStreamData;
+};
+
+export const getOrInitAccountTokenSnapshot = (
+    accountTokenSnapshots: {
+        [id: string]: IAccountTokenSnapshot | undefined;
+    },
+    accountId: string,
+    tokenId: string,
+    updatedAtBlock: string,
+    updatedAtTimestamp: string
+) => {
+    const atsId = accountId + "-" + tokenId;
+    const existingATS = accountTokenSnapshots[atsId];
+    if (existingATS == null) {
+        return {
+            id: accountId + "-" + tokenId,
+            updatedAtBlock,
+            updatedAtTimestamp,
+            totalNumberOfActiveStreams: 0,
+            totalNumberOfClosedStreams: 0,
+            totalSubscriptions: 0,
+            totalApprovedSubscriptions: 0,
+            balanceUntilUpdatedAt: "0",
+            totalNetFlowRate: "0",
+            totalInflowRate: "0",
+            totalOutflowRate: "0",
+            totalAmountStreamedUntilUpdatedAt: "0",
+            totalAmountTransferredUntilUpdatedAt: "0",
+            account: { id: accountId },
+            token: { id: tokenId },
+        };
+    }
+    return existingATS;
+};
+
+export const getOrInitTokenStatic = (
+    tokenStatistics: { [id: string]: ITokenStatistic | undefined },
+    tokenId: string,
+    updatedAtBlock: string,
+    updatedAtTimestamp: string
+) => {
+    const existingTokenStats = tokenStatistics[tokenId];
+    if (existingTokenStats == null) {
+        return {
+            id: tokenId,
+            updatedAtBlock,
+            updatedAtTimestamp,
+            totalNumberOfActiveStreams: 0,
+            totalNumberOfClosedStreams: 0,
+            totalNumberOfIndexes: 0,
+            totalNumberOfActiveIndexes: 0,
+            totalSubscriptions: 0,
+            totalApprovedSubscriptions: 0,
+            totalOutflowRate: "0",
+            totalAmountStreamedUntilUpdatedAt: "0",
+            totalAmountTransferredUntilUpdatedAt: "0",
+            totalAmountDistributedUntilUpdatedAt: "0",
+            token: { id: tokenId },
+        };
+    }
+    return existingTokenStats;
+};
+
+// Update entity helper functions
+export const updateAndReturnStreamData = (
+    currentStreamData: IStreamData,
+    actionType: FlowActionType,
+    oldFlowRate: string,
+    lastUpdatedAtTimestamp: string,
+    streamedAmountSinceUpdatedAt: BigNumber
+) => {
+    const revisionIndexDelta =
+        actionTypeToClosedStreamsDeltaMap.get(actionType)!;
+    const revisionIndex = (
+        Number(currentStreamData.revisionIndex) + revisionIndexDelta
+    ).toString();
+    const updatedStreamedUntilUpdatedAt = toBN(
+        currentStreamData.streamedUntilUpdatedAt
+    ).add(streamedAmountSinceUpdatedAt);
+    return {
+        ...currentStreamData,
+        revisionIndex,
+        oldFlowRate,
+        streamedUntilUpdatedAt: updatedStreamedUntilUpdatedAt.toString(),
+        lastUpdatedAtTimestamp,
+    } as IStreamData;
+};
+
+export const updateAndReturnATSOnFlowUpdated = async (
+    superToken: SuperToken,
+    currentATS: IAccountTokenSnapshot,
+    updatedAtBlock: string,
+    lastUpdatedAtTimestamp: string,
+    actionType: FlowActionType,
+    isSender: boolean,
+    flowRate: BigNumber,
+    flowRateDelta: BigNumber
+): Promise<IAccountTokenSnapshot> => {
+    const balanceUntilUpdatedAt = (
+        await superToken.balanceOf(currentATS.account.id)
+    ).toString();
+
+    // Force casting because they will never be undefined
+    const activeStreamsDelta =
+        actionTypeToActiveStreamsDeltaMap.get(actionType)!;
+    const closedStreamsDelta =
+        actionTypeToClosedStreamsDeltaMap.get(actionType)!;
+    const totalNetFlowRate = isSender
+        ? toBN(currentATS.totalNetFlowRate).sub(flowRateDelta).toString()
+        : toBN(currentATS.totalNetFlowRate).add(flowRateDelta).toString();
+    const inflowRate = toBN(currentATS.totalInflowRate)
+        .add(flowRateDelta)
+        .lt(toBN(0))
+        ? flowRate
+        : toBN(currentATS.totalInflowRate).add(flowRateDelta);
+    const outflowRate = toBN(currentATS.totalOutflowRate)
+        .add(flowRateDelta)
+        .lt(toBN(0))
+        ? flowRate
+        : toBN(currentATS.totalOutflowRate).add(flowRateDelta);
+    const totalInflowRate =
+        isSender === true ? currentATS.totalInflowRate : inflowRate.toString();
+    const totalOutflowRate =
+        isSender === true
+            ? outflowRate.toString()
+            : currentATS.totalOutflowRate;
+    const totalAmountStreamedUntilUpdatedAt =
+        isSender === true
+            ? toBN(currentATS.totalAmountStreamedUntilUpdatedAt)
+                  .add(
+                      toBN(currentATS.totalOutflowRate).mul(
+                          toBN(lastUpdatedAtTimestamp).sub(
+                              toBN(currentATS.updatedAtTimestamp)
+                          )
+                      )
+                  )
+                  .toString()
+            : currentATS.totalAmountStreamedUntilUpdatedAt;
+
+    // DO CALCULATIONS FIRST THEN SET THE VARIABLES
+    // REMEMBER THAT TIME IS A MAJOR GOTCHA
+    return {
+        ...currentATS,
+        updatedAtBlock,
+        updatedAtTimestamp: lastUpdatedAtTimestamp,
+        totalNumberOfActiveStreams:
+            currentATS.totalNumberOfActiveStreams + activeStreamsDelta,
+        totalNumberOfClosedStreams:
+            currentATS.totalNumberOfClosedStreams + closedStreamsDelta,
+        balanceUntilUpdatedAt,
+        totalNetFlowRate,
+        totalInflowRate,
+        totalOutflowRate,
+        totalAmountStreamedUntilUpdatedAt,
+    };
+};
+
+export const updateAndReturnTokenStatsOnFlowUpdated = (
+    currentTokenStats: ITokenStatistic,
+    accountTokenSnapshots: IAccountTokenSnapshot[],
+    updatedAtBlock: string,
+    lastUpdatedAtTimestamp: string,
+    actionType: FlowActionType,
+    flowRate: BigNumber,
+    flowRateDelta: BigNumber
+) => {
+    const activeStreamsDelta =
+        actionTypeToActiveStreamsDeltaMap.get(actionType)!;
+    const closedStreamsDelta =
+        actionTypeToClosedStreamsDeltaMap.get(actionType)!;
+    const outflowRate = toBN(currentTokenStats.totalOutflowRate)
+        .add(flowRateDelta)
+        .lt(toBN(0))
+        ? flowRate
+        : toBN(currentTokenStats.totalOutflowRate).add(flowRateDelta);
+    const totalOutflowRate = outflowRate.toString();
+
+    // TODO: consider summing all ATS and comparing it with that
+    // consider that the ATS updatedAt times are all different.
+    const totalAmountStreamedUntilUpdatedAt = toBN(
+        currentTokenStats.totalAmountStreamedUntilUpdatedAt
+    )
+        .add(
+            toBN(currentTokenStats.totalOutflowRate).mul(
+                toBN(lastUpdatedAtTimestamp).sub(
+                    toBN(currentTokenStats.updatedAtTimestamp)
+                )
+            )
+        )
+        .toString();
+    const atsSum = accountTokenSnapshots
+        .map((x) =>
+            getCurrentTotalAmountStreamed(
+                x.totalAmountStreamedUntilUpdatedAt,
+                lastUpdatedAtTimestamp,
+                x.updatedAtTimestamp,
+                x.totalOutflowRate
+            )
+        )
+        .reduce((a, b) => a.add(b), toBN(0));
+    console.log(
+        "totalAmountStreamedUntilUpdatedAt",
+        totalAmountStreamedUntilUpdatedAt
     );
+    console.log(
+        "accountTokenSnapshotStreamedUntilUpdatedAt",
+        atsSum.toString()
+    );
+    return {
+        ...currentTokenStats,
+        updatedAtBlock,
+        updatedAtTimestamp: lastUpdatedAtTimestamp,
+        totalNumberOfActiveStreams:
+            currentTokenStats.totalNumberOfActiveStreams + activeStreamsDelta,
+        totalNumberOfClosedStreams:
+            currentTokenStats.totalNumberOfClosedStreams + closedStreamsDelta,
+        totalOutflowRate,
+        totalAmountStreamedUntilUpdatedAt,
+    } as ITokenStatistic;
 };

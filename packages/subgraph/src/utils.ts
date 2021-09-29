@@ -591,10 +591,10 @@ export function updateATSBalanceAndUpdatedAt(
 function getAmountStreamedSinceLastUpdatedAt(
     currentTime: BigInt,
     lastUpdatedTime: BigInt,
-    totalOutflowRate: BigInt
+    previousTotalOutflowRate: BigInt
 ): BigInt {
     let timeDelta = currentTime.minus(lastUpdatedTime);
-    return timeDelta.times(totalOutflowRate);
+    return timeDelta.times(previousTotalOutflowRate);
 }
 
 /**
@@ -642,6 +642,7 @@ export function updateAggregateEntitiesStreamData(
     senderId: string,
     receiverId: string,
     tokenId: string,
+    newFlowRate: BigInt,
     flowRateDelta: BigInt,
     isCreate: boolean,
     isDelete: boolean,
@@ -656,8 +657,12 @@ export function updateAggregateEntitiesStreamData(
             tokenStatistic.totalOutflowRate
         );
 
-    tokenStatistic.totalOutflowRate =
-        tokenStatistic.totalOutflowRate.plus(flowRateDelta);
+    // the outflow rate should never go below 0.
+    tokenStatistic.totalOutflowRate = tokenStatistic.totalOutflowRate
+        .plus(flowRateDelta)
+        .lt(BIG_INT_ZERO)
+        ? newFlowRate
+        : tokenStatistic.totalOutflowRate.plus(flowRateDelta);
     tokenStatistic.totalNumberOfActiveStreams =
         tokenStatistic.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     tokenStatistic.totalAmountStreamedUntilUpdatedAt =
@@ -676,7 +681,12 @@ export function updateAggregateEntitiesStreamData(
         );
     senderATS.totalNetFlowRate =
         senderATS.totalNetFlowRate.minus(flowRateDelta);
-    senderATS.totalOutflowRate = senderATS.totalOutflowRate.plus(flowRateDelta);
+    // the outflow rate should never go below 0.
+    senderATS.totalOutflowRate = senderATS.totalOutflowRate
+        .plus(flowRateDelta)
+        .lt(BIG_INT_ZERO)
+        ? newFlowRate
+        : senderATS.totalOutflowRate.plus(flowRateDelta);
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
     senderATS.totalAmountStreamedUntilUpdatedAt =
@@ -687,8 +697,12 @@ export function updateAggregateEntitiesStreamData(
     let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
     receiverATS.totalNetFlowRate =
         receiverATS.totalNetFlowRate.plus(flowRateDelta);
-    receiverATS.totalInflowRate =
-        receiverATS.totalInflowRate.plus(flowRateDelta);
+    // the inflow rate should never go below 0.
+    receiverATS.totalInflowRate = receiverATS.totalInflowRate
+        .plus(flowRateDelta)
+        .lt(BIG_INT_ZERO)
+        ? newFlowRate
+        : receiverATS.totalInflowRate.plus(flowRateDelta);
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
 

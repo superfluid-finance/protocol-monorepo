@@ -109,6 +109,7 @@ export function handleStreamUpdated(
         senderId,
         receiverId,
         tokenId,
+        flowRate,
         flowRateDelta,
         isCreate,
         isDelete,

@@ -47,7 +47,7 @@ module.exports = async function (callback, argv, options = {}) {
         let tokens;
 
         const args = parseColonArgs(argv || process.argv);
-        if (args.length === 1) {
+        if (args.length >= 1) {
             tokens = args.pop().split(",");
         } else {
             tokens = ["fDAI", "fUSDC", "fTUSD", config.nativeTokenSymbol];

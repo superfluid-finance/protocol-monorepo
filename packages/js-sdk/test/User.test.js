@@ -117,7 +117,7 @@ describe("User helper class", function () {
         });
     });
     describe("new flows", () => {
-        it("fail without recipient", async () => {
+        it("fail with null recipient", async () => {
             await expect(
                 alice.flow({
                     recipient: null,
@@ -125,7 +125,22 @@ describe("User helper class", function () {
                 })
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
-        it("fail without flowRate", async () => {
+        it("fail with undefined recipient", async () => {
+            await expect(
+                alice.flow({
+                    flowRate: "0",
+                })
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with empty string recipient", async () => {
+            await expect(
+                alice.flow({
+                    recipient: "",
+                    flowRate: "0",
+                })
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with null flowRate", async () => {
             // Using https://github.com/domenic/chai-as-promised
             await expect(
                 alice.flow({
@@ -133,6 +148,23 @@ describe("User helper class", function () {
                     flowRate: null,
                 })
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with undefined flowRate", async () => {
+            // Using https://github.com/domenic/chai-as-promised
+            await expect(
+                alice.flow({
+                    recipient: adminAddress,
+                })
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with a number flowRate", async () => {
+            // Using https://github.com/domenic/chai-as-promised
+            await expect(
+                alice.flow({
+                    recipient: adminAddress,
+                    flowRate: 0,
+                })
+            ).to.be.rejectedWith(/You must provide flowRate as a string/);
         });
         it("create a new flow", async () => {
             const tx = await alice.flow({

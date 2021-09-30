@@ -649,7 +649,8 @@ export function updateAggregateEntitiesStreamData(
     block: ethereum.Block
 ): void {
     let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
-    let totalNumberOfStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
+    let totalNumberOfActiveStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
+    let totalNumberOfClosedStreamsDelta = isDelete ? 1 : 0;
     let tokenStatsAmountStreamedSinceLastUpdate =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -664,7 +665,11 @@ export function updateAggregateEntitiesStreamData(
         ? newFlowRate
         : tokenStatistic.totalOutflowRate.plus(flowRateDelta);
     tokenStatistic.totalNumberOfActiveStreams =
-        tokenStatistic.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
+        tokenStatistic.totalNumberOfActiveStreams +
+        totalNumberOfActiveStreamsDelta;
+    tokenStatistic.totalNumberOfClosedStreams =
+        tokenStatistic.totalNumberOfClosedStreams +
+        totalNumberOfClosedStreamsDelta;
     tokenStatistic.totalAmountStreamedUntilUpdatedAt =
         tokenStatistic.totalAmountStreamedUntilUpdatedAt.plus(
             tokenStatsAmountStreamedSinceLastUpdate
@@ -688,7 +693,9 @@ export function updateAggregateEntitiesStreamData(
         ? newFlowRate
         : senderATS.totalOutflowRate.plus(flowRateDelta);
     senderATS.totalNumberOfActiveStreams =
-        senderATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
+        senderATS.totalNumberOfActiveStreams + totalNumberOfActiveStreamsDelta;
+    senderATS.totalNumberOfClosedStreams =
+        senderATS.totalNumberOfClosedStreams + totalNumberOfClosedStreamsDelta;
     senderATS.totalAmountStreamedUntilUpdatedAt =
         senderATS.totalAmountStreamedUntilUpdatedAt.plus(
             senderATSAmountStreamedSinceLastUpdate
@@ -704,23 +711,11 @@ export function updateAggregateEntitiesStreamData(
         ? newFlowRate
         : receiverATS.totalInflowRate.plus(flowRateDelta);
     receiverATS.totalNumberOfActiveStreams =
-        receiverATS.totalNumberOfActiveStreams + totalNumberOfStreamsDelta;
-
-    if (isDelete) {
-        tokenStatistic.totalNumberOfClosedStreams =
-            tokenStatistic.totalNumberOfClosedStreams + 1;
-        tokenStatistic.totalNumberOfActiveStreams =
-            tokenStatistic.totalNumberOfActiveStreams - 1;
-
-        senderATS.totalNumberOfClosedStreams =
-            senderATS.totalNumberOfClosedStreams + 1;
-        senderATS.totalNumberOfActiveStreams =
-            senderATS.totalNumberOfActiveStreams - 1;
-        receiverATS.totalNumberOfClosedStreams =
-            receiverATS.totalNumberOfClosedStreams + 1;
-        receiverATS.totalNumberOfActiveStreams =
-            receiverATS.totalNumberOfActiveStreams - 1;
-    }
+        receiverATS.totalNumberOfActiveStreams +
+        totalNumberOfActiveStreamsDelta;
+    receiverATS.totalNumberOfClosedStreams =
+        receiverATS.totalNumberOfClosedStreams +
+        totalNumberOfClosedStreamsDelta;
 
     tokenStatistic.save();
     senderATS.save();

@@ -14,7 +14,7 @@ kill_ganache() {
     pkill -f "ganache-cli --networkId 4447" || true
 }
 
-  if [ "$CMD" == "start" ];then
+if [ "$CMD" == "start" ];then
     kill_ganache
     start_ganache
 elif [ "$CMD" == "stop" ];then

@@ -4,9 +4,7 @@ require("./superfluid-core.js");
 
 require("./superfluid-governance.js");
 
-// Superflui custom tokens
-require("../test/contracts/tokens/SETH.test.js");
-require("../test/contracts/tokens/NativeSuperToken.test.js");
+require("./custom-tokens.js");
 
 // Utility contracts
 require("../test/contracts/utils/BatchLiquidator.test.js");

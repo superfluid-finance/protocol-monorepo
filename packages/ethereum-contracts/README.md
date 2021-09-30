@@ -30,10 +30,13 @@
 
 If you're building a dapp using existing protocol or Super Token contracts, then you should use [`@superfluid-finance/js-sdk`](/packages/js-sdk). [Here](https://docs.superfluid.finance/superfluid/networks/networks) you can find a list of networks where the Superfluid protocol is already deployed.
 
-If you're building a smart contract that uses Superfluid protocol,
-or even your own [SuperApp](https://docs.superfluid.finance/), then great! This is definitely the place to be.
+If you're building a smart contract that uses Superfluid protocol, or even your own [SuperApp](https://docs.superfluid.finance/), then great! This is definitely the place to be.
 
 ### Installation
+
+Prerequisites: You need node.js v12+ and yarn installed.
+
+Once you have set up your project, cd into its base directory and add the npm package:
 
 ```sh
 $ yarn add @superfluid-finance/ethereum-contracts
@@ -46,6 +49,7 @@ You can then import Superfluid interfaces or contracts into your contracts like 
 ```js
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
+The paths in the npm package are the same as in this repository.
 
 ### Writing Tests
 
@@ -82,13 +86,12 @@ In order to write concise testing code, we further recommend the use of [`@super
 
 ### Examples
 
-You may also want to check out same example dapps in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples) instead of starting from scratch.
+You may also want to check out some example dapps in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples) instead of starting from scratch.
 Clone a project, modify and play!
 
 ### Deploying Superfluid Protocol
 
-In the section [Writing Tests](#Writing-Tests) deploy scripts are invoked from within JS code.
-
+In the example test code, you have seen how to deploy protocol contracts from JS code.
 In truffle projects, this deploy scripts can also be used on a CLI. E.g. in order to deploy to a local ganache dev chain:
 ```sh
 NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
@@ -108,12 +111,12 @@ After successful execution of this command, you should get something like this:
 export TEST_RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
 ```
 
-Run the export command to save TEST_RESOLVER_ADDRESS to your local environment.
-This allows tests/scripts running later in the same environment to find and use the contracts you deployed.
+Run the export command to save `TEST_RESOLVER_ADDRESS` to your local environment.
+This allows tests/scripts running later in the same environment to find and use the contracts just deployed.
 
 ## Contributing
 
-If you want to not just interface with Superfluid protocol contracts, but contribute, this is what you need:
+If you want contribute to Superfluid protocol contracts instead of just interfacing with them, the setup is a bit different.
 
 ### Setup Development Environment
 
@@ -137,17 +140,17 @@ cd packages/ethereum-contracts/
 ```
 
 Then prepare an `.env` file (see `.env.template`).
-The most important config items are RPC endpoint (`X_PROVIDER_URL`) and a sender account (`X_MNEMONIC`), _X_ being a network specific prefix - e.g. `GOERLI`.
-If you provide an actual mnemonic, the key derived at `m/44'/60'/0'/0/0` will be used. You can instead also use private keys (hex format).
+The most important config items are RPC endpoint (`<X>_PROVIDER_URL`) and a sender account (`<X>_MNEMONIC`), _<X>_ being a network specific prefix - e.g. `GOERLI_PROVIDER_URL`.
+If you provide an actual mnemonic, the key derived at `m/44'/60'/0'/0/0` will be used. You can instead also set private keys (hex format) for `<X>_MNEMONIC`.
 
-In order to get an overview of available config items, look for instances of `process.env` in `truffle-config.js` and in files in the `scripts` folder.
+In order to get an overview of available config items, look for instances of `process.env` in [truffle-config.js](truffle-config.js) and in files in the [scripts](scripts) folder.
 
 
 ### Testing
 
 We aim to have 100% test coverage. This requires test code to be modular, just like the contracts themselves.
-The test file hierarchy in `test/contracts` thus reflects the contract file hierarchy in `contracts`.
-Mock contracts reside in `contracts` (not in the `test` directory, as is often the case), because that way `truffle compile` will cache their artifacts in the `build` directory. This considerably speeds up test runs.
+The test file hierarchy in [test/contracts](test/contracts) thus reflects the contract file hierarchy in [contracts](contracts).
+Mock contracts reside in [contracts](contracts) (not in the [test](test) directory, as is often the case), because that way `yarn build` will cache their artifacts in the `build` directory. This considerably speeds up test runs.
 
 You can run either all tests, specific tests or test suites.
 
@@ -156,7 +159,7 @@ Run all tests:
 yarn test
 ```
 
-Run a specific test using the [execlusive tests](https://mochajs.org/#exclusive-tests) feature of MochaJS:
+Run a specific test using the [exclusive tests](https://mochajs.org/#exclusive-tests) feature of MochaJS:
 ```sh
 yarn pretest
 npx truffle test test/contracts/agreements/ConstantFlowAgreementV1.test.js
@@ -171,52 +174,46 @@ yarn posttest
 ```
 
 The `pretest` script starts a ganache instance with deterministic accounts in the background, the `posttest` script stops it.
-When running tests with `yarn test`, those get executed automatically ([reason](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
+When running tests with `yarn test`, those get executed automatically (see [npm docs](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
 
-### TDD Sessions
+### TDD Session
 
-When working on the contracts, a test driven approach is recommented.
-In order to facilitate that, you can easily set up a test environment which uses ganache with snapshots for much faster test executions:
+When working on the contracts, a test driven approach is recommended.
+In order to facilitate that, you can easily set up a test environment which uses ganache with snapshots for much faster test executions and thus iterations:
 
-First, start ganache configured as needed in the background:
+First, start ganache configured as needed in a terminal window:
 ```sh
-yarn pretest
+yarn testenv:start
 ```
-Then deploy a test environment:
+
+Then open another terminal window and continue there.
+If you're not planning to modify core contracts, set an environment variable:
 ```sh
-TESTENV_SNAPSHOT_VARS=testenv.ignore.vars npx truffle exec scripts/deploy-test-environment.js : TEST
+export TESTENV_SNAPSHOT_VARS=testenv.ignore.vars
 ```
-This will deploy the framework and a Super Token named _TEST_ (which is needed by many test cases).
-This command writes the address of the newly deployed resolver and snapshot information to a file `testenv.ignore.vars`.
-Its contents will look something like this:
+This env variable will be used by the deploy script executed in the next step to persist a resolver address and a ganache snapshot id to the configured file.
+Without this variable set, the protocol contracts will be re-deployed for every new test run, making the process considerably slower.
+Note: if you want to modify core contracts, you **need** to have them re-deployed after every change, thus should **not** set this env variable.
+
+Next, deploy a test environment:
+```sh
+yarn testenv:deploy
+```
+This will deploy the protocol contracts and a Super Token named _TEST_ (which is needed by many test cases).
+If you have set the env `TESTENV_SNAPSHOT_VARS` before, the file it's set to should now exist and look something like this:
 ```sh
 $ cat testenv.ignore.vars
 TEST_RESOLVER_ADDRESS=0xF12b5dd4EAD5F743C6BaA640B0216200e89B60Da
 TESTENV_EVM_SNAPSHOT_ID=0x1
 ```
 
-Now you can run selective tests
+Next, you should choose the tests relevant for what you're working on using the [only keyword](https://mochajs.org/#exclusive-tests).
+You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`) and individual testcases (`it`).
+`yarn dev` has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
+The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
-Now
-
-
-
-There are two major test suites:
-
--   Contracts (test/contracts.test.js) tests the contracts
-    Each contracts test suite is named as `test/{Type}/{ContractName}.test.js`.
--   Deployment (test/deployment.test.js) tests the deployment script
-
-```bash
-yarn test
-```
-
-Since testing can take a long time to execute, you may want to use the [execlusive tests](https://mochajs.org/#exclusive-tests) feature from MochaJS to isolate only the test you want. For example:
-
-```bash
-# Only run deployment.test.js
-nodemon -x npx truffle test ./test/contracts/superfluid/Superfluid.test.js
-```
+After finishing the session, you can stop the ganache instance you started in the first step (Ctrl-C).
+Also, don't forget to remove `only` keywords from test files before making git commits.
 
 ### Troubleshooting
 
@@ -224,7 +221,6 @@ Superfluid requires the [ERC-1820](https://eips.ethereum.org/EIPS/eip-1820) Regi
 If you use the deployment scripts as described above, that will be done automatically. If not, you may want to manually deploy ERC-1820 yourself. You can use `scripts/deploy-erc1820.js` to do so.
 
 In the [scripts folder](/scripts) you can find several scripts for deploying/configuring/querying protocol contracts.
-
 
 ## Show your support
 

@@ -181,6 +181,11 @@ module.exports = class TestEnvironment {
                     resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
                 });
                 await this.useLastEvmSnapshot();
+                await this.mintTestTokensAndApprove("TEST", {
+                    isTruffle,
+                    accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
+                });
+                await this.pushEvmSnapshot();
             }
         } else {
             console.debug(
@@ -284,7 +289,6 @@ module.exports = class TestEnvironment {
             version: process.env.RELEASE_VERSION || "test",
         });
         await sf.initialize();
-
         await sf.loadToken(tokenSymbol);
         const testToken = await TestToken.at(sf.tokens[tokenSymbol].address);
         const superToken = sf.tokens[tokenSymbol + "x"];
@@ -319,6 +323,37 @@ module.exports = class TestEnvironment {
             testToken: testToken,
             superToken: await SuperTokenMock.at(superToken.address),
         };
+    }
+
+    async mintTestTokensAndApprove(tokenSymbol, { isTruffle, accounts }) {
+        // load the SDK
+        const sf = new SuperfluidSDK.Framework({
+            gasReportType: this.gasReportType,
+            isTruffle: isTruffle,
+            version: process.env.RELEASE_VERSION || "test",
+        });
+        await sf.initialize();
+        await sf.loadToken(tokenSymbol);
+        const testToken = await TestToken.at(sf.tokens[tokenSymbol].address);
+        const superToken = sf.tokens[tokenSymbol + "x"];
+
+        // mint test tokens to test accounts
+        for (let i = 0; i < accounts.length; ++i) {
+            const userAddress = accounts[i];
+            await web3tx(
+                testToken.approve,
+                `TestToken.approve by account[${i}] to SuperToken`
+            )(superToken.address, this.constants.MAX_UINT256, {
+                from: userAddress,
+            });
+            await web3tx(testToken.mint, `Mint token for account[${i}]`)(
+                userAddress,
+                this.configs.INIT_BALANCE,
+                {
+                    from: userAddress,
+                }
+            );
+        }
     }
 
     async report({ title }) {

@@ -23,7 +23,7 @@
         "testenv:stop": "../ethereum-contracts/tasks/testenv-ctl.sh stop",
         "pretest": "{ run-s testenv:start > /dev/null& } && sleep 5",
         "test": "truffle test",
-        "posttest": "npm run testenv:stop",
+        "posttest": "yarn testenv:stop",
         "watch": "webpack --watch",
         "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
         "lint": "run-s lint:*",

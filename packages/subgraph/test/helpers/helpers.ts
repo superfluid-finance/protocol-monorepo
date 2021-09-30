@@ -1,10 +1,13 @@
 import { ethers } from "hardhat";
 import { BigNumber, ContractReceipt } from "ethers";
+import { BaseProvider } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import {
     IAccountTokenSnapshot,
+    IFlowUpdatedInitTestData,
+    IFlowUpdatedUpdateTestData,
     IMeta,
     IStreamData,
     ITokenStatistic,
@@ -15,6 +18,8 @@ import {
     FlowActionType,
 } from "./constants";
 import { SuperToken } from "../../typechain/SuperToken";
+import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
+import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -157,7 +162,9 @@ export const getCurrentTotalAmountStreamed = (
     );
 };
 
-// ID Getters for Entities
+/**************************************************************************
+ * Entity ID Getters
+ *************************************************************************/
 
 export const getEventId = (receipt: ContractReceipt) => {
     return (
@@ -187,7 +194,9 @@ export const getRevisionIndexId = (
         "-"
     );
 
-// Get Or Init Entities
+/**************************************************************************
+ * Entity Get or Init Functions
+ *************************************************************************/
 
 export const getOrInitRevisionIndex = (
     revisionIndex: { [id: string]: number | undefined },
@@ -275,7 +284,77 @@ export const getOrInitTokenStatic = (
     return existingTokenStats;
 };
 
-// Update entity helper functions
+/**
+ * Gets/Initializes all data for the FlowUpdated event
+ * @param testData
+ * @returns
+ */
+export function getOrInitializeDataForFlowUpdated(
+    testData: IFlowUpdatedInitTestData
+) {
+    const {
+        accountTokenSnapshots,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp,
+        receiver,
+        revisionIndexes,
+        sender,
+        streamData,
+        token,
+        tokenStatistics,
+    } = testData;
+
+    const revisionIndexId = getRevisionIndexId(sender, receiver, token);
+    const tokenId = token.toLowerCase();
+    const currentRevisionIndex = getOrInitRevisionIndex(
+        revisionIndexes,
+        revisionIndexId
+    );
+    const streamId = getStreamId(
+        sender,
+        receiver,
+        token,
+        currentRevisionIndex.toString()
+    );
+    const pastStreamData = getOrInitStreamData(
+        streamData,
+        streamId,
+        lastUpdatedAtTimestamp
+    );
+    const currentSenderATS = getOrInitAccountTokenSnapshot(
+        accountTokenSnapshots,
+        sender.toLowerCase(),
+        tokenId,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+    const currentReceiverATS = getOrInitAccountTokenSnapshot(
+        accountTokenSnapshots,
+        receiver.toLowerCase(),
+        tokenId,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+    const currentTokenStats = getOrInitTokenStatic(
+        tokenStatistics,
+        tokenId,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+
+    return {
+        currentSenderATS,
+        currentReceiverATS,
+        currentTokenStats,
+        pastStreamData,
+        revisionIndexId,
+    };
+}
+
+/**************************************************************************
+ * Entity Updaters (For expected values)
+ *************************************************************************/
+
 export const updateAndReturnStreamData = (
     currentStreamData: IStreamData,
     actionType: FlowActionType,
@@ -350,9 +429,6 @@ export const updateAndReturnATSOnFlowUpdated = async (
                   )
                   .toString()
             : currentATS.totalAmountStreamedUntilUpdatedAt;
-
-    // DO CALCULATIONS FIRST THEN SET THE VARIABLES
-    // REMEMBER THAT TIME IS A MAJOR GOTCHA
     return {
         ...currentATS,
         updatedAtBlock,
@@ -389,8 +465,6 @@ export const updateAndReturnTokenStatsOnFlowUpdated = (
         : toBN(currentTokenStats.totalOutflowRate).add(flowRateDelta);
     const totalOutflowRate = outflowRate.toString();
 
-    // TODO: consider summing all ATS and comparing it with that
-    // consider that the ATS updatedAt times are all different.
     const totalAmountStreamedUntilUpdatedAt = toBN(
         currentTokenStats.totalAmountStreamedUntilUpdatedAt
     )
@@ -402,6 +476,9 @@ export const updateAndReturnTokenStatsOnFlowUpdated = (
             )
         )
         .toString();
+
+    // TODO: consider summing all ATS and comparing it with that
+    // consider that the ATS updatedAt times are all different.
     const atsSum = accountTokenSnapshots
         .map((x) =>
             getCurrentTotalAmountStreamed(
@@ -412,14 +489,6 @@ export const updateAndReturnTokenStatsOnFlowUpdated = (
             )
         )
         .reduce((a, b) => a.add(b), toBN(0));
-    console.log(
-        "totalAmountStreamedUntilUpdatedAt",
-        totalAmountStreamedUntilUpdatedAt
-    );
-    console.log(
-        "accountTokenSnapshotStreamedUntilUpdatedAt",
-        atsSum.toString()
-    );
     return {
         ...currentTokenStats,
         updatedAtBlock,
@@ -431,4 +500,138 @@ export const updateAndReturnTokenStatsOnFlowUpdated = (
         totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt,
     } as ITokenStatistic;
+};
+
+export const getExpectedDataForFlowUpdated = async (
+    testData: IFlowUpdatedUpdateTestData
+) => {
+    const {
+        actionType,
+        accountTokenSnapshots,
+        flowRate,
+        lastUpdatedAtTimestamp,
+        lastUpdatedBlockNumber,
+        superToken,
+        pastStreamData,
+        currentSenderATS,
+        currentReceiverATS,
+        currentTokenStats,
+    } = testData;
+    // newFlowRate - previousFlowRate
+    const flowRateDelta = flowRate.sub(toBN(pastStreamData.oldFlowRate));
+
+    // Update the data - we use this for comparison
+    const updatedSenderATS = await updateAndReturnATSOnFlowUpdated(
+        superToken,
+        currentSenderATS,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp,
+        actionType,
+        true,
+        flowRate,
+        flowRateDelta
+    );
+    const updatedReceiverATS = await updateAndReturnATSOnFlowUpdated(
+        superToken,
+        currentReceiverATS,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp,
+        actionType,
+        false,
+        flowRate,
+        flowRateDelta
+    );
+    const updatedTokenStats = updateAndReturnTokenStatsOnFlowUpdated(
+        currentTokenStats,
+        accountTokenSnapshots,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp,
+        actionType,
+        flowRate,
+        flowRateDelta
+    );
+
+    return { updatedSenderATS, updatedReceiverATS, updatedTokenStats };
+};
+
+/**************************************************************************
+ * Modifier Functions
+ *************************************************************************/
+
+/**
+ * Create/Update/Delete a flow between a sender and receiver.
+ * Also waits for the graph to index and also returns the receipt
+ * of the txn and data from the blockchain.
+ * @param sf
+ * @param cfaV1
+ * @param actionType
+ * @param superToken
+ * @param sender
+ * @param receiver
+ * @param newFlowRate
+ * @returns txnReceipt, flow updatedAt (on-chain), flowRate (current on-chain)
+ */
+export const modifyFlowAndReturnCreatedFlowData = async (
+    provider: BaseProvider,
+    sf: Framework,
+    cfaV1: ConstantFlowAgreementV1,
+    actionType: FlowActionType,
+    superToken: string,
+    sender: string,
+    receiver: string,
+    newFlowRate: number
+) => {
+    const actionToTypeStringMap = new Map([
+        [FlowActionType.Create, "Create"],
+        [FlowActionType.Update, "Update"],
+        [FlowActionType.Delete, "Delete"],
+    ]);
+    console.log(
+        `********************** ${actionToTypeStringMap.get(
+            actionType
+        )} a flow **********************`
+    );
+    const sfCFA = sf.cfa as ConstantFlowAgreementV1Helper;
+    // any because it the txn.receipt doesn't exist on
+    // Transaction
+    const txn: any =
+        actionType === FlowActionType.Create
+            ? await sfCFA.createFlow({
+                  superToken,
+                  sender,
+                  receiver,
+                  flowRate: newFlowRate.toString(),
+                  userData: "0x",
+                  onTransaction: () => {},
+              })
+            : actionType === FlowActionType.Update
+            ? await sfCFA.updateFlow({
+                  superToken,
+                  sender,
+                  receiver,
+                  flowRate: newFlowRate.toString(),
+                  userData: "0x",
+                  onTransaction: () => {},
+              })
+            : await sfCFA.deleteFlow({
+                  superToken,
+                  sender,
+                  receiver,
+                  by: "",
+                  userData: "0x",
+                  onTransaction: () => {},
+              });
+
+    const receipt: ContractReceipt = txn.receipt;
+    const block = await provider.getBlock(receipt.blockNumber);
+    const timestamp = block.timestamp;
+    await waitUntilBlockIndexed(receipt.blockNumber);
+
+    const [, flowRate] = await cfaV1.getFlow(superToken, sender, receiver);
+
+    return {
+        receipt,
+        timestamp,
+        flowRate,
+    };
 };

@@ -2,6 +2,10 @@
  * GraphQL Entity Types
  *************************************************************************/
 
+import { BigNumber } from "@ethersproject/bignumber";
+import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
+import { SuperToken } from "../typechain/SuperToken";
 import { FlowActionType } from "./helpers/constants";
 
 /**
@@ -213,7 +217,7 @@ export interface ILightEntity {
  * Internal Interfaces
  *************************************************************************/
 export interface IStreamData {
-	id: string;
+    id: string;
     revisionIndex: string;
     oldFlowRate: string;
     streamedUntilUpdatedAt: string;
@@ -241,4 +245,40 @@ export interface IExpectedTokenStats {
     readonly totalNumberOfClosedStreams: number;
     readonly totalOutflowRate: string;
     readonly totalAmountStreamedUntilUpdatedAt: string;
+}
+
+export interface ILocalData {
+    readonly revisionIndexes: { [id: string]: number | undefined };
+    readonly streamData: { [id: string]: IStreamData | undefined };
+    readonly accountTokenSnapshots: {
+        [id: string]: IAccountTokenSnapshot | undefined;
+    };
+    readonly tokenStatistics: { [id: string]: ITokenStatistic | undefined };
+}
+
+export interface IContracts {
+    readonly sf: Framework;
+    readonly cfaV1: ConstantFlowAgreementV1;
+    readonly superToken: SuperToken;
+}
+
+export interface IFlowUpdatedInitTestData extends ILocalData {
+    readonly lastUpdatedAtTimestamp: string;
+    readonly lastUpdatedBlockNumber: string;
+    readonly sender: string;
+    readonly receiver: string;
+    readonly token: string;
+}
+
+export interface IFlowUpdatedUpdateTestData {
+    readonly actionType: FlowActionType;
+    readonly lastUpdatedBlockNumber: string;
+    readonly lastUpdatedAtTimestamp: string;
+    readonly accountTokenSnapshots: IAccountTokenSnapshot[];
+    readonly flowRate: BigNumber;
+    readonly superToken: SuperToken;
+    readonly pastStreamData: IStreamData;
+    readonly currentSenderATS: IAccountTokenSnapshot;
+    readonly currentReceiverATS: IAccountTokenSnapshot;
+    readonly currentTokenStats: ITokenStatistic;
 }

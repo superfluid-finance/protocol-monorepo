@@ -1,85 +1,140 @@
-import { ContractReceipt } from "ethers";
-import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import { waitUntilBlockIndexed } from "../helpers/helpers";
-import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
+import { BaseProvider } from "@ethersproject/providers";
+import {
+    getExpectedDataForFlowUpdated,
+    getOrInitializeDataForFlowUpdated,
+    modifyFlowAndReturnCreatedFlowData,
+    monthlyToSecondRate,
+    toBN,
+    updateAndReturnStreamData,
+} from "../helpers/helpers";
 import { FlowActionType } from "../helpers/constants";
-import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
+import { IAccountTokenSnapshot, IContracts, ILocalData } from "../interfaces";
+import { fetchFlowUpdatedEventAndValidate } from "./eventValidators";
+import { fetchStreamAndValidate } from "./holValidators";
+import {
+    fetchATSAndValidate,
+    fetchTokenStatsAndValidate,
+} from "./aggregateValidators";
 
-/**
- * Create/Update/Delete a flow between a sender and receiver.
- * Also waits for the graph to index and also returns the receipt
- * of the txn and data from the blockchain.
- * @param sf
- * @param cfaV1
- * @param actionType
- * @param superToken
- * @param sender
- * @param receiver
- * @param newFlowRate
- * @returns txnReceipt, flow updatedAt (on-chain), flowRate (current on-chain)
- */
-export const modifyFlowAndReturnCreatedFlowData = async (
-    sf: Framework,
-    cfaV1: ConstantFlowAgreementV1,
+export async function validateModifyFlow(
+    contracts: IContracts,
+    localData: ILocalData,
+    provider: BaseProvider,
     actionType: FlowActionType,
-    superToken: string,
+    newFlowRate: number,
     sender: string,
     receiver: string,
-    newFlowRate: number
-) => {
-    const actionToTypeStringMap = new Map([
-        [FlowActionType.Create, "Create"],
-        [FlowActionType.Update, "Update"],
-        [FlowActionType.Delete, "Delete"],
-    ]);
-    console.log(
-        `********************** ${actionToTypeStringMap.get(
-            actionType
-        )} a flow **********************`
-    );
-    const sfCFA = sf.cfa as ConstantFlowAgreementV1Helper;
-    // any because it the txn.receipt doesn't exist on
-    // Transaction
-    const txn: any =
-        actionType === FlowActionType.Create
-            ? await sfCFA.createFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  flowRate: newFlowRate.toString(),
-                  userData: "0x",
-                  onTransaction: () => {},
-              })
-            : actionType === FlowActionType.Update
-            ? await sfCFA.updateFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  flowRate: newFlowRate.toString(),
-                  userData: "0x",
-                  onTransaction: () => {},
-              })
-            : await sfCFA.deleteFlow({
-                  superToken,
-                  sender,
-                  receiver,
-                  by: "",
-                  userData: "0x",
-                  onTransaction: () => {},
-              });
+    tokenAddress: string
+) {
+    // Spread operator the variables
+    const { sf, cfaV1, superToken } = contracts;
+    const {
+        accountTokenSnapshots,
+        revisionIndexes,
+        streamData,
+        tokenStatistics,
+    } = localData;
 
-    const receipt: ContractReceipt = txn.receipt;
+    // create/update/delete a flow
+    const { receipt, timestamp, flowRate } =
+        await modifyFlowAndReturnCreatedFlowData(
+            provider,
+            sf,
+            cfaV1,
+            actionType,
+            superToken.address,
+            sender,
+            receiver,
+            monthlyToSecondRate(newFlowRate)
+        );
+    const lastUpdatedAtTimestamp = timestamp.toString();
+    const lastUpdatedBlockNumber = receipt.blockNumber.toString();
+    const tokenId = tokenAddress.toLowerCase();
 
-    await waitUntilBlockIndexed(receipt.blockNumber);
-
-    const [updatedAtTimestamp, flowRate] = await cfaV1.getFlow(
-        superToken,
+    // get or initialize the data
+    const {
+        currentReceiverATS,
+        currentSenderATS,
+        currentTokenStats,
+        pastStreamData,
+        revisionIndexId,
+    } = getOrInitializeDataForFlowUpdated({
+        lastUpdatedAtTimestamp,
+        lastUpdatedBlockNumber,
         sender,
-        receiver
+        receiver,
+        token: superToken.address,
+        accountTokenSnapshots,
+        revisionIndexes,
+        streamData,
+        tokenStatistics,
+    });
+
+    // update and return updated (expected) data
+    const accountTokenSnapshotsArray = Object.values(
+        accountTokenSnapshots
+    ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
+    const { updatedSenderATS, updatedReceiverATS, updatedTokenStats } =
+        await getExpectedDataForFlowUpdated({
+            actionType,
+            lastUpdatedBlockNumber,
+            lastUpdatedAtTimestamp,
+            accountTokenSnapshots: accountTokenSnapshotsArray,
+            flowRate,
+            superToken,
+            pastStreamData,
+            currentSenderATS,
+            currentReceiverATS,
+            currentTokenStats,
+        });
+
+    const streamedAmountSinceUpdatedAt = toBN(pastStreamData.oldFlowRate).mul(
+        toBN(lastUpdatedAtTimestamp).sub(
+            toBN(pastStreamData.lastUpdatedAtTimestamp)
+        )
     );
-    return {
+
+    // validate FlowUpdatedEvent
+    await fetchFlowUpdatedEventAndValidate(
+        cfaV1,
         receipt,
-        updatedAtTimestamp,
-        flowRate,
+        tokenAddress,
+        sender,
+        receiver,
+        flowRate.toString(),
+        pastStreamData.oldFlowRate,
+        actionType
+    );
+
+    // validate Stream HOL
+    await fetchStreamAndValidate(
+        pastStreamData,
+        streamedAmountSinceUpdatedAt,
+        flowRate.toString()
+    );
+
+    // validate sender ATS
+    await fetchATSAndValidate(currentSenderATS.id, updatedSenderATS);
+
+    // validate receiver ATS
+    await fetchATSAndValidate(currentReceiverATS.id, updatedReceiverATS);
+
+    // validate token stats
+    await fetchTokenStatsAndValidate(tokenId, updatedTokenStats);
+
+    let updatedStreamData = updateAndReturnStreamData(
+        pastStreamData,
+        actionType,
+        flowRate.toString(),
+        lastUpdatedAtTimestamp,
+        streamedAmountSinceUpdatedAt
+    );
+
+    return {
+        revisionIndexId,
+        updatedStreamData,
+        updatedReceiverATS,
+        updatedSenderATS,
+        updatedTokenStats,
     };
-};
+}

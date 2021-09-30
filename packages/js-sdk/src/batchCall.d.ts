@@ -1,5 +1,5 @@
 // TODO set batchCall return type
-import { Transaction } from 'web3-core'
+import type { Transaction } from 'web3-core'
 
 // ERC20 Approve/TransferFrom
 type ERC20OperationType = 'ERC20_APPROVE'| 'ERC20_TRANSFER_FROM' | 1 | 2;

@@ -1,16 +1,6 @@
-export const getConfig: (chainId: any) => any;
-export const loadContracts: ({ isTruffle, ethers, web3, from, additionalContracts, contractLoader, networkId, }: {
-    isTruffle: any;
-    ethers: any;
-    web3: any;
-    from: any;
-    additionalContracts: any;
-    contractLoader: any;
-    networkId: any;
-}) => Promise<{}>;
-export const Framework: {
-    new (options: any): import("./Framework");
-};
+export type { getConfig } from './getConfig';
+export type { loadContracts } from './loadContracts';
+export type { Framework } from './Framework';
 
 export type { Record } from './utils/gasMetering/gasMetering';
 

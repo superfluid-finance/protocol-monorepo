@@ -1,5 +1,5 @@
-import Framework from "./Framework";
-import type BN from 'bn.js'
+import type { Framework } from "./Framework";
+import type BN from 'bn.js';
 export declare class Utils {
     constructor(sf: Framework);
     _sf: Framework;

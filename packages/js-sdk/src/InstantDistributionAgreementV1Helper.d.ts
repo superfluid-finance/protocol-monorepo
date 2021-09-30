@@ -1,5 +1,5 @@
-import { Transaction } from "web3-core";
-import Framework from "./Framework";
+import type { Transaction } from "web3-core";
+import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from 'bn.js';
 
@@ -13,9 +13,9 @@ export interface Subscription {
 export declare class InstantDistributionAgreementV1Helper {
     static _sanitizeIndexData({ exist, indexValue, totalUnitsApproved, totalUnitsPending, }: {
         exist: boolean;
-        indexValue: any;
-        totalUnitsApproved: any;
-        totalUnitsPending: any;
+        indexValue: number | BN;
+        totalUnitsApproved: number | BN;
+        totalUnitsPending: number | BN;
     }): {
         exist: boolean;
         indexValue: string;
@@ -25,8 +25,8 @@ export declare class InstantDistributionAgreementV1Helper {
     static _sanitizeSubscriptionData({ exist, approved, units, pendingDistribution, }: {
         exist: boolean;
         approved: boolean;
-        units: any;
-        pendingDistribution: any;
+        units: number | BN;
+        pendingDistribution: number | BN;
     }): {
         exist: boolean;
         approved: boolean;
@@ -35,8 +35,8 @@ export declare class InstantDistributionAgreementV1Helper {
     };
     static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }: {
         publishers: any[];
-        indexIds: any;
-        unitsList: any;
+        indexIds: number | BN;
+        unitsList: number | BN;
     }): {
        publisher: string;
        indexId: string;
@@ -63,7 +63,7 @@ export declare class InstantDistributionAgreementV1Helper {
         superToken: string;
         publisher: string;
         indexId: number;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -80,7 +80,7 @@ export declare class InstantDistributionAgreementV1Helper {
         publisher: string;
         indexId: number;
         amount: BN;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -100,7 +100,7 @@ export declare class InstantDistributionAgreementV1Helper {
         publisher: string;
         indexId: number; 
         indexValue: BN;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -119,7 +119,7 @@ export declare class InstantDistributionAgreementV1Helper {
         indexId: number;
         subscriber: string;
         units: BN;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -140,7 +140,7 @@ export declare class InstantDistributionAgreementV1Helper {
         publisher: string;
         indexId: number;
         subscriber: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -160,7 +160,7 @@ export declare class InstantDistributionAgreementV1Helper {
         indexId: number;
         publisher: string;
         subscriber: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -182,7 +182,7 @@ export declare class InstantDistributionAgreementV1Helper {
         publisher: string;
         subscriber: string;
         sender: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**
@@ -218,7 +218,7 @@ export declare class InstantDistributionAgreementV1Helper {
         indexId: number;
         subscriber: string;
         sender: string;
-        userData: any;
+        userData: string;
         onTransaction: () => any;
     }): Promise<Transaction>;
     /**

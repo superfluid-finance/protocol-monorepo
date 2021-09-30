@@ -17,16 +17,20 @@
         "test/TestEnvironment.js"
     ],
     "scripts": {
-        "dev": "nodemon -e sol,js -i build -x 'yarn test 2>&1'",
+        "dev": "nodemon -e sol,js -i build -x 'yarn test:contracts:js 2>&1'",
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;truffle compile",
+        "testenv:start": "tasks/testenv-ctl.sh start",
+        "testenv:stop": "tasks/testenv-ctl.sh stop",
+        "testenv:deploy": "truffle exec scripts/deploy-test-environment.js : TEST",
+        "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
-        "test:contracts:js": "truffle test test/contracts.test.js",
+        "test:contracts:js": "truffle test testsuites/all-contracts.js",
         "test:contracts:sol": "truffle test test/contracts/*/*.sol",
-        "test:deployment:embeded": "truffle test test/deployment.test.js",
-        "test:deployment:scripts": "test/deployment.test.sh",
-        "test-coverage": "truffle run coverage --file test/contracts.test.js",
-        "proxify": "truffle-flattener contracts/RToken.sol > flat.ignore.sol && sol-proxy create flat.ignore.sol",
+        "test:scripts-js:deployment": "truffle test test/scripts/deployment.test.js",
+        "test:scripts-sh:deployment": "test/scripts/deployment.test.sh",
+        "test-coverage": "truffle run coverage --network coverage --file testsuites/all-contracts.js",
+        "posttest": "yarn testenv:stop",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives --fix && echo '✔  Your .js files look good.'",
@@ -39,23 +43,23 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "3.4.1",
-        "@superfluid-finance/js-sdk": "0.5.3",
-        "@truffle/contract": "4.3.34",
+        "@superfluid-finance/js-sdk": "0.5.4",
+        "@truffle/contract": "4.3.35",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.0",
         "stack-trace": "0.0.10"
     },
     "devDependencies": {
-        "@openzeppelin/test-helpers": "0.5.12",
+        "@openzeppelin/test-helpers": "0.5.13",
         "@truffle/hdwallet-provider": "^1.5.0",
         "async": "^3.2.1",
         "dotenv": "10.0.0",
         "ganache-time-traveler": "1.0.16",
         "readline": "1.3.0",
         "solhint": "3.3.6",
-        "solidity-coverage": "0.7.16",
-        "truffle": "5.4.10",
+        "solidity-coverage": "0.7.17",
+        "truffle": "5.4.11",
         "truffle-flattener": "^1.5.0",
-        "truffle-plugin-verify": "^0.5.11"
+        "truffle-plugin-verify": "^0.5.15"
     }
 }

@@ -1,7 +1,32 @@
-import { ethers, Contract as EthersContract, utils } from "ethers"; 
+import type { ethers, Contract as EthersContract, utils, ContractInterface } from "ethers"; 
 import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
 import type Web3 from "web3";
+
+type SuperfluidContractNames =
+  | 'ERC20WithTokenInfo'
+  | 'IConstantFlowAgreementV1'
+  | 'IERC20'
+  | 'IInstantDistributionAgreementV1'
+  | 'IResolver'
+  | 'ISETH'
+  | 'ISuperAgreement'
+  | 'ISuperToken'
+  | 'ISuperTokenFactory'
+  | 'ISuperfluid'
+  | 'ISuperfluidGovernance'
+  | 'SuperfluidLoader'
+  | 'TestToken'
+  | 'TokenInfo'
+  | 'UUPSProxiable';
+
+export type SuperfluidContractObject = {
+  abi: ContractInterface;
+  contractName: SuperfluidContractNames;
+  at: (address: string) => EthersContract;
+}
+
+export type SuperfluidContracts = Record<SuperfluidContractNames, SuperfluidContractObject>
 
 export interface EthersWithSigner {
     getSigner(): () => any
@@ -30,4 +55,4 @@ export declare function loadContracts({ isTruffle, ethers, web3, from, additiona
     additionalContracts?: string[];
     contractLoader: ContractLoader;
     networkId: number;
-}): Promise<LoadedContract[]>;
+}): Promise<SuperfluidContracts>;

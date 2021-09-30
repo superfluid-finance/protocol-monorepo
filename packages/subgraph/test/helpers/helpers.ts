@@ -207,6 +207,7 @@ export const getOrInitRevisionIndex = (
 
 export const getOrInitStreamData = (
     streamData: { [id: string]: IStreamData | undefined },
+    revisionIndex: string,
     streamId: string,
     lastUpdatedAtTimestamp: string
 ) => {
@@ -214,7 +215,7 @@ export const getOrInitStreamData = (
     if (existingStreamData == null) {
         return {
             id: streamId,
-            revisionIndex: "0",
+            revisionIndex,
             oldFlowRate: "0",
             streamedUntilUpdatedAt: "0",
             lastUpdatedAtTimestamp,
@@ -318,6 +319,7 @@ export function getOrInitializeDataForFlowUpdated(
     );
     const pastStreamData = getOrInitStreamData(
         streamData,
+        currentRevisionIndex.toString(),
         streamId,
         lastUpdatedAtTimestamp
     );

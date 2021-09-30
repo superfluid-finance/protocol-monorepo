@@ -219,7 +219,7 @@ describe("Subgraph Tests", () => {
 
         it("Should return correct data after updating multiple flows from many to one person.", async () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
-            for (let i = 1; i < userAddresses.length; i++) {
+            for (let i = 1; i < userAddresses.length / 2; i++) {
                 const {
                     revisionIndexId,
                     updatedStreamData,
@@ -247,7 +247,7 @@ describe("Subgraph Tests", () => {
                 );
             }
 
-            for (let i = 1; i < userAddresses.length; i++) {
+            for (let i = 1; i < userAddresses.length / 2; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
                 const {
                     revisionIndexId,
@@ -280,9 +280,39 @@ describe("Subgraph Tests", () => {
         /**
          * Flow Delete Tests
          */
-        it("Should return correct data after deleting a created flow.", async () => {});
+        it("Should return correct data after deleting a created flow.", async () => {
+            // delete the updated flows
+            for (let i = userAddresses.length / 2; i < userAddresses.length; i++) {
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
+                    getContracts(),
+                    getLocalData(),
+                    provider,
+                    FlowActionType.Delete,
+                    0,
+                    userAddresses[i],
+                    userAddresses[0],
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
+                );
+            }
+        });
 
         it("Should return correct data after deleting an updated flow.", async () => {
+            // delete the updated flows
             for (let i = 1; i < userAddresses.length; i++) {
                 const {
                     revisionIndexId,
@@ -312,8 +342,66 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it("Should return correct data after creating a flow after deleting.", async () => {});
+        it("Should return correct data after creating a flow after deleting.", async () => {
+            for (let i = 1; i < userAddresses.length; i++) {
+                const randomFlowRate = getRandomFlowRate(1000);
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
+                    getContracts(),
+                    getLocalData(),
+                    provider,
+                    FlowActionType.Create,
+                    randomFlowRate,
+                    userAddresses[0],
+                    userAddresses[i],
+                    daix.address
+                );
 
-        it("Should return correct data after creating and updating a flow after deleting.", async () => {});
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
+                );
+            }
+        });
+
+        it("Should return correct data after updating a flow after deleting.", async () => {
+            const randomFlowRate = getRandomFlowRate(1000);
+            for (let i = 1; i < userAddresses.length; i++) {
+                const {
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats,
+                } = await validateModifyFlow(
+                    getContracts(),
+                    getLocalData(),
+                    provider,
+                    FlowActionType.Update,
+                    randomFlowRate,
+                    userAddresses[0],
+                    userAddresses[i],
+                    daix.address
+                );
+
+                // update the global environment objects
+                updateGlobalObjects(
+                    revisionIndexId,
+                    updatedStreamData,
+                    updatedSenderATS,
+                    updatedReceiverATS,
+                    updatedTokenStats
+                );
+            }
+        });
     });
 });

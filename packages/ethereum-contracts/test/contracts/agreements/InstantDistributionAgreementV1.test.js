@@ -15,24 +15,27 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = "42";
 
-contract("Using InstanceDistributionAgreement v1", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 5), {
-        isTruffle: true,
-        useMocks: true,
-    });
-    const { alice, bob, carol, dan } = t.aliases;
+describe("Using InstantDistributionAgreement v1", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
+
     const { INIT_BALANCE } = t.configs;
 
-    before(async () => {
-        await t.reset();
-    });
-
+    let alice, bob, carol, dan;
     let superToken;
 
+    before(async function () {
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 5,
+        });
+        ({ alice, bob, carol, dan } = t.aliases);
+
+        superToken = t.sf.tokens.TESTx;
+    });
+
     beforeEach(async function () {
-        await t.resetForTestCase();
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken } = t.contracts);
+        await t.beforeEachTestCase();
     });
 
     async function testExpectedBalances(expectedBalances) {
@@ -58,6 +61,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.1.1 publisher can create a new index", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
@@ -68,6 +72,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.1.2 publisher should fail to create the same index", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
@@ -75,6 +80,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldCreateIndex({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                     }),
@@ -95,12 +101,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -109,6 +117,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -156,12 +165,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -170,6 +181,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -181,6 +193,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -193,6 +206,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldDistribute({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         indexValue: "199",
@@ -206,12 +220,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -220,6 +236,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     amount: toWad(1).toString(),
@@ -231,6 +248,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     amount: toWad(1).toString(),
@@ -244,12 +262,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.1.8 publisher cannot distribute with insufficient balance", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -259,6 +279,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldDistribute({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         amount: toWad(1).toString(),
@@ -272,11 +293,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.2.1 subscriber can approve a subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -286,11 +309,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.2.2 subscriber should fail to approve a subscription twice", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -298,6 +323,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldApproveSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -312,12 +338,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -330,6 +358,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -338,6 +367,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -345,6 +375,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDeleteSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -365,12 +396,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -379,6 +412,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -386,6 +420,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDeleteSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -406,12 +441,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -420,6 +457,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -427,6 +465,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDeleteSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -444,12 +483,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.2.6 subscriber should fail to delete a non-existen subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await expectRevert(
                     shouldDeleteSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -463,6 +504,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldDeleteSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -475,11 +517,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.2.8 one should fail to delete other's subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -487,6 +531,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldDeleteSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -502,12 +547,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -520,6 +567,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDeleteSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -533,6 +581,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -548,6 +597,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldApproveSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -557,6 +607,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldUpdateSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -581,12 +632,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -595,6 +648,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -607,6 +661,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -618,6 +673,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldRevokeSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -630,6 +686,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "500",
@@ -645,11 +702,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.2.12 subscriber should fail to revoke an pending subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -658,6 +717,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldRevokeSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -669,12 +729,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.2.13 subscriber should fail to revoke a non-existen subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await expectRevert(
                     shouldRevokeSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -687,6 +749,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldRevokeSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -704,12 +767,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -726,6 +791,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -743,6 +809,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -758,12 +825,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -777,6 +846,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -790,6 +860,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "100",
@@ -804,6 +875,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -829,12 +901,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -848,6 +922,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -866,6 +941,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "100",
@@ -891,12 +967,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -910,6 +988,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "100",
@@ -922,6 +1001,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -935,6 +1015,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "200",
@@ -947,6 +1028,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -974,12 +1056,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -988,6 +1072,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "100",
@@ -1005,6 +1090,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldClaimPendingDistribution({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -1017,6 +1103,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldClaimPendingDistribution({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -1029,12 +1116,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "300",
@@ -1047,11 +1136,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await t.upgradeBalance("alice", INIT_BALANCE);
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -1059,12 +1150,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 });
                 await shouldDistribute({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     indexValue: "100",
                 });
                 await shouldClaimPendingDistribution({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -1075,6 +1168,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.4.3 one should not claim from a non-existent subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
@@ -1082,6 +1176,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -1095,6 +1190,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -1107,12 +1203,14 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             it("#1.4.5 subscriber should not claim from a already approved subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
 
                 await shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
@@ -1121,6 +1219,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
@@ -1162,6 +1261,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
         it("#2.1 approveSubscription AgreementCreated callbacks", async () => {
             const tx = await shouldApproveSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1197,6 +1297,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             const units = toWad("0.003").toString();
             await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1210,6 +1311,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
             const tx = await shouldApproveSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1252,11 +1354,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             const units = toWad("0.003").toString();
             await shouldCreateIndex({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
             });
             const tx = await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "app",
@@ -1294,11 +1398,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             const units2 = toWad("0.004").toString();
             await shouldCreateIndex({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
             });
             await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "app",
@@ -1314,6 +1420,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
             const tx = await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "app",
@@ -1357,6 +1464,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             const units = toWad("0.003").toString();
             await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1370,6 +1478,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
             const tx = await shouldDeleteSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1406,11 +1515,13 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             const units = toWad("0.003").toString();
             await shouldCreateIndex({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
             });
             await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "app",
@@ -1426,6 +1537,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
             const tx = await shouldDeleteSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "app",
@@ -1466,6 +1578,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             const distributionAmount = toWad(1).toString();
             await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1479,6 +1592,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 amount: distributionAmount,
@@ -1491,6 +1605,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             });
             const tx = await shouldClaimPendingDistribution({
                 testenv: t,
+                superToken,
                 publisherName: "app",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "alice",
@@ -1531,6 +1646,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             await expectRevert(
                 shouldApproveSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "app",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "alice",
@@ -1634,6 +1750,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             await shouldCreateIndex({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
             });
@@ -1652,6 +1769,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 if (doApprove) {
                     await shouldApproveSubscription({
                         testenv: t,
+                        superToken,
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: subscriberName,
@@ -1660,6 +1778,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: subscriberName,
@@ -1682,6 +1801,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "100",
@@ -1695,6 +1815,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "300",
@@ -1708,6 +1829,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             await shouldDeleteSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "dan",
@@ -1722,6 +1844,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "400",
@@ -1753,6 +1876,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldCreateIndex({
                     testenv: t,
+                    superToken,
                     publisherName,
                     indexId: DEFAULT_INDEX_ID,
                 });
@@ -1760,6 +1884,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
                 if (doApprove) {
                     await shouldApproveSubscription({
                         testenv: t,
+                        superToken,
                         publisherName,
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "dan",
@@ -1768,6 +1893,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
                 await shouldUpdateSubscription({
                     testenv: t,
+                    superToken,
                     publisherName,
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "dan",
@@ -1787,6 +1913,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             // Alice distributes tokens (100 * 0.0001 = 0.01)
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "100",
@@ -1800,6 +1927,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             // Bob distributes tokens (200 * 0.0002 = 0.04)
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "bob",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "200",
@@ -1813,6 +1941,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             // Alice update Dan's subscription with more units
             await shouldUpdateSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "dan",
@@ -1822,6 +1951,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
             // Alice distributes tokens again (100 * 0.0003 = 0.03)
             await shouldDistribute({
                 testenv: t,
+                superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 indexValue: "200",
@@ -1834,6 +1964,7 @@ contract("Using InstanceDistributionAgreement v1", (accounts) => {
 
             await shouldApproveSubscription({
                 testenv: t,
+                superToken,
                 publisherName: "bob",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "dan",

@@ -18,7 +18,7 @@
 </p>
 </div>
 
-> Ethereum contracts implementation for the Superfluid Protocol
+> EVM contracts implementation for the Superfluid Protocol
 
 ### 🏠 [Homepage](https://superfluid.finance)
 
@@ -28,7 +28,7 @@
 
 ## Usage
 
-If you're building a dapp using the deployed contracts (goerli or mainnet) then you should instead use [`@superfluid-finance/js-sdk`](/packages/js-sdk).
+If you're building a dapp using existing protocol or Super Token contracts, then you should use [`@superfluid-finance/js-sdk`](/packages/js-sdk). [Here](https://docs.superfluid.finance/superfluid/networks/networks) you can find a list of networks where the Superfluid protocol is already deployed.
 
 If you're building a smart contract that uses Superfluid protocol,
 or even your own [SuperApp](https://docs.superfluid.finance/), then great! This is definitely the place to be.
@@ -41,16 +41,16 @@ $ yarn add @superfluid-finance/ethereum-contracts
 
 ### Smart Contract
 
-The contracts can be imported into your `.sol` file like this:
+You can then import Superfluid interfaces or contracts into your contracts like this:
 
 ```js
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 ```
 
-### Writing Test
+### Writing Tests
 
-For writing tests, you can use the the deployment scripts to deploy all the necessary contracts. Currently they only works with [web3.js](https://github.com/ChainSafe/web3.js),
-we are working on to support to other frameworks in the future.
+For convenient testing, the package contains deployment scripts which allow you to set up and initialize the protocol and test tokens with a few lines of code.
+Currently, this requires [web3.js](https://github.com/ChainSafe/web3.js), support for other frameworks is work in progress.
 
 ```js
 const deployFramework = require("@superfluid-finance/ethereum-contracts/scripts/deploy-framework");
@@ -78,64 +78,29 @@ contract("My Test", accounts => {
         });
     });
 ```
+In order to write concise testing code, we further recommend the use of [`@superfluid-finance/js-sdk`](/packages/js-sdk) not only in your UI code, but also in JS contract tests.
 
-To interact with the protocol, you should consider to use the
-[`@superfluid-finance/js-sdk`](/packages/js-sdk). Here is a quick-start example:
+### Examples
 
-```js
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-
-let sf;
-let daix;
-
-beforeEach(async () => {
-    await deployTestToken(errorHandler, [":", "fDAI"], {
-        web3,
-        from: admin,
-    });
-    await deploySuperToken(errorHandler, [":", "fDAI"], {
-        web3,
-        from: admin,
-    });
-
-    sf = new SuperfluidSDK.Framework({
-        web3,
-        version: "test",
-        tokens: ["fDAI"],
-    });
-    await sf.initialize();
-
-    daix = sf.tokens.fDAIx;
-
-    // Create user objects
-    admin = sf.user({ address: adminAddress, token: daix.address });
-    alice = sf.user({ address: aliceAddress, token: daix.address });
-});
-```
-
-Awesome, now that you have the basics, check out the apps over in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples).
+You may also want to check out same example dapps in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples) instead of starting from scratch.
+Clone a project, modify and play!
 
 ### Deploying Superfluid Protocol
 
-**Local**
+In the section [Writing Tests](#Writing-Tests) deploy scripts are invoked from within JS code.
 
-To deploy to your local ganache environment:
-
+In truffle projects, this deploy scripts can also be used on a CLI. E.g. in order to deploy to a local ganache dev chain:
 ```sh
-DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
+NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
 ```
 
-**Public**
+In order to deploy to another network, set the `network` argument accordingly.
 
-If you want to deploy to a public network:
+`NEW_TEST_RESOLVER=1` forces the script to deploy a new resolver even if there's one already deployed (this is the case on Ethereum testnets). That's useful because otherwise the script would try to use the pre-existing resolver and have failing transactions due to lacking permissions.
 
-```sh
-NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network goerli exec "node_modules/@superfluid-finance/ethereum-contracts/scripts/deploy-test-environment.js"
-```
+`DISABLE_NATIVE_TRUFFLE=true` tells the script to use the contract binaries bundled with the npm package.
 
-Note `NEW_TEST_RESOLVER=1`, it is to avoid using the official resolver address. Doing so
-after the command finishes, you should see:
-
+After successful execution of this command, you should get something like this:
 ```
 ...
 ======== Super token deployed ========
@@ -144,51 +109,99 @@ export TEST_RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
 ```
 
 Run the export command to save TEST_RESOLVER_ADDRESS to your local environment.
-Whenever you run additional tests/scripts this will be the address used to find the SF Framework contracts.
-
-### Examples
-
-We created a few [examples here](/examples). So that you don't have to start everything
-from the scratch. Clone a project, modify and play!
-
-### Troubleshooting
-
-One thing to keep in mind is that Superfluid relies on a persistent 1820 registry contract. This must be deployed before you can interact with the protocol. If you follow the examples using the deployment scripts, you don't need to worry about it.
-
-If you want to see examples for manually deploying contracts, check out the [scripts folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/scripts).
-
-In case your curious, or really hacking away, you might want to deploy the registry manually. Here is an example for how to deploy the 1820 contract to a local Ganache. (read more about [EIP 1820 Pseudo-introspection Registry Contract](https://eips.ethereum.org/EIPS/eip-1820))
-
-```bash
-# Start Ganache on 127.0.0.1:8545
-ganache-cli
-
-# Build the contracts + prepare the SDK
-yarn build
-
-# Deploy the 1820 contract
-cd packages/ethereum-contracts
-npx truffle exec scripts/deploy-erc1820.js --network ganache
-
-# Now you can run tests and interact with the protocol
-yarn test
-```
+This allows tests/scripts running later in the same environment to find and use the contracts you deployed.
 
 ## Contributing
 
+If you want to not just interface with Superfluid protocol contracts, but contribute, this is what you need:
+
 ### Setup Development Environment
 
-1. Install dependencies
+Prerequisites: You need node.js v12+ and yarn installed.
+
+First, check out this repository and cd into it.
+```sh
+git clone https://github.com/superfluid-finance/protocol-monorepo.git
+cd protocol-monorepo/
+```
+
+Then install dependencies:
 
 ```sh
 yarn install
 ```
 
-2. Setup your own `.env` file from `.env.template`
+Now cd to the contracts directory:
+```sh
+cd packages/ethereum-contracts/
+```
+
+Then prepare an `.env` file (see `.env.template`).
+The most important config items are RPC endpoint (`X_PROVIDER_URL`) and a sender account (`X_MNEMONIC`), _X_ being a network specific prefix - e.g. `GOERLI`.
+If you provide an actual mnemonic, the key derived at `m/44'/60'/0'/0/0` will be used. You can instead also use private keys (hex format).
+
+In order to get an overview of available config items, look for instances of `process.env` in `truffle-config.js` and in files in the `scripts` folder.
+
 
 ### Testing
 
-There are two major test suite:
+We aim to have 100% test coverage. This requires test code to be modular, just like the contracts themselves.
+The test file hierarchy in `test/contracts` thus reflects the contract file hierarchy in `contracts`.
+Mock contracts reside in `contracts` (not in the `test` directory, as is often the case), because that way `truffle compile` will cache their artifacts in the `build` directory. This considerably speeds up test runs.
+
+You can run either all tests, specific tests or test suites.
+
+Run all tests:
+```sh
+yarn test
+```
+
+Run a specific test using the [execlusive tests](https://mochajs.org/#exclusive-tests) feature of MochaJS:
+```sh
+yarn pretest
+npx truffle test test/contracts/agreements/ConstantFlowAgreementV1.test.js
+yarn posttest
+```
+
+Run the test suite for core contracts:
+```sh
+yarn pretest
+npx truffle test testsuites/superfluid-core.js
+yarn posttest
+```
+
+The `pretest` script starts a ganache instance with deterministic accounts in the background, the `posttest` script stops it.
+When running tests with `yarn test`, those get executed automatically ([reason](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
+
+### TDD Sessions
+
+When working on the contracts, a test driven approach is recommented.
+In order to facilitate that, you can easily set up a test environment which uses ganache with snapshots for much faster test executions:
+
+First, start ganache configured as needed in the background:
+```sh
+yarn pretest
+```
+Then deploy a test environment:
+```sh
+TESTENV_SNAPSHOT_VARS=testenv.ignore.vars npx truffle exec scripts/deploy-test-environment.js : TEST
+```
+This will deploy the framework and a Super Token named _TEST_ (which is needed by many test cases).
+This command writes the address of the newly deployed resolver and snapshot information to a file `testenv.ignore.vars`.
+Its contents will look something like this:
+```sh
+$ cat testenv.ignore.vars
+TEST_RESOLVER_ADDRESS=0xF12b5dd4EAD5F743C6BaA640B0216200e89B60Da
+TESTENV_EVM_SNAPSHOT_ID=0x1
+```
+
+Now you can run selective tests
+
+Now
+
+
+
+There are two major test suites:
 
 -   Contracts (test/contracts.test.js) tests the contracts
     Each contracts test suite is named as `test/{Type}/{ContractName}.test.js`.
@@ -204,6 +217,14 @@ Since testing can take a long time to execute, you may want to use the [execlusi
 # Only run deployment.test.js
 nodemon -x npx truffle test ./test/contracts/superfluid/Superfluid.test.js
 ```
+
+### Troubleshooting
+
+Superfluid requires the [ERC-1820](https://eips.ethereum.org/EIPS/eip-1820) Registry contract to be deployed. That's because [ERC-777](https://eips.ethereum.org/EIPS/eip-777) - the basis for Super Tokens - depends on it.
+If you use the deployment scripts as described above, that will be done automatically. If not, you may want to manually deploy ERC-1820 yourself. You can use `scripts/deploy-erc1820.js` to do so.
+
+In the [scripts folder](/scripts) you can find several scripts for deploying/configuring/querying protocol contracts.
+
 
 ## Show your support
 

@@ -42,4 +42,4 @@ npx truffle exec scripts/deploy-test-environment.js | tee >(tail -n1 > $ENVFILE)
 source $ENVFILE
 
 npx truffle exec scripts/print-addresses.js : >(cat)
-npx truffle exec scripts/inspect-account.js : 0x00000000219ab540356cbb839cbe05303d7705fa # check vitalik
+npx truffle exec scripts/inspect-account.js : 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 # check vitalik

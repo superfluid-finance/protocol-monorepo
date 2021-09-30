@@ -15,7 +15,7 @@ const TestEnvironment = require("../../TestEnvironment");
 
 const DEFAULT_INDEX_ID = "42";
 
-describe("Using InstanceDistributionAgreement v1", function () {
+describe("Using InstantDistributionAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 

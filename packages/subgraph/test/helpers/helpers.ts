@@ -132,6 +132,26 @@ export const subgraphRequest = async <T>(
     }
 };
 
+export const fetchEventAndEnsureExistence = async <T>(
+    query: string,
+    transactionHash: string,
+    eventName: string
+) => {
+    const vars = {
+        transactionHash,
+    };
+    const { events } = await subgraphRequest<{
+        events: T[];
+    }>(query, vars);
+    const event = events[0];
+
+    if (!event) {
+        throw new Error(eventName + " entity not found.");
+    }
+
+    return event;
+};
+
 /**
  * To ethers.BigNumber
  */

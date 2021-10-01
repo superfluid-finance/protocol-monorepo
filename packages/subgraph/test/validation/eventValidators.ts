@@ -2,12 +2,11 @@ import { ContractReceipt } from "@ethersproject/contracts";
 import { expect } from "chai";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { FlowActionType } from "../helpers/constants";
-import { subgraphRequest } from "../helpers/helpers";
+import { fetchEventAndEnsureExistence } from "../helpers/helpers";
 import { IEvent, IFlowUpdated } from "../interfaces";
-import { getFlowUpdatedEvents, getSingleEvent } from "../queries/eventQueries";
+import { getFlowUpdatedEvents } from "../queries/eventQueries";
 
 // Event Entity Validator Functions
-
 /**
  * Query The Graph for FlowUpdated event and validate
  * that the properties on the event are as expected.
@@ -30,21 +29,11 @@ export const fetchFlowUpdatedEventAndValidate = async (
     oldFlowRate: string,
     actionType: FlowActionType
 ) => {
-    const flowUpdatedVars = {
-        sender,
-        receiver,
-    };
-    const { flowUpdateds } = await subgraphRequest<{
-        flowUpdateds: IFlowUpdated[];
-    }>(getFlowUpdatedEvents, flowUpdatedVars);
-    const flowUpdatedEvent = getSingleEvent<IFlowUpdated>(
-        flowUpdateds,
-        receipt.transactionHash
+    const flowUpdatedEvent = await fetchEventAndEnsureExistence<IFlowUpdated>(
+        getFlowUpdatedEvents,
+        receipt.transactionHash,
+        "FlowUpdated"
     );
-
-    if (!flowUpdatedEvent) {
-        throw new Error("FlowUpdated entity not found.");
-    }
 
     const senderNetFlow = await cfaV1.getNetFlow(token, sender);
     const receiverNetFlow = await cfaV1.getNetFlow(token, receiver);

@@ -404,4 +404,164 @@ describe("Subgraph Tests", () => {
             }
         });
     });
+
+	// GOTCHA'S: The balance may be inconsistent, so we'll have to use a web3 call + the subgraph data
+	// when a user claims tokens
+	describe.skip("InstantDistributionAgreement Tests", () => {
+		/**
+         * Create Index Tests
+         */
+		it("Should return correct data after multiple users create multiple indexes", async () => {
+			/**
+			 * check the event entity (IndexCreated)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		/**
+         * Approve Subscription Tests (as Subscriber)
+         */
+		it("Should return correct data after multiple non-subscribed users approve subscriptions to multiple indexes", async () => {
+			/**
+			 * check the event entity (SubscriptionApproved)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		it("Should return correct data after multiple subscribed users approve subscriptions to multiple indexes", async () => {
+			/**
+			 * check the event entity (SubscriptionApproved)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		/**
+         * Update Subscription Tests (as Publisher)
+         */
+		it("Should return correct data after a publisher updates non-subscribed users' subscription", async () => {
+			/**
+			 * check the event entity (SubscriptionUnitsUpdated)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		it("Should return correct data after a publisher updates non-approved subscribed users' subscription", async () => {
+			/**
+			 * check the event entity (SubscriptionUnitsUpdated)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		it("Should return correct data after a publisher updates approved subscribed users' subscription", async () => {
+			/**
+			 * check the event entity (SubscriptionUnitsUpdated)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		/**
+         * Revoke Subscription Tests (as subscriber)
+         */
+		it("Should return correct data after revoking a subscription.", async () => {
+			/**
+			 * check the event entity (SubscriptionRevoked)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		/**
+         * Delete Subscription Tests
+         */
+		it("Should return correct data after deleting a subscription (as publisher).", async () => {
+			/**
+			 * check the event entity (SubscriptionRevoked)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		it("Should return correct data after deleting a subscription (as subscriber).", async () => {
+			/**
+			 * check the event entity (SubscriptionRevoked)
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+
+		/**
+         * Claim Units Test
+         */
+		it("Should return correct data after claiming units.", async () => {
+			/**
+			 * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+			 * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+			 * remember to take into consideration the flowRate data here too 
+			 * use toBN
+			 */
+		});
+		
+		/**
+         * Distribute Tests
+         */
+		it("Should return correct data after calling distribute to 0 subscribers", async () => {
+
+		});
+
+		it("Should return correct data after calling distribute to 0 approved subscribers", async () => {
+
+		});
+
+		it("Should return correct data after calling distribute to all approved subscribers", async () => {
+
+		});
+
+		it("Should return correct data after calling distribute to some approved subscribers", async () => {
+
+		});
+
+		/**
+         * Update Index Tests
+         */
+
+		 it("Should return correct data after calling update index with 0 subscribers", async () => {
+
+		});
+
+		it("Should return correct data after calling update index with 0 approved subscribers", async () => {
+
+		});
+
+		it("Should return correct data after calling update index with all approved subscribers", async () => {
+
+		});
+
+		it("Should return correct data after calling update index with some approved subscribers", async () => {
+
+		});
+	});
 });

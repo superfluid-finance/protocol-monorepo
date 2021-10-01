@@ -1,23 +1,9 @@
 import { gql } from "graphql-request";
-import { IEvent } from "../interfaces";
 
-/**
- * Find single event based on txn hash
- * @param events
- * @param txnHash
- * @returns event entity of type T
- */
-export const getSingleEvent = <T>(
-    events: IEvent[],
-    txnHash: string
-): T | null => {
-    let event = events.find((x) => x.transactionHash === txnHash);
-    return event ? (event as unknown as T) : null;
-};
-
+// CFA Event Queries
 export const getFlowUpdatedEvents = gql`
-    query getFlowUpdatedEvents($sender: Bytes!, $receiver: Bytes!) {
-        flowUpdateds(where: { sender: $sender, receiver: $receiver }) {
+    query getFlowUpdatedEvents($transactionHash: Bytes!) {
+        flowUpdateds(where: { transactionHash: $transactionHash }) {
             transactionHash
             blockNumber
             token
@@ -28,6 +14,75 @@ export const getFlowUpdatedEvents = gql`
             totalReceiverFlowRate
             oldFlowRate
             type
+        }
+    }
+`;
+
+// IDA Event Queries
+
+export const getIndexCreatedEvents = gql`
+    query getIndexCreatedEvents($transactionHash: Bytes!) {
+        indexCreateds(where: { transactionHash: $transactionHash }) {
+            transactionHash
+            blockNumber
+            token
+            publisher
+            indexId
+        }
+    }
+`;
+
+export const getIndexUpdatedEvents = gql`
+    query getIndexUpdatedEvents($transactionHash: Bytes!) {
+        indexUpdateds(where: { transactionHash: $transactionHash }) {
+            transactionHash
+            blockNumber
+            token
+            publisher
+            indexId
+            oldIndexValue
+            newIndexValue
+            totalUnitsPending
+            totalUnitsApproved
+        }
+    }
+`;
+export const getSubscriptionApprovedEvents = gql`
+    query getSubscriptionApprovedEvents($transactionHash: Bytes!) {
+        subscriptionApproveds(where: { transactionHash: $transactionHash }) {
+            transactionHash
+            blockNumber
+            token
+            subscriber
+            publisher
+            indexId
+        }
+    }
+`;
+export const getSubscriptionRevokedEvents = gql`
+    query getSubscriptionRevokedEvents($transactionHash: Bytes!) {
+        subscriptionRevokeds(where: { transactionHash: $transactionHash }) {
+            transactionHash
+            blockNumber
+            token
+            subscriber
+            publisher
+            indexId
+        }
+    }
+`;
+export const getSubscriptionUnitsUpdatedEvents = gql`
+    query getSubscriptionUnitsUpdatedEvents($transactionHash: Bytes!) {
+        subscriptionUnitsUpdateds(
+            where: { transactionHash: $transactionHash }
+        ) {
+            transactionHash
+            blockNumber
+            token
+            subscriber
+            publisher
+            indexId
+            units
         }
     }
 `;

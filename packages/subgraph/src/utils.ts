@@ -134,7 +134,11 @@ export function getOrInitSuperToken(
         let underlyingAddress = token.underlyingAddress;
 
         // If the token has an underlying ERC20, we create a token entity for it.
-        if (underlyingAddress.notEqual(new Address(0))) {
+        let underlyingToken = Token.load(token.underlyingAddress.toHex());
+        if (
+            underlyingAddress.notEqual(new Address(0)) &&
+            underlyingToken == null
+        ) {
             getOrInitToken(underlyingAddress as Address, currentTimestamp);
         }
 
@@ -162,14 +166,11 @@ export function getOrInitToken(
     currentTimestamp: BigInt
 ): void {
     let tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId);
-    if (token == null) {
-        token = new Token(tokenId);
-        token.createdAt = currentTimestamp;
-        token.isSuperToken = false;
-        token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token.save();
-    }
+    let token = new Token(tokenId);
+    token.createdAt = currentTimestamp;
+    token.isSuperToken = false;
+    token = getTokenInfoAndReturn(token as Token, tokenAddress);
+    token.save();
 }
 
 /**

@@ -210,20 +210,6 @@ export function handleTransfer(
     );
 }
 
-function updateTotalSupply(event: ethereum.Event): void {
-    let tokenStats = getOrInitTokenStatistic(
-        event.address.toHex(),
-        event.block
-    );
-
-    let superTokenContract = ISuperToken.bind(event.address);
-    let totalSupplyResult = superTokenContract.try_totalSupply();
-    if (!totalSupplyResult.reverted) {
-        tokenStats.totalSupply = totalSupplyResult.value;
-        tokenStats.save();
-    }
-}
-
 /**
  * This always gets called with the Transfer event, which handles
  * a lot of the logic with the Token, Account, ATS and TokenStatistic
@@ -232,7 +218,13 @@ function updateTotalSupply(event: ethereum.Event): void {
  */
 export function handleBurned(event: BurnedEvent): void {
     createBurnedEntity(event);
-    updateTotalSupply(event);
+    let tokenStats = getOrInitTokenStatistic(
+        event.address.toHex(),
+        event.block
+    );
+
+    tokenStats.totalSupply = tokenStats.totalSupply.minus(event.params.amount);
+    tokenStats.save();
 }
 
 /**
@@ -243,7 +235,13 @@ export function handleBurned(event: BurnedEvent): void {
  */
 export function handleMinted(event: MintedEvent): void {
     createMintedEntity(event);
-    updateTotalSupply(event);
+    let tokenStats = getOrInitTokenStatistic(
+        event.address.toHex(),
+        event.block
+    );
+
+    tokenStats.totalSupply = tokenStats.totalSupply.plus(event.params.amount);
+    tokenStats.save();
 }
 
 /**************************************************************************

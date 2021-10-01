@@ -52,6 +52,12 @@ type FlowUpdated implements Event @entity {
     2 = terminate
     """
     type: Int!
+
+    # ---------------------------------- links ----------------------------------
+    """
+    The stream entity which is being modified.
+    """
+    stream: Stream!
 }
 
 #  InstantDistributionAgreementV1 #
@@ -64,6 +70,9 @@ type IndexCreated implements Event @entity {
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
 }
 
 type IndexUpdated implements Event @entity {
@@ -79,6 +88,9 @@ type IndexUpdated implements Event @entity {
     totalUnitsPending: BigInt!
     totalUnitsApproved: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
 }
 
 type SubscriptionApproved implements Event @entity {
@@ -87,10 +99,12 @@ type SubscriptionApproved implements Event @entity {
     timestamp: BigInt!
     blockNumber: BigInt!
     token: Bytes!
-    subscriber: Bytes!
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    subscriber: Subscriber!
 }
 
 type SubscriptionRevoked implements Event @entity {
@@ -99,10 +113,12 @@ type SubscriptionRevoked implements Event @entity {
     timestamp: BigInt!
     blockNumber: BigInt!
     token: Bytes!
-    subscriber: Bytes!
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    subscriber: Subscriber!
 }
 
 type SubscriptionUnitsUpdated implements Event @entity {
@@ -111,11 +127,13 @@ type SubscriptionUnitsUpdated implements Event @entity {
     timestamp: BigInt!
     blockNumber: BigInt!
     token: Bytes!
-    subscriber: Bytes!
     publisher: Bytes!
     indexId: BigInt!
     units: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    subscriber: Subscriber!
 }
 
 #     Host    #
@@ -243,9 +261,33 @@ type AgreementLiquidatedBy implements Event @entity {
     bailoutAmount: BigInt!
 }
 
+type Burned implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    operator: Bytes!
+    from: Bytes!
+    amount: BigInt!
+    data: Bytes!
+    operatorData: Bytes!
+}
+
+type Minted implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    operator: Bytes!
+    to: Bytes!
+    amount: BigInt!
+    data: Bytes!
+    operatorData: Bytes!
+}
+
 type TokenUpgraded implements Event @entity {
     id: ID!
-    account: Bytes!
+    account: Account!
     transactionHash: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
@@ -255,7 +297,7 @@ type TokenUpgraded implements Event @entity {
 
 type TokenDowngraded implements Event @entity {
     id: ID!
-    account: Bytes!
+    account: Account!
     transactionHash: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
@@ -268,8 +310,8 @@ type Transfer implements Event @entity {
     transactionHash: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
-    from: Bytes!
-    to: Bytes!
+    from: Account!
+    to: Account!
     value: BigInt!
     token: Bytes!
 }
@@ -290,8 +332,6 @@ type SuperTokenLogicCreated implements Event @entity {
     blockNumber: BigInt!
     tokenLogic: Bytes!
 }
-# TODO: research how to add isEOA property
-# TODO: can check if is super app
 
 type CustomSuperTokenCreated implements Event @entity {
     id: ID!
@@ -310,25 +350,6 @@ type CustomSuperTokenCreated implements Event @entity {
 # entity to another HOL entity.
 
 """
-BaseEntity: The base interface implemented by all HOL entity types.
-"""
-interface BaseEntity {
-    id: ID!
-    createdAt: BigInt!
-    """
-    The timestamp when this entity was last updated.
-    """
-    updatedAtTimestamp: BigInt!
-    """
-    The block number when this entity was last updated.
-    """
-    updatedAtBlock: BigInt!
-}
-
-# Note: If two entities implement the same interface
-# they cannot have the same id.
-
-"""
 Account: A HOL entity created for any addresses which interact with
 Superfluid contracts.
 """
@@ -342,6 +363,19 @@ type Account @entity {
     Indicates whether the address/account is a super app.
     """
     isSuperApp: Boolean!
+
+    # ---------------------------------- links ----------------------------------
+    inflows: [Stream!]! @derivedFrom(field: "receiver")
+    outflows: [Stream!]! @derivedFrom(field: "sender")
+
+    sentTransferEvents: [Transfer!]! @derivedFrom(field: "from")
+    receivedTransferEvents: [Transfer!]! @derivedFrom(field: "to")
+
+    tokenUpgradedEvents: [TokenUpgraded!]! @derivedFrom(field: "account")
+    tokenDowngradedEvents: [TokenDowngraded!]! @derivedFrom(field: "account")
+
+    accountTokenSnapshots: [AccountTokenSnapshot!]!
+        @derivedFrom(field: "account")
 }
 
 """
@@ -355,10 +389,9 @@ type Token @entity {
     """
     id: ID!
     createdAt: BigInt!
-    updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
     name: String!
     symbol: String!
+    isSuperToken: Boolean!
 
     """
     The address of the underlying ERC20 token.
@@ -373,7 +406,7 @@ considered "dead". The next stream you create with the same `sender` and `receiv
 will create a new stream entity. Therefore, multiple stream entities can be created
 between the same `sender` and `receiver`.
 """
-type Stream implements BaseEntity @entity {
+type Stream @entity {
     """
     ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
     """
@@ -392,13 +425,15 @@ type Stream implements BaseEntity @entity {
     token: Token!
     sender: Account!
     receiver: Account!
+
+    flowUpdatedEvents: [FlowUpdated!]! @derivedFrom(field: "stream")
 }
 
 """
 Subscriber: A HOL entity that contains data for the `subscriber` account of a particular
 `Index`.
 """
-type Subscriber implements BaseEntity @entity {
+type Subscriber @entity {
     """
     ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
     """
@@ -412,7 +447,16 @@ type Subscriber implements BaseEntity @entity {
     indexId: BigInt!
     userData: Bytes!
     # ---------------------------------- state ----------------------------------
+    """
+    Approved subscribers don't need to claim tokens that are distributed from
+    the publisher.
+    """
     approved: Boolean!
+
+    """
+       If units is 0, it indicates that the subscription is "deleted". They are no longer
+    subscribed to the index.
+    """
     units: BigInt!
 
     """
@@ -427,12 +471,24 @@ type Subscriber implements BaseEntity @entity {
     lastIndexValue: BigInt!
     # ---------------------------------- links ----------------------------------
     index: Index!
+
+    """
+    Subscription approved events on the subscriber.
+    """
+    subscriptionApprovedEvents: [SubscriptionApproved!]!
+        @derivedFrom(field: "subscriber")
+
+    subscriptionRevokedEvents: [SubscriptionRevoked!]!
+        @derivedFrom(field: "subscriber")
+
+    subscriptionUnitsUpdatedEvents: [SubscriptionUnitsUpdated!]!
+        @derivedFrom(field: "subscriber")
 }
 
 """
 Index: A Index HOL entity.
 """
-type Index implements BaseEntity @entity {
+type Index @entity {
     """
     ID composed of: publisherAddress-tokenAddress-IndexId
     """
@@ -470,9 +526,23 @@ type Index implements BaseEntity @entity {
     The total amount distributed from this `Index`.
     """
     totalAmountDistributedUntilUpdatedAt: BigInt!
+
     # ---------------------------------- links ----------------------------------
     token: Token!
     publisher: Account!
+
+    """
+    The subscribers of the index, it will include approved, unapproved
+    and deleted subscribers.
+    """
+    subscribers: [Subscriber!]! @derivedFrom(field: "index")
+
+    """
+    IndexCreated event, there will only be one.
+    """
+    indexCreatedEvent: IndexCreated!
+
+    indexUpdatedEvents: [IndexUpdated!]! @derivedFrom(field: "index")
 }
 
 ####################
@@ -615,6 +685,13 @@ type TokenStatistic @entity {
     The all-time total amount distributed until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountDistributedUntilUpdatedAt: BigInt!
+
+    """
+    The total supply of the token - this is impacted by users upgrading/downgrading their
+    tokens.
+    """
+    totalSupply: BigInt!
+
     # ---------------------------------- links ----------------------------------
     token: Token!
 }

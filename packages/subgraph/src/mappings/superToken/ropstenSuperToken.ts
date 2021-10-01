@@ -1,6 +1,8 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     AgreementLiquidatedBy as AgreementLiquidatedByEvent,
+    Burned as BurnedEvent,
+    Minted as MintedEvent,
     TokenDowngraded as TokenDowngradedEvent,
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
@@ -8,6 +10,8 @@ import {
 import { ROPSTEN_HOST_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
+    handleBurned,
+    handleMinted,
     handleTokenDowngraded,
     handleTokenUpgraded,
     handleTransfer,
@@ -25,10 +29,20 @@ export function ropstenHandleTokenUpgraded(event: TokenUpgradedEvent): void {
     handleTokenUpgraded(event, HOST_ADDRESS);
 }
 
-export function ropstenHandleTokenDowngraded(event: TokenDowngradedEvent): void {
+export function ropstenHandleTokenDowngraded(
+    event: TokenDowngradedEvent
+): void {
     handleTokenDowngraded(event, HOST_ADDRESS);
 }
 
 export function ropstenHandleTransfer(event: TransferEvent): void {
     handleTransfer(event, HOST_ADDRESS);
+}
+
+export function ropstenHandleBurned(event: BurnedEvent): void {
+    handleBurned(event);
+}
+
+export function ropstenHandleMinted(event: MintedEvent): void {
+    handleMinted(event);
 }

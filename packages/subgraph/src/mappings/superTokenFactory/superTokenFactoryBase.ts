@@ -9,7 +9,11 @@ import {
     SuperTokenCreated,
     SuperTokenLogicCreated,
 } from "../../../generated/schema";
-import { createEventID, getOrInitToken, tokenHasValidHost } from "../../utils";
+import {
+    createEventID,
+    getOrInitSuperToken,
+    tokenHasValidHost,
+} from "../../utils";
 
 export function handleSuperTokenCreated(
     event: SuperTokenCreatedEvent,
@@ -27,7 +31,7 @@ export function handleSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitToken(event.params.token, event.block);
+    getOrInitSuperToken(event.params.token, event.block);
 }
 
 export function handleCustomSuperTokenCreated(
@@ -46,7 +50,7 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitToken(event.params.token, event.block);
+    getOrInitSuperToken(event.params.token, event.block);
 }
 
 export function handleSuperTokenLogicCreated(

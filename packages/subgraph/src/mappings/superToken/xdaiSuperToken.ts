@@ -1,6 +1,8 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     AgreementLiquidatedBy as AgreementLiquidatedByEvent,
+    Burned as BurnedEvent,
+    Minted as MintedEvent,
     TokenDowngraded as TokenDowngradedEvent,
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
@@ -8,6 +10,8 @@ import {
 import { XDAI_HOST_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
+    handleBurned,
+    handleMinted,
     handleTokenDowngraded,
     handleTokenUpgraded,
     handleTransfer,
@@ -31,4 +35,12 @@ export function xdaiHandleTokenDowngraded(event: TokenDowngradedEvent): void {
 
 export function xdaiHandleTransfer(event: TransferEvent): void {
     handleTransfer(event, HOST_ADDRESS);
+}
+
+export function xdaiHandleBurned(event: BurnedEvent): void {
+    handleBurned(event);
+}
+
+export function xdaiHandleMinted(event: MintedEvent): void {
+    handleMinted(event);
 }

@@ -1,6 +1,8 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     AgreementLiquidatedBy as AgreementLiquidatedByEvent,
+    Burned as BurnedEvent,
+    Minted as MintedEvent,
     TokenDowngraded as TokenDowngradedEvent,
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
@@ -8,6 +10,8 @@ import {
 import { GANACHE_HOST_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
+    handleBurned,
+    handleMinted,
     handleTokenDowngraded,
     handleTokenUpgraded,
     handleTransfer,
@@ -33,4 +37,12 @@ export function ganacheHandleTokenDowngraded(
 
 export function ganacheHandleTransfer(event: TransferEvent): void {
     handleTransfer(event, HOST_ADDRESS);
+}
+
+export function ganacheHandleBurned(event: BurnedEvent): void {
+    handleBurned(event);
+}
+
+export function ganacheHandleMinted(event: MintedEvent): void {
+    handleMinted(event);
 }

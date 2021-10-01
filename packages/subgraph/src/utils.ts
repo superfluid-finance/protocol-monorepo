@@ -107,7 +107,7 @@ export function getTokenInfoAndReturn(
  * @param block
  * @returns Token
  */
-export function getOrInitToken(
+export function getOrInitSuperToken(
     tokenAddress: Address,
     block: ethereum.Block
 ): Token {
@@ -118,8 +118,7 @@ export function getOrInitToken(
     if (token == null) {
         token = new Token(tokenId);
         token.createdAt = currentTimestamp;
-        token.updatedAtTimestamp = currentTimestamp;
-        token.updatedAtBlock = block.number;
+        token.isSuperToken = true;
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
         token.save();
 
@@ -132,6 +131,13 @@ export function getOrInitToken(
         // template data source events.
         SuperTokenTemplate.create(tokenAddress);
 
+        let underlyingAddress = token.underlyingAddress;
+
+        // If the token has an underlying ERC20, we create a token entity for it.
+        if (underlyingAddress.notEqual(new Address(0))) {
+            getOrInitToken(underlyingAddress as Address, currentTimestamp);
+        }
+
         return token as Token;
     }
 
@@ -143,6 +149,27 @@ export function getOrInitToken(
     }
 
     return token as Token;
+}
+
+/**
+ * Create a token entity for regular ERC20 tokens.
+ * These are the underlying tokens for
+ * @param tokenAddress
+ * @param currentTimestamp
+ */
+export function getOrInitToken(
+    tokenAddress: Address,
+    currentTimestamp: BigInt
+): void {
+    let tokenId = tokenAddress.toHex();
+    let token = Token.load(tokenId);
+    if (token == null) {
+        token = new Token(tokenId);
+        token.createdAt = currentTimestamp;
+        token.isSuperToken = false;
+        token = getTokenInfoAndReturn(token as Token, tokenAddress);
+        token.save();
+    }
 }
 
 /**
@@ -230,7 +257,7 @@ export function getOrInitStream(
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         // also handles the fact that custom super tokens are
         // initialized after event is first initialized
-        getOrInitToken(tokenAddress, block);
+        getOrInitSuperToken(tokenAddress, block);
     }
     return stream as Stream;
 }
@@ -249,7 +276,8 @@ export function getOrInitIndex(
     publisherAddress: Address,
     tokenAddress: Address,
     indexId: BigInt,
-    block: ethereum.Block
+    block: ethereum.Block,
+    indexCreatedId: string
 ): Index {
     let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
     let index = Index.load(indexEntityId);
@@ -270,12 +298,13 @@ export function getOrInitIndex(
         index.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         index.token = tokenId;
         index.publisher = publisherId;
+        index.indexCreatedEvent = indexCreatedId;
 
         getOrInitAccount(hostAddress, publisherAddress, block);
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
-        getOrInitToken(tokenAddress, block);
+        getOrInitSuperToken(tokenAddress, block);
     }
     index.updatedAtTimestamp = currentTimestamp;
     index.updatedAtBlock = block.number;
@@ -316,7 +345,8 @@ export function getOrInitSubscriber(
             publisherAddress,
             tokenAddress,
             indexId,
-            block
+            block,
+            ""
         );
         index.totalSubscribers = index.totalSubscribers + 1;
         index.save();
@@ -499,6 +529,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        tokenStatistic.totalSupply = BIG_INT_ZERO;
         tokenStatistic.token = tokenId;
     }
     return tokenStatistic as TokenStatistic;

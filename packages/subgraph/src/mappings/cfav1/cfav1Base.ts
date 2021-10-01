@@ -20,7 +20,8 @@ enum FlowActionType {
 
 function createFlowUpdatedEntity(
     event: FlowUpdatedEvent,
-    oldFlowRate: BigInt
+    oldFlowRate: BigInt,
+    streamId: string
 ): void {
     let ev = new FlowUpdated(createEventID(event));
     ev.transactionHash = event.transaction.hash;
@@ -34,6 +35,7 @@ function createFlowUpdatedEntity(
     ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
     ev.userData = event.params.userData;
     ev.oldFlowRate = oldFlowRate;
+    ev.stream = streamId;
 
     let type = oldFlowRate.equals(BIG_INT_ZERO)
         ? FlowActionType.create
@@ -102,7 +104,7 @@ export function handleStreamUpdated(
     updateAccountUpdatedAt(hostAddress, receiverAddress, event.block);
 
     // create event entity
-    createFlowUpdatedEntity(event, oldFlowRate);
+    createFlowUpdatedEntity(event, oldFlowRate, stream.id);
 
     // update aggregate entities data
     updateAggregateEntitiesStreamData(

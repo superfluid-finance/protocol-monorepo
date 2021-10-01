@@ -194,9 +194,12 @@ templates:
         - Account
         - AccountTokenSnapshot
         - AgreementLiquidatedBy
+        - Burned
+        - Minted
         - Token
         - TokenDowngraded
         - TokenUpgraded
+        - TokenStatistic
         - Transaction
         - Transfer
       abis:
@@ -207,6 +210,10 @@ templates:
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: {{network}}HandleAgreementLiquidatedBy
+        - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
+          handler: {{network}}HandleBurned
+        - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
+          handler: {{network}}HandleMinted
         - event: TokenUpgraded(indexed address,uint256)
           handler: {{network}}HandleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)

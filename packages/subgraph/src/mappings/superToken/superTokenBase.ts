@@ -6,7 +6,6 @@ import {
     AgreementLiquidatedBy as AgreementLiquidatedByEvent,
     Burned as BurnedEvent,
     Minted as MintedEvent,
-    ISuperToken,
 } from "../../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedBy,

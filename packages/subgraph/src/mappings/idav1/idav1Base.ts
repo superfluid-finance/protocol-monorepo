@@ -244,6 +244,13 @@ export function handleSubscriptionApproved(
         tokenId,
         event.block
     ); // we should only do this if !hasSubscription
+
+	updateATSBalanceAndUpdatedAt(
+		event.params.subscriber.toHex(),
+		tokenId,
+		event.block
+	);
+
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
     updateAggregateIDASubscriptionsData(
@@ -337,6 +344,10 @@ export function handleSubscriptionRevoked(
                 subscriber.units
             );
         }
+		
+		// do we set subscriber.units = 0?
+		// I thought that they weren't able to set their units
+		subscriber.units = BIG_INT_ZERO;
 
         updateATSStreamedUntilUpdatedAt(
             subscriberAddress,
@@ -456,11 +467,6 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
 
-            updateATSStreamedUntilUpdatedAt(
-                event.params.subscriber.toHex(),
-                event.params.token.toHex(),
-                event.block
-            );
             updateTokenStatsStreamedUntilUpdatedAt(
                 event.params.token.toHex(),
                 event.block

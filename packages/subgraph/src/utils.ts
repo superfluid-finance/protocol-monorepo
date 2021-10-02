@@ -16,7 +16,8 @@ import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 // TODO: GET DATA 100% ACCURATE
 // THEN: WORK ON MAPPING OPTIMIZATION
 // e.g. don't save in the modifier functions, instead let it take the object in
-// and save outside of the util functions.
+// and always return the object - always save outside of the util functions at
+// the mapping level
 
 /**************************************************************************
  * Constants
@@ -629,6 +630,7 @@ function getAmountStreamedSinceLastUpdatedAt(
     return timeDelta.times(previousTotalOutflowRate);
 }
 
+// TODO: it may make sense to combine this with getting update balance right after.
 /**
  * @dev Must call before updatedAt is updated.
  * @param accountId

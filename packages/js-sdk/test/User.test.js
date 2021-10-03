@@ -12,29 +12,42 @@ const emptyIda = {
     },
 };
 
-contract("User helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const {
-        admin: adminAddress,
-        alice: aliceAddress,
-        bob: bobAddress,
-        carol: carolAddress,
-    } = t.aliases;
+describe("User helper class", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
 
+    let adminAddress, aliceAddress, bobAddress, carolAddress;
+    let alice, bob, carol;
     let sf;
     let superToken;
-    let alice;
-    let bob;
-    let carol;
 
     before(async () => {
-        await t.reset();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 4,
+        });
+
+        ({
+            admin: adminAddress,
+            alice: aliceAddress,
+            bob: bobAddress,
+            carol: carolAddress,
+        } = t.aliases);
+        ({ superToken } = await t.deployNewToken("TEST2", {
+            isTruffle: true,
+            doUpgrade: true,
+        }));
         sf = t.sf;
+
+        await t.pushEvmSnapshot();
     });
 
-    beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: true });
-        ({ superToken } = t.contracts);
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
         alice = sf.user({ address: aliceAddress, token: superToken.address });
         bob = sf.user({ address: bobAddress, token: superToken.address });
         carol = sf.user({ address: carolAddress, token: superToken.address });
@@ -104,7 +117,7 @@ contract("User helper class", (accounts) => {
         });
     });
     describe("new flows", () => {
-        it("fail without recipient", async () => {
+        it("fail with null recipient", async () => {
             await expect(
                 alice.flow({
                     recipient: null,
@@ -112,7 +125,22 @@ contract("User helper class", (accounts) => {
                 })
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
         });
-        it("fail without flowRate", async () => {
+        it("fail with undefined recipient", async () => {
+            await expect(
+                alice.flow({
+                    flowRate: "0",
+                })
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with empty string recipient", async () => {
+            await expect(
+                alice.flow({
+                    recipient: "",
+                    flowRate: "0",
+                })
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with null flowRate", async () => {
             // Using https://github.com/domenic/chai-as-promised
             await expect(
                 alice.flow({
@@ -120,6 +148,23 @@ contract("User helper class", (accounts) => {
                     flowRate: null,
                 })
             ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with undefined flowRate", async () => {
+            // Using https://github.com/domenic/chai-as-promised
+            await expect(
+                alice.flow({
+                    recipient: adminAddress,
+                })
+            ).to.be.rejectedWith(/You must provide a recipient and flowRate/);
+        });
+        it("fail with a number flowRate", async () => {
+            // Using https://github.com/domenic/chai-as-promised
+            await expect(
+                alice.flow({
+                    recipient: adminAddress,
+                    flowRate: 0,
+                })
+            ).to.be.rejectedWith(/You must provide flowRate as a string/);
         });
         it("create a new flow", async () => {
             const tx = await alice.flow({

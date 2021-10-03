@@ -9,31 +9,35 @@ const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
 const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE");
 
-contract("Superfluid Super Upgrader Contract", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 6), {
-        isTruffle: true,
-        useMocks: true,
-    });
-    const { admin, alice, bob, carol, dan, eve } = t.aliases;
+describe("Superfluid Super Upgrader Contract", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
+
     const { ZERO_ADDRESS } = t.constants;
 
-    const backend = new Array(bob, carol, dan);
-
+    let admin, alice, bob, carol, dan, eve;
+    let backend;
     let superToken;
     let testToken;
 
     before(async () => {
-        await t.reset();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 6,
+        });
+
+        ({ admin, alice, bob, carol, dan, eve } = t.aliases);
+        backend = new Array(bob, carol, dan);
+        testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
+        superToken = t.sf.tokens.TESTx;
     });
 
     beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken, testToken } = t.contracts);
+        await t.beforeEachTestCase();
     });
 
     describe("#1 SuperUpgrader Deployement", async () => {
         it("#1.1 Should deploy adminRole address", async () => {
-            console.log(backend);
             const upgrader = await SuperUpgrader.new(admin, backend);
             const isAdminRole = await upgrader.hasRole(
                 DEFAULT_ADMIN_ROLE,

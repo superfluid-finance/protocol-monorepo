@@ -1,60 +1,68 @@
-const {
-    constants,
-    expectEvent,
-    expectRevert,
-} = require("@openzeppelin/test-helpers");
+const TestEnvironment = require("../../TestEnvironment");
 
+const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("chai");
-
 const { web3tx, toBN } = require("@decentral.ee/web3-helpers");
 
 const {
     shouldBehaveLikeERC20,
+    shouldBehaveLikeERC20Transfer,
     shouldBehaveLikeERC20Approve,
 } = require("./ERC20.behavior");
 
-const { ZERO_ADDRESS } = constants;
+const SuperTokenMock = artifacts.require("SuperTokenMock");
 
-const TestEnvironment = require("../../TestEnvironment");
+describe("SuperToken's ERC20 compliance", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
 
-contract("SuperToken's ERC20 compliance", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), {
-        isTruffle: true,
-        useMocks: true,
-    });
-    const { alice, bob, carol } = t.aliases;
+    const { ZERO_ADDRESS } = t.constants;
     const initialSupply = toBN(100);
 
-    before(async () => {
-        await t.reset();
-    });
+    let alice, bob, carol;
 
-    beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        this.token = t.contracts.superToken;
+    before(async function () {
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 4,
+        });
+
+        ({ alice, bob, carol } = t.aliases);
+
+        this.token = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
         await web3tx(
             this.token.upgrade,
             `Upgrade initialSupply amount of token for ${alice}`
         )(initialSupply, {
             from: alice,
         });
+
+        await t.pushEvmSnapshot();
     });
 
-    describe("okay", () => {
-        describe("let's try", () => {
-            it("hehehe", () => {
-                console.log("yea");
-            });
-        });
+    after(async function () {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     describe("ERC20 compliance", () => {
-        shouldBehaveLikeERC20("SuperToken", initialSupply, alice, bob, carol);
+        shouldBehaveLikeERC20("SuperToken", initialSupply, () => ({
+            initialHolder: alice,
+            recipient: bob,
+            anotherAccount: carol,
+        }));
     });
 
     describe("decrease allowance", function () {
         describe("when the spender is not the zero address", function () {
-            const spender = bob;
+            let spender;
+
+            before(() => {
+                spender = bob;
+            });
 
             function shouldDecreaseApproval(amount) {
                 describe("when there was no approved amount before", function () {
@@ -163,7 +171,10 @@ contract("SuperToken's ERC20 compliance", (accounts) => {
         const amount = initialSupply;
 
         describe("when the spender is not the zero address", function () {
-            const spender = bob;
+            let spender;
+            before(() => {
+                spender = bob;
+            });
 
             describe("when the sender has enough balance", function () {
                 it("emits an approval event", async function () {
@@ -279,10 +290,17 @@ contract("SuperToken's ERC20 compliance", (accounts) => {
     });
 
     describe("_transfer", function () {
-        // it is already tesetd under shouldBehaveLikeERC20
-        // shouldBehaveLikeERC20Transfer("ERC20", alice, bob, initialSupply, function (from, to, amount) {
-        //     return this.token.transferInternal(from, to, amount);
-        // });
+        shouldBehaveLikeERC20Transfer(
+            "ERC20",
+            initialSupply,
+            () => ({
+                from: alice,
+                to: bob,
+            }),
+            function (from, to, amount) {
+                return this.token.transferInternal(from, to, amount);
+            }
+        );
 
         describe("when the sender is the zero address", function () {
             it("reverts", async function () {
@@ -301,9 +319,11 @@ contract("SuperToken's ERC20 compliance", (accounts) => {
     describe("_approve", function () {
         shouldBehaveLikeERC20Approve(
             "ERC20",
-            alice,
-            bob,
             initialSupply,
+            () => ({
+                owner: alice,
+                spender: bob,
+            }),
             function (owner, spender, amount) {
                 return this.token.approveInternal(owner, spender, amount);
             }

@@ -17,7 +17,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.resetToken Reset the token deployment
  *
- * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_NAME}
+ * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_SYMBOL}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
@@ -30,8 +30,8 @@ module.exports = async function (callback, argv, options = {}) {
         if (args.length !== 1) {
             throw new Error("Not enough arguments");
         }
-        const tokenName = args.pop();
-        console.log("Token name", tokenName);
+        const tokenSymbol = args.pop();
+        console.log("Token symbol", tokenSymbol);
 
         resetToken = resetToken || !!process.env.RESET_TOKEN;
         const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
@@ -49,15 +49,15 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Resolver address", testResolver.address);
 
         // deploy test token and its super token
-        const name = `tokens.${tokenName}`;
+        const name = `tokens.${tokenSymbol}`;
         let testTokenAddress = await testResolver.get(name);
         if (
             resetToken ||
             testTokenAddress === "0x0000000000000000000000000000000000000000"
         ) {
             const testToken = await web3tx(TestToken.new, "TestToken.new")(
-                tokenName + " Fake Token",
-                tokenName,
+                tokenSymbol + " Fake Token",
+                tokenSymbol,
                 18
             );
             testTokenAddress = testToken.address;
@@ -68,7 +68,7 @@ module.exports = async function (callback, argv, options = {}) {
         } else {
             console.log("Token already deployed");
         }
-        console.log(`Token ${tokenName} address`, testTokenAddress);
+        console.log(`Token ${tokenSymbol} address`, testTokenAddress);
 
         console.log("======== Test token deployed ========");
         callback();

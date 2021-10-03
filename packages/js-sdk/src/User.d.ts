@@ -4,46 +4,59 @@ import type { Transaction } from 'web3';
 import type { Flow } from './ConstantFlowAgreementV1Helper';
 import type { Subscription } from './InstantDistributionAgreementV1Helper';
 
-export type DetailsType = {
+// params options types
+export interface UserOptions {
+    sf: Framework;
+    address: string;
+    token: string;
+    options?: any;
+}
+
+// specified User to avoid confusion with CFA CreateFlowOptions
+export interface UserFlowOptions {
+    recipient: string;
+    flowRate: string;
+    options?: any;
+}
+
+export interface CreatePoolOptions {
+    poolId: number;
+}
+
+export interface GiveSharesOptions {
+    recipient: string;
+    shares: number | BN;
+    poolId: number;
+}
+
+export interface DistributeToPoolOptions {
+    poolid: number;
+    amount: number | BN;
+}
+
+export interface UserDetails {
     cfa: {
-        flows: {
-            inFlows: Array<Flow>;
-            outFlows: Array<Flow>;
-        }
+        flows: FlowList
         netFlow: string // numeric string
-    };
+    }
     ida: {
         subscriptions: Array<Subscription>;
-    };
-};
+    }
+}
 
 export declare class User {
-    constructor({ sf, address, token, options }: {
-        sf: Framework;
-        address: string;
-        token: string;
-        options?: any;
-    });
+    constructor({ sf, address, token, options }: UserOptions);
     sf: Framework;
     address: string;
     token: string;
     options: any;
-    details(): Promise<DetailsType>;
-    flow({ recipient, flowRate, ...options }: {
-        recipient: string;
-        flowRate: string;
-        [x: string]: any;
-    }): Promise<Transaction>;
-    createPool({ poolId: indexId }: {
-        poolId: number;
-    }): Promise<Transaction>;
-    giveShares({ recipient, shares, poolId: indexId }: {
-        recipient: string;
-        shares: BN;
-        poolId: number;
-    }): Promise<Transaction>;
-    distributeToPool({ poolId: indexId, amount }: {
-        poolId: number;
-        amount: BN;
-    }): Promise<void>;
+    details(): Promise<UserDetails>;
+    flow({
+        recipient,
+        flowRate,
+        ...options
+    }: UserFlowOptions): Promise<Transaction>;
+    createPool({ poolId: indexId }: CreatePoolOptions): Promise<Transaction>;
+    giveShares({ recipient, shares, poolId: indexId }: GiveSharesOptions): Promise<Transaction>;
+    distributeToPool({ poolId: indexId, amount }: DistributeToPoolOptions): Promise<void>;
 }

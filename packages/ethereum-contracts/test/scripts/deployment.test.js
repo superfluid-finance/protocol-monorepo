@@ -1,11 +1,11 @@
 const Web3 = require("web3");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const { expectRevert } = require("@openzeppelin/test-helpers");
-const deployFramework = require("../scripts/deploy-framework");
-const deployTestToken = require("../scripts/deploy-test-token");
-const deploySuperToken = require("../scripts/deploy-super-token");
-const deployTestEnvironment = require("../scripts/deploy-test-environment");
-const { codeChanged } = require("../scripts/utils");
+const { codeChanged } = require("../../scripts/utils");
+const deployFramework = require("../../scripts/deploy-framework");
+const deployTestToken = require("../../scripts/deploy-test-token");
+const deploySuperToken = require("../../scripts/deploy-super-token");
+const deployTestEnvironment = require("../../scripts/deploy-test-environment");
 const TestResolver = artifacts.require("TestResolver");
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const Superfluid = artifacts.require("Superfluid");
@@ -483,13 +483,13 @@ contract("Embeded deployment scripts", () => {
         });
 
         it("scripts/deploy-test-environment.js", async () => {
-            await deployTestEnvironment(errorHandler, deploymentOptions);
+            await deployTestEnvironment(errorHandler, [], deploymentOptions);
         });
     });
 
     context("Used in non-native truffle environment (web3)", () => {
         it("scripts/deploy-test-environment.js", async () => {
-            await deployTestEnvironment(errorHandler, {
+            await deployTestEnvironment(errorHandler, [], {
                 web3: new Web3(web3.currentProvider),
             });
         });

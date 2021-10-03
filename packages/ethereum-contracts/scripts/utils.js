@@ -26,11 +26,13 @@ async function rl() {
 function parseColonArgs(argv) {
     const argIndex = argv.indexOf(":");
     if (argIndex < 0) {
-        throw new Error("No colon arguments provided");
+        console.log("No colon arguments");
+        return [];
+    } else {
+        const args = argv.slice(argIndex + 1);
+        console.log("Colon arguments", args);
+        return args;
     }
-    const args = argv.slice(argIndex + 1);
-    console.log("Colon arguments", args);
-    return args;
 }
 
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";

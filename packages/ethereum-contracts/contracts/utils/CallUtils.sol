@@ -44,7 +44,7 @@ library CallUtils {
     }
 
     /**
-     * @dev It the data encoded correctly with abi.encode(bytesData)
+     * @dev Validate if the data is encoded correctly with abi.encode(bytesData)
      *
      * Expected ABI Encode Layout:
      * | word 1      | word 2           | word 3           | the rest...

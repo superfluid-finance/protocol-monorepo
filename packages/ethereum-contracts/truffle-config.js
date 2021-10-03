@@ -263,18 +263,33 @@ module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
-        coverage: {
+        /// For truffle development environment
+        development: {
             host: "localhost",
-            network_id: "*",
-            port: 8555, // <-- If you change this, also set the port option in .solcover.js.
-            gas: 0xfffffffffff, // <-- Use this high gas value
-            gasPrice: 0x01, // <-- Use this low gas price
+            port: 47545,
+            network_id: "4447",
+
+            // workaround to improve testing speed
+            // see https://github.com/trufflesuite/truffle/issues/3522
+            disableConfirmationListener: true,
         },
 
-        ganache: {
-            host: "127.0.0.1",
+        coverage: {
+            host: "localhost",
+            port: 8555, // <-- If you change this, also set the port option in .solcover.js.
+
+            // ditto
+            disableConfirmationListener: true,
+        },
+
+        /// For other private test environment
+        private: {
+            host: "localhost",
+            port: process.env.PRIVATE_PROVIDER_PORT || 8545,
             network_id: "*",
-            port: process.env.GANACHE_PORT || 8545,
+
+            // ditto
+            disableConfirmationListener: true,
         },
 
         // Another network with more advanced options...

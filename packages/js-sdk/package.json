@@ -6,6 +6,7 @@
     "repository": "github:superfluid-finance/protocol-monorepo",
     "license": "MIT",
     "main": "src/index.js",
+    "types": "src/index.d.ts",
     "files": [
         "src/**/*.md",
         "src/**/*.d.ts",

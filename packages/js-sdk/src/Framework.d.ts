@@ -6,6 +6,7 @@ import LoadContracts from "./loadContracts";
 import Config from "./getConfig";
 import type { User } from "./User";
 import type { Utils } from "./Utils";
+import type { Web3Provider } from "@ethersproject/providers";
 
 declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
 
@@ -16,10 +17,10 @@ export interface Agreements {
 
 export interface FrameworkOptions {
     version?: string,
-    isTruffle: boolean,
+    isTruffle?: boolean,
     web3?: Web3,
-    ethers?: LoadContracts.EthersWithSigner,
-    gasReportType: GasReportTypeOptions,
+    ethers?: Web3Provider,
+    gasReportType?: GasReportTypeOptions,
     additionalContracts?: string[],
     tokens?: string[],
     loadSuperNativeToken?: boolean,
@@ -33,15 +34,15 @@ export declare class Framework {
     _options: FrameworkOptions;
     version: string;
     web3: Web3;
-    ethers: LoadContracts.EthersWithSigner;
+    ethers: Web3Provider;
     _gasReportType: GasReportTypeOptions;
     config: Config.NetworkConfig;
     contracts: Promise<LoadContracts.LoadedContract[]> | undefined;
     resolver: LoadContracts.LoadedContract;
     host: LoadContracts.LoadedContract;
     agreements: Agreements;
-    tokens: { [key: string]: any };
-    superTokens: { [key: string]: any };
+    tokens: { [key: string]: string };
+    superTokens: { [key: string]: string };
     cfa: ConstantFlowAgreementV1Helper | undefined;
     ida: InstantDistributionAgreementV1Helper | undefined;
     utils: Utils | undefined;

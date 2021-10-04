@@ -150,7 +150,7 @@ export interface ISubscriber extends IBaseEntity {
     readonly userData: string;
     readonly approved: boolean;
     readonly units: string;
-    readonly totalUnitsReceivedUntilUpdatedAt: string;
+    readonly totalAmountReceivedUntilUpdatedAt: string;
     readonly lastIndexValue: string;
     readonly index: ILightEntity;
 }
@@ -164,7 +164,7 @@ export interface IIndex extends IBaseEntity {
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
-    readonly totalUnitsDistributedUntilUpdatedAt: string;
+    readonly totalAmountDistributedUntilUpdatedAt: string;
     readonly token: ILightEntity;
     readonly publisher: ILightEntity;
 }
@@ -205,6 +205,7 @@ export interface ITokenStatistic extends IBaseAggregateEntity {
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly totalAmountDistributedUntilUpdatedAt: string;
+    readonly totalSupply: string;
     readonly token: ILightEntity;
 }
 
@@ -294,10 +295,18 @@ export interface IFlowUpdatedUpdateTestData {
 }
 
 export interface IUpdateIndexData {
-	readonly userData: string;
-	readonly oldIndexValue: string;
-    readonly newIndexValue: string;
-    readonly totalSubscribersDelta: number;
-    readonly totalUnitsPending: BigInt;
-    readonly totalUnitsApproved: BigInt;
+    readonly userData?: string;
+    readonly oldIndexValue?: string;
+    readonly newIndexValue?: string;
+    readonly totalSubscribersDelta?: number;
+    readonly totalUnitsPending?: BigInt;
+    readonly totalUnitsApproved?: BigInt;
+}
+
+export interface IUpdateSubscriberData {
+    readonly userData?: string;
+    readonly approved?: boolean;
+    readonly units?: string;
+    readonly totalAmountReceivedUntilUpdatedAt?: string;
+    readonly lastIndexValue?: string;
 }

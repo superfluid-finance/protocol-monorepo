@@ -20,7 +20,7 @@ export const fetchATSAndValidate = async (
     if (!graphATS) {
         throw new Error("ATS entity not found.");
     }
-    validateATSEntityForFlowUpdated(graphATS, expectedATSData);
+    validateATSEntity(graphATS, expectedATSData);
 };
 
 export const fetchTokenStatsAndValidate = async (
@@ -35,35 +35,33 @@ export const fetchTokenStatsAndValidate = async (
         throw new Error("TokenStats entity not found.");
     }
 
-    validateTokenStatsEntityForFlowUpdated(
-        graphTokenStats,
-        expectedTokenStatsData
-    );
+    validateTokenStatsEntity(graphTokenStats, expectedTokenStatsData);
 };
 
 /**
- * Validates the ATS entity when a flow is updated.
+ * Validates the AccountTokenSnapshot entity.
  * @param graphATSData
  * @param expectedATSData
  */
-export const validateATSEntityForFlowUpdated = (
+export const validateATSEntity = (
     graphATSData: IAccountTokenSnapshot,
     expectedATSData: IAccountTokenSnapshot
 ) => {
     const {
-        balanceUntilUpdatedAt: expectedBalanceUntilUpdatedAt,
-        totalAmountStreamedUntilUpdatedAt: expectedATSStreamedUntilAt,
         totalNumberOfActiveStreams: expectedTotalNumberOfActiveStreams,
         totalNumberOfClosedStreams: expectedTotalNumberOfClosedStreams,
+        totalSubscriptions: expectedTotalSubscriptions,
+        totalApprovedSubscriptions: expectedTotalApprovedSubscriptions,
+        balanceUntilUpdatedAt: expectedBalanceUntilUpdatedAt,
+        totalNetFlowRate: expectedTotalNetFlowRate,
         totalInflowRate: expectedTotalInflowRate,
         totalOutflowRate: expectedTotalOutflowRate,
-        totalNetFlowRate: expectedTotalNetFlowRate,
+        totalAmountStreamedUntilUpdatedAt:
+            expectedTotalAmountStreamedUntilUpdatedAt,
+        totalAmountTransferredUntilUpdatedAt:
+            expectedTotalAmountTransferredUntilUpdatedAt,
     } = expectedATSData;
 
-    expect(
-        graphATSData.balanceUntilUpdatedAt,
-        "ATS: graphATSData.balanceUntilUpdatedAt"
-    ).to.equal(expectedBalanceUntilUpdatedAt);
     expect(
         graphATSData.totalNumberOfActiveStreams,
         "ATS: totalNumberOfActiveStreams error"
@@ -72,6 +70,22 @@ export const validateATSEntityForFlowUpdated = (
         graphATSData.totalNumberOfClosedStreams,
         "ATS: totalNumberOfClosedStreams error"
     ).to.equal(expectedTotalNumberOfClosedStreams);
+    expect(
+        graphATSData.totalSubscriptions,
+        "ATS: totalSubscriptions error"
+    ).to.equal(expectedTotalSubscriptions);
+    expect(
+        graphATSData.totalApprovedSubscriptions,
+        "ATS: totalApprovedSubscriptions error"
+    ).to.equal(expectedTotalApprovedSubscriptions);
+    expect(
+        graphATSData.balanceUntilUpdatedAt,
+        "ATS: balanceUntilUpdatedAt error"
+    ).to.equal(expectedBalanceUntilUpdatedAt);
+    expect(
+        graphATSData.totalNetFlowRate,
+        "ATS: totalNetFlowRate error"
+    ).to.equal(expectedTotalNetFlowRate);
     expect(graphATSData.totalInflowRate, "ATS: totalInflowRate error").to.equal(
         expectedTotalInflowRate
     );
@@ -80,26 +94,39 @@ export const validateATSEntityForFlowUpdated = (
         "ATS: totalOutflowRate error"
     ).to.equal(expectedTotalOutflowRate);
     expect(
-        graphATSData.totalNetFlowRate,
-        "ATS: totalNetFlowRate error"
-    ).to.equal(expectedTotalNetFlowRate);
-    expect(
         graphATSData.totalAmountStreamedUntilUpdatedAt,
         "ATS: totalAmountStreamedUntilUpdatedAt error"
-    ).to.equal(expectedATSStreamedUntilAt);
+    ).to.equal(expectedTotalAmountStreamedUntilUpdatedAt);
+    expect(
+        graphATSData.totalAmountTransferredUntilUpdatedAt,
+        "ATS: totalAmountTransferredUntilUpdatedAt error"
+    ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
 };
 
-// CFA TokenStats Validators
-export const validateTokenStatsEntityForFlowUpdated = (
+/**
+ * Validates the TokenStatistic entity.
+ * @param graphTokenStats
+ * @param expectedTokenStats
+ */
+export const validateTokenStatsEntity = (
     graphTokenStats: ITokenStatistic,
     expectedTokenStats: ITokenStatistic
 ) => {
     const {
-        totalAmountStreamedUntilUpdatedAt:
-            expectedTotalAmountStreamedUntilUpdatedAt,
         totalNumberOfActiveStreams: expectedTotalNumberOfActiveStreams,
         totalNumberOfClosedStreams: expectedTotalNumberOfClosedStreams,
+        totalNumberOfIndexes: expectedTotalNumberOfIndexes,
+        totalNumberOfActiveIndexes: expectedTotalNumberOfActiveIndexes,
+        totalSubscriptions: expectedTotalSubscriptions,
+        totalApprovedSubscriptions: expectedTotalApprovedSubscriptions,
         totalOutflowRate: expectedTotalOutflowRate,
+        totalAmountStreamedUntilUpdatedAt:
+            expectedTotalAmountStreamedUntilUpdatedAt,
+        totalAmountTransferredUntilUpdatedAt:
+            expectedTotalAmountTransferredUntilUpdatedAt,
+        totalAmountDistributedUntilUpdatedAt:
+            expectedTotalAmountDistributedUntilUpdatedAt,
+        totalSupply: expectedTotalSupply,
     } = expectedTokenStats;
 
     expect(
@@ -110,6 +137,21 @@ export const validateTokenStatsEntityForFlowUpdated = (
         graphTokenStats.totalNumberOfClosedStreams,
         "TokenStats: totalNumberOfClosedStreams error"
     ).to.equal(expectedTotalNumberOfClosedStreams);
+    expect(graphTokenStats.totalNumberOfIndexes).to.equal(
+        expectedTotalNumberOfIndexes
+    );
+    expect(
+        graphTokenStats.totalNumberOfActiveIndexes,
+        "totalNumberOfActiveIndexes error"
+    ).to.equal(expectedTotalNumberOfActiveIndexes);
+    expect(
+        graphTokenStats.totalSubscriptions,
+        "totalSubscriptions error"
+    ).to.equal(expectedTotalSubscriptions);
+    expect(
+        graphTokenStats.totalApprovedSubscriptions,
+        "totalApprovedSubscriptions error"
+    ).to.equal(expectedTotalApprovedSubscriptions);
     expect(
         graphTokenStats.totalOutflowRate,
         "TokenStats: totalOutflowRate error"
@@ -118,8 +160,16 @@ export const validateTokenStatsEntityForFlowUpdated = (
         graphTokenStats.totalAmountStreamedUntilUpdatedAt,
         "TokenStats: totalAmountStreamedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountStreamedUntilUpdatedAt);
+    expect(
+        graphTokenStats.totalAmountTransferredUntilUpdatedAt,
+        "totalAmountTransferredUntilUpdatedAt error"
+    ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
+    expect(
+        graphTokenStats.totalAmountDistributedUntilUpdatedAt,
+        "totalAmountDistributedUntilUpdatedAt error"
+    ).to.equal(expectedTotalAmountDistributedUntilUpdatedAt);
+    // TODO: handle the uprade/downgrade here
+    // expect(graphTokenStats.totalSupply, "totalSupply error").to.equal(
+    //     expectedTotalSupply
+    // );
 };
-
-// IDA AccountTokenSnapshot Validators
-
-// IDA TokenStats Validators

@@ -32,9 +32,16 @@ import { validateModifyFlow } from "./validation/validators";
 import { InstantDistributionAgreementV1Helper } from "@superfluid-finance/js-sdk/src/InstantDistributionAgreementV1Helper";
 import { ContractReceipt } from "@ethersproject/contracts";
 import { fetchIndexCreatedEventAndValidate } from "./validation/eventValidators";
-import { BigNumber } from "@ethersproject/bignumber";
+import {
+    fetchIndexAndValidate,
+    fetchSubscriberAndValidate,
+} from "./validation/holValidators";
+import { fetchTokenStatsAndValidate } from "./validation/aggregateValidators";
+
+// TODO: Tests for totalSupply also needed
 
 describe("Subgraph Tests", () => {
+    const encoder = ethers.utils.defaultAbiCoder; // TODO: add some tests for userData
     let names: { [address: string]: string } = {};
     let userAddresses: string[] = [];
     let sf: Framework;
@@ -513,17 +520,15 @@ describe("Subgraph Tests", () => {
                 updatedTokenStats = {
                     ...updatedTokenStats,
                     totalNumberOfIndexes:
-                        updatedTokenStats.totalApprovedSubscriptions + 1,
+                        updatedTokenStats.totalNumberOfIndexes + 1,
                 };
+
+                await fetchIndexAndValidate(idaV1, currentIndex);
+                await fetchTokenStatsAndValidate(
+                    token.toLowerCase(),
+                    updatedTokenStats
+                );
             }
-            /**
-             * check the event entity (IndexCreated)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * No need to update the data on StreamData though
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
         });
 
         /**

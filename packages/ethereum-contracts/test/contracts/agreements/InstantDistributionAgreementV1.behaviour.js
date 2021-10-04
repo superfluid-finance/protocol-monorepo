@@ -11,7 +11,7 @@ function _updateIndexData({
 }) {
     _.merge(testenv.data, {
         tokens: {
-            [superToken]: {
+            [superToken.address]: {
                 accounts: {
                     [publisher]: {
                         ida: {
@@ -35,7 +35,7 @@ function _assertEqualIndexData(idataActual, idataExpected) {
 function getIndexData({ testenv, superToken, publisher, indexId }) {
     _.defaultsDeep(testenv.data, {
         tokens: {
-            [superToken]: {
+            [superToken.address]: {
                 accounts: {
                     [publisher]: {
                         ida: {
@@ -57,16 +57,14 @@ function getIndexData({ testenv, superToken, publisher, indexId }) {
         },
     });
     return _.clone(
-        testenv.data.tokens[superToken].accounts[publisher].ida.indicies[
-            indexId
-        ].data
+        testenv.data.tokens[superToken.address].accounts[publisher].ida
+            .indicies[indexId].data
     );
 }
 
 function getSubscribers({ testenv, superToken, publisher, indexId }) {
-    return testenv.data.tokens[superToken].accounts[publisher].ida.indicies[
-        indexId
-    ].subscribers;
+    return testenv.data.tokens[superToken.address].accounts[publisher].ida
+        .indicies[indexId].subscribers;
 }
 
 function _updateSubscriptionData({
@@ -79,7 +77,7 @@ function _updateSubscriptionData({
 }) {
     _.merge(testenv.data, {
         tokens: {
-            [superToken]: {
+            [superToken.address]: {
                 accounts: {
                     [subscriber]: {
                         ida: {
@@ -107,7 +105,7 @@ function _deleteSubscription({
     indexId,
     subscriber,
 }) {
-    delete testenv.data.tokens[superToken].accounts[subscriber].ida
+    delete testenv.data.tokens[superToken.address].accounts[subscriber].ida
         .subscriptions[`${publisher}@${indexId}`];
 }
 
@@ -120,7 +118,7 @@ function getSubscriptionData({
 }) {
     _.defaultsDeep(testenv.data, {
         tokens: {
-            [superToken]: {
+            [superToken.address]: {
                 accounts: {
                     [subscriber]: {
                         ida: {
@@ -139,9 +137,8 @@ function getSubscriptionData({
         },
     });
     const result = _.clone(
-        testenv.data.tokens[superToken].accounts[subscriber].ida.subscriptions[
-            `${publisher}@${indexId}`
-        ]
+        testenv.data.tokens[superToken.address].accounts[subscriber].ida
+            .subscriptions[`${publisher}@${indexId}`]
     );
     // calculate pendingDistribution
     const idata = getIndexData({
@@ -160,16 +157,20 @@ function getSubscriptionData({
     return result;
 }
 
-async function shouldCreateIndex({ testenv, publisherName, indexId }) {
+async function shouldCreateIndex({
+    testenv,
+    superToken,
+    publisherName,
+    indexId,
+}) {
     console.log("======== shouldCreateIndex begins ========");
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
 
     const tx = await web3tx(
         testenv.sf.ida.createIndex,
         `${publisherName} create index ${indexId}`
     )({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
     });
@@ -193,7 +194,7 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
         indexId,
     });
     const idataActual = await testenv.sf.ida.getIndex({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
     });
@@ -205,7 +206,7 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexCreated",
         {
-            token: superToken,
+            token: superToken.address,
             publisher: publisher,
             indexId: indexId.toString(),
             userData: null,
@@ -217,6 +218,7 @@ async function shouldCreateIndex({ testenv, publisherName, indexId }) {
 
 async function shouldDistribute({
     testenv,
+    superToken,
     publisherName,
     indexId,
     indexValue,
@@ -224,7 +226,6 @@ async function shouldDistribute({
     fn,
 }) {
     console.log("======== shouldDistribute begins ========");
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
 
     const idataBefore = getIndexData({
@@ -245,7 +246,7 @@ async function shouldDistribute({
     if (fn) {
         indexValue = (
             await testenv.sf.agreements.ida.calculateDistribution(
-                superToken,
+                superToken.address,
                 publisher,
                 indexId,
                 amount
@@ -257,7 +258,7 @@ async function shouldDistribute({
             testenv.sf.ida.updateIndex,
             `${publisherName} distributes tokens to index @${indexId} with indexValue ${indexValue}`
         )({
-            superToken,
+            superToken: superToken.address,
             publisher,
             indexId,
             indexValue,
@@ -265,7 +266,7 @@ async function shouldDistribute({
     } else if (amount) {
         indexValue = (
             await testenv.sf.agreements.ida.calculateDistribution(
-                superToken,
+                superToken.address,
                 publisher,
                 indexId,
                 amount
@@ -275,7 +276,7 @@ async function shouldDistribute({
             testenv.sf.ida.distribute,
             `${publisherName} distributes tokens to index @${indexId} with amount ${amount}`
         )({
-            superToken,
+            superToken: superToken.address,
             publisher,
             indexId,
             amount,
@@ -299,7 +300,7 @@ async function shouldDistribute({
         indexId,
     });
     const idataActual = await testenv.sf.ida.getIndex({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
     });
@@ -311,7 +312,7 @@ async function shouldDistribute({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexUpdated",
         {
-            token: superToken,
+            token: superToken.address,
             publisher: publisher,
             indexId: indexId.toString(),
             oldIndexValue: idataBefore.indexValue,
@@ -330,7 +331,7 @@ async function shouldDistribute({
 
         // publisher
         testenv.updateAccountExpectedBalanceDelta(
-            superToken,
+            superToken.address,
             publisher,
             toBN(indexDelta)
                 .mul(toBN(idataActual.totalUnitsApproved))
@@ -353,7 +354,7 @@ async function shouldDistribute({
                 .toString();
             if (subscribers[subscriber].approved) {
                 testenv.updateAccountExpectedBalanceDelta(
-                    superToken,
+                    superToken.address,
                     subscriber,
                     expectedBalanceDelta
                 );
@@ -372,7 +373,7 @@ async function shouldDistribute({
             subscriber,
         });
         const sdataActual = await testenv.sf.ida.getSubscription({
-            superToken,
+            superToken: superToken.address,
             publisher,
             indexId,
             subscriber,
@@ -432,7 +433,7 @@ async function _afterSubscriptionUpdate({
         subscriber,
     });
     const sdataActual = await testenv.sf.ida.getSubscription({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
         subscriber,
@@ -446,7 +447,7 @@ async function _afterSubscriptionUpdate({
         indexId,
     });
     const idataActual = await testenv.sf.ida.getIndex({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
     });
@@ -462,12 +463,12 @@ async function _afterSubscriptionUpdate({
             );
             const distribution = indexDiff.mul(toBN(sdataBefore.units));
             testenv.updateAccountExpectedBalanceDelta(
-                superToken,
+                superToken.address,
                 publisher,
                 toBN(0).sub(distribution)
             );
             testenv.updateAccountExpectedBalanceDelta(
-                superToken,
+                superToken.address,
                 subscriber,
                 distribution
             );
@@ -477,13 +478,13 @@ async function _afterSubscriptionUpdate({
 
 async function shouldApproveSubscription({
     testenv,
+    superToken,
     publisherName,
     indexId,
     subscriberName,
     userData,
 }) {
     console.log("======== shouldApproveSubscription begins ========");
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
@@ -499,7 +500,7 @@ async function shouldApproveSubscription({
         testenv.sf.ida.approveSubscription,
         `${subscriberName} approves subscription to index ${publisherName}@${indexId}`
     )({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
         subscriber,
@@ -565,7 +566,7 @@ async function shouldApproveSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexSubscribed",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -577,7 +578,7 @@ async function shouldApproveSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "SubscriptionApproved",
         {
-            token: superToken,
+            token: superToken.address,
             subscriber,
             publisher,
             indexId: indexId.toString(),
@@ -592,6 +593,7 @@ async function shouldApproveSubscription({
 
 async function shouldUpdateSubscription({
     testenv,
+    superToken,
     publisherName,
     indexId,
     subscriberName,
@@ -600,7 +602,6 @@ async function shouldUpdateSubscription({
     fn,
 }) {
     console.log("======== shouldUpdateSubscription begins ========");
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
@@ -617,7 +618,7 @@ async function shouldUpdateSubscription({
               testenv.sf.ida.updateSubscription,
               `${publisherName} updates subscription from ${subscriberName} of index @${indexId} with ${units} units`
           )({
-              superToken,
+              superToken: superToken.address,
               publisher,
               indexId,
               subscriber,
@@ -689,7 +690,7 @@ async function shouldUpdateSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexUnitsUpdated",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -702,7 +703,7 @@ async function shouldUpdateSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "SubscriptionUnitsUpdated",
         {
-            token: superToken,
+            token: superToken.address,
             subscriber,
             publisher,
             indexId: indexId.toString(),
@@ -718,13 +719,13 @@ async function shouldUpdateSubscription({
 
 async function shouldRevokeSubscription({
     testenv,
+    superToken,
     publisherName,
     indexId,
     subscriberName,
     userData,
 }) {
     console.log("======== shouldRevokeSubscription begins ========");
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
@@ -740,7 +741,7 @@ async function shouldRevokeSubscription({
         testenv.sf.ida.revokeSubscription,
         `${subscriberName} revoke subscription to index ${publisherName}@${indexId}`
     )({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
         subscriber,
@@ -799,7 +800,7 @@ async function shouldRevokeSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexUnsubscribed",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -811,7 +812,7 @@ async function shouldRevokeSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "SubscriptionRevoked",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -826,6 +827,7 @@ async function shouldRevokeSubscription({
 
 async function shouldDeleteSubscription({
     testenv,
+    superToken,
     publisherName,
     indexId,
     subscriberName,
@@ -833,7 +835,6 @@ async function shouldDeleteSubscription({
     userData,
 }) {
     console.log("======== shouldDeleteSubscription begins ========");
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
@@ -850,7 +851,7 @@ async function shouldDeleteSubscription({
         testenv.sf.ida.deleteSubscription,
         `${senderName} deletes subscription from ${subscriberName} to index ${publisherName}@${indexId}`
     )({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
         subscriber,
@@ -910,7 +911,7 @@ async function shouldDeleteSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexUnsubscribed",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -922,7 +923,7 @@ async function shouldDeleteSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "SubscriptionRevoked",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -934,7 +935,7 @@ async function shouldDeleteSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "IndexUnitsUpdated",
         {
-            token: superToken,
+            token: superToken.address,
             publisher,
             indexId: indexId.toString(),
             subscriber,
@@ -947,7 +948,7 @@ async function shouldDeleteSubscription({
         testenv.sf.contracts.IInstantDistributionAgreementV1,
         "SubscriptionUnitsUpdated",
         {
-            token: superToken,
+            token: superToken.address,
             subscriber,
             publisher,
             indexId: indexId.toString(),
@@ -963,6 +964,7 @@ async function shouldDeleteSubscription({
 
 async function shouldClaimPendingDistribution({
     testenv,
+    superToken,
     publisherName,
     indexId,
     subscriberName,
@@ -971,7 +973,6 @@ async function shouldClaimPendingDistribution({
 }) {
     console.log("======== shouldClaimPendingDistribution begins ========");
 
-    const superToken = testenv.contracts.superToken.address;
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
@@ -988,7 +989,7 @@ async function shouldClaimPendingDistribution({
         testenv.sf.ida.claim,
         `${subscriberName} claims pending distrubtions from ${publisherName}@${indexId}`
     )({
-        superToken,
+        superToken: superToken.address,
         publisher,
         indexId,
         subscriber,
@@ -1025,10 +1026,10 @@ async function shouldClaimPendingDistribution({
 
 module.exports = {
     getIndexData,
+    getSubscriptionData,
     getSubscribers,
     shouldCreateIndex,
     shouldDistribute,
-    getSubscriptionData,
     shouldApproveSubscription,
     shouldUpdateSubscription,
     shouldRevokeSubscription,

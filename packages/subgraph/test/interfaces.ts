@@ -143,7 +143,7 @@ export interface IStream extends IBaseEntity {
 }
 
 export interface ISubscriber extends IBaseEntity {
-    readonly token: IToken;
+    readonly token: ILightEntity;
     readonly subscriber: ILightEntity;
     readonly publisher: ILightEntity;
     readonly indexId: string;
@@ -152,7 +152,7 @@ export interface ISubscriber extends IBaseEntity {
     readonly units: string;
     readonly totalUnitsReceivedUntilUpdatedAt: string;
     readonly lastIndexValue: string;
-    readonly index: IIndex;
+    readonly index: ILightEntity;
 }
 
 export interface IIndex extends IBaseEntity {
@@ -160,7 +160,7 @@ export interface IIndex extends IBaseEntity {
     readonly userData: string;
     readonly oldIndexValue: string;
     readonly newIndexValue: string;
-    readonly totalSubscribers: string;
+    readonly totalSubscribers: number;
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
@@ -247,6 +247,16 @@ export interface IExpectedTokenStats {
     readonly totalAmountStreamedUntilUpdatedAt: string;
 }
 
+export interface IUpdateGlobalObjectData {
+    readonly updatedStreamData?: IStreamData;
+    readonly updatedTokenStats?: ITokenStatistic;
+    readonly updatedReceiverATS?: IAccountTokenSnapshot;
+    readonly updatedSenderATS?: IAccountTokenSnapshot;
+    readonly revisionIndexId?: string;
+    readonly updatedIndex?: IIndex;
+    readonly updatedSubscriber?: ISubscriber;
+}
+
 export interface ILocalData {
     readonly revisionIndexes: { [id: string]: number | undefined };
     readonly streamData: { [id: string]: IStreamData | undefined };
@@ -281,4 +291,13 @@ export interface IFlowUpdatedUpdateTestData {
     readonly currentSenderATS: IAccountTokenSnapshot;
     readonly currentReceiverATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
+}
+
+export interface IUpdateIndexData {
+	readonly userData: string;
+	readonly oldIndexValue: string;
+    readonly newIndexValue: string;
+    readonly totalSubscribersDelta: number;
+    readonly totalUnitsPending: BigInt;
+    readonly totalUnitsApproved: BigInt;
 }

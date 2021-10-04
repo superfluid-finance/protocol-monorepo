@@ -19,19 +19,49 @@ export const getStream = gql`
     }
 `;
 
-export const getStreams = gql`
-    query getStreams($id: ID!) {
-        streams(where: { sender: $sender, receiver: $receiver }) {
+export const getIndex = gql`
+    query getIndex($id: ID!) {
+        index(id: $id) {
             id
-            currentFlowRate
-            streamedUntilUpdatedAt
+            indexId
+            userData
+            oldIndexValue
+            newIndexValue
+            totalSubscribers
+            totalUnitsPending
+            totalUnitsApproved
+            totalUnits
+            totalAmountDistributedUntilUpdatedAt
             token {
                 id
             }
-            sender {
+            publisher {
                 id
             }
-            receiver {
+        }
+    }
+`;
+
+export const getSubscriber = gql`
+    query getSubscriber($id: ID!) {
+        subscriber(id: $id) {
+            id
+            token {
+                id
+            }
+            subscriber {
+                id
+            }
+            publisher {
+                id
+            }
+            indexId
+            userData
+            approved
+            units
+            totalAmountReceivedUntilUpdatedAt
+            lastIndexValue
+            index {
                 id
             }
         }

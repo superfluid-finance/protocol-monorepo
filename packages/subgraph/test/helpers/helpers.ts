@@ -8,9 +8,12 @@ import {
     IAccountTokenSnapshot,
     IFlowUpdatedInitTestData,
     IFlowUpdatedUpdateTestData,
+    IIndex,
     IMeta,
     IStreamData,
+    ISubscriber,
     ITokenStatistic,
+    IUpdateIndexData,
 } from "../interfaces";
 import {
     actionTypeToActiveStreamsDeltaMap,
@@ -214,6 +217,24 @@ export const getRevisionIndexId = (
         "-"
     );
 
+export const getIndexId = (publisher: string, token: string, indexId: string) =>
+    [publisher.toLowerCase(), token.toLowerCase(), indexId.toLowerCase()].join(
+        "-"
+    );
+
+export const getSubscriberId = (
+    subscriber: string,
+    publisher: string,
+    token: string,
+    indexId: string
+) =>
+    [
+        subscriber.toLowerCase(),
+        publisher.toLowerCase(),
+        token.toLowerCase(),
+        indexId.toLowerCase(),
+    ].join("-");
+
 /**************************************************************************
  * Entity Get or Init Functions
  *************************************************************************/
@@ -277,7 +298,67 @@ export const getOrInitAccountTokenSnapshot = (
     return existingATS;
 };
 
-export const getOrInitTokenStatic = (
+export const getOrInitIndex = (
+    indexes: { [id: string]: IIndex | undefined },
+    indexEntityId: string,
+    updatedAtBlock: string,
+    updatedAtTimestamp: string
+): IIndex => {
+    const existingIndex = indexes[indexEntityId];
+    if (existingIndex == null) {
+        const [publisher, token, indexId] = indexEntityId.split("-");
+        return {
+            id: indexEntityId,
+            createdAt: updatedAtTimestamp,
+            updatedAtBlock: updatedAtBlock,
+            updatedAtTimestamp,
+            indexId,
+            publisher: { id: publisher },
+            token: { id: token },
+            userData: "0x",
+            oldIndexValue: "0",
+            newIndexValue: "0",
+            totalSubscribers: 0,
+            totalUnits: "0",
+            totalUnitsApproved: "0",
+            totalUnitsDistributedUntilUpdatedAt: "0",
+            totalUnitsPending: "0",
+        };
+    }
+    return existingIndex;
+};
+
+export const getOrInitSubscriber = (
+    subscribers: { [id: string]: ISubscriber | undefined },
+    subscriberId: string,
+    updatedAtBlock: string,
+    updatedAtTimestamp: string
+): ISubscriber => {
+    const existingSubscriber = subscribers[subscriberId];
+    if (existingSubscriber == null) {
+        const [subscriber, publisher, token, indexId] = subscriberId.split("-");
+        const indexEntityId = getIndexId(publisher, token, indexId);
+        return {
+            id: subscriberId,
+            createdAt: updatedAtTimestamp,
+            updatedAtBlock: updatedAtBlock,
+            updatedAtTimestamp: updatedAtTimestamp,
+            token: { id: token },
+            subscriber: { id: subscriber },
+            publisher: { id: publisher },
+            indexId,
+            userData: "0x",
+            approved: false,
+            units: "0",
+            totalUnitsReceivedUntilUpdatedAt: "0",
+            lastIndexValue: "0",
+            index: { id: indexEntityId },
+        };
+    }
+    return existingSubscriber;
+};
+
+export const getOrInitTokenStatistics = (
     tokenStatistics: { [id: string]: ITokenStatistic | undefined },
     tokenId: string,
     updatedAtBlock: string,
@@ -357,7 +438,7 @@ export function getOrInitializeDataForFlowUpdated(
         lastUpdatedBlockNumber,
         lastUpdatedAtTimestamp
     );
-    const currentTokenStats = getOrInitTokenStatic(
+    const currentTokenStats = getOrInitTokenStatistics(
         tokenStatistics,
         tokenId,
         lastUpdatedBlockNumber,
@@ -401,7 +482,35 @@ export const updateAndReturnStreamData = (
     } as IStreamData;
 };
 
-export const updateAndReturnATSOnFlowUpdated = async (
+export const updateAndReturnIndexData = (
+    currentIndex: IIndex,
+    updateData: IUpdateIndexData
+) => {
+    return {
+        ...currentIndex,
+    };
+};
+
+export const updateAndReturnSubscriberData = (
+    currentSubscriber: ISubscriber
+    // updateData: IUpdateSubscriberDAta
+) => {
+    return;
+};
+
+/**
+ * Updates ATS entity balance and stream data.
+ * @param superToken
+ * @param currentATS
+ * @param updatedAtBlock
+ * @param lastUpdatedAtTimestamp
+ * @param actionType
+ * @param isSender
+ * @param flowRate
+ * @param flowRateDelta
+ * @returns
+ */
+export const updateAndReturnATSForCFAData = async (
     superToken: SuperToken,
     currentATS: IAccountTokenSnapshot,
     updatedAtBlock: string,
@@ -467,7 +576,18 @@ export const updateAndReturnATSOnFlowUpdated = async (
     };
 };
 
-export const updateAndReturnTokenStatsOnFlowUpdated = (
+/**
+ * Updates Token Stats stream data.
+ * @param currentTokenStats
+ * @param accountTokenSnapshots
+ * @param updatedAtBlock
+ * @param lastUpdatedAtTimestamp
+ * @param actionType
+ * @param flowRate
+ * @param flowRateDelta
+ * @returns
+ */
+export const updateAndReturnTokenStatsForCFAData = (
     currentTokenStats: ITokenStatistic,
     accountTokenSnapshots: IAccountTokenSnapshot[],
     updatedAtBlock: string,
@@ -524,6 +644,8 @@ export const updateAndReturnTokenStatsOnFlowUpdated = (
     } as ITokenStatistic;
 };
 
+export const updateAndReturnTokenStatsForIDAData = () => {};
+
 export const getExpectedDataForFlowUpdated = async (
     testData: IFlowUpdatedUpdateTestData
 ) => {
@@ -543,7 +665,7 @@ export const getExpectedDataForFlowUpdated = async (
     const flowRateDelta = flowRate.sub(toBN(pastStreamData.oldFlowRate));
 
     // Update the data - we use this for comparison
-    const updatedSenderATS = await updateAndReturnATSOnFlowUpdated(
+    const updatedSenderATS = await updateAndReturnATSForCFAData(
         superToken,
         currentSenderATS,
         lastUpdatedBlockNumber,
@@ -553,7 +675,7 @@ export const getExpectedDataForFlowUpdated = async (
         flowRate,
         flowRateDelta
     );
-    const updatedReceiverATS = await updateAndReturnATSOnFlowUpdated(
+    const updatedReceiverATS = await updateAndReturnATSForCFAData(
         superToken,
         currentReceiverATS,
         lastUpdatedBlockNumber,
@@ -563,7 +685,7 @@ export const getExpectedDataForFlowUpdated = async (
         flowRate,
         flowRateDelta
     );
-    const updatedTokenStats = updateAndReturnTokenStatsOnFlowUpdated(
+    const updatedTokenStats = updateAndReturnTokenStatsForCFAData(
         currentTokenStats,
         accountTokenSnapshots,
         lastUpdatedBlockNumber,

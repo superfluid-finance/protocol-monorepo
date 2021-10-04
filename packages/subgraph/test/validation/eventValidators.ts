@@ -1,10 +1,20 @@
-import { ContractReceipt } from "@ethersproject/contracts";
+import { Contract, ContractReceipt } from "@ethersproject/contracts";
 import { expect } from "chai";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
+import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
 import { FlowActionType } from "../helpers/constants";
 import { fetchEventAndEnsureExistence } from "../helpers/helpers";
-import { IEvent, IFlowUpdated } from "../interfaces";
-import { getFlowUpdatedEvents } from "../queries/eventQueries";
+import {
+    IEvent,
+    IFlowUpdated,
+    IIndexCreated,
+    IIndexUpdated,
+} from "../interfaces";
+import {
+    getFlowUpdatedEvents,
+    getIndexCreatedEvents,
+    getIndexUpdatedEvents,
+} from "../queries/eventQueries";
 
 // Event Entity Validator Functions
 /**
@@ -50,6 +60,72 @@ export const fetchFlowUpdatedEventAndValidate = async (
             totalReceiverFlowRate: receiverNetFlow.toString(),
             oldFlowRate,
             type: actionType,
+        },
+        receipt
+    );
+};
+
+export const fetchIndexCreatedEventAndValidate = async (
+    idaV1: InstantDistributionAgreementV1,
+    receipt: ContractReceipt,
+    token: string,
+    publisher: string,
+    indexId: string
+) => {
+    const indexCreatedEvent = await fetchEventAndEnsureExistence<IIndexCreated>(
+        getIndexCreatedEvents,
+        receipt.transactionHash,
+        "IndexCreated"
+    );
+
+    const [, indexValue, totalUnitsApproved, totalUnitsPending] =
+        await idaV1.getIndex(token, publisher, indexId);
+    expect(indexValue.toString()).to.equal("0");
+    expect(totalUnitsApproved.toString()).to.equal("0");
+    expect(totalUnitsPending.toString()).to.equal("0");
+
+    validateEventData(
+        indexCreatedEvent,
+        {
+            token: token.toLowerCase(),
+            publisher: publisher.toLowerCase(),
+            indexId,
+        },
+        receipt
+    );
+};
+
+export const fetchIndexUpdatedEventAndValidate = async (
+    idaV1: InstantDistributionAgreementV1,
+    receipt: ContractReceipt,
+    token: string,
+    publisher: string,
+    indexId: string,
+    oldIndexValue: string,
+    totalUnitsPending: string,
+    totalUnitsApproved: string
+) => {
+    const indexUpdatedEvent = await fetchEventAndEnsureExistence<IIndexUpdated>(
+        getIndexUpdatedEvents,
+        receipt.transactionHash,
+        "IndexUpdated"
+    );
+
+    const [, indexValue, indexTotalUnitsApproved, indexTotalUnitsPending] =
+        await idaV1.getIndex(token, publisher, indexId);
+    expect(indexTotalUnitsPending.toString()).to.equal(totalUnitsApproved);
+    expect(indexTotalUnitsApproved.toString()).to.equal(totalUnitsPending);
+
+    validateEventData(
+        indexUpdatedEvent,
+        {
+            token: token.toLowerCase(),
+            publisher: publisher.toLowerCase(),
+            indexId,
+            oldIndexValue,
+            newIndexValue: indexValue.toString(),
+            totalUnitsPending: indexTotalUnitsPending,
+            totalUnitsApproved: indexTotalUnitsApproved,
         },
         receipt
     );

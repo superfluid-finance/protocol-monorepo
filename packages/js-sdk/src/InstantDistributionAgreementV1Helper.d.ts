@@ -8,7 +8,7 @@ import type BN from 'bn.js';
 // then returned from getIndex
 export interface IndexData {
     exist: boolean;
-    approved: boolean;
+    indexValue: string;
     totalUnitsApproved: string;
     totalUnitsPending: string;
 }
@@ -28,7 +28,7 @@ export interface SubscriptionData {
 // then returned from listSubscriptions
 export type SubscriptionInfoList = {
     publisher: string;
-    indexId: string;
+    indexId: number;
     units: string;
 }[]
 

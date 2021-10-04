@@ -9,14 +9,15 @@ export interface UserOptions {
     sf: Framework;
     address: string;
     token: string;
-    options?: any;
 }
 
 // specified User to avoid confusion with CFA CreateFlowOptions
 export interface UserFlowOptions {
     recipient: string;
     flowRate: string;
-    options?: any;
+    userData?: string;
+    onTransaction?: ()=>any;
+    by?: string;
 }
 
 export interface CreatePoolOptions {
@@ -30,7 +31,7 @@ export interface GiveSharesOptions {
 }
 
 export interface DistributeToPoolOptions {
-    poolid: number;
+    poolId: number;
     amount: number | BN;
 }
 
@@ -45,7 +46,7 @@ export interface UserDetails {
 }
 
 export declare class User {
-    constructor({ sf, address, token, options }: UserOptions);
+    constructor({ sf, address, token }: UserOptions);
     sf: Framework;
     address: string;
     token: string;
@@ -55,8 +56,8 @@ export declare class User {
         recipient,
         flowRate,
         ...options
-    }: UserFlowOptions): Promise<Transaction>;
-    createPool({ poolId: indexId }: CreatePoolOptions): Promise<Transaction>;
-    giveShares({ recipient, shares, poolId: indexId }: GiveSharesOptions): Promise<Transaction>;
+    }: UserFlowOptions): Promise<Transaction | undefined>;
+    createPool({ poolId: indexId }: CreatePoolOptions): Promise<Transaction | undefined>;
+    giveShares({ recipient, shares, poolId: indexId }: GiveSharesOptions): Promise<Transaction | undefined>;
     distributeToPool({ poolId: indexId, amount }: DistributeToPoolOptions): Promise<void>;
 }

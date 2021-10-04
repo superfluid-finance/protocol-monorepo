@@ -44,7 +44,7 @@ export interface DeleteFlowOptions {
   sender: string;
   receiver: string;
   flowRate: string;
-  by: string;
+  by?: string;
   userData?: string;
   onTransaction?: ()=>any
 }

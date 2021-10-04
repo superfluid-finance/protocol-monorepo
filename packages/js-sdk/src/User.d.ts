@@ -50,7 +50,6 @@ export declare class User {
     sf: Framework;
     address: string;
     token: string;
-    options: any;
     details(): Promise<UserDetails>;
     flow({
         recipient,

@@ -160,10 +160,10 @@ export const validateTokenStatsEntity = (
         graphTokenStats.totalAmountStreamedUntilUpdatedAt,
         "TokenStats: totalAmountStreamedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountStreamedUntilUpdatedAt);
-    expect(
-        graphTokenStats.totalAmountTransferredUntilUpdatedAt,
-        "totalAmountTransferredUntilUpdatedAt error"
-    ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
+    // expect(
+    //     graphTokenStats.totalAmountTransferredUntilUpdatedAt,
+    //     "totalAmountTransferredUntilUpdatedAt error"
+    // ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
     expect(
         graphTokenStats.totalAmountDistributedUntilUpdatedAt,
         "totalAmountDistributedUntilUpdatedAt error"

@@ -109,32 +109,54 @@ export const validateIndexEntity = async (
         );
 
     // Check subgraph data against expected data
-    expect(subgraphIndex.indexId).to.equal(expectedIndex.indexId);
-    expect(subgraphIndex.userData).to.equal(expectedIndex.userData);
-    expect(subgraphIndex.oldIndexValue).to.equal(expectedIndex.oldIndexValue);
-    expect(subgraphIndex.newIndexValue).to.equal(expectedIndex.newIndexValue);
-    expect(subgraphIndex.totalSubscribers).to.equal(
-        expectedIndex.totalSubscribers
+    expect(subgraphIndex.indexId, "Index: indexId error").to.equal(
+        expectedIndex.indexId
     );
-    expect(subgraphIndex.totalUnitsPending).to.equal(
-        expectedIndex.totalUnitsPending
+    expect(subgraphIndex.userData, "Index: userData error").to.equal(
+        expectedIndex.userData
     );
-    expect(subgraphIndex.totalUnitsApproved).to.equal(
-        expectedIndex.totalUnitsApproved
+    expect(subgraphIndex.oldIndexValue, "Index: oldIndexValue error").to.equal(
+        expectedIndex.oldIndexValue
     );
-    expect(subgraphIndex.totalUnits).to.equal(expectedIndex.totalUnits);
-    expect(subgraphIndex.totalAmountDistributedUntilUpdatedAt).to.equal(
-        expectedIndex.totalAmountDistributedUntilUpdatedAt
+    expect(subgraphIndex.newIndexValue, "Index: newIndexValue error").to.equal(
+        expectedIndex.newIndexValue
     );
+    expect(
+        subgraphIndex.totalSubscribers,
+        "Index: totalSubscribers error"
+    ).to.equal(expectedIndex.totalSubscribers);
+    expect(
+        subgraphIndex.totalUnitsPending,
+        "Index: totalUnitsPending error"
+    ).to.equal(expectedIndex.totalUnitsPending);
+    expect(
+        subgraphIndex.totalUnitsApproved,
+        "Index: totalUnitsApproved error"
+    ).to.equal(expectedIndex.totalUnitsApproved);
+    expect(subgraphIndex.totalUnits, "Index: totalUnits error").to.equal(
+        expectedIndex.totalUnits
+    );
+    expect(
+        subgraphIndex.totalAmountDistributedUntilUpdatedAt,
+        "Index: totalAmountDistributedUntilUpdatedAt error"
+    ).to.equal(expectedIndex.totalAmountDistributedUntilUpdatedAt);
 
     // Check subgraph data against web3 data
     const totalUnits = totalUnitsPending.add(totalUnitsApproved);
-    expect(subgraphIndex.newIndexValue).to.equal(indexValue.toString());
-    expect(subgraphIndex.totalUnitsApproved).to.equal(
-        totalUnitsApproved.toString()
+    expect(subgraphIndex.newIndexValue, "Index: newIndexValue error").to.equal(
+        indexValue.toString()
     );
-    expect(subgraphIndex.totalUnitsPending).to.equal(totalUnitsPending);
-    expect(subgraphIndex.totalUnits).to.equal(totalUnits.toString());
+    expect(
+        subgraphIndex.totalUnitsApproved,
+        "Index: totalUnitsApproved error"
+    ).to.equal(totalUnitsApproved.toString());
+    expect(
+        subgraphIndex.totalUnitsPending,
+        "Index: totalUnitsPending error"
+    ).to.equal(totalUnitsPending);
+    expect(subgraphIndex.totalUnits, "Index: totalUnits error").to.equal(
+        totalUnits.toString()
+    );
 };
 
 export const validateSubscriberEntity = async (
@@ -158,24 +180,40 @@ export const validateSubscriberEntity = async (
         );
 
     // Check subgraph data against expected data
-    expect(subgraphSubscriber.indexId).to.equal(expectedSubscriber.indexId);
-    expect(subgraphSubscriber.userData).to.equal(expectedSubscriber.userData);
-    expect(subgraphSubscriber.approved).to.equal(expectedSubscriber.approved);
-    expect(subgraphSubscriber.units).to.equal(expectedSubscriber.units);
-    expect(subgraphSubscriber.totalAmountReceivedUntilUpdatedAt).to.equal(
-        expectedSubscriber.totalAmountReceivedUntilUpdatedAt
+    expect(subgraphSubscriber.indexId, "Subscriber: indexId error").to.equal(
+        expectedSubscriber.indexId
     );
-    expect(subgraphSubscriber.lastIndexValue).to.equal(
-        expectedSubscriber.lastIndexValue
+    expect(subgraphSubscriber.userData, "Subscriber: userData error").to.equal(
+        expectedSubscriber.userData
     );
+    expect(subgraphSubscriber.approved, "Subscriber: approved error").to.equal(
+        expectedSubscriber.approved
+    );
+    expect(subgraphSubscriber.units, "Subscriber: units error").to.equal(
+        expectedSubscriber.units
+    );
+    expect(
+        subgraphSubscriber.totalAmountReceivedUntilUpdatedAt,
+        "Subscriber: totalAmountReceivedUntilUpdatedAt error"
+    ).to.equal(expectedSubscriber.totalAmountReceivedUntilUpdatedAt);
+    expect(
+        subgraphSubscriber.lastIndexValue,
+        "Subscriber: lastIndexValue error"
+    ).to.equal(expectedSubscriber.lastIndexValue);
 
     // Check subgraph data against web3 data
-    expect(subgraphSubscriber.approved).to.equal(approved);
-    expect(subgraphSubscriber.units).to.equal(units.toString());
+    expect(subgraphSubscriber.approved, "Subscriber: approved error").to.equal(
+        approved
+    );
+    expect(subgraphSubscriber.units, "Subscriber: units error").to.equal(
+        units.toString()
+    );
     const calcPendingDistribution = approved
-        ? 0
-        : toBN(newIndexValue)
-              .sub(subgraphSubscriber.lastIndexValue)
-              .mul(subgraphSubscriber.units);
-    expect(calcPendingDistribution).to.equal(pendingDistribution);
+        ? "0"
+        : toBN(subgraphSubscriber.units).mul(
+              toBN(newIndexValue).sub(toBN(subgraphSubscriber.lastIndexValue))
+          );
+    expect(calcPendingDistribution.toString()).to.equal(
+        pendingDistribution.toString()
+    );
 };

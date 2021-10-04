@@ -53,7 +53,9 @@ export const getSubscriptionApprovedEvents = gql`
             transactionHash
             blockNumber
             token
-            subscriber
+            subscriber {
+                id
+            }
             publisher
             indexId
         }
@@ -65,7 +67,9 @@ export const getSubscriptionRevokedEvents = gql`
             transactionHash
             blockNumber
             token
-            subscriber
+            subscriber {
+                id
+            }
             publisher
             indexId
         }
@@ -79,7 +83,9 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
             transactionHash
             blockNumber
             token
-            subscriber
+            subscriber {
+                id
+            }
             publisher
             indexId
             units

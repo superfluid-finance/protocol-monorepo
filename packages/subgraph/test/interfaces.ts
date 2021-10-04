@@ -59,7 +59,7 @@ export interface IIndexUpdated extends IEvent {
 
 export interface ISubscriptionApproved extends IEvent {
     readonly token: string;
-    readonly subscriber: string;
+    readonly subscriber: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
@@ -67,7 +67,7 @@ export interface ISubscriptionApproved extends IEvent {
 
 export interface ISubscriptionRevoked extends IEvent {
     readonly token: string;
-    readonly subscriber: string;
+    readonly subscriber: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
@@ -75,7 +75,7 @@ export interface ISubscriptionRevoked extends IEvent {
 
 export interface ISubscriptionUnitsUpdated extends IEvent {
     readonly token: string;
-    readonly subscriber: string;
+    readonly subscriber: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
     readonly units: string;
@@ -299,8 +299,8 @@ export interface IUpdateIndexData {
     readonly oldIndexValue?: string;
     readonly newIndexValue?: string;
     readonly totalSubscribersDelta?: number;
-    readonly totalUnitsPending?: BigInt;
-    readonly totalUnitsApproved?: BigInt;
+    readonly totalUnitsPending?: BigNumber;
+    readonly totalUnitsApproved?: BigNumber;
 }
 
 export interface IUpdateSubscriberData {
@@ -309,4 +309,26 @@ export interface IUpdateSubscriberData {
     readonly units?: string;
     readonly totalAmountReceivedUntilUpdatedAt?: string;
     readonly lastIndexValue?: string;
+}
+
+export interface IBaseIDAEvent {
+    readonly token: string;
+    readonly publisher: string;
+    readonly indexId: string;
+}
+
+export interface IExpectedIndexUpdated extends IBaseIDAEvent {
+    readonly oldIndexValue: string;
+    readonly newIndexValue: string;
+    readonly totalUnitsPending: string;
+    readonly totalUnitsApproved: string;
+}
+
+export interface IExpectedSubscriberEvent extends IBaseIDAEvent {
+    readonly subscriber: ILightEntity;
+}
+
+export interface IExpectedSubscriptionUnitsUpdated
+    extends IExpectedSubscriberEvent {
+    readonly units: string;
 }

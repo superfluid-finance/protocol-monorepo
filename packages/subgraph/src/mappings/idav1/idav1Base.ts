@@ -192,6 +192,18 @@ export function handleSubscriptionApproved(
     );
     let hasSubscription = subscriptionExists(subscriberId);
 
+    // this must be done whether subscription exists or not
+    updateATSStreamedUntilUpdatedAt(
+        event.params.subscriber.toHex(),
+        tokenId,
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(
+        event.params.subscriber.toHex(),
+        tokenId,
+        event.block
+    );
+
     if (hasSubscription) {
         index.totalUnitsApproved = index.totalUnitsApproved.plus(
             subscriber.units
@@ -209,20 +221,10 @@ export function handleSubscriptionApproved(
             tokenId,
             event.block
         );
-        updateATSStreamedUntilUpdatedAt(
-            event.params.subscriber.toHex(),
-            tokenId,
-            event.block
-        );
 
         // trade-off of using balanceOf vs. doing calculations locally for most accurate data
         updateATSBalanceAndUpdatedAt(
             event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
-        updateATSBalanceAndUpdatedAt(
-            event.params.subscriber.toHex(),
             tokenId,
             event.block
         );
@@ -238,18 +240,6 @@ export function handleSubscriptionApproved(
     subscriber.save();
 
     updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
-
-    updateATSStreamedUntilUpdatedAt(
-        event.params.subscriber.toHex(),
-        tokenId,
-        event.block
-    ); // we should only do this if !hasSubscription
-
-	updateATSBalanceAndUpdatedAt(
-		event.params.subscriber.toHex(),
-		tokenId,
-		event.block
-	);
 
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -339,15 +329,17 @@ export function handleSubscriptionRevoked(
             index.totalUnitsApproved = index.totalUnitsApproved.minus(
                 subscriber.units
             );
+            index.totalUnits = index.totalUnits.minus(subscriber.units);
         } else {
             index.totalUnitsPending = index.totalUnitsPending.minus(
                 subscriber.units
             );
+            index.totalUnits = index.totalUnits.minus(subscriber.units);
         }
-		
-		// do we set subscriber.units = 0?
-		// I thought that they weren't able to set their units
-		subscriber.units = BIG_INT_ZERO;
+
+        // do we set subscriber.units = 0?
+        // I thought that they weren't able to set their units
+        subscriber.units = BIG_INT_ZERO;
 
         updateATSStreamedUntilUpdatedAt(
             subscriberAddress,
@@ -455,9 +447,11 @@ export function handleSubscriptionUnitsUpdated(
         if (hasSubscription && subscriber.approved) {
             index.totalUnitsApproved =
                 index.totalUnitsApproved.plus(totalUnitsDelta);
+            index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
         } else if (hasSubscription) {
             index.totalUnitsPending =
                 index.totalUnitsPending.plus(totalUnitsDelta);
+            index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
         } else {
             // create unallocated subscription
             subscriber.indexId = event.params.indexId;
@@ -465,6 +459,7 @@ export function handleSubscriptionUnitsUpdated(
             subscriber.lastIndexValue = index.newIndexValue;
 
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
+            index.totalUnits = index.totalUnits.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
 
             updateTokenStatsStreamedUntilUpdatedAt(

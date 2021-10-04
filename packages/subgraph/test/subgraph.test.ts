@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import BN from "bn.js";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
 import idaABI from "../abis/IInstantDistributionAgreementV1.json";
@@ -9,20 +10,34 @@ import { SuperToken } from "../typechain/SuperToken";
 import {
     beforeSetup,
     getIndexId,
+    getOrInitAccountTokenSnapshot,
     getOrInitIndex,
+    getOrInitSubscriber,
     getOrInitTokenStatistics,
     getRandomFlowRate,
+    getSubscriberId,
+    hasSubscription,
     toBN,
+    updateAndReturnATSForCFAData,
+    updateAndReturnIndexData,
+    updateAndReturnSubscriberData,
     updateAndReturnTokenStatsForCFAData,
     waitUntilBlockIndexed,
 } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
+    IBaseIDAEvent,
     IContracts,
+    IExpectedSubscriberEvent,
+    IExpectedSubscriptionUnitsUpdated,
     IIndex,
+    IIndexCreated,
     ILocalData,
     IStreamData,
     ISubscriber,
+    ISubscriptionApproved,
+    ISubscriptionRevoked,
+    ISubscriptionUnitsUpdated,
     ITokenStatistic,
     IUpdateGlobalObjectData,
 } from "./interfaces";
@@ -31,12 +46,21 @@ import { FlowActionType } from "./helpers/constants";
 import { validateModifyFlow } from "./validation/validators";
 import { InstantDistributionAgreementV1Helper } from "@superfluid-finance/js-sdk/src/InstantDistributionAgreementV1Helper";
 import { ContractReceipt } from "@ethersproject/contracts";
-import { fetchIndexCreatedEventAndValidate } from "./validation/eventValidators";
+import { fetchIDAEventAndValidate } from "./validation/eventValidators";
 import {
     fetchIndexAndValidate,
     fetchSubscriberAndValidate,
+    validateIndexEntity,
 } from "./validation/holValidators";
-import { fetchTokenStatsAndValidate } from "./validation/aggregateValidators";
+import {
+    fetchATSAndValidate,
+    fetchTokenStatsAndValidate,
+} from "./validation/aggregateValidators";
+import {
+    getIndexCreatedEvents,
+    getSubscriptionApprovedEvents,
+    getSubscriptionUnitsUpdatedEvents,
+} from "./queries/eventQueries";
 
 // TODO: Tests for totalSupply also needed
 
@@ -62,35 +86,42 @@ describe("Subgraph Tests", () => {
     } = {}; // id is ats id
     let tokenStatistics: { [id: string]: ITokenStatistic | undefined } = {}; // id is tokenStats id
 
-    function updateGlobalObjects({
-        revisionIndexId,
-        updatedStreamData,
-        updatedSenderATS,
-        updatedReceiverATS,
-        updatedTokenStats,
-        updatedIndex,
-        updatedSubscriber,
-    }: IUpdateGlobalObjectData) {
-        if (updatedSenderATS) {
-            accountTokenSnapshots[updatedSenderATS.id] = updatedSenderATS;
-        }
-        if (updatedReceiverATS) {
-            accountTokenSnapshots[updatedReceiverATS.id] = updatedReceiverATS;
-        }
+    function updateGlobalObjectsForFlowUpdated(
+        revisionIndexId: string,
+        updatedStreamData: IStreamData,
+        updatedSenderATS: IAccountTokenSnapshot,
+        updatedReceiverATS: IAccountTokenSnapshot,
+        updatedTokenStats: ITokenStatistic
+    ) {
+        revisionIndexes[revisionIndexId] = Number(
+            updatedStreamData.revisionIndex
+        );
+        streamData[updatedStreamData.id] = updatedStreamData;
+        accountTokenSnapshots[updatedSenderATS.id] = updatedSenderATS;
+        accountTokenSnapshots[updatedReceiverATS.id] = updatedReceiverATS;
+        tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
+    }
+
+    function updateGlobalObjectsForIDAEvents(
+        updatedTokenStats: ITokenStatistic,
+        updatedIndex?: IIndex,
+        updatedSubscriber?: ISubscriber,
+        updatedPublisherATS?: IAccountTokenSnapshot,
+        updatedSubscriberATS?: IAccountTokenSnapshot
+    ) {
+        tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
         if (updatedIndex) {
             indexes[updatedIndex.id] = updatedIndex;
         }
         if (updatedSubscriber) {
             subscribers[updatedSubscriber.id] = updatedSubscriber;
         }
-        if (revisionIndexId && updatedStreamData) {
-            revisionIndexes[revisionIndexId] = Number(
-                updatedStreamData.revisionIndex
-            );
-            streamData[updatedStreamData.id] = updatedStreamData;
+        if (updatedPublisherATS) {
+            accountTokenSnapshots[updatedPublisherATS.id] = updatedPublisherATS;
         }
-        if (updatedTokenStats) {
-            tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
+        if (updatedSubscriberATS) {
+            accountTokenSnapshots[updatedSubscriberATS.id] =
+                updatedSubscriberATS;
         }
     }
 
@@ -128,7 +159,7 @@ describe("Subgraph Tests", () => {
         )) as InstantDistributionAgreementV1;
     });
 
-    describe.only("ConstantFlowAgreementV1 Tests", () => {
+    describe("ConstantFlowAgreementV1 Tests", () => {
         /**
          * Flow Creation Tests
          */
@@ -154,13 +185,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -185,13 +216,13 @@ describe("Subgraph Tests", () => {
                     daix.address
                 );
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -219,13 +250,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
@@ -248,13 +279,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -279,13 +310,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
 
             for (let i = 1; i < userAddresses.length / 2; i++) {
@@ -308,13 +339,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -346,13 +377,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -377,13 +408,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -408,13 +439,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
 
@@ -439,13 +470,13 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update the global environment objects
-                updateGlobalObjects({
+                updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
                     updatedStreamData,
                     updatedSenderATS,
                     updatedReceiverATS,
-                    updatedTokenStats,
-                });
+                    updatedTokenStats
+                );
             }
         });
     });
@@ -477,12 +508,16 @@ describe("Subgraph Tests", () => {
 
                 const updatedAtBlock = receipt.blockNumber.toString();
 
-                await fetchIndexCreatedEventAndValidate(
-                    idaV1,
+                await fetchIDAEventAndValidate<IIndexCreated, IBaseIDAEvent>(
                     receipt,
-                    token,
-                    publisher,
-                    i.toString()
+                    {
+                        token: token.toLowerCase(),
+                        publisher: publisher.toLowerCase(),
+                        indexId: i.toString(),
+                    },
+                    getIndexCreatedEvents,
+                    "indexCreateds",
+                    "IndexCreated"
                 );
 
                 const indexEntityId = getIndexId(
@@ -528,6 +563,11 @@ describe("Subgraph Tests", () => {
                     token.toLowerCase(),
                     updatedTokenStats
                 );
+
+                updateGlobalObjectsForIDAEvents(
+                    updatedTokenStats,
+                    currentIndex
+                );
             }
         });
 
@@ -535,41 +575,496 @@ describe("Subgraph Tests", () => {
          * Approve Subscription Tests (as Subscriber)
          */
         it("Should return correct data after multiple non-subscribed users approve subscriptions to multiple indexes", async () => {
-            /**
-             * check the event entity (SubscriptionApproved)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
-        });
+            const token = daix.address;
+            for (let i = 1; i < userAddresses.length; i++) {
+                // Take this code and put it into a function (validateSubscriptionApproved)
+                const publisher = userAddresses[i];
+                const subscriber = userAddresses[i - 1];
+                const userData = "0x";
+                const txn: any = await (
+                    sf.ida as InstantDistributionAgreementV1Helper
+                ).approveSubscription({
+                    superToken: token,
+                    publisher,
+                    indexId: i,
+                    subscriber,
+                    userData,
+                    onTransaction: () => {},
+                });
+                const receipt: ContractReceipt = txn.receipt;
+                const block = await provider.getBlock(receipt.blockNumber);
+                const timestamp = block.timestamp.toString();
+                await waitUntilBlockIndexed(receipt.blockNumber);
 
-        it("Should return correct data after multiple subscribed users approve subscriptions to multiple indexes", async () => {
-            /**
-             * check the event entity (SubscriptionApproved)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
+                const updatedAtBlock = receipt.blockNumber.toString();
+
+                const subscriberEntityId = getSubscriberId(
+                    subscriber,
+                    publisher,
+                    token,
+                    i.toString()
+                );
+                await fetchIDAEventAndValidate<
+                    ISubscriptionApproved,
+                    IExpectedSubscriberEvent
+                >(
+                    receipt,
+                    {
+                        token: token.toLowerCase(),
+                        publisher: publisher.toLowerCase(),
+                        indexId: i.toString(),
+                        subscriber: { id: subscriberEntityId },
+                    },
+                    getSubscriptionApprovedEvents,
+                    "subscriptionApproveds",
+                    "SubscriptionApproved"
+                );
+
+                const indexEntityId = getIndexId(
+                    publisher,
+                    token,
+                    i.toString()
+                );
+                const currentIndex = getOrInitIndex(
+                    indexes,
+                    indexEntityId,
+                    receipt.blockNumber.toString(),
+                    timestamp
+                );
+                const subscriptionExists = hasSubscription(
+                    subscribers,
+                    subscriberEntityId
+                );
+
+                const currentSubscriber = getOrInitSubscriber(
+                    subscribers,
+                    subscriberEntityId,
+                    updatedAtBlock,
+                    timestamp
+                );
+
+                const balanceDelta = toBN(currentIndex.newIndexValue)
+                    .sub(toBN(currentSubscriber.lastIndexValue))
+                    .mul(toBN(currentSubscriber.units));
+
+                const currentPublisherATS = getOrInitAccountTokenSnapshot(
+                    accountTokenSnapshots,
+                    publisher.toLowerCase(),
+                    token.toLowerCase(),
+                    updatedAtBlock,
+                    timestamp
+                );
+                const currentSubscriberATS = getOrInitAccountTokenSnapshot(
+                    accountTokenSnapshots,
+                    subscriber.toLowerCase(),
+                    token.toLowerCase(),
+                    updatedAtBlock,
+                    timestamp
+                );
+
+                const currentTokenStats = getOrInitTokenStatistics(
+                    tokenStatistics,
+                    token.toLowerCase(),
+                    updatedAtBlock,
+                    timestamp
+                );
+
+                let updatedIndex = { ...currentIndex };
+                let updatedSubscriber = {
+                    ...currentSubscriber,
+                    userData,
+                    approved: true,
+                    lastIndexValue: currentIndex.newIndexValue,
+                };
+                let updatedPublisherATS: IAccountTokenSnapshot = {
+                    ...currentPublisherATS,
+                };
+                const accountTokenSnapshotsArray = Object.values(
+                    accountTokenSnapshots
+                ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
+                let updatedTokenStats: ITokenStatistic = {
+                    ...updateAndReturnTokenStatsForCFAData(
+                        currentTokenStats,
+                        accountTokenSnapshotsArray,
+                        updatedAtBlock,
+                        timestamp,
+                        FlowActionType.Update,
+                        toBN(0),
+                        toBN(0)
+                    ),
+                    totalApprovedSubscriptions:
+                        currentTokenStats.totalApprovedSubscriptions + 1,
+                };
+
+                // this occurs whether subscription exists or not
+                let updatedSubscriberATS: IAccountTokenSnapshot = {
+                    ...(await updateAndReturnATSForCFAData(
+                        daix,
+                        currentSubscriberATS,
+                        updatedAtBlock,
+                        timestamp,
+                        FlowActionType.Update,
+                        true,
+                        toBN(0),
+                        toBN(0)
+                    )),
+                    totalApprovedSubscriptions:
+                        currentSubscriberATS.totalApprovedSubscriptions + 1,
+                };
+
+                if (subscriptionExists === true) {
+                    // Update Index
+                    updatedIndex = updateAndReturnIndexData(currentIndex, {
+                        totalUnitsApproved: toBN(
+                            currentIndex.totalUnitsApproved
+                        ).add(toBN(currentSubscriber.units)),
+                        totalUnitsPending: toBN(
+                            currentIndex.totalUnitsPending
+                        ).sub(toBN(currentSubscriber.units)),
+                    });
+
+                    // Update Subscriber
+                    updatedSubscriber = {
+                        ...updatedSubscriber,
+                        totalAmountReceivedUntilUpdatedAt: toBN(
+                            updatedSubscriber.totalAmountReceivedUntilUpdatedAt
+                        )
+                            .add(balanceDelta)
+                            .toString(),
+                    };
+
+                    // Update Publisher ATS entity (stream data + balance)
+                    updatedPublisherATS = await updateAndReturnATSForCFAData(
+                        daix,
+                        currentPublisherATS,
+                        updatedAtBlock,
+                        timestamp,
+                        FlowActionType.Update,
+                        true,
+                        toBN(0),
+                        toBN(0)
+                    );
+                } else {
+                    // Update Subscriber entity
+                    updatedIndex = {
+                        ...updatedIndex,
+                        totalSubscribers: updatedIndex.totalSubscribers + 1,
+                    };
+                    // Update Subscriber ATS entity
+                    updatedSubscriberATS = {
+                        ...updatedSubscriberATS,
+                        totalSubscriptions:
+                            currentSubscriberATS.totalSubscriptions + 1,
+                    };
+
+                    // Update Token Stats
+                    updatedTokenStats = {
+                        ...updatedTokenStats,
+                        totalSubscriptions:
+                            updatedTokenStats.totalSubscriptions + 1,
+                    };
+                }
+
+                // This is its own function
+                await fetchIndexAndValidate(idaV1, updatedIndex);
+                await fetchSubscriberAndValidate(
+                    idaV1,
+                    updatedSubscriber,
+                    updatedIndex.newIndexValue
+                );
+                const publisherATSId =
+                    publisher.toLowerCase() + "-" + token.toLowerCase();
+                const subscriberATSId =
+                    subscriber.toLowerCase() + "-" + token.toLowerCase();
+                await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
+                await fetchATSAndValidate(
+                    subscriberATSId,
+                    updatedSubscriberATS
+                );
+                await fetchTokenStatsAndValidate(
+                    token.toLowerCase(),
+                    updatedTokenStats
+                );
+                updateGlobalObjectsForIDAEvents(
+                    updatedTokenStats,
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS
+                );
+            }
         });
 
         /**
-         * Update Subscription Tests (as Publisher)
+         * Update Subscription Units Tests (as Publisher)
          */
-        it("Should return correct data after a publisher updates non-subscribed users' subscription", async () => {
-            /**
-             * check the event entity (SubscriptionUnitsUpdated)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
+        it("Should return correct data after a publisher updates non-subscribed users' subscription units", async () => {
+            const token = daix.address;
+            for (let i = 1; i < userAddresses.length; i++) {
+                // Take this code and put it into a function (validateUpdateSubscriptionUnits)
+                const publisher = userAddresses[i];
+                const subscriber = userAddresses[i - 1];
+                const userData = "0x";
+                const units = new BN(100);
+                const txn: any = await (
+                    sf.ida as InstantDistributionAgreementV1Helper
+                ).updateSubscription({
+                    superToken: token,
+                    publisher,
+                    indexId: i,
+                    subscriber,
+                    units,
+                    userData,
+                    onTransaction: () => {},
+                });
+                const receipt: ContractReceipt = txn.receipt;
+                const block = await provider.getBlock(receipt.blockNumber);
+                const timestamp = block.timestamp.toString();
+                await waitUntilBlockIndexed(receipt.blockNumber);
+
+                const updatedAtBlock = receipt.blockNumber.toString();
+
+                const subscriberEntityId = getSubscriberId(
+                    subscriber,
+                    publisher,
+                    token,
+                    i.toString()
+                );
+
+                await fetchIDAEventAndValidate<
+                    ISubscriptionUnitsUpdated,
+                    IExpectedSubscriptionUnitsUpdated
+                >(
+                    receipt,
+                    {
+                        token: token.toLowerCase(),
+                        publisher: publisher.toLowerCase(),
+                        indexId: i.toString(),
+                        subscriber: { id: subscriberEntityId },
+                        units: units.toString(),
+                    },
+                    getSubscriptionUnitsUpdatedEvents,
+                    "subscriptionUnitsUpdateds",
+                    "SubscriptionUnitsUpdated"
+                );
+
+                // This is its own function
+                const indexEntityId = getIndexId(
+                    publisher,
+                    token,
+                    i.toString()
+                );
+                const currentIndex = getOrInitIndex(
+                    indexes,
+                    indexEntityId,
+                    receipt.blockNumber.toString(),
+                    timestamp
+                );
+
+                const subscriptionExists = hasSubscription(
+                    subscribers,
+                    subscriberEntityId
+                );
+
+                const currentSubscriber = getOrInitSubscriber(
+                    subscribers,
+                    subscriberEntityId,
+                    updatedAtBlock,
+                    timestamp
+                );
+
+                const currentPublisherATS = getOrInitAccountTokenSnapshot(
+                    accountTokenSnapshots,
+                    publisher.toLowerCase(),
+                    token.toLowerCase(),
+                    updatedAtBlock,
+                    timestamp
+                );
+                const currentSubscriberATS = getOrInitAccountTokenSnapshot(
+                    accountTokenSnapshots,
+                    subscriber.toLowerCase(),
+                    token.toLowerCase(),
+                    updatedAtBlock,
+                    timestamp
+                );
+
+                const currentTokenStats = getOrInitTokenStatistics(
+                    tokenStatistics,
+                    token.toLowerCase(),
+                    updatedAtBlock,
+                    timestamp
+                );
+
+                // ends here
+
+                // this is unique to updateSubUnits
+
+                let updatedIndex = { ...currentIndex };
+                let updatedSubscriber = { ...currentSubscriber };
+                let updatedPublisherATS = { ...currentPublisherATS };
+                let updatedSubscriberATS = {
+                    ...currentSubscriberATS,
+                    ...(await updateAndReturnATSForCFAData(
+                        daix,
+                        currentSubscriberATS,
+                        updatedAtBlock,
+                        timestamp,
+                        FlowActionType.Update,
+                        true,
+                        toBN(0),
+                        toBN(0)
+                    )),
+                };
+                let updatedTokenStats = { ...currentTokenStats };
+
+                const unitsDelta = toBN(units.toString()).sub(
+                    toBN(currentSubscriber.units)
+                );
+                if (subscriptionExists && currentSubscriber.approved) {
+                    updatedIndex = {
+                        ...updatedIndex,
+                        totalUnitsApproved: toBN(
+                            updatedIndex.totalUnitsApproved
+                        )
+                            .add(unitsDelta)
+                            .toString(),
+                        totalUnits: toBN(updatedIndex.totalUnits)
+                            .add(unitsDelta)
+                            .toString(),
+                    };
+                } else if (subscriptionExists) {
+                    updatedIndex = {
+                        ...updatedIndex,
+                        totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
+                            .add(unitsDelta)
+                            .toString(),
+                        totalUnits: toBN(updatedIndex.totalUnits)
+                            .add(unitsDelta)
+                            .toString(),
+                    };
+                } else {
+                    updatedIndex = {
+                        ...updatedIndex,
+                        totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
+                            .add(toBN(units))
+                            .toString(),
+                        totalUnits: toBN(updatedIndex.totalUnits)
+                            .add(toBN(units))
+                            .toString(),
+                        totalSubscribers: updatedIndex.totalSubscribers + 1,
+                    };
+
+                    updatedSubscriber = {
+                        ...updatedSubscriber,
+                        lastIndexValue: updatedIndex.newIndexValue,
+                        units: units.toString(),
+                    };
+
+                    updatedSubscriberATS = {
+                        ...updatedSubscriberATS,
+                        totalSubscriptions:
+                            updatedSubscriberATS.totalSubscriptions + 1,
+                    };
+                    const accountTokenSnapshotsArray = Object.values(
+                        accountTokenSnapshots
+                    ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
+                    updatedTokenStats = {
+                        ...updateAndReturnTokenStatsForCFAData(
+                            updatedTokenStats,
+                            accountTokenSnapshotsArray,
+                            updatedAtBlock,
+                            timestamp,
+                            FlowActionType.Update,
+                            toBN(0),
+                            toBN(0)
+                        ),
+                        totalSubscriptions:
+                            updatedTokenStats.totalSubscriptions + 1,
+                    };
+                }
+
+                const balanceDelta = toBN(updatedSubscriber.units).mul(
+                    toBN(updatedIndex.newIndexValue).sub(
+                        toBN(updatedSubscriber.lastIndexValue)
+                    )
+                );
+
+                updatedSubscriber = {
+                    ...updatedSubscriber,
+                    totalAmountReceivedUntilUpdatedAt: toBN(
+                        updatedSubscriber.totalAmountReceivedUntilUpdatedAt
+                    )
+                        .add(balanceDelta)
+                        .toString(),
+                };
+
+                if (!currentSubscriber.approved) {
+                    updatedPublisherATS = await updateAndReturnATSForCFAData(
+                        daix,
+                        currentPublisherATS,
+                        updatedAtBlock,
+                        timestamp,
+                        FlowActionType.Update,
+                        true,
+                        toBN(0),
+                        toBN(0)
+                    );
+                }
+
+                if (subscriptionExists) {
+                    updatedSubscriber = {
+                        ...updatedSubscriber,
+                        lastIndexValue: updatedIndex.newIndexValue,
+                        units: units.toString(),
+                    };
+                }
+
+                // uniqueness ends here (but this logic section should be abstracted)
+
+                // this is its own function
+                await fetchIndexAndValidate(idaV1, updatedIndex);
+                await fetchSubscriberAndValidate(
+                    idaV1,
+                    updatedSubscriber,
+                    updatedIndex.newIndexValue
+                );
+                const publisherATSId =
+                    publisher.toLowerCase() + "-" + token.toLowerCase();
+                const subscriberATSId =
+                    subscriber.toLowerCase() + "-" + token.toLowerCase();
+                await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
+                await fetchATSAndValidate(
+                    subscriberATSId,
+                    updatedSubscriberATS
+                );
+                await fetchTokenStatsAndValidate(
+                    token.toLowerCase(),
+                    updatedTokenStats
+                );
+                updateGlobalObjectsForIDAEvents(
+                    updatedTokenStats,
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS
+                );
+            }
         });
 
         it("Should return correct data after a publisher updates non-approved subscribed users' subscription", async () => {
             /**
              * check the event entity (SubscriptionUnitsUpdated)
+             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+             * remember to take into consideration the flowRate data here too
+             * use toBN
+             */
+        });
+
+        // SubscriptionApproved
+        it("Should return correct data after multiple subscribed users approve subscriptions to multiple indexes", async () => {
+            /**
+             * check the event entity (SubscriptionApproved)
              * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
              * update the aggregate data similar to the streams and compare (ATS, TokenStats)
              * remember to take into consideration the flowRate data here too
@@ -590,7 +1085,7 @@ describe("Subgraph Tests", () => {
         /**
          * Revoke Subscription Tests (as subscriber)
          */
-        it("Should return correct data after revoking a subscription.", async () => {
+        it.skip("Should return correct data after revoking a subscription.", async () => {
             /**
              * check the event entity (SubscriptionRevoked)
              * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
@@ -610,6 +1105,7 @@ describe("Subgraph Tests", () => {
              * update the aggregate data similar to the streams and compare (ATS, TokenStats)
              * remember to take into consideration the flowRate data here too
              * use toBN
+             * subscriber.units should be 0
              */
         });
 
@@ -620,6 +1116,7 @@ describe("Subgraph Tests", () => {
              * update the aggregate data similar to the streams and compare (ATS, TokenStats)
              * remember to take into consideration the flowRate data here too
              * use toBN
+             * subscriber.units should be 0
              */
         });
 
@@ -642,9 +1139,9 @@ describe("Subgraph Tests", () => {
 
         it("Should return correct data after calling distribute to 0 approved subscribers", async () => {});
 
-        it("Should return correct data after calling distribute to all approved subscribers", async () => {});
-
         it("Should return correct data after calling distribute to some approved subscribers", async () => {});
+
+        it("Should return correct data after calling distribute to all approved subscribers", async () => {});
 
         /**
          * Update Index Tests
@@ -654,8 +1151,8 @@ describe("Subgraph Tests", () => {
 
         it("Should return correct data after calling update index with 0 approved subscribers", async () => {});
 
-        it("Should return correct data after calling update index with all approved subscribers", async () => {});
-
         it("Should return correct data after calling update index with some approved subscribers", async () => {});
+
+        it("Should return correct data after calling update index with all approved subscribers", async () => {});
     });
 });

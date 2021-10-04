@@ -5,15 +5,24 @@ import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistribut
 import { FlowActionType } from "../helpers/constants";
 import { fetchEventAndEnsureExistence } from "../helpers/helpers";
 import {
+    IBaseIDAEvent,
     IEvent,
+    IExpectedIndexUpdated,
+    IExpectedSubscriberEvent,
+    IExpectedSubscriptionUnitsUpdated,
     IFlowUpdated,
     IIndexCreated,
     IIndexUpdated,
+    ISubscriptionApproved,
+    ISubscriptionUnitsUpdated,
 } from "../interfaces";
 import {
     getFlowUpdatedEvents,
     getIndexCreatedEvents,
     getIndexUpdatedEvents,
+    getSubscriptionApprovedEvents,
+    getSubscriptionRevokedEvents,
+    getSubscriptionUnitsUpdatedEvents,
 } from "../queries/eventQueries";
 
 // Event Entity Validator Functions
@@ -42,6 +51,7 @@ export const fetchFlowUpdatedEventAndValidate = async (
     const flowUpdatedEvent = await fetchEventAndEnsureExistence<IFlowUpdated>(
         getFlowUpdatedEvents,
         receipt.transactionHash,
+        "flowUpdateds",
         "FlowUpdated"
     );
 
@@ -65,71 +75,72 @@ export const fetchFlowUpdatedEventAndValidate = async (
     );
 };
 
-export const fetchIndexCreatedEventAndValidate = async (
-    idaV1: InstantDistributionAgreementV1,
+export const fetchIDAEventAndValidate = async <
+    EventType extends IEvent,
+    ExpectedDataType
+>(
     receipt: ContractReceipt,
-    token: string,
-    publisher: string,
-    indexId: string
+    expectedData: ExpectedDataType,
+    query: string,
+    queryResultName: string,
+    queryName: string
 ) => {
-    const indexCreatedEvent = await fetchEventAndEnsureExistence<IIndexCreated>(
-        getIndexCreatedEvents,
+    const idaEvent = await fetchEventAndEnsureExistence<EventType>(
+        query,
         receipt.transactionHash,
-        "IndexCreated"
+        queryResultName,
+        queryName
     );
 
-    const [, indexValue, totalUnitsApproved, totalUnitsPending] =
-        await idaV1.getIndex(token, publisher, indexId);
-    expect(indexValue.toString()).to.equal("0");
-    expect(totalUnitsApproved.toString()).to.equal("0");
-    expect(totalUnitsPending.toString()).to.equal("0");
-
-    validateEventData(
-        indexCreatedEvent,
-        {
-            token: token.toLowerCase(),
-            publisher: publisher.toLowerCase(),
-            indexId,
-        },
-        receipt
-    );
+    validateEventData(idaEvent, expectedData, receipt);
 };
 
-export const fetchIndexUpdatedEventAndValidate = async (
-    idaV1: InstantDistributionAgreementV1,
-    receipt: ContractReceipt,
-    token: string,
-    publisher: string,
-    indexId: string,
-    oldIndexValue: string,
-    totalUnitsPending: string,
-    totalUnitsApproved: string
-) => {
-    const indexUpdatedEvent = await fetchEventAndEnsureExistence<IIndexUpdated>(
-        getIndexUpdatedEvents,
-        receipt.transactionHash,
-        "IndexUpdated"
-    );
+// export const fetchIndexCreatedEventAndValidate = async (
+//     receipt: ContractReceipt,
+//     expectedData: IBaseIDAEvent
+// ) => {
+//     const indexCreatedEvent = await fetchEventAndEnsureExistence<IIndexCreated>(
+//         getIndexCreatedEvents,
+//         receipt.transactionHash,
+//         "indexCreateds",
+//         "IndexCreated"
+//     );
 
-    const [, indexValue, indexTotalUnitsApproved, indexTotalUnitsPending] =
-        await idaV1.getIndex(token, publisher, indexId);
-    expect(indexTotalUnitsPending.toString()).to.equal(totalUnitsApproved);
-    expect(indexTotalUnitsApproved.toString()).to.equal(totalUnitsPending);
+//     validateEventData(indexCreatedEvent, expectedData, receipt);
+// };
 
-    validateEventData(
-        indexUpdatedEvent,
-        {
-            token: token.toLowerCase(),
-            publisher: publisher.toLowerCase(),
-            indexId,
-            oldIndexValue,
-            newIndexValue: indexValue.toString(),
-            totalUnitsPending: indexTotalUnitsPending,
-            totalUnitsApproved: indexTotalUnitsApproved,
-        },
-        receipt
-    );
-};
+// export const fetchIndexUpdatedEventAndValidate = async (
+//     receipt: ContractReceipt,
+//     expectedData: IExpectedIndexUpdated
+// ) => {
+//     const indexUpdatedEvent = await fetchEventAndEnsureExistence<IIndexUpdated>(
+//         getIndexUpdatedEvents,
+//         receipt.transactionHash,
+//         "indexUpdateds",
+//         "IndexUpdated"
+//     );
+
+//     const [, indexValue, indexTotalUnitsApproved, indexTotalUnitsPending] =
+//         await idaV1.getIndex(token, publisher, indexId);
+//     expect(indexTotalUnitsPending.toString()).to.equal(totalUnitsApproved);
+//     expect(indexTotalUnitsApproved.toString()).to.equal(totalUnitsPending);
+
+//     validateEventData(indexUpdatedEvent, expectedData, receipt);
+// };
+
+// export const fetchSubscriptionUnitsUpdatedEventAndValidate = async (
+//     receipt: ContractReceipt,
+//     expectedData: IExpectedSubscriptionUnitsUpdated
+// ) => {
+//     const subscriptionUnitsUpdatedEvent =
+//         await fetchEventAndEnsureExistence<ISubscriptionUnitsUpdated>(
+//             getSubscriptionUnitsUpdatedEvents,
+//             receipt.transactionHash,
+//             "subscriptionUnitsUpdateds",
+//             "SubscriptionUnitsUpdated"
+//         );
+//     validateEventData(subscriptionUnitsUpdatedEvent, expectedData, receipt);
+// };
 
 export const validateData = <T>(
     queriedData: T,

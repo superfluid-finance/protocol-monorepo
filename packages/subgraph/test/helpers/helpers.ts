@@ -139,15 +139,16 @@ export const subgraphRequest = async <T>(
 export const fetchEventAndEnsureExistence = async <T>(
     query: string,
     transactionHash: string,
+    queryResultName: string,
     eventName: string
 ) => {
     const vars = {
         transactionHash,
     };
-    const { events } = await subgraphRequest<{
-        events: T[];
+    const data = await subgraphRequest<{
+        [queryResultName: string]: T[];
     }>(query, vars);
-    const event = events[0];
+    const event = data[queryResultName][0];
 
     if (!event) {
         throw new Error(eventName + " entity not found.");

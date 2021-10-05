@@ -15,7 +15,6 @@ import {
     ISubscriber,
     ITokenStatistic,
     IUpdateIndexData,
-    IUpdateSubscriberData,
 } from "../interfaces";
 import {
     actionTypeToActiveStreamsDeltaMap,
@@ -42,10 +41,10 @@ const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
  */
 export const beforeSetup = async (tokenAmount: number) => {
     let names: { [address: string]: string } = {};
-    const [Deployer, Alpha, Bravo, Charlie, Delta, Echo] = (
-        await ethers.getSigners()
-    ).map((x) => x.address);
-    const userAddresses = [Deployer, Alpha, Bravo, Charlie, Delta, Echo];
+    const [Deployer, Alpha, Bravo, Charlie] = (await ethers.getSigners()).map(
+        (x) => x.address
+    );
+    const userAddresses = [Deployer, Alpha, Bravo, Charlie];
     // names[Bob] = "Bob";
     const sf: Framework = new SuperfluidSDK.Framework({
         web3: (global as any).web3,
@@ -593,38 +592,6 @@ export const updateAndReturnIndexData = (
     };
 };
 
-export const updateAndReturnSubscriberData = (
-    currentSubscriber: ISubscriber,
-    updatedSubscriber: IUpdateSubscriberData
-) => {
-    const {
-        userData,
-        approved,
-        units,
-        totalAmountReceivedUntilUpdatedAt,
-        lastIndexValue,
-    } = updatedSubscriber;
-    const updatedSubscriberData = {
-        ...currentSubscriber,
-        userData: userData == null ? currentSubscriber.userData : userData,
-        approved: approved == null ? currentSubscriber.approved : approved,
-        units: units == null ? currentSubscriber.units : units,
-        totalAmountReceivedUntilUpdatedAt:
-            totalAmountReceivedUntilUpdatedAt == null
-                ? currentSubscriber.totalAmountReceivedUntilUpdatedAt
-                : totalAmountReceivedUntilUpdatedAt,
-        lastIndexValue:
-            lastIndexValue == null
-                ? currentSubscriber.lastIndexValue
-                : lastIndexValue,
-    };
-
-    return {
-        ...currentSubscriber,
-        ...updatedSubscriberData,
-    };
-};
-
 /**
  * Updates ATS entity balance and stream data.
  * @param superToken
@@ -821,6 +788,153 @@ export const getExpectedDataForFlowUpdated = async (
     );
 
     return { updatedSenderATS, updatedReceiverATS, updatedTokenStats };
+};
+
+export const getExpectedDataForRevokeOrDeleteSubscription = async (
+    token: SuperToken,
+    currentIndex: IIndex,
+    currentSubscriber: ISubscriber,
+    accountTokenSnapshots: { [id: string]: IAccountTokenSnapshot | undefined },
+    currentPublisherATS: IAccountTokenSnapshot,
+    currentSubscriberATS: IAccountTokenSnapshot,
+    currentTokenStats: ITokenStatistic,
+    isRevoke: boolean,
+    userData: string,
+    updatedAtBlock: string,
+    timestamp: string
+) => {
+    const balanceDelta = toBN(currentIndex.newIndexValue)
+        .sub(toBN(currentSubscriber.lastIndexValue))
+        .mul(toBN(currentSubscriber.units));
+
+    let updatedIndex: IIndex = {
+        ...currentIndex,
+    };
+    let updatedSubscriber: ISubscriber = {
+        ...currentSubscriber,
+        userData,
+        approved: false,
+        totalAmountReceivedUntilUpdatedAt: toBN(
+            currentSubscriber.totalAmountReceivedUntilUpdatedAt
+        )
+            .add(balanceDelta)
+            .toString(),
+        lastIndexValue: updatedIndex.newIndexValue,
+    };
+    let updatedPublisherATS: IAccountTokenSnapshot = {
+        ...currentPublisherATS,
+    };
+    const accountTokenSnapshotsArray = Object.values(
+        accountTokenSnapshots
+    ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
+    let updatedTokenStats: ITokenStatistic = {
+        ...updateAndReturnTokenStatsForCFAData(
+            currentTokenStats,
+            accountTokenSnapshotsArray,
+            updatedAtBlock,
+            timestamp,
+            FlowActionType.Update,
+            toBN(0),
+            toBN(0)
+        ),
+    };
+
+    // this occurs whether subscription exists or not
+    let updatedSubscriberATS: IAccountTokenSnapshot = {
+        ...(await updateAndReturnATSForCFAData(
+            token,
+            currentSubscriberATS,
+            updatedAtBlock,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
+
+    // handleRevokeOrDelete
+    if (isRevoke) {
+        updatedIndex = {
+            ...updatedIndex,
+            totalUnitsApproved: toBN(updatedIndex.totalUnitsApproved)
+                .sub(currentSubscriber.units)
+                .toString(),
+            totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
+                .add(currentSubscriber.units)
+                .toString(),
+        };
+        updatedSubscriberATS = {
+            ...updatedSubscriberATS,
+            totalApprovedSubscriptions:
+                updatedSubscriberATS.totalApprovedSubscriptions - 1,
+        };
+        updatedTokenStats = {
+            ...updatedTokenStats,
+            totalApprovedSubscriptions:
+                updatedTokenStats.totalApprovedSubscriptions - 1,
+        };
+    } else {
+        // isDelete
+        updatedIndex = {
+            ...updatedIndex,
+            totalUnits: toBN(updatedIndex.totalUnits)
+                .sub(currentSubscriber.units)
+                .toString(),
+            totalSubscribers: currentIndex.totalSubscribers - 1,
+        };
+        if (currentSubscriber.approved) {
+            updatedIndex = {
+                ...updatedIndex,
+                totalUnitsApproved: toBN(updatedIndex.totalUnitsApproved)
+                    .sub(currentSubscriber.units)
+                    .toString(),
+            };
+        } else {
+            updatedIndex = {
+                ...updatedIndex,
+                totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
+                    .sub(currentSubscriber.units)
+                    .toString(),
+            };
+        }
+        updatedSubscriber = { ...updatedSubscriber, units: "0" };
+        updatedSubscriberATS = {
+            ...updatedSubscriberATS,
+            totalSubscriptions: updatedSubscriberATS.totalSubscriptions - 1,
+            totalApprovedSubscriptions:
+                updatedSubscriberATS.totalApprovedSubscriptions - 1,
+        };
+        updatedTokenStats = {
+            ...updatedTokenStats,
+            totalApprovedSubscriptions:
+                updatedTokenStats.totalApprovedSubscriptions - 1,
+            totalSubscriptions: updatedTokenStats.totalSubscriptions - 1,
+        };
+    }
+
+    if (currentSubscriber.approved === false) {
+        updatedPublisherATS = {
+            ...(await updateAndReturnATSForCFAData(
+                token,
+                updatedPublisherATS,
+                updatedAtBlock,
+                timestamp,
+                FlowActionType.Update,
+                true,
+                toBN(0),
+                toBN(0)
+            )),
+        };
+    }
+
+    return {
+        updatedIndex,
+        updatedSubscriber,
+        updatedPublisherATS,
+        updatedSubscriberATS,
+        updatedTokenStats,
+    };
 };
 
 /**************************************************************************

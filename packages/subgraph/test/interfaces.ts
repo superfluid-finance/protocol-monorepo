@@ -133,6 +133,7 @@ export interface IToken extends IBaseEntity {
     readonly name: string;
     readonly symbol: string;
     readonly underlyingAddress: string;
+    readonly isListed: boolean;
 }
 
 export interface IStream extends IBaseEntity {

@@ -111,18 +111,19 @@ export function getTokenInfoAndReturn(
     let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
     let nameResult = tokenContract.try_name();
     let symbolResult = tokenContract.try_symbol();
-    let isListedResult = resolverContract.try_get(
-        `supertokens.v1.${symbolResult.value}`
-    );
+    // let isListedResult = resolverContract.try_get(
+    //     `supertokens.v1.${symbolResult.value}`
+    // );
     token.underlyingAddress = underlyingAddressResult.reverted
         ? new Address(0)
         : underlyingAddressResult.value;
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
-    let superTokenAddress = isListedResult.reverted
-        ? new Address(0)
-        : isListedResult.value;
-    token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
+    token.isListed = false;
+    // let superTokenAddress = isListedResult.reverted
+    //     ? new Address(0)
+    //     : isListedResult.value;
+    // token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token;
 }
 
@@ -205,6 +206,7 @@ export function getOrInitToken(
     let token = new Token(tokenId);
     token.createdAt = currentTimestamp;
     token.isSuperToken = false;
+    token.isListed = false;
     token = getTokenInfoAndReturn(token as Token, tokenAddress, new Address(0));
     token.save();
 }

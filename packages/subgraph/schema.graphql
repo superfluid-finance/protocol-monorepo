@@ -53,6 +53,12 @@ type FlowUpdated implements Event @entity {
     """
     type: Int!
 
+    """
+    The total amount streamed until the timestamp
+    for the Stream entity linked to this event.
+    """
+    totalAmountStreamedUntilTimestamp: BigInt!
+
     # ---------------------------------- links ----------------------------------
     """
     The stream entity which is being modified.

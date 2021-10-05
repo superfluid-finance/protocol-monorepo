@@ -2,6 +2,15 @@ const path = require("path");
 const { promisify } = require("util");
 const readline = require("readline");
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+/****************************************************************
+ * Truffle scripts utilities
+ ****************************************************************/
+
+/**
+ * @dev Promisified readline question utility
+ */
 async function rl() {
     // promisify the readline
     const rl = readline.createInterface({
@@ -22,7 +31,12 @@ async function rl() {
     return answer;
 }
 
-// Provide arguments to the script through ":" separator
+/**
+ * @dev Parse colon marked arguments
+ *
+ * NOTE:
+ * Provide arguments to the script through ":" separator
+ */
 function parseColonArgs(argv) {
     const argIndex = argv.indexOf(":");
     if (argIndex < 0) {
@@ -33,67 +47,6 @@ function parseColonArgs(argv) {
         console.log("Colon arguments", args);
         return args;
     }
-}
-
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-async function hasCode(web3, address) {
-    const code = await web3.eth.getCode(address);
-    return code.length > 3;
-}
-
-async function codeChanged(
-    web3,
-    contract,
-    address,
-    replacements = [],
-    debug = false
-) {
-    // use .binary instead of .bytecode
-    // since .binary will have the linked library addresses
-    const binaryFromCompiler = contract.binary;
-    const code = await web3.eth.getCode(address);
-
-    // no code
-    if (code.length <= 3) return true;
-
-    // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
-    // find the second occurance of the init code
-    let codeTrimed = code.slice(code.lastIndexOf("6080604052")).toLowerCase();
-    const binaryTrimed = binaryFromCompiler
-        .slice(binaryFromCompiler.lastIndexOf("6080604052"))
-        .toLowerCase();
-
-    // extra replacements usually for constructor parameters
-    replacements.forEach((r) => {
-        let codeTrimed2 = codeTrimed.replace(
-            new RegExp(r, "g"),
-            "0".repeat(r.length)
-        );
-        if (codeTrimed === codeTrimed2)
-            throw new Error("Code replacement not found");
-        codeTrimed = codeTrimed2;
-    });
-
-    if (debug) {
-        console.debug(codeTrimed);
-        console.debug(binaryTrimed);
-    }
-    // console.log(code);
-    // console.log(bytecodeFromCompiler);
-    // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));
-    return binaryTrimed !== codeTrimed;
-}
-
-async function getCodeAddress(UUPSProxiable, proxyAddress) {
-    const proxiable = await UUPSProxiable.at(proxyAddress);
-    return await proxiable.getCodeAddress();
-}
-
-async function isProxiable(UUPSProxiable, address) {
-    const p = await UUPSProxiable.at(address);
-    const codeAddress = await p.getCodeAddress.call();
-    return codeAddress !== ZERO_ADDRESS;
 }
 
 /**
@@ -174,6 +127,92 @@ function builtTruffleContractLoader(name) {
     }
 }
 
+/****************************************************************
+ * Contracts upgradability utilities
+ ****************************************************************/
+
+/**
+ * @dev Is the address a contract (it has code, not an EOA)
+ */
+async function hasCode(web3, address) {
+    const code = await web3.eth.getCode(address);
+    return code.length > 3;
+}
+
+/**
+ * @dev Check if the code at the address differs from the contract object provided
+ */
+async function codeChanged(
+    web3,
+    contract,
+    address,
+    replacements = [],
+    debug = false
+) {
+    // use .binary instead of .bytecode
+    // since .binary will have the linked library addresses
+    const binaryFromCompiler = contract.binary;
+    const code = await web3.eth.getCode(address);
+
+    // no code
+    if (code.length <= 3) return true;
+
+    // SEE: https://github.com/ConsenSys/bytecode-verifier/blob/master/src/verifier.js
+    // find the second occurance of the init code
+    let codeTrimed = code.slice(code.lastIndexOf("6080604052")).toLowerCase();
+    const binaryTrimed = binaryFromCompiler
+        .slice(binaryFromCompiler.lastIndexOf("6080604052"))
+        .toLowerCase();
+
+    // extra replacements usually for constructor parameters
+    replacements.forEach((r) => {
+        let codeTrimed2 = codeTrimed.replace(
+            new RegExp(r, "g"),
+            "0".repeat(r.length)
+        );
+        if (codeTrimed === codeTrimed2)
+            throw new Error("Code replacement not found");
+        codeTrimed = codeTrimed2;
+    });
+
+    if (debug) {
+        console.debug(codeTrimed);
+        console.debug(binaryTrimed);
+    }
+    // console.log(code);
+    // console.log(bytecodeFromCompiler);
+    // console.log(bytecodeFromCompiler.indexOf(code.slice(2)));
+    return binaryTrimed !== codeTrimed;
+}
+
+/**
+ * @dev Check if the address is a UUPS proxiable
+ */
+async function isProxiable(UUPSProxiable, address) {
+    const p = await UUPSProxiable.at(address);
+    const codeAddress = await p.getCodeAddress.call();
+    return codeAddress !== ZERO_ADDRESS;
+}
+
+/**
+ * @dev Get code address from an UUPS proxiable
+ */
+async function getCodeAddress(UUPSProxiable, proxyAddress) {
+    const proxiable = await UUPSProxiable.at(proxyAddress);
+    return await proxiable.getCodeAddress();
+}
+
+/****************************************************************
+ * Admin (resolver and governance) utilities
+ ****************************************************************/
+
+/**
+ * @dev Set resolver key-value
+ *
+ * process.env.RESOLVER_ADMIN_TYPE:
+ * - MULTISIG
+ * - (default) ownable
+ */
 async function setResolver(sf, key, value) {
     console.log(`Setting resolver ${key} -> ${value} ...`);
     const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
@@ -207,6 +246,13 @@ async function setResolver(sf, key, value) {
     }
 }
 
+/**
+ * @dev Send governance action
+ *
+ * process.env.GOVERNANCE_ADMIN_TYPE:
+ * - MULTISIG
+ * - (default) ownable
+ */
 async function sendGovernanceAction(sf, actionFn) {
     const gov = await sf.contracts.SuperfluidGovernanceBase.at(
         await sf.host.getGovernance.call()

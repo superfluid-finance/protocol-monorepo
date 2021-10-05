@@ -13,7 +13,7 @@ const {
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/transfer-framework-ownwership.js : new_owner
+ * Usage: npx truffle exec scripts/gov-transfer-framework-ownership.js : new_owner
  */
 
 module.exports = async function (callback, argv, options = {}) {

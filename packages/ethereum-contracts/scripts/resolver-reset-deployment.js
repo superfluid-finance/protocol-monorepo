@@ -9,7 +9,7 @@ const { parseColonArgs, rl } = require("./utils");
  * @dev Reset the superfluid framework deployment.
  * @param {Array} argv Overriding command line arguments
  *
- * Usage: npx truffle exec scripts/reset-deployment.js : {VERSION}
+ * Usage: npx truffle exec scripts/resolver-reset-deployment.js : {VERSION}
  */
 module.exports = async function (callback, argv) {
     try {

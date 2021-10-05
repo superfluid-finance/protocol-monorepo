@@ -35,6 +35,9 @@ module.exports = async function (callback) {
             return acc;
         }, {});
 
+        if (deployments.length == 0)
+            throw new Error("No Superfluid is ever deployed!?");
+
         const deployers = new Set();
         await Promise.all(
             Object.values(deployments).map(async (deployment) => {

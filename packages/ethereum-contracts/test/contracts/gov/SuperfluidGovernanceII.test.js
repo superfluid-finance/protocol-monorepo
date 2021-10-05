@@ -7,7 +7,7 @@ const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
 
 const TestEnvironment = require("../../TestEnvironment");
 
-describe("Superfluid Ownable Governance Contract", function () {
+describe.only("Superfluid Ownable Governance Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
@@ -67,6 +67,12 @@ describe("Superfluid Ownable Governance Contract", function () {
         );
         await expectRevert(
             governance.updateSuperTokenLogic(superfluid.address, ZERO_ADDRESS),
+            onlyOwnerReason
+        );
+        await expectRevert(
+            governance.batchUpdateSuperTokenLogic(superfluid.address, [
+                ZERO_ADDRESS,
+            ]),
             onlyOwnerReason
         );
 

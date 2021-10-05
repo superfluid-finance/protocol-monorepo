@@ -7,7 +7,7 @@ import {
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
 } from "../../../generated/templates/SuperToken/ISuperToken";
-import { KOVAN_HOST_ADDRESS } from "../../utils";
+import { KOVAN_HOST_ADDRESS, KOVAN_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
     handleBurned,
@@ -18,23 +18,24 @@ import {
 } from "./superTokenBase";
 
 let HOST_ADDRESS = Address.fromString(KOVAN_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(KOVAN_RESOLVER_ADDRESS);
 
 export function kovanHandleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
-    handleAgreementLiquidatedBy(event, HOST_ADDRESS);
+    handleAgreementLiquidatedBy(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleTokenUpgraded(event: TokenUpgradedEvent): void {
-    handleTokenUpgraded(event, HOST_ADDRESS);
+    handleTokenUpgraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleTokenDowngraded(event: TokenDowngradedEvent): void {
-    handleTokenDowngraded(event, HOST_ADDRESS);
+    handleTokenDowngraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleTransfer(event: TransferEvent): void {
-    handleTransfer(event, HOST_ADDRESS);
+    handleTransfer(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleBurned(event: BurnedEvent): void {

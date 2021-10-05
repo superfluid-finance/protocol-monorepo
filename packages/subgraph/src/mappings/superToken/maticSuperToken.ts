@@ -7,7 +7,7 @@ import {
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
 } from "../../../generated/templates/SuperToken/ISuperToken";
-import { MATIC_HOST_ADDRESS } from "../../utils";
+import { MATIC_HOST_ADDRESS, MATIC_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
     handleBurned,
@@ -18,23 +18,24 @@ import {
 } from "./superTokenBase";
 
 let HOST_ADDRESS = Address.fromString(MATIC_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(MATIC_RESOLVER_ADDRESS);
 
 export function maticHandleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
-    handleAgreementLiquidatedBy(event, HOST_ADDRESS);
+    handleAgreementLiquidatedBy(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function maticHandleTokenUpgraded(event: TokenUpgradedEvent): void {
-    handleTokenUpgraded(event, HOST_ADDRESS);
+    handleTokenUpgraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function maticHandleTokenDowngraded(event: TokenDowngradedEvent): void {
-    handleTokenDowngraded(event, HOST_ADDRESS);
+    handleTokenDowngraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function maticHandleTransfer(event: TransferEvent): void {
-    handleTransfer(event, HOST_ADDRESS);
+    handleTransfer(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function maticHandleBurned(event: BurnedEvent): void {

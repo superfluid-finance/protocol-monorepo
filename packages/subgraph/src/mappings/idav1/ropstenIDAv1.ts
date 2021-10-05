@@ -6,7 +6,7 @@ import {
     SubscriptionRevoked as SubscriptionRevokedEvent,
     SubscriptionUnitsUpdated as SubscriptionUnitsUpdatedEvent,
 } from "../../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
-import { ROPSTEN_HOST_ADDRESS } from "../../utils";
+import { ROPSTEN_HOST_ADDRESS, ROPSTEN_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleIndexCreated,
     handleIndexUpdated,
@@ -16,29 +16,30 @@ import {
 } from "./idav1Base";
 
 let HOST_ADDRESS = Address.fromString(ROPSTEN_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(ROPSTEN_RESOLVER_ADDRESS);
 
 export function ropstenHandleIndexCreated(event: IndexCreatedEvent): void {
-    handleIndexCreated(event, HOST_ADDRESS);
+    handleIndexCreated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ropstenHandleIndexUpdated(event: IndexUpdatedEvent): void {
-    handleIndexUpdated(event, HOST_ADDRESS);
+    handleIndexUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ropstenHandleSubscriptionApproved(
     event: SubscriptionApprovedEvent
 ): void {
-    handleSubscriptionApproved(event, HOST_ADDRESS);
+    handleSubscriptionApproved(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ropstenHandleSubscriptionRevoked(
     event: SubscriptionRevokedEvent
 ): void {
-    handleSubscriptionRevoked(event, HOST_ADDRESS);
+    handleSubscriptionRevoked(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ropstenHandleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
-    handleSubscriptionUnitsUpdated(event, HOST_ADDRESS);
+    handleSubscriptionUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }

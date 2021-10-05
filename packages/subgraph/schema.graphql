@@ -399,6 +399,11 @@ type Token @entity {
     symbol: String!
     isSuperToken: Boolean!
 
+	"""
+	This indicates whether the token is a part of our resolver list.
+	"""
+	isListed: Boolean!
+
     """
     The address of the underlying ERC20 token.
     """

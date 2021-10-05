@@ -4,7 +4,7 @@ import {
     SuperTokenCreated as SuperTokenCreatedEvent,
     SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
 } from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
-import { XDAI_HOST_ADDRESS } from "../../utils";
+import { XDAI_HOST_ADDRESS, XDAI_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleCustomSuperTokenCreated,
     handleSuperTokenCreated,
@@ -12,17 +12,18 @@ import {
 } from "./superTokenFactoryBase";
 
 let HOST_ADDRESS = Address.fromString(XDAI_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(XDAI_RESOLVER_ADDRESS);
 
 export function xdaiHandleSuperTokenCreated(
     event: SuperTokenCreatedEvent
 ): void {
-    handleSuperTokenCreated(event, HOST_ADDRESS);
+    handleSuperTokenCreated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function xdaiHandleCustomSuperTokenCreated(
     event: CustomSuperTokenCreatedEvent
 ): void {
-    handleCustomSuperTokenCreated(event, HOST_ADDRESS);
+    handleCustomSuperTokenCreated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function xdaiHandleSuperTokenLogicCreated(

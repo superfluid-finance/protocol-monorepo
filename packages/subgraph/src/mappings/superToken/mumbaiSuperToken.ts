@@ -7,7 +7,7 @@ import {
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
 } from "../../../generated/templates/SuperToken/ISuperToken";
-import { MUMBAI_HOST_ADDRESS } from "../../utils";
+import { MUMBAI_HOST_ADDRESS, MUMBAI_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
     handleBurned,
@@ -18,23 +18,24 @@ import {
 } from "./superTokenBase";
 
 let HOST_ADDRESS = Address.fromString(MUMBAI_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(MUMBAI_RESOLVER_ADDRESS);
 
 export function mumbaiHandleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
-    handleAgreementLiquidatedBy(event, HOST_ADDRESS);
+    handleAgreementLiquidatedBy(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function mumbaiHandleTokenUpgraded(event: TokenUpgradedEvent): void {
-    handleTokenUpgraded(event, HOST_ADDRESS);
+    handleTokenUpgraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function mumbaiHandleTokenDowngraded(event: TokenDowngradedEvent): void {
-    handleTokenDowngraded(event, HOST_ADDRESS);
+    handleTokenDowngraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function mumbaiHandleTransfer(event: TransferEvent): void {
-    handleTransfer(event, HOST_ADDRESS);
+    handleTransfer(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function mumbaiHandleBurned(event: BurnedEvent): void {

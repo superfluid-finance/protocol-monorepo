@@ -7,7 +7,7 @@ import {
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
 } from "../../../generated/templates/SuperToken/ISuperToken";
-import { GOERLI_HOST_ADDRESS } from "../../utils";
+import { GOERLI_HOST_ADDRESS, GOERLI_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
     handleBurned,
@@ -18,23 +18,24 @@ import {
 } from "./superTokenBase";
 
 let HOST_ADDRESS = Address.fromString(GOERLI_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(GOERLI_RESOLVER_ADDRESS);
 
 export function goerliHandleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
-    handleAgreementLiquidatedBy(event, HOST_ADDRESS);
+    handleAgreementLiquidatedBy(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function goerliHandleTokenUpgraded(event: TokenUpgradedEvent): void {
-    handleTokenUpgraded(event, HOST_ADDRESS);
+    handleTokenUpgraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function goerliHandleTokenDowngraded(event: TokenDowngradedEvent): void {
-    handleTokenDowngraded(event, HOST_ADDRESS);
+    handleTokenDowngraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function goerliHandleTransfer(event: TransferEvent): void {
-    handleTransfer(event, HOST_ADDRESS);
+    handleTransfer(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function goerliHandleBurned(event: BurnedEvent): void {

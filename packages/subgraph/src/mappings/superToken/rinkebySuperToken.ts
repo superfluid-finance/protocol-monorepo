@@ -7,7 +7,7 @@ import {
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
 } from "../../../generated/templates/SuperToken/ISuperToken";
-import { RINKEBY_HOST_ADDRESS } from "../../utils";
+import { RINKEBY_HOST_ADDRESS, RINKEBY_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleAgreementLiquidatedBy,
     handleBurned,
@@ -18,25 +18,26 @@ import {
 } from "./superTokenBase";
 
 let HOST_ADDRESS = Address.fromString(RINKEBY_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(RINKEBY_RESOLVER_ADDRESS);
 
 export function rinkebyHandleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
-    handleAgreementLiquidatedBy(event, HOST_ADDRESS);
+    handleAgreementLiquidatedBy(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function rinkebyHandleTokenUpgraded(event: TokenUpgradedEvent): void {
-    handleTokenUpgraded(event, HOST_ADDRESS);
+    handleTokenUpgraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function rinkebyHandleTokenDowngraded(
     event: TokenDowngradedEvent
 ): void {
-    handleTokenDowngraded(event, HOST_ADDRESS);
+    handleTokenDowngraded(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function rinkebyHandleTransfer(event: TransferEvent): void {
-    handleTransfer(event, HOST_ADDRESS);
+    handleTransfer(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function rinkebyHandleBurned(event: BurnedEvent): void {

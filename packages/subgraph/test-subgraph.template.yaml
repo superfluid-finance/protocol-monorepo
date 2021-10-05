@@ -24,6 +24,8 @@ dataSources:
               - TokenStatistic
               - Transaction
           abis:
+              - name: IResolver
+                file: ./abis/IResolver.json
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
@@ -99,6 +101,8 @@ dataSources:
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
+              - name: IResolver
+                file: ./abis/IResolver.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
               - name: ISuperfluid
@@ -134,6 +138,8 @@ dataSources:
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
+          - name: IResolver
+            file: ./abis/IResolver.json
           - name: ISuperToken
             file: ./abis/ISuperToken.json
           - name: ISuperfluid
@@ -200,6 +206,8 @@ templates:
         - Transaction
         - Transfer
       abis:
+        - name: IResolver
+          file: ./abis/IResolver.json
         - name: ISuperToken
           file: ./abis/ISuperToken.json
         - name: ISuperfluid

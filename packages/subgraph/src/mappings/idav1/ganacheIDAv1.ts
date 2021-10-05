@@ -6,7 +6,7 @@ import {
     SubscriptionRevoked as SubscriptionRevokedEvent,
     SubscriptionUnitsUpdated as SubscriptionUnitsUpdatedEvent,
 } from "../../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
-import { GANACHE_HOST_ADDRESS } from "../../utils";
+import { GANACHE_HOST_ADDRESS, GANACHE_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleIndexCreated,
     handleIndexUpdated,
@@ -16,29 +16,30 @@ import {
 } from "./idav1Base";
 
 let HOST_ADDRESS = Address.fromString(GANACHE_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(GANACHE_RESOLVER_ADDRESS);
 
 export function ganacheHandleIndexCreated(event: IndexCreatedEvent): void {
-    handleIndexCreated(event, HOST_ADDRESS);
+    handleIndexCreated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ganacheHandleIndexUpdated(event: IndexUpdatedEvent): void {
-    handleIndexUpdated(event, HOST_ADDRESS);
+    handleIndexUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ganacheHandleSubscriptionApproved(
     event: SubscriptionApprovedEvent
 ): void {
-    handleSubscriptionApproved(event, HOST_ADDRESS);
+    handleSubscriptionApproved(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ganacheHandleSubscriptionRevoked(
     event: SubscriptionRevokedEvent
 ): void {
-    handleSubscriptionRevoked(event, HOST_ADDRESS);
+    handleSubscriptionRevoked(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ganacheHandleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent
 ): void {
-    handleSubscriptionUnitsUpdated(event, HOST_ADDRESS);
+    handleSubscriptionUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }

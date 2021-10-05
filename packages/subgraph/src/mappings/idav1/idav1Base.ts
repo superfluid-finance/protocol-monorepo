@@ -31,7 +31,8 @@ import {
 
 export function handleIndexCreated(
     event: IndexCreatedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -42,6 +43,7 @@ export function handleIndexCreated(
     let indexCreatedId = createEventID(event);
     let index = getOrInitIndex(
         hostAddress,
+        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -72,7 +74,8 @@ export function handleIndexCreated(
 
 export function handleIndexUpdated(
     event: IndexUpdatedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -89,6 +92,7 @@ export function handleIndexUpdated(
     // update Index entity
     let index = getOrInitIndex(
         hostAddress,
+        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -149,7 +153,8 @@ export function handleIndexUpdated(
 
 export function handleSubscriptionApproved(
     event: SubscriptionApprovedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -158,6 +163,7 @@ export function handleSubscriptionApproved(
 
     let index = getOrInitIndex(
         hostAddress,
+        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -167,6 +173,7 @@ export function handleSubscriptionApproved(
 
     let subscriber = getOrInitSubscriber(
         hostAddress,
+        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -266,7 +273,8 @@ export function handleSubscriptionApproved(
  */
 export function handleSubscriptionRevoked(
     event: SubscriptionRevokedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -278,6 +286,7 @@ export function handleSubscriptionRevoked(
 
     let index = getOrInitIndex(
         hostAddress,
+        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -287,6 +296,7 @@ export function handleSubscriptionRevoked(
 
     let subscriber = getOrInitSubscriber(
         hostAddress,
+        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -356,7 +366,8 @@ export function handleSubscriptionRevoked(
  */
 export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdatedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -366,6 +377,7 @@ export function handleSubscriptionUnitsUpdated(
 
     let subscriber = getOrInitSubscriber(
         hostAddress,
+        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -375,6 +387,7 @@ export function handleSubscriptionUnitsUpdated(
 
     let index = getOrInitIndex(
         hostAddress,
+        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,

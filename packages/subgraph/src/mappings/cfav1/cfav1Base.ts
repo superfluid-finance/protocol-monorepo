@@ -50,7 +50,8 @@ function createFlowUpdatedEntity(
 
 export function handleStreamUpdated(
     event: FlowUpdatedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let senderAddress = event.params.sender;
     let receiverAddress = event.params.receiver;
@@ -65,6 +66,7 @@ export function handleStreamUpdated(
 
     let stream = getOrInitStream(
         hostAddress,
+        resolverAddress,
         senderAddress,
         receiverAddress,
         tokenAddress,

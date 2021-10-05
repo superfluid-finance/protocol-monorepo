@@ -30,7 +30,8 @@ import {
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
@@ -67,7 +68,7 @@ export function handleAgreementLiquidatedBy(
     );
     updateAccountUpdatedAt(hostAddress, event.params.bondAccount, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event.address, resolverAddress, event.block);
 
     updateATSStreamedUntilUpdatedAt(
         liquidatorAccount.id,
@@ -104,7 +105,8 @@ export function handleAgreementLiquidatedBy(
 
 export function handleTokenUpgraded(
     event: TokenUpgradedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
@@ -119,7 +121,7 @@ export function handleTokenUpgraded(
         event.block
     );
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event.address, resolverAddress, event.block);
 
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, event.block);
@@ -135,7 +137,8 @@ export function handleTokenUpgraded(
 
 export function handleTokenDowngraded(
     event: TokenDowngradedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
@@ -150,7 +153,7 @@ export function handleTokenDowngraded(
         event.block
     );
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event.address, resolverAddress, event.block);
 
     let tokenId = event.address.toHex();
     updateAccountUpdatedAt(hostAddress, event.params.account, event.block);
@@ -169,7 +172,8 @@ export function handleTokenDowngraded(
 // well as minted and sent from one individual to another
 export function handleTransfer(
     event: TransferEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
@@ -186,7 +190,7 @@ export function handleTransfer(
     let toAccount = getOrInitAccount(hostAddress, event.params.to, event.block);
     let tokenId = event.address.toHex();
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event.address, resolverAddress, event.block);
 
     updateAccountUpdatedAt(hostAddress, event.params.from, event.block);
     updateAccountUpdatedAt(hostAddress, event.params.to, event.block);

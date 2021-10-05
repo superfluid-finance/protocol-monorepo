@@ -17,7 +17,8 @@ import {
 
 export function handleSuperTokenCreated(
     event: SuperTokenCreatedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -31,12 +32,13 @@ export function handleSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitSuperToken(event.params.token, event.block);
+    getOrInitSuperToken(event.params.token, resolverAddress, event.block);
 }
 
 export function handleCustomSuperTokenCreated(
     event: CustomSuperTokenCreatedEvent,
-    hostAddress: Address
+    hostAddress: Address,
+    resolverAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
@@ -50,7 +52,7 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitSuperToken(event.params.token, event.block);
+    getOrInitSuperToken(event.params.token, resolverAddress, event.block);
 }
 
 export function handleSuperTokenLogicCreated(

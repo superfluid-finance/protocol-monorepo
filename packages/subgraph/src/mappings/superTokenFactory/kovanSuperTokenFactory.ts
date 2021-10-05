@@ -4,7 +4,7 @@ import {
     SuperTokenCreated as SuperTokenCreatedEvent,
     SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
 } from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
-import { KOVAN_HOST_ADDRESS } from "../../utils";
+import { KOVAN_HOST_ADDRESS, KOVAN_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleCustomSuperTokenCreated,
     handleSuperTokenCreated,
@@ -12,17 +12,18 @@ import {
 } from "./superTokenFactoryBase";
 
 let HOST_ADDRESS = Address.fromString(KOVAN_HOST_ADDRESS);
+let RESOLVER_ADDRESS = Address.fromString(KOVAN_RESOLVER_ADDRESS);
 
 export function kovanHandleSuperTokenCreated(
     event: SuperTokenCreatedEvent
 ): void {
-    handleSuperTokenCreated(event, HOST_ADDRESS);
+    handleSuperTokenCreated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleCustomSuperTokenCreated(
     event: CustomSuperTokenCreatedEvent
 ): void {
-    handleCustomSuperTokenCreated(event, HOST_ADDRESS);
+    handleCustomSuperTokenCreated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleSuperTokenLogicCreated(

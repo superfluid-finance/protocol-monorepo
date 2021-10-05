@@ -19,6 +19,7 @@
         "path": false
     },
     "scripts": {
+        "dev": "nodemon -e js,ts -i build -x 'yarn test 2>&1'",
         "build": "tasks/build-abi-js.sh && webpack",
         "testenv:start": "../ethereum-contracts/tasks/testenv-ctl.sh start",
         "testenv:stop": "../ethereum-contracts/tasks/testenv-ctl.sh stop",

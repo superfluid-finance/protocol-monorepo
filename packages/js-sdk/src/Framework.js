@@ -230,7 +230,15 @@ module.exports = class Framework {
         let isLoadingByAddress = false;
 
         if (!isAddress(tokenKey)) {
-            if (tokenKey !== this.config.nativeTokenSymbol) {
+            if (
+                tokenKey === this.config.nativeTokenSymbol ||
+                tokenKey === this.config.nativeTokenSymbol + "x"
+            ) {
+                // it is the same as native token symbol (or plus "x"), we assume it is a SETH
+                superTokenKey = this.config.nativeTokenSymbol + "x";
+                superTokenContractType = this.contracts.ISETH;
+                superTokenCustomType = "SETH";
+            } else {
                 // first check if tokenKey is symbol of a listed non-super token
                 const tokenAddress = await this.resolver.get(
                     `tokens.${tokenKey}`
@@ -253,11 +261,6 @@ module.exports = class Framework {
                     superTokenKey = tokenKey;
                 }
                 superTokenContractType = this.contracts.ISuperToken;
-            } else {
-                // it is the same as native token symbol, we assume it is a
-                superTokenKey = this.config.nativeTokenSymbol + "x";
-                superTokenContractType = this.contracts.ISETH;
-                superTokenCustomType = "SETH";
             }
 
             // load super token

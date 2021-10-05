@@ -237,6 +237,32 @@ describe("Framework class", function () {
                 );
             });
 
+            it("load by native token symbol", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["ETH"],
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
+                assert.equal(sf.superTokens.ETHx.superTokenCustomType, "SETH");
+                assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
+            });
+
+            it("load by native token symbol plus x", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["ETHx"],
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
+                assert.equal(sf.superTokens.ETHx.superTokenCustomType, "SETH");
+                assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
+            });
+
             it("load by superToken address", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,

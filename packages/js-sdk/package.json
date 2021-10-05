@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/js-sdk",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "description": "Javascript SDK for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -19,6 +19,7 @@
         "path": false
     },
     "scripts": {
+        "dev": "nodemon -e js,ts -i build -x 'yarn test 2>&1'",
         "build": "tasks/build-abi-js.sh && webpack",
         "testenv:start": "../ethereum-contracts/tasks/testenv-ctl.sh start",
         "testenv:stop": "../ethereum-contracts/tasks/testenv-ctl.sh stop",

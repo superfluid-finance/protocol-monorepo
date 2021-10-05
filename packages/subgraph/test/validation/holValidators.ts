@@ -8,7 +8,7 @@ import { getIndex, getStream, getSubscriber } from "../queries/holQueries";
 
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
-    streamedAmountSinceUpdatedAt: BigNumber,
+    expectedStreamedUntilUpdatedAt: BigNumber,
     flowRate: string
 ) => {
     const streamId = streamData.id;
@@ -22,11 +22,6 @@ export const fetchStreamAndValidate = async (
     if (!stream) {
         throw new Error("Stream entity not found.");
     }
-    const { streamedUntilUpdatedAt } = streamData;
-
-    const expectedStreamedUntilUpdatedAt = toBN(streamedUntilUpdatedAt).add(
-        streamedAmountSinceUpdatedAt
-    );
 
     validateStreamEntity(
         stream,

@@ -32,8 +32,9 @@ export interface IFlowUpdated extends IEvent {
     readonly sender: string;
     readonly receiver: string;
     readonly flowRate: string;
-    readonly totalSenderFlowRate: string;
+    readonly totalAmountStreamedUntilTimestamp: string;
     readonly totalReceiverFlowRate: string;
+    readonly totalSenderFlowRate: string;
     readonly oldFlowRate: string;
     readonly type: string;
 }
@@ -258,13 +259,22 @@ export interface IUpdateGlobalObjectData {
     readonly updatedSubscriber?: ISubscriber;
 }
 
-export interface ILocalData {
-    readonly revisionIndexes: { [id: string]: number | undefined };
-    readonly streamData: { [id: string]: IStreamData | undefined };
+export interface IAggregateLocalData {
     readonly accountTokenSnapshots: {
         [id: string]: IAccountTokenSnapshot | undefined;
     };
     readonly tokenStatistics: { [id: string]: ITokenStatistic | undefined };
+}
+
+export interface IBaseTestData {
+    readonly lastUpdatedAtTimestamp: string;
+    readonly lastUpdatedBlockNumber: string;
+    readonly token: string;
+}
+
+export interface IStreamLocalData extends IAggregateLocalData {
+    readonly revisionIndexes: { [id: string]: number | undefined };
+    readonly streamData: { [id: string]: IStreamData | undefined };
 }
 
 export interface IContracts {
@@ -273,12 +283,11 @@ export interface IContracts {
     readonly superToken: SuperToken;
 }
 
-export interface IFlowUpdatedInitTestData extends ILocalData {
-    readonly lastUpdatedAtTimestamp: string;
-    readonly lastUpdatedBlockNumber: string;
+export interface IFlowUpdatedInitTestData
+    extends IStreamLocalData,
+        IBaseTestData {
     readonly sender: string;
     readonly receiver: string;
-    readonly token: string;
 }
 
 export interface IFlowUpdatedUpdateTestData {
@@ -292,6 +301,19 @@ export interface IFlowUpdatedUpdateTestData {
     readonly currentSenderATS: IAccountTokenSnapshot;
     readonly currentReceiverATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
+}
+
+export interface IInstantDistributionLocalData extends IAggregateLocalData {
+    readonly indexes: { [id: string]: IIndex | undefined };
+    readonly subscribers: { [id: string]: ISubscriber | undefined };
+}
+
+export interface IInstantDistributionTestData
+    extends IInstantDistributionLocalData,
+        IBaseTestData {
+    readonly publisher: string;
+    readonly subscriber?: string;
+    readonly indexId: string;
 }
 
 export interface IUpdateIndexData {
@@ -331,4 +353,16 @@ export interface IExpectedSubscriberEvent extends IBaseIDAEvent {
 export interface IExpectedSubscriptionUnitsUpdated
     extends IExpectedSubscriberEvent {
     readonly units: string;
+}
+
+export interface IExpectedFlowUpdateEvent {
+    readonly flowRate: string;
+    readonly oldFlowRate: string;
+    readonly receiver: string;
+    readonly sender: string;
+    readonly token: string;
+    readonly totalAmountStreamedUntilTimestamp: string;
+    readonly totalReceiverFlowRate: string;
+    readonly totalSenderFlowRate: string;
+    readonly type: FlowActionType;
 }

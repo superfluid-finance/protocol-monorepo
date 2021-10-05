@@ -9,6 +9,7 @@ import {
     IFlowUpdatedInitTestData,
     IFlowUpdatedUpdateTestData,
     IIndex,
+    IInstantDistributionTestData,
     IMeta,
     IStreamData,
     ISubscriber,
@@ -457,6 +458,75 @@ export function getOrInitializeDataForFlowUpdated(
     };
 }
 
+export function getOrInitializeDataForIDA(
+    testData: IInstantDistributionTestData
+) {
+    const {
+        accountTokenSnapshots,
+        indexes,
+        indexId,
+        lastUpdatedAtTimestamp,
+        lastUpdatedBlockNumber,
+        publisher,
+        subscriber,
+        subscribers,
+        token,
+        tokenStatistics,
+    } = testData;
+    let subscriberAddress = subscriber || "";
+    const subscriberEntityId = getSubscriberId(
+        subscriberAddress,
+        publisher,
+        token,
+        indexId
+    );
+    const indexEntityId = getIndexId(publisher, token, indexId);
+    const currentIndex = getOrInitIndex(
+        indexes,
+        indexEntityId,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+
+    const currentSubscriber = getOrInitSubscriber(
+        subscribers,
+        subscriberEntityId,
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+
+    const currentPublisherATS = getOrInitAccountTokenSnapshot(
+        accountTokenSnapshots,
+        publisher.toLowerCase(),
+        token.toLowerCase(),
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+    const currentSubscriberATS = getOrInitAccountTokenSnapshot(
+        accountTokenSnapshots,
+        subscriberAddress.toLowerCase(),
+        token.toLowerCase(),
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+
+    const currentTokenStats = getOrInitTokenStatistics(
+        tokenStatistics,
+        token.toLowerCase(),
+        lastUpdatedBlockNumber,
+        lastUpdatedAtTimestamp
+    );
+    return {
+        subscriberEntityId,
+        indexEntityId,
+        currentIndex,
+        currentSubscriber,
+        currentPublisherATS,
+        currentSubscriberATS,
+        currentTokenStats,
+    };
+}
+
 /**************************************************************************
  * Entity Updaters (For expected values)
  *************************************************************************/
@@ -633,47 +703,6 @@ export const updateAndReturnATSForCFAData = async (
     };
 };
 
-export const getTotalSubscriptionsDelta = (
-    subscriptionExists: boolean,
-    isDeletingSubscriptions: boolean,
-    isApproving: boolean
-) => {
-    const totalSubscriptionsDelta = isDeletingSubscriptions
-        ? -1
-        : subscriptionExists
-        ? 0
-        : 1;
-    const totalApprovedSubscriptionsDelta = isApproving
-        ? 1
-        : subscriptionExists
-        ? -1
-        : 0;
-    return { totalSubscriptionsDelta, totalApprovedSubscriptionsDelta };
-};
-
-export const updateAndReturnATSForIDAData = (
-    currentATS: IAccountTokenSnapshot,
-    subscriptionExists: boolean,
-    isDeletingSubscriptions: boolean,
-    isApproving: boolean
-) => {
-    const { totalSubscriptionsDelta, totalApprovedSubscriptionsDelta } =
-        getTotalSubscriptionsDelta(
-            subscriptionExists,
-            isDeletingSubscriptions,
-            isApproving
-        );
-
-    return {
-        ...currentATS,
-        totalSubscriptions:
-            currentATS.totalSubscriptions + totalSubscriptionsDelta,
-        totalApprovedSubscriptions:
-            currentATS.totalApprovedSubscriptions +
-            totalApprovedSubscriptionsDelta,
-    } as IAccountTokenSnapshot;
-};
-
 /**
  * Updates Token Stats stream data.
  * @param currentTokenStats
@@ -739,42 +768,6 @@ export const updateAndReturnTokenStatsForCFAData = (
             currentTokenStats.totalNumberOfClosedStreams + closedStreamsDelta,
         totalOutflowRate,
         totalAmountStreamedUntilUpdatedAt,
-    } as ITokenStatistic;
-};
-
-export const updateAndReturnTokenStatsForIDAData = (
-    currentTokenStats: ITokenStatistic,
-    amountDistributedDelta: BigNumber,
-    numberOfIndexesDelta: number,
-    numberOfActiveIndexesDelta: number,
-    subscriptionExists: boolean,
-    isDeletingSubscriptions: boolean,
-    isApproving: boolean
-) => {
-    const { totalSubscriptionsDelta, totalApprovedSubscriptionsDelta } =
-        getTotalSubscriptionsDelta(
-            subscriptionExists,
-            isDeletingSubscriptions,
-            isApproving
-        );
-
-    return {
-        ...currentTokenStats,
-        totalNumberOfIndexes:
-            currentTokenStats.totalNumberOfIndexes + numberOfIndexesDelta,
-        totalNumberOfActiveIndexes:
-            currentTokenStats.totalNumberOfActiveIndexes +
-            numberOfActiveIndexesDelta,
-        totalAmountDistributedUntilUpdatedAt: toBN(
-            currentTokenStats.totalAmountDistributedUntilUpdatedAt
-        )
-            .add(amountDistributedDelta)
-            .toString(),
-        totalSubscriptions:
-            currentTokenStats.totalSubscriptions + totalSubscriptionsDelta,
-        totalApprovedSubscriptions:
-            currentTokenStats.totalApprovedSubscriptions +
-            totalApprovedSubscriptionsDelta,
     } as ITokenStatistic;
 };
 

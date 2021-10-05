@@ -160,6 +160,7 @@ export const validateTokenStatsEntity = (
         graphTokenStats.totalAmountStreamedUntilUpdatedAt,
         "TokenStats: totalAmountStreamedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountStreamedUntilUpdatedAt);
+	// TODO: mints/burns are transfers
     // expect(
     //     graphTokenStats.totalAmountTransferredUntilUpdatedAt,
     //     "totalAmountTransferredUntilUpdatedAt error"

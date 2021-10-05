@@ -1,4 +1,4 @@
-import { Address } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
     IndexUpdated as IndexUpdatedEvent,
@@ -258,7 +258,8 @@ export function handleSubscriptionApproved(
 /**
  * This function will be triggered in _revokeOrUpdateSubscription
  * as well as updateSubscription, but we only handle
- * _revokeOrUpdateSubscription.
+ * _revokeOrUpdateSubscription - it runs whenever a subscription
+ * is revoked or deleted.
  * @param event
  * @param hostAddress
  * @returns
@@ -274,8 +275,6 @@ export function handleSubscriptionRevoked(
 
     let tokenId = event.params.token.toHex();
     let subscriberAddress = event.params.subscriber.toHex();
-
-    let isRevoke = event.params.subscriber.equals(Address.fromI32(0));
 
     let index = getOrInitIndex(
         hostAddress,
@@ -299,66 +298,22 @@ export function handleSubscriptionRevoked(
         .minus(subscriber.lastIndexValue)
         .times(subscriber.units);
 
-    if (isRevoke) {
-        index.totalUnitsApproved = index.totalUnitsApproved.minus(
-            subscriber.units
-        );
-        index.totalUnitsPending = index.totalUnitsPending.plus(
-            subscriber.units
-        );
-        subscriber.lastIndexValue = index.newIndexValue;
+    index.totalUnitsApproved = index.totalUnitsApproved.minus(subscriber.units);
+    index.totalUnitsPending = index.totalUnitsPending.plus(subscriber.units);
+    subscriber.lastIndexValue = index.newIndexValue;
 
-        updateATSStreamedUntilUpdatedAt(
-            subscriberAddress,
-            tokenId,
-            event.block
-        );
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+    updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
+    updateATSBalanceAndUpdatedAt(subscriberAddress, tokenId, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
-        updateAggregateIDASubscriptionsData(
-            subscriberAddress,
-            tokenId,
-            true,
-            false,
-            false,
-            event.block
-        );
-    } else {
-        // deleting subscription
-        if (subscriber.approved) {
-            index.totalUnitsApproved = index.totalUnitsApproved.minus(
-                subscriber.units
-            );
-            index.totalUnits = index.totalUnits.minus(subscriber.units);
-        } else {
-            index.totalUnitsPending = index.totalUnitsPending.minus(
-                subscriber.units
-            );
-            index.totalUnits = index.totalUnits.minus(subscriber.units);
-        }
-
-        // do we set subscriber.units = 0?
-        // I thought that they weren't able to set their units
-        subscriber.units = BIG_INT_ZERO;
-
-        updateATSStreamedUntilUpdatedAt(
-            subscriberAddress,
-            tokenId,
-            event.block
-        );
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
-
-        updateAggregateIDASubscriptionsData(
-            subscriberAddress,
-            tokenId,
-            true,
-            true,
-            false,
-            event.block
-        );
-        index.totalSubscribers = index.totalSubscribers - 1;
-    }
-
+    updateAggregateIDASubscriptionsData(
+        subscriberAddress,
+        tokenId,
+        true,
+        false,
+        false,
+        event.block
+    );
     // mimic ida logic more closely
     if (!subscriber.approved) {
         updateATSStreamedUntilUpdatedAt(
@@ -388,10 +343,6 @@ export function handleSubscriptionRevoked(
     index.save();
     subscriber.save();
 
-    // not necessary as it's being called within revoke or delete
-    // updateATSStreamedUntilUpdatedAt(subscriber.subscriber, tokenId, event.block);
-    updateATSBalanceAndUpdatedAt(subscriber.subscriber, tokenId, event.block);
-
     updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
     createSubscriptionRevokedEntity(event, subscriber.id);
@@ -411,6 +362,7 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
+    let tokenId = event.params.token.toHex();
 
     let subscriber = getOrInitSubscriber(
         hostAddress,
@@ -462,14 +414,11 @@ export function handleSubscriptionUnitsUpdated(
             index.totalUnits = index.totalUnits.plus(units);
             index.totalSubscribers = index.totalSubscribers + 1;
 
-            updateTokenStatsStreamedUntilUpdatedAt(
-                event.params.token.toHex(),
-                event.block
-            );
+            updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
             updateAggregateIDASubscriptionsData(
                 event.params.subscriber.toHex(),
-                event.params.token.toHex(),
+                tokenId,
                 hasSubscription,
                 false,
                 false,
@@ -492,12 +441,12 @@ export function handleSubscriptionUnitsUpdated(
         if (!subscriber.approved) {
             updateATSStreamedUntilUpdatedAt(
                 event.params.publisher.toHex(),
-                event.params.token.toHex(),
+                tokenId,
                 event.block
             );
             updateATSBalanceAndUpdatedAt(
                 event.params.publisher.toHex(),
-                event.params.token.toHex(),
+                tokenId,
                 event.block
             );
             updateAccountUpdatedAt(
@@ -509,12 +458,12 @@ export function handleSubscriptionUnitsUpdated(
 
         updateATSStreamedUntilUpdatedAt(
             event.params.subscriber.toHex(),
-            event.params.token.toHex(),
+            tokenId,
             event.block
         );
         updateATSBalanceAndUpdatedAt(
             subscriber.subscriber,
-            event.params.token.toHex(),
+            tokenId,
             event.block
         );
         updateAccountUpdatedAt(
@@ -529,6 +478,47 @@ export function handleSubscriptionUnitsUpdated(
             subscriber.lastIndexValue = index.newIndexValue;
             subscriber.units = event.params.units;
         }
+    } else {
+        // deleting subscription
+        index.totalUnits = index.totalUnits.minus(subscriber.units);
+        if (subscriber.approved) {
+            // we need to subtract sub.units from totalUnitsPending because we increment this in
+            // handleSubscriptionRevoked and we want to bring it back to 0.
+            index.totalUnitsPending = index.totalUnitsPending.minus(
+                subscriber.units
+            );
+        } else {
+            // we need to subtract by sub.units * two in the event that we are deleting subscriptions
+            // as we increment by sub.units to totalUnitsPending in handleSubscriptionRevoked and we want
+            // the end result to be: totalUnitsPending - sub.units.
+            index.totalUnitsPending = index.totalUnitsPending.minus(
+                subscriber.units.times(BigInt.fromI32(2))
+            );
+        }
+
+        subscriber.units = BIG_INT_ZERO;
+
+        updateATSStreamedUntilUpdatedAt(
+            subscriber.subscriber,
+            tokenId,
+            event.block
+        );
+        updateATSBalanceAndUpdatedAt(
+            subscriber.subscriber,
+            tokenId,
+            event.block
+        );
+        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+
+        updateAggregateIDASubscriptionsData(
+            subscriber.subscriber,
+            tokenId,
+            true,
+            true,
+            false,
+            event.block
+        );
+        index.totalSubscribers = index.totalSubscribers - 1;
     }
 
     index.save();

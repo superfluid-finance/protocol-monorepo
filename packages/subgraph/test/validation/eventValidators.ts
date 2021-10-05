@@ -1,81 +1,11 @@
-import { Contract, ContractReceipt } from "@ethersproject/contracts";
+import { ContractReceipt } from "@ethersproject/contracts";
 import { expect } from "chai";
-import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
-import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
-import { FlowActionType } from "../helpers/constants";
 import { fetchEventAndEnsureExistence } from "../helpers/helpers";
-import {
-    IBaseIDAEvent,
-    IEvent,
-    IExpectedIndexUpdated,
-    IExpectedSubscriberEvent,
-    IExpectedSubscriptionUnitsUpdated,
-    IFlowUpdated,
-    IIndexCreated,
-    IIndexUpdated,
-    ISubscriptionApproved,
-    ISubscriptionUnitsUpdated,
-} from "../interfaces";
-import {
-    getFlowUpdatedEvents,
-    getIndexCreatedEvents,
-    getIndexUpdatedEvents,
-    getSubscriptionApprovedEvents,
-    getSubscriptionRevokedEvents,
-    getSubscriptionUnitsUpdatedEvents,
-} from "../queries/eventQueries";
+import { IEvent } from "../interfaces";
 
 // Event Entity Validator Functions
-/**
- * Query The Graph for FlowUpdated event and validate
- * that the properties on the event are as expected.
- * @param cfaV1
- * @param receipt
- * @param token
- * @param sender
- * @param receiver
- * @param flowRate
- * @param oldFlowRate
- * @param actionType
- */
-export const fetchFlowUpdatedEventAndValidate = async (
-    cfaV1: ConstantFlowAgreementV1,
-    receipt: ContractReceipt,
-    token: string,
-    sender: string,
-    receiver: string,
-    flowRate: string,
-    oldFlowRate: string,
-    actionType: FlowActionType
-) => {
-    const flowUpdatedEvent = await fetchEventAndEnsureExistence<IFlowUpdated>(
-        getFlowUpdatedEvents,
-        receipt.transactionHash,
-        "flowUpdateds",
-        "FlowUpdated"
-    );
 
-    const senderNetFlow = await cfaV1.getNetFlow(token, sender);
-    const receiverNetFlow = await cfaV1.getNetFlow(token, receiver);
-
-    // validate the event data
-    validateEventData(
-        flowUpdatedEvent,
-        {
-            token: token.toLowerCase(),
-            sender: sender.toLowerCase(),
-            receiver: receiver.toLowerCase(),
-            flowRate,
-            totalSenderFlowRate: senderNetFlow.toString(),
-            totalReceiverFlowRate: receiverNetFlow.toString(),
-            oldFlowRate,
-            type: actionType,
-        },
-        receipt
-    );
-};
-
-export const fetchIDAEventAndValidate = async <
+export const fetchEventAndValidate = async <
     EventType extends IEvent,
     ExpectedDataType
 >(
@@ -85,29 +15,15 @@ export const fetchIDAEventAndValidate = async <
     queryResultName: string,
     queryName: string
 ) => {
-    const idaEvent = await fetchEventAndEnsureExistence<EventType>(
+    const event = await fetchEventAndEnsureExistence<EventType>(
         query,
         receipt.transactionHash,
         queryResultName,
         queryName
     );
 
-    validateEventData(idaEvent, expectedData, receipt);
+    validateEventData(event, expectedData, receipt);
 };
-
-// export const fetchIndexCreatedEventAndValidate = async (
-//     receipt: ContractReceipt,
-//     expectedData: IBaseIDAEvent
-// ) => {
-//     const indexCreatedEvent = await fetchEventAndEnsureExistence<IIndexCreated>(
-//         getIndexCreatedEvents,
-//         receipt.transactionHash,
-//         "indexCreateds",
-//         "IndexCreated"
-//     );
-
-//     validateEventData(indexCreatedEvent, expectedData, receipt);
-// };
 
 // export const fetchIndexUpdatedEventAndValidate = async (
 //     receipt: ContractReceipt,
@@ -126,20 +42,6 @@ export const fetchIDAEventAndValidate = async <
 //     expect(indexTotalUnitsApproved.toString()).to.equal(totalUnitsPending);
 
 //     validateEventData(indexUpdatedEvent, expectedData, receipt);
-// };
-
-// export const fetchSubscriptionUnitsUpdatedEventAndValidate = async (
-//     receipt: ContractReceipt,
-//     expectedData: IExpectedSubscriptionUnitsUpdated
-// ) => {
-//     const subscriptionUnitsUpdatedEvent =
-//         await fetchEventAndEnsureExistence<ISubscriptionUnitsUpdated>(
-//             getSubscriptionUnitsUpdatedEvents,
-//             receipt.transactionHash,
-//             "subscriptionUnitsUpdateds",
-//             "SubscriptionUnitsUpdated"
-//         );
-//     validateEventData(subscriptionUnitsUpdatedEvent, expectedData, receipt);
 // };
 
 export const validateData = <T>(

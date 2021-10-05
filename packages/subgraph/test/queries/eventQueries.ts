@@ -10,6 +10,7 @@ export const getFlowUpdatedEvents = gql`
             sender
             receiver
             flowRate
+            totalAmountStreamedUntilTimestamp
             totalSenderFlowRate
             totalReceiverFlowRate
             oldFlowRate

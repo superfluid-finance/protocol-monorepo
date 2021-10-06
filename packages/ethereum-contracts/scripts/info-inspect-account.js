@@ -1,6 +1,6 @@
 const getConfig = require("./getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { parseColonArgs } = require("./utils");
+const { setupScriptEnvironment, parseColonArgs } = require("./utils");
 
 function normalizeFlowRate(fr) {
     return ((fr.toString() / 1e18) * 3600 * 24 * 30).toFixed(4) + " / mo";
@@ -12,15 +12,19 @@ function normalizeFlowRate(fr) {
  *
  * Usage: npx truffle exec scripts/info-inspect-account.js : 0xACC1 0xACC2 ...
  */
-module.exports = async function (callback, argv) {
+module.exports = async function (callback, argv, options = {}) {
     try {
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
+
         const args = parseColonArgs(argv || process.argv);
         if (args.length < 1) {
             throw new Error("Not enough arguments");
         }
 
         const sf = new SuperfluidSDK.Framework({
-            version: process.env.RELEASE_VERSION || "test",
+            version: protocolReleaseVersion,
             web3,
             loadSuperNativeToken: true,
         });

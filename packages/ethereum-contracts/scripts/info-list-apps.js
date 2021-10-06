@@ -1,13 +1,15 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { detectTruffleAndConfigure, extractWeb3Options } = require("./utils");
+const { setupScriptEnvironment, extractWeb3Options } = require("./utils");
 
 module.exports = async function (callback, argv, options = {}) {
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
 
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
-            version: process.env.RELEASE_VERSION || "test",
+            version: protocolReleaseVersion,
         });
         await sf.initialize();
 

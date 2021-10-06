@@ -3,7 +3,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
 } = require("./utils");
 
@@ -15,13 +15,13 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/deploy-native-super-token.js : {NAME} {SYMBOL} {INITIAL SUPPLY}
+ * Usage: npx truffle exec scripts/deploy-unlisted-native-super-token.js : {NAME} {SYMBOL} {INITIAL SUPPLY}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Deploying unlisted native super token ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
@@ -34,9 +34,6 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Super token name", superTokenName);
         console.log("Super token symbol", superTokenSymbol);
         console.log("Super token initial supply", initialSupply);
-
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
 
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),

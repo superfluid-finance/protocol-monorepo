@@ -2,7 +2,7 @@ const getConfig = require("./getConfig");
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     parseColonArgs,
     getCodeAddress,
     extractWeb3Options,
@@ -20,7 +20,9 @@ const {
 module.exports = async function (callback, argv, options = {}) {
     let output = "";
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
         if (args.length != 1) {
@@ -38,7 +40,7 @@ module.exports = async function (callback, argv, options = {}) {
 
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
-            version: process.env.RELEASE_VERSION || "test",
+            version: protocolReleaseVersion,
             tokens: config.tokenList,
             loadSuperNativeToken: true,
             additionalContracts: ["UUPSProxiable"],

@@ -5,7 +5,7 @@ const getConfig = require("./getConfig");
 const {
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
 } = require("./utils");
 
@@ -22,8 +22,8 @@ const {
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Deploying test token ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { resetToken } = options;
 
         const args = parseColonArgs(argv || process.argv);

@@ -58,22 +58,26 @@ function parseColonArgs(argv) {
  * to use "web3", "artifacts" from the truffle execution context.
  * The correct way of using this then should be:
  * ```
- * eval(`(${detectIsTruffle.toString()})()`)
+ * await eval(`(${setupScriptEnvironment.toString()})()`)
  * ```
  * 2. This will expose `web3` object to global
  */
-async function detectTruffleAndConfigure(options) {
+async function setupScriptEnvironment(options) {
+    //
+    // Detect truffle environment
+    //
     function _detectTruffle() {
         const stackTrace = require("stack-trace");
         const trace = stackTrace.get();
         //trace.forEach((callSite) => console.debug(callSite.getFileName()));
-        return (
+        const truffleDetected =
             trace.filter((callSite) =>
                 (callSite.getFileName() || "").match(
                     /node_modules\/truffle\/build\/[^/]+\.bundled\.js/
                 )
-            ).length > 0
-        );
+            ).length > 0;
+        console.log("truffle detected", truffleDetected);
+        return truffleDetected;
     }
 
     const truffleDetected = _detectTruffle();
@@ -85,6 +89,8 @@ async function detectTruffleAndConfigure(options) {
             options.isTruffle = truffleDetected;
         }
     }
+
+    console.log("use truffle native environment", options.isTruffle);
     if (options.isTruffle) {
         if (options.web3) {
             throw Error(
@@ -107,6 +113,13 @@ async function detectTruffleAndConfigure(options) {
             options.web3 = global.web3 = web3;
         }
     }
+
+    //
+    // Use common environment variables
+    //
+    options.protocolReleaseVersion =
+        options.protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
+    console.log("protocol release version:", options.protocolReleaseVersion);
 }
 
 /// @dev Extract the web3 options used to initialize the SDK
@@ -295,7 +308,7 @@ module.exports = {
 
     rl,
     parseColonArgs,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     extractWeb3Options,
     builtTruffleContractLoader,
 

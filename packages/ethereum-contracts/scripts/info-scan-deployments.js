@@ -1,9 +1,9 @@
 const _ = require("lodash");
-const { detectTruffleAndConfigure } = require("./utils");
+const { setupScriptEnvironment } = require("./utils");
 
 module.exports = async function (callback) {
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})({})`);
+        await eval(`(${setupScriptEnvironment.toString()})({})`);
 
         // infer deployment from AgreementClassRegistered revents
         const AgreementClassRegistered = web3.utils.sha3(

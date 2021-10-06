@@ -3,7 +3,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./utils");
@@ -21,8 +21,8 @@ const {
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Upgrade super token logic ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
 
         const superTokenAddresses = parseColonArgs(argv || process.argv);
@@ -30,8 +30,6 @@ module.exports = async function (callback, argv, options = {}) {
             throw new Error("Not enough arguments");
         }
 
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

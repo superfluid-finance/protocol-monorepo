@@ -4,7 +4,7 @@ const getConfig = require("./getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     ZERO_ADDRESS,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     extractWeb3Options,
 } = require("./utils");
 
@@ -52,11 +52,13 @@ async function fetchLatestChanges(contract, eventName, filter) {
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
 
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
-            version: process.env.RELEASE_VERSION || "test",
+            version: protocolReleaseVersion,
             additionalContracts: [
                 "AccessControl",
                 "Ownable",

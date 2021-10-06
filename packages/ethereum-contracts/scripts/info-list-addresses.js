@@ -1,18 +1,20 @@
 const async = require("async");
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { detectTruffleAndConfigure, extractWeb3Options } = require("./utils");
+const { setupScriptEnvironment, extractWeb3Options } = require("./utils");
 
 const MAX_REQUESTS = 200;
 
 module.exports = async function (callback, argv, options = {}) {
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
 
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
+            version: protocolReleaseVersion,
             tokens: ["MATICx"],
-            version: process.env.RELEASE_VERSION || "test",
         });
         await sf.initialize();
 

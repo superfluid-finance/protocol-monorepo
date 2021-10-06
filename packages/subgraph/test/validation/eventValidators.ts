@@ -25,25 +25,6 @@ export const fetchEventAndValidate = async <
     validateEventData(event, expectedData, receipt);
 };
 
-// export const fetchIndexUpdatedEventAndValidate = async (
-//     receipt: ContractReceipt,
-//     expectedData: IExpectedIndexUpdated
-// ) => {
-//     const indexUpdatedEvent = await fetchEventAndEnsureExistence<IIndexUpdated>(
-//         getIndexUpdatedEvents,
-//         receipt.transactionHash,
-//         "indexUpdateds",
-//         "IndexUpdated"
-//     );
-
-//     const [, indexValue, indexTotalUnitsApproved, indexTotalUnitsPending] =
-//         await idaV1.getIndex(token, publisher, indexId);
-//     expect(indexTotalUnitsPending.toString()).to.equal(totalUnitsApproved);
-//     expect(indexTotalUnitsApproved.toString()).to.equal(totalUnitsPending);
-
-//     validateEventData(indexUpdatedEvent, expectedData, receipt);
-// };
-
 export const validateData = <T>(
     queriedData: T,
     expectedData: { [key: string]: any }
@@ -52,7 +33,7 @@ export const validateData = <T>(
     for (let i = 0; i < propertiesToValidate.length; i++) {
         expect((queriedData as any)[propertiesToValidate[i]]).to.eql(
             expectedData[propertiesToValidate[i]],
-            propertiesToValidate[i] + " expect error"
+            propertiesToValidate[i] + " expect error for event"
         );
     }
 };

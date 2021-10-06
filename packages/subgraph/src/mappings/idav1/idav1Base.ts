@@ -122,7 +122,7 @@ export function handleIndexUpdated(
     );
 
     // Note: only increment active index the first time distribution occurs.
-    if (previousTotalAmountDistributed === BIG_INT_ZERO) {
+    if (previousTotalAmountDistributed.equals(BIG_INT_ZERO)) {
         tokenStatistic.totalNumberOfActiveIndexes =
             tokenStatistic.totalNumberOfActiveIndexes + 1;
     }

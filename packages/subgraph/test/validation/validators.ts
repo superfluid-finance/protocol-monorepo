@@ -1,11 +1,8 @@
 import { BaseProvider } from "@ethersproject/providers";
 import {
-    getExpectedDataForFlowUpdated,
-    getOrInitializeDataForFlowUpdated,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
     toBN,
-    updateAndReturnStreamData,
 } from "../helpers/helpers";
 import { FlowActionType } from "../helpers/constants";
 import {
@@ -30,6 +27,11 @@ import {
 } from "./aggregateValidators";
 import { getFlowUpdatedEvents } from "../queries/eventQueries";
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
+import { getOrInitializeDataForFlowUpdated } from "../helpers/initializers";
+import {
+    getExpectedDataForFlowUpdated,
+    getExpectedStreamData,
+} from "../helpers/updaters";
 
 export async function validateModifyFlow(
     contracts: IContracts,
@@ -112,7 +114,6 @@ export async function validateModifyFlow(
     const senderNetFlow = await cfaV1.getNetFlow(tokenAddress, sender);
     const receiverNetFlow = await cfaV1.getNetFlow(tokenAddress, receiver);
     // validate FlowUpdatedEvent
-    // TODO: test totalAmountUntilTimestamp
     const streamedAmountUntilTimestamp = toBN(
         pastStreamData.streamedUntilUpdatedAt
     ).add(streamedAmountSinceUpdatedAt);
@@ -151,7 +152,7 @@ export async function validateModifyFlow(
     // validate token stats
     await fetchTokenStatsAndValidate(tokenId, updatedTokenStats);
 
-    let updatedStreamData = updateAndReturnStreamData(
+    let updatedStreamData = getExpectedStreamData(
         pastStreamData,
         actionType,
         flowRate.toString(),

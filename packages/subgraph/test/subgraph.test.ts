@@ -9,14 +9,9 @@ import { ERC20 } from "../typechain/ERC20";
 import { SuperToken } from "../typechain/SuperToken";
 import {
     beforeSetup,
-    getExpectedDataForRevokeOrDeleteSubscription,
-    getOrInitializeDataForIDA,
     getRandomFlowRate,
     hasSubscription,
     toBN,
-    updateAndReturnATSForCFAData,
-    updateAndReturnIndexData,
-    updateAndReturnTokenStatsForCFAData,
     waitUntilBlockIndexed,
 } from "./helpers/helpers";
 import {
@@ -52,6 +47,13 @@ import {
     getSubscriptionRevokedEvents,
     getSubscriptionUnitsUpdatedEvents,
 } from "./queries/eventQueries";
+import { getOrInitializeDataForIDA } from "./helpers/initializers";
+import {
+    getExpectedDataForRevokeOrDeleteSubscription,
+    getExpectedATSForCFAEvent,
+    getExpectedIndex,
+    getExpectedTokenStatsForCFAEvent,
+} from "./helpers/updaters";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
@@ -119,7 +121,7 @@ describe("Subgraph Tests", () => {
         }
     }
 
-    function getContracts(): IContracts {
+    function getStreamContracts(): IContracts {
         return {
             cfaV1,
             sf,
@@ -134,6 +136,12 @@ describe("Subgraph Tests", () => {
             streamData,
             tokenStatistics,
         };
+    }
+
+    function getAccountTokenSnapshotsArray() {
+        return Object.values(accountTokenSnapshots).filter(
+            (x) => x != undefined
+        ) as IAccountTokenSnapshot[];
     }
 
     before(async () => {
@@ -168,7 +176,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Create,
@@ -200,7 +208,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Create,
@@ -233,7 +241,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Update,
@@ -262,7 +270,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Update,
@@ -293,7 +301,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Update,
@@ -322,7 +330,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Update,
@@ -360,7 +368,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Delete,
@@ -391,7 +399,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Delete,
@@ -422,7 +430,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Create,
@@ -453,7 +461,7 @@ describe("Subgraph Tests", () => {
                     updatedReceiverATS,
                     updatedTokenStats,
                 } = await validateModifyFlow(
-                    getContracts(),
+                    getStreamContracts(),
                     getStreamLocalData(),
                     provider,
                     FlowActionType.Update,
@@ -527,12 +535,9 @@ describe("Subgraph Tests", () => {
                         tokenStatistics,
                     });
 
-                const accountTokenSnapshotsArray = Object.values(
-                    accountTokenSnapshots
-                ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
-                let updatedTokenStats = updateAndReturnTokenStatsForCFAData(
+                let updatedTokenStats = getExpectedTokenStatsForCFAEvent(
                     currentTokenStats,
-                    accountTokenSnapshotsArray,
+                    getAccountTokenSnapshotsArray(),
                     updatedAtBlock,
                     timestamp.toString(),
                     FlowActionType.Update,
@@ -626,6 +631,7 @@ describe("Subgraph Tests", () => {
                     subscriberEntityId
                 );
 
+                // getExpectedDataForSubscriptionApproved starts here
                 const balanceDelta = toBN(currentIndex.newIndexValue)
                     .sub(toBN(currentSubscriber.lastIndexValue))
                     .mul(toBN(currentSubscriber.units));
@@ -640,13 +646,10 @@ describe("Subgraph Tests", () => {
                 let updatedPublisherATS: IAccountTokenSnapshot = {
                     ...currentPublisherATS,
                 };
-                const accountTokenSnapshotsArray = Object.values(
-                    accountTokenSnapshots
-                ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
                 let updatedTokenStats: ITokenStatistic = {
-                    ...updateAndReturnTokenStatsForCFAData(
+                    ...getExpectedTokenStatsForCFAEvent(
                         currentTokenStats,
-                        accountTokenSnapshotsArray,
+                        getAccountTokenSnapshotsArray(),
                         updatedAtBlock,
                         timestamp,
                         FlowActionType.Update,
@@ -659,7 +662,7 @@ describe("Subgraph Tests", () => {
 
                 // this occurs whether subscription exists or not
                 let updatedSubscriberATS: IAccountTokenSnapshot = {
-                    ...(await updateAndReturnATSForCFAData(
+                    ...(await getExpectedATSForCFAEvent(
                         daix,
                         currentSubscriberATS,
                         updatedAtBlock,
@@ -675,7 +678,7 @@ describe("Subgraph Tests", () => {
 
                 if (subscriptionExists === true) {
                     // Update Index
-                    updatedIndex = updateAndReturnIndexData(currentIndex, {
+                    updatedIndex = getExpectedIndex(currentIndex, {
                         totalUnitsApproved: toBN(
                             currentIndex.totalUnitsApproved
                         ).add(toBN(currentSubscriber.units)),
@@ -695,7 +698,7 @@ describe("Subgraph Tests", () => {
                     };
 
                     // Update Publisher ATS entity (stream data + balance)
-                    updatedPublisherATS = await updateAndReturnATSForCFAData(
+                    updatedPublisherATS = await getExpectedATSForCFAEvent(
                         daix,
                         currentPublisherATS,
                         updatedAtBlock,
@@ -725,6 +728,8 @@ describe("Subgraph Tests", () => {
                             updatedTokenStats.totalSubscriptions + 1,
                     };
                 }
+
+                // getExpectedDataForSubscriptionApproved ends here
 
                 await validateModifyIDA(
                     idaV1,
@@ -821,14 +826,14 @@ describe("Subgraph Tests", () => {
 
                 // ends here
 
-                // this is unique to updateSubUnits
+                // getExpectedDataForSubscriptionUnitsUpdated starts here
 
                 let updatedIndex = { ...currentIndex };
                 let updatedSubscriber = { ...currentSubscriber };
                 let updatedPublisherATS = { ...currentPublisherATS };
                 let updatedSubscriberATS = {
                     ...currentSubscriberATS,
-                    ...(await updateAndReturnATSForCFAData(
+                    ...(await getExpectedATSForCFAEvent(
                         daix,
                         currentSubscriberATS,
                         updatedAtBlock,
@@ -893,9 +898,9 @@ describe("Subgraph Tests", () => {
                         accountTokenSnapshots
                     ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
                     updatedTokenStats = {
-                        ...updateAndReturnTokenStatsForCFAData(
+                        ...getExpectedTokenStatsForCFAEvent(
                             updatedTokenStats,
-                            accountTokenSnapshotsArray,
+                            getAccountTokenSnapshotsArray(),
                             updatedAtBlock,
                             timestamp,
                             FlowActionType.Update,
@@ -923,7 +928,7 @@ describe("Subgraph Tests", () => {
                 };
 
                 if (currentSubscriber.approved === false) {
-                    updatedPublisherATS = await updateAndReturnATSForCFAData(
+                    updatedPublisherATS = await getExpectedATSForCFAEvent(
                         daix,
                         currentPublisherATS,
                         updatedAtBlock,
@@ -943,7 +948,7 @@ describe("Subgraph Tests", () => {
                     };
                 }
 
-                // uniqueness ends here (but this logic section should be abstracted)
+                // getExpectedDataForSubscriptionUnitsUpdated ends here
 
                 await validateModifyIDA(
                     idaV1,
@@ -1243,20 +1248,22 @@ describe("Subgraph Tests", () => {
         /**
          * Distribute Tests
          */
-        it.skip("Should return correct data after calling distribute to 0 subscribers", async () => {
+        it("Should return correct data after calling distribute to 0 subscribers", async () => {
             const token = daix.address;
             for (let i = 1; i < userAddresses.length; i++) {
                 // Take this code and put it into a function (it will be reused)
                 const publisher = userAddresses[i];
                 const subscriber = userAddresses[i - 1];
                 const userData = "0x";
+                const amountOrIndexValue = new BN(100);
+                const indexValue = undefined;
                 const txn: any = await (
                     sf.ida as InstantDistributionAgreementV1Helper
                 ).distribute({
                     superToken: token,
                     publisher,
                     indexId: i,
-                    amount: new BN(100),
+                    amount: amountOrIndexValue,
                     userData,
                     onTransaction: () => {},
                 });
@@ -1268,11 +1275,10 @@ describe("Subgraph Tests", () => {
                 const updatedAtBlock = receipt.blockNumber.toString();
 
                 let {
-                    subscriberEntityId,
-                    currentIndex,
                     currentSubscriber,
-                    currentPublisherATS,
+                    currentIndex,
                     currentSubscriberATS,
+                    currentPublisherATS,
                     currentTokenStats,
                 } = getOrInitializeDataForIDA({
                     accountTokenSnapshots,
@@ -1289,6 +1295,17 @@ describe("Subgraph Tests", () => {
 
                 const [, , indexTotalUnitsApproved, indexTotalUnitsPending] =
                     await idaV1.getIndex(token, publisher, i);
+                const totalUnits = toBN(currentIndex.totalUnitsApproved).add(
+                    toBN(currentIndex.totalUnitsPending)
+                );
+                const isDistribute = true;
+                const indexDelta = toBN(amountOrIndexValue.toString()).div(
+                    totalUnits
+                );
+                const newIndexValue =
+                    isDistribute === true
+                        ? toBN(currentIndex.newIndexValue).add(indexDelta)
+                        : toBN(amountOrIndexValue.toString());
 
                 await fetchEventAndValidate<
                     IIndexUpdated,
@@ -1300,13 +1317,85 @@ describe("Subgraph Tests", () => {
                         publisher: publisher.toLowerCase(),
                         indexId: i.toString(),
                         oldIndexValue: currentIndex.newIndexValue,
-                        newIndexValue: new BN(100).toString(),
+                        newIndexValue: newIndexValue.toString(),
                         totalUnitsApproved: indexTotalUnitsApproved.toString(),
                         totalUnitsPending: indexTotalUnitsPending.toString(),
                     },
                     getIndexUpdatedEvents,
                     "indexUpdateds",
                     "IndexUpdated"
+                );
+
+                // getExpectedDataForHandleIndexUpdated starts here
+
+                const amountDistributedDelta = toBN(totalUnits).mul(
+                    newIndexValue.sub(toBN(currentIndex.newIndexValue))
+                );
+
+                const updatedIndex: IIndex = {
+                    ...currentIndex,
+                    oldIndexValue: currentIndex.newIndexValue,
+                    newIndexValue: newIndexValue.toString(),
+                    totalUnitsApproved: indexTotalUnitsApproved.toString(),
+                    totalUnitsPending: indexTotalUnitsPending.toString(),
+                    totalUnits: totalUnits.toString(),
+                    totalAmountDistributedUntilUpdatedAt: toBN(
+                        currentIndex.totalAmountDistributedUntilUpdatedAt
+                    )
+                        .add(amountDistributedDelta)
+                        .toString(),
+                };
+                const updatedTokenStats: ITokenStatistic = {
+                    ...getExpectedTokenStatsForCFAEvent(
+                        currentTokenStats,
+                        getAccountTokenSnapshotsArray(),
+                        updatedAtBlock,
+                        timestamp,
+                        FlowActionType.Update,
+                        toBN(0),
+                        toBN(0)
+                    ),
+                    totalAmountDistributedUntilUpdatedAt: toBN(
+                        currentTokenStats.totalAmountDistributedUntilUpdatedAt
+                    )
+                        .add(amountDistributedDelta)
+                        .toString(),
+                    totalNumberOfActiveIndexes:
+                        currentIndex.totalAmountDistributedUntilUpdatedAt ===
+                        "0"
+                            ? currentTokenStats.totalNumberOfActiveIndexes + 1
+                            : currentTokenStats.totalNumberOfActiveIndexes,
+                };
+                const updatedPublisherATS = await getExpectedATSForCFAEvent(
+                    daix,
+                    currentPublisherATS,
+                    updatedAtBlock,
+                    timestamp,
+                    FlowActionType.Update,
+                    true,
+                    toBN(0),
+                    toBN(0)
+                );
+                // HandleIndexUpdated ends here
+
+                await validateModifyIDA(
+                    idaV1,
+                    updatedIndex,
+                    currentSubscriber,
+                    updatedPublisherATS,
+                    currentSubscriberATS,
+                    updatedTokenStats,
+                    token,
+                    publisher,
+                    subscriber
+                );
+
+                updateGlobalObjectsForIDAEvents(
+                    updatedTokenStats,
+                    updatedIndex,
+                    currentSubscriber,
+                    updatedPublisherATS,
+                    currentSubscriberATS
                 );
             }
         });

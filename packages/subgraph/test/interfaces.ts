@@ -149,7 +149,6 @@ export interface ISubscriber extends IBaseEntity {
     readonly subscriber: ILightEntity;
     readonly publisher: ILightEntity;
     readonly indexId: string;
-    readonly userData: string;
     readonly approved: boolean;
     readonly units: string;
     readonly totalAmountReceivedUntilUpdatedAt: string;
@@ -159,7 +158,6 @@ export interface ISubscriber extends IBaseEntity {
 
 export interface IIndex extends IBaseEntity {
     readonly indexId: string;
-    readonly userData: string;
     readonly oldIndexValue: string;
     readonly newIndexValue: string;
     readonly totalSubscribers: number;
@@ -318,7 +316,6 @@ export interface IInstantDistributionTestData
 }
 
 export interface IUpdateIndexData {
-    readonly userData?: string;
     readonly oldIndexValue?: string;
     readonly newIndexValue?: string;
     readonly totalSubscribersDelta?: number;
@@ -327,7 +324,6 @@ export interface IUpdateIndexData {
 }
 
 export interface IUpdateSubscriberData {
-    readonly userData?: string;
     readonly approved?: boolean;
     readonly units?: string;
     readonly totalAmountReceivedUntilUpdatedAt?: string;
@@ -381,5 +377,4 @@ export interface IGetExpectedIDADataBase {
 export interface IGetExpectedSubscriberIDAData extends IGetExpectedIDADataBase {
     readonly currentSubscriber: ISubscriber;
     readonly currentSubscriberATS: IAccountTokenSnapshot;
-    readonly userData: string;
 }

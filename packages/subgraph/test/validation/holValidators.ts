@@ -107,9 +107,6 @@ export const validateIndexEntity = async (
     expect(subgraphIndex.indexId, "Index: indexId error").to.equal(
         expectedIndex.indexId
     );
-    expect(subgraphIndex.userData, "Index: userData error").to.equal(
-        expectedIndex.userData
-    );
     expect(subgraphIndex.oldIndexValue, "Index: oldIndexValue error").to.equal(
         expectedIndex.oldIndexValue
     );
@@ -177,9 +174,6 @@ export const validateSubscriberEntity = async (
     // Check subgraph data against expected data
     expect(subgraphSubscriber.indexId, "Subscriber: indexId error").to.equal(
         expectedSubscriber.indexId
-    );
-    expect(subgraphSubscriber.userData, "Subscriber: userData error").to.equal(
-        expectedSubscriber.userData
     );
     expect(subgraphSubscriber.approved, "Subscriber: approved error").to.equal(
         expectedSubscriber.approved

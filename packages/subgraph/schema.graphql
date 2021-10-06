@@ -456,7 +456,6 @@ type Subscriber @entity {
     subscriber: Account!
     publisher: Account!
     indexId: BigInt!
-    userData: Bytes!
     # ---------------------------------- state ----------------------------------
     """
     Approved subscribers don't need to claim tokens that are distributed from
@@ -509,7 +508,6 @@ type Index @entity {
     updatedAtBlock: BigInt!
     indexId: BigInt!
     # ---------------------------------- state ----------------------------------
-    userData: Bytes!
     oldIndexValue: BigInt!
     newIndexValue: BigInt!
 

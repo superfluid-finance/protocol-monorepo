@@ -332,7 +332,6 @@ export function getOrInitIndex(
         index = new Index(indexEntityId);
         index.createdAt = currentTimestamp;
         index.indexId = indexId;
-        index.userData = new Bytes(0);
         index.oldIndexValue = BIG_INT_ZERO;
         index.newIndexValue = BIG_INT_ZERO;
         index.totalSubscribers = 0;
@@ -404,7 +403,6 @@ export function getOrInitSubscriber(
         subscriber.subscriber = subscriberId;
         subscriber.publisher = publisherAddress.toHex();
         subscriber.indexId = indexId;
-        subscriber.userData = new Bytes(0);
         subscriber.approved = false;
         subscriber.units = BIG_INT_ZERO;
         subscriber.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;

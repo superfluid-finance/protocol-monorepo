@@ -56,7 +56,6 @@ export const getExpectedIndex = (
     updatedIndexData: IUpdateIndexData
 ) => {
     const {
-        userData,
         oldIndexValue,
         newIndexValue,
         totalSubscribersDelta,
@@ -65,7 +64,6 @@ export const getExpectedIndex = (
     } = updatedIndexData;
     const updatedData = {
         ...currentIndex,
-        userData: userData == null ? currentIndex.userData : userData,
         oldIndexValue:
             oldIndexValue == null ? currentIndex.oldIndexValue : oldIndexValue,
         newIndexValue:
@@ -292,7 +290,6 @@ export const getExpectedDataForSubscriptionApproved = async (
         currentPublisherATS,
         currentSubscriberATS,
         currentTokenStats,
-        userData,
         updatedAtBlock,
         timestamp,
     } = data;
@@ -304,7 +301,6 @@ export const getExpectedDataForSubscriptionApproved = async (
     let updatedIndex = { ...currentIndex };
     let updatedSubscriber = {
         ...currentSubscriber,
-        userData,
         approved: true,
         lastIndexValue: currentIndex.newIndexValue,
     };
@@ -417,7 +413,6 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         currentPublisherATS,
         currentSubscriberATS,
         currentTokenStats,
-        userData,
         updatedAtBlock,
         timestamp,
     } = data;
@@ -430,7 +425,6 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
     };
     let updatedSubscriber: ISubscriber = {
         ...currentSubscriber,
-        userData,
         approved: false,
         totalAmountReceivedUntilUpdatedAt: toBN(
             currentSubscriber.totalAmountReceivedUntilUpdatedAt

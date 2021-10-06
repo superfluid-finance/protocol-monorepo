@@ -645,7 +645,6 @@ describe("Subgraph Tests", () => {
                         currentPublisherATS,
                         currentSubscriberATS,
                         currentTokenStats,
-                        userData,
                         updatedAtBlock,
                         timestamp,
                     },
@@ -760,7 +759,6 @@ describe("Subgraph Tests", () => {
                         currentPublisherATS,
                         currentSubscriberATS,
                         currentTokenStats,
-                        userData,
                         updatedAtBlock,
                         timestamp,
                     },
@@ -899,7 +897,6 @@ describe("Subgraph Tests", () => {
                         currentPublisherATS,
                         currentSubscriberATS,
                         currentTokenStats,
-                        userData,
                         updatedAtBlock,
                         timestamp,
                     },
@@ -1018,7 +1015,6 @@ describe("Subgraph Tests", () => {
                         currentPublisherATS,
                         currentSubscriberATS,
                         currentTokenStats,
-                        userData,
                         updatedAtBlock,
                         timestamp,
                     },
@@ -1045,14 +1041,6 @@ describe("Subgraph Tests", () => {
                     updatedSubscriberATS
                 );
             }
-            /**
-             * check the event entity (SubscriptionRevoked)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             * subscriber.units should be 0
-             */
         });
 
         /**
@@ -1064,6 +1052,7 @@ describe("Subgraph Tests", () => {
              * update the aggregate data similar to the streams and compare (ATS, TokenStats)
              * remember to take into consideration the flowRate data here too
              * use toBN
+			 * this is the funky one where you need to make an additional web3 call to get the correct amount because the subgraph will return an incorrect result.
              */
         });
 

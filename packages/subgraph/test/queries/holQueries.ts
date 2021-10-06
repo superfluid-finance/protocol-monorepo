@@ -24,7 +24,6 @@ export const getIndex = gql`
         index(id: $id) {
             id
             indexId
-            userData
             oldIndexValue
             newIndexValue
             totalSubscribers
@@ -56,7 +55,6 @@ export const getSubscriber = gql`
                 id
             }
             indexId
-            userData
             approved
             units
             totalAmountReceivedUntilUpdatedAt

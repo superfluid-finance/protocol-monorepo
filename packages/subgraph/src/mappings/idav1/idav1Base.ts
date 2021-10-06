@@ -50,7 +50,6 @@ export function handleIndexCreated(
         event.block,
         indexCreatedId
     );
-    index.userData = event.params.userData;
     index.save();
 
     // update streamed until updated at field
@@ -101,7 +100,6 @@ export function handleIndexUpdated(
     );
     let previousTotalAmountDistributed =
         index.totalAmountDistributedUntilUpdatedAt;
-    index.userData = event.params.userData;
     index.oldIndexValue = event.params.oldIndexValue;
     index.newIndexValue = event.params.newIndexValue;
     index.totalUnitsPending = event.params.totalUnitsPending;
@@ -185,7 +183,6 @@ export function handleSubscriptionApproved(
         .minus(subscriber.lastIndexValue)
         .times(subscriber.units);
 
-    subscriber.userData = event.params.userData;
     subscriber.approved = true;
     subscriber.lastIndexValue = index.newIndexValue;
 
@@ -347,7 +344,6 @@ export function handleSubscriptionRevoked(
     // occurs on revoke or delete
     subscriber.totalAmountReceivedUntilUpdatedAt =
         subscriber.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
-    subscriber.userData = event.params.userData;
     subscriber.approved = false;
 
     index.save();

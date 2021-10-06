@@ -19,23 +19,16 @@ module.exports = async function (callback, argv) {
             throw new Error("Not enough arguments");
         }
 
-        const networkType = await this.web3.eth.net.getNetworkType();
-        const networkId = await web3.eth.net.getId();
-        const chainId = await this.web3.eth.getChainId();
-        console.log("network Type: ", networkType);
-        console.log("network ID: ", networkId);
-        console.log("chain ID: ", chainId);
-        const config = getConfig(chainId);
-        // FIXME remove this
-
-        const tokens = config.tokenList;
         const sf = new SuperfluidSDK.Framework({
             version: process.env.RELEASE_VERSION || "test",
             web3,
-            tokens,
             loadSuperNativeToken: true,
         });
         await sf.initialize();
+        const config = getConfig(sf.chainId);
+        for (let i = 0; i < config.tokenList.length; ++i) {
+            await sf.loadToken(config.tokenList[i]);
+        }
         const superTokens = Object.keys(sf.superTokens);
 
         while (args.length) {

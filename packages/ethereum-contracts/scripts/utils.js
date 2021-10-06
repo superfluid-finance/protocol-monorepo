@@ -1,4 +1,5 @@
 const path = require("path");
+const async = require("async");
 const { promisify } = require("util");
 const readline = require("readline");
 
@@ -299,17 +300,49 @@ async function sendGovernanceAction(sf, actionFn) {
  * Event queries
  ****************************************************************/
 
-async function getPastEvents({ config, contract, eventName, filter }) {
+function _toHex(n) {
+    return "0x" + n.toString(16);
+}
+
+async function getPastEvents({ config, contract, eventName, filter, topics }) {
+    const initialBlockNumber = config.data.initialBlockNumber || 0;
+    const latestBlock = await web3.eth.getBlock("latest");
+    let blockRanges = [];
     if (!config.data.getLogsRange) {
-        return await contract.getPastEvents(eventName, {
-            fromBlock: 0,
-            toBlock: "latest",
-            filter,
-        });
+        blockRanges.push([
+            _toHex(initialBlockNumber),
+            _toHex(latestBlock.number),
+        ]);
     } else {
-        console.warn("[WARN] eth_getLogs disabled for", eventName);
-        return [];
+        let i = initialBlockNumber;
+        do {
+            blockRanges.push([_toHex(i), _toHex(i + config.data.getLogsRange)]);
+        } while ((i += config.data.getLogsRange) <= latestBlock.number);
+        console.debug(
+            "blockRanges",
+            blockRanges.length,
+            initialBlockNumber,
+            latestBlock.number
+        );
     }
+    const result = await async.concatSeries(blockRanges, async (r) => {
+        if (blockRanges.length > 1) process.stdout.write(".");
+        if (contract) {
+            return contract.getPastEvents(eventName, {
+                fromBlock: r[0],
+                toBlock: r[1],
+                filter,
+            });
+        } else {
+            return web3.eth.getPastLogs({
+                fromBlock: r[0],
+                toBlock: r[1],
+                topics,
+            });
+        }
+    });
+    if (blockRanges.length > 1) process.stdout.write("\n");
+    return result;
 }
 
 /**

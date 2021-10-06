@@ -44,11 +44,7 @@ async function printGovernanceInformation({ sf, config }) {
             config,
             contract,
             eventName,
-            filter: {
-                fromBlock: 0,
-                toBlock: "latest",
-                filter,
-            },
+            filter,
         });
         return Object.values(
             changes.reduce(

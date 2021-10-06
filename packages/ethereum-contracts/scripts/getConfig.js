@@ -68,6 +68,7 @@ module.exports = function getConfig(chainId) {
             // misc
             disableTestGovernance: true,
             data: {
+                initialBlockNumber: 10000000,
                 getLogsRange: 10000,
             },
         },
@@ -85,8 +86,20 @@ module.exports = function getConfig(chainId) {
         },
 
         //
-        // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
+        // BSC: https://docs.binance.org/smart-chain/developer/rpc.html
         //
+        56: {
+            liquidationPeriod: 3600 * 4,
+            tokenList: [],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 5000000,
+                getLogsRange: 5000,
+            },
+        },
 
         //
         // ARBITRUM (testnet rinkeby)

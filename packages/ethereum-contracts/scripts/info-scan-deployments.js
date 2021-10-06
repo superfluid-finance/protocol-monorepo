@@ -1,29 +1,27 @@
 const _ = require("lodash");
-const { setupScriptEnvironment } = require("./utils");
+const getConfig = require("./getConfig");
+const { setupScriptEnvironment, getPastEvents } = require("./utils");
 
 module.exports = async function (callback) {
     try {
         await eval(`(${setupScriptEnvironment.toString()})({})`);
 
+        const networkType = await this.web3.eth.net.getNetworkType();
+        const networkId = await web3.eth.net.getId();
+        const chainId = await this.web3.eth.getChainId();
+        console.log("network Type: ", networkType);
+        console.log("network ID: ", networkId);
+        console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
+
         // infer deployment from AgreementClassRegistered revents
         const AgreementClassRegistered = web3.utils.sha3(
             "AgreementClassRegistered(bytes32,address)"
         );
-        const AgreementClassUpdated = web3.utils.sha3(
-            "AgreementClassUpdated(bytes32,address)"
-        );
-        const events = [
-            ...(await web3.eth.getPastLogs({
-                fromBlock: "0",
-                toBlock: "latest",
-                topics: [AgreementClassRegistered],
-            })),
-            ...(await web3.eth.getPastLogs({
-                fromBlock: "0",
-                toBlock: "latest",
-                topics: [AgreementClassUpdated],
-            })),
-        ];
+        const events = await getPastEvents({
+            config,
+            topics: [AgreementClassRegistered],
+        });
 
         const deployments = events.reduce((acc, cur) => {
             acc[cur.address] = _.defaults(acc[cur.address], {

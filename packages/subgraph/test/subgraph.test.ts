@@ -51,18 +51,18 @@ import { getOrInitializeDataForIDA } from "./helpers/initializers";
 import {
     getExpectedDataForRevokeOrDeleteSubscription,
     getExpectedATSForCFAEvent,
-    getExpectedIndex,
     getExpectedTokenStatsForCFAEvent,
+    getExpectedDataForSubscriptionApproved,
+    getExpectedDataForSubscriptionUnitsUpdated,
+    getExpectedDataForIndexUpdated,
 } from "./helpers/updaters";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
 // probably can make a generalized function which can
 // filter and fetch events of a particular contract
-
+// TODO: remove userData from Index and Subscriber
 describe("Subgraph Tests", () => {
-    const encoder = ethers.utils.defaultAbiCoder; // TODO: add some tests for userData
-    let names: { [address: string]: string } = {};
     let userAddresses: string[] = [];
     let sf: Framework;
     let dai: ERC20;
@@ -145,8 +145,7 @@ describe("Subgraph Tests", () => {
     }
 
     before(async () => {
-        let [Names, UserAddresses, SF, DAI, DAIx] = await beforeSetup(100000);
-        names = Names;
+        let [UserAddresses, SF, DAI, DAIx] = await beforeSetup(100000);
         userAddresses = UserAddresses;
         sf = SF;
         dai = DAI;
@@ -631,105 +630,27 @@ describe("Subgraph Tests", () => {
                     subscriberEntityId
                 );
 
-                // getExpectedDataForSubscriptionApproved starts here
-                const balanceDelta = toBN(currentIndex.newIndexValue)
-                    .sub(toBN(currentSubscriber.lastIndexValue))
-                    .mul(toBN(currentSubscriber.units));
-
-                let updatedIndex = { ...currentIndex };
-                let updatedSubscriber = {
-                    ...currentSubscriber,
-                    userData,
-                    approved: true,
-                    lastIndexValue: currentIndex.newIndexValue,
-                };
-                let updatedPublisherATS: IAccountTokenSnapshot = {
-                    ...currentPublisherATS,
-                };
-                let updatedTokenStats: ITokenStatistic = {
-                    ...getExpectedTokenStatsForCFAEvent(
-                        currentTokenStats,
-                        getAccountTokenSnapshotsArray(),
-                        updatedAtBlock,
-                        timestamp,
-                        FlowActionType.Update,
-                        toBN(0),
-                        toBN(0)
-                    ),
-                    totalApprovedSubscriptions:
-                        currentTokenStats.totalApprovedSubscriptions + 1,
-                };
-
-                // this occurs whether subscription exists or not
-                let updatedSubscriberATS: IAccountTokenSnapshot = {
-                    ...(await getExpectedATSForCFAEvent(
-                        daix,
-                        currentSubscriberATS,
-                        updatedAtBlock,
-                        timestamp,
-                        FlowActionType.Update,
-                        true,
-                        toBN(0),
-                        toBN(0)
-                    )),
-                    totalApprovedSubscriptions:
-                        currentSubscriberATS.totalApprovedSubscriptions + 1,
-                };
-
-                if (subscriptionExists === true) {
-                    // Update Index
-                    updatedIndex = getExpectedIndex(currentIndex, {
-                        totalUnitsApproved: toBN(
-                            currentIndex.totalUnitsApproved
-                        ).add(toBN(currentSubscriber.units)),
-                        totalUnitsPending: toBN(
-                            currentIndex.totalUnitsPending
-                        ).sub(toBN(currentSubscriber.units)),
-                    });
-
-                    // Update Subscriber
-                    updatedSubscriber = {
-                        ...updatedSubscriber,
-                        totalAmountReceivedUntilUpdatedAt: toBN(
-                            updatedSubscriber.totalAmountReceivedUntilUpdatedAt
-                        )
-                            .add(balanceDelta)
-                            .toString(),
-                    };
-
-                    // Update Publisher ATS entity (stream data + balance)
-                    updatedPublisherATS = await getExpectedATSForCFAEvent(
-                        daix,
+                const {
+                    updatedTokenStats,
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS,
+                } = await getExpectedDataForSubscriptionApproved(
+                    {
+                        token: daix,
+                        currentIndex,
+                        currentSubscriber,
+                        atsArray: getAccountTokenSnapshotsArray(),
                         currentPublisherATS,
+                        currentSubscriberATS,
+                        currentTokenStats,
+                        userData,
                         updatedAtBlock,
                         timestamp,
-                        FlowActionType.Update,
-                        true,
-                        toBN(0),
-                        toBN(0)
-                    );
-                } else {
-                    // Update Subscriber entity
-                    updatedIndex = {
-                        ...updatedIndex,
-                        totalSubscribers: updatedIndex.totalSubscribers + 1,
-                    };
-                    // Update Subscriber ATS entity
-                    updatedSubscriberATS = {
-                        ...updatedSubscriberATS,
-                        totalSubscriptions:
-                            currentSubscriberATS.totalSubscriptions + 1,
-                    };
-
-                    // Update Token Stats
-                    updatedTokenStats = {
-                        ...updatedTokenStats,
-                        totalSubscriptions:
-                            updatedTokenStats.totalSubscriptions + 1,
-                    };
-                }
-
-                // getExpectedDataForSubscriptionApproved ends here
+                    },
+                    subscriptionExists
+                );
 
                 await validateModifyIDA(
                     idaV1,
@@ -824,131 +745,28 @@ describe("Subgraph Tests", () => {
                     subscriberEntityId
                 );
 
-                // ends here
-
-                // getExpectedDataForSubscriptionUnitsUpdated starts here
-
-                let updatedIndex = { ...currentIndex };
-                let updatedSubscriber = { ...currentSubscriber };
-                let updatedPublisherATS = { ...currentPublisherATS };
-                let updatedSubscriberATS = {
-                    ...currentSubscriberATS,
-                    ...(await getExpectedATSForCFAEvent(
-                        daix,
-                        currentSubscriberATS,
-                        updatedAtBlock,
-                        timestamp,
-                        FlowActionType.Update,
-                        true,
-                        toBN(0),
-                        toBN(0)
-                    )),
-                };
-                let updatedTokenStats = { ...currentTokenStats };
-
-                const unitsDelta = toBN(units.toString()).sub(
-                    toBN(currentSubscriber.units)
-                );
-                if (subscriptionExists && currentSubscriber.approved) {
-                    updatedIndex = {
-                        ...updatedIndex,
-                        totalUnitsApproved: toBN(
-                            updatedIndex.totalUnitsApproved
-                        )
-                            .add(unitsDelta)
-                            .toString(),
-                        totalUnits: toBN(updatedIndex.totalUnits)
-                            .add(unitsDelta)
-                            .toString(),
-                    };
-                } else if (subscriptionExists) {
-                    updatedIndex = {
-                        ...updatedIndex,
-                        totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
-                            .add(unitsDelta)
-                            .toString(),
-                        totalUnits: toBN(updatedIndex.totalUnits)
-                            .add(unitsDelta)
-                            .toString(),
-                    };
-                } else {
-                    updatedIndex = {
-                        ...updatedIndex,
-                        totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
-                            .add(toBN(units))
-                            .toString(),
-                        totalUnits: toBN(updatedIndex.totalUnits)
-                            .add(toBN(units))
-                            .toString(),
-                        totalSubscribers: updatedIndex.totalSubscribers + 1,
-                    };
-
-                    updatedSubscriber = {
-                        ...updatedSubscriber,
-                        lastIndexValue: updatedIndex.newIndexValue,
-                        units: units.toString(),
-                    };
-
-                    updatedSubscriberATS = {
-                        ...updatedSubscriberATS,
-                        totalSubscriptions:
-                            updatedSubscriberATS.totalSubscriptions + 1,
-                    };
-                    const accountTokenSnapshotsArray = Object.values(
-                        accountTokenSnapshots
-                    ).filter((x) => x != undefined) as IAccountTokenSnapshot[];
-                    updatedTokenStats = {
-                        ...getExpectedTokenStatsForCFAEvent(
-                            updatedTokenStats,
-                            getAccountTokenSnapshotsArray(),
-                            updatedAtBlock,
-                            timestamp,
-                            FlowActionType.Update,
-                            toBN(0),
-                            toBN(0)
-                        ),
-                        totalSubscriptions:
-                            updatedTokenStats.totalSubscriptions + 1,
-                    };
-                }
-
-                const balanceDelta = toBN(updatedSubscriber.units).mul(
-                    toBN(updatedIndex.newIndexValue).sub(
-                        toBN(updatedSubscriber.lastIndexValue)
-                    )
-                );
-
-                updatedSubscriber = {
-                    ...updatedSubscriber,
-                    totalAmountReceivedUntilUpdatedAt: toBN(
-                        updatedSubscriber.totalAmountReceivedUntilUpdatedAt
-                    )
-                        .add(balanceDelta)
-                        .toString(),
-                };
-
-                if (currentSubscriber.approved === false) {
-                    updatedPublisherATS = await getExpectedATSForCFAEvent(
-                        daix,
+                const {
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS,
+                    updatedTokenStats,
+                } = await getExpectedDataForSubscriptionUnitsUpdated(
+                    {
+                        token: daix,
+                        currentIndex,
+                        currentSubscriber,
+                        atsArray: getAccountTokenSnapshotsArray(),
                         currentPublisherATS,
+                        currentSubscriberATS,
+                        currentTokenStats,
+                        userData,
                         updatedAtBlock,
                         timestamp,
-                        FlowActionType.Update,
-                        true,
-                        toBN(0),
-                        toBN(0)
-                    );
-                }
-
-                if (subscriptionExists) {
-                    updatedSubscriber = {
-                        ...updatedSubscriber,
-                        lastIndexValue: updatedIndex.newIndexValue,
-                        units: units.toString(),
-                    };
-                }
-
-                // getExpectedDataForSubscriptionUnitsUpdated ends here
+                    },
+                    units.toString(),
+                    subscriptionExists
+                );
 
                 await validateModifyIDA(
                     idaV1,
@@ -1073,17 +891,19 @@ describe("Subgraph Tests", () => {
                     updatedSubscriberATS,
                     updatedTokenStats,
                 } = await getExpectedDataForRevokeOrDeleteSubscription(
-                    daix,
-                    currentIndex,
-                    currentSubscriber,
-                    accountTokenSnapshots,
-                    currentPublisherATS,
-                    currentSubscriberATS,
-                    currentTokenStats,
-                    true,
-                    userData,
-                    updatedAtBlock,
-                    timestamp
+                    {
+                        token: daix,
+                        currentIndex,
+                        currentSubscriber,
+                        atsArray: getAccountTokenSnapshotsArray(),
+                        currentPublisherATS,
+                        currentSubscriberATS,
+                        currentTokenStats,
+                        userData,
+                        updatedAtBlock,
+                        timestamp,
+                    },
+                    true
                 );
 
                 await validateModifyIDA(
@@ -1190,17 +1010,19 @@ describe("Subgraph Tests", () => {
                     updatedSubscriberATS,
                     updatedTokenStats,
                 } = await getExpectedDataForRevokeOrDeleteSubscription(
-                    daix,
-                    currentIndex,
-                    currentSubscriber,
-                    accountTokenSnapshots,
-                    currentPublisherATS,
-                    currentSubscriberATS,
-                    currentTokenStats,
-                    true,
-                    userData,
-                    updatedAtBlock,
-                    timestamp
+                    {
+                        token: daix,
+                        currentIndex,
+                        currentSubscriber,
+                        atsArray: getAccountTokenSnapshotsArray(),
+                        currentPublisherATS,
+                        currentSubscriberATS,
+                        currentTokenStats,
+                        userData,
+                        updatedAtBlock,
+                        timestamp,
+                    },
+                    false
                 );
 
                 await validateModifyIDA(
@@ -1326,57 +1148,22 @@ describe("Subgraph Tests", () => {
                     "IndexUpdated"
                 );
 
-                // getExpectedDataForHandleIndexUpdated starts here
-
-                const amountDistributedDelta = toBN(totalUnits).mul(
-                    newIndexValue.sub(toBN(currentIndex.newIndexValue))
-                );
-
-                const updatedIndex: IIndex = {
-                    ...currentIndex,
-                    oldIndexValue: currentIndex.newIndexValue,
-                    newIndexValue: newIndexValue.toString(),
-                    totalUnitsApproved: indexTotalUnitsApproved.toString(),
-                    totalUnitsPending: indexTotalUnitsPending.toString(),
-                    totalUnits: totalUnits.toString(),
-                    totalAmountDistributedUntilUpdatedAt: toBN(
-                        currentIndex.totalAmountDistributedUntilUpdatedAt
-                    )
-                        .add(amountDistributedDelta)
-                        .toString(),
-                };
-                const updatedTokenStats: ITokenStatistic = {
-                    ...getExpectedTokenStatsForCFAEvent(
-                        currentTokenStats,
-                        getAccountTokenSnapshotsArray(),
-                        updatedAtBlock,
-                        timestamp,
-                        FlowActionType.Update,
-                        toBN(0),
-                        toBN(0)
-                    ),
-                    totalAmountDistributedUntilUpdatedAt: toBN(
-                        currentTokenStats.totalAmountDistributedUntilUpdatedAt
-                    )
-                        .add(amountDistributedDelta)
-                        .toString(),
-                    totalNumberOfActiveIndexes:
-                        currentIndex.totalAmountDistributedUntilUpdatedAt ===
-                        "0"
-                            ? currentTokenStats.totalNumberOfActiveIndexes + 1
-                            : currentTokenStats.totalNumberOfActiveIndexes,
-                };
-                const updatedPublisherATS = await getExpectedATSForCFAEvent(
-                    daix,
-                    currentPublisherATS,
-                    updatedAtBlock,
-                    timestamp,
-                    FlowActionType.Update,
-                    true,
-                    toBN(0),
-                    toBN(0)
-                );
-                // HandleIndexUpdated ends here
+                const { updatedIndex, updatedPublisherATS, updatedTokenStats } =
+                    await getExpectedDataForIndexUpdated(
+                        {
+                            token: daix,
+                            currentIndex,
+                            atsArray: getAccountTokenSnapshotsArray(),
+                            currentPublisherATS,
+                            currentTokenStats,
+                            updatedAtBlock,
+                            timestamp,
+                        },
+                        totalUnits,
+                        newIndexValue,
+                        indexTotalUnitsApproved,
+                        indexTotalUnitsPending
+                    );
 
                 await validateModifyIDA(
                     idaV1,

@@ -367,3 +367,19 @@ export interface IExpectedFlowUpdateEvent {
     readonly totalSenderFlowRate: string;
     readonly type: FlowActionType;
 }
+
+export interface IGetExpectedIDADataBase {
+    readonly token: SuperToken;
+    readonly atsArray: IAccountTokenSnapshot[];
+    readonly currentIndex: IIndex;
+    readonly currentPublisherATS: IAccountTokenSnapshot;
+    readonly currentTokenStats: ITokenStatistic;
+    readonly updatedAtBlock: string;
+    readonly timestamp: string;
+}
+
+export interface IGetExpectedSubscriberIDAData extends IGetExpectedIDADataBase {
+    readonly currentSubscriber: ISubscriber;
+    readonly currentSubscriberATS: IAccountTokenSnapshot;
+    readonly userData: string;
+}

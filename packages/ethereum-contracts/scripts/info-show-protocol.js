@@ -70,7 +70,7 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        config = getConfig(sf.networkId);
+        config = getConfig(sf.chainId);
 
         console.log("\n===== Protocol Information =====\n");
 

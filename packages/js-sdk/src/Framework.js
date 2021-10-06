@@ -79,18 +79,21 @@ module.exports = class Framework {
         if (this.ethers) {
             const network = await this.ethers.getNetwork();
             this.networkType = network.name;
-            this.networkId = network.chainId;
+            this.chainId = network.chainId;
+            this.networkId = network.chainId; // TODO: this could be wrong
         } else {
             // NOTE: querying network type first,
             // Somehow web3.eth.net.getId may send bogus number if this was not done first
             // It could be a red-herring issue, but it makes it more stable.
             this.networkType = await this.web3.eth.net.getNetworkType();
             this.networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
+            this.chainId = await this.web3.eth.getChainId(); // TODO use eth.getChainId;
         }
         console.log("networkType", this.networkType);
         console.log("networkId", this.networkId);
+        console.log("chainId", this.chainId);
 
-        this.config = getConfig(this.networkId);
+        this.config = getConfig(this.chainId);
 
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,

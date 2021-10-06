@@ -5,13 +5,13 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
  * - https://docs.biconomy.io/misc/contract-addresses
  */
 
-module.exports = function getConfig(networkId) {
+module.exports = function getConfig(chainId) {
     const DEFAULT_CONFIGS = {
         //
         // Local Testing
         //
         4447: {
-            // for local testing (truffle internal ganache)
+            // for local testing (truffle internal ganache and TestEnvironment)
             // this is a fake forwarder address, it is to test the deployment script
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
@@ -111,8 +111,8 @@ module.exports = function getConfig(networkId) {
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
         },
         // network specific configs
-        ...DEFAULT_CONFIGS[networkId],
+        ...DEFAULT_CONFIGS[chainId],
         // SDK provided configs
-        ...SuperfluidSDK.getConfig(networkId),
+        ...SuperfluidSDK.getConfig(chainId),
     };
 };

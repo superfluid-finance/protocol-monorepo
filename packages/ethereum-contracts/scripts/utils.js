@@ -282,17 +282,28 @@ async function sendGovernanceAction(sf, actionFn) {
     }
 }
 
+/****************************************************************
+ * Event queries
+ ****************************************************************/
+
+/**
+ * @dev
+ */
+
 module.exports = {
     ZERO_ADDRESS,
+
+    rl,
     parseColonArgs,
+    detectTruffleAndConfigure,
+    extractWeb3Options,
+    builtTruffleContractLoader,
+
     hasCode,
     codeChanged,
     getCodeAddress,
     isProxiable,
-    extractWeb3Options,
-    detectTruffleAndConfigure,
-    rl,
-    builtTruffleContractLoader,
+
     setResolver,
     sendGovernanceAction,
 };

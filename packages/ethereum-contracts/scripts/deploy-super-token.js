@@ -44,9 +44,7 @@ module.exports = async function (callback, argv, options = {}) {
         resetToken = resetToken || !!process.env.RESET_TOKEN;
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
         console.log("reset token: ", resetToken);
-        console.log("chain ID: ", chainId);
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

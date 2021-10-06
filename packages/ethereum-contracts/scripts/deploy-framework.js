@@ -103,16 +103,21 @@ module.exports = async function (callback, options = {}) {
         } = options;
         resetSuperfluidFramework = options.resetSuperfluidFramework;
 
+        const networkType = await this.web3.eth.net.getNetworkType();
+        const networkId = await web3.eth.net.getId();
+        const chainId = await this.web3.eth.getChainId();
+        console.log("network Type: ", networkType);
+        console.log("network ID: ", networkId);
+        console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
+
         resetSuperfluidFramework =
             resetSuperfluidFramework ||
             !!process.env.RESET_SUPERFLUID_FRAMEWORK;
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const networkId = await web3.eth.net.getId();
         console.log("reset superfluid framework: ", resetSuperfluidFramework);
-        console.log("network ID: ", networkId);
         console.log("protocol release version:", protocolReleaseVersion);
-        const config = getConfig(networkId);
 
         const CFAv1_TYPE = web3.utils.sha3(
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"

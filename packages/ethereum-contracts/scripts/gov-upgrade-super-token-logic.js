@@ -32,8 +32,6 @@ module.exports = async function (callback, argv, options = {}) {
 
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-        console.log("chain ID: ", chainId);
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

@@ -12,8 +12,7 @@ import { SuperToken } from "../../typechain/SuperToken";
 import {
     IAccountTokenSnapshot,
     IFlowUpdatedUpdateTestData,
-    IGetExpectedIDADataBase,
-    IGetExpectedSubscriberIDAData,
+    IGetExpectedIDAData,
     IIndex,
     IStreamData,
     ISubscriber,
@@ -279,7 +278,7 @@ export const getExpectedDataForFlowUpdated = async (
  * SubscriptionApproved event.
  */
 export const getExpectedDataForSubscriptionApproved = async (
-    data: IGetExpectedSubscriberIDAData,
+    data: IGetExpectedIDAData,
     subscriptionExists: boolean
 ) => {
     const {
@@ -402,7 +401,7 @@ export const getExpectedDataForSubscriptionApproved = async (
  * SubscriptionRevoked event.
  */
 export const getExpectedDataForRevokeOrDeleteSubscription = async (
-    data: IGetExpectedSubscriberIDAData,
+    data: IGetExpectedIDAData,
     isRevoke: boolean
 ) => {
     const {
@@ -552,7 +551,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
  * SubscriptionUnitsUpdated event.
  */
 export const getExpectedDataForSubscriptionUnitsUpdated = async (
-    data: IGetExpectedSubscriberIDAData,
+    data: IGetExpectedIDAData,
     units: string,
     subscriptionExists: boolean
 ) => {
@@ -694,7 +693,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
  * IndexUpdated event.
  */
 export const getExpectedDataForIndexUpdated = async (
-    data: IGetExpectedIDADataBase,
+    data: IGetExpectedIDAData,
     totalUnits: BigNumber,
     newIndexValue: BigNumber,
     indexTotalUnitsApproved: BigNumber,
@@ -704,6 +703,8 @@ export const getExpectedDataForIndexUpdated = async (
         token,
         atsArray,
         currentIndex,
+        currentSubscriber,
+        currentSubscriberATS,
         currentPublisherATS,
         currentTokenStats,
         updatedAtBlock,
@@ -758,5 +759,11 @@ export const getExpectedDataForIndexUpdated = async (
         toBN(0)
     );
 
-    return { updatedIndex, updatedPublisherATS, updatedTokenStats };
+    return {
+        updatedIndex,
+        updatedPublisherATS,
+        updatedTokenStats,
+        updatedSubscriber: currentSubscriber,
+        updatedSubscriberATS: currentSubscriberATS,
+    };
 };

@@ -29,6 +29,7 @@ export const getIndexCreatedEvents = gql`
             token
             publisher
             indexId
+            userData
         }
     }
 `;
@@ -45,6 +46,7 @@ export const getIndexUpdatedEvents = gql`
             newIndexValue
             totalUnitsPending
             totalUnitsApproved
+            userData
         }
     }
 `;
@@ -59,6 +61,7 @@ export const getSubscriptionApprovedEvents = gql`
             }
             publisher
             indexId
+            userData
         }
     }
 `;
@@ -73,6 +76,7 @@ export const getSubscriptionRevokedEvents = gql`
             }
             publisher
             indexId
+            userData
         }
     }
 `;
@@ -90,6 +94,7 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
             publisher
             indexId
             units
+            userData
         }
     }
 `;

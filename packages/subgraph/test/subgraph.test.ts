@@ -7,55 +7,27 @@ import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 import { ERC20 } from "../typechain/ERC20";
 import { SuperToken } from "../typechain/SuperToken";
-import {
-    beforeSetup,
-    getRandomFlowRate,
-    hasSubscription,
-    toBN,
-    waitUntilBlockIndexed,
-} from "./helpers/helpers";
+import { beforeSetup, getRandomFlowRate } from "./helpers/helpers";
 import {
     IAccountTokenSnapshot,
-    IBaseIDAEvent,
     IContracts,
-    IExpectedIndexUpdated,
-    IExpectedSubscriberEvent,
-    IExpectedSubscriptionUnitsUpdated,
+    IDistributionLocalData,
     IIndex,
-    IIndexCreated,
-    IIndexUpdated,
     IStreamData,
     IStreamLocalData,
     ISubscriber,
-    ISubscriptionApproved,
-    ISubscriptionRevoked,
-    ISubscriptionUnitsUpdated,
     ITokenStatistic,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
 import { FlowActionType } from "./helpers/constants";
-import { validateModifyIDA } from "./validation/validators";
-import { InstantDistributionAgreementV1Helper } from "@superfluid-finance/js-sdk/src/InstantDistributionAgreementV1Helper";
-import { ContractReceipt } from "@ethersproject/contracts";
-import { fetchEventAndValidate } from "./validation/eventValidators";
-import { fetchIndexAndValidate } from "./validation/holValidators";
-import { fetchTokenStatsAndValidate } from "./validation/aggregateValidators";
 import {
-    getIndexCreatedEvents,
-    getIndexUpdatedEvents,
-    getSubscriptionApprovedEvents,
-    getSubscriptionRevokedEvents,
-    getSubscriptionUnitsUpdatedEvents,
-} from "./queries/eventQueries";
-import { getOrInitializeDataForIDA } from "./helpers/initializers";
-import {
-    getExpectedDataForRevokeOrDeleteSubscription,
-    getExpectedTokenStatsForCFAEvent,
-    getExpectedDataForSubscriptionApproved,
-    getExpectedDataForSubscriptionUnitsUpdated,
-    getExpectedDataForIndexUpdated,
-} from "./helpers/updaters";
-import { testModifyFlow } from "./helpers/testers";
+    testSubscriptionApproved,
+    testIndexCreated,
+    testFlowUpdated,
+    testSubscriptionUnitsUpdated,
+    testSubscriptionRevoked,
+    testIndexUpdated,
+} from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
@@ -120,11 +92,12 @@ describe("Subgraph Tests", () => {
         }
     }
 
-    function getStreamContracts(): IContracts {
+    function getContracts(): IContracts {
         return {
             cfaV1,
             sf,
             superToken: daix,
+            idaV1,
         };
     }
 
@@ -134,6 +107,15 @@ describe("Subgraph Tests", () => {
             revisionIndexes,
             streamData,
             tokenStatistics,
+        };
+    }
+
+    function getDistributionLocalData(): IDistributionLocalData {
+        return {
+            accountTokenSnapshots,
+            tokenStatistics,
+            indexes,
+            subscribers,
         };
     }
 
@@ -173,8 +155,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Create,
@@ -206,8 +188,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Create,
@@ -240,8 +222,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Update,
@@ -270,8 +252,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Update,
@@ -302,8 +284,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Update,
@@ -332,8 +314,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Update,
@@ -371,8 +353,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Delete,
@@ -403,8 +385,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Delete,
@@ -435,8 +417,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Create,
@@ -467,8 +449,8 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await testModifyFlow({
-                    contracts: getStreamContracts(),
+                } = await testFlowUpdated({
+                    contracts: getContracts(),
                     localData: getStreamLocalData(),
                     provider,
                     actionType: FlowActionType.Update,
@@ -500,70 +482,20 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after multiple users create multiple indexes", async () => {
             const token = daix.address;
             for (let i = 1; i < userAddresses.length; i++) {
-                const publisher = userAddresses[i];
-                const txn: any = await (
-                    sf.ida as InstantDistributionAgreementV1Helper
-                ).createIndex({
-                    superToken: token,
-                    publisher,
+                const baseParams = {
+                    provider,
+                    token,
+                    publisher: userAddresses[i],
                     indexId: i,
+                    atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
-                    onTransaction: () => {},
-                });
-
-                const receipt: ContractReceipt = txn.receipt;
-                const block = await provider.getBlock(receipt.blockNumber);
-                const timestamp = block.timestamp.toString();
-                await waitUntilBlockIndexed(receipt.blockNumber);
-
-                const updatedAtBlock = receipt.blockNumber.toString();
-
-                await fetchEventAndValidate<IIndexCreated, IBaseIDAEvent>(
-                    receipt,
-                    {
-                        token: token.toLowerCase(),
-                        publisher: publisher.toLowerCase(),
-                        indexId: i.toString(),
-                    },
-                    getIndexCreatedEvents,
-                    "indexCreateds",
-                    "IndexCreated"
-                );
-
-                let { currentIndex, currentTokenStats } =
-                    getOrInitializeDataForIDA({
-                        accountTokenSnapshots,
-                        indexes,
-                        indexId: i.toString(),
-                        lastUpdatedAtTimestamp: timestamp,
-                        lastUpdatedBlockNumber: updatedAtBlock,
-                        publisher,
-                        subscribers,
-                        token,
-                        tokenStatistics,
-                    });
-
-                let updatedTokenStats = getExpectedTokenStatsForCFAEvent(
-                    currentTokenStats,
-                    getAccountTokenSnapshotsArray(),
-                    updatedAtBlock,
-                    timestamp.toString(),
-                    FlowActionType.Update,
-                    toBN(0),
-                    toBN(0)
-                );
-                updatedTokenStats = {
-                    ...updatedTokenStats,
-                    totalNumberOfIndexes:
-                        updatedTokenStats.totalNumberOfIndexes + 1,
                 };
-
-                await fetchIndexAndValidate(idaV1, currentIndex);
-                await fetchTokenStatsAndValidate(
-                    token.toLowerCase(),
-                    updatedTokenStats
-                );
-
+                const { currentIndex, updatedTokenStats } =
+                    await testIndexCreated(
+                        getContracts(),
+                        getDistributionLocalData(),
+                        baseParams
+                    );
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     currentIndex
@@ -580,96 +512,25 @@ describe("Subgraph Tests", () => {
                 // Take this code and put it into a function (validateSubscriptionApproved)
                 const publisher = userAddresses[i];
                 const subscriber = userAddresses[i - 1];
-                const userData = "0x";
-                const txn: any = await (
-                    sf.ida as InstantDistributionAgreementV1Helper
-                ).approveSubscription({
-                    superToken: token,
+                const baseParams = {
+                    provider,
+                    token,
                     publisher,
                     indexId: i,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    userData: "0x",
                     subscriber,
-                    userData,
-                    onTransaction: () => {},
-                });
-                const receipt: ContractReceipt = txn.receipt;
-                const block = await provider.getBlock(receipt.blockNumber);
-                const timestamp = block.timestamp.toString();
-                await waitUntilBlockIndexed(receipt.blockNumber);
-
-                const updatedAtBlock = receipt.blockNumber.toString();
-
-                let {
-                    subscriberEntityId,
-                    currentIndex,
-                    currentSubscriber,
-                    currentPublisherATS,
-                    currentSubscriberATS,
-                    currentTokenStats,
-                } = getOrInitializeDataForIDA({
-                    accountTokenSnapshots,
-                    indexes,
-                    indexId: i.toString(),
-                    lastUpdatedAtTimestamp: timestamp,
-                    lastUpdatedBlockNumber: updatedAtBlock,
-                    publisher,
-                    subscribers,
-                    subscriber,
-                    token,
-                    tokenStatistics,
-                });
-
-                await fetchEventAndValidate<
-                    ISubscriptionApproved,
-                    IExpectedSubscriberEvent
-                >(
-                    receipt,
-                    {
-                        token: token.toLowerCase(),
-                        publisher: publisher.toLowerCase(),
-                        indexId: i.toString(),
-                        subscriber: { id: subscriberEntityId },
-                    },
-                    getSubscriptionApprovedEvents,
-                    "subscriptionApproveds",
-                    "SubscriptionApproved"
-                );
-
-                const subscriptionExists = hasSubscription(
-                    subscribers,
-                    subscriberEntityId
-                );
-
+                };
                 const {
                     updatedTokenStats,
                     updatedIndex,
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                } = await getExpectedDataForSubscriptionApproved(
-                    {
-                        token: daix,
-                        currentIndex,
-                        currentSubscriber,
-                        atsArray: getAccountTokenSnapshotsArray(),
-                        currentPublisherATS,
-                        currentSubscriberATS,
-                        currentTokenStats,
-                        updatedAtBlock,
-                        timestamp,
-                    },
-                    subscriptionExists
-                );
-
-                await validateModifyIDA(
-                    idaV1,
-                    updatedIndex,
-                    updatedSubscriber,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                    updatedTokenStats,
-                    token,
-                    publisher,
-                    subscriber
+                } = await testSubscriptionApproved(
+                    getContracts(),
+                    getDistributionLocalData(),
+                    baseParams
                 );
 
                 updateGlobalObjectsForIDAEvents(
@@ -691,100 +552,28 @@ describe("Subgraph Tests", () => {
                 // Take this code and put it into a function (validateUpdateSubscriptionUnits)
                 const publisher = userAddresses[i];
                 const subscriber = userAddresses[i - 1];
-                const userData = "0x";
                 const units = new BN(100);
-                const txn: any = await (
-                    sf.ida as InstantDistributionAgreementV1Helper
-                ).updateSubscription({
-                    superToken: token,
+
+                const baseParams = {
+                    provider,
+                    token,
                     publisher,
                     indexId: i,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    userData: "0x",
                     subscriber,
-                    units,
-                    userData,
-                    onTransaction: () => {},
-                });
-                const receipt: ContractReceipt = txn.receipt;
-                const block = await provider.getBlock(receipt.blockNumber);
-                const timestamp = block.timestamp.toString();
-                await waitUntilBlockIndexed(receipt.blockNumber);
-
-                const updatedAtBlock = receipt.blockNumber.toString();
-
-                let {
-                    subscriberEntityId,
-                    currentIndex,
-                    currentSubscriber,
-                    currentPublisherATS,
-                    currentSubscriberATS,
-                    currentTokenStats,
-                } = getOrInitializeDataForIDA({
-                    accountTokenSnapshots,
-                    indexes,
-                    indexId: i.toString(),
-                    lastUpdatedAtTimestamp: timestamp,
-                    lastUpdatedBlockNumber: updatedAtBlock,
-                    publisher,
-                    subscribers,
-                    subscriber,
-                    token,
-                    tokenStatistics,
-                });
-
-                await fetchEventAndValidate<
-                    ISubscriptionUnitsUpdated,
-                    IExpectedSubscriptionUnitsUpdated
-                >(
-                    receipt,
-                    {
-                        token: token.toLowerCase(),
-                        publisher: publisher.toLowerCase(),
-                        indexId: i.toString(),
-                        subscriber: { id: subscriberEntityId },
-                        units: units.toString(),
-                    },
-                    getSubscriptionUnitsUpdatedEvents,
-                    "subscriptionUnitsUpdateds",
-                    "SubscriptionUnitsUpdated"
-                );
-
-                const subscriptionExists = hasSubscription(
-                    subscribers,
-                    subscriberEntityId
-                );
-
+                };
                 const {
+                    updatedTokenStats,
                     updatedIndex,
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                    updatedTokenStats,
-                } = await getExpectedDataForSubscriptionUnitsUpdated(
-                    {
-                        token: daix,
-                        currentIndex,
-                        currentSubscriber,
-                        atsArray: getAccountTokenSnapshotsArray(),
-                        currentPublisherATS,
-                        currentSubscriberATS,
-                        currentTokenStats,
-                        updatedAtBlock,
-                        timestamp,
-                    },
-                    units.toString(),
-                    subscriptionExists
-                );
-
-                await validateModifyIDA(
-                    idaV1,
-                    updatedIndex,
-                    updatedSubscriber,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                    updatedTokenStats,
-                    token,
-                    publisher,
-                    subscriber
+                } = await testSubscriptionUnitsUpdated(
+                    getContracts(),
+                    getDistributionLocalData(),
+                    baseParams,
+                    units
                 );
 
                 updateGlobalObjectsForIDAEvents(
@@ -837,90 +626,28 @@ describe("Subgraph Tests", () => {
                 // Take this code and put it into a function (it will be reused)
                 const publisher = userAddresses[i];
                 const subscriber = userAddresses[i - 1];
-                const userData = "0x";
-                const txn: any = await (
-                    sf.ida as InstantDistributionAgreementV1Helper
-                ).revokeSubscription({
-                    superToken: token,
+
+                const baseParams = {
+                    provider,
+                    token,
                     publisher,
                     indexId: i,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    userData: "0x",
                     subscriber,
-                    userData,
-                    onTransaction: () => {},
-                });
-                const receipt: ContractReceipt = txn.receipt;
-                const block = await provider.getBlock(receipt.blockNumber);
-                const timestamp = block.timestamp.toString();
-                await waitUntilBlockIndexed(receipt.blockNumber);
-
-                const updatedAtBlock = receipt.blockNumber.toString();
-
-                let {
-                    subscriberEntityId,
-                    currentIndex,
-                    currentSubscriber,
-                    currentPublisherATS,
-                    currentSubscriberATS,
-                    currentTokenStats,
-                } = getOrInitializeDataForIDA({
-                    accountTokenSnapshots,
-                    indexes,
-                    indexId: i.toString(),
-                    lastUpdatedAtTimestamp: timestamp,
-                    lastUpdatedBlockNumber: updatedAtBlock,
-                    publisher,
-                    subscribers,
-                    subscriber,
-                    token,
-                    tokenStatistics,
-                });
-
-                await fetchEventAndValidate<
-                    ISubscriptionRevoked,
-                    IExpectedSubscriberEvent
-                >(
-                    receipt,
-                    {
-                        token: token.toLowerCase(),
-                        publisher: publisher.toLowerCase(),
-                        indexId: i.toString(),
-                        subscriber: { id: subscriberEntityId },
-                    },
-                    getSubscriptionRevokedEvents,
-                    "subscriptionRevokeds",
-                    "SubscriptionRevoked"
-                );
+                };
 
                 const {
+                    updatedTokenStats,
                     updatedIndex,
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                    updatedTokenStats,
-                } = await getExpectedDataForRevokeOrDeleteSubscription(
-                    {
-                        token: daix,
-                        currentIndex,
-                        currentSubscriber,
-                        atsArray: getAccountTokenSnapshotsArray(),
-                        currentPublisherATS,
-                        currentSubscriberATS,
-                        currentTokenStats,
-                        updatedAtBlock,
-                        timestamp,
-                    },
-                    true
-                );
-
-                await validateModifyIDA(
-                    idaV1,
-                    updatedIndex,
-                    updatedSubscriber,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                    updatedTokenStats,
-                    token,
-                    publisher,
+                } = await testSubscriptionRevoked(
+                    getContracts(),
+                    getDistributionLocalData(),
+                    baseParams,
+                    true,
                     subscriber
                 );
 
@@ -954,91 +681,28 @@ describe("Subgraph Tests", () => {
                 // Take this code and put it into a function (it will be reused)
                 const publisher = userAddresses[i];
                 const subscriber = userAddresses[i - 1];
-                const userData = "0x";
-                const txn: any = await (
-                    sf.ida as InstantDistributionAgreementV1Helper
-                ).deleteSubscription({
-                    superToken: token,
+
+                const baseParams = {
+                    provider,
+                    token,
                     publisher,
                     indexId: i,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    userData: "0x",
                     subscriber,
-                    userData,
-                    sender: subscriber,
-                    onTransaction: () => {},
-                });
-                const receipt: ContractReceipt = txn.receipt;
-                const block = await provider.getBlock(receipt.blockNumber);
-                const timestamp = block.timestamp.toString();
-                await waitUntilBlockIndexed(receipt.blockNumber);
-
-                const updatedAtBlock = receipt.blockNumber.toString();
-
-                let {
-                    subscriberEntityId,
-                    currentIndex,
-                    currentSubscriber,
-                    currentPublisherATS,
-                    currentSubscriberATS,
-                    currentTokenStats,
-                } = getOrInitializeDataForIDA({
-                    accountTokenSnapshots,
-                    indexes,
-                    indexId: i.toString(),
-                    lastUpdatedAtTimestamp: timestamp,
-                    lastUpdatedBlockNumber: updatedAtBlock,
-                    publisher,
-                    subscribers,
-                    subscriber,
-                    token,
-                    tokenStatistics,
-                });
-
-                await fetchEventAndValidate<
-                    ISubscriptionRevoked,
-                    IExpectedSubscriberEvent
-                >(
-                    receipt,
-                    {
-                        token: token.toLowerCase(),
-                        publisher: publisher.toLowerCase(),
-                        indexId: i.toString(),
-                        subscriber: { id: subscriberEntityId },
-                    },
-                    getSubscriptionRevokedEvents,
-                    "subscriptionRevokeds",
-                    "SubscriptionRevoked"
-                );
+                };
 
                 const {
+                    updatedTokenStats,
                     updatedIndex,
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                    updatedTokenStats,
-                } = await getExpectedDataForRevokeOrDeleteSubscription(
-                    {
-                        token: daix,
-                        currentIndex,
-                        currentSubscriber,
-                        atsArray: getAccountTokenSnapshotsArray(),
-                        currentPublisherATS,
-                        currentSubscriberATS,
-                        currentTokenStats,
-                        updatedAtBlock,
-                        timestamp,
-                    },
-                    false
-                );
-
-                await validateModifyIDA(
-                    idaV1,
-                    updatedIndex,
-                    updatedSubscriber,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                    updatedTokenStats,
-                    token,
-                    publisher,
+                } = await testSubscriptionRevoked(
+                    getContracts(),
+                    getDistributionLocalData(),
+                    baseParams,
+                    false,
                     subscriber
                 );
 
@@ -1074,113 +738,38 @@ describe("Subgraph Tests", () => {
                 // Take this code and put it into a function (it will be reused)
                 const publisher = userAddresses[i];
                 const subscriber = userAddresses[i - 1];
-                const userData = "0x";
                 const amountOrIndexValue = new BN(100);
-                const indexValue = undefined;
-                const txn: any = await (
-                    sf.ida as InstantDistributionAgreementV1Helper
-                ).distribute({
-                    superToken: token,
+
+                const baseParams = {
+                    provider,
+                    token,
                     publisher,
                     indexId: i,
-                    amount: amountOrIndexValue,
-                    userData,
-                    onTransaction: () => {},
-                });
-                const receipt: ContractReceipt = txn.receipt;
-                const block = await provider.getBlock(receipt.blockNumber);
-                const timestamp = block.timestamp.toString();
-                await waitUntilBlockIndexed(receipt.blockNumber);
-
-                const updatedAtBlock = receipt.blockNumber.toString();
-
-                let {
-                    currentSubscriber,
-                    currentIndex,
-                    currentSubscriberATS,
-                    currentPublisherATS,
-                    currentTokenStats,
-                } = getOrInitializeDataForIDA({
-                    accountTokenSnapshots,
-                    indexes,
-                    indexId: i.toString(),
-                    lastUpdatedAtTimestamp: timestamp,
-                    lastUpdatedBlockNumber: updatedAtBlock,
-                    publisher,
-                    subscribers,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    userData: "0x",
                     subscriber,
-                    token,
-                    tokenStatistics,
-                });
+                };
 
-                const [, , indexTotalUnitsApproved, indexTotalUnitsPending] =
-                    await idaV1.getIndex(token, publisher, i);
-                const totalUnits = toBN(currentIndex.totalUnitsApproved).add(
-                    toBN(currentIndex.totalUnitsPending)
-                );
-                const isDistribute = true;
-                const indexDelta = toBN(amountOrIndexValue.toString()).div(
-                    totalUnits
-                );
-                const newIndexValue =
-                    isDistribute === true
-                        ? toBN(currentIndex.newIndexValue).add(indexDelta)
-                        : toBN(amountOrIndexValue.toString());
-
-                await fetchEventAndValidate<
-                    IIndexUpdated,
-                    IExpectedIndexUpdated
-                >(
-                    receipt,
-                    {
-                        token: token.toLowerCase(),
-                        publisher: publisher.toLowerCase(),
-                        indexId: i.toString(),
-                        oldIndexValue: currentIndex.newIndexValue,
-                        newIndexValue: newIndexValue.toString(),
-                        totalUnitsApproved: indexTotalUnitsApproved.toString(),
-                        totalUnitsPending: indexTotalUnitsPending.toString(),
-                    },
-                    getIndexUpdatedEvents,
-                    "indexUpdateds",
-                    "IndexUpdated"
-                );
-
-                const { updatedIndex, updatedPublisherATS, updatedTokenStats } =
-                    await getExpectedDataForIndexUpdated(
-                        {
-                            token: daix,
-                            currentIndex,
-                            atsArray: getAccountTokenSnapshotsArray(),
-                            currentPublisherATS,
-                            currentTokenStats,
-                            updatedAtBlock,
-                            timestamp,
-                        },
-                        totalUnits,
-                        newIndexValue,
-                        indexTotalUnitsApproved,
-                        indexTotalUnitsPending
-                    );
-
-                await validateModifyIDA(
-                    idaV1,
-                    updatedIndex,
-                    currentSubscriber,
-                    updatedPublisherATS,
-                    currentSubscriberATS,
+                const {
                     updatedTokenStats,
-                    token,
-                    publisher,
-                    subscriber
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS,
+                } = await testIndexUpdated(
+                    getContracts(),
+                    getDistributionLocalData(),
+                    baseParams,
+                    amountOrIndexValue,
+                    true
                 );
 
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     updatedIndex,
-                    currentSubscriber,
+                    updatedSubscriber,
                     updatedPublisherATS,
-                    currentSubscriberATS
+                    updatedSubscriberATS
                 );
             }
         });

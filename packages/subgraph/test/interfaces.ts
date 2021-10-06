@@ -7,6 +7,7 @@ import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { SuperToken } from "../typechain/SuperToken";
 import { FlowActionType } from "./helpers/constants";
+import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 
 /**
  * Event Entities
@@ -275,10 +276,15 @@ export interface IStreamLocalData extends IAggregateLocalData {
     readonly revisionIndexes: { [id: string]: number | undefined };
     readonly streamData: { [id: string]: IStreamData | undefined };
 }
+export interface IDistributionLocalData extends IAggregateLocalData {
+    readonly indexes: { [id: string]: IIndex | undefined };
+    readonly subscribers: { [id: string]: ISubscriber | undefined };
+}
 
 export interface IContracts {
     readonly sf: Framework;
     readonly cfaV1: ConstantFlowAgreementV1;
+    readonly idaV1: InstantDistributionAgreementV1;
     readonly superToken: SuperToken;
 }
 
@@ -287,6 +293,20 @@ export interface IFlowUpdatedInitTestData
         IBaseTestData {
     readonly sender: string;
     readonly receiver: string;
+}
+
+export interface IBaseDistributionTesterParams {
+    readonly provider: BaseProvider;
+    readonly token: string;
+    readonly publisher: string;
+    readonly indexId: number;
+    readonly atsArray: IAccountTokenSnapshot[];
+    readonly userData: string;
+}
+
+export interface ISubscriberDistributionTesterParams
+    extends IBaseDistributionTesterParams {
+    readonly subscriber: string;
 }
 
 export interface IFlowUpdatedUpdateTestData {
@@ -303,15 +323,15 @@ export interface IFlowUpdatedUpdateTestData {
 }
 
 export interface ITestModifyFlowData {
-	readonly contracts: IContracts,
-    readonly localData: IStreamLocalData,
-    readonly provider: BaseProvider,
-    readonly actionType: FlowActionType,
-    readonly atsArray: IAccountTokenSnapshot[],
-    readonly newFlowRate: number,
-    readonly sender: string,
-    readonly receiver: string,
-    readonly tokenAddress: string
+    readonly contracts: IContracts;
+    readonly localData: IStreamLocalData;
+    readonly provider: BaseProvider;
+    readonly actionType: FlowActionType;
+    readonly atsArray: IAccountTokenSnapshot[];
+    readonly newFlowRate: number;
+    readonly sender: string;
+    readonly receiver: string;
+    readonly tokenAddress: string;
 }
 
 export interface IInstantDistributionLocalData extends IAggregateLocalData {
@@ -346,6 +366,7 @@ export interface IBaseIDAEvent {
     readonly token: string;
     readonly publisher: string;
     readonly indexId: string;
+    readonly userData: string;
 }
 
 export interface IExpectedIndexUpdated extends IBaseIDAEvent {
@@ -376,17 +397,14 @@ export interface IExpectedFlowUpdateEvent {
     readonly type: FlowActionType;
 }
 
-export interface IGetExpectedIDADataBase {
+export interface IGetExpectedIDAData {
     readonly token: SuperToken;
     readonly atsArray: IAccountTokenSnapshot[];
     readonly currentIndex: IIndex;
     readonly currentPublisherATS: IAccountTokenSnapshot;
+    readonly currentSubscriber: ISubscriber;
+    readonly currentSubscriberATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
     readonly updatedAtBlock: string;
     readonly timestamp: string;
-}
-
-export interface IGetExpectedSubscriberIDAData extends IGetExpectedIDADataBase {
-    readonly currentSubscriber: ISubscriber;
-    readonly currentSubscriberATS: IAccountTokenSnapshot;
 }

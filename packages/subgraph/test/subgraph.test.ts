@@ -34,7 +34,7 @@ import {
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
 import { FlowActionType } from "./helpers/constants";
-import { validateModifyFlow, validateModifyIDA } from "./validation/validators";
+import { validateModifyIDA } from "./validation/validators";
 import { InstantDistributionAgreementV1Helper } from "@superfluid-finance/js-sdk/src/InstantDistributionAgreementV1Helper";
 import { ContractReceipt } from "@ethersproject/contracts";
 import { fetchEventAndValidate } from "./validation/eventValidators";
@@ -50,18 +50,17 @@ import {
 import { getOrInitializeDataForIDA } from "./helpers/initializers";
 import {
     getExpectedDataForRevokeOrDeleteSubscription,
-    getExpectedATSForCFAEvent,
     getExpectedTokenStatsForCFAEvent,
     getExpectedDataForSubscriptionApproved,
     getExpectedDataForSubscriptionUnitsUpdated,
     getExpectedDataForIndexUpdated,
 } from "./helpers/updaters";
+import { testModifyFlow } from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
 // probably can make a generalized function which can
 // filter and fetch events of a particular contract
-// TODO: remove userData from Index and Subscriber
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let sf: Framework;
@@ -174,16 +173,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Create,
-                    randomFlowRate,
-                    userAddresses[0],
-                    userAddresses[i],
-                    daix.address
-                );
+                    actionType: FlowActionType.Create,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -206,16 +206,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Create,
-                    randomFlowRate,
-                    userAddresses[i],
-                    userAddresses[0],
-                    daix.address
-                );
+                    actionType: FlowActionType.Create,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                    tokenAddress: daix.address,
+                });
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
                     revisionIndexId,
@@ -239,16 +240,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Update,
-                    randomFlowRate,
-                    userAddresses[0],
-                    userAddresses[i],
-                    daix.address
-                );
+                    actionType: FlowActionType.Update,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -268,16 +270,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Update,
-                    randomFlowRate,
-                    userAddresses[0],
-                    userAddresses[i],
-                    daix.address
-                );
+                    actionType: FlowActionType.Update,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -299,16 +302,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Update,
-                    randomFlowRate,
-                    userAddresses[i],
-                    userAddresses[0],
-                    daix.address
-                );
+                    actionType: FlowActionType.Update,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -328,16 +332,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Update,
-                    randomFlowRate,
-                    userAddresses[i],
-                    userAddresses[0],
-                    daix.address
-                );
+                    actionType: FlowActionType.Update,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -366,16 +371,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Delete,
-                    0,
-                    userAddresses[i],
-                    userAddresses[0],
-                    daix.address
-                );
+                    actionType: FlowActionType.Delete,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: 0,
+                    sender: userAddresses[i],
+                    receiver: userAddresses[0],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -397,16 +403,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Delete,
-                    0,
-                    userAddresses[0],
-                    userAddresses[i],
-                    daix.address
-                );
+                    actionType: FlowActionType.Delete,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: 0,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -428,16 +435,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Create,
-                    randomFlowRate,
-                    userAddresses[0],
-                    userAddresses[i],
-                    daix.address
-                );
+                    actionType: FlowActionType.Create,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -459,16 +467,17 @@ describe("Subgraph Tests", () => {
                     updatedSenderATS,
                     updatedReceiverATS,
                     updatedTokenStats,
-                } = await validateModifyFlow(
-                    getStreamContracts(),
-                    getStreamLocalData(),
+                } = await testModifyFlow({
+                    contracts: getStreamContracts(),
+                    localData: getStreamLocalData(),
                     provider,
-                    FlowActionType.Update,
-                    randomFlowRate,
-                    userAddresses[0],
-                    userAddresses[i],
-                    daix.address
-                );
+                    actionType: FlowActionType.Update,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    newFlowRate: randomFlowRate,
+                    sender: userAddresses[0],
+                    receiver: userAddresses[i],
+                    tokenAddress: daix.address,
+                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
@@ -1052,7 +1061,7 @@ describe("Subgraph Tests", () => {
              * update the aggregate data similar to the streams and compare (ATS, TokenStats)
              * remember to take into consideration the flowRate data here too
              * use toBN
-			 * this is the funky one where you need to make an additional web3 call to get the correct amount because the subgraph will return an incorrect result.
+             * this is the funky one where you need to make an additional web3 call to get the correct amount because the subgraph will return an incorrect result.
              */
         });
 

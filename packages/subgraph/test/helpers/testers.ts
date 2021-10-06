@@ -20,25 +20,18 @@ import {
     IContracts,
     IDistributionLocalData,
     IExpectedFlowUpdateEvent,
-    IExpectedIndexUpdated,
-    IExpectedSubscriberEvent,
-    IExpectedSubscriptionUnitsUpdated,
+    IExtraEventData,
+    IExtraExpectedData,
     IFlowUpdated,
+    IGetExpectedIDADataParams as IGetExpectedIDADataParams,
     IIndexCreated,
-    IIndexUpdated,
     ISubscriberDistributionTesterParams,
-    ISubscriptionApproved,
-    ISubscriptionRevoked,
-    ISubscriptionUnitsUpdated,
     ITestModifyFlowData,
+    ITestModifyIDAData,
 } from "../interfaces";
 import {
     getFlowUpdatedEvents,
     getIndexCreatedEvents,
-    getIndexUpdatedEvents,
-    getSubscriptionApprovedEvents,
-    getSubscriptionRevokedEvents,
-    getSubscriptionUnitsUpdatedEvents,
 } from "../queries/eventQueries";
 import { fetchEventAndValidate } from "../validation/eventValidators";
 import {
@@ -46,6 +39,7 @@ import {
     validateModifyIDA,
 } from "../validation/validators";
 import {
+    getSubscriberId,
     hasSubscription,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
@@ -65,9 +59,15 @@ import {
     getExpectedStreamData,
     getExpectedTokenStatsForCFAEvent,
 } from "./updaters";
-import { FlowActionType } from "./constants";
+import {
+    FlowActionType,
+    IDAEventType,
+    idaEventTypeToEventQueryDataMap,
+} from "./constants";
 import { fetchIndexAndValidate } from "../validation/holValidators";
 import { fetchTokenStatsAndValidate } from "../validation/aggregateValidators";
+import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
+import { BigNumber } from "@ethersproject/bignumber";
 
 /**
  * A "God" function used to test modify flow events.
@@ -220,7 +220,7 @@ export async function testIndexCreated(
         localData;
     const { provider, token, publisher, indexId, atsArray, userData } =
         baseParams;
-    console.log("indexCreated baseParams", baseParams);
+
     const txn: any = await (
         sf.ida as InstantDistributionAgreementV1Helper
     ).createIndex({
@@ -283,39 +283,49 @@ export async function testIndexCreated(
     return { updatedTokenStats, currentIndex };
 }
 
-export async function testSubscriptionApproved(
-    contracts: IContracts,
-    localData: IDistributionLocalData,
-    baseParams: ISubscriberDistributionTesterParams
-) {
+/**
+  * A "God" function used to test IDA events.
+ * It handles all the IDA actions and validates that the
+ * data on the subgraph is as expected and compares it
+ * with web3 data where possible.
+ * It also returns the updated (expected) data to be
+ * used in future tests.
+ * @param data 
+ * @returns 
+ */
+export async function testModifyIDA(data: ITestModifyIDAData) {
+    const {
+        baseParams,
+        contracts,
+        eventType,
+        localData,
+        units,
+        isRevoke,
+        sender,
+        isDistribute,
+        amountOrIndexValue,
+    } = data;
+    let indexTotalUnitsApproved: BigNumber = toBN(0);
+    let indexTotalUnitsPending: BigNumber = toBN(0);
+    let newIndexValue: BigNumber = toBN(0);
+    let totalUnits: BigNumber = toBN(0);
+
     const { sf, idaV1, superToken } = contracts;
     const { accountTokenSnapshots, indexes, subscribers, tokenStatistics } =
         localData;
-    const {
-        provider,
-        token,
-        publisher,
-        indexId,
-        atsArray,
-        userData,
-        subscriber,
-    } = baseParams;
-    const txn: any = await (
-        sf.ida as InstantDistributionAgreementV1Helper
-    ).approveSubscription({
-        superToken: token,
-        publisher,
-        indexId,
-        subscriber,
-        userData,
-        onTransaction: () => {},
-    });
-    const receipt: ContractReceipt = txn.receipt;
-    const block = await provider.getBlock(receipt.blockNumber);
-    const timestamp = block.timestamp.toString();
-    await waitUntilBlockIndexed(receipt.blockNumber);
+    const { token, publisher, indexId, atsArray, subscriber } = baseParams;
 
-    const updatedAtBlock = receipt.blockNumber.toString();
+    const { receipt, timestamp, updatedAtBlock } =
+        await executeIDATransactionByTypeAndWaitForIndexer(
+            sf,
+            eventType,
+            baseParams,
+            units,
+            isRevoke,
+            sender,
+            isDistribute,
+            amountOrIndexValue
+        );
 
     let {
         subscriberEntityId,
@@ -337,45 +347,69 @@ export async function testSubscriptionApproved(
         tokenStatistics,
     });
 
-    await fetchEventAndValidate<
-        ISubscriptionApproved,
-        IExpectedSubscriberEvent
-    >(
-        receipt,
-        {
-            token: token.toLowerCase(),
-            publisher: publisher.toLowerCase(),
-            indexId: indexId.toString(),
-            subscriber: { id: subscriberEntityId },
-            userData,
-        },
-        getSubscriptionApprovedEvents,
-        "subscriptionApproveds",
-        "SubscriptionApproved"
-    );
-
     const subscriptionExists = hasSubscription(subscribers, subscriberEntityId);
 
-    const {
-        updatedTokenStats,
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-    } = await getExpectedDataForSubscriptionApproved(
-        {
-            token: superToken,
-            currentIndex,
-            currentSubscriber,
-            atsArray,
-            currentPublisherATS,
-            currentSubscriberATS,
-            currentTokenStats,
-            updatedAtBlock,
-            timestamp,
-        },
-        subscriptionExists
+    if (eventType === IDAEventType.IndexUpdated) {
+        if (amountOrIndexValue == null) {
+            throw new Error(
+                "amountOrIndexValue must be passed for IndexUpdated."
+            );
+        }
+        [, , indexTotalUnitsApproved, indexTotalUnitsPending] =
+            await idaV1.getIndex(token, publisher, indexId);
+        totalUnits = toBN(currentIndex.totalUnitsApproved).add(
+            toBN(currentIndex.totalUnitsPending)
+        );
+
+        const indexDelta = totalUnits.gt(toBN(0))
+            ? toBN(amountOrIndexValue.toString()).div(totalUnits)
+            : toBN(0);
+        newIndexValue =
+            isDistribute === true
+                ? toBN(currentIndex.newIndexValue).add(indexDelta)
+                : toBN(amountOrIndexValue.toString());
+    }
+
+    const extraEventData: IExtraEventData = {
+        units,
+        oldIndexValue: currentIndex.newIndexValue,
+        newIndexValue,
+        totalUnitsApproved: indexTotalUnitsApproved,
+        totalUnitsPending: indexTotalUnitsPending,
+    };
+
+    await fetchIDAEventAndValidate(
+        eventType,
+        receipt,
+        baseParams,
+        extraEventData
     );
+
+    const expectedDataParams = {
+        token: superToken,
+        currentIndex,
+        currentSubscriber,
+        atsArray,
+        currentPublisherATS,
+        currentSubscriberATS,
+        currentTokenStats,
+        updatedAtBlock,
+        timestamp,
+    };
+
+    const extraData: IExtraExpectedData = {
+        ...extraEventData,
+        isRevoke,
+        subscriptionExists,
+        totalUnits,
+    };
+    const {
+        updatedIndex,
+        updatedPublisherATS,
+        updatedSubscriber,
+        updatedSubscriberATS,
+        updatedTokenStats,
+    } = await getExpectedDataForIDA(eventType, expectedDataParams, extraData);
 
     await validateModifyIDA(
         idaV1,
@@ -398,381 +432,280 @@ export async function testSubscriptionApproved(
     };
 }
 
-export async function testSubscriptionUnitsUpdated(
-    contracts: IContracts,
-    localData: IDistributionLocalData,
+async function executeIDATransactionByTypeAndWaitForIndexer(
+    sf: Framework,
+    type: IDAEventType,
     baseParams: ISubscriberDistributionTesterParams,
-    units: BN
+    units?: BN,
+    isRevoke?: boolean,
+    sender?: string,
+    isDistribute?: boolean,
+    amountOrIndexValue?: BN
 ) {
-    const { sf, idaV1, superToken } = contracts;
-    const { accountTokenSnapshots, indexes, subscribers, tokenStatistics } =
-        localData;
-    const {
-        provider,
-        token,
-        publisher,
-        indexId,
-        atsArray,
-        userData,
-        subscriber,
-    } = baseParams;
-
-    const txn: any = await (
-        sf.ida as InstantDistributionAgreementV1Helper
-    ).updateSubscription({
+    let timestamp: string = "";
+    let updatedAtBlock: string = "";
+    let receipt;
+    const { provider, token, publisher, indexId, userData, subscriber } =
+        baseParams;
+    const baseData = {
         superToken: token,
         publisher,
-        indexId: indexId,
-        subscriber,
-        units,
+        indexId,
         userData,
         onTransaction: () => {},
-    });
-    const receipt: ContractReceipt = txn.receipt;
+    };
+    if (type === IDAEventType.SubscriptionApproved) {
+        const txn: any = await (
+            sf.ida as InstantDistributionAgreementV1Helper
+        ).approveSubscription({
+            superToken: token,
+            publisher,
+            indexId,
+            subscriber,
+            userData,
+            onTransaction: () => {},
+        });
+
+		// TODO: just do this once at the end to save a few more lines
+        receipt = txn.receipt;
+    } else if (type === IDAEventType.SubscriptionUnitsUpdated) {
+        if (!units) {
+            throw new Error(
+                "You must pass units when updating subscription units."
+            );
+        }
+
+        const txn: any = await (
+            sf.ida as InstantDistributionAgreementV1Helper
+        ).updateSubscription({
+            ...baseData,
+            subscriber,
+            units,
+        });
+
+        receipt = txn.receipt;
+    } else if (type === IDAEventType.SubscriptionRevoked) {
+        if (isRevoke == null || sender == null) {
+            throw new Error(
+                "You must pass isRevoke and sender for subscription revoked."
+            );
+        }
+
+        let txn: any;
+        if (isRevoke) {
+            txn = await (
+                sf.ida as InstantDistributionAgreementV1Helper
+            ).revokeSubscription({
+                ...baseData,
+                subscriber,
+            });
+        } else {
+            txn = await (
+                sf.ida as InstantDistributionAgreementV1Helper
+            ).deleteSubscription({
+                ...baseData,
+                sender,
+                subscriber,
+            });
+        }
+
+        receipt = txn.receipt;
+    } else {
+        // type === IDAEventType.IndexUpdated
+        if (amountOrIndexValue == null || isDistribute == null) {
+            throw new Error(
+                "You must pass isDistribute and amountOrIndexValue for index updated."
+            );
+        }
+
+        let txn: any;
+        if (isDistribute) {
+            txn = await (
+                sf.ida as InstantDistributionAgreementV1Helper
+            ).distribute({
+                ...baseData,
+                amount: amountOrIndexValue,
+            });
+        } else {
+            txn = await (
+                sf.ida as InstantDistributionAgreementV1Helper
+            ).updateIndex({
+                ...baseData,
+                indexValue: amountOrIndexValue,
+            });
+        }
+
+        receipt = txn.receipt;
+    }
     const block = await provider.getBlock(receipt.blockNumber);
-    const timestamp = block.timestamp.toString();
     await waitUntilBlockIndexed(receipt.blockNumber);
 
-    const updatedAtBlock = receipt.blockNumber.toString();
+    timestamp = block.timestamp.toString();
+    updatedAtBlock = receipt.blockNumber.toString();
 
-    let {
-        subscriberEntityId,
-        currentIndex,
-        currentSubscriber,
-        currentPublisherATS,
-        currentSubscriberATS,
-        currentTokenStats,
-    } = getOrInitializeDataForIDA({
-        accountTokenSnapshots,
-        indexes,
-        indexId: indexId.toString(),
-        lastUpdatedAtTimestamp: timestamp,
-        lastUpdatedBlockNumber: updatedAtBlock,
-        publisher,
-        subscribers,
+    return { receipt, timestamp, updatedAtBlock };
+}
+
+function getIDAEventDataForValidation(
+    type: IDAEventType,
+    baseParams: ISubscriberDistributionTesterParams,
+    extraEventData: IExtraEventData
+) {
+    const { token, publisher, indexId, userData, subscriber } = baseParams;
+    const {
+        totalUnitsApproved,
+        totalUnitsPending,
+        newIndexValue,
+        oldIndexValue,
+        units,
+    } = extraEventData;
+
+    const subscriberEntityId = getSubscriberId(
         subscriber,
+        publisher,
         token,
-        tokenStatistics,
-    });
+        indexId.toString()
+    );
 
-    await fetchEventAndValidate<
-        ISubscriptionUnitsUpdated,
-        IExpectedSubscriptionUnitsUpdated
-    >(
-        receipt,
-        {
+    if (type === IDAEventType.SubscriptionApproved) {
+        return {
+            token: token.toLowerCase(),
+            publisher: publisher.toLowerCase(),
+            indexId: indexId.toString(),
+            subscriber: { id: subscriberEntityId },
+            userData,
+        };
+    } else if (type === IDAEventType.SubscriptionRevoked) {
+        return {
+            token: token.toLowerCase(),
+            publisher: publisher.toLowerCase(),
+            indexId: indexId.toString(),
+            subscriber: { id: subscriberEntityId },
+            userData,
+        };
+    } else if (type === IDAEventType.SubscriptionUnitsUpdated) {
+        if (units == null) {
+            throw new Error("You must pass units for SubscriptionUnitsUpdated");
+        }
+        return {
             token: token.toLowerCase(),
             publisher: publisher.toLowerCase(),
             indexId: indexId.toString(),
             subscriber: { id: subscriberEntityId },
             units: units.toString(),
             userData,
-        },
-        getSubscriptionUnitsUpdatedEvents,
-        "subscriptionUnitsUpdateds",
-        "SubscriptionUnitsUpdated"
+        };
+    } else {
+        if (newIndexValue == null) {
+            throw new Error("You must pass newIndexValue for IndexUpdated");
+        }
+        if (totalUnitsApproved == null) {
+            throw new Error(
+                "You must pass totalUnitsApproved for IndexUpdated"
+            );
+        }
+        if (totalUnitsPending == null) {
+            throw new Error("You must pass totalUnitsPending for IndexUpdated");
+        }
+        return {
+            token: token.toLowerCase(),
+            publisher: publisher.toLowerCase(),
+            indexId: indexId.toString(),
+            oldIndexValue,
+            newIndexValue: newIndexValue.toString(),
+            totalUnitsApproved: totalUnitsApproved.toString(),
+            totalUnitsPending: totalUnitsPending.toString(),
+            userData,
+        };
+    }
+}
+
+async function fetchIDAEventAndValidate(
+    type: IDAEventType,
+    receipt: ContractReceipt,
+    baseParams: ISubscriberDistributionTesterParams,
+    extraEventData: IExtraEventData
+) {
+    const eventQueryData = idaEventTypeToEventQueryDataMap.get(type);
+    const eventDataToValidate = getIDAEventDataForValidation(
+        type,
+        baseParams,
+        extraEventData
     );
+    if (eventQueryData == null) {
+        throw new Error("You have entered the wrong type.");
+    }
 
-    const subscriptionExists = hasSubscription(subscribers, subscriberEntityId);
+    await fetchEventAndValidate(
+        receipt,
+        eventDataToValidate,
+        eventQueryData.query,
+        eventQueryData.queryResultName,
+        eventQueryData.queryName
+    );
+}
 
+async function getExpectedDataForIDA(
+    type: IDAEventType,
+    expectedDataParams: IGetExpectedIDADataParams,
+    extraData: IExtraExpectedData
+) {
     const {
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-    } = await getExpectedDataForSubscriptionUnitsUpdated(
-        {
-            token: superToken,
-            currentIndex,
-            currentSubscriber,
-            atsArray,
-            currentPublisherATS,
-            currentSubscriberATS,
-            currentTokenStats,
-            updatedAtBlock,
-            timestamp,
-        },
-        units.toString(),
+        isRevoke,
+        newIndexValue,
+        subscriptionExists,
+        totalUnits,
+        totalUnitsApproved,
+        totalUnitsPending,
+        units,
+    } = extraData;
+    if (type === IDAEventType.IndexUpdated) {
+        if (
+            totalUnits == null ||
+            newIndexValue == null ||
+            totalUnitsApproved == null ||
+            totalUnitsPending == null
+        ) {
+            throw new Error(
+                "totalUnits, newIndexValue, totalUnitsApproved, totalUnitsPending are required for IndexUpdated"
+            );
+        }
+        return await getExpectedDataForIndexUpdated(
+            expectedDataParams,
+            totalUnits,
+            newIndexValue,
+            totalUnitsApproved,
+            totalUnitsPending
+        );
+    } else if (type === IDAEventType.SubscriptionApproved) {
+        if (subscriptionExists == null) {
+            throw new Error(
+                "subscriptionExists is required for SubscriptionApproved"
+            );
+        }
+        return await getExpectedDataForSubscriptionApproved(
+            expectedDataParams,
+            subscriptionExists
+        );
+    } else if (type === IDAEventType.SubscriptionRevoked) {
+        if (isRevoke == null) {
+            throw new Error("isRevoke is required for SubscriptionRevoked");
+        }
+        return await getExpectedDataForRevokeOrDeleteSubscription(
+            expectedDataParams,
+            isRevoke
+        );
+    }
+
+    if (units == null || subscriptionExists == null) {
+        throw new Error(
+            "units, subscriptionExists is required for SubscriptionUnitsUpdated"
+        );
+    }
+    // type === IDAEventType.SubscriptionUnitsUpdated
+    return await getExpectedDataForSubscriptionUnitsUpdated(
+        expectedDataParams,
+        units,
         subscriptionExists
     );
-
-    await validateModifyIDA(
-        idaV1,
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-        token,
-        publisher,
-        subscriber
-    );
-
-    return {
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-    };
-}
-
-export async function testSubscriptionRevoked(
-    contracts: IContracts,
-    localData: IDistributionLocalData,
-    baseParams: ISubscriberDistributionTesterParams,
-    isRevoke: boolean,
-    sender: string
-) {
-    const { sf, idaV1, superToken } = contracts;
-    const { accountTokenSnapshots, indexes, subscribers, tokenStatistics } =
-        localData;
-    const {
-        provider,
-        token,
-        publisher,
-        indexId,
-        atsArray,
-        userData,
-        subscriber,
-    } = baseParams;
-    let txn: any;
-    if (isRevoke) {
-        txn = await (
-            sf.ida as InstantDistributionAgreementV1Helper
-        ).revokeSubscription({
-            superToken: token,
-            publisher,
-            indexId: indexId,
-            subscriber,
-            userData,
-            onTransaction: () => {},
-        });
-    } else {
-        txn = await (
-            sf.ida as InstantDistributionAgreementV1Helper
-        ).deleteSubscription({
-            superToken: token,
-            publisher,
-            indexId: indexId,
-            sender,
-            subscriber,
-            userData,
-            onTransaction: () => {},
-        });
-    }
-    const receipt: ContractReceipt = txn.receipt;
-    const block = await provider.getBlock(receipt.blockNumber);
-    const timestamp = block.timestamp.toString();
-    await waitUntilBlockIndexed(receipt.blockNumber);
-
-    const updatedAtBlock = receipt.blockNumber.toString();
-
-    let {
-        subscriberEntityId,
-        currentIndex,
-        currentSubscriber,
-        currentPublisherATS,
-        currentSubscriberATS,
-        currentTokenStats,
-    } = getOrInitializeDataForIDA({
-        accountTokenSnapshots,
-        indexes,
-        indexId: indexId.toString(),
-        lastUpdatedAtTimestamp: timestamp,
-        lastUpdatedBlockNumber: updatedAtBlock,
-        publisher,
-        subscribers,
-        subscriber,
-        token,
-        tokenStatistics,
-    });
-
-    await fetchEventAndValidate<ISubscriptionRevoked, IExpectedSubscriberEvent>(
-        receipt,
-        {
-            token: token.toLowerCase(),
-            publisher: publisher.toLowerCase(),
-            indexId: indexId.toString(),
-            subscriber: { id: subscriberEntityId },
-            userData,
-        },
-        getSubscriptionRevokedEvents,
-        "subscriptionRevokeds",
-        "SubscriptionRevoked"
-    );
-
-    const {
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-    } = await getExpectedDataForRevokeOrDeleteSubscription(
-        {
-            token: superToken,
-            currentIndex,
-            currentSubscriber,
-            atsArray,
-            currentPublisherATS,
-            currentSubscriberATS,
-            currentTokenStats,
-            updatedAtBlock,
-            timestamp,
-        },
-        isRevoke
-    );
-
-    await validateModifyIDA(
-        idaV1,
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-        token,
-        publisher,
-        subscriber
-    );
-
-    return {
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-    };
-}
-
-export async function testIndexUpdated(
-    contracts: IContracts,
-    localData: IDistributionLocalData,
-    baseParams: ISubscriberDistributionTesterParams,
-    amountOrIndexValue: BN,
-    isDistribute: boolean
-) {
-    const { sf, idaV1, superToken } = contracts;
-    const { accountTokenSnapshots, indexes, subscribers, tokenStatistics } =
-        localData;
-    const {
-        provider,
-        token,
-        publisher,
-        indexId,
-        atsArray,
-        userData,
-        subscriber,
-    } = baseParams;
-
-    const txn: any = await (
-        sf.ida as InstantDistributionAgreementV1Helper
-    ).distribute({
-        superToken: token,
-        publisher,
-        indexId: indexId,
-        amount: amountOrIndexValue,
-        userData,
-        onTransaction: () => {},
-    });
-    const receipt: ContractReceipt = txn.receipt;
-    const block = await provider.getBlock(receipt.blockNumber);
-    const timestamp = block.timestamp.toString();
-    await waitUntilBlockIndexed(receipt.blockNumber);
-
-    const updatedAtBlock = receipt.blockNumber.toString();
-
-    let {
-        currentSubscriber,
-        currentIndex,
-        currentSubscriberATS,
-        currentPublisherATS,
-        currentTokenStats,
-    } = getOrInitializeDataForIDA({
-        accountTokenSnapshots,
-        indexes,
-        indexId: indexId.toString(),
-        lastUpdatedAtTimestamp: timestamp,
-        lastUpdatedBlockNumber: updatedAtBlock,
-        publisher,
-        subscribers,
-        subscriber,
-        token,
-        tokenStatistics,
-    });
-
-    const [, , indexTotalUnitsApproved, indexTotalUnitsPending] =
-        await idaV1.getIndex(token, publisher, indexId);
-    const totalUnits = toBN(currentIndex.totalUnitsApproved).add(
-        toBN(currentIndex.totalUnitsPending)
-    );
-
-    const indexDelta = totalUnits.gt(toBN(0))
-        ? toBN(amountOrIndexValue.toString()).div(totalUnits)
-        : toBN(0);
-    const newIndexValue =
-        isDistribute === true
-            ? toBN(currentIndex.newIndexValue).add(indexDelta)
-            : toBN(amountOrIndexValue.toString());
-
-    await fetchEventAndValidate<IIndexUpdated, IExpectedIndexUpdated>(
-        receipt,
-        {
-            token: token.toLowerCase(),
-            publisher: publisher.toLowerCase(),
-            indexId: indexId.toString(),
-            oldIndexValue: currentIndex.newIndexValue,
-            newIndexValue: newIndexValue.toString(),
-            totalUnitsApproved: indexTotalUnitsApproved.toString(),
-            totalUnitsPending: indexTotalUnitsPending.toString(),
-            userData,
-        },
-        getIndexUpdatedEvents,
-        "indexUpdateds",
-        "IndexUpdated"
-    );
-
-    const {
-        updatedIndex,
-        updatedPublisherATS,
-        updatedSubscriber,
-        updatedSubscriberATS,
-        updatedTokenStats,
-    } = await getExpectedDataForIndexUpdated(
-        {
-            token: superToken,
-            currentIndex,
-            atsArray,
-            currentSubscriber,
-            currentSubscriberATS,
-            currentPublisherATS,
-            currentTokenStats,
-            updatedAtBlock,
-            timestamp,
-        },
-        totalUnits,
-        newIndexValue,
-        indexTotalUnitsApproved,
-        indexTotalUnitsPending
-    );
-
-    await validateModifyIDA(
-        idaV1,
-        updatedIndex,
-        currentSubscriber,
-        updatedPublisherATS,
-        currentSubscriberATS,
-        updatedTokenStats,
-        token,
-        publisher,
-        subscriber
-    );
-
-    return {
-        updatedIndex,
-        updatedSubscriber,
-        updatedPublisherATS,
-        updatedSubscriberATS,
-        updatedTokenStats,
-    };
 }

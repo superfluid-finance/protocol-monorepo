@@ -19,18 +19,18 @@ import {
     ITokenStatistic,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
-import { FlowActionType } from "./helpers/constants";
+import { FlowActionType, IDAEventType } from "./helpers/constants";
 import {
-    testSubscriptionApproved,
     testIndexCreated,
     testFlowUpdated,
-    testSubscriptionUnitsUpdated,
-    testSubscriptionRevoked,
-    testIndexUpdated,
+    testModifyIDA,
 } from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
+// TODO: 1. refactor IndexCreated like you did for the other functions (remove testIndexCreated)
+// TODO: track sent events
+// TODO: go through the paths
 // probably can make a generalized function which can
 // filter and fetch events of a particular contract
 describe("Subgraph Tests", () => {
@@ -527,11 +527,12 @@ describe("Subgraph Tests", () => {
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                } = await testSubscriptionApproved(
-                    getContracts(),
-                    getDistributionLocalData(),
-                    baseParams
-                );
+                } = await testModifyIDA({
+                    contracts: getContracts(),
+                    localData: getDistributionLocalData(),
+                    baseParams,
+                    eventType: IDAEventType.SubscriptionApproved,
+                });
 
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
@@ -569,12 +570,13 @@ describe("Subgraph Tests", () => {
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                } = await testSubscriptionUnitsUpdated(
-                    getContracts(),
-                    getDistributionLocalData(),
+                } = await testModifyIDA({
+                    contracts: getContracts(),
+                    localData: getDistributionLocalData(),
                     baseParams,
-                    units
-                );
+                    eventType: IDAEventType.SubscriptionUnitsUpdated,
+                    units,
+                });
 
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
@@ -643,13 +645,14 @@ describe("Subgraph Tests", () => {
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                } = await testSubscriptionRevoked(
-                    getContracts(),
-                    getDistributionLocalData(),
+                } = await testModifyIDA({
+                    contracts: getContracts(),
+                    localData: getDistributionLocalData(),
                     baseParams,
-                    true,
-                    subscriber
-                );
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: true,
+                    sender: subscriber,
+                });
 
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
@@ -698,13 +701,14 @@ describe("Subgraph Tests", () => {
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                } = await testSubscriptionRevoked(
-                    getContracts(),
-                    getDistributionLocalData(),
+                } = await testModifyIDA({
+                    contracts: getContracts(),
+                    localData: getDistributionLocalData(),
                     baseParams,
-                    false,
-                    subscriber
-                );
+                    eventType: IDAEventType.SubscriptionRevoked,
+                    isRevoke: false,
+                    sender: subscriber,
+                });
 
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
@@ -756,13 +760,14 @@ describe("Subgraph Tests", () => {
                     updatedSubscriber,
                     updatedPublisherATS,
                     updatedSubscriberATS,
-                } = await testIndexUpdated(
-                    getContracts(),
-                    getDistributionLocalData(),
+                } = await testModifyIDA({
+                    contracts: getContracts(),
+                    localData: getDistributionLocalData(),
                     baseParams,
+                    eventType: IDAEventType.IndexUpdated,
                     amountOrIndexValue,
-                    true
-                );
+                    isDistribute: true,
+                });
 
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,

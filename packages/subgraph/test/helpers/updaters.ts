@@ -7,12 +7,13 @@
  * are what is used to compare against the data obtained from the graph.
  *************************************************************************/
 
+import BN from "bn.js";
 import { BigNumber } from "@ethersproject/bignumber";
 import { SuperToken } from "../../typechain/SuperToken";
 import {
     IAccountTokenSnapshot,
     IFlowUpdatedUpdateTestData,
-    IGetExpectedIDAData,
+    IGetExpectedIDADataParams,
     IIndex,
     IStreamData,
     ISubscriber,
@@ -278,7 +279,7 @@ export const getExpectedDataForFlowUpdated = async (
  * SubscriptionApproved event.
  */
 export const getExpectedDataForSubscriptionApproved = async (
-    data: IGetExpectedIDAData,
+    data: IGetExpectedIDADataParams,
     subscriptionExists: boolean
 ) => {
     const {
@@ -401,7 +402,7 @@ export const getExpectedDataForSubscriptionApproved = async (
  * SubscriptionRevoked event.
  */
 export const getExpectedDataForRevokeOrDeleteSubscription = async (
-    data: IGetExpectedIDAData,
+    data: IGetExpectedIDADataParams,
     isRevoke: boolean
 ) => {
     const {
@@ -551,8 +552,8 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
  * SubscriptionUnitsUpdated event.
  */
 export const getExpectedDataForSubscriptionUnitsUpdated = async (
-    data: IGetExpectedIDAData,
-    units: string,
+    data: IGetExpectedIDADataParams,
+    units: BN,
     subscriptionExists: boolean
 ) => {
     const {
@@ -583,10 +584,9 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         )),
     };
     let updatedTokenStats = { ...currentTokenStats };
+    const stringUnits = units.toString();
 
-    const unitsDelta = toBN(units.toString()).sub(
-        toBN(currentSubscriber.units)
-    );
+    const unitsDelta = toBN(stringUnits).sub(toBN(currentSubscriber.units));
     if (subscriptionExists && currentSubscriber.approved) {
         updatedIndex = {
             ...updatedIndex,
@@ -611,10 +611,10 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         updatedIndex = {
             ...updatedIndex,
             totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
-                .add(toBN(units))
+                .add(toBN(stringUnits))
                 .toString(),
             totalUnits: toBN(updatedIndex.totalUnits)
-                .add(toBN(units))
+                .add(toBN(stringUnits))
                 .toString(),
             totalSubscribers: updatedIndex.totalSubscribers + 1,
         };
@@ -622,7 +622,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         updatedSubscriber = {
             ...updatedSubscriber,
             lastIndexValue: updatedIndex.newIndexValue,
-            units: units.toString(),
+            units: stringUnits,
         };
 
         updatedSubscriberATS = {
@@ -693,7 +693,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
  * IndexUpdated event.
  */
 export const getExpectedDataForIndexUpdated = async (
-    data: IGetExpectedIDAData,
+    data: IGetExpectedIDADataParams,
     totalUnits: BigNumber,
     newIndexValue: BigNumber,
     indexTotalUnitsApproved: BigNumber,

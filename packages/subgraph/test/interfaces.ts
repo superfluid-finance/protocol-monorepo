@@ -3,10 +3,11 @@
  *************************************************************************/
 import { BaseProvider } from "@ethersproject/providers";
 import { BigNumber } from "@ethersproject/bignumber";
+import BN from "bn.js";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { SuperToken } from "../typechain/SuperToken";
-import { FlowActionType } from "./helpers/constants";
+import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
 
 /**
@@ -334,6 +335,38 @@ export interface ITestModifyFlowData {
     readonly tokenAddress: string;
 }
 
+export interface ITestModifyIDAData {
+    readonly contracts: IContracts;
+    readonly localData: IDistributionLocalData;
+    readonly baseParams: ISubscriberDistributionTesterParams;
+    readonly eventType: IDAEventType;
+    readonly units?: BN;
+    readonly isRevoke?: boolean;
+    readonly sender?: string;
+    readonly isDistribute?: boolean;
+    readonly amountOrIndexValue?: BN;
+}
+
+export interface IEventQueryData {
+    readonly query: string;
+    readonly queryResultName: string;
+    readonly queryName: string;
+}
+
+export interface IExtraEventData {
+    readonly units?: BN;
+    readonly oldIndexValue?: string;
+    readonly newIndexValue?: BigNumber;
+    readonly totalUnitsApproved?: BigNumber;
+    readonly totalUnitsPending?: BigNumber;
+}
+
+export interface IExtraExpectedData extends IExtraEventData {
+    readonly isRevoke?: boolean;
+    readonly subscriptionExists?: boolean;
+    readonly totalUnits?: BigNumber;
+}
+
 export interface IInstantDistributionLocalData extends IAggregateLocalData {
     readonly indexes: { [id: string]: IIndex | undefined };
     readonly subscribers: { [id: string]: ISubscriber | undefined };
@@ -397,7 +430,7 @@ export interface IExpectedFlowUpdateEvent {
     readonly type: FlowActionType;
 }
 
-export interface IGetExpectedIDAData {
+export interface IGetExpectedIDADataParams {
     readonly token: SuperToken;
     readonly atsArray: IAccountTokenSnapshot[];
     readonly currentIndex: IIndex;

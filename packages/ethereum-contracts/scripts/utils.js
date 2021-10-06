@@ -299,6 +299,19 @@ async function sendGovernanceAction(sf, actionFn) {
  * Event queries
  ****************************************************************/
 
+async function getPastEvents({ config, contract, eventName, filter }) {
+    if (!config.data.getLogsRange) {
+        return await contract.getPastEvents(eventName, {
+            fromBlock: 0,
+            toBlock: "latest",
+            filter,
+        });
+    } else {
+        console.warn("[WARN] eth_getLogs disabled for", eventName);
+        return [];
+    }
+}
+
 /**
  * @dev
  */
@@ -319,4 +332,6 @@ module.exports = {
 
     setResolver,
     sendGovernanceAction,
+
+    getPastEvents,
 };

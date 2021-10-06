@@ -65,10 +65,11 @@ module.exports = function getConfig(chainId) {
             tokenList: ["DAIx", "USDCx", "ETHx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
-            // matic node eth_getLogs is no longer functional
-            hack_disableGetLogs: true,
             // misc
             disableTestGovernance: true,
+            data: {
+                getLogsRange: 10000,
+            },
         },
 
         //
@@ -109,6 +110,7 @@ module.exports = function getConfig(chainId) {
             liquidationPeriod: 3600,
             // default token list for the test deployments
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
+            data: {},
         },
         // network specific configs
         ...DEFAULT_CONFIGS[chainId],

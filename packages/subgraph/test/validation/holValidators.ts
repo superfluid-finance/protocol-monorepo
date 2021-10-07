@@ -2,14 +2,23 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { ethers } from "ethers";
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
+import { IDAEventType } from "../helpers/constants";
 import { subgraphRequest, toBN } from "../helpers/helpers";
-import { IIndex, IStream, IStreamData, ISubscription } from "../interfaces";
+import {
+    IIndex,
+    IStream,
+    IStreamData,
+    IIndexSubscription,
+    IEvent,
+} from "../interfaces";
 import { getIndex, getStream, getSubscription } from "../queries/holQueries";
+import { validateReverseLookup } from "./validators";
 
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
     expectedStreamedUntilUpdatedAt: BigNumber,
-    flowRate: string
+    flowRate: string,
+    event: IEvent
 ) => {
     const streamId = streamData.id;
     const { stream } = await subgraphRequest<{ stream: IStream | undefined }>(
@@ -29,11 +38,17 @@ export const fetchStreamAndValidate = async (
         streamId,
         flowRate
     );
+
+    validateReverseLookup(event, stream.flowUpdatedEvents);
 };
 
 export const fetchIndexAndValidate = async (
     idaV1: InstantDistributionAgreementV1,
-    expectedIndex: IIndex
+    expectedIndex: IIndex,
+    eventType: IDAEventType,
+    event: IEvent,
+    subscriptionId: string,
+    subscriptionExists: boolean
 ) => {
     const { index } = await subgraphRequest<{ index: IIndex | undefined }>(
         getIndex,
@@ -47,15 +62,42 @@ export const fetchIndexAndValidate = async (
     }
 
     validateIndexEntity(idaV1, index, expectedIndex);
+
+    if (
+        eventType === IDAEventType.IndexCreated &&
+        index.indexCreatedEvent != null
+    ) {
+        // We expect a indexCreatedEvent to be created one time
+        validateReverseLookup(event, [index.indexCreatedEvent]);
+    }
+
+    if (
+        eventType === IDAEventType.IndexUpdated &&
+        index.indexUpdatedEvents != null
+    ) {
+        validateReverseLookup(event, index.indexUpdatedEvents);
+    }
+
+    if (
+        subscriptionExists === false &&
+        index.subscriptions != null &&
+        (eventType === IDAEventType.SubscriptionUnitsUpdated ||
+            eventType === IDAEventType.SubscriptionApproved)
+    ) {
+        validateReverseLookup({ id: subscriptionId }, index.subscriptions);
+        // We expect a new subscriber if they are added the first time
+    }
 };
 
 export const fetchSubscriptionAndValidate = async (
     idaV1: InstantDistributionAgreementV1,
-    expectedSubscription: ISubscription,
-    newIndexValue: string
+    expectedSubscription: IIndexSubscription,
+    newIndexValue: string,
+    eventType: IDAEventType,
+    event: IEvent
 ) => {
     const { indexSubscription } = await subgraphRequest<{
-        indexSubscription: ISubscription | undefined;
+        indexSubscription: IIndexSubscription | undefined;
     }>(getSubscription, {
         id: expectedSubscription.id,
     });
@@ -70,6 +112,35 @@ export const fetchSubscriptionAndValidate = async (
         expectedSubscription,
         newIndexValue
     );
+
+    // For each we expect the event to equal the new event
+    if (
+        eventType === IDAEventType.SubscriptionApproved &&
+        indexSubscription.subscriptionApprovedEvents != null
+    ) {
+        validateReverseLookup(
+            event,
+            indexSubscription.subscriptionApprovedEvents
+        );
+    }
+    if (
+        eventType === IDAEventType.SubscriptionRevoked &&
+        indexSubscription.subscriptionRevokedEvents != null
+    ) {
+        validateReverseLookup(
+            event,
+            indexSubscription.subscriptionRevokedEvents
+        );
+    }
+    if (
+        eventType === IDAEventType.SubscriptionUnitsUpdated &&
+        indexSubscription.subscriptionUnitsUpdatedEvents != null
+    ) {
+        validateReverseLookup(
+            event,
+            indexSubscription.subscriptionUnitsUpdatedEvents
+        );
+    }
 };
 
 export const validateStreamEntity = (
@@ -153,8 +224,8 @@ export const validateIndexEntity = async (
 
 export const validateSubscriptionEntity = async (
     idaV1: InstantDistributionAgreementV1,
-    subgraphSubscription: ISubscription,
-    expectedSubscription: ISubscription,
+    subgraphSubscription: IIndexSubscription,
+    expectedSubscription: IIndexSubscription,
     newIndexValue: string
 ) => {
     const token = ethers.utils.getAddress(subgraphSubscription.token.id);

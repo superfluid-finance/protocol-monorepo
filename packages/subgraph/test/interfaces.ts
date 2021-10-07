@@ -29,7 +29,7 @@ export interface IMeta {
 }
 
 // CFAV1
-export interface IFlowUpdated extends IEvent {
+export interface IFlowUpdatedEvent extends IEvent {
     readonly token: string;
     readonly sender: string;
     readonly receiver: string;
@@ -42,14 +42,14 @@ export interface IFlowUpdated extends IEvent {
 }
 
 // IDAV1
-export interface IIndexCreated extends IEvent {
+export interface IIndexCreatedEvent extends IEvent {
     readonly token: string;
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
 }
 
-export interface IIndexUpdated extends IEvent {
+export interface IIndexUpdatedEvent extends IEvent {
     readonly token: string;
     readonly publisher: string;
     readonly indexId: string;
@@ -60,7 +60,7 @@ export interface IIndexUpdated extends IEvent {
     readonly userData: string;
 }
 
-export interface ISubscriptionApproved extends IEvent {
+export interface ISubscriptionApprovedEvent extends IEvent {
     readonly token: string;
     readonly subscription: ILightEntity;
     readonly publisher: string;
@@ -68,7 +68,7 @@ export interface ISubscriptionApproved extends IEvent {
     readonly userData: string;
 }
 
-export interface ISubscriptionRevoked extends IEvent {
+export interface ISubscriptionRevokedEvent extends IEvent {
     readonly token: string;
     readonly subscription: ILightEntity;
     readonly publisher: string;
@@ -76,7 +76,7 @@ export interface ISubscriptionRevoked extends IEvent {
     readonly userData: string;
 }
 
-export interface ISubscriptionUnitsUpdated extends IEvent {
+export interface ISubscriptionUnitsUpdatedEvent extends IEvent {
     readonly token: string;
     readonly subscription: ILightEntity;
     readonly publisher: string;
@@ -86,7 +86,7 @@ export interface ISubscriptionUnitsUpdated extends IEvent {
 }
 
 // SuperToken
-export interface ITokenUpgraded extends IEvent {
+export interface ITokenUpgradedEvent extends IEvent {
     readonly id: string;
     readonly account: string;
     readonly transactionHash: string;
@@ -96,7 +96,7 @@ export interface ITokenUpgraded extends IEvent {
     readonly amount: string;
 }
 
-export interface ITokenDowngraded extends IEvent {
+export interface ITokenDowngradedEvent extends IEvent {
     readonly id: string;
     readonly account: string;
     readonly transactionHash: string;
@@ -106,7 +106,7 @@ export interface ITokenDowngraded extends IEvent {
     readonly amount: string;
 }
 
-export interface ITransfer extends IEvent {
+export interface ITransferEvent extends IEvent {
     readonly id: string;
     readonly transactionHash: string;
     readonly timestamp: string;
@@ -144,9 +144,10 @@ export interface IStream extends IBaseEntity {
     readonly token: ILightEntity;
     readonly sender: ILightEntity;
     readonly receiver: ILightEntity;
+    readonly flowUpdatedEvents: ILightEntity[];
 }
 
-export interface ISubscription extends IBaseEntity {
+export interface IIndexSubscription extends IBaseEntity {
     readonly token: ILightEntity;
     readonly subscriber: ILightEntity;
     readonly publisher: ILightEntity;
@@ -156,6 +157,10 @@ export interface ISubscription extends IBaseEntity {
     readonly totalAmountReceivedUntilUpdatedAt: string;
     readonly lastIndexValue: string;
     readonly index: ILightEntity;
+
+    readonly subscriptionApprovedEvents?: ILightEntity[];
+    readonly subscriptionRevokedEvents?: ILightEntity[];
+    readonly subscriptionUnitsUpdatedEvents?: ILightEntity[];
 }
 
 export interface IIndex extends IBaseEntity {
@@ -169,6 +174,10 @@ export interface IIndex extends IBaseEntity {
     readonly totalAmountDistributedUntilUpdatedAt: string;
     readonly token: ILightEntity;
     readonly publisher: ILightEntity;
+
+    readonly subscriptions?: ILightEntity[];
+    readonly indexCreatedEvent?: ILightEntity;
+    readonly indexUpdatedEvents?: ILightEntity[];
 }
 
 /**
@@ -257,7 +266,7 @@ export interface IUpdateGlobalObjectData {
     readonly updatedSenderATS?: IAccountTokenSnapshot;
     readonly revisionIndexId?: string;
     readonly updatedIndex?: IIndex;
-    readonly updatedSubscription?: ISubscription;
+    readonly updatedSubscription?: IIndexSubscription;
 }
 
 export interface IAggregateLocalData {
@@ -279,7 +288,7 @@ export interface IStreamLocalData extends IAggregateLocalData {
 }
 export interface IDistributionLocalData extends IAggregateLocalData {
     readonly indexes: { [id: string]: IIndex | undefined };
-    readonly subscriptions: { [id: string]: ISubscription | undefined };
+    readonly subscriptions: { [id: string]: IIndexSubscription | undefined };
 }
 
 export interface IContracts {
@@ -369,7 +378,7 @@ export interface IExtraExpectedData extends IExtraEventData {
 
 export interface IInstantDistributionLocalData extends IAggregateLocalData {
     readonly indexes: { [id: string]: IIndex | undefined };
-    readonly subscriptions: { [id: string]: ISubscription | undefined };
+    readonly subscriptions: { [id: string]: IIndexSubscription | undefined };
 }
 
 export interface IInstantDistributionTestData
@@ -435,7 +444,7 @@ export interface IGetExpectedIDADataParams {
     readonly atsArray: IAccountTokenSnapshot[];
     readonly currentIndex: IIndex;
     readonly currentPublisherATS: IAccountTokenSnapshot;
-    readonly currentSubscription: ISubscription;
+    readonly currentSubscription: IIndexSubscription;
     readonly currentSubscriberATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
     readonly updatedAtBlock: string;

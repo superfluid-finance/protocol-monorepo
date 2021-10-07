@@ -13,7 +13,7 @@ import {
     IIndex,
     IInstantDistributionTestData,
     IStreamData,
-    ISubscription,
+    IIndexSubscription,
     ITokenStatistic,
 } from "../interfaces";
 import {
@@ -79,11 +79,11 @@ export const getOrInitIndex = (
 };
 
 export const getOrInitSubscription = (
-    subscription: { [id: string]: ISubscription | undefined },
+    subscription: { [id: string]: IIndexSubscription | undefined },
     subscriptionId: string,
     updatedAtBlock: string,
     updatedAtTimestamp: string
-): ISubscription => {
+): IIndexSubscription => {
     const existingSubscription = subscription[subscriptionId];
     if (existingSubscription == null) {
         const [subscriber, publisher, token, indexId] =

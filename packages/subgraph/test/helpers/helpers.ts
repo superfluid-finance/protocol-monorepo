@@ -4,7 +4,7 @@ import { BaseProvider } from "@ethersproject/providers";
 import { request, gql } from "graphql-request";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
-import { IMeta, ISubscription } from "../interfaces";
+import { IMeta, IIndexSubscription } from "../interfaces";
 import { FlowActionType } from "./constants";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
@@ -300,7 +300,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
 };
 
 export const hasSubscription = (
-    subscriptions: { [id: string]: ISubscription | undefined },
+    subscriptions: { [id: string]: IIndexSubscription | undefined },
     id: string
 ) => {
     return subscriptions[id] != null;

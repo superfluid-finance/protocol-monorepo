@@ -2,8 +2,10 @@ import {
     IAccountTokenSnapshot,
     IIndex,
     IStreamData,
-    ISubscription,
+    IIndexSubscription,
     ITokenStatistic,
+    IEvent,
+    ILightEntity,
 } from "../interfaces";
 import {
     fetchIndexAndValidate,
@@ -16,6 +18,8 @@ import {
 } from "./aggregateValidators";
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
 import { BigNumber } from "@ethersproject/bignumber";
+import { expect } from "chai";
+import { IDAEventType } from "../helpers/constants";
 
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
@@ -24,13 +28,15 @@ export async function validateFlowUpdated(
     tokenId: string,
     updatedSenderATS: IAccountTokenSnapshot,
     updatedReceiverATS: IAccountTokenSnapshot,
-    updatedTokenStats: ITokenStatistic
+    updatedTokenStats: ITokenStatistic,
+    event: IEvent
 ) {
     // validate Stream HOL
     await fetchStreamAndValidate(
         pastStreamData,
         streamedAmountUntilTimestamp,
-        flowRate.toString()
+        flowRate.toString(),
+        event
     );
 
     // validate sender ATS
@@ -46,13 +52,16 @@ export async function validateFlowUpdated(
 export async function validateModifyIDA(
     idaV1: InstantDistributionAgreementV1,
     updatedIndex: IIndex,
-    updatedSubscription: ISubscription,
+    updatedSubscription: IIndexSubscription,
     updatedPublisherATS: IAccountTokenSnapshot,
     updatedSubscriberATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
     token: string,
     publisher: string,
-    subscriberAddress: string
+    subscriberAddress: string,
+    eventType: IDAEventType,
+    event: IEvent,
+    subscriptionExists: boolean
 ) {
     // We don't want to validate the subscriber for the IndexCreated/IndexUpdated
     // events
@@ -60,14 +69,24 @@ export async function validateModifyIDA(
         await fetchSubscriptionAndValidate(
             idaV1,
             updatedSubscription,
-            updatedIndex.newIndexValue
+            updatedIndex.newIndexValue,
+            eventType,
+            event
         );
         const subscriberATSId =
             subscriberAddress.toLowerCase() + "-" + token.toLowerCase();
         await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
     }
-    await fetchIndexAndValidate(idaV1, updatedIndex);
+    await fetchIndexAndValidate(idaV1, updatedIndex, eventType, event, updatedSubscription.id, subscriptionExists);
     const publisherATSId = publisher.toLowerCase() + "-" + token.toLowerCase();
     await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
     await fetchTokenStatsAndValidate(token.toLowerCase(), updatedTokenStats);
+}
+
+export function validateReverseLookup(
+    entity: ILightEntity,
+    entities: ILightEntity[]
+) {
+    const entityToValidate = entities[entities.length - 1];
+    expect(entity.id, "reverse lookup error").to.equal(entityToValidate.id);
 }

@@ -16,7 +16,7 @@ import {
     IGetExpectedIDADataParams,
     IIndex,
     IStreamData,
-    ISubscription,
+    IIndexSubscription,
     ITokenStatistic,
 } from "../interfaces";
 import {
@@ -491,7 +491,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
     let updatedIndex: IIndex = {
         ...currentIndex,
     };
-    let updatedSubscription: ISubscription = {
+    let updatedSubscription: IIndexSubscription = {
         ...currentSubscription,
         approved: false,
         totalAmountReceivedUntilUpdatedAt: toBN(

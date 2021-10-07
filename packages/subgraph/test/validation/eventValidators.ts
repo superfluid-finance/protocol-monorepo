@@ -23,6 +23,8 @@ export const fetchEventAndValidate = async <
     );
 
     validateEventData(event, expectedData, receipt);
+
+	return event;
 };
 
 export const validateData = <T>(

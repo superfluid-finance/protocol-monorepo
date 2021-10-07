@@ -18,7 +18,7 @@ import {
     IExpectedFlowUpdateEvent,
     IExtraEventData,
     IExtraExpectedData,
-    IFlowUpdated,
+    IFlowUpdatedEvent,
     IGetExpectedIDADataParams as IGetExpectedIDADataParams,
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
@@ -150,7 +150,10 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     const streamedAmountUntilTimestamp = toBN(
         pastStreamData.streamedUntilUpdatedAt
     ).add(streamedAmountSinceUpdatedAt);
-    await fetchEventAndValidate<IFlowUpdated, IExpectedFlowUpdateEvent>(
+    const event = await fetchEventAndValidate<
+        IFlowUpdatedEvent,
+        IExpectedFlowUpdateEvent
+    >(
         receipt,
         {
             flowRate: flowRate.toString(),
@@ -176,7 +179,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         tokenId,
         updatedSenderATS,
         updatedReceiverATS,
-        updatedTokenStats
+        updatedTokenStats,
+        event
     );
 
     let updatedStreamData = getExpectedStreamData(
@@ -294,7 +298,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         totalUnitsPending: indexTotalUnitsPending,
     };
 
-    await fetchIDAEventAndValidate(
+    const event = await fetchIDAEventAndValidate(
         eventType,
         receipt,
         baseParams,
@@ -336,7 +340,10 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         updatedTokenStats,
         token,
         publisher,
-        subscriber
+        subscriber,
+        eventType,
+        event,
+        subscriptionExists
     );
 
     return {
@@ -524,7 +531,7 @@ async function fetchIDAEventAndValidate(
         throw new Error("You have entered the wrong type.");
     }
 
-    await fetchEventAndValidate(
+    return await fetchEventAndValidate(
         receipt,
         eventDataToValidate,
         eventQueryData.query,

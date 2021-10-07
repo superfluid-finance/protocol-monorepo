@@ -4,6 +4,7 @@ import { gql } from "graphql-request";
 export const getFlowUpdatedEvents = gql`
     query getFlowUpdatedEvents($transactionHash: Bytes!) {
         flowUpdatedEvents(where: { transactionHash: $transactionHash }) {
+            id
             transactionHash
             blockNumber
             token
@@ -24,6 +25,7 @@ export const getFlowUpdatedEvents = gql`
 export const getIndexCreatedEvents = gql`
     query getIndexCreatedEvents($transactionHash: Bytes!) {
         indexCreatedEvents(where: { transactionHash: $transactionHash }) {
+            id
             transactionHash
             blockNumber
             token
@@ -37,6 +39,7 @@ export const getIndexCreatedEvents = gql`
 export const getIndexUpdatedEvents = gql`
     query getIndexUpdatedEvents($transactionHash: Bytes!) {
         indexUpdatedEvents(where: { transactionHash: $transactionHash }) {
+            id
             transactionHash
             blockNumber
             token
@@ -55,6 +58,7 @@ export const getSubscriptionApprovedEvents = gql`
         subscriptionApprovedEvents(
             where: { transactionHash: $transactionHash }
         ) {
+            id
             transactionHash
             blockNumber
             token
@@ -72,6 +76,7 @@ export const getSubscriptionRevokedEvents = gql`
         subscriptionRevokedEvents(
             where: { transactionHash: $transactionHash }
         ) {
+            id
             transactionHash
             blockNumber
             token
@@ -89,6 +94,7 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
         subscriptionUnitsUpdatedEvents(
             where: { transactionHash: $transactionHash }
         ) {
+            id
             transactionHash
             blockNumber
             token

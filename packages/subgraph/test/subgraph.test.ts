@@ -15,7 +15,7 @@ import {
     IIndex,
     IStreamData,
     IStreamLocalData,
-    ISubscription,
+    IIndexSubscription,
     ITokenStatistic,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
@@ -23,9 +23,8 @@ import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
-// TODO: Tests for reverse lookup fields needed
-// Test: Check if last item of the subgraph array is equal to the
-// event which was just added
+// TODO: validate Account entities reverse look up
+// create generalized function to do this
 // TODO: go through the paths
 // probably can make a generalized function which can
 // filter and fetch events of a particular contract
@@ -43,7 +42,7 @@ describe("Subgraph Tests", () => {
     let revisionIndexes: { [id: string]: number | undefined } = {}; // id is sender-recipient-token
     let streamData: { [id: string]: IStreamData | undefined } = {}; // id is stream id
     let indexes: { [id: string]: IIndex | undefined } = {}; // id is index id
-    let subscription: { [id: string]: ISubscription | undefined } = {}; // id is subscription id
+    let subscription: { [id: string]: IIndexSubscription | undefined } = {}; // id is subscription id
     let accountTokenSnapshots: {
         [id: string]: IAccountTokenSnapshot | undefined;
     } = {}; // id is ats id
@@ -68,7 +67,7 @@ describe("Subgraph Tests", () => {
     function updateGlobalObjectsForIDAEvents(
         updatedTokenStats: ITokenStatistic,
         updatedIndex?: IIndex,
-        updatedSubscription?: ISubscription,
+        updatedSubscription?: IIndexSubscription,
         updatedPublisherATS?: IAccountTokenSnapshot,
         updatedSubscriberATS?: IAccountTokenSnapshot
     ) {

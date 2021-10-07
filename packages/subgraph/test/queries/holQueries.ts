@@ -15,6 +15,9 @@ export const getStream = gql`
             receiver {
                 id
             }
+            flowUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
         }
     }
 `;
@@ -35,6 +38,15 @@ export const getIndex = gql`
                 id
             }
             publisher {
+                id
+            }
+            subscriptions(orderBy: createdAt, orderDirection: asc) {
+                id
+            }
+            indexCreatedEvent(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
+            indexUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
                 id
             }
         }
@@ -60,6 +72,21 @@ export const getSubscription = gql`
             totalAmountReceivedUntilUpdatedAt
             lastIndexValue
             index {
+                id
+            }
+            subscriptionApprovedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
+                id
+            }
+            subscriptionRevokedEvents(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
+            subscriptionUnitsUpdatedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
                 id
             }
         }

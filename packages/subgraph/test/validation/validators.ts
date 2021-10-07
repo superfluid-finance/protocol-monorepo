@@ -2,13 +2,13 @@ import {
     IAccountTokenSnapshot,
     IIndex,
     IStreamData,
-    ISubscriber,
+    ISubscription,
     ITokenStatistic,
 } from "../interfaces";
 import {
     fetchIndexAndValidate,
     fetchStreamAndValidate,
-    fetchSubscriberAndValidate,
+    fetchSubscriptionAndValidate,
 } from "./holValidators";
 import {
     fetchATSAndValidate,
@@ -46,24 +46,24 @@ export async function validateFlowUpdated(
 export async function validateModifyIDA(
     idaV1: InstantDistributionAgreementV1,
     updatedIndex: IIndex,
-    updatedSubscriber: ISubscriber,
+    updatedSubscription: ISubscription,
     updatedPublisherATS: IAccountTokenSnapshot,
     updatedSubscriberATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
     token: string,
     publisher: string,
-    subscriber: string
+    subscriberAddress: string
 ) {
     // We don't want to validate the subscriber for the IndexCreated/IndexUpdated
     // events
-    if (subscriber !== "") {
-        await fetchSubscriberAndValidate(
+    if (subscriberAddress !== "") {
+        await fetchSubscriptionAndValidate(
             idaV1,
-            updatedSubscriber,
+            updatedSubscription,
             updatedIndex.newIndexValue
         );
         const subscriberATSId =
-            subscriber.toLowerCase() + "-" + token.toLowerCase();
+            subscriberAddress.toLowerCase() + "-" + token.toLowerCase();
         await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
     }
     await fetchIndexAndValidate(idaV1, updatedIndex);

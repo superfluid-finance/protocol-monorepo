@@ -1,19 +1,19 @@
-import { Address, ethereum } from "@graphprotocol/graph-ts";
+import { Address } from "@graphprotocol/graph-ts";
 import {
-    TokenUpgraded as TokenUpgradedEvent,
-    TokenDowngraded as TokenDowngradedEvent,
-    Transfer as TransferEvent,
-    AgreementLiquidatedBy as AgreementLiquidatedByEvent,
-    Burned as BurnedEvent,
-    Minted as MintedEvent,
-} from "../../../generated/templates/SuperToken/ISuperToken";
-import {
-    AgreementLiquidatedBy,
-    Burned,
-    Minted,
     TokenUpgraded,
     TokenDowngraded,
     Transfer,
+    AgreementLiquidatedBy,
+    Burned,
+    Minted,
+} from "../../../generated/templates/SuperToken/ISuperToken";
+import {
+    AgreementLiquidatedByEvent,
+    BurnedEvent,
+    MintedEvent,
+    TokenUpgradedEvent,
+    TokenDowngradedEvent,
+    TransferEvent,
 } from "../../../generated/schema";
 import {
     createEventID,
@@ -29,7 +29,7 @@ import {
 } from "../../utils";
 
 export function handleAgreementLiquidatedBy(
-    event: AgreementLiquidatedByEvent,
+    event: AgreementLiquidatedBy,
     hostAddress: Address,
     resolverAddress: Address
 ): void {
@@ -104,7 +104,7 @@ export function handleAgreementLiquidatedBy(
 }
 
 export function handleTokenUpgraded(
-    event: TokenUpgradedEvent,
+    event: TokenUpgraded,
     hostAddress: Address,
     resolverAddress: Address
 ): void {
@@ -136,7 +136,7 @@ export function handleTokenUpgraded(
 }
 
 export function handleTokenDowngraded(
-    event: TokenDowngradedEvent,
+    event: TokenDowngraded,
     hostAddress: Address,
     resolverAddress: Address
 ): void {
@@ -171,7 +171,7 @@ export function handleTokenDowngraded(
 // Transfer represents the total amount of funds upgrade/downgraded as
 // well as minted and sent from one individual to another
 export function handleTransfer(
-    event: TransferEvent,
+    event: Transfer,
     hostAddress: Address,
     resolverAddress: Address
 ): void {
@@ -224,7 +224,7 @@ export function handleTransfer(
  * entities.
  * @param event
  */
-export function handleBurned(event: BurnedEvent): void {
+export function handleBurned(event: Burned): void {
     createBurnedEntity(event);
     let tokenStats = getOrInitTokenStatistic(
         event.address.toHex(),
@@ -241,7 +241,7 @@ export function handleBurned(event: BurnedEvent): void {
  * entities.
  * @param event
  */
-export function handleMinted(event: MintedEvent): void {
+export function handleMinted(event: Minted): void {
     createMintedEntity(event);
     let tokenStats = getOrInitTokenStatistic(
         event.address.toHex(),
@@ -255,10 +255,8 @@ export function handleMinted(event: MintedEvent): void {
 /**************************************************************************
  * Create Event Entity Helper Functions
  *************************************************************************/
-function createAgreementLiquidatedByEntity(
-    event: AgreementLiquidatedByEvent
-): void {
-    let ev = new AgreementLiquidatedBy(createEventID(event));
+function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
+    let ev = new AgreementLiquidatedByEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -273,8 +271,8 @@ function createAgreementLiquidatedByEntity(
     ev.save();
 }
 
-function createBurnedEntity(event: BurnedEvent): void {
-    let ev = new Burned(createEventID(event));
+function createBurnedEntity(event: Burned): void {
+    let ev = new BurnedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -286,8 +284,8 @@ function createBurnedEntity(event: BurnedEvent): void {
     ev.save();
 }
 
-function createMintedEntity(event: MintedEvent): void {
-    let ev = new Minted(createEventID(event));
+function createMintedEntity(event: Minted): void {
+    let ev = new MintedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -299,8 +297,8 @@ function createMintedEntity(event: MintedEvent): void {
     ev.save();
 }
 
-function createTokenUpgradedEntity(event: TokenUpgradedEvent): void {
-    let ev = new TokenUpgraded(createEventID(event));
+function createTokenUpgradedEntity(event: TokenUpgraded): void {
+    let ev = new TokenUpgradedEvent(createEventID(event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -310,8 +308,8 @@ function createTokenUpgradedEntity(event: TokenUpgradedEvent): void {
     ev.save();
 }
 
-function createTokenDowngradedEntity(event: TokenDowngradedEvent): void {
-    let ev = new TokenDowngraded(createEventID(event));
+function createTokenDowngradedEntity(event: TokenDowngraded): void {
+    let ev = new TokenDowngradedEvent(createEventID(event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -321,8 +319,8 @@ function createTokenDowngradedEntity(event: TokenDowngradedEvent): void {
     ev.save();
 }
 
-function createTransferEntity(event: TransferEvent): void {
-    let ev = new Transfer(createEventID(event));
+function createTransferEntity(event: Transfer): void {
+    let ev = new TransferEvent(createEventID(event));
     let value = event.params.value;
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;

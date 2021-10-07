@@ -17,12 +17,11 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory/{{testNetwork}}SuperTokenFactory.ts
           entities:
-              - CustomSuperTokenCreated
-              - SuperTokenCreated
-              - SuperTokenLogicCreated
+              - CustomSuperTokenCreatedEvent
+              - SuperTokenCreatedEvent
+              - SuperTokenLogicCreatedEvent
               - Token
               - TokenStatistic
-              - Transaction
           abis:
               - name: IResolver
                 file: ./abis/IResolver.json
@@ -52,14 +51,13 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/host.ts
           entities:
-              - Transaction
-              - GovernanceReplaced
-              - AgreementClassRegistered
-              - AgreementClassUpdated
-              - SuperTokenFactoryUpdated
-              - SuperTokenLogicUpdated
-              - AppRegistered
-              - Jail
+              - AgreementClassRegisteredEvent
+              - AgreementClassUpdatedEvent
+              - AppRegisteredEvent
+              - GovernanceReplacedEvent
+              - JailEvent
+              - SuperTokenFactoryUpdatedEvent
+              - SuperTokenLogicUpdatedEvent
           abis:
               - name: ISuperfluid
                 file: ./abis/ISuperfluid.json
@@ -93,11 +91,10 @@ dataSources:
           entities:
               - Account
               - AccountTokenSnapshot
-              - FlowUpdated
+              - FlowUpdatedEvent
               - Stream
               - StreamRevision
               - TokenStatistic
-              - Transaction
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
@@ -126,15 +123,14 @@ dataSources:
           - Account
           - AccountTokenSnapshot
           - Index
-          - IndexCreated
-          - IndexUpdated
+          - IndexCreatedEvent
+          - IndexUpdatedEvent
+          - IndexSubscription
           - Token
           - TokenStatistic
-          - Transaction
-          - Subscriber
-          - SubscriptionApproved
-          - SubscriptionRevoked
-          - SubscriptionUnitsUpdated
+          - SubscriptionApprovedEvent
+          - SubscriptionRevokedEvent
+          - SubscriptionUnitsUpdatedEvent
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
@@ -168,11 +164,10 @@ dataSources:
         language: wasm/assemblyscript
         file: ./src/mappings/superfluidGovernance.ts
         entities:
-          - Transaction
-          - ConfigChanged
-          - RewardAddressChanged
-          - CFAv1LiquidationPeriodChanged
-          - TrustedForwarderChanged
+          - ConfigChangedEvent
+          - CFAv1LiquidationPeriodChangedEvent
+          - RewardAddressChangedEvent
+          - TrustedForwarderChangedEvent
         abis:
           - name: SuperfluidGovernanceBase
             file: ./abis/SuperfluidGovernanceBase.json
@@ -199,12 +194,15 @@ templates:
       entities:
         - Account
         - AccountTokenSnapshot
-        - AgreementLiquidatedBy
+        - AgreementLiquidatedByEvent
+        - BurnedEvent
+        - MintedEvent
+        - SentEvent
         - Token
-        - TokenDowngraded
-        - TokenUpgraded
-        - Transaction
-        - Transfer
+        - TokenDowngradedEvent
+        - TokenUpgradedEvent
+        - TokenStatistic
+        - TransferEvent
       abis:
         - name: IResolver
           file: ./abis/IResolver.json
@@ -215,6 +213,12 @@ templates:
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: {{testNetwork}}HandleAgreementLiquidatedBy
+        - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
+          handler: {{testNetwork}}HandleBurned
+        - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
+          handler: {{testNetwork}}HandleMinted
+        - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
+          handler: {{testNetwork}}HandleSent
         - event: TokenUpgraded(indexed address,uint256)
           handler: {{testNetwork}}HandleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)

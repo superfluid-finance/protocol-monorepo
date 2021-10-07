@@ -41,40 +41,40 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         IDAEventType.IndexCreated,
         {
             query: getIndexCreatedEvents,
-            queryResultName: "indexCreateds",
-            queryName: "IndexCreated",
+            queryResultName: "indexCreatedEvents",
+            queryName: "IndexCreatedEvents",
         },
     ],
     [
         IDAEventType.IndexUpdated,
         {
             query: getIndexUpdatedEvents,
-            queryResultName: "indexUpdateds",
-            queryName: "IndexUpdated",
+            queryResultName: "indexUpdatedEvents",
+            queryName: "IndexUpdatedEvents",
         },
     ],
     [
         IDAEventType.SubscriptionApproved,
         {
             query: getSubscriptionApprovedEvents,
-            queryResultName: "subscriptionApproveds",
-            queryName: "SubscriptionApproved",
+            queryResultName: "subscriptionApprovedEvents",
+            queryName: "SubscriptionApprovedEvents",
         },
     ],
     [
         IDAEventType.SubscriptionRevoked,
         {
             query: getSubscriptionRevokedEvents,
-            queryResultName: "subscriptionRevokeds",
-            queryName: "SubscriptionRevoked",
+            queryResultName: "subscriptionRevokedEvents",
+            queryName: "SubscriptionRevokedEvents",
         },
     ],
     [
         IDAEventType.SubscriptionUnitsUpdated,
         {
             query: getSubscriptionUnitsUpdatedEvents,
-            queryResultName: "subscriptionUnitsUpdateds",
-            queryName: "SubscriptionUnitsUpdated",
+            queryResultName: "subscriptionUnitsUpdatedEvents",
+            queryName: "SubscriptionUnitsUpdatedEvents",
         },
     ],
 ]);

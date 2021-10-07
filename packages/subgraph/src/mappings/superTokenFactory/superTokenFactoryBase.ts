@@ -1,13 +1,13 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
-    CustomSuperTokenCreated as CustomSuperTokenCreatedEvent,
-    SuperTokenCreated as SuperTokenCreatedEvent,
-    SuperTokenLogicCreated as SuperTokenLogicCreatedEvent,
-} from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
-import {
     CustomSuperTokenCreated,
     SuperTokenCreated,
     SuperTokenLogicCreated,
+} from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
+import {
+    CustomSuperTokenCreatedEvent,
+    SuperTokenCreatedEvent,
+    SuperTokenLogicCreatedEvent,
 } from "../../../generated/schema";
 import {
     createEventID,
@@ -16,7 +16,7 @@ import {
 } from "../../utils";
 
 export function handleSuperTokenCreated(
-    event: SuperTokenCreatedEvent,
+    event: SuperTokenCreated,
     hostAddress: Address,
     resolverAddress: Address
 ): void {
@@ -25,7 +25,7 @@ export function handleSuperTokenCreated(
         return;
     }
 
-    let ev = new SuperTokenCreated(createEventID(event));
+    let ev = new SuperTokenCreatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -36,7 +36,7 @@ export function handleSuperTokenCreated(
 }
 
 export function handleCustomSuperTokenCreated(
-    event: CustomSuperTokenCreatedEvent,
+    event: CustomSuperTokenCreated,
     hostAddress: Address,
     resolverAddress: Address
 ): void {
@@ -45,7 +45,7 @@ export function handleCustomSuperTokenCreated(
         return;
     }
 
-    let ev = new CustomSuperTokenCreated(createEventID(event));
+    let ev = new CustomSuperTokenCreatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -56,7 +56,7 @@ export function handleCustomSuperTokenCreated(
 }
 
 export function handleSuperTokenLogicCreated(
-    event: SuperTokenLogicCreatedEvent,
+    event: SuperTokenLogicCreated,
     hostAddress: Address
 ): void {
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.tokenLogic);
@@ -64,7 +64,7 @@ export function handleSuperTokenLogicCreated(
         return;
     }
 
-    let ev = new SuperTokenLogicCreated(createEventID(event));
+    let ev = new SuperTokenLogicCreatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;

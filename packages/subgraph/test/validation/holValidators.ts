@@ -3,8 +3,8 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
 import { subgraphRequest, toBN } from "../helpers/helpers";
-import { IIndex, IStream, IStreamData, ISubscriber } from "../interfaces";
-import { getIndex, getStream, getSubscriber } from "../queries/holQueries";
+import { IIndex, IStream, IStreamData, ISubscription } from "../interfaces";
+import { getIndex, getStream, getSubscription } from "../queries/holQueries";
 
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
@@ -49,25 +49,25 @@ export const fetchIndexAndValidate = async (
     validateIndexEntity(idaV1, index, expectedIndex);
 };
 
-export const fetchSubscriberAndValidate = async (
+export const fetchSubscriptionAndValidate = async (
     idaV1: InstantDistributionAgreementV1,
-    expectedSubscriber: ISubscriber,
+    expectedSubscription: ISubscription,
     newIndexValue: string
 ) => {
-    const { subscriber } = await subgraphRequest<{
-        subscriber: ISubscriber | undefined;
-    }>(getSubscriber, {
-        id: expectedSubscriber.id,
+    const { indexSubscription } = await subgraphRequest<{
+        indexSubscription: ISubscription | undefined;
+    }>(getSubscription, {
+        id: expectedSubscription.id,
     });
 
-    if (!subscriber) {
-        throw new Error("Subscriber entity not found.");
+    if (!indexSubscription) {
+        throw new Error("Subscription entity not found.");
     }
 
-    validateSubscriberEntity(
+    validateSubscriptionEntity(
         idaV1,
-        subscriber,
-        expectedSubscriber,
+        indexSubscription,
+        expectedSubscription,
         newIndexValue
     );
 };
@@ -114,9 +114,9 @@ export const validateIndexEntity = async (
         expectedIndex.newIndexValue
     );
     expect(
-        subgraphIndex.totalSubscribers,
-        "Index: totalSubscribers error"
-    ).to.equal(expectedIndex.totalSubscribers);
+        subgraphIndex.totalSubscriptions,
+        "Index: totalSubscriptions error"
+    ).to.equal(expectedIndex.totalSubscriptions);
     expect(
         subgraphIndex.totalUnitsPending,
         "Index: totalUnitsPending error"
@@ -151,56 +151,61 @@ export const validateIndexEntity = async (
     );
 };
 
-export const validateSubscriberEntity = async (
+export const validateSubscriptionEntity = async (
     idaV1: InstantDistributionAgreementV1,
-    subgraphSubscriber: ISubscriber,
-    expectedSubscriber: ISubscriber,
+    subgraphSubscription: ISubscription,
+    expectedSubscription: ISubscription,
     newIndexValue: string
 ) => {
-    const token = ethers.utils.getAddress(subgraphSubscriber.token.id);
-    const publisher = ethers.utils.getAddress(subgraphSubscriber.publisher.id);
-    const subscriber = ethers.utils.getAddress(
-        subgraphSubscriber.subscriber.id
+    const token = ethers.utils.getAddress(subgraphSubscription.token.id);
+    const publisher = ethers.utils.getAddress(
+        subgraphSubscription.publisher.id
+    );
+    const subscriberAddress = ethers.utils.getAddress(
+        subgraphSubscription.subscriber.id
     );
 
     const [, approved, units, pendingDistribution] =
         await idaV1.getSubscription(
             token,
             publisher,
-            Number(subgraphSubscriber.indexId),
-            subscriber
+            Number(subgraphSubscription.indexId),
+            subscriberAddress
         );
 
     // Check subgraph data against expected data
-    expect(subgraphSubscriber.indexId, "Subscriber: indexId error").to.equal(
-        expectedSubscriber.indexId
-    );
-    expect(subgraphSubscriber.approved, "Subscriber: approved error").to.equal(
-        expectedSubscriber.approved
-    );
-    expect(subgraphSubscriber.units, "Subscriber: units error").to.equal(
-        expectedSubscriber.units
+    expect(
+        subgraphSubscription.indexId,
+        "Subscription: indexId error"
+    ).to.equal(expectedSubscription.indexId);
+    expect(
+        subgraphSubscription.approved,
+        "Subscription: approved error"
+    ).to.equal(expectedSubscription.approved);
+    expect(subgraphSubscription.units, "Subscription: units error").to.equal(
+        expectedSubscription.units
     );
     expect(
-        subgraphSubscriber.totalAmountReceivedUntilUpdatedAt,
-        "Subscriber: totalAmountReceivedUntilUpdatedAt error"
-    ).to.equal(expectedSubscriber.totalAmountReceivedUntilUpdatedAt);
+        subgraphSubscription.totalAmountReceivedUntilUpdatedAt,
+        "Subscription: totalAmountReceivedUntilUpdatedAt error"
+    ).to.equal(expectedSubscription.totalAmountReceivedUntilUpdatedAt);
     expect(
-        subgraphSubscriber.lastIndexValue,
-        "Subscriber: lastIndexValue error"
-    ).to.equal(expectedSubscriber.lastIndexValue);
+        subgraphSubscription.lastIndexValue,
+        "Subscription: lastIndexValue error"
+    ).to.equal(expectedSubscription.lastIndexValue);
 
     // Check subgraph data against web3 data
-    expect(subgraphSubscriber.approved, "Subscriber: approved error").to.equal(
-        approved
-    );
-    expect(subgraphSubscriber.units, "Subscriber: units error").to.equal(
+    expect(
+        subgraphSubscription.approved,
+        "Subscription: approved error"
+    ).to.equal(approved);
+    expect(subgraphSubscription.units, "Subscription: units error").to.equal(
         units.toString()
     );
     const calcPendingDistribution = approved
         ? "0"
-        : toBN(subgraphSubscriber.units).mul(
-              toBN(newIndexValue).sub(toBN(subgraphSubscriber.lastIndexValue))
+        : toBN(subgraphSubscription.units).mul(
+              toBN(newIndexValue).sub(toBN(subgraphSubscription.lastIndexValue))
           );
     expect(calcPendingDistribution.toString()).to.equal(
         pendingDistribution.toString()

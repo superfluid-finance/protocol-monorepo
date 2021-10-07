@@ -31,7 +31,7 @@ import {
     validateModifyIDA,
 } from "../validation/validators";
 import {
-    getSubscriberId,
+    getSubscriptionId,
     hasSubscription,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
@@ -165,8 +165,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             type: actionType,
         },
         getFlowUpdatedEvents,
-        "flowUpdateds",
-        "FlowUpdated"
+        "flowUpdatedEvents",
+        "FlowUpdatedEvents"
     );
 
     await validateFlowUpdated(
@@ -224,7 +224,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     let totalUnits: BigNumber = toBN(0);
 
     const { sf, idaV1, superToken } = contracts;
-    const { accountTokenSnapshots, indexes, subscribers, tokenStatistics } =
+    const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
         localData;
     const { token, publisher, indexId, atsArray, subscriber } = baseParams;
 
@@ -241,9 +241,9 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         );
 
     let {
-        subscriberEntityId,
+        subscriptionId: subscriberEntityId,
         currentIndex,
-        currentSubscriber,
+        currentSubscription,
         currentPublisherATS,
         currentSubscriberATS,
         currentTokenStats,
@@ -254,13 +254,16 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         lastUpdatedAtTimestamp: timestamp,
         lastUpdatedBlockNumber: updatedAtBlock,
         publisher,
-        subscribers,
+        subscriptions,
         subscriber,
         token,
         tokenStatistics,
     });
 
-    const subscriptionExists = hasSubscription(subscribers, subscriberEntityId);
+    const subscriptionExists = hasSubscription(
+        subscriptions,
+        subscriberEntityId
+    );
 
     if (eventType === IDAEventType.IndexUpdated) {
         if (amountOrIndexValue == null) {
@@ -301,7 +304,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     const expectedDataParams = {
         token: superToken,
         currentIndex,
-        currentSubscriber,
+        currentSubscription,
         atsArray,
         currentPublisherATS,
         currentSubscriberATS,
@@ -319,7 +322,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     const {
         updatedIndex,
         updatedPublisherATS,
-        updatedSubscriber,
+        updatedSubscription,
         updatedSubscriberATS,
         updatedTokenStats,
     } = await getExpectedDataForIDA(eventType, expectedDataParams, extraData);
@@ -327,7 +330,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     await validateModifyIDA(
         idaV1,
         updatedIndex,
-        updatedSubscriber,
+        updatedSubscription,
         updatedPublisherATS,
         updatedSubscriberATS,
         updatedTokenStats,
@@ -338,7 +341,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
 
     return {
         updatedIndex,
-        updatedSubscriber,
+        updatedSubscription,
         updatedPublisherATS,
         updatedSubscriberATS,
         updatedTokenStats,
@@ -454,7 +457,7 @@ function getIDAEventDataForValidation(
         units,
     } = extraEventData;
 
-    const subscriberEntityId = getSubscriberId(
+    const subscriptionId = getSubscriptionId(
         subscriber,
         publisher,
         token,
@@ -466,23 +469,23 @@ function getIDAEventDataForValidation(
         indexId: indexId.toString(),
         userData,
     };
-    const baseSubscriberEventData = {
+    const baseSubscriptionEventData = {
         ...baseEventData,
-        subscriber: { id: subscriberEntityId },
+        subscription: { id: subscriptionId },
     };
 
     if (type === IDAEventType.IndexCreated) {
         return baseEventData;
     } else if (type === IDAEventType.SubscriptionApproved) {
-        return baseSubscriberEventData;
+        return baseSubscriptionEventData;
     } else if (type === IDAEventType.SubscriptionRevoked) {
-        return baseSubscriberEventData;
+        return baseSubscriptionEventData;
     } else if (type === IDAEventType.SubscriptionUnitsUpdated) {
         if (units == null) {
             throw new Error("You must pass units for SubscriptionUnitsUpdated");
         }
         return {
-            ...baseSubscriberEventData,
+            ...baseSubscriptionEventData,
             units: units.toString(),
         };
     } else {

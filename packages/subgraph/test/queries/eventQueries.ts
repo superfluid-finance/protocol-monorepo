@@ -3,7 +3,7 @@ import { gql } from "graphql-request";
 // CFA Event Queries
 export const getFlowUpdatedEvents = gql`
     query getFlowUpdatedEvents($transactionHash: Bytes!) {
-        flowUpdateds(where: { transactionHash: $transactionHash }) {
+        flowUpdatedEvents(where: { transactionHash: $transactionHash }) {
             transactionHash
             blockNumber
             token
@@ -23,7 +23,7 @@ export const getFlowUpdatedEvents = gql`
 
 export const getIndexCreatedEvents = gql`
     query getIndexCreatedEvents($transactionHash: Bytes!) {
-        indexCreateds(where: { transactionHash: $transactionHash }) {
+        indexCreatedEvents(where: { transactionHash: $transactionHash }) {
             transactionHash
             blockNumber
             token
@@ -36,7 +36,7 @@ export const getIndexCreatedEvents = gql`
 
 export const getIndexUpdatedEvents = gql`
     query getIndexUpdatedEvents($transactionHash: Bytes!) {
-        indexUpdateds(where: { transactionHash: $transactionHash }) {
+        indexUpdatedEvents(where: { transactionHash: $transactionHash }) {
             transactionHash
             blockNumber
             token
@@ -52,11 +52,13 @@ export const getIndexUpdatedEvents = gql`
 `;
 export const getSubscriptionApprovedEvents = gql`
     query getSubscriptionApprovedEvents($transactionHash: Bytes!) {
-        subscriptionApproveds(where: { transactionHash: $transactionHash }) {
+        subscriptionApprovedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
             transactionHash
             blockNumber
             token
-            subscriber {
+            subscription {
                 id
             }
             publisher
@@ -67,11 +69,13 @@ export const getSubscriptionApprovedEvents = gql`
 `;
 export const getSubscriptionRevokedEvents = gql`
     query getSubscriptionRevokedEvents($transactionHash: Bytes!) {
-        subscriptionRevokeds(where: { transactionHash: $transactionHash }) {
+        subscriptionRevokedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
             transactionHash
             blockNumber
             token
-            subscriber {
+            subscription {
                 id
             }
             publisher
@@ -82,13 +86,13 @@ export const getSubscriptionRevokedEvents = gql`
 `;
 export const getSubscriptionUnitsUpdatedEvents = gql`
     query getSubscriptionUnitsUpdatedEvents($transactionHash: Bytes!) {
-        subscriptionUnitsUpdateds(
+        subscriptionUnitsUpdatedEvents(
             where: { transactionHash: $transactionHash }
         ) {
             transactionHash
             blockNumber
             token
-            subscriber {
+            subscription {
                 id
             }
             publisher

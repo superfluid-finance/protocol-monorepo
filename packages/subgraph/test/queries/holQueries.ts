@@ -26,7 +26,7 @@ export const getIndex = gql`
             indexId
             oldIndexValue
             newIndexValue
-            totalSubscribers
+            totalSubscriptions
             totalUnitsPending
             totalUnitsApproved
             totalUnits
@@ -41,9 +41,9 @@ export const getIndex = gql`
     }
 `;
 
-export const getSubscriber = gql`
-    query getSubscriber($id: ID!) {
-        subscriber(id: $id) {
+export const getSubscription = gql`
+    query getSubscription($id: ID!) {
+        indexSubscription(id: $id) {
             id
             token {
                 id

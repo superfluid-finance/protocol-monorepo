@@ -1,6 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { FlowUpdated as FlowUpdatedEvent } from "../../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { FlowUpdated } from "../../../generated/schema";
+import { FlowUpdated } from "../../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { FlowUpdatedEvent } from "../../../generated/schema";
 import {
     createEventID,
     getOrInitStream,
@@ -19,12 +19,12 @@ enum FlowActionType {
 }
 
 function createFlowUpdatedEntity(
-    event: FlowUpdatedEvent,
+    event: FlowUpdated,
     oldFlowRate: BigInt,
     streamId: string,
     totalAmountStreamedUntilTimestamp: BigInt
 ): void {
-    let ev = new FlowUpdated(createEventID(event));
+    let ev = new FlowUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -49,7 +49,7 @@ function createFlowUpdatedEntity(
 }
 
 export function handleStreamUpdated(
-    event: FlowUpdatedEvent,
+    event: FlowUpdated,
     hostAddress: Address,
     resolverAddress: Address
 ): void {

@@ -8,7 +8,7 @@ import {
     AccountTokenSnapshot,
     Stream,
     StreamRevision,
-    Subscriber,
+    IndexSubscription,
     TokenStatistic,
     Token,
 } from "../generated/schema";
@@ -334,7 +334,7 @@ export function getOrInitIndex(
         index.indexId = indexId;
         index.oldIndexValue = BIG_INT_ZERO;
         index.newIndexValue = BIG_INT_ZERO;
-        index.totalSubscribers = 0;
+        index.totalSubscriptions = 0;
         index.totalUnitsPending = BIG_INT_ZERO;
         index.totalUnitsApproved = BIG_INT_ZERO;
         index.totalUnits = BIG_INT_ZERO;
@@ -355,16 +355,16 @@ export function getOrInitIndex(
 }
 
 /**
- * Gets or initializes a Subscriber, always sets the updatedAt.
+ * Gets or initializes a Subscription, always sets the updatedAt.
  * @param hostAddress
  * @param subscriberAddress
  * @param publisherAddress
  * @param tokenAddress
  * @param indexId
  * @param block
- * @returns Subscriber
+ * @returns subscription
  */
-export function getOrInitSubscriber(
+export function getOrInitSubscription(
     hostAddress: Address,
     resolverAddress: Address,
     subscriberAddress: Address,
@@ -372,18 +372,18 @@ export function getOrInitSubscriber(
     tokenAddress: Address,
     indexId: BigInt,
     block: ethereum.Block
-): Subscriber {
-    let subscriberEntityId = getSubscriberID(
+): IndexSubscription {
+    let subscriptionId = getSubscriptionID(
         subscriberAddress,
         publisherAddress,
         tokenAddress,
         indexId
     );
-    let subscriber = Subscriber.load(subscriberEntityId);
+    let subscription = IndexSubscription.load(subscriptionId);
     let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
     let currentTimestamp = block.timestamp;
 
-    if (subscriber == null) {
+    if (subscription == null) {
         let index = getOrInitIndex(
             hostAddress,
             resolverAddress,
@@ -393,27 +393,27 @@ export function getOrInitSubscriber(
             block,
             ""
         );
-        index.totalSubscribers = index.totalSubscribers + 1;
+        index.totalSubscriptions = index.totalSubscriptions + 1;
         index.save();
 
         let subscriberId = subscriberAddress.toHex();
-        subscriber = new Subscriber(subscriberEntityId);
-        subscriber.createdAt = currentTimestamp;
-        subscriber.token = tokenAddress.toHex();
-        subscriber.subscriber = subscriberId;
-        subscriber.publisher = publisherAddress.toHex();
-        subscriber.indexId = indexId;
-        subscriber.approved = false;
-        subscriber.units = BIG_INT_ZERO;
-        subscriber.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
-        subscriber.lastIndexValue = index.newIndexValue;
-        subscriber.index = indexEntityId;
+        subscription = new IndexSubscription(subscriptionId);
+        subscription.createdAt = currentTimestamp;
+        subscription.token = tokenAddress.toHex();
+        subscription.subscriber = subscriberId;
+        subscription.publisher = publisherAddress.toHex();
+        subscription.indexId = indexId;
+        subscription.approved = false;
+        subscription.units = BIG_INT_ZERO;
+        subscription.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
+        subscription.lastIndexValue = index.newIndexValue;
+        subscription.index = indexEntityId;
 
         getOrInitAccount(hostAddress, subscriberAddress, block);
     }
-    subscriber.updatedAtTimestamp = currentTimestamp;
-    subscriber.updatedAtBlock = block.number;
-    return subscriber as Subscriber;
+    subscription.updatedAtTimestamp = currentTimestamp;
+    subscription.updatedAtBlock = block.number;
+    return subscription as IndexSubscription;
 }
 
 /**
@@ -481,7 +481,7 @@ function getStreamID(
         .concat(revisionIndex.toString());
 }
 
-export function getSubscriberID(
+export function getSubscriptionID(
     subscriberAddress: Bytes,
     publisherAddress: Bytes,
     tokenAddress: Bytes,
@@ -519,7 +519,7 @@ export function streamRevisionExists(id: string): boolean {
 }
 
 export function subscriptionExists(id: string): boolean {
-    return Subscriber.load(id) != null;
+    return IndexSubscription.load(id) != null;
 }
 
 /**************************************************************************
@@ -615,7 +615,7 @@ export function updateAggregateIDASubscriptionsData(
         ? -1
         : 0;
 
-    // update ATS Subscriber data
+    // update ATS Subscription data
     accountTokenSnapshot.totalSubscriptions =
         accountTokenSnapshot.totalSubscriptions + totalSubscriptionsDelta;
     accountTokenSnapshot.totalApprovedSubscriptions =
@@ -624,7 +624,7 @@ export function updateAggregateIDASubscriptionsData(
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlock = block.number;
 
-    // update tokenStatistic Subscriber data
+    // update tokenStatistic Subscription data
     tokenStatistic.totalSubscriptions =
         tokenStatistic.totalSubscriptions + totalSubscriptionsDelta;
     tokenStatistic.totalApprovedSubscriptions =

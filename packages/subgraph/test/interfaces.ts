@@ -62,7 +62,7 @@ export interface IIndexUpdated extends IEvent {
 
 export interface ISubscriptionApproved extends IEvent {
     readonly token: string;
-    readonly subscriber: ILightEntity;
+    readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
@@ -70,7 +70,7 @@ export interface ISubscriptionApproved extends IEvent {
 
 export interface ISubscriptionRevoked extends IEvent {
     readonly token: string;
-    readonly subscriber: ILightEntity;
+    readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
     readonly userData: string;
@@ -78,7 +78,7 @@ export interface ISubscriptionRevoked extends IEvent {
 
 export interface ISubscriptionUnitsUpdated extends IEvent {
     readonly token: string;
-    readonly subscriber: ILightEntity;
+    readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
     readonly units: string;
@@ -146,7 +146,7 @@ export interface IStream extends IBaseEntity {
     readonly receiver: ILightEntity;
 }
 
-export interface ISubscriber extends IBaseEntity {
+export interface ISubscription extends IBaseEntity {
     readonly token: ILightEntity;
     readonly subscriber: ILightEntity;
     readonly publisher: ILightEntity;
@@ -162,7 +162,7 @@ export interface IIndex extends IBaseEntity {
     readonly indexId: string;
     readonly oldIndexValue: string;
     readonly newIndexValue: string;
-    readonly totalSubscribers: number;
+    readonly totalSubscriptions: number;
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
@@ -257,7 +257,7 @@ export interface IUpdateGlobalObjectData {
     readonly updatedSenderATS?: IAccountTokenSnapshot;
     readonly revisionIndexId?: string;
     readonly updatedIndex?: IIndex;
-    readonly updatedSubscriber?: ISubscriber;
+    readonly updatedSubscription?: ISubscription;
 }
 
 export interface IAggregateLocalData {
@@ -279,7 +279,7 @@ export interface IStreamLocalData extends IAggregateLocalData {
 }
 export interface IDistributionLocalData extends IAggregateLocalData {
     readonly indexes: { [id: string]: IIndex | undefined };
-    readonly subscribers: { [id: string]: ISubscriber | undefined };
+    readonly subscriptions: { [id: string]: ISubscription | undefined };
 }
 
 export interface IContracts {
@@ -369,7 +369,7 @@ export interface IExtraExpectedData extends IExtraEventData {
 
 export interface IInstantDistributionLocalData extends IAggregateLocalData {
     readonly indexes: { [id: string]: IIndex | undefined };
-    readonly subscribers: { [id: string]: ISubscriber | undefined };
+    readonly subscriptions: { [id: string]: ISubscription | undefined };
 }
 
 export interface IInstantDistributionTestData
@@ -435,7 +435,7 @@ export interface IGetExpectedIDADataParams {
     readonly atsArray: IAccountTokenSnapshot[];
     readonly currentIndex: IIndex;
     readonly currentPublisherATS: IAccountTokenSnapshot;
-    readonly currentSubscriber: ISubscriber;
+    readonly currentSubscription: ISubscription;
     readonly currentSubscriberATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
     readonly updatedAtBlock: string;

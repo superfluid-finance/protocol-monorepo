@@ -13,14 +13,14 @@ import {
     IIndex,
     IInstantDistributionTestData,
     IStreamData,
-    ISubscriber,
+    ISubscription,
     ITokenStatistic,
 } from "../interfaces";
 import {
     getIndexId,
     getRevisionIndexId,
     getStreamId,
-    getSubscriberId,
+    getSubscriptionId,
 } from "./helpers";
 
 export const getOrInitRevisionIndex = (
@@ -68,7 +68,7 @@ export const getOrInitIndex = (
             token: { id: token },
             oldIndexValue: "0",
             newIndexValue: "0",
-            totalSubscribers: 0,
+            totalSubscriptions: 0,
             totalUnits: "0",
             totalUnitsApproved: "0",
             totalAmountDistributedUntilUpdatedAt: "0",
@@ -78,18 +78,19 @@ export const getOrInitIndex = (
     return existingIndex;
 };
 
-export const getOrInitSubscriber = (
-    subscribers: { [id: string]: ISubscriber | undefined },
-    subscriberId: string,
+export const getOrInitSubscription = (
+    subscription: { [id: string]: ISubscription | undefined },
+    subscriptionId: string,
     updatedAtBlock: string,
     updatedAtTimestamp: string
-): ISubscriber => {
-    const existingSubscriber = subscribers[subscriberId];
-    if (existingSubscriber == null) {
-        const [subscriber, publisher, token, indexId] = subscriberId.split("-");
+): ISubscription => {
+    const existingSubscription = subscription[subscriptionId];
+    if (existingSubscription == null) {
+        const [subscriber, publisher, token, indexId] =
+            subscriptionId.split("-");
         const indexEntityId = getIndexId(publisher, token, indexId);
         return {
-            id: subscriberId,
+            id: subscriptionId,
             createdAt: updatedAtTimestamp,
             updatedAtBlock: updatedAtBlock,
             updatedAtTimestamp: updatedAtTimestamp,
@@ -104,7 +105,7 @@ export const getOrInitSubscriber = (
             index: { id: indexEntityId },
         };
     }
-    return existingSubscriber;
+    return existingSubscription;
 };
 
 export const getOrInitAccountTokenSnapshot = (
@@ -253,12 +254,12 @@ export function getOrInitializeDataForIDA(
         lastUpdatedBlockNumber,
         publisher,
         subscriber,
-        subscribers,
+        subscriptions,
         token,
         tokenStatistics,
     } = testData;
     let subscriberAddress = subscriber || "";
-    const subscriberEntityId = getSubscriberId(
+    const subscriptionId = getSubscriptionId(
         subscriberAddress,
         publisher,
         token,
@@ -272,9 +273,9 @@ export function getOrInitializeDataForIDA(
         lastUpdatedAtTimestamp
     );
 
-    const currentSubscriber = getOrInitSubscriber(
-        subscribers,
-        subscriberEntityId,
+    const currentSubscription = getOrInitSubscription(
+        subscriptions,
+        subscriptionId,
         lastUpdatedBlockNumber,
         lastUpdatedAtTimestamp
     );
@@ -301,10 +302,10 @@ export function getOrInitializeDataForIDA(
         lastUpdatedAtTimestamp
     );
     return {
-        subscriberEntityId,
+        subscriptionId,
         indexEntityId,
         currentIndex,
-        currentSubscriber,
+        currentSubscription,
         currentPublisherATS,
         currentSubscriberATS,
         currentTokenStats,

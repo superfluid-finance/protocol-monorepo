@@ -15,7 +15,7 @@ import {
     IIndex,
     IStreamData,
     IStreamLocalData,
-    ISubscriber,
+    ISubscription,
     ITokenStatistic,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
@@ -24,8 +24,6 @@ import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
-// TODO: Subscriber => Subscription
-// TODO: Append "Event" to event entities FlowUpdatedEvent, etc.
 // TODO: track sent events
 // TODO: go through the paths
 // probably can make a generalized function which can
@@ -44,7 +42,7 @@ describe("Subgraph Tests", () => {
     let revisionIndexes: { [id: string]: number | undefined } = {}; // id is sender-recipient-token
     let streamData: { [id: string]: IStreamData | undefined } = {}; // id is stream id
     let indexes: { [id: string]: IIndex | undefined } = {}; // id is index id
-    let subscribers: { [id: string]: ISubscriber | undefined } = {}; // id is subscriber id
+    let subscription: { [id: string]: ISubscription | undefined } = {}; // id is subscription id
     let accountTokenSnapshots: {
         [id: string]: IAccountTokenSnapshot | undefined;
     } = {}; // id is ats id
@@ -69,7 +67,7 @@ describe("Subgraph Tests", () => {
     function updateGlobalObjectsForIDAEvents(
         updatedTokenStats: ITokenStatistic,
         updatedIndex?: IIndex,
-        updatedSubscriber?: ISubscriber,
+        updatedSubscription?: ISubscription,
         updatedPublisherATS?: IAccountTokenSnapshot,
         updatedSubscriberATS?: IAccountTokenSnapshot
     ) {
@@ -77,8 +75,8 @@ describe("Subgraph Tests", () => {
         if (updatedIndex) {
             indexes[updatedIndex.id] = updatedIndex;
         }
-        if (updatedSubscriber) {
-            subscribers[updatedSubscriber.id] = updatedSubscriber;
+        if (updatedSubscription) {
+            subscription[updatedSubscription.id] = updatedSubscription;
         }
         if (updatedPublisherATS) {
             accountTokenSnapshots[updatedPublisherATS.id] = updatedPublisherATS;
@@ -112,7 +110,7 @@ describe("Subgraph Tests", () => {
             accountTokenSnapshots,
             tokenStatistics,
             indexes,
-            subscribers,
+            subscriptions: subscription,
         };
     }
 
@@ -524,7 +522,7 @@ describe("Subgraph Tests", () => {
                 const {
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS,
                 } = await testModifyIDA({
@@ -537,7 +535,7 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS
                 );
@@ -567,7 +565,7 @@ describe("Subgraph Tests", () => {
                 const {
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS,
                 } = await testModifyIDA({
@@ -581,7 +579,7 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS
                 );
@@ -642,7 +640,7 @@ describe("Subgraph Tests", () => {
                 const {
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS,
                 } = await testModifyIDA({
@@ -657,7 +655,7 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS
                 );
@@ -714,7 +712,7 @@ describe("Subgraph Tests", () => {
                 const {
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS,
                 } = await testModifyIDA({
@@ -729,7 +727,7 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS
                 );
@@ -756,7 +754,7 @@ describe("Subgraph Tests", () => {
                 const {
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS,
                 } = await testModifyIDA({
@@ -771,7 +769,7 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
                     updatedIndex,
-                    updatedSubscriber,
+                    updatedSubscription,
                     updatedPublisherATS,
                     updatedSubscriberATS
                 );

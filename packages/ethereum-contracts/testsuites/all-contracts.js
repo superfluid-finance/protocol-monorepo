@@ -11,3 +11,6 @@ require("../test/contracts/utils/BatchLiquidator.test.js");
 
 // UX contracts
 require("../test/contracts/ux/SuperUpgrader.test.js");
+
+// CLOWNS
+require("../test/contracts/superfluid/CLOWNS.test");

@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/create-new-app-registration-key : {DEPLOYER} {REGISTRATION_KEY}
+ * Usage: npx truffle exec scripts/create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {

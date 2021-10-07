@@ -1,8 +1,5 @@
 const { expectEvent } = require("@openzeppelin/test-helpers");
-const {
-    toWad,
-    wad4human
-} = require("@decentral.ee/web3-helpers");
+const { toWad, wad4human } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");
 

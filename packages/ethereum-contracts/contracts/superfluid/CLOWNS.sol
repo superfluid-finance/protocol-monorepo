@@ -23,6 +23,8 @@ interface ICLOWNSv1 {
      */
     function getCurrentCLOBond(ISuperToken token) external view returns(address clo, uint256 remainingBond);
 
+    function changeExitRate(int96 newExitRate) external;
+
     /**
      * @dev New CLO event
      * @param token The Super token the new CLO bid for
@@ -126,6 +128,15 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
         emit NewCLO(token, newCLO, amount, exitRate);
     }
 
+    // TODO: add to interface
+    function getDefaultExitRate(uint256 bondAmount) public view returns(int96 exitRate){
+        return int96(bondAmount / minBondDuration);
+    }
+
+    function changeExitRate(int96 newExitRate) external override {
+        // TODO
+    }
+
     // ============ IERC777Recipient ============
 
     function tokensReceived(
@@ -139,8 +150,10 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
         // if it's not a SuperToken, something will revert along the way
         ISuperToken token = ISuperToken(msg.sender);
 
-        // will revert if not a valid int96
-        int96 exitRate = abi.decode(userData, (int96));
+        int96 exitRate = userData.length == 0 ?
+            getDefaultExitRate(amount) :
+            abi.decode(userData, (int96));
+
         _becomeCLO(token, from, amount, exitRate);
     }
 }

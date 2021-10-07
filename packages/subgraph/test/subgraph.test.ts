@@ -24,7 +24,8 @@ import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
-// TODO: track sent events
+// Test: Check if last item of the subgraph array is equal to the
+// event which was just added
 // TODO: go through the paths
 // probably can make a generalized function which can
 // filter and fetch events of a particular contract

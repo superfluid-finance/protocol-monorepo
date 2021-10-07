@@ -218,7 +218,7 @@ templates:
         - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
           handler: {{network}}HandleMinted
         - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{testNetwork}}HandleSent
+          handler: {{network}}HandleSent
         - event: TokenUpgraded(indexed address,uint256)
           handler: {{network}}HandleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)

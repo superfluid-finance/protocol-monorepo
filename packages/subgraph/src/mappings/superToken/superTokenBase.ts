@@ -6,6 +6,7 @@ import {
     AgreementLiquidatedBy,
     Burned,
     Minted,
+    Sent,
 } from "../../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
@@ -14,6 +15,7 @@ import {
     TokenUpgradedEvent,
     TokenDowngradedEvent,
     TransferEvent,
+    SentEvent,
 } from "../../../generated/schema";
 import {
     createEventID,
@@ -218,6 +220,19 @@ export function handleTransfer(
     );
 }
 
+export function handleSent(
+    event: Sent,
+    hostAddress: Address,
+    resolverAddress: Address
+): void {
+    let hasValidHost = tokenHasValidHost(hostAddress, event.address);
+    if (!hasValidHost) {
+        return;
+    }
+
+	createSentEntity(event);
+}
+
 /**
  * This always gets called with the Transfer event, which handles
  * a lot of the logic with the Token, Account, ATS and TokenStatistic
@@ -294,6 +309,19 @@ function createMintedEntity(event: Minted): void {
     ev.amount = event.params.amount;
     ev.data = event.params.data;
     ev.operatorData = event.params.operatorData;
+    ev.save();
+}
+
+function createSentEntity(event: Sent): void {
+    let ev = new SentEvent(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.amount = event.params.amount;
+    ev.data = event.params.data;
+    ev.operator = event.params.operator;
+    ev.operatorData = event.params.operatorData;
+    ev.to = event.params.to;
     ev.save();
 }
 

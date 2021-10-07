@@ -3,6 +3,7 @@ import {
     AgreementLiquidatedBy as AgreementLiquidatedByEvent,
     Burned as BurnedEvent,
     Minted as MintedEvent,
+    Sent as SentEvent,
     TokenDowngraded as TokenDowngradedEvent,
     TokenUpgraded as TokenUpgradedEvent,
     Transfer as TransferEvent,
@@ -12,6 +13,7 @@ import {
     handleAgreementLiquidatedBy,
     handleBurned,
     handleMinted,
+    handleSent,
     handleTokenDowngraded,
     handleTokenUpgraded,
     handleTransfer,
@@ -24,6 +26,10 @@ export function kovanHandleAgreementLiquidatedBy(
     event: AgreementLiquidatedByEvent
 ): void {
     handleAgreementLiquidatedBy(event, HOST_ADDRESS, RESOLVER_ADDRESS);
+}
+
+export function kovanHandleSent(event: SentEvent): void {
+    handleSent(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function kovanHandleTokenUpgraded(event: TokenUpgradedEvent): void {

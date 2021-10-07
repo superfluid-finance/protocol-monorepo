@@ -20,15 +20,12 @@ import {
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
-import {
-    testIndexCreated,
-    testFlowUpdated,
-    testModifyIDA,
-} from "./helpers/testers";
+import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
 // TODO: Tests for totalSupply also needed
 // TODO: Tests for reverse lookup fields needed
-// TODO: 1. refactor IndexCreated like you did for the other functions (remove testIndexCreated)
+// TODO: Subscriber => Subscription
+// TODO: Append "Event" to event entities FlowUpdatedEvent, etc.
 // TODO: track sent events
 // TODO: go through the paths
 // probably can make a generalized function which can
@@ -489,16 +486,19 @@ describe("Subgraph Tests", () => {
                     indexId: i,
                     atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
+                    subscriber: "",
                 };
-                const { currentIndex, updatedTokenStats } =
-                    await testIndexCreated(
-                        getContracts(),
-                        getDistributionLocalData(),
-                        baseParams
-                    );
+                const { updatedIndex, updatedTokenStats } = await testModifyIDA(
+                    {
+                        contracts: getContracts(),
+                        localData: getDistributionLocalData(),
+                        baseParams,
+                        eventType: IDAEventType.IndexCreated,
+                    }
+                );
                 updateGlobalObjectsForIDAEvents(
                     updatedTokenStats,
-                    currentIndex
+                    updatedIndex
                 );
             }
         });
@@ -678,7 +678,65 @@ describe("Subgraph Tests", () => {
              */
         });
 
-        it.skip("Should return correct data after deleting a subscription (as subscriber).", async () => {
+        /**
+         * Claim Units Test
+         */
+        it("Should return correct data after claiming units.", async () => {
+            /**
+             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
+             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
+             * remember to take into consideration the flowRate data here too
+             * use toBN
+             * this is the funky one where you need to make an additional web3 call to get the correct amount because the subgraph will return an incorrect result.
+             */
+        });
+
+        /**
+         * Distribute Tests
+         */
+        it("Should return correct data after calling distribute to 0 subscribers", async () => {
+            const token = daix.address;
+            for (let i = 1; i < userAddresses.length; i++) {
+                // Take this code and put it into a function (it will be reused)
+                const publisher = userAddresses[i];
+                const amountOrIndexValue = new BN(100);
+
+                const baseParams = {
+                    provider,
+                    token,
+                    publisher,
+                    indexId: i,
+                    atsArray: getAccountTokenSnapshotsArray(),
+                    userData: "0x",
+                    subscriber: "",
+                };
+
+                const {
+                    updatedTokenStats,
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS,
+                } = await testModifyIDA({
+                    contracts: getContracts(),
+                    localData: getDistributionLocalData(),
+                    baseParams,
+                    eventType: IDAEventType.IndexUpdated,
+                    amountOrIndexValue,
+                    isDistribute: true,
+                });
+
+                updateGlobalObjectsForIDAEvents(
+                    updatedTokenStats,
+                    updatedIndex,
+                    updatedSubscriber,
+                    updatedPublisherATS,
+                    updatedSubscriberATS
+                );
+            }
+        });
+
+        it("Should return correct data after deleting a subscription (as subscriber).", async () => {
             const token = daix.address;
             for (let i = 1; i < userAddresses.length; i++) {
                 // Take this code and put it into a function (it will be reused)
@@ -708,65 +766,6 @@ describe("Subgraph Tests", () => {
                     eventType: IDAEventType.SubscriptionRevoked,
                     isRevoke: false,
                     sender: subscriber,
-                });
-
-                updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscriber,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
-                );
-            }
-        });
-
-        /**
-         * Claim Units Test
-         */
-        it("Should return correct data after claiming units.", async () => {
-            /**
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             * this is the funky one where you need to make an additional web3 call to get the correct amount because the subgraph will return an incorrect result.
-             */
-        });
-
-        /**
-         * Distribute Tests
-         */
-        it("Should return correct data after calling distribute to 0 subscribers", async () => {
-            const token = daix.address;
-            for (let i = 1; i < userAddresses.length; i++) {
-                // Take this code and put it into a function (it will be reused)
-                const publisher = userAddresses[i];
-                const subscriber = userAddresses[i - 1];
-                const amountOrIndexValue = new BN(100);
-
-                const baseParams = {
-                    provider,
-                    token,
-                    publisher,
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber,
-                };
-
-                const {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscriber,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.IndexUpdated,
-                    amountOrIndexValue,
-                    isDistribute: true,
                 });
 
                 updateGlobalObjectsForIDAEvents(

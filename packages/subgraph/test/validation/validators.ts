@@ -54,16 +54,20 @@ export async function validateModifyIDA(
     publisher: string,
     subscriber: string
 ) {
+    // We don't want to validate the subscriber for the IndexCreated/IndexUpdated
+    // events
+    if (subscriber !== "") {
+        await fetchSubscriberAndValidate(
+            idaV1,
+            updatedSubscriber,
+            updatedIndex.newIndexValue
+        );
+        const subscriberATSId =
+            subscriber.toLowerCase() + "-" + token.toLowerCase();
+        await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
+    }
     await fetchIndexAndValidate(idaV1, updatedIndex);
-    await fetchSubscriberAndValidate(
-        idaV1,
-        updatedSubscriber,
-        updatedIndex.newIndexValue
-    );
     const publisherATSId = publisher.toLowerCase() + "-" + token.toLowerCase();
-    const subscriberATSId =
-        subscriber.toLowerCase() + "-" + token.toLowerCase();
     await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
-    await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
     await fetchTokenStatsAndValidate(token.toLowerCase(), updatedTokenStats);
 }

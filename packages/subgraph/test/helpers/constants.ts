@@ -1,5 +1,6 @@
 import { IEventQueryData } from "../interfaces";
 import {
+    getIndexCreatedEvents,
     getIndexUpdatedEvents,
     getSubscriptionApprovedEvents,
     getSubscriptionRevokedEvents,
@@ -37,6 +38,14 @@ export const idaEventTypeToEventQueryDataMap = new Map<
     IEventQueryData
 >([
     [
+        IDAEventType.IndexCreated,
+        {
+            query: getIndexCreatedEvents,
+            queryResultName: "indexCreateds",
+            queryName: "IndexCreated",
+        },
+    ],
+    [
         IDAEventType.IndexUpdated,
         {
             query: getIndexUpdatedEvents,
@@ -53,19 +62,19 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         },
     ],
     [
-        IDAEventType.SubscriptionUnitsUpdated,
-        {
-            query: getSubscriptionUnitsUpdatedEvents,
-            queryResultName: "subscriptionUnitsUpdateds",
-            queryName: "SubscriptionUnitsUpdated",
-        },
-    ],
-    [
         IDAEventType.SubscriptionRevoked,
         {
             query: getSubscriptionRevokedEvents,
             queryResultName: "subscriptionRevokeds",
             queryName: "SubscriptionRevoked",
+        },
+    ],
+    [
+        IDAEventType.SubscriptionUnitsUpdated,
+        {
+            query: getSubscriptionUnitsUpdatedEvents,
+            queryResultName: "subscriptionUnitsUpdateds",
+            queryName: "SubscriptionUnitsUpdated",
         },
     ],
 ]);

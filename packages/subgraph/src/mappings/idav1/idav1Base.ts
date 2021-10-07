@@ -251,6 +251,7 @@ export function handleSubscriptionApproved(
         event.params.subscriber.toHex(),
         event.params.token.toHex(),
         hasSubscription,
+        subscriber.approved,
         false,
         true,
         event.block
@@ -305,8 +306,19 @@ export function handleSubscriptionRevoked(
         .minus(subscriber.lastIndexValue)
         .times(subscriber.units);
 
-    index.totalUnitsApproved = index.totalUnitsApproved.minus(subscriber.units);
-    index.totalUnitsPending = index.totalUnitsPending.plus(subscriber.units);
+    // we only shift the balance from approved to pending for approved subscriptions
+    // when you delete an approved subscription, we run through this and we clear the
+    // totalUnitsPending in handleSubscriptionUnitsUpdated
+    // when you delete as an unapproved user, we just subtract subscription units
+    // in handleSubscriptionUnitsUpdated
+    if (subscriber.approved) {
+        index.totalUnitsApproved = index.totalUnitsApproved.minus(
+            subscriber.units
+        );
+        index.totalUnitsPending = index.totalUnitsPending.plus(
+            subscriber.units
+        );
+    }
     subscriber.lastIndexValue = index.newIndexValue;
 
     updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
@@ -317,6 +329,7 @@ export function handleSubscriptionRevoked(
         subscriberAddress,
         tokenId,
         true,
+        subscriber.approved,
         false,
         false,
         event.block
@@ -429,6 +442,7 @@ export function handleSubscriptionUnitsUpdated(
                 event.params.subscriber.toHex(),
                 tokenId,
                 hasSubscription,
+                subscriber.approved,
                 false,
                 false,
                 event.block
@@ -490,20 +504,16 @@ export function handleSubscriptionUnitsUpdated(
     } else {
         // deleting subscription
         index.totalUnits = index.totalUnits.minus(subscriber.units);
-        if (subscriber.approved) {
-            // we need to subtract sub.units from totalUnitsPending because we increment this in
-            // handleSubscriptionRevoked and we want to bring it back to 0.
-            index.totalUnitsPending = index.totalUnitsPending.minus(
-                subscriber.units
-            );
-        } else {
-            // we need to subtract by sub.units * two in the event that we are deleting subscriptions
-            // as we increment by sub.units to totalUnitsPending in handleSubscriptionRevoked and we want
-            // the end result to be: totalUnitsPending - sub.units.
-            index.totalUnitsPending = index.totalUnitsPending.minus(
-                subscriber.units.times(BigInt.fromI32(2))
-            );
-        }
+
+        // we need to subtract sub.units from totalUnitsPending because we increment this in
+        // handleSubscriptionRevoked and we want to bring it back to 0.
+        // in the contract there is a distinction to handle approved vs unapproved, but if we
+        // are deleting a subscription, we set subscriber.approved to false in
+        // handleSubscriptionRevoked and so we only need to subtract from totalUnitsPending
+        // per the contract
+        index.totalUnitsPending = index.totalUnitsPending.minus(
+            subscriber.units
+        );
 
         subscriber.units = BIG_INT_ZERO;
 
@@ -523,6 +533,7 @@ export function handleSubscriptionUnitsUpdated(
             subscriber.subscriber,
             tokenId,
             true,
+            subscriber.approved,
             true,
             false,
             event.block

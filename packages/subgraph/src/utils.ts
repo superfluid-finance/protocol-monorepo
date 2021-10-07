@@ -584,6 +584,7 @@ export function getOrInitTokenStatistic(
  * @param accountId
  * @param tokenId
  * @param subscriptionExists
+ * @param subscriptionApproved
  * @param isDeletingSubscription
  * @param isApproving
  * @param block
@@ -592,6 +593,7 @@ export function updateAggregateIDASubscriptionsData(
     accountId: string,
     tokenId: string,
     subscriptionExists: boolean,
+    subscriptionApproved: boolean,
     isDeletingSubscription: boolean,
     isApproving: boolean,
     block: ethereum.Block
@@ -609,7 +611,7 @@ export function updateAggregateIDASubscriptionsData(
         : 1;
     let totalApprovedSubscriptionsDelta = isApproving
         ? 1
-        : subscriptionExists
+        : subscriptionExists && subscriptionApproved
         ? -1
         : 0;
 

@@ -209,7 +209,11 @@ TESTENV_EVM_SNAPSHOT_ID=0x1
 
 Next, you should choose the tests relevant for what you're working on using the [only keyword](https://mochajs.org/#exclusive-tests).
 You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`) and individual testcases (`it`).
-`yarn dev` has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
+With the testing scope defined, run:
+```
+yarn dev
+```
+This has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
 The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
 After finishing the session, you can stop the ganache instance you started in the first step (Ctrl-C).

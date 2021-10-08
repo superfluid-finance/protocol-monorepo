@@ -4,7 +4,7 @@ export const getAccountTokenSnapshot = gql`
     query getAccountTokenSnapshot($id: ID!) {
         accountTokenSnapshot(id: $id) {
             updatedAtTimestamp
-            updatedAtBlock
+            updatedAtBlockNumber
             totalNumberOfActiveStreams
             totalNumberOfClosedStreams
             totalSubscriptions
@@ -30,7 +30,7 @@ export const getTokenStatistic = gql`
         tokenStatistic(id: $id) {
             id
             updatedAtTimestamp
-            updatedAtBlock
+            updatedAtBlockNumber
             totalNumberOfActiveStreams
             totalNumberOfClosedStreams
             totalNumberOfIndexes

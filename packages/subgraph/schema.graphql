@@ -375,9 +375,10 @@ Superfluid contracts.
 """
 type Account @entity {
     id: ID!
-    createdAt: BigInt!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
+    updatedAtBlockNumber: BigInt!
 
     """
     Indicates whether the address/account is a super app.
@@ -407,9 +408,10 @@ type Index @entity {
     ID composed of: publisherAddress-tokenAddress-IndexId
     """
     id: ID!
-    createdAt: BigInt!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
+    updatedAtBlockNumber: BigInt!
     indexId: BigInt!
     # ---------------------------------- state ----------------------------------
     oldIndexValue: BigInt!
@@ -467,9 +469,10 @@ type IndexSubscription @entity {
     ID composed of: subscriberAddress-publisherAddress-tokenAddress-IndexId
     """
     id: ID!
-    createdAt: BigInt!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
+    updatedAtBlockNumber: BigInt!
     token: Token!
     subscriber: Account!
     publisher: Account!
@@ -494,9 +497,11 @@ type IndexSubscription @entity {
     totalAmountReceivedUntilUpdatedAt: BigInt!
 
     """
-    The previous index value (used to calculate the `totalAmountReceivedUntilUpdatedAt` field).
+       The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the
+    `index.updatedAtTimestamp`. The formula to get this value is:
+    `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue - indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
     """
-    lastIndexValue: BigInt!
+    indexValueUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
     index: Index!
 
@@ -525,14 +530,17 @@ type Stream @entity {
     ID composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
     """
     id: ID!
-    createdAt: BigInt!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
+    updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
     currentFlowRate: BigInt!
 
     """
-    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`.
+       The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
+    amount is:
+    `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
     """
     streamedUntilUpdatedAt: BigInt!
     # ---------------------------------- links ----------------------------------
@@ -551,7 +559,6 @@ type StreamRevision @entity {
     revisionIndex: Int!
 }
 
-
 """
 Token: A HOL entity created for super tokens that are "valid" (tokens that have
 Superfluid's host contract address set as the host).
@@ -562,7 +569,8 @@ type Token @entity {
     ID: the token address
     """
     id: ID!
-    createdAt: BigInt!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
     name: String!
     symbol: String!
     isSuperToken: Boolean!
@@ -591,7 +599,7 @@ type AccountTokenSnapshot @entity {
     """
     id: ID!
     updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
+    updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
     """
     The number of currently open streams.
@@ -658,7 +666,7 @@ type TokenStatistic @entity {
     """
     id: ID!
     updatedAtTimestamp: BigInt!
-    updatedAtBlock: BigInt!
+    updatedAtBlockNumber: BigInt!
     # ---------------------------------- state ----------------------------------
     """
     The total number of currently active `token` streams.

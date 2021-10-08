@@ -261,9 +261,9 @@ export const validateSubscriptionEntity = async (
         "Subscription: totalAmountReceivedUntilUpdatedAt error"
     ).to.equal(expectedSubscription.totalAmountReceivedUntilUpdatedAt);
     expect(
-        subgraphSubscription.lastIndexValue,
-        "Subscription: lastIndexValue error"
-    ).to.equal(expectedSubscription.lastIndexValue);
+        subgraphSubscription.indexValueUntilUpdatedAt,
+        "Subscription: indexValueUntilUpdatedAt error"
+    ).to.equal(expectedSubscription.indexValueUntilUpdatedAt);
 
     // Check subgraph data against web3 data
     expect(
@@ -276,7 +276,9 @@ export const validateSubscriptionEntity = async (
     const calcPendingDistribution = approved
         ? "0"
         : toBN(subgraphSubscription.units).mul(
-              toBN(newIndexValue).sub(toBN(subgraphSubscription.lastIndexValue))
+              toBN(newIndexValue).sub(
+                  toBN(subgraphSubscription.indexValueUntilUpdatedAt)
+              )
           );
     expect(calcPendingDistribution.toString()).to.equal(
         pendingDistribution.toString()

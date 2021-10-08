@@ -40,7 +40,7 @@ export const getIndex = gql`
             publisher {
                 id
             }
-            subscriptions(orderBy: createdAt, orderDirection: asc) {
+            subscriptions(orderBy: createdAtTimestamp, orderDirection: asc) {
                 id
             }
             indexCreatedEvent(orderBy: timestamp, orderDirection: asc) {
@@ -70,7 +70,7 @@ export const getSubscription = gql`
             approved
             units
             totalAmountReceivedUntilUpdatedAt
-            lastIndexValue
+            indexValueUntilUpdatedAt
             index {
                 id
             }

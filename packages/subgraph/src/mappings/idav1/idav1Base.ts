@@ -65,7 +65,7 @@ export function handleIndexCreated(
     tokenStatistic.totalNumberOfIndexes =
         tokenStatistic.totalNumberOfIndexes + 1;
     tokenStatistic.updatedAtTimestamp = currentTimestamp;
-    tokenStatistic.updatedAtBlock = event.block.number;
+    tokenStatistic.updatedAtBlockNumber = event.block.number;
     tokenStatistic.save();
 
     createIndexCreatedEntity(event, index.id);
@@ -130,7 +130,7 @@ export function handleIndexUpdated(
             distributionDelta
         );
     tokenStatistic.updatedAtTimestamp = event.block.timestamp;
-    tokenStatistic.updatedAtBlock = event.block.number;
+    tokenStatistic.updatedAtBlockNumber = event.block.number;
     tokenStatistic.save();
 
     updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
@@ -180,11 +180,11 @@ export function handleSubscriptionApproved(
     );
 
     let balanceDelta = index.newIndexValue
-        .minus(subscription.lastIndexValue)
+        .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
     subscription.approved = true;
-    subscription.lastIndexValue = index.newIndexValue;
+    subscription.indexValueUntilUpdatedAt = index.newIndexValue;
 
     let tokenId = event.params.token.toHex();
 
@@ -297,7 +297,7 @@ export function handleSubscriptionRevoked(
     );
 
     let balanceDelta = index.newIndexValue
-        .minus(subscription.lastIndexValue)
+        .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
     // we only shift the balance from approved to pending for approved subscriptions
@@ -313,7 +313,7 @@ export function handleSubscriptionRevoked(
             subscription.units
         );
     }
-    subscription.lastIndexValue = index.newIndexValue;
+    subscription.indexValueUntilUpdatedAt = index.newIndexValue;
 
     updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
     updateATSBalanceAndUpdatedAt(subscriberAddress, tokenId, event.block);
@@ -424,7 +424,7 @@ export function handleSubscriptionUnitsUpdated(
             // create unallocated subscription
             subscription.indexId = event.params.indexId;
             subscription.units = event.params.units;
-            subscription.lastIndexValue = index.newIndexValue;
+            subscription.indexValueUntilUpdatedAt = index.newIndexValue;
 
             index.totalUnitsPending = index.totalUnitsPending.plus(units);
             index.totalUnits = index.totalUnits.plus(units);
@@ -444,7 +444,7 @@ export function handleSubscriptionUnitsUpdated(
         }
 
         let balanceDelta = index.newIndexValue
-            .minus(subscription.lastIndexValue)
+            .minus(subscription.indexValueUntilUpdatedAt)
             .times(subscription.units);
 
         // token.settleBalance should be the trigger for updating
@@ -492,7 +492,7 @@ export function handleSubscriptionUnitsUpdated(
         // we only update subscription units in updateSubscription
         // if user hasSubscription
         if (hasSubscription) {
-            subscription.lastIndexValue = index.newIndexValue;
+            subscription.indexValueUntilUpdatedAt = index.newIndexValue;
             subscription.units = event.params.units;
         }
     } else {

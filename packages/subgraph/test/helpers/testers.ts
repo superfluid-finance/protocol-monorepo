@@ -112,8 +112,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         pastStreamData,
         revisionIndexId,
     } = getOrInitializeDataForFlowUpdated({
-        lastUpdatedAtTimestamp,
-        lastUpdatedBlockNumber,
+        updatedAtTimestamp: lastUpdatedAtTimestamp,
+        updatedAtBlockNumber: lastUpdatedBlockNumber,
         sender,
         receiver,
         token: superToken.address,
@@ -140,7 +140,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
 
     const streamedAmountSinceUpdatedAt = toBN(pastStreamData.oldFlowRate).mul(
         toBN(lastUpdatedAtTimestamp).sub(
-            toBN(pastStreamData.lastUpdatedAtTimestamp)
+            toBN(pastStreamData.updatedAtTimestamp)
         )
     );
 
@@ -232,7 +232,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         localData;
     const { token, publisher, indexId, atsArray, subscriber } = baseParams;
 
-    const { receipt, timestamp, updatedAtBlock } =
+    const { receipt, timestamp, updatedAtBlockNumber } =
         await executeIDATransactionByTypeAndWaitForIndexer(
             sf,
             eventType,
@@ -255,8 +255,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         accountTokenSnapshots,
         indexes,
         indexId: indexId.toString(),
-        lastUpdatedAtTimestamp: timestamp,
-        lastUpdatedBlockNumber: updatedAtBlock,
+        updatedAtTimestamp: timestamp,
+        updatedAtBlockNumber,
         publisher,
         subscriptions,
         subscriber,
@@ -313,7 +313,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         currentPublisherATS,
         currentSubscriberATS,
         currentTokenStats,
-        updatedAtBlock,
+        updatedAtBlockNumber,
         timestamp,
     };
 
@@ -366,7 +366,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     amountOrIndexValue?: BN
 ) {
     let timestamp: string = "";
-    let updatedAtBlock: string = "";
+    let updatedAtBlockNumber: string = "";
     let receipt;
     let txn: any;
     const ida = sf.ida as InstantDistributionAgreementV1Helper;
@@ -445,9 +445,9 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     await waitUntilBlockIndexed(receipt.blockNumber);
 
     timestamp = block.timestamp.toString();
-    updatedAtBlock = receipt.blockNumber.toString();
+    updatedAtBlockNumber = receipt.blockNumber.toString();
 
-    return { receipt, timestamp, updatedAtBlock };
+    return { receipt, timestamp, updatedAtBlockNumber };
 }
 
 function getIDAEventDataForValidation(

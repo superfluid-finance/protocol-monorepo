@@ -83,7 +83,7 @@ export function handleStreamUpdated(
     stream.currentFlowRate = flowRate;
     stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
     stream.updatedAtTimestamp = currentTimestamp;
-    stream.updatedAtBlock = event.block.number;
+    stream.updatedAtBlockNumber = event.block.number;
     stream.save();
 
     let senderId = senderAddress.toHex();

@@ -15,7 +15,8 @@ import {
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 
 // TODO: GET DATA 100% ACCURATE
-// THEN: WORK ON MAPPING OPTIMIZATION
+// THEN: WORK ON MAPPING OPTIMIZATION - this is mainly contract calls
+// and .load (kinda)
 // e.g. don't save in the modifier functions, instead let it take the object in
 // and always return the object - always save outside of the util functions at
 // the mapping level
@@ -88,9 +89,10 @@ export function getOrInitAccount(
         let hostContract = Superfluid.bind(hostAddress);
         let appManifestResult = hostContract.try_getAppManifest(accountAddress);
         account = new Account(accountAddress.toHex());
-        account.createdAt = currentTimestamp;
+        account.createdAtTimestamp = currentTimestamp;
+        account.createdAtBlockNumber = block.number;
         account.updatedAtTimestamp = currentTimestamp;
-        account.updatedAtBlock = block.number;
+        account.updatedAtBlockNumber = block.number;
         if (appManifestResult.reverted) {
             account.isSuperApp = false;
         } else {
@@ -146,7 +148,8 @@ export function getOrInitSuperToken(
 
     if (token == null) {
         token = new Token(tokenId);
-        token.createdAt = currentTimestamp;
+        token.createdAtTimestamp = currentTimestamp;
+        token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
         token = getTokenInfoAndReturn(
             token as Token,
@@ -172,7 +175,7 @@ export function getOrInitSuperToken(
             underlyingAddress.notEqual(new Address(0)) &&
             underlyingToken == null
         ) {
-            getOrInitToken(underlyingAddress as Address, currentTimestamp);
+            getOrInitToken(underlyingAddress as Address, block);
         }
 
         return token as Token;
@@ -200,11 +203,12 @@ export function getOrInitSuperToken(
  */
 export function getOrInitToken(
     tokenAddress: Address,
-    currentTimestamp: BigInt
+    block: ethereum.Block
 ): void {
     let tokenId = tokenAddress.toHex();
     let token = new Token(tokenId);
-    token.createdAt = currentTimestamp;
+    token.createdAtTimestamp = block.timestamp;
+    token.createdAtBlockNumber = block.number;
     token.isSuperToken = false;
     token.isListed = false;
     token = getTokenInfoAndReturn(token as Token, tokenAddress, new Address(0));
@@ -285,14 +289,15 @@ export function getOrInitStream(
     let stream = Stream.load(id);
     if (stream == null) {
         stream = new Stream(id);
-        stream.createdAt = currentTimestamp;
+        stream.createdAtTimestamp = currentTimestamp;
+        stream.createdAtBlockNumber = block.number;
         stream.token = tokenAddress.toHex();
         stream.sender = senderAddress.toHex();
         stream.receiver = receiverAddress.toHex();
         stream.currentFlowRate = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
-        stream.updatedAtBlock = block.number;
+        stream.updatedAtBlockNumber = block.number;
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
@@ -330,7 +335,8 @@ export function getOrInitIndex(
         let publisherId = publisherAddress.toHex();
         let tokenId = tokenAddress.toHex();
         index = new Index(indexEntityId);
-        index.createdAt = currentTimestamp;
+        index.createdAtTimestamp = currentTimestamp;
+        index.createdAtBlockNumber = block.number;
         index.indexId = indexId;
         index.oldIndexValue = BIG_INT_ZERO;
         index.newIndexValue = BIG_INT_ZERO;
@@ -350,7 +356,7 @@ export function getOrInitIndex(
         getOrInitSuperToken(tokenAddress, resolverAddress, block);
     }
     index.updatedAtTimestamp = currentTimestamp;
-    index.updatedAtBlock = block.number;
+    index.updatedAtBlockNumber = block.number;
     return index as Index;
 }
 
@@ -398,7 +404,8 @@ export function getOrInitSubscription(
 
         let subscriberId = subscriberAddress.toHex();
         subscription = new IndexSubscription(subscriptionId);
-        subscription.createdAt = currentTimestamp;
+        subscription.createdAtTimestamp = currentTimestamp;
+        subscription.createdAtBlockNumber = block.number;
         subscription.token = tokenAddress.toHex();
         subscription.subscriber = subscriberId;
         subscription.publisher = publisherAddress.toHex();
@@ -406,13 +413,13 @@ export function getOrInitSubscription(
         subscription.approved = false;
         subscription.units = BIG_INT_ZERO;
         subscription.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
-        subscription.lastIndexValue = index.newIndexValue;
+        subscription.indexValueUntilUpdatedAt = index.newIndexValue;
         subscription.index = indexEntityId;
 
         getOrInitAccount(hostAddress, subscriberAddress, block);
     }
     subscription.updatedAtTimestamp = currentTimestamp;
-    subscription.updatedAtBlock = block.number;
+    subscription.updatedAtBlockNumber = block.number;
     return subscription as IndexSubscription;
 }
 
@@ -457,7 +464,7 @@ export function updateAccountUpdatedAt(
 ): void {
     let account = getOrInitAccount(hostAddress, accountAddress, block);
     account.updatedAtTimestamp = block.timestamp;
-    account.updatedAtBlock = block.number;
+    account.updatedAtBlockNumber = block.number;
     account.save();
 }
 
@@ -536,7 +543,7 @@ export function getOrInitAccountTokenSnapshot(
     if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-        accountTokenSnapshot.updatedAtBlock = block.number;
+        accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptions = 0;
@@ -562,7 +569,7 @@ export function getOrInitTokenStatistic(
     if (tokenStatistic == null) {
         tokenStatistic = new TokenStatistic(tokenId);
         tokenStatistic.updatedAtTimestamp = block.timestamp;
-        tokenStatistic.updatedAtBlock = block.number;
+        tokenStatistic.updatedAtBlockNumber = block.number;
         tokenStatistic.totalNumberOfActiveStreams = 0;
         tokenStatistic.totalNumberOfClosedStreams = 0;
         tokenStatistic.totalNumberOfIndexes = 0;
@@ -622,7 +629,7 @@ export function updateAggregateIDASubscriptionsData(
         accountTokenSnapshot.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-    accountTokenSnapshot.updatedAtBlock = block.number;
+    accountTokenSnapshot.updatedAtBlockNumber = block.number;
 
     // update tokenStatistic Subscription data
     tokenStatistic.totalSubscriptions =
@@ -631,7 +638,7 @@ export function updateAggregateIDASubscriptionsData(
         tokenStatistic.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
     tokenStatistic.updatedAtTimestamp = block.timestamp;
-    tokenStatistic.updatedAtBlock = block.number;
+    tokenStatistic.updatedAtBlockNumber = block.number;
 
     accountTokenSnapshot.save();
     tokenStatistic.save();
@@ -661,7 +668,7 @@ export function updateATSBalanceAndUpdatedAt(
     );
     accountTokenSnapshot.balanceUntilUpdatedAt = newBalance;
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-    accountTokenSnapshot.updatedAtBlock = block.number;
+    accountTokenSnapshot.updatedAtBlockNumber = block.number;
     accountTokenSnapshot.save();
 }
 
@@ -753,7 +760,7 @@ export function updateAggregateEntitiesStreamData(
             tokenStatsAmountStreamedSinceLastUpdate
         );
     tokenStatistic.updatedAtTimestamp = block.timestamp;
-    tokenStatistic.updatedAtBlock = block.number;
+    tokenStatistic.updatedAtBlockNumber = block.number;
 
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
     let senderATSAmountStreamedSinceLastUpdate =
@@ -821,7 +828,7 @@ export function updateAggregateEntitiesTransferData(
             value
         );
     fromAccountTokenSnapshot.updatedAtTimestamp = block.timestamp;
-    fromAccountTokenSnapshot.updatedAtBlock = block.number;
+    fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
     fromAccountTokenSnapshot.save();
 
     let tokenStatistic = getOrInitTokenStatistic(tokenId, block);

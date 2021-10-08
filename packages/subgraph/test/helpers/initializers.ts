@@ -34,7 +34,7 @@ export const getOrInitStreamData = (
     streamData: { [id: string]: IStreamData | undefined },
     revisionIndex: string,
     streamId: string,
-    lastUpdatedAtTimestamp: string
+    updatedAtTimestamp: string
 ): IStreamData => {
     const existingStreamData = streamData[streamId];
     if (existingStreamData == null) {
@@ -43,7 +43,7 @@ export const getOrInitStreamData = (
             revisionIndex,
             oldFlowRate: "0",
             streamedUntilUpdatedAt: "0",
-            lastUpdatedAtTimestamp,
+            updatedAtTimestamp,
         };
     }
     return existingStreamData;
@@ -52,7 +52,7 @@ export const getOrInitStreamData = (
 export const getOrInitIndex = (
     indexes: { [id: string]: IIndex | undefined },
     indexEntityId: string,
-    updatedAtBlock: string,
+    updatedAtBlockNumber: string,
     updatedAtTimestamp: string
 ): IIndex => {
     const existingIndex = indexes[indexEntityId];
@@ -60,8 +60,9 @@ export const getOrInitIndex = (
         const [publisher, token, indexId] = indexEntityId.split("-");
         return {
             id: indexEntityId,
-            createdAt: updatedAtTimestamp,
-            updatedAtBlock: updatedAtBlock,
+            createdAtTimestamp: updatedAtTimestamp,
+            createdAtBlockNumber: updatedAtBlockNumber,
+            updatedAtBlockNumber,
             updatedAtTimestamp,
             indexId,
             publisher: { id: publisher },
@@ -81,7 +82,7 @@ export const getOrInitIndex = (
 export const getOrInitSubscription = (
     subscription: { [id: string]: IIndexSubscription | undefined },
     subscriptionId: string,
-    updatedAtBlock: string,
+    updatedAtBlockNumber: string,
     updatedAtTimestamp: string
 ): IIndexSubscription => {
     const existingSubscription = subscription[subscriptionId];
@@ -91,8 +92,9 @@ export const getOrInitSubscription = (
         const indexEntityId = getIndexId(publisher, token, indexId);
         return {
             id: subscriptionId,
-            createdAt: updatedAtTimestamp,
-            updatedAtBlock: updatedAtBlock,
+            createdAtTimestamp: updatedAtTimestamp,
+            createdAtBlockNumber: updatedAtBlockNumber,
+            updatedAtBlockNumber,
             updatedAtTimestamp: updatedAtTimestamp,
             token: { id: token },
             subscriber: { id: subscriber },
@@ -101,7 +103,7 @@ export const getOrInitSubscription = (
             approved: false,
             units: "0",
             totalAmountReceivedUntilUpdatedAt: "0",
-            lastIndexValue: "0",
+            indexValueUntilUpdatedAt: "0",
             index: { id: indexEntityId },
         };
     }
@@ -114,7 +116,7 @@ export const getOrInitAccountTokenSnapshot = (
     },
     accountId: string,
     tokenId: string,
-    updatedAtBlock: string,
+    updatedAtBlockNumber: string,
     updatedAtTimestamp: string
 ): IAccountTokenSnapshot => {
     const atsId = accountId + "-" + tokenId;
@@ -122,7 +124,7 @@ export const getOrInitAccountTokenSnapshot = (
     if (existingATS == null) {
         return {
             id: accountId + "-" + tokenId,
-            updatedAtBlock,
+            updatedAtBlockNumber,
             updatedAtTimestamp,
             totalNumberOfActiveStreams: 0,
             totalNumberOfClosedStreams: 0,
@@ -144,14 +146,14 @@ export const getOrInitAccountTokenSnapshot = (
 export const getOrInitTokenStatistics = (
     tokenStatistics: { [id: string]: ITokenStatistic | undefined },
     tokenId: string,
-    updatedAtBlock: string,
+    updatedAtBlockNumber: string,
     updatedAtTimestamp: string
-) => {
+): ITokenStatistic => {
     const existingTokenStats = tokenStatistics[tokenId];
     if (existingTokenStats == null) {
         return {
             id: tokenId,
-            updatedAtBlock,
+            updatedAtBlockNumber,
             updatedAtTimestamp,
             totalNumberOfActiveStreams: 0,
             totalNumberOfClosedStreams: 0,
@@ -180,8 +182,8 @@ export function getOrInitializeDataForFlowUpdated(
 ) {
     const {
         accountTokenSnapshots,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp,
+        updatedAtBlockNumber,
+        updatedAtTimestamp,
         receiver,
         revisionIndexes,
         sender,
@@ -206,27 +208,27 @@ export function getOrInitializeDataForFlowUpdated(
         streamData,
         currentRevisionIndex.toString(),
         streamId,
-        lastUpdatedAtTimestamp
+        updatedAtTimestamp
     );
     const currentSenderATS = getOrInitAccountTokenSnapshot(
         accountTokenSnapshots,
         sender.toLowerCase(),
         tokenId,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
     const currentReceiverATS = getOrInitAccountTokenSnapshot(
         accountTokenSnapshots,
         receiver.toLowerCase(),
         tokenId,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
     const currentTokenStats = getOrInitTokenStatistics(
         tokenStatistics,
         tokenId,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
 
     return {
@@ -250,8 +252,8 @@ export function getOrInitializeDataForIDA(
         accountTokenSnapshots,
         indexes,
         indexId,
-        lastUpdatedAtTimestamp,
-        lastUpdatedBlockNumber,
+        updatedAtTimestamp,
+        updatedAtBlockNumber,
         publisher,
         subscriber,
         subscriptions,
@@ -269,37 +271,37 @@ export function getOrInitializeDataForIDA(
     const currentIndex = getOrInitIndex(
         indexes,
         indexEntityId,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
 
     const currentSubscription = getOrInitSubscription(
         subscriptions,
         subscriptionId,
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
 
     const currentPublisherATS = getOrInitAccountTokenSnapshot(
         accountTokenSnapshots,
         publisher.toLowerCase(),
         token.toLowerCase(),
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
     const currentSubscriberATS = getOrInitAccountTokenSnapshot(
         accountTokenSnapshots,
         subscriberAddress.toLowerCase(),
         token.toLowerCase(),
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
 
     const currentTokenStats = getOrInitTokenStatistics(
         tokenStatistics,
         token.toLowerCase(),
-        lastUpdatedBlockNumber,
-        lastUpdatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
     return {
         subscriptionId,

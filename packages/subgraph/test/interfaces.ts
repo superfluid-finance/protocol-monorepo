@@ -122,9 +122,10 @@ export interface ITransferEvent extends IEvent {
  */
 interface IBaseEntity {
     readonly id: string;
-    readonly createdAt: string;
+    readonly createdAtTimestamp: string;
+    readonly createdAtBlockNumber: string;
     readonly updatedAtTimestamp: string;
-    readonly updatedAtBlock: string;
+    readonly updatedAtBlockNumber: string;
 }
 
 export interface IAccount extends IBaseEntity {
@@ -155,7 +156,7 @@ export interface IIndexSubscription extends IBaseEntity {
     readonly approved: boolean;
     readonly units: string;
     readonly totalAmountReceivedUntilUpdatedAt: string;
-    readonly lastIndexValue: string;
+    readonly indexValueUntilUpdatedAt: string;
     readonly index: ILightEntity;
 
     readonly subscriptionApprovedEvents?: ILightEntity[];
@@ -187,7 +188,7 @@ export interface IIndex extends IBaseEntity {
 export interface IBaseAggregateEntity {
     readonly id: string;
     readonly updatedAtTimestamp: string;
-    readonly updatedAtBlock: string;
+    readonly updatedAtBlockNumber: string;
 }
 
 export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
@@ -233,7 +234,7 @@ export interface IStreamData {
     revisionIndex: string;
     oldFlowRate: string;
     streamedUntilUpdatedAt: string;
-    lastUpdatedAtTimestamp: string;
+    updatedAtTimestamp: string;
 }
 
 export interface IStreamTestParams {
@@ -277,8 +278,8 @@ export interface IAggregateLocalData {
 }
 
 export interface IBaseTestData {
-    readonly lastUpdatedAtTimestamp: string;
-    readonly lastUpdatedBlockNumber: string;
+    readonly updatedAtTimestamp: string;
+    readonly updatedAtBlockNumber: string;
     readonly token: string;
 }
 
@@ -401,7 +402,7 @@ export interface IUpdateSubscriberData {
     readonly approved?: boolean;
     readonly units?: string;
     readonly totalAmountReceivedUntilUpdatedAt?: string;
-    readonly lastIndexValue?: string;
+    readonly indexValueUntilUpdatedAt?: string;
 }
 
 export interface IBaseIDAEvent {
@@ -447,6 +448,6 @@ export interface IGetExpectedIDADataParams {
     readonly currentSubscription: IIndexSubscription;
     readonly currentSubscriberATS: IAccountTokenSnapshot;
     readonly currentTokenStats: ITokenStatistic;
-    readonly updatedAtBlock: string;
+    readonly updatedAtBlockNumber: string;
     readonly timestamp: string;
 }

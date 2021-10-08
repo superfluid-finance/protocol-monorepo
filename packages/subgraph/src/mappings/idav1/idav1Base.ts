@@ -1,4 +1,4 @@
-import { Address } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexUpdated,
@@ -398,7 +398,7 @@ export function handleSubscriptionUnitsUpdated(
         ""
     );
     let units = event.params.units;
-    let isDeleteSubscription = units.equals(BIG_INT_ZERO);
+    let oldUnits = subscription.units;
     let subscriptionId = getSubscriptionID(
         event.params.subscriber,
         event.params.publisher,
@@ -408,119 +408,89 @@ export function handleSubscriptionUnitsUpdated(
     let hasSubscription = subscriptionExists(subscriptionId);
 
     // we only handle updateSubscription in this function
-    if (!isDeleteSubscription) {
-        // is updateSubscription
-        let totalUnitsDelta = units.minus(subscription.units);
+    // is updateSubscription
+    let totalUnitsDelta = units.minus(subscription.units);
 
-        if (hasSubscription && subscription.approved) {
-            index.totalUnitsApproved =
-                index.totalUnitsApproved.plus(totalUnitsDelta);
-            index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
-        } else if (hasSubscription) {
-            index.totalUnitsPending =
-                index.totalUnitsPending.plus(totalUnitsDelta);
-            index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
-        } else {
-            // create unallocated subscription
-            subscription.indexId = event.params.indexId;
-            subscription.units = event.params.units;
-            subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+    if (hasSubscription && subscription.approved) {
+        index.totalUnitsApproved =
+            index.totalUnitsApproved.plus(totalUnitsDelta);
+        index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
+    } else if (hasSubscription) {
+        index.totalUnitsPending = index.totalUnitsPending.plus(totalUnitsDelta);
+        index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
+	// user has no subscription (only occurs on updateUnits, can't occur on revoke or delete)
+    } else {
+        // create unallocated subscription
+        subscription.indexId = event.params.indexId;
+        subscription.units = event.params.units;
+        subscription.indexValueUntilUpdatedAt = index.newIndexValue;
 
-            index.totalUnitsPending = index.totalUnitsPending.plus(units);
-            index.totalUnits = index.totalUnits.plus(units);
-            index.totalSubscriptions = index.totalSubscriptions + 1;
+        index.totalUnitsPending = index.totalUnitsPending.plus(units);
+        index.totalUnits = index.totalUnits.plus(units);
+        index.totalSubscriptions = index.totalSubscriptions + 1;
 
-            updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
-            updateAggregateIDASubscriptionsData(
-                event.params.subscriber.toHex(),
-                tokenId,
-                hasSubscription,
-                subscription.approved,
-                false,
-                false,
-                event.block
-            );
-        }
-
-        let balanceDelta = index.newIndexValue
-            .minus(subscription.indexValueUntilUpdatedAt)
-            .times(subscription.units);
-
-        // token.settleBalance should be the trigger for updating
-        // totalAmountReceivedUntilUpdatedAt and calling
-        // updateATSBalanceAndUpdatedAt
-        subscription.totalAmountReceivedUntilUpdatedAt =
-            subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
-
-        // We move both of these in here as we handle this in revoke or delete
-        // as well, so if we put it outside it will be a duplicate call
-        if (!subscription.approved) {
-            updateATSStreamedUntilUpdatedAt(
-                event.params.publisher.toHex(),
-                tokenId,
-                event.block
-            );
-            updateATSBalanceAndUpdatedAt(
-                event.params.publisher.toHex(),
-                tokenId,
-                event.block
-            );
-            updateAccountUpdatedAt(
-                hostAddress,
-                event.params.publisher,
-                event.block
-            );
-        }
-
-        updateATSStreamedUntilUpdatedAt(
+        updateAggregateIDASubscriptionsData(
             event.params.subscriber.toHex(),
+            tokenId,
+            hasSubscription,
+            subscription.approved,
+            false,
+            false,
+            event.block
+        );
+    }
+
+    let balanceDelta = index.newIndexValue
+        .minus(subscription.indexValueUntilUpdatedAt)
+        .times(subscription.units);
+
+    // token.settleBalance should be the trigger for updating
+    // totalAmountReceivedUntilUpdatedAt and calling
+    // updateATSBalanceAndUpdatedAt
+    subscription.totalAmountReceivedUntilUpdatedAt =
+        subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
+
+    // We move both of these in here as we handle this in revoke or delete
+    // as well, so if we put it outside it will be a duplicate call
+    if (!subscription.approved) {
+        updateATSStreamedUntilUpdatedAt(
+            event.params.publisher.toHex(),
             tokenId,
             event.block
         );
         updateATSBalanceAndUpdatedAt(
-            subscription.subscriber,
+            event.params.publisher.toHex(),
             tokenId,
             event.block
         );
         updateAccountUpdatedAt(
             hostAddress,
-            event.params.subscriber,
+            event.params.publisher,
             event.block
         );
+    }
 
-        // we only update subscription units in updateSubscription
-        // if user hasSubscription
-        if (hasSubscription) {
-            subscription.indexValueUntilUpdatedAt = index.newIndexValue;
-            subscription.units = event.params.units;
-        }
-    } else {
-        // deleting subscription
-        index.totalUnits = index.totalUnits.minus(subscription.units);
+    updateATSStreamedUntilUpdatedAt(
+        event.params.subscriber.toHex(),
+        tokenId,
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(subscription.subscriber, tokenId, event.block);
+    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
-        // we need to subtract sub.units from totalUnitsPending because we increment this in
-        // handleSubscriptionRevoked and we want to bring it back to 0.
-        // in the contract there is a distinction to handle approved vs unapproved, but if we
-        // are deleting a subscription, we set subscription.approved to false in
-        // handleSubscriptionRevoked and so we only need to subtract from totalUnitsPending
-        // per the contract
-        index.totalUnitsPending = index.totalUnitsPending.minus(
-            subscription.units
-        );
+    // we only update subscription units in updateSubscription
+    // if user hasSubscription
+    if (hasSubscription) {
+        subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+        subscription.units = event.params.units;
+    }
 
-        subscription.units = BIG_INT_ZERO;
-
-        updateATSStreamedUntilUpdatedAt(
-            subscription.subscriber,
-            tokenId,
-            event.block
-        );
-        updateATSBalanceAndUpdatedAt(
-            subscription.subscriber,
-            tokenId,
-            event.block
-        );
+    // when units are set to 0, the graph marks this as a deletion
+    // and therefore subtracts the number of totalSubscriptions and
+    // totalApprovedSubscriptions
+    if (units.equals(BIG_INT_ZERO)) {
         updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
         updateAggregateIDASubscriptionsData(
@@ -538,7 +508,7 @@ export function handleSubscriptionUnitsUpdated(
     index.save();
     subscription.save();
 
-    createSubscriptionUnitsUpdatedEntity(event, subscription.id);
+    createSubscriptionUnitsUpdatedEntity(event, subscription.id, oldUnits);
 }
 
 /**************************************************************************
@@ -608,7 +578,8 @@ function createSubscriptionRevokedEntity(
 
 function createSubscriptionUnitsUpdatedEntity(
     event: SubscriptionUnitsUpdated,
-    subscriptionId: string
+    subscriptionId: string,
+    oldUnits: BigInt
 ): void {
     let ev = new SubscriptionUnitsUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
@@ -620,5 +591,6 @@ function createSubscriptionUnitsUpdatedEntity(
     ev.units = event.params.units;
     ev.userData = event.params.userData;
     ev.subscription = subscriptionId;
+    ev.oldUnits = oldUnits;
     ev.save();
 }

@@ -137,6 +137,9 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     indexId: BigInt!
     units: BigInt!
     userData: Bytes!
+	
+	# Custom Properties (not on event)
+	oldUnits: BigInt!
 
     # ---------------------------------- links ----------------------------------
     subscription: IndexSubscription!

@@ -4,4 +4,4 @@ abis/
 yarn.lock
 package-lock.json
 subgraph.yaml
-typechain
+typechain/

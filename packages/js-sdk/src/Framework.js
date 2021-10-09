@@ -90,7 +90,7 @@ module.exports = class Framework {
         console.log("networkType", this.networkType);
         console.log("networkId", this.networkId);
 
-        this.config = getConfig(this.networkId);
+        this.config = getConfig(this.chainId, this.version);
 
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,

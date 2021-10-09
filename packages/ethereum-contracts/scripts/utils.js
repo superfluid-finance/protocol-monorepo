@@ -327,19 +327,23 @@ async function getPastEvents({ config, contract, eventName, filter, topics }) {
     }
     const result = await async.concatSeries(blockRanges, async (r) => {
         if (blockRanges.length > 1) process.stdout.write(".");
+        let ret;
         if (contract) {
-            return contract.getPastEvents(eventName, {
+            ret = contract.getPastEvents(eventName, {
                 fromBlock: r[0],
                 toBlock: r[1],
                 filter,
             });
         } else {
-            return web3.eth.getPastLogs({
+            ret = web3.eth.getPastLogs({
                 fromBlock: r[0],
                 toBlock: r[1],
                 topics,
             });
         }
+        if (blockRanges.length > 1 && ret.length > 0)
+            process.stdout.write(ret.length.toString());
+        return ret;
     });
     if (blockRanges.length > 1) process.stdout.write("\n");
     return result;

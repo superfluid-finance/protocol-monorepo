@@ -93,7 +93,7 @@ module.exports = class Framework {
         console.log("networkId", this.networkId);
         console.log("chainId", this.chainId);
 
-        this.config = getConfig(this.chainId);
+        this.config = getConfig(this.chainId, this.version);
 
         this.contracts = await loadContracts({
             isTruffle: this._options.isTruffle,

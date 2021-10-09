@@ -2,7 +2,7 @@
 if (typeof module === "undefined") module = {};
 
 // eslint-disable-next-line no-undef
-Superfluid_getConfig = module.exports = function getConfig(chainId) {
+Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
     const DEFAULT_CONFIGS = {
         //
         // Local testing
@@ -30,6 +30,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
             // goerli
             nativeTokenSymbol: "ETH",
             resolverAddress: "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli",
+                },
+            },
         },
         4: {
             // rinkeby
@@ -55,6 +61,11 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
             // (matic) mainnet
             nativeTokenSymbol: "MATIC",
             resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint: "",
+                },
+            },
         },
 
         80001: {
@@ -86,10 +97,19 @@ Superfluid_getConfig = module.exports = function getConfig(chainId) {
         },
     };
 
-    const configs = { ...DEFAULT_CONFIGS[chainId] };
+    let configs = {
+        ...DEFAULT_CONFIGS[chainId],
+    };
+    // load version specific configs
+    if (configs.versions) {
+        configs = {
+            ...configs,
+            ...configs.versions[version],
+        };
+        delete configs.versions;
+    }
     // overriding environment variables
-
-    if (global.process && global.process.env.TEST_RESOLVER_ADDRESS) {
+    if (global && global.process && global.process.env.TEST_RESOLVER_ADDRESS) {
         configs.resolverAddress = global.process.env.TEST_RESOLVER_ADDRESS;
     }
 

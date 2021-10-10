@@ -29,7 +29,7 @@ export const getIndex = gql`
             indexId
             oldIndexValue
             newIndexValue
-            totalSubscriptions
+            totalSubscriptionsWithUnits
             totalUnitsPending
             totalUnitsApproved
             totalUnits

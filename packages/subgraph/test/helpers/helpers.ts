@@ -28,6 +28,7 @@ export const beforeSetup = async (tokenAmount: number) => {
         (x) => x.address
     );
     const userAddresses = [Deployer, Alpha, Bravo, Charlie];
+    let totalSupply = 0;
     // names[Bob] = "Bob";
     const sf: Framework = new SuperfluidSDK.Framework({
         web3: (global as any).web3,
@@ -51,27 +52,25 @@ export const beforeSetup = async (tokenAmount: number) => {
     const amount = tokenAmount.toFixed(0);
 
     for (let i = 0; i < userAddresses.length; i++) {
+        const stringBigIntAmount = ethers.utils.parseUnits(amount).toString();
         const address = userAddresses[i];
-        await dai.mint(address, ethers.utils.parseUnits(amount).toString(), {
+        await dai.mint(address, stringBigIntAmount, {
             from: userAddresses[0],
         });
-        await dai.approve(
-            daix.address,
-            ethers.utils.parseUnits(amount).toString(),
-            {
-                from: address,
-            }
-        );
-        await daix.upgrade(ethers.utils.parseUnits(amount).toString(), {
+        await dai.approve(daix.address, stringBigIntAmount, {
             from: address,
         });
+        await daix.upgrade(stringBigIntAmount, {
+            from: address,
+        });
+        totalSupply += Number(stringBigIntAmount);
     }
 
     console.log(
         "\n************** Superfluid Framework Setup Complete **************\n"
     );
 
-    return [userAddresses, sf, dai, daix];
+    return [userAddresses, sf, dai, daix, totalSupply.toString()];
 };
 
 export const monthlyToSecondRate = (monthlyRate: number) => {
@@ -299,9 +298,10 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     };
 };
 
-export const hasSubscription = (
+export const hasSubscriptionWithUnits = (
     subscriptions: { [id: string]: IIndexSubscription | undefined },
     id: string
 ) => {
-    return subscriptions[id] != null;
+    const subscription = subscriptions[id];
+    return subscription != null && toBN(subscription.units).gt(toBN(0));
 };

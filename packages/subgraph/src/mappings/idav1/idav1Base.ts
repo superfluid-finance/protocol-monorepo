@@ -21,8 +21,7 @@ import {
     updateATSBalanceAndUpdatedAt,
     updateAggregateIDASubscriptionsData,
     BIG_INT_ZERO,
-    getSubscriptionID,
-    subscriptionExists,
+    subscriptionExists as subscriptionWithUnitsExists,
     updateAccountUpdatedAt,
     tokenHasValidHost,
     updateTokenStatsStreamedUntilUpdatedAt,
@@ -188,7 +187,7 @@ export function handleSubscriptionApproved(
 
     let tokenId = event.params.token.toHex();
 
-    let hasSubscription = subscriptionExists(subscription.id);
+    let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // this must be done whether subscription exists or not
     updateATSStreamedUntilUpdatedAt(
@@ -202,14 +201,13 @@ export function handleSubscriptionApproved(
         event.block
     );
 
-    if (hasSubscription) {
+    if (hasSubscriptionWithUnits) {
         index.totalUnitsApproved = index.totalUnitsApproved.plus(
             subscription.units
         );
         index.totalUnitsPending = index.totalUnitsPending.minus(
             subscription.units
         );
-        index.save();
 
         subscription.totalAmountReceivedUntilUpdatedAt =
             subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
@@ -241,15 +239,17 @@ export function handleSubscriptionApproved(
 
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
+    // we only want to increment approved here ALWAYS
     updateAggregateIDASubscriptionsData(
         event.params.subscriber.toHex(),
         event.params.token.toHex(),
-        hasSubscription,
+        hasSubscriptionWithUnits || subscription.approved,
         subscription.approved,
         false,
         true,
         event.block
     );
+    index.save();
 
     createSubscriptionApprovedEntity(event, subscription.id);
 }
@@ -286,6 +286,7 @@ export function handleSubscriptionRevoked(
         ""
     );
 
+    // This will always execute on an existing subscription
     let subscription = getOrInitSubscription(
         hostAddress,
         resolverAddress,
@@ -399,47 +400,21 @@ export function handleSubscriptionUnitsUpdated(
     );
     let units = event.params.units;
     let oldUnits = subscription.units;
-    let subscriptionId = getSubscriptionID(
-        event.params.subscriber,
-        event.params.publisher,
-        event.params.token,
-        event.params.indexId
-    );
-    let hasSubscription = subscriptionExists(subscriptionId);
+    let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // we only handle updateSubscription in this function
     // is updateSubscription
     let totalUnitsDelta = units.minus(subscription.units);
 
-    if (hasSubscription && subscription.approved) {
+    // if you have an approved subscription, you just add to totalUnitsApproved
+    if (subscription.approved) {
         index.totalUnitsApproved =
             index.totalUnitsApproved.plus(totalUnitsDelta);
         index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
-    } else if (hasSubscription) {
+        // else, you just add to the pending units
+    } else {
         index.totalUnitsPending = index.totalUnitsPending.plus(totalUnitsDelta);
         index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
-	// user has no subscription (only occurs on updateUnits, can't occur on revoke or delete)
-    } else {
-        // create unallocated subscription
-        subscription.indexId = event.params.indexId;
-        subscription.units = event.params.units;
-        subscription.indexValueUntilUpdatedAt = index.newIndexValue;
-
-        index.totalUnitsPending = index.totalUnitsPending.plus(units);
-        index.totalUnits = index.totalUnits.plus(units);
-        index.totalSubscriptions = index.totalSubscriptions + 1;
-
-        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
-
-        updateAggregateIDASubscriptionsData(
-            event.params.subscriber.toHex(),
-            tokenId,
-            hasSubscription,
-            subscription.approved,
-            false,
-            false,
-            event.block
-        );
     }
 
     let balanceDelta = index.newIndexValue
@@ -480,15 +455,8 @@ export function handleSubscriptionUnitsUpdated(
     updateATSBalanceAndUpdatedAt(subscription.subscriber, tokenId, event.block);
     updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
-    // we only update subscription units in updateSubscription
-    // if user hasSubscription
-    if (hasSubscription) {
-        subscription.indexValueUntilUpdatedAt = index.newIndexValue;
-        subscription.units = event.params.units;
-    }
-
     // when units are set to 0, the graph marks this as a deletion
-    // and therefore subtracts the number of totalSubscriptions and
+    // and therefore subtracts the number of totalSubscriptionWithUnits and
     // totalApprovedSubscriptions
     if (units.equals(BIG_INT_ZERO)) {
         updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
@@ -496,13 +464,36 @@ export function handleSubscriptionUnitsUpdated(
         updateAggregateIDASubscriptionsData(
             subscription.subscriber,
             tokenId,
-            true,
+            hasSubscriptionWithUnits,
             subscription.approved,
             true,
             false,
             event.block
         );
-        index.totalSubscriptions = index.totalSubscriptions - 1;
+        index.totalSubscriptionsWithUnits =
+            index.totalSubscriptionsWithUnits - 1;
+    }
+
+    subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+    subscription.units = event.params.units;
+
+    // to simplify things, we only tally subscriptions in our stats
+    // if you have units - the opposite of subscription deletion
+    if (units.gt(BIG_INT_ZERO) && oldUnits.equals(BIG_INT_ZERO)) {
+        index.totalSubscriptionsWithUnits =
+            index.totalSubscriptionsWithUnits + 1;
+
+        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
+
+        updateAggregateIDASubscriptionsData(
+            event.params.subscriber.toHex(),
+            tokenId,
+            hasSubscriptionWithUnits,
+            subscription.approved,
+            false,
+            false,
+            event.block
+        );
     }
 
     index.save();

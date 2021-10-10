@@ -7,7 +7,7 @@ export const getAccountTokenSnapshot = gql`
             updatedAtBlockNumber
             totalNumberOfActiveStreams
             totalNumberOfClosedStreams
-            totalSubscriptions
+            totalSubscriptionsWithUnits
             totalApprovedSubscriptions
             balanceUntilUpdatedAt
             totalNetFlowRate
@@ -35,9 +35,10 @@ export const getTokenStatistic = gql`
             totalNumberOfClosedStreams
             totalNumberOfIndexes
             totalNumberOfActiveIndexes
-            totalSubscriptions
+            totalSubscriptionsWithUnits
             totalApprovedSubscriptions
             totalOutflowRate
+            totalSupply
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt
             totalAmountDistributedUntilUpdatedAt

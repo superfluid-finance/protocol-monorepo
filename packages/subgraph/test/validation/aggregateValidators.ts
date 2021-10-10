@@ -50,7 +50,7 @@ export const validateATSEntity = (
     const {
         totalNumberOfActiveStreams: expectedTotalNumberOfActiveStreams,
         totalNumberOfClosedStreams: expectedTotalNumberOfClosedStreams,
-        totalSubscriptions: expectedTotalSubscriptions,
+        totalSubscriptionsWithUnits: expectedTotalSubscriptions,
         totalApprovedSubscriptions: expectedTotalApprovedSubscriptions,
         balanceUntilUpdatedAt: expectedBalanceUntilUpdatedAt,
         totalNetFlowRate: expectedTotalNetFlowRate,
@@ -71,8 +71,8 @@ export const validateATSEntity = (
         "ATS: totalNumberOfClosedStreams error"
     ).to.equal(expectedTotalNumberOfClosedStreams);
     expect(
-        graphATSData.totalSubscriptions,
-        "ATS: totalSubscriptions error"
+        graphATSData.totalSubscriptionsWithUnits,
+        "ATS: totalSubscriptionWithUnits error"
     ).to.equal(expectedTotalSubscriptions);
     expect(
         graphATSData.totalApprovedSubscriptions,
@@ -117,7 +117,7 @@ export const validateTokenStatsEntity = (
         totalNumberOfClosedStreams: expectedTotalNumberOfClosedStreams,
         totalNumberOfIndexes: expectedTotalNumberOfIndexes,
         totalNumberOfActiveIndexes: expectedTotalNumberOfActiveIndexes,
-        totalSubscriptions: expectedTotalSubscriptions,
+        totalSubscriptionsWithUnits: expectedTotalSubscriptions,
         totalApprovedSubscriptions: expectedTotalApprovedSubscriptions,
         totalOutflowRate: expectedTotalOutflowRate,
         totalAmountStreamedUntilUpdatedAt:
@@ -145,8 +145,8 @@ export const validateTokenStatsEntity = (
         "totalNumberOfActiveIndexes error"
     ).to.equal(expectedTotalNumberOfActiveIndexes);
     expect(
-        graphTokenStats.totalSubscriptions,
-        "totalSubscriptions error"
+        graphTokenStats.totalSubscriptionsWithUnits,
+        "totalSubscriptionWithUnits error"
     ).to.equal(expectedTotalSubscriptions);
     expect(
         graphTokenStats.totalApprovedSubscriptions,

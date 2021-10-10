@@ -32,7 +32,7 @@ import {
 } from "../validation/validators";
 import {
     getSubscriptionId,
-    hasSubscription,
+    hasSubscriptionWithUnits,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
     toBN,
@@ -264,7 +264,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         tokenStatistics,
     });
 
-    const subscriptionExists = hasSubscription(
+    const subscriptionWithUnitsExists = hasSubscriptionWithUnits(
         subscriptions,
         subscriberEntityId
     );
@@ -320,7 +320,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     const extraData: IExtraExpectedData = {
         ...extraEventData,
         isRevoke,
-        subscriptionExists,
+        subscriptionWithUnitsExists: subscriptionWithUnitsExists,
         totalUnits,
     };
     const {
@@ -343,7 +343,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         subscriber,
         eventType,
         event,
-        subscriptionExists
+        subscriptionWithUnitsExists
     );
 
     return {
@@ -496,6 +496,7 @@ function getIDAEventDataForValidation(
             units: units.toString(),
         };
     } else {
+        // type === IDAEventType.IndexUpdated
         if (
             newIndexValue == null ||
             totalUnitsApproved == null ||
@@ -548,7 +549,7 @@ async function getExpectedDataForIDA(
     const {
         isRevoke,
         newIndexValue,
-        subscriptionExists,
+        subscriptionWithUnitsExists,
         totalUnits,
         totalUnitsApproved,
         totalUnitsPending,
@@ -576,14 +577,14 @@ async function getExpectedDataForIDA(
             totalUnitsPending
         );
     } else if (type === IDAEventType.SubscriptionApproved) {
-        if (subscriptionExists == null) {
+        if (subscriptionWithUnitsExists == null) {
             throw new Error(
-                "subscriptionExists is required for SubscriptionApproved"
+                "subscriptionWithUnitsExists is required for SubscriptionApproved"
             );
         }
         return await getExpectedDataForSubscriptionApproved(
             expectedDataParams,
-            subscriptionExists
+            subscriptionWithUnitsExists
         );
     } else if (type === IDAEventType.SubscriptionRevoked) {
         if (isRevoke == null) {
@@ -595,15 +596,15 @@ async function getExpectedDataForIDA(
         );
     }
 
-    if (units == null || subscriptionExists == null) {
+    if (units == null || subscriptionWithUnitsExists == null) {
         throw new Error(
-            "units, subscriptionExists is required for SubscriptionUnitsUpdated"
+            "units, subscriptionWithUnitsExists is required for SubscriptionUnitsUpdated"
         );
     }
     // type === IDAEventType.SubscriptionUnitsUpdated
     return await getExpectedDataForSubscriptionUnitsUpdated(
         expectedDataParams,
         units,
-        subscriptionExists
+        subscriptionWithUnitsExists
     );
 }

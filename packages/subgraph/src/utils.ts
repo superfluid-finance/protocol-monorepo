@@ -340,7 +340,7 @@ export function getOrInitIndex(
         index.indexId = indexId;
         index.oldIndexValue = BIG_INT_ZERO;
         index.newIndexValue = BIG_INT_ZERO;
-        index.totalSubscriptions = 0;
+        index.totalSubscriptionsWithUnits = 0;
         index.totalUnitsPending = BIG_INT_ZERO;
         index.totalUnitsApproved = BIG_INT_ZERO;
         index.totalUnits = BIG_INT_ZERO;
@@ -399,8 +399,6 @@ export function getOrInitSubscription(
             block,
             ""
         );
-        index.totalSubscriptions = index.totalSubscriptions + 1;
-        index.save();
 
         let subscriberId = subscriberAddress.toHex();
         subscription = new IndexSubscription(subscriptionId);
@@ -525,8 +523,17 @@ export function streamRevisionExists(id: string): boolean {
     return StreamRevision.load(id) != null;
 }
 
+/**
+ * If your units get set to 0, you will still have a subscription
+ * entity, but your subscription technically no longer exists.
+ * Similarly, you may be approved, but the subscription by this
+ * definition does not exist.
+ * @param id
+ * @returns
+ */
 export function subscriptionExists(id: string): boolean {
-    return IndexSubscription.load(id) != null;
+    let subscription = IndexSubscription.load(id);
+    return subscription != null && subscription.units.gt(BIG_INT_ZERO);
 }
 
 /**************************************************************************
@@ -546,7 +553,7 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
-        accountTokenSnapshot.totalSubscriptions = 0;
+        accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
@@ -574,7 +581,7 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalNumberOfClosedStreams = 0;
         tokenStatistic.totalNumberOfIndexes = 0;
         tokenStatistic.totalNumberOfActiveIndexes = 0;
-        tokenStatistic.totalSubscriptions = 0;
+        tokenStatistic.totalSubscriptionsWithUnits = 0;
         tokenStatistic.totalApprovedSubscriptions = 0;
         tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
@@ -590,7 +597,7 @@ export function getOrInitTokenStatistic(
  * Updates ATS and TokenStats IDA Subscriptions data.
  * @param accountId
  * @param tokenId
- * @param subscriptionExists
+ * @param subscriptionWithUnitsExists
  * @param subscriptionApproved
  * @param isDeletingSubscription
  * @param isApproving
@@ -599,7 +606,7 @@ export function getOrInitTokenStatistic(
 export function updateAggregateIDASubscriptionsData(
     accountId: string,
     tokenId: string,
-    subscriptionExists: boolean,
+    subscriptionWithUnitsExists: boolean,
     subscriptionApproved: boolean,
     isDeletingSubscription: boolean,
     isApproving: boolean,
@@ -611,20 +618,21 @@ export function updateAggregateIDASubscriptionsData(
         block
     );
     let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
-    let totalSubscriptionsDelta = isDeletingSubscription
+    let totalSubscriptionWithUnitsDelta = isDeletingSubscription
         ? -1
-        : subscriptionExists
+        : subscriptionWithUnitsExists
         ? 0
         : 1;
     let totalApprovedSubscriptionsDelta = isApproving
         ? 1
-        : subscriptionExists && subscriptionApproved
+        : subscriptionWithUnitsExists && subscriptionApproved
         ? -1
         : 0;
 
     // update ATS Subscription data
-    accountTokenSnapshot.totalSubscriptions =
-        accountTokenSnapshot.totalSubscriptions + totalSubscriptionsDelta;
+    accountTokenSnapshot.totalSubscriptionsWithUnits =
+        accountTokenSnapshot.totalSubscriptionsWithUnits +
+        totalSubscriptionWithUnitsDelta;
     accountTokenSnapshot.totalApprovedSubscriptions =
         accountTokenSnapshot.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;
@@ -632,8 +640,8 @@ export function updateAggregateIDASubscriptionsData(
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
 
     // update tokenStatistic Subscription data
-    tokenStatistic.totalSubscriptions =
-        tokenStatistic.totalSubscriptions + totalSubscriptionsDelta;
+    tokenStatistic.totalSubscriptionsWithUnits =
+        tokenStatistic.totalSubscriptionsWithUnits + totalSubscriptionWithUnitsDelta;
     tokenStatistic.totalApprovedSubscriptions =
         tokenStatistic.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;

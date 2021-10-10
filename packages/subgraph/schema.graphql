@@ -137,9 +137,9 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     indexId: BigInt!
     units: BigInt!
     userData: Bytes!
-	
-	# Custom Properties (not on event)
-	oldUnits: BigInt!
+
+    # Custom Properties (not on event)
+    oldUnits: BigInt!
 
     # ---------------------------------- links ----------------------------------
     subscription: IndexSubscription!
@@ -421,9 +421,9 @@ type Index @entity {
     newIndexValue: BigInt!
 
     """
-    The number of accounts subscribed to the `Index`.
+    The number of subscriptions which have units allocated to them on the `Index`.
     """
-    totalSubscriptions: Int!
+    totalSubscriptionsWithUnits: Int!
 
     """
     The number of units allocated by the `Index` that are pending.
@@ -615,13 +615,12 @@ type AccountTokenSnapshot @entity {
     totalNumberOfClosedStreams: Int!
 
     """
-    The number of subscriptions that this `account` has with multiple Indexes which
-    are distributing the `token` on this entity.
+    The number of subscriptions with units allocated to them tied to this `account`.
     """
-    totalSubscriptions: Int!
+    totalSubscriptionsWithUnits: Int!
 
     """
-    Similar to `totalSubscriptions`, but only counting approved subscriptions.
+    Counts all approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
 
@@ -693,12 +692,13 @@ type TokenStatistic @entity {
     totalNumberOfActiveIndexes: Int!
 
     """
-    The number of subscriptions created with Indexes that distribute `token`.
+       The number of subscriptions which have units allocated to them
+    created with Indexes that distribute `token`.
     """
-    totalSubscriptions: Int!
+    totalSubscriptionsWithUnits: Int!
 
     """
-    Same as `totalSubscriptions`, but only counts approved subscriptions.
+    Counts all approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
 

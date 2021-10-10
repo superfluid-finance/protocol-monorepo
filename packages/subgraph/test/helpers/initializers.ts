@@ -69,7 +69,7 @@ export const getOrInitIndex = (
             token: { id: token },
             oldIndexValue: "0",
             newIndexValue: "0",
-            totalSubscriptions: 0,
+            totalSubscriptionsWithUnits: 0,
             totalUnits: "0",
             totalUnitsApproved: "0",
             totalAmountDistributedUntilUpdatedAt: "0",
@@ -128,7 +128,7 @@ export const getOrInitAccountTokenSnapshot = (
             updatedAtTimestamp,
             totalNumberOfActiveStreams: 0,
             totalNumberOfClosedStreams: 0,
-            totalSubscriptions: 0,
+            totalSubscriptionsWithUnits: 0,
             totalApprovedSubscriptions: 0,
             balanceUntilUpdatedAt: "0",
             totalNetFlowRate: "0",
@@ -147,7 +147,8 @@ export const getOrInitTokenStatistics = (
     tokenStatistics: { [id: string]: ITokenStatistic | undefined },
     tokenId: string,
     updatedAtBlockNumber: string,
-    updatedAtTimestamp: string
+    updatedAtTimestamp: string,
+    totalSupply?: string
 ): ITokenStatistic => {
     const existingTokenStats = tokenStatistics[tokenId];
     if (existingTokenStats == null) {
@@ -159,13 +160,13 @@ export const getOrInitTokenStatistics = (
             totalNumberOfClosedStreams: 0,
             totalNumberOfIndexes: 0,
             totalNumberOfActiveIndexes: 0,
-            totalSubscriptions: 0,
+            totalSubscriptionsWithUnits: 0,
             totalApprovedSubscriptions: 0,
             totalOutflowRate: "0",
             totalAmountStreamedUntilUpdatedAt: "0",
             totalAmountTransferredUntilUpdatedAt: "0",
             totalAmountDistributedUntilUpdatedAt: "0",
-            totalSupply: "0",
+            totalSupply: totalSupply || "0",
             token: { id: tokenId },
         };
     }
@@ -190,6 +191,7 @@ export function getOrInitializeDataForFlowUpdated(
         streamData,
         token,
         tokenStatistics,
+        totalSupply,
     } = testData;
 
     const revisionIndexId = getRevisionIndexId(sender, receiver, token);
@@ -228,7 +230,8 @@ export function getOrInitializeDataForFlowUpdated(
         tokenStatistics,
         tokenId,
         updatedAtBlockNumber,
-        updatedAtTimestamp
+        updatedAtTimestamp,
+        totalSupply
     );
 
     return {

@@ -168,7 +168,7 @@ export interface IIndex extends IBaseEntity {
     readonly indexId: string;
     readonly oldIndexValue: string;
     readonly newIndexValue: string;
-    readonly totalSubscriptions: number;
+    readonly totalSubscriptionsWithUnits: number;
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
@@ -194,7 +194,7 @@ export interface IBaseAggregateEntity {
 export interface IAccountTokenSnapshot extends IBaseAggregateEntity {
     readonly totalNumberOfActiveStreams: number;
     readonly totalNumberOfClosedStreams: number;
-    readonly totalSubscriptions: number;
+    readonly totalSubscriptionsWithUnits: number;
     readonly totalApprovedSubscriptions: number;
     readonly balanceUntilUpdatedAt: string;
     readonly totalNetFlowRate: string;
@@ -211,7 +211,7 @@ export interface ITokenStatistic extends IBaseAggregateEntity {
     readonly totalNumberOfClosedStreams: number;
     readonly totalNumberOfIndexes: number;
     readonly totalNumberOfActiveIndexes: number;
-    readonly totalSubscriptions: number;
+    readonly totalSubscriptionsWithUnits: number;
     readonly totalApprovedSubscriptions: number;
     readonly totalOutflowRate: string;
     readonly totalAmountStreamedUntilUpdatedAt: string;
@@ -304,6 +304,7 @@ export interface IFlowUpdatedInitTestData
         IBaseTestData {
     readonly sender: string;
     readonly receiver: string;
+    readonly totalSupply?: string;
 }
 
 export interface IBaseDistributionTesterParams {
@@ -343,6 +344,7 @@ export interface ITestModifyFlowData {
     readonly sender: string;
     readonly receiver: string;
     readonly tokenAddress: string;
+    readonly totalSupply?: string;
 }
 
 export interface ITestModifyIDAData {
@@ -373,7 +375,7 @@ export interface IExtraEventData {
 
 export interface IExtraExpectedData extends IExtraEventData {
     readonly isRevoke?: boolean;
-    readonly subscriptionExists?: boolean;
+    readonly subscriptionWithUnitsExists?: boolean;
     readonly totalUnits?: BigNumber;
 }
 

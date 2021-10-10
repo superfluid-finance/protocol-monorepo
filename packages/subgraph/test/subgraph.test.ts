@@ -22,7 +22,6 @@ import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
-// TODO: Tests for totalSupply also needed
 // TODO: validate Account entities reverse look up
 // create generalized function to do this
 // TODO: go through the paths
@@ -36,6 +35,7 @@ describe("Subgraph Tests", () => {
     let cfaV1: ConstantFlowAgreementV1;
     let idaV1: InstantDistributionAgreementV1;
     let provider = ethers.getDefaultProvider("http://0.0.0.0:8545");
+    let initialTotalSupply: string;
 
     // A set of locally updated variables to compare with data from the Graph.
     // The data in here comes from
@@ -121,7 +121,10 @@ describe("Subgraph Tests", () => {
     }
 
     before(async () => {
-        let [UserAddresses, SF, DAI, DAIx] = await beforeSetup(100000);
+        let [UserAddresses, SF, DAI, DAIx, totalSupply] = await beforeSetup(
+            100000
+        );
+        initialTotalSupply = totalSupply;
         userAddresses = UserAddresses;
         sf = SF;
         dai = DAI;
@@ -160,6 +163,7 @@ describe("Subgraph Tests", () => {
                     sender: userAddresses[0],
                     receiver: userAddresses[i],
                     tokenAddress: daix.address,
+                    totalSupply: initialTotalSupply,
                 });
 
                 // update the global environment objects

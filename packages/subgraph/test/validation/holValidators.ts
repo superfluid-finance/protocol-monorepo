@@ -185,9 +185,9 @@ export const validateIndexEntity = async (
         expectedIndex.newIndexValue
     );
     expect(
-        subgraphIndex.totalSubscriptions,
-        "Index: totalSubscriptions error"
-    ).to.equal(expectedIndex.totalSubscriptions);
+        subgraphIndex.totalSubscriptionsWithUnits,
+        "Index: totalSubscriptionWithUnits error"
+    ).to.equal(expectedIndex.totalSubscriptionsWithUnits);
     expect(
         subgraphIndex.totalUnitsPending,
         "Index: totalUnitsPending error"

@@ -351,7 +351,7 @@ export const getExpectedDataForIndexUpdated = async (
 
 export const getExpectedDataForSubscriptionApproved = async (
     data: IGetExpectedIDADataParams,
-    subscriptionExists: boolean
+    subscriptionWithUnitsExists: boolean
 ) => {
     const {
         token,
@@ -408,7 +408,7 @@ export const getExpectedDataForSubscriptionApproved = async (
             currentSubscriberATS.totalApprovedSubscriptions + 1,
     };
 
-    if (subscriptionExists === true) {
+    if (subscriptionWithUnitsExists === true) {
         // Update Index
         updatedIndex = {
             ...currentIndex,
@@ -441,23 +441,6 @@ export const getExpectedDataForSubscriptionApproved = async (
             toBN(0),
             toBN(0)
         );
-    } else {
-        // Update Index entity
-        updatedIndex = {
-            ...updatedIndex,
-            totalSubscriptions: updatedIndex.totalSubscriptions + 1,
-        };
-        // Update Subscription ATS entity
-        updatedSubscriberATS = {
-            ...updatedSubscriberATS,
-            totalSubscriptions: currentSubscriberATS.totalSubscriptions + 1,
-        };
-
-        // Update Token Stats
-        updatedTokenStats = {
-            ...updatedTokenStats,
-            totalSubscriptions: updatedTokenStats.totalSubscriptions + 1,
-        };
     }
 
     return {
@@ -563,7 +546,8 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
             totalUnits: toBN(updatedIndex.totalUnits)
                 .sub(currentSubscription.units)
                 .toString(),
-            totalSubscriptions: currentIndex.totalSubscriptions - 1,
+            totalSubscriptionsWithUnits:
+                currentIndex.totalSubscriptionsWithUnits - 1,
         };
         if (currentSubscription.approved) {
             updatedIndex = {
@@ -583,7 +567,8 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         updatedSubscription = { ...updatedSubscription, units: "0" };
         updatedSubscriberATS = {
             ...updatedSubscriberATS,
-            totalSubscriptions: updatedSubscriberATS.totalSubscriptions - 1,
+            totalSubscriptionsWithUnits:
+                updatedSubscriberATS.totalSubscriptionsWithUnits - 1,
             totalApprovedSubscriptions:
                 currentSubscription.approved === true
                     ? updatedSubscriberATS.totalApprovedSubscriptions - 1
@@ -595,7 +580,8 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
                 currentSubscription.approved === true
                     ? updatedTokenStats.totalApprovedSubscriptions - 1
                     : updatedTokenStats.totalApprovedSubscriptions,
-            totalSubscriptions: updatedTokenStats.totalSubscriptions - 1,
+            totalSubscriptionsWithUnits:
+                updatedTokenStats.totalSubscriptionsWithUnits - 1,
         };
     }
 
@@ -626,7 +612,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
 export const getExpectedDataForSubscriptionUnitsUpdated = async (
     data: IGetExpectedIDADataParams,
     units: BN,
-    subscriptionExists: boolean
+    subscriptionWithUnitsExists: boolean
 ) => {
     const {
         token,
@@ -659,20 +645,10 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
     const stringUnits = units.toString();
 
     const unitsDelta = toBN(stringUnits).sub(toBN(currentSubscription.units));
-    if (subscriptionExists && currentSubscription.approved) {
+    if (currentSubscription.approved) {
         updatedIndex = {
             ...updatedIndex,
             totalUnitsApproved: toBN(updatedIndex.totalUnitsApproved)
-                .add(unitsDelta)
-                .toString(),
-            totalUnits: toBN(updatedIndex.totalUnits)
-                .add(unitsDelta)
-                .toString(),
-        };
-    } else if (subscriptionExists) {
-        updatedIndex = {
-            ...updatedIndex,
-            totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
                 .add(unitsDelta)
                 .toString(),
             totalUnits: toBN(updatedIndex.totalUnits)
@@ -683,24 +659,30 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         updatedIndex = {
             ...updatedIndex,
             totalUnitsPending: toBN(updatedIndex.totalUnitsPending)
-                .add(toBN(stringUnits))
+                .add(unitsDelta)
                 .toString(),
             totalUnits: toBN(updatedIndex.totalUnits)
-                .add(toBN(stringUnits))
+                .add(unitsDelta)
                 .toString(),
-            totalSubscriptions: updatedIndex.totalSubscriptions + 1,
         };
+    }
 
-        updatedSubscription = {
-            ...updatedSubscription,
-            indexValueUntilUpdatedAt: updatedIndex.newIndexValue,
-            units: stringUnits,
+    if (
+        toBN(stringUnits).gt(toBN(0)) &&
+        toBN(currentSubscription.units).eq(toBN(0))
+    ) {
+        updatedIndex = {
+            ...updatedIndex,
+            totalSubscriptionsWithUnits:
+                updatedIndex.totalSubscriptionsWithUnits + 1,
         };
 
         updatedSubscriberATS = {
             ...updatedSubscriberATS,
-            totalSubscriptions: updatedSubscriberATS.totalSubscriptions + 1,
+            totalSubscriptionsWithUnits:
+                updatedSubscriberATS.totalSubscriptionsWithUnits + 1,
         };
+
         updatedTokenStats = {
             ...getExpectedTokenStatsForCFAEvent(
                 updatedTokenStats,
@@ -711,7 +693,8 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
                 toBN(0),
                 toBN(0)
             ),
-            totalSubscriptions: updatedTokenStats.totalSubscriptions + 1,
+            totalSubscriptionsWithUnits:
+                updatedTokenStats.totalSubscriptionsWithUnits + 1,
         };
     }
 
@@ -728,6 +711,8 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         )
             .add(balanceDelta)
             .toString(),
+        indexValueUntilUpdatedAt: updatedIndex.newIndexValue,
+        units: stringUnits,
     };
 
     if (currentSubscription.approved === false) {
@@ -741,14 +726,6 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
             toBN(0),
             toBN(0)
         );
-    }
-
-    if (subscriptionExists) {
-        updatedSubscription = {
-            ...updatedSubscription,
-            indexValueUntilUpdatedAt: updatedIndex.newIndexValue,
-            units: units.toString(),
-        };
     }
 
     return {

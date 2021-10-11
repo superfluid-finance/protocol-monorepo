@@ -69,7 +69,7 @@ export async function validateModifyIDA(
         await fetchSubscriptionAndValidate(
             idaV1,
             updatedSubscription,
-            updatedIndex.newIndexValue,
+            updatedIndex.indexValue,
             eventType,
             event
         );
@@ -77,7 +77,14 @@ export async function validateModifyIDA(
             subscriberAddress.toLowerCase() + "-" + token.toLowerCase();
         await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
     }
-    await fetchIndexAndValidate(idaV1, updatedIndex, eventType, event, updatedSubscription.id, subscriptionExists);
+    await fetchIndexAndValidate(
+        idaV1,
+        updatedIndex,
+        eventType,
+        event,
+        updatedSubscription.id,
+        subscriptionExists
+    );
     const publisherATSId = publisher.toLowerCase() + "-" + token.toLowerCase();
     await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
     await fetchTokenStatsAndValidate(token.toLowerCase(), updatedTokenStats);

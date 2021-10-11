@@ -178,11 +178,8 @@ export const validateIndexEntity = async (
     expect(subgraphIndex.indexId, "Index: indexId error").to.equal(
         expectedIndex.indexId
     );
-    expect(subgraphIndex.oldIndexValue, "Index: oldIndexValue error").to.equal(
-        expectedIndex.oldIndexValue
-    );
-    expect(subgraphIndex.newIndexValue, "Index: newIndexValue error").to.equal(
-        expectedIndex.newIndexValue
+    expect(subgraphIndex.indexValue, "Index: index value error").to.equal(
+        expectedIndex.indexValue
     );
     expect(
         subgraphIndex.totalSubscriptionsWithUnits,
@@ -206,7 +203,7 @@ export const validateIndexEntity = async (
 
     // Check subgraph data against web3 data
     const totalUnits = totalUnitsPending.add(totalUnitsApproved);
-    expect(subgraphIndex.newIndexValue, "Index: newIndexValue error").to.equal(
+    expect(subgraphIndex.indexValue, "Index: index value error").to.equal(
         indexValue.toString()
     );
     expect(
@@ -228,9 +225,9 @@ export const validateSubscriptionEntity = async (
     expectedSubscription: IIndexSubscription,
     newIndexValue: string
 ) => {
-    const token = ethers.utils.getAddress(subgraphSubscription.token.id);
+    const token = ethers.utils.getAddress(subgraphSubscription.index.token.id);
     const publisher = ethers.utils.getAddress(
-        subgraphSubscription.publisher.id
+        subgraphSubscription.index.publisher.id
     );
     const subscriberAddress = ethers.utils.getAddress(
         subgraphSubscription.subscriber.id
@@ -240,15 +237,11 @@ export const validateSubscriptionEntity = async (
         await idaV1.getSubscription(
             token,
             publisher,
-            Number(subgraphSubscription.indexId),
+            Number(subgraphSubscription.index.indexId),
             subscriberAddress
         );
 
     // Check subgraph data against expected data
-    expect(
-        subgraphSubscription.indexId,
-        "Subscription: indexId error"
-    ).to.equal(expectedSubscription.indexId);
     expect(
         subgraphSubscription.approved,
         "Subscription: approved error"

@@ -19,6 +19,9 @@ export const enum IDAEventType {
     SubscriptionApproved,
     SubscriptionUnitsUpdated,
     SubscriptionRevoked,
+
+    // There isn't an event for this, but we need to test for this case.
+    Claim,
 }
 
 export const actionTypeToActiveStreamsDeltaMap = new Map([

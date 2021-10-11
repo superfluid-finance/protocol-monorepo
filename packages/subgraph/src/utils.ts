@@ -338,8 +338,7 @@ export function getOrInitIndex(
         index.createdAtTimestamp = currentTimestamp;
         index.createdAtBlockNumber = block.number;
         index.indexId = indexId;
-        index.oldIndexValue = BIG_INT_ZERO;
-        index.newIndexValue = BIG_INT_ZERO;
+        index.indexValue = BIG_INT_ZERO;
         index.totalSubscriptionsWithUnits = 0;
         index.totalUnitsPending = BIG_INT_ZERO;
         index.totalUnitsApproved = BIG_INT_ZERO;
@@ -404,14 +403,11 @@ export function getOrInitSubscription(
         subscription = new IndexSubscription(subscriptionId);
         subscription.createdAtTimestamp = currentTimestamp;
         subscription.createdAtBlockNumber = block.number;
-        subscription.token = tokenAddress.toHex();
         subscription.subscriber = subscriberId;
-        subscription.publisher = publisherAddress.toHex();
-        subscription.indexId = indexId;
         subscription.approved = false;
         subscription.units = BIG_INT_ZERO;
         subscription.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
-        subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+        subscription.indexValueUntilUpdatedAt = index.indexValue;
         subscription.index = indexEntityId;
 
         getOrInitAccount(hostAddress, subscriberAddress, block);

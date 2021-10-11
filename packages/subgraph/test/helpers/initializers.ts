@@ -67,8 +67,7 @@ export const getOrInitIndex = (
             indexId,
             publisher: { id: publisher },
             token: { id: token },
-            oldIndexValue: "0",
-            newIndexValue: "0",
+            indexValue: "0",
             totalSubscriptionsWithUnits: 0,
             totalUnits: "0",
             totalUnitsApproved: "0",
@@ -96,15 +95,17 @@ export const getOrInitSubscription = (
             createdAtBlockNumber: updatedAtBlockNumber,
             updatedAtBlockNumber,
             updatedAtTimestamp: updatedAtTimestamp,
-            token: { id: token },
             subscriber: { id: subscriber },
-            publisher: { id: publisher },
-            indexId,
             approved: false,
             units: "0",
             totalAmountReceivedUntilUpdatedAt: "0",
             indexValueUntilUpdatedAt: "0",
-            index: { id: indexEntityId },
+            index: {
+                id: indexEntityId,
+                publisher: { id: publisher },
+                indexId,
+                token: { id: token },
+            },
         };
     }
     return existingSubscription;

@@ -27,8 +27,7 @@ export const getIndex = gql`
         index(id: $id) {
             id
             indexId
-            oldIndexValue
-            newIndexValue
+            indexValue
             totalSubscriptionsWithUnits
             totalUnitsPending
             totalUnitsApproved
@@ -57,22 +56,22 @@ export const getSubscription = gql`
     query getSubscription($id: ID!) {
         indexSubscription(id: $id) {
             id
-            token {
-                id
-            }
             subscriber {
                 id
             }
-            publisher {
-                id
-            }
-            indexId
             approved
             units
             totalAmountReceivedUntilUpdatedAt
             indexValueUntilUpdatedAt
             index {
                 id
+                indexId
+                token {
+					id
+				}
+                publisher {
+					id
+				}
             }
             subscriptionApprovedEvents(
                 orderBy: timestamp

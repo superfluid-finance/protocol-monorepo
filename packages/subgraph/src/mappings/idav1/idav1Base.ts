@@ -99,8 +99,7 @@ export function handleIndexUpdated(
     );
     let previousTotalAmountDistributed =
         index.totalAmountDistributedUntilUpdatedAt;
-    index.oldIndexValue = event.params.oldIndexValue;
-    index.newIndexValue = event.params.newIndexValue;
+    index.indexValue = event.params.newIndexValue;
     index.totalUnitsPending = event.params.totalUnitsPending;
     index.totalUnitsApproved = event.params.totalUnitsApproved;
     index.totalUnits = totalUnits;
@@ -178,12 +177,12 @@ export function handleSubscriptionApproved(
         event.block
     );
 
-    let balanceDelta = index.newIndexValue
+    let balanceDelta = index.indexValue
         .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
     subscription.approved = true;
-    subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+    subscription.indexValueUntilUpdatedAt = index.indexValue;
 
     let tokenId = event.params.token.toHex();
 
@@ -299,7 +298,7 @@ export function handleSubscriptionRevoked(
         event.block
     );
 
-    let balanceDelta = index.newIndexValue
+    let balanceDelta = index.indexValue
         .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
@@ -316,7 +315,7 @@ export function handleSubscriptionRevoked(
             subscription.units
         );
     }
-    subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+    subscription.indexValueUntilUpdatedAt = index.indexValue;
 
     updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
     updateATSBalanceAndUpdatedAt(subscriberAddress, tokenId, event.block);
@@ -421,7 +420,7 @@ export function handleSubscriptionUnitsUpdated(
         index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
     }
 
-    let balanceDelta = index.newIndexValue
+    let balanceDelta = index.indexValue
         .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
@@ -481,7 +480,7 @@ export function handleSubscriptionUnitsUpdated(
             : index.totalSubscriptionsWithUnits;
     }
 
-    subscription.indexValueUntilUpdatedAt = index.newIndexValue;
+    subscription.indexValueUntilUpdatedAt = index.indexValue;
     subscription.units = event.params.units;
 
     // to simplify things, we only tally subscriptions in our stats

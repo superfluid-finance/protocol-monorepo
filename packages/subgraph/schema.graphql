@@ -408,17 +408,21 @@ Index: A Index HOL entity.
 """
 type Index @entity {
     """
-    ID composed of: publisherAddress-tokenAddress-IndexId
+    ID composed of: publisherAddress-tokenAddress-indexId
     """
     id: ID!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
+
+    """
+    indexId is not the id of the `Index` entity.
+    """
     indexId: BigInt!
     # ---------------------------------- state ----------------------------------
-    oldIndexValue: BigInt!
-    newIndexValue: BigInt!
+
+    indexValue: BigInt!
 
     """
     The number of subscriptions which have units allocated to them on the `Index`.
@@ -476,10 +480,8 @@ type IndexSubscription @entity {
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
-    token: Token!
     subscriber: Account!
-    publisher: Account!
-    indexId: BigInt!
+
     # ---------------------------------- state ----------------------------------
     """
     Approved subscriptions don't require subscribers to claim tokens that are distributed from
@@ -488,7 +490,7 @@ type IndexSubscription @entity {
     approved: Boolean!
 
     """
-       If units is 0, it indicates that the subscription is "deleted". They are no longer
+    If units is 0, it indicates that the subscription is "deleted". They are no longer
     subscribed to the index.
     """
     units: BigInt!
@@ -500,7 +502,7 @@ type IndexSubscription @entity {
     totalAmountReceivedUntilUpdatedAt: BigInt!
 
     """
-       The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the
+    The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the
     `index.updatedAtTimestamp`. The formula to get this value is:
     `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue - indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
     """
@@ -541,7 +543,7 @@ type Stream @entity {
     currentFlowRate: BigInt!
 
     """
-       The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
+    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
     amount is:
     `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
     """

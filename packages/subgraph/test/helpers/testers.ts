@@ -286,13 +286,13 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
             : toBN(0);
         newIndexValue =
             isDistribute === true
-                ? toBN(currentIndex.newIndexValue).add(indexDelta)
+                ? toBN(currentIndex.indexValue).add(indexDelta)
                 : toBN(amountOrIndexValue.toString());
     }
 
     const extraEventData: IExtraEventData = {
         units,
-        oldIndexValue: currentIndex.newIndexValue,
+        oldIndexValue: currentIndex.indexValue,
         newIndexValue,
         totalUnitsApproved: indexTotalUnitsApproved,
         totalUnitsPending: indexTotalUnitsPending,
@@ -320,7 +320,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     const extraData: IExtraExpectedData = {
         ...extraEventData,
         isRevoke,
-        subscriptionWithUnitsExists: subscriptionWithUnitsExists,
+        subscriptionWithUnitsExists,
         totalUnits,
     };
     const {
@@ -592,7 +592,8 @@ async function getExpectedDataForIDA(
         }
         return await getExpectedDataForRevokeOrDeleteSubscription(
             expectedDataParams,
-            isRevoke
+            isRevoke,
+            subscriptionWithUnitsExists
         );
     }
 
@@ -604,7 +605,6 @@ async function getExpectedDataForIDA(
     // type === IDAEventType.SubscriptionUnitsUpdated
     return await getExpectedDataForSubscriptionUnitsUpdated(
         expectedDataParams,
-        units,
-        subscriptionWithUnitsExists
+        units
     );
 }

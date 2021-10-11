@@ -249,7 +249,21 @@ export const getExpectedDataForIndexCreated = async (
         currentTokenStats,
         updatedAtBlockNumber,
         timestamp,
+        token,
     } = data;
+
+    const updatedPublisherATS: IAccountTokenSnapshot = {
+        ...(await getExpectedATSForCFAEvent(
+            token,
+            currentPublisherATS,
+            updatedAtBlockNumber,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
 
     const updatedTokenStats: ITokenStatistic = {
         ...getExpectedTokenStatsForCFAEvent(
@@ -266,7 +280,7 @@ export const getExpectedDataForIndexCreated = async (
 
     return {
         updatedIndex: currentIndex,
-        updatedPublisherATS: currentPublisherATS,
+        updatedPublisherATS,
         updatedTokenStats,
         updatedSubscription: currentSubscription,
         updatedSubscriberATS: currentSubscriberATS,
@@ -293,13 +307,12 @@ export const getExpectedDataForIndexUpdated = async (
     } = data;
 
     const amountDistributedDelta = totalUnits.mul(
-        newIndexValue.sub(toBN(currentIndex.newIndexValue))
+        newIndexValue.sub(toBN(currentIndex.indexValue))
     );
 
     const updatedIndex: IIndex = {
         ...currentIndex,
-        oldIndexValue: currentIndex.newIndexValue,
-        newIndexValue: newIndexValue.toString(),
+        indexValue: newIndexValue.toString(),
         totalUnitsApproved: indexTotalUnitsApproved.toString(),
         totalUnitsPending: indexTotalUnitsPending.toString(),
         totalUnits: totalUnits.toString(),
@@ -365,15 +378,17 @@ export const getExpectedDataForSubscriptionApproved = async (
         timestamp,
     } = data;
 
-    const balanceDelta = toBN(currentIndex.newIndexValue)
-        .sub(toBN(currentSubscription.indexValueUntilUpdatedAt))
-        .mul(toBN(currentSubscription.units));
+    const balanceDelta = toBN(currentSubscription.units).mul(
+        toBN(currentIndex.indexValue).sub(
+            toBN(currentSubscription.indexValueUntilUpdatedAt)
+        )
+    );
 
     let updatedIndex = { ...currentIndex };
     let updatedSubscription: IIndexSubscription = {
         ...currentSubscription,
         approved: true,
-        indexValueUntilUpdatedAt: currentIndex.newIndexValue,
+        indexValueUntilUpdatedAt: currentIndex.indexValue,
     };
     let updatedPublisherATS: IAccountTokenSnapshot = {
         ...currentPublisherATS,
@@ -454,7 +469,8 @@ export const getExpectedDataForSubscriptionApproved = async (
 
 export const getExpectedDataForRevokeOrDeleteSubscription = async (
     data: IGetExpectedIDADataParams,
-    isRevoke: boolean
+    isRevoke: boolean,
+    subscriptionWithUnitsExists?: boolean
 ) => {
     const {
         token,
@@ -467,9 +483,11 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         updatedAtBlockNumber,
         timestamp,
     } = data;
-    const balanceDelta = toBN(currentIndex.newIndexValue)
-        .sub(toBN(currentSubscription.indexValueUntilUpdatedAt))
-        .mul(toBN(currentSubscription.units));
+    const balanceDelta = toBN(currentSubscription.units).mul(
+        toBN(currentIndex.indexValue).sub(
+            toBN(currentSubscription.indexValueUntilUpdatedAt)
+        )
+    );
 
     let updatedIndex: IIndex = {
         ...currentIndex,
@@ -482,7 +500,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         )
             .add(balanceDelta)
             .toString(),
-        indexValueUntilUpdatedAt: updatedIndex.newIndexValue,
+        indexValueUntilUpdatedAt: updatedIndex.indexValue,
     };
     let updatedPublisherATS: IAccountTokenSnapshot = {
         ...currentPublisherATS,
@@ -513,6 +531,9 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
             toBN(0)
         )),
     };
+
+    const subscriptionsWithUnitsDelta = subscriptionWithUnitsExists ? -1 : 0;
+    const subscriptionsApprovedDelta = currentSubscription.approved ? -1 : 0;
 
     // handleRevokeOrDelete
     if (isRevoke) {
@@ -547,7 +568,8 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
                 .sub(currentSubscription.units)
                 .toString(),
             totalSubscriptionsWithUnits:
-                currentIndex.totalSubscriptionsWithUnits - 1,
+                currentIndex.totalSubscriptionsWithUnits +
+                subscriptionsWithUnitsDelta,
         };
         if (currentSubscription.approved) {
             updatedIndex = {
@@ -568,20 +590,20 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         updatedSubscriberATS = {
             ...updatedSubscriberATS,
             totalSubscriptionsWithUnits:
-                updatedSubscriberATS.totalSubscriptionsWithUnits - 1,
+                updatedSubscriberATS.totalSubscriptionsWithUnits +
+                subscriptionsWithUnitsDelta,
             totalApprovedSubscriptions:
-                currentSubscription.approved === true
-                    ? updatedSubscriberATS.totalApprovedSubscriptions - 1
-                    : updatedSubscriberATS.totalApprovedSubscriptions,
+                updatedSubscriberATS.totalApprovedSubscriptions +
+                subscriptionsApprovedDelta,
         };
         updatedTokenStats = {
             ...updatedTokenStats,
             totalApprovedSubscriptions:
-                currentSubscription.approved === true
-                    ? updatedTokenStats.totalApprovedSubscriptions - 1
-                    : updatedTokenStats.totalApprovedSubscriptions,
+                updatedTokenStats.totalApprovedSubscriptions +
+                subscriptionsApprovedDelta,
             totalSubscriptionsWithUnits:
-                updatedTokenStats.totalSubscriptionsWithUnits - 1,
+                updatedTokenStats.totalSubscriptionsWithUnits +
+                subscriptionsWithUnitsDelta,
         };
     }
 
@@ -611,8 +633,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
 
 export const getExpectedDataForSubscriptionUnitsUpdated = async (
     data: IGetExpectedIDADataParams,
-    units: BN,
-    subscriptionWithUnitsExists: boolean
+    units: BN
 ) => {
     const {
         token,
@@ -667,6 +688,34 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         };
     }
 
+    if (toBN(stringUnits).eq(toBN(0))) {
+        updatedTokenStats = {
+            ...getExpectedTokenStatsForCFAEvent(
+                updatedTokenStats,
+                atsArray,
+                updatedAtBlockNumber,
+                timestamp,
+                FlowActionType.Update,
+                toBN(0),
+                toBN(0)
+            ),
+            totalSubscriptionsWithUnits:
+                updatedTokenStats.totalSubscriptionsWithUnits - 1,
+        };
+
+        updatedIndex = {
+            ...updatedIndex,
+            totalSubscriptionsWithUnits:
+                updatedIndex.totalSubscriptionsWithUnits - 1,
+        };
+
+        updatedSubscriberATS = {
+            ...updatedSubscriberATS,
+            totalSubscriptionsWithUnits:
+                updatedSubscriberATS.totalSubscriptionsWithUnits - 1,
+        };
+    }
+
     if (
         toBN(stringUnits).gt(toBN(0)) &&
         toBN(currentSubscription.units).eq(toBN(0))
@@ -699,7 +748,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
     }
 
     const balanceDelta = toBN(updatedSubscription.units).mul(
-        toBN(updatedIndex.newIndexValue).sub(
+        toBN(updatedIndex.indexValue).sub(
             toBN(updatedSubscription.indexValueUntilUpdatedAt)
         )
     );
@@ -711,7 +760,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         )
             .add(balanceDelta)
             .toString(),
-        indexValueUntilUpdatedAt: updatedIndex.newIndexValue,
+        indexValueUntilUpdatedAt: updatedIndex.indexValue,
         units: stringUnits,
     };
 
@@ -726,6 +775,11 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
             toBN(0),
             toBN(0)
         );
+    }
+
+    // handle the case where the subscriber is the publisher
+    if (updatedSubscriberATS.id === updatedPublisherATS.id) {
+        updatedPublisherATS = { ...updatedSubscriberATS };
     }
 
     return {

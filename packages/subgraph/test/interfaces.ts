@@ -149,25 +149,27 @@ export interface IStream extends IBaseEntity {
 }
 
 export interface IIndexSubscription extends IBaseEntity {
-    readonly token: ILightEntity;
     readonly subscriber: ILightEntity;
-    readonly publisher: ILightEntity;
-    readonly indexId: string;
     readonly approved: boolean;
     readonly units: string;
     readonly totalAmountReceivedUntilUpdatedAt: string;
     readonly indexValueUntilUpdatedAt: string;
-    readonly index: ILightEntity;
+    readonly index: ILightIndex;
 
     readonly subscriptionApprovedEvents?: ILightEntity[];
     readonly subscriptionRevokedEvents?: ILightEntity[];
     readonly subscriptionUnitsUpdatedEvents?: ILightEntity[];
 }
 
+interface ILightIndex extends ILightEntity {
+    readonly indexId: string;
+    readonly token: ILightEntity;
+    readonly publisher: ILightEntity;
+}
+
 export interface IIndex extends IBaseEntity {
     readonly indexId: string;
-    readonly oldIndexValue: string;
-    readonly newIndexValue: string;
+    readonly indexValue: string;
     readonly totalSubscriptionsWithUnits: number;
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
@@ -390,21 +392,6 @@ export interface IInstantDistributionTestData
     readonly publisher: string;
     readonly subscriber?: string;
     readonly indexId: string;
-}
-
-export interface IUpdateIndexData {
-    readonly oldIndexValue?: string;
-    readonly newIndexValue?: string;
-    readonly totalSubscribersDelta?: number;
-    readonly totalUnitsPending?: BigNumber;
-    readonly totalUnitsApproved?: BigNumber;
-}
-
-export interface IUpdateSubscriberData {
-    readonly approved?: boolean;
-    readonly units?: string;
-    readonly totalAmountReceivedUntilUpdatedAt?: string;
-    readonly indexValueUntilUpdatedAt?: string;
 }
 
 export interface IBaseIDAEvent {

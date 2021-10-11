@@ -39,7 +39,8 @@
     "dependencies": {
         "@ethersproject/abi": "^5.4.1",
         "@ethersproject/hash": "^5.4.0",
-        "auto-bind": "^4.0.0"
+        "auto-bind": "^4.0.0",
+        "node-fetch": "^2.6.5"
     },
     "peerDependencies": {
         "@ethersproject/contracts": "^5.0.0",
@@ -52,6 +53,7 @@
         "@openzeppelin/test-helpers": "^0.5.13",
         "@superfluid-finance/ethereum-contracts": "1.0.0-rc.7",
         "@truffle/contract": "^4.3.35",
+        "@truffle/hdwallet-provider": "^1.5.1",
         "chai-as-promised": "^7.1.1",
         "truffle": "5.4.11",
         "web3": "^1.5.3",

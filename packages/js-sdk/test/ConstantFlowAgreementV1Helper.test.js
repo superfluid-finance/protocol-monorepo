@@ -12,7 +12,8 @@ describe("ConstantFlowAgreementV1Helper class", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             nAccounts: 4,
         });
 
@@ -20,7 +21,8 @@ describe("ConstantFlowAgreementV1Helper class", function () {
         sf = t.sf;
 
         ({ superToken } = await t.deployNewToken("TEST2", {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             doUpgrade: true,
         }));
         await t.pushEvmSnapshot();

@@ -6,6 +6,7 @@ const { isAddress, validateAddress } = require("./utils/general");
 const { batchCall } = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
+const fetch = require("node-fetch");
 
 const User = require("./User");
 
@@ -363,6 +364,15 @@ module.exports = class Framework {
         return superToken;
     }
 
+    /**
+     * @dev Create an user object
+     * @param {address} address Account address Address of the user
+     * @param {token} token Default token for the user
+     * @param {options} options Additional options for the user.
+     *
+     * NOTE:
+     * - See User class for more details about the options
+     */
     user({ address, token, options }) {
         try {
             if (!address) throw "Please provide an address";
@@ -375,8 +385,28 @@ module.exports = class Framework {
         }
     }
 
+    /**
+     * @dev Create a batch call
+     * @param {object[]} calls Array of batch call descriptions.
+     *
+     * NOTE:
+     * The batch call description is defined in batchCall.js, for lack of better
+     * documentation, please read the source code of it.
+     */
     batchCall(calls) {
         return this.host.batchCall(batchCall(calls));
+    }
+
+    /**
+     * @dev Make a subgraph query
+     */
+    async subgraphQuery(query) {
+        const response = await fetch(this.config.subgraphQueryEndpoint, {
+            method: "POST",
+            body: JSON.stringify(query),
+            headers: { "Content-Type": "application/json" },
+        });
+        return await response.text();
     }
 
     /**

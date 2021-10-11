@@ -151,7 +151,7 @@ module.exports = class TestEnvironment {
      * @param nAccounts Number of test accounts to be loaded from web3
      * @param tokens Tokens to be loaded
      */
-    async beforeTestSuite({ isTruffle, nAccounts, tokens }) {
+    async beforeTestSuite({ isTruffle, web3, nAccounts, tokens }) {
         const MAX_TEST_ACCOUNTS = 10;
         nAccounts = nAccounts || 0;
         assert(nAccounts <= MAX_TEST_ACCOUNTS);
@@ -165,9 +165,10 @@ module.exports = class TestEnvironment {
             // Can we load from externally saved snapshots?
             if (!process.env.TESTENV_SNAPSHOT_VARS) {
                 console.log("Creating a new evm snapshot");
-                await this.deployFramework({ isTruffle, useMocks: true });
+                await this.deployFramework({ isTruffle, web3, useMocks: true });
                 await this.deployNewToken("TEST", {
                     isTruffle,
+                    web3,
                     accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
                 });
                 await this.pushEvmSnapshot();
@@ -183,6 +184,7 @@ module.exports = class TestEnvironment {
                 await this.useLastEvmSnapshot();
                 await this.mintTestTokensAndApprove("TEST", {
                     isTruffle,
+                    web3,
                     accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
                 });
                 await this.pushEvmSnapshot();
@@ -199,6 +201,7 @@ module.exports = class TestEnvironment {
         this.sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
             isTruffle: isTruffle,
+            web3,
             version: process.env.RELEASE_VERSION || "test",
             tokens,
         });
@@ -266,26 +269,33 @@ module.exports = class TestEnvironment {
         await deployFramework(this.createErrorHandler(), {
             newTestResolver: true,
             isTruffle: deployOpts.isTruffle,
+            web3: deployOpts.web3,
             useMocks: deployOpts.useMocks,
             ...deployOpts,
         });
     }
 
     /// create a new test token (ERC20) and its super token
-    async deployNewToken(tokenSymbol, { isTruffle, accounts, doUpgrade } = {}) {
+    async deployNewToken(
+        tokenSymbol,
+        { isTruffle, web3, accounts, doUpgrade } = {}
+    ) {
         accounts = accounts || this.accounts;
 
         await deployTestToken(this.createErrorHandler(), [":", tokenSymbol], {
             isTruffle: isTruffle,
+            web3,
         });
         await deploySuperToken(this.createErrorHandler(), [":", tokenSymbol], {
             isTruffle: isTruffle,
+            web3,
         });
 
         // load the SDK
         const sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
             isTruffle: isTruffle,
+            web3,
             version: process.env.RELEASE_VERSION || "test",
         });
         await sf.initialize();
@@ -325,11 +335,12 @@ module.exports = class TestEnvironment {
         };
     }
 
-    async mintTestTokensAndApprove(tokenSymbol, { isTruffle, accounts }) {
+    async mintTestTokensAndApprove(tokenSymbol, { isTruffle, web3, accounts }) {
         // load the SDK
         const sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
             isTruffle: isTruffle,
+            web3,
             version: process.env.RELEASE_VERSION || "test",
         });
         await sf.initialize();

@@ -67,6 +67,19 @@ export function handleIndexCreated(
     tokenStatistic.updatedAtBlockNumber = event.block.number;
     tokenStatistic.save();
 
+    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
+
+    updateATSStreamedUntilUpdatedAt(
+        event.params.publisher.toHex(),
+        event.params.token.toHex(),
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(
+        event.params.publisher.toHex(),
+        event.params.token.toHex(),
+        event.block
+    );
+
     createIndexCreatedEntity(event, index.id);
 }
 
@@ -333,24 +346,18 @@ export function handleSubscriptionRevoked(
         event.block
     );
     // mimic ida logic more closely
-    if (!subscription.approved) {
-        updateATSStreamedUntilUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
-        updateATSBalanceAndUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
+    updateATSStreamedUntilUpdatedAt(
+        event.params.publisher.toHex(),
+        tokenId,
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(
+        event.params.publisher.toHex(),
+        tokenId,
+        event.block
+    );
 
-        updateAccountUpdatedAt(
-            hostAddress,
-            event.params.publisher,
-            event.block
-        );
-    }
+    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
 
     // occurs on revoke or delete
     subscription.totalAmountReceivedUntilUpdatedAt =
@@ -432,23 +439,17 @@ export function handleSubscriptionUnitsUpdated(
 
     // We move both of these in here as we handle this in revoke or delete
     // as well, so if we put it outside it will be a duplicate call
-    if (!subscription.approved) {
-        updateATSStreamedUntilUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
-        updateATSBalanceAndUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
-        updateAccountUpdatedAt(
-            hostAddress,
-            event.params.publisher,
-            event.block
-        );
-    }
+    updateATSStreamedUntilUpdatedAt(
+        event.params.publisher.toHex(),
+        tokenId,
+        event.block
+    );
+    updateATSBalanceAndUpdatedAt(
+        event.params.publisher.toHex(),
+        tokenId,
+        event.block
+    );
+    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
 
     updateATSStreamedUntilUpdatedAt(
         event.params.subscriber.toHex(),

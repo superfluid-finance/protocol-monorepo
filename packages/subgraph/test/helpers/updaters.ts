@@ -607,20 +607,18 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         };
     }
 
-    if (currentSubscription.approved === false) {
-        updatedPublisherATS = {
-            ...(await getExpectedATSForCFAEvent(
-                token,
-                updatedPublisherATS,
-                updatedAtBlockNumber,
-                timestamp,
-                FlowActionType.Update,
-                true,
-                toBN(0),
-                toBN(0)
-            )),
-        };
-    }
+    updatedPublisherATS = {
+        ...(await getExpectedATSForCFAEvent(
+            token,
+            updatedPublisherATS,
+            updatedAtBlockNumber,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
 
     return {
         updatedIndex,
@@ -764,18 +762,16 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         units: stringUnits,
     };
 
-    if (currentSubscription.approved === false) {
-        updatedPublisherATS = await getExpectedATSForCFAEvent(
-            token,
-            currentPublisherATS,
-            updatedAtBlockNumber,
-            timestamp,
-            FlowActionType.Update,
-            true,
-            toBN(0),
-            toBN(0)
-        );
-    }
+    updatedPublisherATS = await getExpectedATSForCFAEvent(
+        token,
+        currentPublisherATS,
+        updatedAtBlockNumber,
+        timestamp,
+        FlowActionType.Update,
+        true,
+        toBN(0),
+        toBN(0)
+    );
 
     // handle the case where the subscriber is the publisher
     if (updatedSubscriberATS.id === updatedPublisherATS.id) {

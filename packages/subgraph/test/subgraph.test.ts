@@ -473,7 +473,7 @@ describe("Subgraph Tests", () => {
 
     // GOTCHA'S: The balance may be inconsistent, so we'll have to use a web3 call + the subgraph data
     // when a user claims tokens
-    describe.only("InstantDistributionAgreement Tests", () => {
+    describe("InstantDistributionAgreement Tests", () => {
         /**
          * Create Index Tests
          */
@@ -1240,22 +1240,5 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it.skip("Should return correct data after calling distribute to 0 approved subscribers", async () => {});
-
-        it.skip("Should return correct data after calling distribute to some approved subscribers", async () => {});
-
-        it.skip("Should return correct data after calling distribute to all approved subscribers", async () => {});
-
-        /**
-         * Update Index Tests
-         */
-
-        it.skip("Should return correct data after calling update index with 0 subscribers", async () => {});
-
-        it.skip("Should return correct data after calling update index with 0 approved subscribers", async () => {});
-
-        it.skip("Should return correct data after calling update index with some approved subscribers", async () => {});
-
-        it.skip("Should return correct data after calling update index with all approved subscribers", async () => {});
     });
 });

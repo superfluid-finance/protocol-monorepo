@@ -692,7 +692,7 @@ type TokenStatistic @entity {
     totalNumberOfActiveIndexes: Int!
 
     """
-       The number of subscriptions which have units allocated to them
+    The number of subscriptions which have units allocated to them
     created with Indexes that distribute `token`.
     """
     totalSubscriptionsWithUnits: Int!

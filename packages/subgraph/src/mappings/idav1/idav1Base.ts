@@ -245,8 +245,10 @@ export function handleSubscriptionApproved(
         event.params.token.toHex(),
         hasSubscriptionWithUnits || subscription.approved,
         subscription.approved,
-        false,
-        true,
+        false, // don't increment subWithUnits
+        false, // not revoking
+        false, // not deleting
+        true, // approving subscription here
         event.block
     );
     index.save();
@@ -325,8 +327,10 @@ export function handleSubscriptionRevoked(
         tokenId,
         true,
         subscription.approved,
-        false,
-        false,
+        false, // don't increment subWithUnits
+        true, // revoking subscription here
+        false, // not deleting
+        false, // not approving
         event.block
     );
     // mimic ida logic more closely
@@ -466,12 +470,15 @@ export function handleSubscriptionUnitsUpdated(
             tokenId,
             hasSubscriptionWithUnits,
             subscription.approved,
-            true,
-            false,
+            false, // don't increment subWithUnits
+            false, // not revoking subscription
+            true, // only place we decrement subWithUnits IF subscriber has subWithUnits
+            false, // not approving
             event.block
         );
-        index.totalSubscriptionsWithUnits =
-            index.totalSubscriptionsWithUnits - 1;
+        index.totalSubscriptionsWithUnits = hasSubscriptionWithUnits
+            ? index.totalSubscriptionsWithUnits - 1
+            : index.totalSubscriptionsWithUnits;
     }
 
     subscription.indexValueUntilUpdatedAt = index.newIndexValue;
@@ -479,6 +486,7 @@ export function handleSubscriptionUnitsUpdated(
 
     // to simplify things, we only tally subscriptions in our stats
     // if you have units - the opposite of subscription deletion
+    // this only executes when someone is allocated units the first time
     if (units.gt(BIG_INT_ZERO) && oldUnits.equals(BIG_INT_ZERO)) {
         index.totalSubscriptionsWithUnits =
             index.totalSubscriptionsWithUnits + 1;
@@ -490,8 +498,10 @@ export function handleSubscriptionUnitsUpdated(
             tokenId,
             hasSubscriptionWithUnits,
             subscription.approved,
-            false,
-            false,
+            true, // only place we increment subWithUnits
+            false, // not revoking
+            false, // not deleting
+            false, // not approving
             event.block
         );
     }

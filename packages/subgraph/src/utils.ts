@@ -599,6 +599,8 @@ export function getOrInitTokenStatistic(
  * @param tokenId
  * @param subscriptionWithUnitsExists
  * @param subscriptionApproved
+ * @param isIncrementingSubWithUnits
+ * @param isRevokingSubscription
  * @param isDeletingSubscription
  * @param isApproving
  * @param block
@@ -608,6 +610,8 @@ export function updateAggregateIDASubscriptionsData(
     tokenId: string,
     subscriptionWithUnitsExists: boolean,
     subscriptionApproved: boolean,
+    isIncrementingSubWithUnits: boolean,
+    isRevokingSubscription: boolean,
     isDeletingSubscription: boolean,
     isApproving: boolean,
     block: ethereum.Block
@@ -618,14 +622,15 @@ export function updateAggregateIDASubscriptionsData(
         block
     );
     let tokenStatistic = getOrInitTokenStatistic(tokenId, block);
-    let totalSubscriptionWithUnitsDelta = isDeletingSubscription
-        ? -1
-        : subscriptionWithUnitsExists
-        ? 0
-        : 1;
+    let totalSubscriptionWithUnitsDelta =
+        isDeletingSubscription && subscriptionWithUnitsExists
+            ? -1
+            : isIncrementingSubWithUnits && !subscriptionWithUnitsExists
+            ? 1
+            : 0;
     let totalApprovedSubscriptionsDelta = isApproving
         ? 1
-        : subscriptionWithUnitsExists && subscriptionApproved
+        : isRevokingSubscription && subscriptionApproved
         ? -1
         : 0;
 
@@ -641,7 +646,8 @@ export function updateAggregateIDASubscriptionsData(
 
     // update tokenStatistic Subscription data
     tokenStatistic.totalSubscriptionsWithUnits =
-        tokenStatistic.totalSubscriptionsWithUnits + totalSubscriptionWithUnitsDelta;
+        tokenStatistic.totalSubscriptionsWithUnits +
+        totalSubscriptionWithUnitsDelta;
     tokenStatistic.totalApprovedSubscriptions =
         tokenStatistic.totalApprovedSubscriptions +
         totalApprovedSubscriptionsDelta;

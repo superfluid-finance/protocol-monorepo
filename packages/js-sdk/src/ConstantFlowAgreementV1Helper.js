@@ -45,7 +45,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const flowRateNorm = this._sf.utils.normalizeFlowRateParam(flowRate);
         userData = userData || "0x";
         console.debug(
-            `Create flow from ${sender} to ${receiver} at ${flowRate} ...`
+            `Create flow from ${sender} to ${receiver} at ${flowRate} for ${superToken} ...`
         );
         const tx = await completeTransaction({
             sf: this._sf,
@@ -98,7 +98,7 @@ module.exports = class ConstantFlowAgreementV1Helper {
         const flowRateNorm = this._sf.utils.normalizeFlowRateParam(flowRate);
         userData = userData || "0x";
         console.debug(
-            `Update flow from ${sender} to ${receiver} to ${flowRate} ...`
+            `Update flow from ${sender} to ${receiver} to ${flowRate} for ${superToken} ...`
         );
 
         const tx = await completeTransaction({
@@ -155,7 +155,9 @@ module.exports = class ConstantFlowAgreementV1Helper {
             senderNorm;
         userData = userData || "0x";
         console.debug(
-            `Delete flow from ${sender} to ${receiver} by ${by || byNorm} ...`
+            `Delete flow from ${sender} to ${receiver} by ${
+                by || byNorm
+            } for ${superToken} ...`
         );
         const tx = await completeTransaction({
             sf: this._sf,
@@ -258,25 +260,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
     }
 
     async getFlowEvents({ token, receiver = null, sender = null }) {
-        let flows;
-        if (this._cfa.getPastEvents) {
-            flows = await this._cfa.getPastEvents("FlowUpdated", {
-                fromBlock: 0,
-                toBlock: "latest",
-                filter: {
-                    token,
-                    receiver,
-                    sender,
-                },
-            });
-        } else {
-            const filter = this._cfa.filters.FlowUpdated(
-                token,
-                sender,
-                receiver
-            );
-            flows = await this._cfa.queryFilter(filter);
-        }
+        let flows = await this._sf.getPastEvents(this._cfa, "FlowUpdated", {
+            token,
+            receiver,
+            sender,
+        });
         return Object.values(
             flows.reduce((acc, i) => {
                 acc[i.args.sender + ":" + i.args.receiver] = i;

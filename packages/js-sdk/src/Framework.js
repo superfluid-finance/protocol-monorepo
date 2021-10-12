@@ -90,6 +90,7 @@ module.exports = class Framework {
             this.networkId = await this.web3.eth.net.getId();
             this.chainId = await this.web3.eth.getChainId();
         }
+        console.log("version", this.version);
         console.log("networkType", this.networkType);
         console.log("networkId", this.networkId);
 
@@ -410,6 +411,27 @@ module.exports = class Framework {
             const result = await response.text();
             return JSON.parse(result).data;
         } else throw new Error("subgraphQuery failed: " + response.text());
+    }
+
+    /**
+     * @dev Get past events thourhg either web3 or subgraph
+     */
+    async getPastEvents(contract, eventName, filter) {
+        if (contract.getPastEvents) {
+            return await contract.getPastEvents(eventName, {
+                fromBlock: 0,
+                toBlock: "latest",
+                filter,
+            });
+        } else if (contract.queryFilter) {
+            throw new Error("ethers filter support is discontinued");
+            // const filter = this._cfa.filters.FlowUpdated(
+            //     token,
+            //     sender,
+            //     receiver
+            // );
+            // flows = await this._cfa.queryFilter(filter);
+        } else throw new Error("No backend found for getPastEvents");
     }
 
     /**

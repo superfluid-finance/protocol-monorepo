@@ -9,6 +9,9 @@ describe("Framework subgraph (goerli) support", function () {
     let sf;
 
     before(async function () {
+        // make sure no test resolver passed to the testsuite
+        delete process.env.TEST_RESOLVER_ADDRESS;
+
         try {
             require("dotenv").config({
                 path: path.join(__dirname, "..", ".env"),
@@ -32,7 +35,7 @@ describe("Framework subgraph (goerli) support", function () {
     });
 
     it("subgraphQuery", async () => {
-        const meta = await sf.subgraphQuery({
+        const data = await sf.subgraphQuery({
             query: `{
                 _meta {
                     block {
@@ -42,6 +45,7 @@ describe("Framework subgraph (goerli) support", function () {
                 }
             }`,
         });
-        assert.isNotEmpty(meta);
+        assert.isDefined(data._meta.block.number);
+        assert.isDefined(data._meta.deployment);
     });
 });

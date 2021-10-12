@@ -846,13 +846,13 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it.skip("Should return correct data after non-subscribers get units, claim them and publisher updates their units to 0.", async () => {
+        it("Should return correct data after non-subscribers get units, claim them and publisher updates their units to 0.", async () => {
             const token = daix.address;
             const multiBaseParams = {
                 provider,
                 token,
-                publisher: userAddresses[2],
-                indexId: 2,
+                publisher: userAddresses[3],
+                indexId: 3,
                 atsArray: getAccountTokenSnapshotsArray(),
                 userData: "0x",
             };
@@ -946,13 +946,11 @@ describe("Subgraph Tests", () => {
                     subscriber: userAddresses[i],
                 };
 
-                // update sub units
-                let units = new BN(100);
+                // claim pending units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units,
+                        eventType: IDAEventType.Claim,
                     })
                 );
             }

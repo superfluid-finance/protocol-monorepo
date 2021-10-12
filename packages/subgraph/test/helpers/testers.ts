@@ -20,6 +20,7 @@ import {
     IExtraExpectedData,
     IFlowUpdatedEvent,
     IGetExpectedIDADataParams as IGetExpectedIDADataParams,
+    IIndexSubscription,
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
     ITestModifyIDAData,
@@ -36,6 +37,7 @@ import {
     hasSubscriptionWithUnits,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
+    subgraphRequest,
     toBN,
     waitUntilBlockIndexed,
 } from "./helpers";
@@ -55,6 +57,9 @@ import {
 import { IDAEventType, idaEventTypeToEventQueryDataMap } from "./constants";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { BigNumber } from "@ethersproject/bignumber";
+import { getSubscription } from "../queries/holQueries";
+import { ethers } from "hardhat";
+import { expect } from "chai";
 
 /**
  * A "God" function used to test modify flow events.
@@ -299,6 +304,40 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         totalUnitsPending: indexTotalUnitsPending,
     };
 
+    // Claim is tested quite differently as no event is emitted for it (currently)
+    // in the future we can write some logic which handles the event in this block
+    // as it will require special logic to accurately do so.
+    if (eventType === IDAEventType.Claim) {
+        const { indexSubscription } = await subgraphRequest<{
+            indexSubscription: IIndexSubscription | undefined;
+        }>(getSubscription, {
+            id: currentSubscription.id,
+        });
+
+        if (!indexSubscription) {
+            throw new Error("Subscription entity not found.");
+        }
+        const subscriberAddress = ethers.utils.getAddress(
+            indexSubscription.subscriber.id
+        );
+
+        const [, , , pendingDistribution] = await idaV1.getSubscription(
+            token,
+            publisher,
+            Number(indexSubscription.index.indexId),
+            subscriberAddress
+        );
+        expect(pendingDistribution.toString()).to.equal("0");
+
+        return {
+            updatedIndex: currentIndex,
+            updatedSubscription: currentSubscription,
+            updatedPublisherATS: currentPublisherATS,
+            updatedSubscriberATS: currentSubscriberATS,
+            updatedTokenStats: currentTokenStats,
+        } as IUpdateIDAGlobalObjects;
+    }
+
     const event = await fetchIDAEventAndValidate(
         eventType,
         receipt,
@@ -425,6 +464,11 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 sender,
             });
         }
+    } else if (type === IDAEventType.Claim) {
+        txn = await ida.claim({
+            ...baseSubscriberData,
+            sender: subscriber,
+        });
     } else {
         // type === IDAEventType.SubscriptionUnitsUpdated
         if (units == null) {

@@ -17,12 +17,16 @@ const config: HardhatUserConfig = {
             },
         },
     },
-	networks: {
-		localhost: {
-			url: "http://0.0.0.0:8545/",
-			chainId: 1337
-		}
-	},
+    networks: {
+        localhost: {
+            url: "http://0.0.0.0:8545/",
+            chainId: 1337,
+        },
+        matic: {
+            url: "https://polygon-mainnet.infura.io/v3/87d4e8453b7f432f8f973ec0e50efa21",
+            chainId: 137,
+        },
+    },
     mocha: {
         timeout: 250000,
     },

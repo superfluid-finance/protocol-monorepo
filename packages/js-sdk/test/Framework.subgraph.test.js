@@ -32,6 +32,16 @@ describe("Framework subgraph (goerli) support", function () {
     });
 
     it("subgraphQuery", async () => {
-        await sf.subgraphQuery({});
+        const meta = await sf.subgraphQuery({
+            query: `{
+                _meta {
+                    block {
+                        number
+                    }
+                    deployment
+                }
+            }`,
+        });
+        assert.isNotEmpty(meta);
     });
 });

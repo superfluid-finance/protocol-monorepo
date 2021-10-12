@@ -406,7 +406,10 @@ module.exports = class Framework {
             body: JSON.stringify(query),
             headers: { "Content-Type": "application/json" },
         });
-        return await response.text();
+        if (response.ok) {
+            const result = await response.text();
+            return JSON.parse(result).data;
+        } else throw new Error("subgraphQuery failed: " + response.text());
     }
 
     /**

@@ -84,6 +84,12 @@ export function getOrInitAccount(
     block: ethereum.Block
 ): Account {
     let account = Account.load(accountAddress.toHex());
+
+    // filter out 0 address accounts
+    if (accountAddress.equals(new Address(0))) {
+        return account as Account;
+    }
+
     let currentTimestamp = block.timestamp;
     if (account == null) {
         let hostContract = Superfluid.bind(hostAddress);
@@ -456,6 +462,10 @@ export function updateAccountUpdatedAt(
     accountAddress: Address,
     block: ethereum.Block
 ): void {
+    // filter out 0 address accounts
+    if (accountAddress.equals(new Address(0))) {
+        return;
+    }
     let account = getOrInitAccount(hostAddress, accountAddress, block);
     account.updatedAtTimestamp = block.timestamp;
     account.updatedAtBlockNumber = block.number;

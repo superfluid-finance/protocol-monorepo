@@ -17,6 +17,7 @@ import {
     IStreamLocalData,
     IIndexSubscription,
     ITokenStatistic,
+    IUpdateIDAGlobalObjects,
     ISubscriberDistributionTesterParams,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
@@ -25,9 +26,6 @@ import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
 // TODO: validate Account entities reverse look up
 // create generalized function to do this
-// TODO: go through the paths
-// probably can make a generalized function which can
-// filter and fetch events of a particular contract
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let sf: Framework;
@@ -65,13 +63,14 @@ describe("Subgraph Tests", () => {
         tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
     }
 
-    function updateGlobalObjectsForIDAEvents(
-        updatedTokenStats: ITokenStatistic,
-        updatedIndex?: IIndex,
-        updatedSubscription?: IIndexSubscription,
-        updatedPublisherATS?: IAccountTokenSnapshot,
-        updatedSubscriberATS?: IAccountTokenSnapshot
-    ) {
+    function updateGlobalObjectsForIDAEvents(data: IUpdateIDAGlobalObjects) {
+        const {
+            updatedTokenStats,
+            updatedPublisherATS,
+            updatedSubscriberATS,
+            updatedIndex,
+            updatedSubscription,
+        } = data;
         tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
         if (updatedIndex) {
             indexes[updatedIndex.id] = updatedIndex;
@@ -119,6 +118,14 @@ describe("Subgraph Tests", () => {
         return Object.values(accountTokenSnapshots).filter(
             (x) => x != undefined
         ) as IAccountTokenSnapshot[];
+    }
+
+    function getBaseIDAData(baseParams: ISubscriberDistributionTesterParams) {
+        return {
+            contracts: getContracts(),
+            localData: getDistributionLocalData(),
+            baseParams,
+        };
     }
 
     before(async () => {
@@ -489,29 +496,16 @@ describe("Subgraph Tests", () => {
                     userData: "0x",
                     subscriber: "",
                 };
-                const {
-                    updatedIndex,
-                    updatedSubscriberATS,
-                    updatedPublisherATS,
-                    updatedSubscription,
-                    updatedTokenStats,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.IndexCreated,
-                });
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.IndexCreated,
+                    })
                 );
             }
         });
 
-        it("Should return correct data after subscribers without units are granted units, have their units updated and then have their subscription deleted.", async () => {
+        it("Should return correct data after sub units updated twice, sub deleted, sub approved, sub units set to 0 and sub deleted.", async () => {
             const token = daix.address;
             // Testing half the users on the last created index.
             for (let i = 1; i < Math.floor(userAddresses.length / 2); i++) {
@@ -529,101 +523,90 @@ describe("Subgraph Tests", () => {
                 let units = new BN(100);
 
                 // update sub units
-                let {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                });
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
 
                 units = new BN(150);
 
                 // update sub units again
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
 
                 // distribute units to non-approved subscribers
                 const amountOrIndexValue = new BN(10);
 
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.IndexUpdated,
-                    amountOrIndexValue,
-                    isDistribute: false,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData({ ...baseParams, subscriber: "" }),
+                        eventType: IDAEventType.IndexUpdated,
+                        amountOrIndexValue,
+                        isDistribute: false,
+                    })
                 );
 
                 // delete subscriptions
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionRevoked,
-                    isRevoke: false,
-                    sender: subscriber,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionRevoked,
+                        isRevoke: false,
+                        sender: subscriber,
+                    })
+                );
+
+                // approve deleted sub
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionApproved,
+                    })
+                );
+
+                // update sub units to 0
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
+                );
+
+                // delete subscriptions
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionRevoked,
+                        isRevoke: false,
+                        sender: subscriber,
+                    })
+                );
+
+                // update sub units to > 0
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(100),
+                    })
+                );
+
+                // update sub units to 0
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
                 );
             }
         });
@@ -650,96 +633,112 @@ describe("Subgraph Tests", () => {
                 let units = new BN(100);
 
                 // update sub units
-                let {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                });
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
 
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionApproved,
-                }));
-
+                // approve sub w/ units
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionApproved,
+                    })
                 );
 
                 units = new BN(0);
 
-                // update sub units to 0
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                }));
-
+                // update approved sub units to 0
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
 
-                // delete subs
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionRevoked,
-                    isRevoke: false,
-                    sender: subscriber,
-                }));
-
+                // update sub units from 0 to 0 (we should be able to do this technically)
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
+                );
+
+                // revoke approved sub w/o units
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionRevoked,
+                        isRevoke: true,
+                        sender: subscriber,
+                    })
+                );
+
+                // update revoked sub units
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(150),
+                    })
+                );
+
+                // approve revoked sub w/ units
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionApproved,
+                    })
+                );
+
+                // revoke approved sub w/ units
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionRevoked,
+                        isRevoke: true,
+                        sender: subscriber,
+                    })
+                );
+
+                // update sub units on revoked sub w/ units
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(175),
+                    })
+                );
+
+                // update revoked sub w/ units to 0
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
+                );
+                // update revoked sub w/ units to 0
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
+                );
+
+                // update revoked sub w/o  units to 0
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
                 );
             }
         });
@@ -756,489 +755,207 @@ describe("Subgraph Tests", () => {
                 const baseParams: ISubscriberDistributionTesterParams = {
                     provider,
                     token,
-                    publisher: userAddresses[1],
-                    indexId: 1,
+                    publisher: userAddresses[2],
+                    indexId: 2,
                     atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
                     subscriber,
                 };
 
-                let {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionApproved,
-                });
-
+                // approve subscriptions
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionApproved,
+                    })
                 );
 
-                let units = new BN(100);
+                // update sub units
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(100),
+                    })
+                );
 
                 // update sub units
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(150),
+                    })
                 );
 
                 // distribute units to approved subscribers
                 const amountOrIndexValue = new BN(100);
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.IndexUpdated,
-                    amountOrIndexValue,
-                    isDistribute: true,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData({ ...baseParams, subscriber: "" }),
+                        eventType: IDAEventType.IndexUpdated,
+                        amountOrIndexValue,
+                        isDistribute: true,
+                    })
                 );
 
                 // delete subs
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionRevoked,
-                    isRevoke: false,
-                    sender: subscriber,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionRevoked,
+                        isRevoke: false,
+                        sender: subscriber,
+                    })
                 );
-            }
-        });
 
-        /**
-         * Approve Subscription Tests (as Subscriber)
-         */
-        it.skip("Should return correct data after multiple non-subscribed users approve subscriptions to multiple indexes", async () => {
-            const token = daix.address;
-            for (let i = 1; i < userAddresses.length; i++) {
-                // Take this code and put it into a function (validateSubscriptionApproved)
-                const publisher = userAddresses[i];
-                const subscriber = userAddresses[i - 1];
-                const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
-                    token,
-                    publisher,
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber,
-                };
-                const {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionApproved,
-                });
-
+                // update sub units to 0
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
                 );
-            }
-        });
 
-        /**
-         * Update Subscription Units Tests (as Publisher)
-         */
-        it.skip("Should return correct data after a publisher updates non-subscribed users' subscription units", async () => {
-            const token = daix.address;
-            for (let i = 1; i < userAddresses.length; i++) {
-                // Take this code and put it into a function (validateUpdateSubscriptionUnits)
-                const publisher = userAddresses[i];
-                const subscriber = userAddresses[i - 1];
-                const units = new BN(100);
-
-                const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
-                    token,
-                    publisher,
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber,
-                };
-                const {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                });
-
+                // update not approved sub w/o units to 0 again
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(0),
+                    })
                 );
-            }
-        });
 
-        it.skip("Should return correct data after a publisher updates non-approved subscribed users' subscription", async () => {
-            /**
-             * check the event entity (SubscriptionUnitsUpdated)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
-        });
-
-        // SubscriptionApproved
-        it.skip("Should return correct data after multiple subscribed users approve subscriptions to multiple indexes", async () => {
-            /**
-             * check the event entity (SubscriptionApproved)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
-        });
-
-        it.skip("Should return correct data after a publisher updates approved subscribed users' subscription", async () => {
-            /**
-             * check the event entity (SubscriptionUnitsUpdated)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             */
-        });
-
-        /**
-         * Revoke Subscription Tests (as subscriber)
-         */
-        it.skip("Should return correct data after revoking a subscription.", async () => {
-            const token = daix.address;
-            for (let i = 1; i < userAddresses.length; i++) {
-                // Take this code and put it into a function (it will be reused)
-                const publisher = userAddresses[i];
-                const subscriber = userAddresses[i - 1];
-
-                const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
-                    token,
-                    publisher,
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber,
-                };
-
-                const {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionRevoked,
-                    isRevoke: true,
-                    sender: subscriber,
-                });
-
+                // approve subscriptions
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionApproved,
+                    })
                 );
-            }
-        });
 
-        /**
-         * Delete Subscription Tests
-         */
-        it.skip("Should return correct data after deleting a subscription (as publisher).", async () => {
-            /**
-             * check the event entity (SubscriptionRevoked)
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             * subscriber.units should be 0
-             */
-        });
-
-        /**
-         * Claim Units Test
-         */
-        it.skip("Should return correct data after claiming units.", async () => {
-            /**
-             * check the HOL index entity with the returned data from sdk's idaHelper web3 (Index, Subscription)
-             * update the aggregate data similar to the streams and compare (ATS, TokenStats)
-             * remember to take into consideration the flowRate data here too
-             * use toBN
-             * this is the funky one where you need to make an additional web3 call to get the correct amount because the subgraph will return an incorrect result.
-             */
-        });
-
-        /**
-         * Distribute Tests
-         */
-        it.skip("Should return correct data after calling distribute to 0 subscribers", async () => {
-            const token = daix.address;
-            for (let i = 1; i < userAddresses.length; i++) {
-                // Take this code and put it into a function (it will be reused)
-                const publisher = userAddresses[i];
-                const amountOrIndexValue = new BN(100);
-
-                const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
-                    token,
-                    publisher,
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber: "",
-                };
-
-                const {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.IndexUpdated,
-                    amountOrIndexValue,
-                    isDistribute: true,
-                });
-
+                // update approved sub w/o units to > 0
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
-                );
-            }
-        });
-
-        it.skip("Should return correct data after deleting a subscription (as subscriber).", async () => {
-            const token = daix.address;
-            for (let i = 1; i < userAddresses.length; i++) {
-                // Take this code and put it into a function (it will be reused)
-                const publisher = userAddresses[i];
-                const subscriber = userAddresses[i - 1];
-
-                const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
-                    token,
-                    publisher,
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber,
-                };
-
-                const {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionRevoked,
-                    isRevoke: false,
-                    sender: subscriber,
-                });
-
-                updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units: new BN(150),
+                    })
                 );
             }
         });
 
         it.skip("Should return correct data after non-subscribers get units, claim them and publisher updates their units to 0.", async () => {
             const token = daix.address;
-            for (let i = 1; i < Math.floor(userAddresses.length / 2); i++) {
+            const multiBaseParams = {
+                provider,
+                token,
+                publisher: userAddresses[2],
+                indexId: 2,
+                atsArray: getAccountTokenSnapshotsArray(),
+                userData: "0x",
+            };
+
+            // approve and update sub units for half
+            for (let i = 0; i < Math.floor(userAddresses.length / 2); i++) {
                 const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
-                    token,
-                    publisher: userAddresses[i],
-                    indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    userData: "0x",
-                    subscriber: userAddresses[i - 1],
+                    ...multiBaseParams,
+                    subscriber: userAddresses[i],
                 };
 
-                let units = new BN(100);
-
-                // update sub units one time
-                let {
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                });
-
+                // approve subscriptions
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionApproved,
+                    })
+                );
+
+                // update sub units
+                let units = new BN(100);
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
 
                 units = new BN(150);
 
-                // update sub units again time
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.SubscriptionUnitsUpdated,
-                    units,
-                }));
-
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
+                );
+            }
+
+            // update sub units for the other half
+            for (
+                let i = Math.floor(userAddresses.length / 2);
+                i < userAddresses.length;
+                i++
+            ) {
+                const baseParams: ISubscriberDistributionTesterParams = {
+                    ...multiBaseParams,
+                    subscriber: userAddresses[i],
+                };
+
+                // update sub units
+                let units = new BN(100);
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
 
-                const amountOrIndexValue = new BN(100);
+                units = new BN(150);
 
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
+                updateGlobalObjectsForIDAEvents(
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
+                );
+            }
+
+            // distribute units to pending + claimed users
+            const amountOrIndexValue = new BN(100);
+            updateGlobalObjectsForIDAEvents(
+                await testModifyIDA({
+                    ...getBaseIDAData({ ...multiBaseParams, subscriber: "" }),
                     eventType: IDAEventType.IndexUpdated,
                     amountOrIndexValue,
                     isDistribute: true,
-                }));
+                })
+            );
 
+            for (
+                let i = Math.floor(userAddresses.length / 2);
+                i < userAddresses.length;
+                i++
+            ) {
+                const baseParams: ISubscriberDistributionTesterParams = {
+                    ...multiBaseParams,
+                    subscriber: userAddresses[i],
+                };
+
+                // update sub units
+                let units = new BN(100);
                 updateGlobalObjectsForIDAEvents(
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS
+                    await testModifyIDA({
+                        ...getBaseIDAData(baseParams),
+                        eventType: IDAEventType.SubscriptionUnitsUpdated,
+                        units,
+                    })
                 );
-
-                ({
-                    updatedTokenStats,
-                    updatedIndex,
-                    updatedSubscription,
-                    updatedPublisherATS,
-                    updatedSubscriberATS,
-                } = await testModifyIDA({
-                    contracts: getContracts(),
-                    localData: getDistributionLocalData(),
-                    baseParams,
-                    eventType: IDAEventType.IndexUpdated,
-                    amountOrIndexValue,
-                    isDistribute: true,
-                }));
             }
         });
-
     });
 });

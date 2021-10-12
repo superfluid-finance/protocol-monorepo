@@ -363,8 +363,7 @@ export const getExpectedDataForIndexUpdated = async (
 };
 
 export const getExpectedDataForSubscriptionApproved = async (
-    data: IGetExpectedIDADataParams,
-    subscriptionWithUnitsExists: boolean
+    data: IGetExpectedIDADataParams
 ) => {
     const {
         token,
@@ -377,6 +376,8 @@ export const getExpectedDataForSubscriptionApproved = async (
         updatedAtBlockNumber,
         timestamp,
     } = data;
+
+    const subscriptionWithUnitsExists = currentSubscription.units !== "0";
 
     const balanceDelta = toBN(currentSubscription.units).mul(
         toBN(currentIndex.indexValue).sub(
@@ -469,8 +470,7 @@ export const getExpectedDataForSubscriptionApproved = async (
 
 export const getExpectedDataForRevokeOrDeleteSubscription = async (
     data: IGetExpectedIDADataParams,
-    isRevoke: boolean,
-    subscriptionWithUnitsExists?: boolean
+    isRevoke: boolean
 ) => {
     const {
         token,
@@ -532,6 +532,7 @@ export const getExpectedDataForRevokeOrDeleteSubscription = async (
         )),
     };
 
+    const subscriptionWithUnitsExists = currentSubscription.units !== "0";
     const subscriptionsWithUnitsDelta = subscriptionWithUnitsExists ? -1 : 0;
     const subscriptionsApprovedDelta = currentSubscription.approved ? -1 : 0;
 
@@ -660,6 +661,7 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
             toBN(0)
         )),
     };
+    const subscriptionWithUnitsExists = currentSubscription.units !== "0";
     let updatedTokenStats = { ...currentTokenStats };
     const stringUnits = units.toString();
 
@@ -686,6 +688,10 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
         };
     }
 
+    const totalSubscriptionsWithUnitsDelta = subscriptionWithUnitsExists
+        ? -1
+        : 0;
+
     if (toBN(stringUnits).eq(toBN(0))) {
         updatedTokenStats = {
             ...getExpectedTokenStatsForCFAEvent(
@@ -698,19 +704,22 @@ export const getExpectedDataForSubscriptionUnitsUpdated = async (
                 toBN(0)
             ),
             totalSubscriptionsWithUnits:
-                updatedTokenStats.totalSubscriptionsWithUnits - 1,
+                updatedTokenStats.totalSubscriptionsWithUnits +
+                totalSubscriptionsWithUnitsDelta,
         };
 
         updatedIndex = {
             ...updatedIndex,
             totalSubscriptionsWithUnits:
-                updatedIndex.totalSubscriptionsWithUnits - 1,
+                updatedIndex.totalSubscriptionsWithUnits +
+                totalSubscriptionsWithUnitsDelta,
         };
 
         updatedSubscriberATS = {
             ...updatedSubscriberATS,
             totalSubscriptionsWithUnits:
-                updatedSubscriberATS.totalSubscriptionsWithUnits - 1,
+                updatedSubscriberATS.totalSubscriptionsWithUnits +
+                totalSubscriptionsWithUnitsDelta,
         };
     }
 

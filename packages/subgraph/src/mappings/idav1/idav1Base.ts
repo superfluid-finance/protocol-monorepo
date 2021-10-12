@@ -332,6 +332,8 @@ export function handleSubscriptionRevoked(
 
     updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
     updateATSBalanceAndUpdatedAt(subscriberAddress, tokenId, event.block);
+    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
+	
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
     updateAggregateIDASubscriptionsData(
@@ -366,8 +368,6 @@ export function handleSubscriptionRevoked(
 
     index.save();
     subscription.save();
-
-    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
     createSubscriptionRevokedEntity(event, subscription.id);
 }

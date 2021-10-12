@@ -23,6 +23,7 @@ import {
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
     ITestModifyIDAData,
+    IUpdateIDAGlobalObjects,
 } from "../interfaces";
 import { getFlowUpdatedEvents } from "../queries/eventQueries";
 import { fetchEventAndValidate } from "../validation/eventValidators";
@@ -320,7 +321,6 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     const extraData: IExtraExpectedData = {
         ...extraEventData,
         isRevoke,
-        subscriptionWithUnitsExists,
         totalUnits,
     };
     const {
@@ -352,7 +352,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         updatedPublisherATS,
         updatedSubscriberATS,
         updatedTokenStats,
-    };
+    } as IUpdateIDAGlobalObjects;
 }
 
 async function executeIDATransactionByTypeAndWaitForIndexer(
@@ -549,7 +549,6 @@ async function getExpectedDataForIDA(
     const {
         isRevoke,
         newIndexValue,
-        subscriptionWithUnitsExists,
         totalUnits,
         totalUnitsApproved,
         totalUnitsPending,
@@ -577,30 +576,19 @@ async function getExpectedDataForIDA(
             totalUnitsPending
         );
     } else if (type === IDAEventType.SubscriptionApproved) {
-        if (subscriptionWithUnitsExists == null) {
-            throw new Error(
-                "subscriptionWithUnitsExists is required for SubscriptionApproved"
-            );
-        }
-        return await getExpectedDataForSubscriptionApproved(
-            expectedDataParams,
-            subscriptionWithUnitsExists
-        );
+        return await getExpectedDataForSubscriptionApproved(expectedDataParams);
     } else if (type === IDAEventType.SubscriptionRevoked) {
         if (isRevoke == null) {
             throw new Error("isRevoke is required for SubscriptionRevoked");
         }
         return await getExpectedDataForRevokeOrDeleteSubscription(
             expectedDataParams,
-            isRevoke,
-            subscriptionWithUnitsExists
+            isRevoke
         );
     }
 
-    if (units == null || subscriptionWithUnitsExists == null) {
-        throw new Error(
-            "units, subscriptionWithUnitsExists is required for SubscriptionUnitsUpdated"
-        );
+    if (units == null) {
+        throw new Error("units is required for SubscriptionUnitsUpdated");
     }
     // type === IDAEventType.SubscriptionUnitsUpdated
     return await getExpectedDataForSubscriptionUnitsUpdated(

@@ -262,12 +262,10 @@ export interface IExpectedTokenStats {
     readonly totalAmountStreamedUntilUpdatedAt: string;
 }
 
-export interface IUpdateGlobalObjectData {
-    readonly updatedStreamData?: IStreamData;
-    readonly updatedTokenStats?: ITokenStatistic;
-    readonly updatedReceiverATS?: IAccountTokenSnapshot;
-    readonly updatedSenderATS?: IAccountTokenSnapshot;
-    readonly revisionIndexId?: string;
+export interface IUpdateIDAGlobalObjects {
+    readonly updatedTokenStats: ITokenStatistic;
+    readonly updatedPublisherATS?: IAccountTokenSnapshot;
+    readonly updatedSubscriberATS?: IAccountTokenSnapshot;
     readonly updatedIndex?: IIndex;
     readonly updatedSubscription?: IIndexSubscription;
 }
@@ -377,7 +375,6 @@ export interface IExtraEventData {
 
 export interface IExtraExpectedData extends IExtraEventData {
     readonly isRevoke?: boolean;
-    readonly subscriptionWithUnitsExists?: boolean;
     readonly totalUnits?: BigNumber;
 }
 
@@ -401,7 +398,7 @@ export interface IBaseIDAEvent {
     readonly userData: string;
 }
 
-export interface IExpectedIndexUpdated extends IBaseIDAEvent {
+export interface IExpectedIndexUpdatedEvent extends IBaseIDAEvent {
     readonly oldIndexValue: string;
     readonly newIndexValue: string;
     readonly totalUnitsPending: string;
@@ -412,7 +409,7 @@ export interface IExpectedSubscriberEvent extends IBaseIDAEvent {
     readonly subscriber: ILightEntity;
 }
 
-export interface IExpectedSubscriptionUnitsUpdated
+export interface IExpectedSubscriptionUnitsUpdatedEvent
     extends IExpectedSubscriberEvent {
     readonly units: string;
 }

@@ -118,6 +118,8 @@ jobs:
           yarn install --frozen-lockfilepull_request
           yarn lint
           yarn build
+        env:
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
       - name: Test js-sdk
         run: |

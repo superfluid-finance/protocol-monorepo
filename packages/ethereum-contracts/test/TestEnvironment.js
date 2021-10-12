@@ -156,7 +156,7 @@ module.exports = class TestEnvironment {
         nAccounts = nAccounts || 0;
         assert(nAccounts <= MAX_TEST_ACCOUNTS);
         tokens = typeof tokens === "undefined" ? ["TEST"] : tokens;
-        const allAccounts = await web3.eth.getAccounts();
+        const allAccounts = await (web3 || global.web3).eth.getAccounts();
         const testAccounts = allAccounts.slice(0, nAccounts);
         this.setupDefaultAliases(testAccounts);
 

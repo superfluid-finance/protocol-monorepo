@@ -35,17 +35,23 @@ describe("Framework subgraph (goerli) support", function () {
     });
 
     it("subgraphQuery", async () => {
-        const data = await sf.subgraphQuery({
-            query: `{
-                _meta {
-                    block {
-                        number
-                    }
-                    deployment
+        const data = await sf.subgraphQuery(`{
+            _meta {
+                block {
+                    number
                 }
-            }`,
-        });
+                deployment
+            }
+        }`);
         assert.isDefined(data._meta.block.number);
         assert.isDefined(data._meta.deployment);
+    });
+
+    it("getPastEvents SuperTokenLogicCreated", async () => {
+        const events = await sf.getPastEvents(
+            sf.host,
+            "SuperTokenLogicCreated"
+        );
+        assert.isTrue(events.length > 0);
     });
 });

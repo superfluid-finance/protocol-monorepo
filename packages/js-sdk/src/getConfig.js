@@ -60,7 +60,8 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             resolverAddress: "0xE0cc76334405EE8b39213E620587d815967af39C",
             versions: {
                 v1: {
-                    subgraphQueryEndpoint: "",
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-matic",
                 },
             },
         },

@@ -404,20 +404,38 @@ module.exports = class Framework {
     async subgraphQuery(query) {
         const response = await fetch(this.config.subgraphQueryEndpoint, {
             method: "POST",
-            body: JSON.stringify(query),
+            body: JSON.stringify({ query }),
             headers: { "Content-Type": "application/json" },
         });
         if (response.ok) {
-            const result = await response.text();
-            return JSON.parse(result).data;
+            const result = JSON.parse(await response.text());
+            if (!result.errors) {
+                return result.data;
+            } else {
+                throw new Error("subgraphQuery errors: " + result.error);
+            }
         } else throw new Error("subgraphQuery failed: " + response.text());
     }
 
     /**
      * @dev Get past events thourhg either web3 or subgraph
      */
-    async getPastEvents(contract, eventName, filter) {
-        if (contract.getPastEvents) {
+    async getPastEvents(contract, eventName, filter = {}) {
+        function lcfirst(str) {
+            var firstLetter = str.substr(0, 1);
+            return firstLetter.toLowerCase() + str.substr(1);
+        }
+
+        if (this.config.subgraphQueryEndpoint) {
+            const entityName = lcfirst(`${eventName}Events`);
+            const events = await this.subgraphQuery(`{
+                ${entityName} {
+                    id
+                }
+            }`);
+            console.debug(events);
+            return events[entityName];
+        } else if (contract.getPastEvents) {
             return await contract.getPastEvents(eventName, {
                 fromBlock: 0,
                 toBlock: "latest",

@@ -33,6 +33,7 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
             ...web3EncodingAdapter,
         },
     };
+    ethersContract.abi = abi;
 
     return ethersContract;
 };

@@ -6,6 +6,7 @@ const { isAddress, validateAddress } = require("./utils/general");
 const { batchCall } = require("./batchCall");
 const ConstantFlowAgreementV1Helper = require("./ConstantFlowAgreementV1Helper");
 const InstantDistributionAgreementV1Helper = require("./InstantDistributionAgreementV1Helper");
+const fetch = require("node-fetch");
 
 const User = require("./User");
 
@@ -79,16 +80,17 @@ module.exports = class Framework {
         if (this.ethers) {
             const network = await this.ethers.getNetwork();
             this.networkType = network.name;
-            this.chainId = network.chainId;
             this.networkId = network.chainId; // TODO: this could be wrong
+            this.chainId = network.chainId;
         } else {
             // NOTE: querying network type first,
             // Somehow web3.eth.net.getId may send bogus number if this was not done first
             // It could be a red-herring issue, but it makes it more stable.
             this.networkType = await this.web3.eth.net.getNetworkType();
-            this.networkId = await this.web3.eth.net.getId(); // TODO use eth.getChainId;
-            this.chainId = await this.web3.eth.getChainId(); // TODO use eth.getChainId;
+            this.networkId = await this.web3.eth.net.getId();
+            this.chainId = await this.web3.eth.getChainId();
         }
+        console.log("version", this.version);
         console.log("networkType", this.networkType);
         console.log("networkId", this.networkId);
         console.log("chainId", this.chainId);
@@ -364,6 +366,15 @@ module.exports = class Framework {
         return superToken;
     }
 
+    /**
+     * @dev Create an user object
+     * @param {address} address Account address Address of the user
+     * @param {token} token Default token for the user
+     * @param {options} options Additional options for the user.
+     *
+     * NOTE:
+     * - See User class for more details about the options
+     */
     user({ address, token, options }) {
         try {
             if (!address) throw "Please provide an address";
@@ -376,8 +387,108 @@ module.exports = class Framework {
         }
     }
 
+    /**
+     * @dev Create a batch call
+     * @param {object[]} calls Array of batch call descriptions.
+     *
+     * NOTE:
+     * The batch call description is defined in batchCall.js, for lack of better
+     * documentation, please read the source code of it.
+     */
     batchCall(calls) {
         return this.host.batchCall(batchCall(calls));
+    }
+
+    /**
+     * @dev Make a subgraph query
+     * @param {string} query The subgraph query body
+     * @return {Promise<object[]>}
+     */
+    async subgraphQuery(query) {
+        const response = await fetch(this.config.subgraphQueryEndpoint, {
+            method: "POST",
+            body: JSON.stringify({ query }),
+            headers: { "Content-Type": "application/json" },
+        });
+        if (response.ok) {
+            const result = JSON.parse(await response.text());
+            if (!result.errors) {
+                return result.data;
+            } else {
+                throw new Error(
+                    "subgraphQuery errors: " + JSON.stringify(result.errors)
+                );
+            }
+        } else throw new Error("subgraphQuery failed: " + response.text());
+    }
+
+    /**
+     * @dev Get past events thourhg either web3 or subgraph
+     * @param {Contract} contract The contract object where the event is emitted
+     * @param {string} eventName The event name
+     * @param {object} filter Event filtering
+     * @return {Promise<object[]>}
+     */
+    async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
+        function lcfirst(str) {
+            var firstLetter = str.substr(0, 1);
+            return firstLetter.toLowerCase() + str.substr(1);
+        }
+
+        const eventABI = contract.abi.filter((i) => i.name === eventName)[0];
+        if (!eventABI) throw new Error("Event not found");
+
+        if (this.config.subgraphQueryEndpoint && !forceWeb3) {
+            const entityName = lcfirst(`${eventName}Events`);
+            const fields = eventABI.inputs.map((i) => i.name);
+            const where = eventABI.inputs
+                .filter((i) => i.indexed)
+                .map((i) => {
+                    if (i.name in filter) {
+                        if (filter[i.name] !== null) {
+                            return `${i.name} : "${filter[i.name]}"`;
+                        } else {
+                            return null;
+                        }
+                    } else return null;
+                })
+                .filter((i) => i !== null)
+                .join(",");
+            const events = await this.subgraphQuery(`{
+                ${entityName} (first: 1000, where: { ${where} }) {
+                    transactionHash
+                    blockNumber
+                    ${fields.join("\n")}
+                }
+            }`);
+            return events[entityName];
+        } else if (contract.getPastEvents) {
+            const result = await contract.getPastEvents(eventName, {
+                fromBlock: 0,
+                toBlock: "latest",
+                filter,
+            });
+            return result.map((i) => ({
+                transactionHash: i.transactionHash,
+                blockNumber: i.blockNumber,
+                ...i.args,
+            }));
+        } else if (contract.queryFilter) {
+            const filterArgs = eventABI.inputs
+                .filter((i) => i.indexed)
+                .map((i) => (i.name in filter ? filter[i.name] : null));
+            console.log("filterArgs", filterArgs);
+            const result = await contract.queryFilter(
+                contract.filters[eventName](...filterArgs),
+                0,
+                "latest"
+            );
+            return result.map((i) => ({
+                transactionHash: i.transactionHash,
+                blockNumber: i.blockNumber,
+                ...i.args,
+            }));
+        } else throw new Error("No backend found for getPastEvents");
     }
 
     /**

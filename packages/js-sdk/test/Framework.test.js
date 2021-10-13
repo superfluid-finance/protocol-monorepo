@@ -16,26 +16,32 @@ describe("Framework class", function () {
 
     before(async function () {
         await t.beforeTestSuite({
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             nAccounts: 1,
         });
 
         ({ admin } = t.aliases);
 
         await deployTestToken(t.createErrorHandler(), [":", "fDAI"], {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
         });
         await deployTestToken(t.createErrorHandler(), [":", "fUSDC"], {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
         });
         await deploySuperToken(t.createErrorHandler(), [":", "ETH"], {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
         });
         await deploySuperToken(t.createErrorHandler(), [":", "fDAI"], {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
         });
         await deploySuperToken(t.createErrorHandler(), [":", "fUSDC"], {
-            isTruffle: true,
+            isTruffle: false,
+            web3,
         });
         await t.pushEvmSnapshot();
     });

@@ -132,7 +132,11 @@ module.exports = class TestEnvironment {
             resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
         } = this._evmSnapshots.pop());
         await this._revertToEvmSnapShot(oldEvmSnapshotId);
+        // move the time to now
         await traveler.advanceBlockAndSetTime(parseInt(Date.now() / 1000));
+        // take snapshot twice to make sure the new snapshotId is different from
+        // old snapshotId. it is a superstition
+        await this._takeEvmSnapshot();
         const newEvmSnapshotId = await this._takeEvmSnapshot();
         this._evmSnapshots.push({
             id: newEvmSnapshotId,

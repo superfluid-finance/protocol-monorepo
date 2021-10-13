@@ -447,11 +447,12 @@ module.exports = class Framework {
                         if (filter[i.name] !== null) {
                             return `${i.name} : "${filter[i.name]}"`;
                         } else {
-                            return "";
+                            return null;
                         }
-                    } else return "";
+                    } else return null;
                 })
-                .join(",\n");
+                .filter((i) => i !== null)
+                .join(",");
             const events = await this.subgraphQuery(`{
                 ${entityName} (first: 1000, where: { ${where} }) {
                     transactionHash

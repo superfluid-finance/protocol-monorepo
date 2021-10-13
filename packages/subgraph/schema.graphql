@@ -99,12 +99,62 @@ type IndexUpdatedEvent implements Event @entity {
     index: Index!
 }
 
+type IndexSubscribedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    subscriber: Bytes!
+    userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
+type IndexUnitsUpdatedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    subscriber: Bytes!
+    units: BigInt!
+    userData: Bytes!
+
+    # Custom Properties (not on event)
+    oldUnits: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
+type IndexUnsubscribedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    subscriber: Bytes!
+    userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
 type SubscriptionApprovedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
     blockNumber: BigInt!
     token: Bytes!
+    subscriber: Bytes!
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
@@ -119,6 +169,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     timestamp: BigInt!
     blockNumber: BigInt!
     token: Bytes!
+    subscriber: Bytes!
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
@@ -133,6 +184,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     timestamp: BigInt!
     blockNumber: BigInt!
     token: Bytes!
+    subscriber: Bytes!
     publisher: Bytes!
     indexId: BigInt!
     units: BigInt!
@@ -465,6 +517,11 @@ type Index @entity {
     indexCreatedEvent: IndexCreatedEvent!
 
     indexUpdatedEvents: [IndexUpdatedEvent!]! @derivedFrom(field: "index")
+    indexSubscribedEvents: [IndexSubscribedEvent!]! @derivedFrom(field: "index")
+    indexUnitsUpdatedEvents: [IndexUnitsUpdatedEvent!]!
+        @derivedFrom(field: "index")
+    indexUnsubscribedEvents: [IndexUnsubscribedEvent!]!
+        @derivedFrom(field: "index")
 }
 
 """

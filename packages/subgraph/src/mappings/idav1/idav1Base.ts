@@ -2,6 +2,9 @@ import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexUpdated,
+    IndexSubscribed,
+    IndexUnitsUpdated,
+    IndexUnsubscribed,
     SubscriptionApproved,
     SubscriptionRevoked,
     SubscriptionUnitsUpdated,
@@ -9,6 +12,9 @@ import {
 import {
     IndexCreatedEvent,
     IndexUpdatedEvent,
+    IndexSubscribedEvent,
+    IndexUnitsUpdatedEvent,
+    IndexUnsubscribedEvent,
     SubscriptionApprovedEvent,
     SubscriptionRevokedEvent,
     SubscriptionUnitsUpdatedEvent,
@@ -26,6 +32,7 @@ import {
     tokenHasValidHost,
     updateTokenStatsStreamedUntilUpdatedAt,
     updateATSStreamedUntilUpdatedAt,
+    getIndexID,
 } from "../../utils";
 
 export function handleIndexCreated(
@@ -158,6 +165,33 @@ export function handleIndexUpdated(
     );
 
     createIndexUpdatedEntity(event, index.id);
+}
+
+export function handleIndexSubscribed(event: IndexSubscribed): void {
+    let indexId = getIndexID(
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId
+    );
+    createIndexSubscribedEntity(event, indexId);
+}
+
+export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
+    let indexId = getIndexID(
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId
+    );
+    createIndexUnitsUpdatedEntity(event, indexId);
+}
+
+export function handleIndexUnsubscribed(event: IndexUnsubscribed): void {
+    let indexId = getIndexID(
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId
+    );
+    createIndexUnsubscribedEntity(event, indexId);
 }
 
 export function handleSubscriptionApproved(
@@ -333,7 +367,7 @@ export function handleSubscriptionRevoked(
     updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
     updateATSBalanceAndUpdatedAt(subscriberAddress, tokenId, event.block);
     updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
-	
+
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
     updateAggregateIDASubscriptionsData(
@@ -544,6 +578,54 @@ function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
     ev.index = indexId;
     ev.save();
 }
+function createIndexSubscribedEntity(
+    event: IndexSubscribed,
+    indexId: string
+): void {
+    let ev = new IndexSubscribedEvent(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.subscriber = event.params.subscriber;
+    ev.userData = event.params.userData;
+    ev.index = indexId;
+    ev.save();
+}
+
+function createIndexUnitsUpdatedEntity(
+    event: IndexUnitsUpdated,
+    indexId: string
+): void {
+    let ev = new IndexUnitsUpdatedEvent(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.userData = event.params.userData;
+    ev.index = indexId;
+    ev.save();
+}
+
+function createIndexUnsubscribedEntity(
+    event: IndexUnsubscribed,
+    indexId: string
+): void {
+    let ev = new IndexUnsubscribedEvent(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.publisher = event.params.publisher;
+    ev.indexId = event.params.indexId;
+    ev.userData = event.params.userData;
+    ev.index = indexId;
+    ev.save();
+}
 
 function createSubscriptionApprovedEntity(
     event: SubscriptionApproved,
@@ -554,6 +636,7 @@ function createSubscriptionApprovedEntity(
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
+    ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
     ev.userData = event.params.userData;
@@ -570,6 +653,7 @@ function createSubscriptionRevokedEntity(
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
+    ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
     ev.userData = event.params.userData;
@@ -587,6 +671,7 @@ function createSubscriptionUnitsUpdatedEntity(
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
+    ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
     ev.units = event.params.units;

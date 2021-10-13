@@ -1,6 +1,9 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
+    IndexSubscribed as IndexSubscribedEvent,
+    IndexUnitsUpdated as IndexUnitsUpdatedEvent,
+    IndexUnsubscribed as IndexUnsubscribedEvent,
     IndexUpdated as IndexUpdatedEvent,
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
@@ -9,6 +12,9 @@ import {
 import { KOVAN_HOST_ADDRESS, KOVAN_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleIndexCreated,
+    handleIndexSubscribed,
+    handleIndexUnitsUpdated,
+    handleIndexUnsubscribed,
     handleIndexUpdated,
     handleSubscriptionApproved,
     handleSubscriptionRevoked,
@@ -24,6 +30,24 @@ export function kovanHandleIndexCreated(event: IndexCreatedEvent): void {
 
 export function kovanHandleIndexUpdated(event: IndexUpdatedEvent): void {
     handleIndexUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
+}
+
+export function kovanHandleIndexSubscribed(
+    event: IndexSubscribedEvent
+): void {
+    handleIndexSubscribed(event);
+}
+
+export function kovanHandleIndexUnitsUpdated(
+    event: IndexUnitsUpdatedEvent
+): void {
+    handleIndexUnitsUpdated(event);
+}
+
+export function kovanHandleIndexUnsubscribed(
+    event: IndexUnsubscribedEvent
+): void {
+    handleIndexUnsubscribed(event);
 }
 
 export function kovanHandleSubscriptionApproved(

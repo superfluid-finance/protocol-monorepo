@@ -5,3 +5,4 @@ yarn.lock
 package-lock.json
 subgraph.yaml
 typechain/
+tasks/config

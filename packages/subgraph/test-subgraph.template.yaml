@@ -126,6 +126,9 @@ dataSources:
           - IndexCreatedEvent
           - IndexUpdatedEvent
           - IndexSubscription
+          - IndexSubscribedEvent
+          - IndexUnitsUpdatedEvent
+          - IndexUnsubscribedEvent
           - Token
           - TokenStatistic
           - SubscriptionApprovedEvent
@@ -144,6 +147,12 @@ dataSources:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: {{testNetwork}}HandleIndexCreated
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
+            handler: {{testNetwork}}HandleIndexUpdated
+          - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
+            handler: {{testNetwork}}HandleIndexSubscribed
+          - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
+            handler: {{testNetwork}}HandleIndexUnsubscribed
+          - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
             handler: {{testNetwork}}HandleIndexUpdated
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: {{testNetwork}}HandleSubscriptionApproved

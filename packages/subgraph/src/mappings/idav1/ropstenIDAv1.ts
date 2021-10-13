@@ -1,6 +1,9 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
+    IndexSubscribed as IndexSubscribedEvent,
+    IndexUnitsUpdated as IndexUnitsUpdatedEvent,
+    IndexUnsubscribed as IndexUnsubscribedEvent,
     IndexUpdated as IndexUpdatedEvent,
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
@@ -9,6 +12,9 @@ import {
 import { ROPSTEN_HOST_ADDRESS, ROPSTEN_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleIndexCreated,
+    handleIndexSubscribed,
+    handleIndexUnitsUpdated,
+    handleIndexUnsubscribed,
     handleIndexUpdated,
     handleSubscriptionApproved,
     handleSubscriptionRevoked,
@@ -24,6 +30,24 @@ export function ropstenHandleIndexCreated(event: IndexCreatedEvent): void {
 
 export function ropstenHandleIndexUpdated(event: IndexUpdatedEvent): void {
     handleIndexUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
+}
+
+export function ropstenHandleIndexSubscribed(
+    event: IndexSubscribedEvent
+): void {
+    handleIndexSubscribed(event);
+}
+
+export function ropstenHandleIndexUnitsUpdated(
+    event: IndexUnitsUpdatedEvent
+): void {
+    handleIndexUnitsUpdated(event);
+}
+
+export function ropstenHandleIndexUnsubscribed(
+    event: IndexUnsubscribedEvent
+): void {
+    handleIndexUnsubscribed(event);
 }
 
 export function ropstenHandleSubscriptionApproved(

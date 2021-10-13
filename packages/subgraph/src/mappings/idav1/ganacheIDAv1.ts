@@ -1,6 +1,9 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
+    IndexSubscribed as IndexSubscribedEvent,
+    IndexUnitsUpdated as IndexUnitsUpdatedEvent,
+    IndexUnsubscribed as IndexUnsubscribedEvent,
     IndexUpdated as IndexUpdatedEvent,
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
@@ -9,6 +12,9 @@ import {
 import { GANACHE_HOST_ADDRESS, GANACHE_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleIndexCreated,
+    handleIndexSubscribed,
+    handleIndexUnitsUpdated,
+    handleIndexUnsubscribed,
     handleIndexUpdated,
     handleSubscriptionApproved,
     handleSubscriptionRevoked,
@@ -24,6 +30,24 @@ export function ganacheHandleIndexCreated(event: IndexCreatedEvent): void {
 
 export function ganacheHandleIndexUpdated(event: IndexUpdatedEvent): void {
     handleIndexUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
+}
+
+export function ganacheHandleIndexSubscribed(
+    event: IndexSubscribedEvent
+): void {
+    handleIndexSubscribed(event);
+}
+
+export function ganacheHandleIndexUnitsUpdated(
+    event: IndexUnitsUpdatedEvent
+): void {
+    handleIndexUnitsUpdated(event);
+}
+
+export function ganacheHandleIndexUnsubscribed(
+    event: IndexUnsubscribedEvent
+): void {
+    handleIndexUnsubscribed(event);
 }
 
 export function ganacheHandleSubscriptionApproved(

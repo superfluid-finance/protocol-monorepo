@@ -1,6 +1,9 @@
 import { Address } from "@graphprotocol/graph-ts";
 import {
     IndexCreated as IndexCreatedEvent,
+    IndexSubscribed as IndexSubscribedEvent,
+    IndexUnitsUpdated as IndexUnitsUpdatedEvent,
+    IndexUnsubscribed as IndexUnsubscribedEvent,
     IndexUpdated as IndexUpdatedEvent,
     SubscriptionApproved as SubscriptionApprovedEvent,
     SubscriptionRevoked as SubscriptionRevokedEvent,
@@ -9,6 +12,9 @@ import {
 import { MUMBAI_HOST_ADDRESS, MUMBAI_RESOLVER_ADDRESS } from "../../utils";
 import {
     handleIndexCreated,
+    handleIndexSubscribed,
+    handleIndexUnitsUpdated,
+    handleIndexUnsubscribed,
     handleIndexUpdated,
     handleSubscriptionApproved,
     handleSubscriptionRevoked,
@@ -24,6 +30,24 @@ export function mumbaiHandleIndexCreated(event: IndexCreatedEvent): void {
 
 export function mumbaiHandleIndexUpdated(event: IndexUpdatedEvent): void {
     handleIndexUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
+}
+
+export function mumbaiHandleIndexSubscribed(
+    event: IndexSubscribedEvent
+): void {
+    handleIndexSubscribed(event);
+}
+
+export function mumbaiHandleIndexUnitsUpdated(
+    event: IndexUnitsUpdatedEvent
+): void {
+    handleIndexUnitsUpdated(event);
+}
+
+export function mumbaiHandleIndexUnsubscribed(
+    event: IndexUnsubscribedEvent
+): void {
+    handleIndexUnsubscribed(event);
 }
 
 export function mumbaiHandleSubscriptionApproved(

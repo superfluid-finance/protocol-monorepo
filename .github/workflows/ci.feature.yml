@@ -122,6 +122,8 @@ jobs:
       - name: Test js-sdk
         run: |
           yarn workspace @superfluid-finance/js-sdk test
+        env:
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
   test-subgraph:
     name: Build and test subgraph (Feature Branch)

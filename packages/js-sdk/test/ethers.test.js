@@ -31,7 +31,8 @@ describe("User helper class", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             nAccounts: 4,
         });
 
@@ -42,13 +43,22 @@ describe("User helper class", function () {
             carol: carolAddress,
         } = t.aliases);
 
-        superToken = t.sf.tokens.TESTx;
-
         sf = new SuperfluidSDK.Framework({
             ethers: new Web3Provider(web3.currentProvider),
             version: "test",
         });
         await sf.initialize();
+
+        ({ superToken } = await t.deployNewToken("TEST2", {
+            isTruffle: false,
+            web3,
+            doUpgrade: true,
+        }));
+        await t.pushEvmSnapshot();
+    });
+
+    after(async () => {
+        await t.popEvmSnapshot();
     });
 
     beforeEach(async function () {
@@ -121,6 +131,7 @@ describe("User helper class", function () {
             console.log(JSON.stringify(await bob.details()));
         });
     });
+
     describe.skip("new flows", () => {
         it("fail without recipient", async () => {
             await expect(
@@ -173,7 +184,7 @@ describe("User helper class", function () {
                 "38580246913580"
             );
         });
-        it.skip("create a new flow with onTransaction", async () => {
+        it("create a new flow with onTransaction", async () => {
             let txHash;
             const tx = await alice.flow({
                 recipient: bob.address,
@@ -198,6 +209,7 @@ describe("User helper class", function () {
             assert.equal(flow.flowRate, "38580246913580");
         });
     });
+
     describe.skip("existing flows", () => {
         beforeEach(async () => {
             await alice.flow({
@@ -225,6 +237,7 @@ describe("User helper class", function () {
             assert.equal(flow.flowRate, "19290123456790");
         });
     });
+
     describe.skip("pools", () => {
         const poolId = 1;
         beforeEach(async () => {

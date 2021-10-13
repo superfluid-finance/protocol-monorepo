@@ -19,7 +19,8 @@ describe("batchCall helper class", function () {
 
     before(async () => {
         await t.beforeTestSuite({
-            isTruffle: true,
+            isTruffle: false,
+            web3,
             nAccounts: 2,
         });
 

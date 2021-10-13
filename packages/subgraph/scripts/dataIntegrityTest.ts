@@ -53,6 +53,39 @@ function chunkPromises(promises: Promise<void>[], chunkLength: number) {
     return batches;
 }
 
+async function getAllResults<T>(
+    query: string,
+    endpoint: string,
+    blockNumber: number,
+    resultsPerPage: number,
+    counter: number
+): Promise<T[]> {
+    const initialResults = await subgraphRequest<{ response: T[] }>(
+        query,
+        endpoint,
+        {
+            blockNumber,
+            first: resultsPerPage,
+            skip: resultsPerPage * counter,
+        }
+    );
+
+    if (initialResults.response.length < resultsPerPage) {
+        return initialResults.response;
+    }
+
+    return [
+        ...initialResults.response,
+        ...((await getAllResults(
+            query,
+            endpoint,
+            blockNumber,
+            resultsPerPage,
+            counter + 1
+        )) as T[]),
+    ];
+}
+
 async function main() {
     const network = await ethers.provider.getNetwork();
     const chainId = network.chainId;
@@ -80,23 +113,22 @@ async function main() {
         maticAddresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
-    const indexResponse = await subgraphRequest<{
-        indexes: IDataIntegrityIndex[];
-    }>(getIndexes, chainIdData.subgraphAPIEndpoint, {
-        blockNumber: currentBlockNumber,
-		first: 1000,
-		skip: 0
-    });
+    const indexes = await getAllResults<IDataIntegrityIndex>(
+        getIndexes,
+        chainIdData.subgraphAPIEndpoint,
+        currentBlockNumber,
+        1000,
+        0
+    );
+    const subscriptions = await getAllResults<IDataIntegritySubscription>(
+        getSubscriptions,
+        chainIdData.subgraphAPIEndpoint,
+        currentBlockNumber,
+        1000,
+        0
+    );
 
-    const subscriptionsResponse = await subgraphRequest<{
-        indexSubscriptions: IDataIntegritySubscription[];
-    }>(getSubscriptions, chainIdData.subgraphAPIEndpoint, {
-        blockNumber: currentBlockNumber,
-		first: 1000,
-		skip: 0
-    });
-
-    const indexPromises = indexResponse.indexes.map(async (x) => {
+    const indexPromises = indexes.map(async (x) => {
         const index = x;
         try {
             const superToken = ethers.utils.getAddress(index.token.id);
@@ -106,9 +138,7 @@ async function main() {
                 await idaV1.getIndex(superToken, publisher, indexId, {
                     blockTag: currentBlockNumber,
                 });
-            const indexValueShouldMatch = toBN(index.newIndexValue).eq(
-                indexValue
-            );
+            const indexValueShouldMatch = toBN(index.indexValue).eq(indexValue);
             const totalUnitsApprovedShouldMatch = toBN(
                 index.totalUnitsApproved
             ).eq(totalUnitsApproved);
@@ -116,7 +146,7 @@ async function main() {
                 index.totalUnitsPending
             ).eq(totalUnitsPending);
             const compareIndex = {
-                indexValue: index.newIndexValue,
+                indexValue: index.indexValue,
                 totalUnitsApproved: index.totalUnitsApproved,
                 totalUnitsPending: index.totalUnitsPending,
             };
@@ -141,66 +171,64 @@ async function main() {
         }
     });
 
-    const subscriptionPromises = subscriptionsResponse.indexSubscriptions.map(
-        async (x) => {
-            const subscription = x;
-            try {
-                const superToken = ethers.utils.getAddress(
-                    subscription.index.token.id
+    const subscriptionPromises = subscriptions.map(async (x) => {
+        const subscription = x;
+        try {
+            const superToken = ethers.utils.getAddress(
+                subscription.index.token.id
+            );
+            const publisher = ethers.utils.getAddress(
+                subscription.index.publisher.id
+            );
+            const subscriber = ethers.utils.getAddress(
+                subscription.subscriber.id
+            );
+            const indexId = Number(subscription.index.indexId);
+            const [, approved, units, pendingDistribution] =
+                await idaV1.getSubscription(
+                    superToken,
+                    publisher,
+                    indexId,
+                    subscriber,
+                    { blockTag: currentBlockNumber }
                 );
-                const publisher = ethers.utils.getAddress(
-                    subscription.index.publisher.id
-                );
-                const subscriber = ethers.utils.getAddress(
-                    subscription.subscriber.id
-                );
-                const indexId = Number(subscription.index.indexId);
-                const [, approved, units, pendingDistribution] =
-                    await idaV1.getSubscription(
-                        superToken,
-                        publisher,
-                        indexId,
-                        subscriber,
-                        { blockTag: currentBlockNumber }
-                    );
-                const expectedPendingDistribution = subscription.approved
-                    ? toBN(0)
-                    : toBN(subscription.units).mul(
-                          toBN(subscription.index.newIndexValue).sub(
-                              toBN(subscription.indexValueUntilUpdatedAt)
-                          )
-                      );
-                const approvedShouldMatch = approved === subscription.approved;
-                const unitsShouldMatch = toBN(subscription.units).eq(units);
-                const pendingDistributionShouldMatch =
-                    expectedPendingDistribution.eq(pendingDistribution);
-                const compareSubscription = {
-                    approved: subscription.approved,
-                    units: subscription.units,
-                    pendingDistribution: expectedPendingDistribution.toString(),
-                };
+            const expectedPendingDistribution = subscription.approved
+                ? toBN(0)
+                : toBN(subscription.units).mul(
+                      toBN(subscription.index.indexValue).sub(
+                          toBN(subscription.indexValueUntilUpdatedAt)
+                      )
+                  );
+            const approvedShouldMatch = approved === subscription.approved;
+            const unitsShouldMatch = toBN(subscription.units).eq(units);
+            const pendingDistributionShouldMatch =
+                expectedPendingDistribution.eq(pendingDistribution);
+            const compareSubscription = {
+                approved: subscription.approved,
+                units: subscription.units,
+                pendingDistribution: expectedPendingDistribution.toString(),
+            };
 
-                if (
-                    !approvedShouldMatch ||
-                    !unitsShouldMatch ||
-                    !pendingDistributionShouldMatch
-                ) {
-                    throw new Error(
-                        "Values don't match. \n Subgraph Subscription: " +
-                            JSON.stringify(compareSubscription) +
-                            "\n Contract Data \n Approved: " +
-                            approved +
-                            " \n Units: " +
-                            units.toString() +
-                            " \n Pending Units: " +
-                            pendingDistribution.toString()
-                    );
-                }
-            } catch (error) {
-                console.error("Error: ", error);
+            if (
+                !approvedShouldMatch ||
+                !unitsShouldMatch ||
+                !pendingDistributionShouldMatch
+            ) {
+                throw new Error(
+                    "Values don't match. \n Subgraph Subscription: " +
+                        JSON.stringify(compareSubscription) +
+                        "\n Contract Data \n Approved: " +
+                        approved +
+                        " \n Units: " +
+                        units.toString() +
+                        " \n Pending Units: " +
+                        pendingDistribution.toString()
+                );
             }
+        } catch (error) {
+            console.error("Error: ", error);
         }
-    );
+    });
 
     const chunkedIndexPromises = chunkPromises(indexPromises, 100);
     const chunkedSubscriptionPromises = chunkPromises(

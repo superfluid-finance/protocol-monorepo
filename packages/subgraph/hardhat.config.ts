@@ -23,7 +23,7 @@ const config: HardhatUserConfig = {
             chainId: 1337,
         },
         matic: {
-            url: "https://polygon-mainnet.infura.io/v3/87d4e8453b7f432f8f973ec0e50efa21",
+            url: process.env.MATIC_RPC_URL || "",
             chainId: 137,
         },
     },

@@ -2,7 +2,7 @@ import { gql } from "graphql-request";
 
 export const getStreams = gql`
     query getStreams($blockNumber: Int) {
-        streams(block: { number: $blockNumber }) {
+        response: streams(block: { number: $blockNumber }) {
             id
             currentFlowRate
             token {
@@ -20,10 +20,14 @@ export const getStreams = gql`
 
 export const getIndexes = gql`
     query getIndex($blockNumber: Int, $first: Int, $skip: Int) {
-        indexes(block: { number: $blockNumber }, first: $first, skip: $skip) {
+        response: indexes(
+            block: { number: $blockNumber }
+            first: $first
+            skip: $skip
+        ) {
             id
             indexId
-            newIndexValue
+            indexValue
             totalUnitsPending
             totalUnitsApproved
             totalUnits
@@ -39,7 +43,11 @@ export const getIndexes = gql`
 
 export const getSubscriptions = gql`
     query getSubscription($blockNumber: Int, $first: Int, $skip: Int) {
-        indexSubscriptions(block: { number: $blockNumber }, first: $first, skip: $skip) {
+        response: indexSubscriptions(
+            block: { number: $blockNumber }
+            first: $first
+            skip: $skip
+        ) {
             id
             subscriber {
                 id
@@ -49,7 +57,7 @@ export const getSubscriptions = gql`
             indexValueUntilUpdatedAt
             index {
                 indexId
-                newIndexValue
+                indexValue
                 token {
                     id
                 }

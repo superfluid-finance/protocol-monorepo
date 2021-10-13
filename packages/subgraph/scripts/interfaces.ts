@@ -11,7 +11,7 @@ export interface IDataIntegrityStream {
 export interface IDataIntegrityIndex {
     readonly id: string;
     readonly indexId: string;
-    readonly newIndexValue: string;
+    readonly indexValue: string;
     readonly totalUnitsPending: string;
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
@@ -27,7 +27,7 @@ export interface IDataIntegritySubscription {
     readonly subscriber: ILightEntity;
     readonly index: {
         readonly indexId: string;
-        readonly newIndexValue: string;
+        readonly indexValue: string;
         readonly token: ILightEntity;
         readonly publisher: ILightEntity;
     };

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { subgraphRequest } from "../helpers/helpers";
+import { fetchEntityAndEnsureExistence } from "../helpers/helpers";
 import { IAccountTokenSnapshot, ITokenStatistic } from "../interfaces";
 import {
     getAccountTokenSnapshot,
@@ -10,16 +10,11 @@ export const fetchATSAndValidate = async (
     atsId: string,
     expectedATSData: IAccountTokenSnapshot
 ) => {
-    const atsVars = {
-        id: atsId,
-    };
-    const { accountTokenSnapshot: graphATS } = await subgraphRequest<{
-        accountTokenSnapshot: IAccountTokenSnapshot | undefined;
-    }>(getAccountTokenSnapshot, atsVars);
-
-    if (!graphATS) {
-        throw new Error("ATS entity not found.");
-    }
+    const graphATS = await fetchEntityAndEnsureExistence<IAccountTokenSnapshot>(
+        getAccountTokenSnapshot,
+        atsId,
+        "AccountTokenSnapshot"
+    );
     validateATSEntity(graphATS, expectedATSData);
 };
 
@@ -27,14 +22,12 @@ export const fetchTokenStatsAndValidate = async (
     tokenId: string,
     expectedTokenStatsData: ITokenStatistic
 ) => {
-    const { tokenStatistic: graphTokenStats } = await subgraphRequest<{
-        tokenStatistic: ITokenStatistic | undefined;
-    }>(getTokenStatistic, { id: tokenId });
-
-    if (!graphTokenStats) {
-        throw new Error("TokenStats entity not found.");
-    }
-
+    const graphTokenStats =
+        await fetchEntityAndEnsureExistence<ITokenStatistic>(
+            getTokenStatistic,
+            tokenId,
+            "TokenStats"
+        );
     validateTokenStatsEntity(graphTokenStats, expectedTokenStatsData);
 };
 
@@ -160,7 +153,7 @@ export const validateTokenStatsEntity = (
         graphTokenStats.totalAmountStreamedUntilUpdatedAt,
         "TokenStats: totalAmountStreamedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountStreamedUntilUpdatedAt);
-	// TODO: mints/burns are transfers
+    // TODO: mints/burns are transfers
     // expect(
     //     graphTokenStats.totalAmountTransferredUntilUpdatedAt,
     //     "totalAmountTransferredUntilUpdatedAt error"

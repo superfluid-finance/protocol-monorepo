@@ -3,7 +3,7 @@ import { gql } from "graphql-request";
 // CFA Event Queries
 export const getFlowUpdatedEvents = gql`
     query getFlowUpdatedEvents($transactionHash: Bytes!) {
-        flowUpdatedEvents(where: { transactionHash: $transactionHash }) {
+        response: flowUpdatedEvents(where: { transactionHash: $transactionHash }) {
             id
             transactionHash
             blockNumber
@@ -24,7 +24,7 @@ export const getFlowUpdatedEvents = gql`
 
 export const getIndexCreatedEvents = gql`
     query getIndexCreatedEvents($transactionHash: Bytes!) {
-        indexCreatedEvents(where: { transactionHash: $transactionHash }) {
+        response: indexCreatedEvents(where: { transactionHash: $transactionHash }) {
             id
             transactionHash
             blockNumber
@@ -38,7 +38,7 @@ export const getIndexCreatedEvents = gql`
 
 export const getIndexUpdatedEvents = gql`
     query getIndexUpdatedEvents($transactionHash: Bytes!) {
-        indexUpdatedEvents(where: { transactionHash: $transactionHash }) {
+        response: indexUpdatedEvents(where: { transactionHash: $transactionHash }) {
             id
             transactionHash
             blockNumber
@@ -55,7 +55,7 @@ export const getIndexUpdatedEvents = gql`
 `;
 export const getSubscriptionApprovedEvents = gql`
     query getSubscriptionApprovedEvents($transactionHash: Bytes!) {
-        subscriptionApprovedEvents(
+        response: subscriptionApprovedEvents(
             where: { transactionHash: $transactionHash }
         ) {
             id
@@ -73,7 +73,7 @@ export const getSubscriptionApprovedEvents = gql`
 `;
 export const getSubscriptionRevokedEvents = gql`
     query getSubscriptionRevokedEvents($transactionHash: Bytes!) {
-        subscriptionRevokedEvents(
+        response: subscriptionRevokedEvents(
             where: { transactionHash: $transactionHash }
         ) {
             id
@@ -91,7 +91,7 @@ export const getSubscriptionRevokedEvents = gql`
 `;
 export const getSubscriptionUnitsUpdatedEvents = gql`
     query getSubscriptionUnitsUpdatedEvents($transactionHash: Bytes!) {
-        subscriptionUnitsUpdatedEvents(
+        response: subscriptionUnitsUpdatedEvents(
             where: { transactionHash: $transactionHash }
         ) {
             id

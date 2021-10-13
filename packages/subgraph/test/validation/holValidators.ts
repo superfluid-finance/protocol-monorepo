@@ -3,34 +3,36 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
 import { IDAEventType } from "../helpers/constants";
-import { subgraphRequest, toBN } from "../helpers/helpers";
+import { fetchEntityAndEnsureExistence, toBN } from "../helpers/helpers";
 import {
     IIndex,
     IStream,
     IStreamData,
     IIndexSubscription,
     IEvent,
+    IAccount,
 } from "../interfaces";
-import { getIndex, getStream, getSubscription } from "../queries/holQueries";
+import {
+    getAccount,
+    getIndex,
+    getStream,
+    getSubscription,
+} from "../queries/holQueries";
 import { validateReverseLookup } from "./validators";
 
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
     expectedStreamedUntilUpdatedAt: BigNumber,
     flowRate: string,
-    event: IEvent
+    event: IEvent,
+    isCreate: boolean
 ) => {
     const streamId = streamData.id;
-    const { stream } = await subgraphRequest<{ stream: IStream | undefined }>(
+    const stream = await fetchEntityAndEnsureExistence<IStream>(
         getStream,
-        {
-            id: streamId,
-        }
+        streamId,
+        "Stream"
     );
-
-    if (!stream) {
-        throw new Error("Stream entity not found.");
-    }
 
     validateStreamEntity(
         stream,
@@ -39,7 +41,29 @@ export const fetchStreamAndValidate = async (
         flowRate
     );
 
+    // validate flowUpdated reverse lookup on Stream entity
     validateReverseLookup(event, stream.flowUpdatedEvents);
+
+    if (isCreate) {
+        // validate accounts reverse lookup on Stream entity creation
+        fetchAccountsAndValidate(stream);
+    }
+};
+
+export const fetchAccountsAndValidate = async (stream: IStream) => {
+    const senderAccount = await fetchEntityAndEnsureExistence<IAccount>(
+        getAccount,
+        stream.sender.id,
+        "Account"
+    );
+    const receiverAccount = await fetchEntityAndEnsureExistence<IAccount>(
+        getAccount,
+        stream.receiver.id,
+        "Account"
+    );
+    const streamLightEntity = { id: stream.id };
+    validateReverseLookup(streamLightEntity, senderAccount.outflows);
+    validateReverseLookup(streamLightEntity, receiverAccount.inflows);
 };
 
 export const fetchIndexAndValidate = async (
@@ -50,16 +74,11 @@ export const fetchIndexAndValidate = async (
     subscriptionId: string,
     subscriptionExists: boolean
 ) => {
-    const { index } = await subgraphRequest<{ index: IIndex | undefined }>(
+    const index = await fetchEntityAndEnsureExistence<IIndex>(
         getIndex,
-        {
-            id: expectedIndex.id,
-        }
+        expectedIndex.id,
+        "Index"
     );
-
-    if (!index) {
-        throw new Error("Index entity not found.");
-    }
 
     validateIndexEntity(idaV1, index, expectedIndex);
 
@@ -96,15 +115,12 @@ export const fetchSubscriptionAndValidate = async (
     eventType: IDAEventType,
     event: IEvent
 ) => {
-    const { indexSubscription } = await subgraphRequest<{
-        indexSubscription: IIndexSubscription | undefined;
-    }>(getSubscription, {
-        id: expectedSubscription.id,
-    });
-
-    if (!indexSubscription) {
-        throw new Error("Subscription entity not found.");
-    }
+    const indexSubscription =
+        await fetchEntityAndEnsureExistence<IIndexSubscription>(
+            getSubscription,
+            expectedSubscription.id,
+            "Subscription"
+        );
 
     validateSubscriptionEntity(
         idaV1,

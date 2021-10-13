@@ -12,13 +12,11 @@ export const fetchEventAndValidate = async <
     receipt: ContractReceipt,
     expectedData: ExpectedDataType,
     query: string,
-    queryResultName: string,
     queryName: string
 ) => {
     const event = await fetchEventAndEnsureExistence<EventType>(
         query,
         receipt.transactionHash,
-        queryResultName,
         queryName
     );
 

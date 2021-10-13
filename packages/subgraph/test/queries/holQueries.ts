@@ -1,8 +1,23 @@
 import { gql } from "graphql-request";
 
+export const getAccount = gql`
+    query getAccount($id: ID!) {
+        response: account(id: $id) {
+            id
+            isSuperApp
+            inflows(orderBy: createdAtTimestamp, orderDirection: asc) {
+                id
+            }
+            outflows(orderBy: createdAtTimestamp, orderDirection: asc) {
+                id
+            }
+        }
+    }
+`;
+
 export const getStream = gql`
     query getStream($id: ID!) {
-        stream(id: $id) {
+        response: stream(id: $id) {
             id
             currentFlowRate
             streamedUntilUpdatedAt
@@ -24,7 +39,7 @@ export const getStream = gql`
 
 export const getIndex = gql`
     query getIndex($id: ID!) {
-        index(id: $id) {
+        response: index(id: $id) {
             id
             indexId
             indexValue
@@ -54,7 +69,7 @@ export const getIndex = gql`
 
 export const getSubscription = gql`
     query getSubscription($id: ID!) {
-        indexSubscription(id: $id) {
+        response: indexSubscription(id: $id) {
             id
             subscriber {
                 id
@@ -67,11 +82,11 @@ export const getSubscription = gql`
                 id
                 indexId
                 token {
-					id
-				}
+                    id
+                }
                 publisher {
-					id
-				}
+                    id
+                }
             }
             subscriptionApprovedEvents(
                 orderBy: timestamp

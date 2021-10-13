@@ -29,14 +29,16 @@ export async function validateFlowUpdated(
     updatedSenderATS: IAccountTokenSnapshot,
     updatedReceiverATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
-    event: IEvent
+    event: IEvent,
+    isCreate: boolean
 ) {
     // validate Stream HOL
     await fetchStreamAndValidate(
         pastStreamData,
         streamedAmountUntilTimestamp,
         flowRate.toString(),
-        event
+        event,
+        isCreate
     );
 
     // validate sender ATS

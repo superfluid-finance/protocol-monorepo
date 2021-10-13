@@ -54,7 +54,11 @@ import {
     getExpectedDataForSubscriptionUnitsUpdated,
     getExpectedStreamData,
 } from "./updaters";
-import { IDAEventType, idaEventTypeToEventQueryDataMap } from "./constants";
+import {
+    FlowActionType,
+    IDAEventType,
+    idaEventTypeToEventQueryDataMap,
+} from "./constants";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { BigNumber } from "@ethersproject/bignumber";
 import { getSubscription } from "../queries/holQueries";
@@ -174,7 +178,6 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
             type: actionType,
         },
         getFlowUpdatedEvents,
-        "flowUpdatedEvents",
         "FlowUpdatedEvents"
     );
 
@@ -186,7 +189,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         updatedSenderATS,
         updatedReceiverATS,
         updatedTokenStats,
-        event
+        event,
+        actionType === FlowActionType.Create
     );
 
     let updatedStreamData = getExpectedStreamData(
@@ -580,7 +584,6 @@ async function fetchIDAEventAndValidate(
         receipt,
         eventDataToValidate,
         eventQueryData.query,
-        eventQueryData.queryResultName,
         eventQueryData.queryName
     );
 }

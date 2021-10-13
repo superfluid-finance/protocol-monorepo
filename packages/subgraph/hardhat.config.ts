@@ -23,7 +23,7 @@ const config: HardhatUserConfig = {
             chainId: 1337,
         },
         matic: {
-            url: process.env.MATIC_RPC_URL || "",
+            url: process.env.MATIC_PROVIDER_URL || "",
             chainId: 137,
         },
     },

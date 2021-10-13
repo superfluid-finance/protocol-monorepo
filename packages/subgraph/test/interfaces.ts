@@ -130,6 +130,8 @@ interface IBaseEntity {
 
 export interface IAccount extends IBaseEntity {
     readonly isSuperApp: boolean;
+    readonly inflows: ILightEntity[];
+    readonly outflows: ILightEntity[];
 }
 
 export interface IToken extends IBaseEntity {
@@ -361,7 +363,6 @@ export interface ITestModifyIDAData {
 
 export interface IEventQueryData {
     readonly query: string;
-    readonly queryResultName: string;
     readonly queryName: string;
 }
 

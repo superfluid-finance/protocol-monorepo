@@ -41,7 +41,7 @@ export function ropstenHandleIndexSubscribed(
 export function ropstenHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ropstenHandleIndexUnsubscribed(

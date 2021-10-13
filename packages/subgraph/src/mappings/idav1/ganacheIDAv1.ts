@@ -41,7 +41,7 @@ export function ganacheHandleIndexSubscribed(
 export function ganacheHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function ganacheHandleIndexUnsubscribed(

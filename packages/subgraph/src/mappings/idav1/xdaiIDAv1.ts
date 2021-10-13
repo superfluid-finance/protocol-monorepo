@@ -41,7 +41,7 @@ export function xdaiHandleIndexSubscribed(
 export function xdaiHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function xdaiHandleIndexUnsubscribed(

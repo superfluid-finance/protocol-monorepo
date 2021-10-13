@@ -33,6 +33,8 @@ import {
     validateModifyIDA,
 } from "../validation/validators";
 import {
+    fetchEntityAndEnsureExistence,
+    getIndexId,
     getSubscriptionId,
     hasSubscriptionWithUnits,
     modifyFlowAndReturnCreatedFlowData,
@@ -312,15 +314,13 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     // in the future we can write some logic which handles the event in this block
     // as it will require special logic to accurately do so.
     if (eventType === IDAEventType.Claim) {
-        const { indexSubscription } = await subgraphRequest<{
-            indexSubscription: IIndexSubscription | undefined;
-        }>(getSubscription, {
-            id: currentSubscription.id,
-        });
+        const indexSubscription =
+            await fetchEntityAndEnsureExistence<IIndexSubscription>(
+                getSubscription,
+                currentSubscription.id,
+                "Subscription"
+            );
 
-        if (!indexSubscription) {
-            throw new Error("Subscription entity not found.");
-        }
         const subscriberAddress = ethers.utils.getAddress(
             indexSubscription.subscriber.id
         );
@@ -518,6 +518,7 @@ function getIDAEventDataForValidation(
         token,
         indexId.toString()
     );
+    const indexEntityId = getIndexId(publisher, token, indexId.toString());
     const baseEventData = {
         token: token.toLowerCase(),
         publisher: publisher.toLowerCase(),
@@ -527,10 +528,11 @@ function getIDAEventDataForValidation(
     const baseSubscriptionEventData = {
         ...baseEventData,
         subscription: { id: subscriptionId },
+        subscriber: subscriber.toLowerCase(),
     };
 
     if (type === IDAEventType.IndexCreated) {
-        return baseEventData;
+        return { ...baseEventData, index: { id: indexEntityId } };
     } else if (type === IDAEventType.SubscriptionApproved) {
         return baseSubscriptionEventData;
     } else if (type === IDAEventType.SubscriptionRevoked) {
@@ -556,6 +558,7 @@ function getIDAEventDataForValidation(
         }
         return {
             ...baseEventData,
+            index: { id: indexEntityId },
             oldIndexValue,
             newIndexValue: newIndexValue.toString(),
             totalUnitsApproved: totalUnitsApproved.toString(),

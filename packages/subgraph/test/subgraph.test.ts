@@ -24,8 +24,6 @@ import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 
-// TODO: validate Account entities reverse look up
-// create generalized function to do this
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
     let sf: Framework;

@@ -151,9 +151,9 @@ dataSources:
           - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
             handler: {{testNetwork}}HandleIndexSubscribed
           - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
-            handler: {{testNetwork}}HandleIndexUnsubscribed
+            handler: {{testNetwork}}HandleIndexUnitsUpdated
           - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: {{testNetwork}}HandleIndexUpdated
+            handler: {{testNetwork}}HandleIndexUnsubscribed
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: {{testNetwork}}HandleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)

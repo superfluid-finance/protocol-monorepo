@@ -41,7 +41,7 @@ export function maticHandleIndexSubscribed(
 export function maticHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function maticHandleIndexUnsubscribed(

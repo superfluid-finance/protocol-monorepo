@@ -41,7 +41,7 @@ export function mumbaiHandleIndexSubscribed(
 export function mumbaiHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function mumbaiHandleIndexUnsubscribed(

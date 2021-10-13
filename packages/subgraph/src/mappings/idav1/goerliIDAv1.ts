@@ -41,7 +41,7 @@ export function goerliHandleIndexSubscribed(
 export function goerliHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function goerliHandleIndexUnsubscribed(

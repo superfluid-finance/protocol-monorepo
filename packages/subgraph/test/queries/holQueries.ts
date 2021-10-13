@@ -63,6 +63,15 @@ export const getIndex = gql`
             indexUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
                 id
             }
+            indexSubscribedEvents(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
+            indexUnitsUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
+            indexUnsubscribedEvents(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
         }
     }
 `;

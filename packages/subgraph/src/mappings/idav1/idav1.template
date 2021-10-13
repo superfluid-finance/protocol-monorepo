@@ -41,7 +41,7 @@ export function {{network}}HandleIndexSubscribed(
 export function {{network}}HandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function {{network}}HandleIndexUnsubscribed(

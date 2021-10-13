@@ -41,7 +41,7 @@ export function rinkebyHandleIndexSubscribed(
 export function rinkebyHandleIndexUnitsUpdated(
     event: IndexUnitsUpdatedEvent
 ): void {
-    handleIndexUnitsUpdated(event);
+    handleIndexUnitsUpdated(event, HOST_ADDRESS, RESOLVER_ADDRESS);
 }
 
 export function rinkebyHandleIndexUnsubscribed(

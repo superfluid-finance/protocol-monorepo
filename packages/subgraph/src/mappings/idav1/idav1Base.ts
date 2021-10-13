@@ -176,13 +176,26 @@ export function handleIndexSubscribed(event: IndexSubscribed): void {
     createIndexSubscribedEntity(event, indexId);
 }
 
-export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
+export function handleIndexUnitsUpdated(
+    event: IndexUnitsUpdated,
+    hostAddress: Address,
+    resolverAddress: Address
+): void {
     let indexId = getIndexID(
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    createIndexUnitsUpdatedEntity(event, indexId);
+    let subscription = getOrInitSubscription(
+        hostAddress,
+        resolverAddress,
+        event.params.subscriber,
+        event.params.publisher,
+        event.params.token,
+        event.params.indexId,
+        event.block
+    );
+    createIndexUnitsUpdatedEntity(event, indexId, subscription.units);
 }
 
 export function handleIndexUnsubscribed(event: IndexUnsubscribed): void {
@@ -597,16 +610,20 @@ function createIndexSubscribedEntity(
 
 function createIndexUnitsUpdatedEntity(
     event: IndexUnitsUpdated,
-    indexId: string
+    indexId: string,
+    oldUnits: BigInt
 ): void {
     let ev = new IndexUnitsUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
+    ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
+    ev.units = event.params.units;
     ev.userData = event.params.userData;
+    ev.oldUnits = oldUnits;
     ev.index = indexId;
     ev.save();
 }
@@ -620,6 +637,7 @@ function createIndexUnsubscribedEntity(
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
+    ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
     ev.userData = event.params.userData;

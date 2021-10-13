@@ -60,8 +60,34 @@ export interface IIndexUpdatedEvent extends IEvent {
     readonly userData: string;
 }
 
+export interface IIndexSubscribedEvent extends IEvent {
+    readonly token: string;
+    readonly publisher: string;
+    readonly indexId: string;
+    readonly subscriber: string;
+    readonly userData: string;
+}
+
+export interface IIndexUnitsUpdatedEvent extends IEvent {
+    readonly token: string;
+    readonly publisher: string;
+    readonly indexId: string;
+    readonly subscriber: string;
+    readonly units: string;
+    readonly userData: string;
+}
+
+export interface IIndexUnsubscribedEvent extends IEvent {
+    readonly token: string;
+    readonly publisher: string;
+    readonly indexId: string;
+    readonly subscriber: string;
+    readonly userData: string;
+}
+
 export interface ISubscriptionApprovedEvent extends IEvent {
     readonly token: string;
+    readonly subscriber: string;
     readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
@@ -70,6 +96,7 @@ export interface ISubscriptionApprovedEvent extends IEvent {
 
 export interface ISubscriptionRevokedEvent extends IEvent {
     readonly token: string;
+    readonly subscriber: string;
     readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
@@ -78,6 +105,7 @@ export interface ISubscriptionRevokedEvent extends IEvent {
 
 export interface ISubscriptionUnitsUpdatedEvent extends IEvent {
     readonly token: string;
+    readonly subscriber: string;
     readonly subscription: ILightEntity;
     readonly publisher: string;
     readonly indexId: string;
@@ -183,6 +211,9 @@ export interface IIndex extends IBaseEntity {
     readonly subscriptions?: ILightEntity[];
     readonly indexCreatedEvent?: ILightEntity;
     readonly indexUpdatedEvents?: ILightEntity[];
+    readonly indexSubscribedEvents?: ILightEntity[];
+    readonly indexUnitsUpdatedEvents?: ILightEntity[];
+    readonly indexUnsubscribedEvents?: ILightEntity[];
 }
 
 /**

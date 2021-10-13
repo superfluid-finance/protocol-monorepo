@@ -5,7 +5,7 @@ if (typeof module === "undefined") module = {};
 Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
     const DEFAULT_CONFIGS = {
         //
-        // ETHEREUM
+        // Testing environemts
         //
         31337: {
             // for local testing hardhat
@@ -23,6 +23,10 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // for local testing (external ganache)
             nativeTokenSymbol: "ETH",
         },
+
+        //
+        // ETHEREUM
+        //
         5: {
             // goerli
             nativeTokenSymbol: "ETH",
@@ -38,17 +42,35 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // rinkeby
             nativeTokenSymbol: "ETH",
             resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-rinkeby",
+                },
+            },
         },
 
         3: {
             // ropsten
             nativeTokenSymbol: "ETH",
             resolverAddress: "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten",
+                },
+            },
         },
         42: {
             // kovan
             nativeTokenSymbol: "ETH",
             resolverAddress: "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-kovan",
+                },
+            },
         },
 
         //
@@ -65,11 +87,16 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
                 },
             },
         },
-
         80001: {
             // (matic) mumbai testnet
             nativeTokenSymbol: "MATIC",
             resolverAddress: "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
+                },
+            },
         },
 
         //
@@ -78,6 +105,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         0x64: {
             nativeTokenSymbol: "xDAI",
             resolverAddress: "0xD2009765189164b495c110D61e4D301729079911",
+            versions: {
+                v1: {
+                    subgraphQueryEndpoint:
+                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-xdai",
+                },
+            },
         },
 
         // ARTIS

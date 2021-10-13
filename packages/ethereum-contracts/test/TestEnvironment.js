@@ -1,4 +1,7 @@
 const _ = require("lodash");
+
+const traveler = require("ganache-time-traveler");
+
 const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
@@ -129,6 +132,7 @@ module.exports = class TestEnvironment {
             resolverAddress: process.env.TEST_RESOLVER_ADDRESS,
         } = this._evmSnapshots.pop());
         await this._revertToEvmSnapShot(oldEvmSnapshotId);
+        await traveler.advanceBlockAndSetTime(parseInt(Date.now() / 1000));
         const newEvmSnapshotId = await this._takeEvmSnapshot();
         this._evmSnapshots.push({
             id: newEvmSnapshotId,

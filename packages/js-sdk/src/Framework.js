@@ -400,7 +400,8 @@ module.exports = class Framework {
 
     /**
      * @dev Make a subgraph query
-     * @param query The subgraph query body
+     * @param {string} query The subgraph query body
+     * @return {Promise<object[]>}
      */
     async subgraphQuery(query) {
         const response = await fetch(this.config.subgraphQueryEndpoint, {
@@ -422,9 +423,10 @@ module.exports = class Framework {
 
     /**
      * @dev Get past events thourhg either web3 or subgraph
-     * @param contract The contract object where the event is emitted
-     * @param eventName The event name
-     * @param filter Event filtering
+     * @param {Contract} contract The contract object where the event is emitted
+     * @param {string} eventName The event name
+     * @param {object} filter Event filtering
+     * @return {Promise<object[]>}
      */
     async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
         function lcfirst(str) {

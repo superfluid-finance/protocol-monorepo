@@ -51,7 +51,7 @@ export declare class Framework {
     initialize(): Promise<void>;
     isSuperTokenListed(superTokenKey: string): Promise<boolean>;
     loadToken(tokenKey: string): Promise<void>;
-    createERC20Wrapper(tokenInfo: any, 
+    createERC20Wrapper(tokenInfo: any,
         { superTokenSymbol, superTokenName, from, upgradability }: {
             superTokenSymbol?: string,
             superTokenName?: string,
@@ -65,6 +65,8 @@ export declare class Framework {
         options?: any;
     }): User;
     batchCall(calls: any): any;
+    subgraphQuery(query: string): Promise<any>;
+    getPastEvents(contract: any, eventName: any, filter: any, options: any): Promise<any>;
     _pushTxForGasReport(tx: Record, actionName: string): void;
     generateGasReport(name: string): void;
 }

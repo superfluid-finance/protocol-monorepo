@@ -400,6 +400,7 @@ module.exports = class Framework {
 
     /**
      * @dev Make a subgraph query
+     * @param query The subgraph query body
      */
     async subgraphQuery(query) {
         const response = await fetch(this.config.subgraphQueryEndpoint, {
@@ -412,43 +413,77 @@ module.exports = class Framework {
             if (!result.errors) {
                 return result.data;
             } else {
-                throw new Error("subgraphQuery errors: " + result.error);
+                throw new Error(
+                    "subgraphQuery errors: " + JSON.stringify(result.errors)
+                );
             }
         } else throw new Error("subgraphQuery failed: " + response.text());
     }
 
     /**
      * @dev Get past events thourhg either web3 or subgraph
+     * @param contract The contract object where the event is emitted
+     * @param eventName The event name
+     * @param filter Event filtering
      */
-    async getPastEvents(contract, eventName, filter = {}) {
+    async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
         function lcfirst(str) {
             var firstLetter = str.substr(0, 1);
             return firstLetter.toLowerCase() + str.substr(1);
         }
 
-        if (this.config.subgraphQueryEndpoint) {
+        const eventABI = contract.abi.filter((i) => i.name === eventName)[0];
+        if (!eventABI) throw new Error("Event not found");
+
+        if (this.config.subgraphQueryEndpoint && !forceWeb3) {
             const entityName = lcfirst(`${eventName}Events`);
+            const fields = eventABI.inputs.map((i) => i.name);
+            const where = eventABI.inputs
+                .filter((i) => i.indexed)
+                .map((i) => {
+                    if (i.name in filter) {
+                        if (filter[i.name] !== null) {
+                            return `${i.name} : "${filter[i.name]}"`;
+                        } else {
+                            return "";
+                        }
+                    } else return "";
+                })
+                .join(",\n");
             const events = await this.subgraphQuery(`{
-                ${entityName} {
-                    id
+                ${entityName} (first: 1000, where: { ${where} }) {
+                    transactionHash
+                    blockNumber
+                    ${fields.join("\n")}
                 }
             }`);
-            console.debug(events);
             return events[entityName];
         } else if (contract.getPastEvents) {
-            return await contract.getPastEvents(eventName, {
+            const result = await contract.getPastEvents(eventName, {
                 fromBlock: 0,
                 toBlock: "latest",
                 filter,
             });
+            return result.map((i) => ({
+                transactionHash: i.transactionHash,
+                blockNumber: i.blockNumber,
+                ...i.args,
+            }));
         } else if (contract.queryFilter) {
-            throw new Error("ethers filter support is discontinued");
-            // const filter = this._cfa.filters.FlowUpdated(
-            //     token,
-            //     sender,
-            //     receiver
-            // );
-            // flows = await this._cfa.queryFilter(filter);
+            const filterArgs = eventABI.inputs
+                .filter((i) => i.indexed)
+                .map((i) => (i.name in filter ? filter[i.name] : null));
+            console.log("filterArgs", filterArgs);
+            const result = await contract.queryFilter(
+                contract.filters[eventName](...filterArgs),
+                0,
+                "latest"
+            );
+            return result.map((i) => ({
+                transactionHash: i.transactionHash,
+                blockNumber: i.blockNumber,
+                ...i.args,
+            }));
         } else throw new Error("No backend found for getPastEvents");
     }
 

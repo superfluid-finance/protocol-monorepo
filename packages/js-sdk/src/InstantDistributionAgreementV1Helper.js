@@ -469,7 +469,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
                 token: superTokenNorm,
                 publisher: publisherNorm,
             })
-        ).map((e) => Number(e.args.indexId.toString()));
+        ).map((e) => Number(e.indexId.toString()));
     }
 
     /**
@@ -492,17 +492,16 @@ module.exports = class InstantDistributionAgreementV1Helper {
             publisher: publisherNorm,
             indexId,
         });
-        // TODO ethers support
         return Object.values(
             updates.reduce((acc, i) => {
-                acc[i.args.subscriber] = i;
+                acc[i.subscriber] = i;
                 return acc;
             }, {})
         )
-            .filter((i) => i.args.units.toString() != "0")
+            .filter((i) => i.units.toString() != "0")
             .map((i) => ({
-                subscriber: i.args.subscriber,
-                units: i.args.units.toString(),
+                subscriber: i.subscriber,
+                units: i.units.toString(),
             }));
     }
 

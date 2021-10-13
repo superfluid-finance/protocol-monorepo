@@ -267,10 +267,10 @@ module.exports = class ConstantFlowAgreementV1Helper {
         });
         return Object.values(
             flows.reduce((acc, i) => {
-                acc[i.args.sender + ":" + i.args.receiver] = i;
+                acc[i.sender + ":" + i.receiver] = i;
                 return acc;
             }, {})
-        ).filter((i) => i.args.flowRate.toString() != "0");
+        ).filter((i) => i.flowRate.toString() != "0");
     }
 
     /**
@@ -298,9 +298,9 @@ module.exports = class ConstantFlowAgreementV1Helper {
                     token: superTokenNorm,
                 })
             ).map((f) => ({
-                sender: f.args.sender,
-                receiver: f.args.receiver,
-                flowRate: f.args.flowRate.toString(),
+                sender: f.sender,
+                receiver: f.receiver,
+                flowRate: f.flowRate.toString(),
             }));
         }
         if (!onlyInFlows) {
@@ -310,9 +310,9 @@ module.exports = class ConstantFlowAgreementV1Helper {
                     sender: accountNorm,
                 })
             ).map((f) => ({
-                sender: f.args.sender,
-                receiver: f.args.receiver,
-                flowRate: f.args.flowRate.toString(),
+                sender: f.sender,
+                receiver: f.receiver,
+                flowRate: f.flowRate.toString(),
             }));
         }
         return result;

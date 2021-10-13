@@ -29,6 +29,7 @@ describe("Framework subgraph (goerli) support", function () {
                     1 // num_addresses
                 )
             ),
+            tokens: ["fDAIx"],
             version: "v1",
         });
         await sf.initialize();
@@ -47,11 +48,45 @@ describe("Framework subgraph (goerli) support", function () {
         assert.isDefined(data._meta.deployment);
     });
 
-    it("getPastEvents SuperTokenLogicCreated", async () => {
+    it("getPastEvents SuperTokenLogicUpdated", async () => {
         const events = await sf.getPastEvents(
             sf.host,
-            "SuperTokenLogicCreated"
+            "SuperTokenLogicUpdated"
         );
         assert.isTrue(events.length > 0);
+        assert.isDefined(events[0].token);
+        assert.isDefined(events[0].code);
+    });
+
+    it("cfa.listFlows", async () => {
+        const events = await sf.cfa.listFlows({
+            superToken: sf.tokens.fDAIx.address,
+            account: "0xEb85888b31FADF79CB264d065EdcB4a14551c28d",
+        });
+        assert.isTrue(events.inFlows.length > 0);
+        assert.isTrue(events.outFlows.length > 0);
+    });
+
+    it("getPastEvents IndexCreated", async () => {
+        const events = await sf.getPastEvents(
+            sf.agreements.ida,
+            "IndexCreated",
+            {
+                token: sf.tokens.fDAIx.address,
+                publisher: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE",
+                indexId: 0,
+            }
+        );
+        assert.isTrue(events.length > 0);
+        assert.equal(
+            events[0].token.toLowerCase(),
+            sf.tokens.fDAIx.address.toLowerCase()
+        );
+        assert.equal(
+            events[0].publisher.toLowerCase(),
+            "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE".toLowerCase()
+        );
+        assert.equal(events[0].indexId, 0);
+        assert.equal(events[0].userData, "0x");
     });
 });

@@ -1,4 +1,4 @@
-import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes, ethereum, Address, log, Entity } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import { IResolver } from "../generated/templates/SuperToken/IResolver";

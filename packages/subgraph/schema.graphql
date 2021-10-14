@@ -260,7 +260,38 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
     code: Bytes!
 }
 
-# #     SuperfluidGovernance    #
+#     Resolver    #
+type RoleAdminChangedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    role: Bytes!
+    previousAdminRole: Bytes!
+    newAdminRole: Bytes!
+}
+
+type RoleGrantedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    role: Bytes!
+    account: Bytes!
+    sender: Bytes!
+}
+
+type RoleRevokedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    role: Bytes!
+    account: Bytes!
+    sender: Bytes!
+}
+
+#     SuperfluidGovernance    #
 type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!

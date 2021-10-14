@@ -1,5 +1,5 @@
 specVersion: 0.0.2
-description: Super Tokens and Agreements (CFA, IDA) on the {{testNetwork}} network.
+description: Super Tokens and Agreements (CFA, IDA) on the {{ testNetwork }} network.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
     file: ./schema.graphql
@@ -15,7 +15,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/superTokenFactory/{{testNetwork}}SuperTokenFactory.ts
+          file: ./src/mappings/superTokenFactory/{{ testNetwork }}SuperTokenFactory.ts
           entities:
               - CustomSuperTokenCreatedEvent
               - SuperTokenCreatedEvent
@@ -23,8 +23,8 @@ dataSources:
               - Token
               - TokenStatistic
           abis:
-              - name: IResolver
-                file: ./abis/IResolver.json
+              - name: TestResolver
+                file: ./abis/TestResolver.json
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
@@ -33,11 +33,11 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
-                handler: {{testNetwork}}HandleSuperTokenCreated
+                handler: {{ testNetwork }}HandleSuperTokenCreated
               - event: CustomSuperTokenCreated(indexed address)
-                handler: {{testNetwork}}HandleCustomSuperTokenCreated
+                handler: {{ testNetwork }}HandleCustomSuperTokenCreated
               - event: SuperTokenLogicCreated(indexed address)
-                handler: {{testNetwork}}HandleSuperTokenLogicCreated
+                handler: {{ testNetwork }}HandleSuperTokenLogicCreated
     - kind: ethereum/contract
       name: Host
       network: {{ network }}
@@ -98,8 +98,8 @@ dataSources:
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
-              - name: IResolver
-                file: ./abis/IResolver.json
+              - name: TestResolver
+                file: ./abis/TestResolver.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
               - name: ISuperfluid
@@ -137,29 +137,29 @@ dataSources:
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
-          - name: IResolver
-            file: ./abis/IResolver.json
+          - name: TestResolver
+            file: ./abis/TestResolver.json
           - name: ISuperToken
             file: ./abis/ISuperToken.json
           - name: ISuperfluid
             file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
-            handler: {{testNetwork}}HandleIndexCreated
+            handler: {{ testNetwork }}HandleIndexCreated
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
-            handler: {{testNetwork}}HandleIndexUpdated
+            handler: {{ testNetwork }}HandleIndexUpdated
           - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: {{testNetwork}}HandleIndexSubscribed
+            handler: {{ testNetwork }}HandleIndexSubscribed
           - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
-            handler: {{testNetwork}}HandleIndexUnitsUpdated
+            handler: {{ testNetwork }}HandleIndexUnitsUpdated
           - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: {{testNetwork}}HandleIndexUnsubscribed
+            handler: {{ testNetwork }}HandleIndexUnsubscribed
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
-            handler: {{testNetwork}}HandleSubscriptionApproved
+            handler: {{ testNetwork }}HandleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
-            handler: {{testNetwork}}HandleSubscriptionRevoked
+            handler: {{ testNetwork }}HandleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
-            handler: {{testNetwork}}HandleSubscriptionUnitsUpdated
+            handler: {{ testNetwork }}HandleSubscriptionUnitsUpdated
     - kind: ethereum/contract
       name: SuperfluidGovernance
       network: {{ network }}
@@ -189,6 +189,32 @@ dataSources:
             handler: handleCFAv1LiquidationPeriodChanged
           - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
             handler: handleTrustedForwarderChanged
+    - kind: ethereum/contract
+      name: ResolverV1
+      network: {{ network }}
+      source:
+        address: "{{ resolverV1Address }}"
+        abi: TestResolver
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.4
+        language: wasm/assemblyscript
+        file: ./src/mappings/resolver.ts
+        entities:
+          - RoleAdminChangedEvent
+          - RoleGrantedEvent
+          - RoleRevokedEvent
+        abis:
+          - name: TestResolver
+            file: ./abis/TestResolver.json
+        eventHandlers:
+          - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+            handler: handleRoleAdminChanged
+          - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+            handler: handleRoleGranted
+          - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+            handler: handleRoleRevoked
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -199,7 +225,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
-      file: ./src/mappings/superToken/{{testNetwork}}SuperToken.ts
+      file: ./src/mappings/superToken/{{ testNetwork }}SuperToken.ts
       entities:
         - Account
         - AccountTokenSnapshot
@@ -213,24 +239,24 @@ templates:
         - TokenStatistic
         - TransferEvent
       abis:
-        - name: IResolver
-          file: ./abis/IResolver.json
+        - name: TestResolver
+          file: ./abis/TestResolver.json
         - name: ISuperToken
           file: ./abis/ISuperToken.json
         - name: ISuperfluid
           file: ./abis/ISuperfluid.json
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
-          handler: {{testNetwork}}HandleAgreementLiquidatedBy
+          handler: {{ testNetwork }}HandleAgreementLiquidatedBy
         - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{testNetwork}}HandleBurned
+          handler: {{ testNetwork }}HandleBurned
         - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{testNetwork}}HandleMinted
+          handler: {{ testNetwork }}HandleMinted
         - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{testNetwork}}HandleSent
+          handler: {{ testNetwork }}HandleSent
         - event: TokenUpgraded(indexed address,uint256)
-          handler: {{testNetwork}}HandleTokenUpgraded
+          handler: {{ testNetwork }}HandleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)
-          handler: {{testNetwork}}HandleTokenDowngraded
+          handler: {{ testNetwork }}HandleTokenDowngraded
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: {{testNetwork}}HandleTransfer
+          handler: {{ testNetwork }}HandleTransfer

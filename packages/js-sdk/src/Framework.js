@@ -431,8 +431,7 @@ module.exports = class Framework {
      */
     async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
         function lcfirst(str) {
-            var firstLetter = str.substr(0, 1);
-            return firstLetter.toLowerCase() + str.substr(1);
+            return str.replace(/[A-Z]+/, (i) => i.toLowerCase());
         }
 
         const eventABI = contract.abi.filter((i) => i.name === eventName)[0];

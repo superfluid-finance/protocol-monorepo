@@ -43,9 +43,9 @@ All subgraphs are available via The Graph's hosted service:
 
 In this section we will cover the following:
 
-1. Deploy the subgraph to a `docker container`.
-2. Deploy the Superfluid contracts to `Ganache`.
-3. Check that your setup is correct by running some `tests`.
+0. Deploy the subgraph to a `docker container`.
+1. Deploy the Superfluid contracts to `Ganache`.
+2. Check that your setup is correct by running some `tests`.
 
 If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
 
@@ -56,18 +56,20 @@ First install these dependencies:
 -   [docker](https://docs.docker.com/install/)
 -   [docker-compose](https://docs.docker.com/compose/install/)
 
-Now install the necessary node packages:
+Now install the necessary node packages with the following commands:
 
 ```bash
 npm i -g truffle ganache-cli @graphprotocol/graph-cli
+yarn install
 ```
 
 ### Ganache
 
 Start ganache. It's helpful to specify a mnemonic, so you can hard-code the address in `subgraph.yaml` and the test files.
-
+We utilize the mnemonic from hardhat as all the addresses for the tests are based off this.
+Open one terminal window and run this command, this window will now be running this in the background.
 ```bash
-ganache-cli -h 0.0.0.0 -m 'deputy taste judge cave mosquito supply hospital clarify argue aware abuse glory'
+ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk"
 ```
 
 ### Graph-node
@@ -89,13 +91,28 @@ sudo apt install jq
 
 > Note: If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
 
-Now start the necessary subgraph Docker containers.
+If you are on a mac, create a `setup_graph.sh` file in `graph-node/docker` and paste the following in it:
+```
+#!/bin/bash
 
-```bash
-docker-compose up
+docker-compose down -v;
+
+if [ -d "data" ]
+then
+  echo "Found old data for the graph node - deleting it";
+  # we need to sudo this to remove system locked files
+  rm -rf data/;
+fi
+
+docker-compose up;
 ```
 
-You should see ganache logs start coming in
+Then run `chmod +x setup_graph.sh`, this makes the shell script executable.
+Open another terminal window and run `./setup_graph.sh` and your local graph will start booting up.
+
+> Note: You can check out this [blog post](https://medium.com/blockrocket/dapp-development-with-a-local-subgraph-ganache-setup-566a4d4cbb) for more details if you run into any issues.
+
+You should see ganache logs start coming in:
 
 ```
 Listening on 0.0.0.0:8545
@@ -114,7 +131,7 @@ ip a | grep docker | grep inet
 > inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
 ```
 
-Ty changing the line in the docker-compose using the output above
+Try changing the line in the docker-compose using the output above
 
 ```
 ethereum: 'ganache:http://172.17.0.1:8545'
@@ -124,7 +141,7 @@ ethereum: 'ganache:http://172.17.0.1:8545'
 
 > Note: If you're returning from an earlier work session, skip down to [Testing](#testing).
 
-Navigate to the **root of the repo** and run the build command.
+Open your third terminal window and navigate to the **root of the repo** and run the build command - this compiles the ethereum contracts and creates the artifacts required in the next steps.
 
 ```bash
 yarn build
@@ -133,27 +150,20 @@ yarn build
 Now come back here in `packages/subgraph` and run the following command to deploy contracts:
 
 ```bash
-NEW_TEST_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "../ethereum-contracts/scripts/deploy-test-environment.js"
-
-> .......
-> ConstantFlowAgreementV1: TruffleContract .agreements.cfa @0x5BB3095d09a7Bc7cE8C129e9A8CBFa21e9b36416 | Helper .cfa
-> =============== TEST ENVIRONMENT RESOLVER ======================
-> export TEST_RESOLVER_ADDRESS=0xa36FfB4643C11307515F9851f2320a0556fD2687
+npx hardhat run scripts/deployContractsAndToken.ts --network localhost
 ```
 
-Copy the `export` command from your output and run it. NOTE: you must load this environment variable in the same terminal which you run `yarn test`.
-
-Copy the address for `ConstantFlowAgreementV1`, which will be used later.
-
-> Tip: If you use the same mnemonic each time you start Ganache and deploy the contracts, then this will always be the same address.
+> Tip: You must use the mnemonic provided otherwise you will have to update all the test addresses in the relevant parts of the code.
 
 ## Deploy the Subgraph
 
-Enter the address for `ConstantFlowAgreementV1` from the previous step in `config/ganache.json`.
-
-We are now ready to deploy our subgraph.
+Once the contracts and token have been deployed, you can run the following one liner or go step by step and run through the commands below.
 
 ```bash
+# To build and deploy the Subgraph in a single line:
+yarn prepare-local && yarn getAbi && yarn codegen && yarn create-local && yarn deploy-local
+
+# Step by step
 # Generate "subgraph.yaml" using the template
 yarn prepare-local
 
@@ -175,56 +185,42 @@ yarn deploy-local
 > Deployed to http://localhost:8000/subgraphs/name/superfluid-test/graphql
 ```
 
-> If you see "NetworkNotSupported" error, make sure the network name in your docker-compose matches the one in subgraph.yaml
+> If you see "NetworkNotSupported" error, make sure the network name in your docker-compose matches the one in subgraph.yaml.
+> Note: The network must be mainnet when testing locally.
 
-Navigate to the url in the console output, and let's try a test query so we know the deployment worked. It should return an empty `accounts` array
+Navigate to the url in the console output, and let's try a test query so we know the deployment worked. It should return an empty `flowUpdatedEvents` array.
 
 ```
 {
-  accounts{
-    flowsOwned{
-      id
-    }
+  flowUpdatedEvents {
+    id
   }
 }
 ```
 
-:tada: Congrats! In the next section we will setup automatic subgraph re-deployments and run tests.
+:tada: Congrats! In the next section we will show you how to run tests and redeploy the subgraph with a clean slate.
 
-## Testing
+## Running Tests
 
-Now that you have everything set up, you can start making changes to the subgraph. To automatically re-reploy the subgraph, we will use the `--watch` flag.
-
-You will use this flow anytime you want to restart, or come back to the subgraph.
-
-1. In the repo `graph-node/docker`, stop your docker instance, and restart it:
+If you are continuing from the previous steps, you can immediately run the tests with the following command: 
 
 ```bash
-# Blow away the database
-sudo rm -rf data
-docker-compose up
+npx hardhat test --network localhost
 ```
 
-2. Deploy the contracts to ganache (if needed)
+This goes over an integration tests which test that the data we are mapping to the subgraph is expected given the inputs for creating a flow, index, subscription, etc. If you're interested in learning about how the test code is structured, you can click [here](#test-structure) to learn more.
 
-Remember to use the same mnemonic, or update the contract address in `subgraph.yaml`
-
-3. Start subgraph auto re-deploy
+You can also run a data integrity test which checks the data mapped to the subgraph with data from the contracts:
 
 ```bash
-yarn create-local
-yarn deploy-local --watch
+npx hardhat run scripts/dataIntegrityTest.ts --network <NETWORK>
 ```
 
-4. Generate activity
+> Note: you must specify the network in the `hardhat.config.ts` file, you can look at how it is being done for matic and do so for any network you are interested in running this on. You can use a URL from Infura, Alchemy or from your own node.
 
-Run the test to generate some activity on your local ganache contracts
+## Re-deployments
 
-```bash
-yarn test
-```
-
-If you get an error like `Error: Invalid address passed to IResolver.at(): undefined`, then your resolver environment variable is not found. Fix this by running the `export TEST_RESOLVER_ADDRESS=0xa` command again.
+To re-deploy the subgraph and contracts (for a clean slate), you need to kill the ganache and graph node processes (`ctrl + c` usually does it) and restart these and run through the previous steps again.
 
 ## Troubleshooting
 
@@ -299,6 +295,35 @@ You should get a response like this
     }
 }
 ```
+
+### Schema Overview
+For the V1 Subgraph design, there are three "levels" of entities: event, higher order level (HOL) and aggregate. A brief explanation of each below:
+
+## Event Entities
+These entities are for the most part a 1-to-1 mapping with the raw events from the contract, however for some of them, we have added data, this is noted clearly in the `schema.graphql` file and will be viewable in the playground as well. These entities are created once and never updated.
+
+## Higher Order Level Entities
+The higher order level entities are an abstraction of the events is not ephemeral in the same way the event entities are. They contain data on an entity over its "lifetime" and therefore may be updated over time.
+
+## Aggregate Entities
+Aggregate entities are exactly what the name suggests - they are entities that store aggregate data. More specifically, we do this at an account-token level and also at a global token level.
+
+### Test Structure
+
+This section is intended for those who are interested in understanding the structure of the test suite.
+The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break. 
+
+The entry point of the tests is the `subgraph.test.ts` file, this is where you specify the parameters and what you want to test. For example, you want to test indexing a newly created flow. There are helper functions for all the different things you may want to do and examples of everything in the test, but you must follow the pattern of modify then update global state as stated above.
+
+The helper functions contain the following:
+- action function: creates a txn and modifies the blockchain state
+- initialize functions: initializes the data or gets the last saved data to be validated
+- updater functions: these functions get what we expect the data to be, this will be compared to the data returned from the subgraph
+- event validator function: this validates the newly created event
+- hol/aggregate validator functions: these functions validate the hol or aggregate entities
+- returns the updated data from the updater functions
+
+Then we are back in `subgraph.test.ts` and the global state is updated with this new data.
 
 # Production
 

@@ -21,6 +21,29 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: "Checkout graph node repo and set up local graph node"
+        uses: actions/checkout@v2
+        with:
+          repository: graphprotocol/graph-node
+          path: graph-node
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Run setup because linux and docker-compose"
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          chmod +x setup.sh
+          ./setup.sh
+        working-directory: ./graph-node/docker
+      
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ./graph-node/docker
+
+      - name: "Run ganache-cli node"
+        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+        working-directory: ${{ env.subgraph-working-directory }}
+
       - name: Install node
         uses: actions/setup-node@v2
         with:
@@ -47,10 +70,6 @@ jobs:
         run: node scripts/getAbi.js
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Run ganache-cli node"
-        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
-        working-directory: ${{ env.subgraph-working-directory }}
-
       - name: "Get abi.js file for js-sdk to deploy locally"
         run: |
           chmod +x ./tasks/build-abi-js.sh
@@ -61,31 +80,11 @@ jobs:
         run: npx hardhat run scripts/deployContractsAndToken.ts --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v2
-        with:
-          repository: graphprotocol/graph-node
-          path: graph-node
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Run setup because linux and docker-compose"
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          chmod +x setup.sh
-          ./setup.sh
-        working-directory: ./graph-node/docker
-      
-      - name: "Docker compose"
-        run: docker-compose up &
-        working-directory: ./graph-node/docker
 
       - name: "Prepare, build and deploy subgraph locally"
         run: yarn prepare-local && yarn codegen && yarn create-local && yarn deploy-local
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Run test suite"
+      - name: "Run integration test suite"
         run: npx hardhat test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
-
-      

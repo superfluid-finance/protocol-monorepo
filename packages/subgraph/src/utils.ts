@@ -1,7 +1,14 @@
-import { BigInt, Bytes, ethereum, Address, log, Entity } from "@graphprotocol/graph-ts";
+import {
+    BigInt,
+    Bytes,
+    ethereum,
+    Address,
+    log,
+    Entity,
+} from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
-import { IResolver } from "../generated/templates/SuperToken/IResolver";
+import { TestResolver } from "../generated/ResolverV1/TestResolver";
 import {
     Account,
     Index,
@@ -111,28 +118,31 @@ export function getOrInitAccount(
 
 export function getTokenInfoAndReturn(
     token: Token,
-    tokenAddress: Address,
-    resolverAddress: Address
+    tokenAddress: Address
 ): Token {
     let tokenContract = SuperToken.bind(tokenAddress);
-    let resolverContract = IResolver.bind(resolverAddress);
     let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
     let nameResult = tokenContract.try_name();
     let symbolResult = tokenContract.try_symbol();
-    // let isListedResult = resolverContract.try_get(
-    //     `supertokens.v1.${symbolResult.value}`
-    // );
     token.underlyingAddress = underlyingAddressResult.reverted
         ? new Address(0)
         : underlyingAddressResult.value;
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
-    token.isListed = false;
-    // let superTokenAddress = isListedResult.reverted
-    //     ? new Address(0)
-    //     : isListedResult.value;
-    // token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token;
+}
+
+export function getIsListedToken(
+    token: Token,
+    tokenAddress: Address,
+    resolverAddress: Address,
+    symbol: string
+): Token {
+    let resolverContract = TestResolver.bind(resolverAddress);
+    let result = resolverContract.try_get(`supertokens.v1.${symbol}`);
+    let superTokenAddress = result.reverted ? new Address(0) : result.value;
+    token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
+    return token as Token;
 }
 
 /**
@@ -157,10 +167,12 @@ export function getOrInitSuperToken(
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
-        token = getTokenInfoAndReturn(
+        token = getTokenInfoAndReturn(token as Token, tokenAddress);
+        token = getIsListedToken(
             token as Token,
             tokenAddress,
-            resolverAddress
+            resolverAddress,
+            token.symbol
         );
         token.save();
 
@@ -190,10 +202,12 @@ export function getOrInitSuperToken(
     // // we must handle the case when the native token hasn't been initialized
     // // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
-        token = getTokenInfoAndReturn(
+        token = getTokenInfoAndReturn(token as Token, tokenAddress);
+        token = getIsListedToken(
             token as Token,
             tokenAddress,
-            resolverAddress
+            resolverAddress,
+            token.symbol
         );
         token.save();
     }
@@ -217,7 +231,7 @@ export function getOrInitToken(
     token.createdAtBlockNumber = block.number;
     token.isSuperToken = false;
     token.isListed = false;
-    token = getTokenInfoAndReturn(token as Token, tokenAddress, new Address(0));
+    token = getTokenInfoAndReturn(token as Token, tokenAddress);
     token.save();
 }
 

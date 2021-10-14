@@ -20,6 +20,7 @@ import {
     IExtraExpectedData,
     IFlowUpdatedEvent,
     IGetExpectedIDADataParams as IGetExpectedIDADataParams,
+    IIDAEvents,
     IIndexSubscription,
     ISubscriberDistributionTesterParams,
     ITestModifyFlowData,
@@ -59,6 +60,7 @@ import {
     FlowActionType,
     IDAEventType,
     idaEventTypeToEventQueryDataMap,
+    subscriptionEventTypeToIndexEventType,
 } from "./constants";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { BigNumber } from "@ethersproject/bignumber";
@@ -345,12 +347,38 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         } as IUpdateIDAGlobalObjects;
     }
 
-    const event = await fetchIDAEventAndValidate(
+    let events: IIDAEvents = await fetchIDAEventsAndValidate(
         eventType,
         receipt,
         baseParams,
         extraEventData
     );
+
+	// handles IndexSubscribed, IndexUnitsUpdated, IndexUnsubscribed
+	// which also occur on the three events below, respectively
+    if (
+        [
+            IDAEventType.SubscriptionApproved,
+            IDAEventType.SubscriptionUnitsUpdated,
+            IDAEventType.SubscriptionRevoked,
+        ].includes(eventType)
+    ) {
+        const otherEventType =
+            subscriptionEventTypeToIndexEventType.get(eventType);
+        if (!otherEventType) {
+            throw new Error("Incorrect event type.");
+        }
+
+        events = {
+            ...events,
+            ...(await fetchIDAEventsAndValidate(
+                otherEventType,
+                receipt,
+                baseParams,
+                extraEventData
+            )),
+        };
+    }
 
     const expectedDataParams = {
         token: superToken,
@@ -388,7 +416,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         publisher,
         subscriber,
         eventType,
-        event,
+        events,
         subscriptionWithUnitsExists
     );
 
@@ -533,23 +561,15 @@ function getIDAEventDataForValidation(
         subscription: { id: subscriptionId },
         subscriber: subscriber.toLowerCase(),
     };
+    const baseIndexData = {
+        ...baseEventData,
+        index: { id: indexEntityId },
+        subscriber: subscriber.toLowerCase(),
+    };
 
     if (type === IDAEventType.IndexCreated) {
         return { ...baseEventData, index: { id: indexEntityId } };
-    } else if (type === IDAEventType.SubscriptionApproved) {
-        return baseSubscriptionEventData;
-    } else if (type === IDAEventType.SubscriptionRevoked) {
-        return baseSubscriptionEventData;
-    } else if (type === IDAEventType.SubscriptionUnitsUpdated) {
-        if (units == null) {
-            throw new Error("You must pass units for SubscriptionUnitsUpdated");
-        }
-        return {
-            ...baseSubscriptionEventData,
-            units: units.toString(),
-        };
-    } else {
-        // type === IDAEventType.IndexUpdated
+    } else if (type === IDAEventType.IndexUpdated) {
         if (
             newIndexValue == null ||
             totalUnitsApproved == null ||
@@ -567,10 +587,37 @@ function getIDAEventDataForValidation(
             totalUnitsApproved: totalUnitsApproved.toString(),
             totalUnitsPending: totalUnitsPending.toString(),
         };
+    } else if (
+        [IDAEventType.IndexSubscribed, IDAEventType.IndexUnsubscribed].includes(
+            type
+        )
+    ) {
+        return baseIndexData;
+    } else if (type === IDAEventType.IndexUnitsUpdated) {
+        if (units == null) {
+            throw new Error("You must pass units for IndexUnitsUpdated");
+        }
+        return { ...baseIndexData, units: units.toString() };
+    } else if (
+        [
+            IDAEventType.SubscriptionApproved,
+            IDAEventType.SubscriptionRevoked,
+        ].includes(type)
+    ) {
+        return baseSubscriptionEventData;
+    } else {
+        // type === IDAEventType.SubscriptionUnitsUpdated
+        if (units == null) {
+            throw new Error("You must pass units for SubscriptionUnitsUpdated");
+        }
+        return {
+            ...baseSubscriptionEventData,
+            units: units.toString(),
+        };
     }
 }
 
-async function fetchIDAEventAndValidate(
+async function fetchIDAEventsAndValidate(
     type: IDAEventType,
     receipt: ContractReceipt,
     baseParams: ISubscriberDistributionTesterParams,
@@ -586,12 +633,14 @@ async function fetchIDAEventAndValidate(
         throw new Error("You have entered the wrong type.");
     }
 
-    return await fetchEventAndValidate(
-        receipt,
-        eventDataToValidate,
-        eventQueryData.query,
-        eventQueryData.queryName
-    );
+    return {
+        [eventQueryData.queryName]: await fetchEventAndValidate(
+            receipt,
+            eventDataToValidate,
+            eventQueryData.query,
+            eventQueryData.queryName
+        ),
+    };
 }
 
 async function getExpectedDataForIDA(

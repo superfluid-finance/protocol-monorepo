@@ -6,6 +6,7 @@ import {
     ITokenStatistic,
     IEvent,
     ILightEntity,
+    IIDAEvents,
 } from "../interfaces";
 import {
     fetchIndexAndValidate,
@@ -62,7 +63,7 @@ export async function validateModifyIDA(
     publisher: string,
     subscriberAddress: string,
     eventType: IDAEventType,
-    event: IEvent,
+    events: IIDAEvents,
     subscriptionExists: boolean
 ) {
     // We don't want to validate the subscriber for the IndexCreated/IndexUpdated
@@ -73,7 +74,7 @@ export async function validateModifyIDA(
             updatedSubscription,
             updatedIndex.indexValue,
             eventType,
-            event
+            events
         );
         const subscriberATSId =
             subscriberAddress.toLowerCase() + "-" + token.toLowerCase();
@@ -83,7 +84,7 @@ export async function validateModifyIDA(
         idaV1,
         updatedIndex,
         eventType,
-        event,
+        events,
         updatedSubscription.id,
         subscriptionExists
     );

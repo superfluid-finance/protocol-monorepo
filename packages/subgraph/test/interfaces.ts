@@ -431,6 +431,17 @@ export interface IInstantDistributionTestData
     readonly indexId: string;
 }
 
+export interface IIDAEvents {
+    readonly IndexCreatedEvent?: IEvent;
+    readonly IndexUpdatedEvent?: IEvent;
+    readonly IndexSubscribedEvent?: IEvent;
+    readonly IndexUnitsUpdatedEvent?: IEvent;
+    readonly IndexUnsubscribedEvent?: IEvent;
+    readonly SubscriptionApprovedEvent?: IEvent;
+    readonly SubscriptionRevokedEvent?: IEvent;
+    readonly SubscriptionUnitsUpdatedEvent?: IEvent;
+}
+
 export interface IBaseIDAEvent {
     readonly token: string;
     readonly publisher: string;

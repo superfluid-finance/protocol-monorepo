@@ -295,6 +295,14 @@ export interface IExpectedTokenStats {
     readonly totalAmountStreamedUntilUpdatedAt: string;
 }
 
+export interface IUpdateCFAGlobalObjects {
+    readonly revisionIndexId: string;
+    readonly updatedStreamData: IStreamData;
+    readonly updatedSenderATS: IAccountTokenSnapshot;
+    readonly updatedReceiverATS: IAccountTokenSnapshot;
+    readonly updatedTokenStats: ITokenStatistic;
+}
+
 export interface IUpdateIDAGlobalObjects {
     readonly updatedTokenStats: ITokenStatistic;
     readonly updatedPublisherATS?: IAccountTokenSnapshot;
@@ -341,11 +349,9 @@ export interface IFlowUpdatedInitTestData
 }
 
 export interface IBaseDistributionTesterParams {
-    readonly provider: BaseProvider;
     readonly token: string;
     readonly publisher: string;
     readonly indexId: number;
-    readonly atsArray: IAccountTokenSnapshot[];
     readonly userData: string;
 }
 
@@ -382,6 +388,8 @@ export interface ITestModifyFlowData {
 
 export interface ITestModifyIDAData {
     readonly contracts: IContracts;
+    readonly provider: BaseProvider;
+    readonly atsArray: IAccountTokenSnapshot[];
     readonly localData: IDistributionLocalData;
     readonly baseParams: ISubscriberDistributionTesterParams;
     readonly eventType: IDAEventType;

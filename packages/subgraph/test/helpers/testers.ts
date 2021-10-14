@@ -39,7 +39,6 @@ import {
     hasSubscriptionWithUnits,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
-    subgraphRequest,
     toBN,
     waitUntilBlockIndexed,
 } from "./helpers";
@@ -66,6 +65,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { getSubscription } from "../queries/holQueries";
 import { ethers } from "hardhat";
 import { expect } from "chai";
+import { BaseProvider } from "@ethersproject/providers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -233,6 +233,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         sender,
         isDistribute,
         amountOrIndexValue,
+        provider,
+        atsArray,
     } = data;
     let indexTotalUnitsApproved: BigNumber = toBN(0);
     let indexTotalUnitsPending: BigNumber = toBN(0);
@@ -242,11 +244,12 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
     const { sf, idaV1, superToken } = contracts;
     const { accountTokenSnapshots, indexes, subscriptions, tokenStatistics } =
         localData;
-    const { token, publisher, indexId, atsArray, subscriber } = baseParams;
+    const { token, publisher, indexId, subscriber } = baseParams;
 
     const { receipt, timestamp, updatedAtBlockNumber } =
         await executeIDATransactionByTypeAndWaitForIndexer(
             sf,
+            provider,
             eventType,
             baseParams,
             units,
@@ -400,6 +403,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
 
 async function executeIDATransactionByTypeAndWaitForIndexer(
     sf: Framework,
+    provider: BaseProvider,
     type: IDAEventType,
     baseParams: ISubscriberDistributionTesterParams,
     units?: BN,
@@ -414,8 +418,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
     let txn: any;
     const ida = sf.ida as InstantDistributionAgreementV1Helper;
 
-    const { provider, token, publisher, indexId, userData, subscriber } =
-        baseParams;
+    const { token, publisher, indexId, userData, subscriber } = baseParams;
     const baseData = {
         superToken: token,
         publisher,

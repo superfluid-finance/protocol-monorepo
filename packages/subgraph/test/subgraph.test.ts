@@ -19,10 +19,12 @@ import {
     ITokenStatistic,
     IUpdateIDAGlobalObjects,
     ISubscriberDistributionTesterParams,
+    IUpdateCFAGlobalObjects,
 } from "./interfaces";
 import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
+import { BaseProvider } from "@ethersproject/providers";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
@@ -45,43 +47,33 @@ describe("Subgraph Tests", () => {
     } = {}; // id is ats id
     let tokenStatistics: { [id: string]: ITokenStatistic | undefined } = {}; // id is tokenStats id
 
-    function updateGlobalObjectsForFlowUpdated(
-        revisionIndexId: string,
-        updatedStreamData: IStreamData,
-        updatedSenderATS: IAccountTokenSnapshot,
-        updatedReceiverATS: IAccountTokenSnapshot,
-        updatedTokenStats: ITokenStatistic
-    ) {
-        revisionIndexes[revisionIndexId] = Number(
-            updatedStreamData.revisionIndex
+    function updateGlobalObjectsForFlowUpdated(data: IUpdateCFAGlobalObjects) {
+        revisionIndexes[data.revisionIndexId] = Number(
+            data.updatedStreamData.revisionIndex
         );
-        streamData[updatedStreamData.id] = updatedStreamData;
-        accountTokenSnapshots[updatedSenderATS.id] = updatedSenderATS;
-        accountTokenSnapshots[updatedReceiverATS.id] = updatedReceiverATS;
-        tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
+        streamData[data.updatedStreamData.id] = data.updatedStreamData;
+        accountTokenSnapshots[data.updatedSenderATS.id] = data.updatedSenderATS;
+        accountTokenSnapshots[data.updatedReceiverATS.id] =
+            data.updatedReceiverATS;
+        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
     }
 
     function updateGlobalObjectsForIDAEvents(data: IUpdateIDAGlobalObjects) {
-        const {
-            updatedTokenStats,
-            updatedPublisherATS,
-            updatedSubscriberATS,
-            updatedIndex,
-            updatedSubscription,
-        } = data;
-        tokenStatistics[updatedTokenStats.id] = updatedTokenStats;
-        if (updatedIndex) {
-            indexes[updatedIndex.id] = updatedIndex;
+        tokenStatistics[data.updatedTokenStats.id] = data.updatedTokenStats;
+        if (data.updatedIndex) {
+            indexes[data.updatedIndex.id] = data.updatedIndex;
         }
-        if (updatedSubscription) {
-            subscription[updatedSubscription.id] = updatedSubscription;
+        if (data.updatedSubscription) {
+            subscription[data.updatedSubscription.id] =
+                data.updatedSubscription;
         }
-        if (updatedPublisherATS) {
-            accountTokenSnapshots[updatedPublisherATS.id] = updatedPublisherATS;
+        if (data.updatedPublisherATS) {
+            accountTokenSnapshots[data.updatedPublisherATS.id] =
+                data.updatedPublisherATS;
         }
-        if (updatedSubscriberATS) {
-            accountTokenSnapshots[updatedSubscriberATS.id] =
-                updatedSubscriberATS;
+        if (data.updatedSubscriberATS) {
+            accountTokenSnapshots[data.updatedSubscriberATS.id] =
+                data.updatedSubscriberATS;
         }
     }
 
@@ -118,11 +110,25 @@ describe("Subgraph Tests", () => {
         ) as IAccountTokenSnapshot[];
     }
 
-    function getBaseIDAData(baseParams: ISubscriberDistributionTesterParams) {
+    function getBaseIDAData(
+        baseParams: ISubscriberDistributionTesterParams,
+        provider: BaseProvider
+    ) {
         return {
             contracts: getContracts(),
             localData: getDistributionLocalData(),
             baseParams,
+            provider,
+            atsArray: getAccountTokenSnapshotsArray(),
+        };
+    }
+    function getBaseCFAData(provider: BaseProvider, tokenAddress: string) {
+        return {
+            contracts: getContracts(),
+            localData: getStreamLocalData(),
+            atsArray: getAccountTokenSnapshotsArray(),
+            provider,
+            tokenAddress,
         };
     }
 
@@ -153,32 +159,16 @@ describe("Subgraph Tests", () => {
             // Deployer to All
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Create,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[0],
-                    receiver: userAddresses[i],
-                    tokenAddress: daix.address,
-                    totalSupply: initialTotalSupply,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Create,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[i],
+                        totalSupply: initialTotalSupply,
+                    })
                 );
             }
         });
@@ -187,30 +177,15 @@ describe("Subgraph Tests", () => {
             // All to Deployer
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Create,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[i],
-                    receiver: userAddresses[0],
-                    tokenAddress: daix.address,
-                });
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Create,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[i],
+                        receiver: userAddresses[0],
+                    })
                 );
             }
         });
@@ -221,61 +196,29 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after updating multiple flows from one person to many.", async () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Update,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[0],
-                    receiver: userAddresses[i],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[i],
+                    })
                 );
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Update,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[0],
-                    receiver: userAddresses[i],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[i],
+                    })
                 );
             }
         });
@@ -283,61 +226,30 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after updating multiple flows from many to one person.", async () => {
             let randomFlowRate = getRandomFlowRate(1000) + 1000; // increased flowRate
             for (let i = 1; i < userAddresses.length; i++) {
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Update,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[i],
-                    receiver: userAddresses[0],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[i],
+                        receiver: userAddresses[0],
+                    })
                 );
             }
 
             for (let i = 1; i < userAddresses.length; i++) {
                 randomFlowRate = getRandomFlowRate(1000); // decreased flowRate
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Update,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[i],
-                    receiver: userAddresses[0],
-                    tokenAddress: daix.address,
-                });
 
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[i],
+                        receiver: userAddresses[0],
+                    })
                 );
             }
         });
@@ -348,31 +260,15 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after deleting a created flow.", async () => {
             // delete the updated flows from all to deployer
             for (let i = userAddresses.length; i < userAddresses.length; i++) {
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Delete,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: 0,
-                    sender: userAddresses[i],
-                    receiver: userAddresses[0],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Delete,
+                        newFlowRate: 0,
+                        sender: userAddresses[i],
+                        receiver: userAddresses[0],
+                    })
                 );
             }
         });
@@ -380,31 +276,15 @@ describe("Subgraph Tests", () => {
         it("Should return correct data after deleting an updated flow.", async () => {
             // delete the updated flows from deployer to all
             for (let i = 1; i < userAddresses.length; i++) {
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Delete,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: 0,
-                    sender: userAddresses[0],
-                    receiver: userAddresses[i],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Delete,
+                        newFlowRate: 0,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[i],
+                    })
                 );
             }
         });
@@ -413,31 +293,15 @@ describe("Subgraph Tests", () => {
             // recreate the deleted flows from deployer to all
             for (let i = 1; i < userAddresses.length; i++) {
                 const randomFlowRate = getRandomFlowRate(1000);
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Create,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[0],
-                    receiver: userAddresses[i],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Create,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[i],
+                    })
                 );
             }
         });
@@ -446,31 +310,15 @@ describe("Subgraph Tests", () => {
             // update the recreated flows from deployer to all
             const randomFlowRate = getRandomFlowRate(1000);
             for (let i = 1; i < userAddresses.length; i++) {
-                const {
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats,
-                } = await testFlowUpdated({
-                    contracts: getContracts(),
-                    localData: getStreamLocalData(),
-                    provider,
-                    actionType: FlowActionType.Update,
-                    atsArray: getAccountTokenSnapshotsArray(),
-                    newFlowRate: randomFlowRate,
-                    sender: userAddresses[0],
-                    receiver: userAddresses[i],
-                    tokenAddress: daix.address,
-                });
-
                 // update the global environment objects
                 updateGlobalObjectsForFlowUpdated(
-                    revisionIndexId,
-                    updatedStreamData,
-                    updatedSenderATS,
-                    updatedReceiverATS,
-                    updatedTokenStats
+                    await testFlowUpdated({
+                        ...getBaseCFAData(provider, daix.address),
+                        actionType: FlowActionType.Update,
+                        newFlowRate: randomFlowRate,
+                        sender: userAddresses[0],
+                        receiver: userAddresses[i],
+                    })
                 );
             }
         });
@@ -486,17 +334,15 @@ describe("Subgraph Tests", () => {
             const token = daix.address;
             for (let i = 0; i < userAddresses.length; i++) {
                 const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
                     token,
                     publisher: userAddresses[i],
                     indexId: i,
-                    atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
                     subscriber: "",
                 };
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.IndexCreated,
                     })
                 );
@@ -509,11 +355,9 @@ describe("Subgraph Tests", () => {
             for (let i = 1; i < Math.floor(userAddresses.length / 2); i++) {
                 const subscriber = userAddresses[i];
                 const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
                     token,
                     publisher: userAddresses[0],
                     indexId: 0,
-                    atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
                     subscriber,
                 };
@@ -523,7 +367,7 @@ describe("Subgraph Tests", () => {
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -534,7 +378,7 @@ describe("Subgraph Tests", () => {
                 // update sub units again
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -545,7 +389,10 @@ describe("Subgraph Tests", () => {
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData({ ...baseParams, subscriber: "" }),
+                        ...getBaseIDAData(
+                            { ...baseParams, subscriber: "" },
+                            provider
+                        ),
                         eventType: IDAEventType.IndexUpdated,
                         amountOrIndexValue,
                         isDistribute: false,
@@ -555,7 +402,7 @@ describe("Subgraph Tests", () => {
                 // delete subscriptions
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: false,
                         sender: subscriber,
@@ -565,7 +412,7 @@ describe("Subgraph Tests", () => {
                 // approve deleted sub
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionApproved,
                     })
                 );
@@ -573,7 +420,7 @@ describe("Subgraph Tests", () => {
                 // update sub units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -582,7 +429,7 @@ describe("Subgraph Tests", () => {
                 // delete subscriptions
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: false,
                         sender: subscriber,
@@ -592,7 +439,7 @@ describe("Subgraph Tests", () => {
                 // update sub units to > 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(100),
                     })
@@ -601,7 +448,7 @@ describe("Subgraph Tests", () => {
                 // update sub units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -619,11 +466,9 @@ describe("Subgraph Tests", () => {
             ) {
                 const subscriber = userAddresses[i];
                 const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
                     token,
                     publisher: userAddresses[1],
                     indexId: 1,
-                    atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
                     subscriber,
                 };
@@ -633,7 +478,7 @@ describe("Subgraph Tests", () => {
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -642,7 +487,7 @@ describe("Subgraph Tests", () => {
                 // approve sub w/ units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionApproved,
                     })
                 );
@@ -652,7 +497,7 @@ describe("Subgraph Tests", () => {
                 // update approved sub units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -661,7 +506,7 @@ describe("Subgraph Tests", () => {
                 // update sub units from 0 to 0 (we should be able to do this technically)
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -670,7 +515,7 @@ describe("Subgraph Tests", () => {
                 // revoke approved sub w/o units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: true,
                         sender: subscriber,
@@ -680,7 +525,7 @@ describe("Subgraph Tests", () => {
                 // update revoked sub units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(150),
                     })
@@ -689,7 +534,7 @@ describe("Subgraph Tests", () => {
                 // approve revoked sub w/ units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionApproved,
                     })
                 );
@@ -697,7 +542,7 @@ describe("Subgraph Tests", () => {
                 // revoke approved sub w/ units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: true,
                         sender: subscriber,
@@ -707,7 +552,7 @@ describe("Subgraph Tests", () => {
                 // update sub units on revoked sub w/ units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(175),
                     })
@@ -716,7 +561,7 @@ describe("Subgraph Tests", () => {
                 // update revoked sub w/ units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -724,7 +569,7 @@ describe("Subgraph Tests", () => {
                 // update revoked sub w/ units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -733,7 +578,7 @@ describe("Subgraph Tests", () => {
                 // update revoked sub w/o  units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -751,11 +596,9 @@ describe("Subgraph Tests", () => {
             ) {
                 const subscriber = userAddresses[i];
                 const baseParams: ISubscriberDistributionTesterParams = {
-                    provider,
                     token,
                     publisher: userAddresses[2],
                     indexId: 2,
-                    atsArray: getAccountTokenSnapshotsArray(),
                     userData: "0x",
                     subscriber,
                 };
@@ -763,7 +606,7 @@ describe("Subgraph Tests", () => {
                 // approve subscriptions
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionApproved,
                     })
                 );
@@ -771,7 +614,7 @@ describe("Subgraph Tests", () => {
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(100),
                     })
@@ -780,7 +623,7 @@ describe("Subgraph Tests", () => {
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(150),
                     })
@@ -790,7 +633,10 @@ describe("Subgraph Tests", () => {
                 const amountOrIndexValue = new BN(100);
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData({ ...baseParams, subscriber: "" }),
+                        ...getBaseIDAData(
+                            { ...baseParams, subscriber: "" },
+                            provider
+                        ),
                         eventType: IDAEventType.IndexUpdated,
                         amountOrIndexValue,
                         isDistribute: true,
@@ -800,7 +646,7 @@ describe("Subgraph Tests", () => {
                 // delete subs
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: false,
                         sender: subscriber,
@@ -810,7 +656,7 @@ describe("Subgraph Tests", () => {
                 // update sub units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -819,7 +665,7 @@ describe("Subgraph Tests", () => {
                 // update not approved sub w/o units to 0 again
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(0),
                     })
@@ -828,7 +674,7 @@ describe("Subgraph Tests", () => {
                 // approve subscriptions
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionApproved,
                     })
                 );
@@ -836,7 +682,7 @@ describe("Subgraph Tests", () => {
                 // update approved sub w/o units to > 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units: new BN(150),
                     })
@@ -865,7 +711,7 @@ describe("Subgraph Tests", () => {
                 // approve subscriptions
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionApproved,
                     })
                 );
@@ -874,7 +720,7 @@ describe("Subgraph Tests", () => {
                 let units = new BN(100);
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -884,7 +730,7 @@ describe("Subgraph Tests", () => {
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -906,7 +752,7 @@ describe("Subgraph Tests", () => {
                 let units = new BN(100);
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -916,7 +762,7 @@ describe("Subgraph Tests", () => {
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
                         units,
                     })
@@ -927,7 +773,10 @@ describe("Subgraph Tests", () => {
             const amountOrIndexValue = new BN(100);
             updateGlobalObjectsForIDAEvents(
                 await testModifyIDA({
-                    ...getBaseIDAData({ ...multiBaseParams, subscriber: "" }),
+                    ...getBaseIDAData(
+                        { ...multiBaseParams, subscriber: "" },
+                        provider
+                    ),
                     eventType: IDAEventType.IndexUpdated,
                     amountOrIndexValue,
                     isDistribute: true,
@@ -947,7 +796,7 @@ describe("Subgraph Tests", () => {
                 // claim pending units
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
-                        ...getBaseIDAData(baseParams),
+                        ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.Claim,
                     })
                 );

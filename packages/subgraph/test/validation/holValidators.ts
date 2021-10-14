@@ -11,6 +11,8 @@ import {
     IIndexSubscription,
     IEvent,
     IAccount,
+    IIDAEvents,
+    ILightEntity,
 } from "../interfaces";
 import {
     getAccount,
@@ -70,7 +72,7 @@ export const fetchIndexAndValidate = async (
     idaV1: InstantDistributionAgreementV1,
     expectedIndex: IIndex,
     eventType: IDAEventType,
-    event: IEvent,
+    events: IIDAEvents,
     subscriptionId: string,
     subscriptionExists: boolean
 ) => {
@@ -81,20 +83,61 @@ export const fetchIndexAndValidate = async (
     );
 
     validateIndexEntity(idaV1, index, expectedIndex);
+    const eventTypeToDataMap = new Map<
+        IDAEventType,
+        { event: IEvent | undefined; events: ILightEntity[] | undefined }
+    >([
+        [
+            IDAEventType.IndexUpdated,
+            {
+                event: events.IndexUpdatedEvent,
+                events: index.indexUpdatedEvents,
+            },
+        ],
+        [
+            IDAEventType.IndexSubscribed,
+            {
+                event: events.IndexSubscribedEvent,
+                events: index.indexSubscribedEvents,
+            },
+        ],
+        [
+            IDAEventType.IndexUnitsUpdated,
+            {
+                event: events.IndexUnitsUpdatedEvent,
+                events: index.indexUnitsUpdatedEvents,
+            },
+        ],
+        [
+            IDAEventType.IndexUnsubscribed,
+            {
+                event: events.IndexSubscribedEvent,
+                events: index.indexSubscribedEvents,
+            },
+        ],
+    ]);
 
     if (
         eventType === IDAEventType.IndexCreated &&
         index.indexCreatedEvent != null
     ) {
+        if (!events.IndexCreatedEvent) {
+            throw new Error("Must have events.IndexCreatedEvents");
+        }
         // We expect a indexCreatedEvent to be created one time
-        validateReverseLookup(event, [index.indexCreatedEvent]);
+        validateReverseLookup(events.IndexCreatedEvent, [
+            index.indexCreatedEvent,
+        ]);
     }
 
-    if (
-        eventType === IDAEventType.IndexUpdated &&
-        index.indexUpdatedEvents != null
-    ) {
-        validateReverseLookup(event, index.indexUpdatedEvents);
+    if (Array.from(eventTypeToDataMap.keys()).includes(eventType)) {
+        const data = eventTypeToDataMap.get(eventType);
+        if (!data || !data.event || !data.events) {
+            throw new Error(
+                "You must have all the data for validating reverse lookup."
+            );
+        }
+        validateReverseLookup(data.event, data.events);
     }
 
     if (
@@ -113,7 +156,7 @@ export const fetchSubscriptionAndValidate = async (
     expectedSubscription: IIndexSubscription,
     newIndexValue: string,
     eventType: IDAEventType,
-    event: IEvent
+    events: IIDAEvents
 ) => {
     const indexSubscription =
         await fetchEntityAndEnsureExistence<IIndexSubscription>(
@@ -134,8 +177,11 @@ export const fetchSubscriptionAndValidate = async (
         eventType === IDAEventType.SubscriptionApproved &&
         indexSubscription.subscriptionApprovedEvents != null
     ) {
+        if (!events.SubscriptionApprovedEvent) {
+            throw new Error("Must have events.SubscriptionApprovedEvents");
+        }
         validateReverseLookup(
-            event,
+            events.SubscriptionApprovedEvent,
             indexSubscription.subscriptionApprovedEvents
         );
     }
@@ -143,8 +189,11 @@ export const fetchSubscriptionAndValidate = async (
         eventType === IDAEventType.SubscriptionRevoked &&
         indexSubscription.subscriptionRevokedEvents != null
     ) {
+        if (!events.SubscriptionRevokedEvent) {
+            throw new Error("Must have events.SubscriptionRevokedEvents");
+        }
         validateReverseLookup(
-            event,
+            events.SubscriptionRevokedEvent,
             indexSubscription.subscriptionRevokedEvents
         );
     }
@@ -152,8 +201,11 @@ export const fetchSubscriptionAndValidate = async (
         eventType === IDAEventType.SubscriptionUnitsUpdated &&
         indexSubscription.subscriptionUnitsUpdatedEvents != null
     ) {
+        if (!events.SubscriptionUnitsUpdatedEvent) {
+            throw new Error("Must have events.SubscriptionUnitsUpdatedEvents");
+        }
         validateReverseLookup(
-            event,
+            events.SubscriptionUnitsUpdatedEvent,
             indexSubscription.subscriptionUnitsUpdatedEvents
         );
     }

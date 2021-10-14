@@ -13,10 +13,7 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        const events = await sf.host.getPastEvents("AppRegistered", {
-            fromBlock: "0",
-            toBlock: "latest",
-        });
+        const events = await sf.getPastEvents(sf.host, "AppRegistered");
         const apps = [];
         const froms = {};
         console.log("## Registered apps");
@@ -29,10 +26,10 @@ module.exports = async function (callback, argv, options = {}) {
                 const receipt = await web3.eth.getTransactionReceipt(
                     e.transactionHash
                 );
-                froms[receipt.from]++;
-                const isJailed = await sf.host.isAppJailed(e.args.app);
+                receipt !== null && froms[receipt.from]++;
+                const isJailed = await sf.host.isAppJailed(e.app);
                 apps.push({
-                    address: e.args.app,
+                    address: e.app,
                     block,
                     receipt,
                     isJailed,
@@ -44,7 +41,7 @@ module.exports = async function (callback, argv, options = {}) {
                 const date = new Date(app.block.timestamp * 1000);
                 console.log(
                     `${date.toISOString().slice(0, 19)} | ${app.address} | ${
-                        app.receipt.from
+                        (app.receipt || {}).from
                     } | ${app.isJailed ? "*" : ""}`
                 );
             }

@@ -1,12 +1,10 @@
 const _ = require("lodash");
 const async = require("async");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const getConfig = require("./getConfig");
 const {
     ZERO_ADDRESS,
     setupScriptEnvironment,
     extractWeb3Options,
-    getPastEvents,
 } = require("./utils");
 
 const MAX_REQUESTS = 100;
@@ -38,23 +36,19 @@ async function printHostInformation({ sf }) {
     return { host };
 }
 
-async function printGovernanceInformation({ sf, config }) {
+async function printGovernanceInformation({ sf }) {
     const fetchLatestGovernanceUpdate = async (contract, eventName, filter) => {
-        const changes = await getPastEvents({
-            config,
-            contract,
-            eventName,
-            filter,
-        });
+        const changes = await sf.getPastEvents(contract, eventName, filter);
+
         return Object.values(
             changes.reduce(
                 (acc, i) =>
                     _.merge(acc, {
-                        [i.args.superToken]: i.args,
+                        [i.superToken]: i,
                     }),
                 {}
             )
-        ).filter((i) => !!i.set);
+        ).filter((i) => !!i.isSet);
     };
 
     let gov;
@@ -141,32 +135,22 @@ async function printSuperTokenFactoryInformation({ sf }) {
     };
 }
 
-async function printResolverInformation({ sf, config }) {
+async function printResolverInformation({ sf }) {
     console.log("address", sf.resolver.address);
     const ADMIN_ROLE = "0x" + "0".repeat(64);
     const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
     const maybeMembers = Array.from(
         new Set([
             ...(
-                await getPastEvents({
-                    config,
-                    contract: ac,
-                    eventName: "RoleGranted",
-                    filter: {
-                        role: ADMIN_ROLE,
-                    },
+                await sf.getPastEvents(ac, "RoleGranted", {
+                    role: ADMIN_ROLE,
                 })
-            ).map((i) => i.args.account),
+            ).map((i) => i.account),
             ...(
-                await getPastEvents({
-                    config,
-                    contract: ac,
-                    eventName: "RoleRevoked",
-                    filter: {
-                        role: ADMIN_ROLE,
-                    },
+                await sf.getPastEvents(ac, "RoleRevoked", {
+                    role: ADMIN_ROLE,
                 })
-            ).map((i) => i.args.account),
+            ).map((i) => i.account),
         ])
     );
     for (let i = 0; i < maybeMembers.length; ++i) {
@@ -179,7 +163,6 @@ async function printResolverInformation({ sf, config }) {
 
 async function printSuperTokensInformation({
     sf,
-    config,
     superTokenFactory,
     latestSuperTokenLogicAddress,
 }) {
@@ -215,23 +198,18 @@ async function printSuperTokensInformation({
 
     {
         const latests = [
-            ...(await getPastEvents({
-                config,
-                contract: superTokenFactory,
-                eventName: "CustomSuperTokenCreated",
-            })),
-            ...(await getPastEvents({
-                config,
-                contract: superTokenFactory,
-                eventName: "SuperTokenCreated",
-            })),
+            ...(await sf.getPastEvents(
+                superTokenFactory,
+                "CustomSuperTokenCreated"
+            )),
+            ...(await sf.getPastEvents(superTokenFactory, "SuperTokenCreated")),
         ];
         const superTokens = await async.mapLimit(
             latests,
             MAX_REQUESTS,
             async (pastEvent) => {
                 const superToken = await sf.contracts.SuperToken.at(
-                    pastEvent.args.token
+                    pastEvent.token
                 );
                 const symbol = await superToken.symbol.call();
                 const superTokenLogicAddress =
@@ -297,14 +275,13 @@ module.exports = async function (callback, argv, options = {}) {
             loadSuperNativeToken: true,
         });
         await sf.initialize();
-        const config = getConfig(sf.chainId);
 
         console.log("\n===== Protocol Information =====\n");
 
         await printHostInformation({ sf });
         console.log("");
 
-        await printGovernanceInformation({ sf, config });
+        await printGovernanceInformation({ sf });
         console.log("");
 
         console.log("# Super Token Factory\n");
@@ -315,13 +292,12 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("# Managed Super Tokens\n");
         await printSuperTokensInformation({
             sf,
-            config,
             superTokenFactory,
             latestSuperTokenLogicAddress,
         });
 
         console.log("\n===== Resolver Information =====\n");
-        await printResolverInformation({ sf, config });
+        await printResolverInformation({ sf });
 
         callback();
     } catch (err) {

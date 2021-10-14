@@ -41,6 +41,8 @@ jobs:
           yarn lint
           yarn build
           yarn test
+        env:
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
   coverage:
     name: Run coverage test of master branch

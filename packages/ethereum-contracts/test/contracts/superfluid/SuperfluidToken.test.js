@@ -13,15 +13,13 @@ const {
 const TestEnvironment = require("../../TestEnvironment");
 const AgreementMock = artifacts.require("AgreementMock");
 
-contract("SuperfluidToken implementation", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 3), {
-        isTruffle: true,
-        useMocks: true,
-    });
-    const { admin, alice, bob } = t.aliases;
+describe("SuperfluidToken implementation", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
+
     const { ZERO_BYTES32, ZERO_ADDRESS } = t.constants;
 
-    // let token;
+    let admin, alice, bob;
     let superToken;
     let superfluid;
     let governance;
@@ -29,8 +27,14 @@ contract("SuperfluidToken implementation", (accounts) => {
     let acB;
 
     before(async () => {
-        await t.reset();
+        await t.beforeTestSuite({
+            isTruffle: true,
+            nAccounts: 3,
+        });
+
+        ({ admin, alice, bob } = t.aliases);
         ({ superfluid, governance } = t.contracts);
+        superToken = t.sf.tokens.TESTx;
 
         const acALogic = await AgreementMock.new(web3.utils.sha3("typeA"), 1);
         await web3tx(
@@ -48,14 +52,16 @@ contract("SuperfluidToken implementation", (accounts) => {
         acB = await AgreementMock.at(
             await superfluid.getAgreementClass(web3.utils.sha3("typeB"))
         );
+
+        await t.pushEvmSnapshot();
+    });
+
+    after(async () => {
+        await t.popEvmSnapshot();
     });
 
     beforeEach(async function () {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken } = t.contracts);
-        assert.equal(await availableBalanceOf(admin), "0");
-        assert.equal(await availableBalanceOf(bob), "0");
-        assert.equal(await availableBalanceOf(alice), "0");
+        await t.beforeEachTestCase();
     });
 
     async function expectRealtimeBalance(person, expectedBalance) {
@@ -528,7 +534,7 @@ contract("SuperfluidToken implementation", (accounts) => {
         });
 
         context("#4.b zero reward account", () => {
-            before(async () => {
+            beforeEach(async () => {
                 await governance.setRewardAddress(
                     superfluid.address,
                     ZERO_ADDRESS,

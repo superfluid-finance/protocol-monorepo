@@ -1,5 +1,5 @@
-import type Framework from '../Framework'
-import { Transaction } from 'web3-core'
+import type { Framework } from '../Framework';
+import type { Transaction } from 'web3-core';
 
 export function validateAddress(address: string): void;
 export function isAddress(address: string): boolean;

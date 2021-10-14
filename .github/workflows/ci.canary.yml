@@ -44,6 +44,8 @@ jobs:
           yarn lint
           yarn build
           yarn test
+        env:
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
   coverage:
     name: Run coverage test of dev branch
@@ -64,8 +66,7 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
-          cd packages/ethereum-contracts
-          yarn test-coverage
+          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2

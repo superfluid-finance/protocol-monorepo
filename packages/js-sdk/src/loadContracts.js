@@ -33,6 +33,7 @@ const getAdaptedContract = ({ address, abi, ethers }) => {
             ...web3EncodingAdapter,
         },
     };
+    ethersContract.abi = abi;
 
     return ethersContract;
 };
@@ -135,7 +136,7 @@ const loadContracts = async ({
                 Truffle artifacts must be present.`
             );
             if (from) {
-                console.log("Set Ddefault from address to", from);
+                console.log("Set default from address to", from);
             }
             allContractNames.forEach((name) => {
                 const c = (contracts[name] = artifacts.require(name));

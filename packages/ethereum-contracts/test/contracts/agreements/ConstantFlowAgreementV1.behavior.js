@@ -359,6 +359,7 @@ class MFASupport {
 async function _shouldChangeFlow({
     fn,
     testenv,
+    superToken,
     sender,
     receiver,
     flowRate,
@@ -369,7 +370,7 @@ async function _shouldChangeFlow({
     console.log(`======== ${fn} begins ========`);
     console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
     //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
-    const { superToken, governance } = testenv.contracts;
+    const { governance } = testenv.contracts;
 
     const roles = {};
     const _balanceSnapshots1 = {};
@@ -990,10 +991,18 @@ async function _shouldChangeFlow({
     console.log(`======== ${fn} ends ========`);
 }
 
-async function shouldCreateFlow({ testenv, sender, receiver, flowRate, mfa }) {
+async function shouldCreateFlow({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    flowRate,
+    mfa,
+}) {
     await _shouldChangeFlow({
         fn: "createFlow",
         testenv,
+        superToken,
         sender,
         receiver,
         flowRate,
@@ -1001,10 +1010,18 @@ async function shouldCreateFlow({ testenv, sender, receiver, flowRate, mfa }) {
     });
 }
 
-async function shouldUpdateFlow({ testenv, sender, receiver, flowRate, mfa }) {
+async function shouldUpdateFlow({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    flowRate,
+    mfa,
+}) {
     await _shouldChangeFlow({
         fn: "updateFlow",
         testenv,
+        superToken,
         sender,
         receiver,
         flowRate,
@@ -1012,10 +1029,18 @@ async function shouldUpdateFlow({ testenv, sender, receiver, flowRate, mfa }) {
     });
 }
 
-async function shouldDeleteFlow({ testenv, sender, receiver, mfa, by }) {
+async function shouldDeleteFlow({
+    testenv,
+    superToken,
+    sender,
+    receiver,
+    mfa,
+    by,
+}) {
     await _shouldChangeFlow({
         fn: "deleteFlow",
         testenv,
+        superToken,
         sender,
         receiver,
         flowRate: 0,

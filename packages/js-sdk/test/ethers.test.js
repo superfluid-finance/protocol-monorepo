@@ -20,33 +20,49 @@ const emptyIda = {
     },
 };
 
-contract("User helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const {
-        admin: adminAddress,
-        alice: aliceAddress,
-        bob: bobAddress,
-        carol: carolAddress,
-    } = t.aliases;
+describe("User helper class", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
 
+    let adminAddress, aliceAddress, bobAddress, carolAddress;
+    let alice, bob, carol;
     let sf;
     let superToken;
-    let alice;
-    let bob;
-    let carol;
 
     before(async () => {
-        await t.reset();
+        await t.beforeTestSuite({
+            isTruffle: false,
+            web3,
+            nAccounts: 4,
+        });
+
+        ({
+            admin: adminAddress,
+            alice: aliceAddress,
+            bob: bobAddress,
+            carol: carolAddress,
+        } = t.aliases);
+
         sf = new SuperfluidSDK.Framework({
             ethers: new Web3Provider(web3.currentProvider),
             version: "test",
         });
         await sf.initialize();
+
+        ({ superToken } = await t.deployNewToken("TEST2", {
+            isTruffle: false,
+            web3,
+            doUpgrade: true,
+        }));
+        await t.pushEvmSnapshot();
     });
 
-    beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: true });
-        ({ superToken } = t.contracts);
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
         alice = sf.user({ address: aliceAddress, token: superToken.address });
         bob = sf.user({ address: bobAddress, token: superToken.address });
         carol = sf.user({ address: carolAddress, token: superToken.address });
@@ -115,6 +131,7 @@ contract("User helper class", (accounts) => {
             console.log(JSON.stringify(await bob.details()));
         });
     });
+
     describe.skip("new flows", () => {
         it("fail without recipient", async () => {
             await expect(
@@ -167,7 +184,7 @@ contract("User helper class", (accounts) => {
                 "38580246913580"
             );
         });
-        it.skip("create a new flow with onTransaction", async () => {
+        it("create a new flow with onTransaction", async () => {
             let txHash;
             const tx = await alice.flow({
                 recipient: bob.address,
@@ -192,6 +209,7 @@ contract("User helper class", (accounts) => {
             assert.equal(flow.flowRate, "38580246913580");
         });
     });
+
     describe.skip("existing flows", () => {
         beforeEach(async () => {
             await alice.flow({
@@ -219,6 +237,7 @@ contract("User helper class", (accounts) => {
             assert.equal(flow.flowRate, "19290123456790");
         });
     });
+
     describe.skip("pools", () => {
         const poolId = 1;
         beforeEach(async () => {

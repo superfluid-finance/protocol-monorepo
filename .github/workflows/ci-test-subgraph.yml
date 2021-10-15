@@ -52,8 +52,6 @@ jobs:
       
       - name: "Install yarn"
         run: npm install -g yarn ganache-cli
-      
-      # # at some point we want to install ganache-cli
 
       - name: "Install contract dependencies"
         run: yarn install

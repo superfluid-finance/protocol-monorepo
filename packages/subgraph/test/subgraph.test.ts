@@ -324,8 +324,11 @@ describe("Subgraph Tests", () => {
         });
     });
 
-    // GOTCHA'S: The balance may be inconsistent, so we'll have to use a web3 call + the subgraph data
-    // when a user claims tokens
+    /**
+     * Note: The goal of the IDA tests are to test out all of the mapping function logic
+     * by not always following the happy path, but rather trying out some alternative paths
+     * which are unlikely, but still possible.
+     */
     describe("InstantDistributionAgreement Tests", () => {
         /**
          * Create Index Tests
@@ -349,7 +352,15 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it("Should return correct data after sub units updated twice, sub deleted, sub approved, sub units set to 0 and sub deleted.", async () => {
+        /**
+         * Case #0:
+         * 0 units not approved => not approved with units => not approved with units (diff)
+         * => distribute units to non-approved with units => delete subscriptions
+         * => approve deleted subscriptions => update deleted subscription units to 0
+         * => delete approved subscription => update units to great than 0
+         * => update units to 0
+         */
+        it("Should return correct data after handling case #0.", async () => {
             const token = daix.address;
             // Testing half the users on the last created index.
             for (let i = 1; i < Math.floor(userAddresses.length / 2); i++) {
@@ -456,7 +467,20 @@ describe("Subgraph Tests", () => {
             }
         });
 
-        it("Should return correct data after subscribers without units are granted units, approved, have their sub units set to 0 and then have their subscription deleted.", async () => {
+        /**
+         * Case #1:
+         * 0 units not approved => not approved with units => approved with units
+         * => update approved subscription with units to 0
+         * => update approved subscription without units to 0
+         * => revoke approved subscription without units
+         * => update revoked subscription units to greater than 0
+         * => approve revoked subscription with units
+         * => revoke approved subscription with units
+         * => update subscription units on revoked subscription with units
+         * => update revoke subscription units to 0
+         * => update revoke subscription to 0 (again)
+         */
+        it("Should return correct data after handling case #1.", async () => {
             const token = daix.address;
             // Testing half the users on the last created index.
             for (
@@ -566,16 +590,7 @@ describe("Subgraph Tests", () => {
                         units: new BN(0),
                     })
                 );
-                // update revoked sub w/ units to 0
-                updateGlobalObjectsForIDAEvents(
-                    await testModifyIDA({
-                        ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
-                    })
-                );
-
-                // update revoked sub w/o  units to 0
+                // update revoked sub w/o units to 0
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -586,6 +601,16 @@ describe("Subgraph Tests", () => {
             }
         });
 
+        /**
+         * Case #2:
+         * 0 units not approved => approved w/o units => approved with units
+         * => approved w/ units => distribute units to approved subscribers
+         * => delete approved subscriptions who received distribution
+         * => update deleted subscription's units to 0
+         * => update not approved subscriptions w/o units to 0 from 0
+         * => approve not approved subscription w/o units
+         * => update approved subscriptions units to greater than 0
+         */
         it("Should return correct data after approve sub without units, update sub units, distribute units and delete sub", async () => {
             const token = daix.address;
             // Testing half the users on the last created index.
@@ -690,6 +715,13 @@ describe("Subgraph Tests", () => {
             }
         });
 
+        /**
+         * Case #3:
+         * update from 0 units not approved => approve with units for half and
+         * update from 0 units not approved => not approved with units for the other half
+         * distribute units to approved + not approved users
+         * non approved users claim pending tokens
+         */
         it("Should return correct data after non-subscribers get units, claim them and publisher updates their units to 0.", async () => {
             const token = daix.address;
             const multiBaseParams = {

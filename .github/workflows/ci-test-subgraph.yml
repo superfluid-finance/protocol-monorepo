@@ -1,11 +1,12 @@
 name: CI Test Subgraph Locally
 
 on:
-  # triggered by internal pushes
-  # push:
-  #   branches-ignore: ["master", "dev"]
-  # triggered by external PRs (filtered in the `check` job)
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      release_branch:
+        description: 'Test branch (feature/dev/v1 ...)'
+        required: true
+        default: 'feature'
 
 jobs:
   test-subgraph:

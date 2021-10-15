@@ -475,6 +475,9 @@ type Account @entity {
     inflows: [Stream!]! @derivedFrom(field: "receiver")
     outflows: [Stream!]! @derivedFrom(field: "sender")
 
+    subscriptions: [IndexSubscription!]! @derivedFrom(field: "subscriber")
+    publishedIndexes: [Index!]! @derivedFrom(field: "publisher")
+
     sentTransferEvents: [TransferEvent!]! @derivedFrom(field: "from")
     receivedTransferEvents: [TransferEvent!]! @derivedFrom(field: "to")
 

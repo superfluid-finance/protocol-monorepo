@@ -7,6 +7,7 @@ import Config from "./getConfig";
 import type { User } from "./User";
 import type { Utils } from "./Utils";
 import type { Web3Provider } from "@ethersproject/providers";
+import { Contract } from "ethers";
 
 declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
 
@@ -41,8 +42,8 @@ export declare class Framework {
     resolver: LoadContracts.LoadedContract;
     host: LoadContracts.LoadedContract;
     agreements: Agreements;
-    tokens: { [key: string]: string };
-    superTokens: { [key: string]: string };
+    tokens: { [key: string]: Contract };
+    superTokens: { [key: string]: Contract };
     cfa: ConstantFlowAgreementV1Helper | undefined;
     ida: InstantDistributionAgreementV1Helper | undefined;
     utils: Utils | undefined;

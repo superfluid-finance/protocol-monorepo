@@ -74,7 +74,8 @@ export async function validateModifyIDA(
             updatedSubscription,
             updatedIndex.indexValue,
             eventType,
-            events
+            events,
+            subscriptionExists
         );
         const subscriberATSId =
             subscriberAddress.toLowerCase() + "-" + token.toLowerCase();

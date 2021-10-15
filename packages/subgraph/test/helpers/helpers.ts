@@ -294,6 +294,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
             : await sfCFA.deleteFlow({
                   superToken,
                   sender,
+                  flowRate: "0",
                   receiver,
                   by: "",
                   userData: "0x",

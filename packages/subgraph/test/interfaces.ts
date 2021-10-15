@@ -160,6 +160,8 @@ export interface IAccount extends IBaseEntity {
     readonly isSuperApp: boolean;
     readonly inflows: ILightEntity[];
     readonly outflows: ILightEntity[];
+    readonly subscriptions: ILightEntity[];
+    readonly publishedIndexes: ILightEntity[];
 }
 
 export interface IToken extends IBaseEntity {

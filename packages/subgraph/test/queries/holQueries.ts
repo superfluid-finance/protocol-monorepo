@@ -11,6 +11,12 @@ export const getAccount = gql`
             outflows(orderBy: createdAtTimestamp, orderDirection: asc) {
                 id
             }
+            subscriptions(orderBy: createdAtTimestamp, orderDirection: asc) {
+                id
+            }
+            publishedIndexes(orderBy: createdAtTimestamp, orderDirection: asc) {
+                id
+            }
         }
     }
 `;

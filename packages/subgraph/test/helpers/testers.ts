@@ -37,7 +37,6 @@ import {
     fetchEntityAndEnsureExistence,
     getIndexId,
     getSubscriptionId,
-    hasSubscriptionWithUnits,
     modifyFlowAndReturnCreatedFlowData,
     monthlyToSecondRate,
     toBN,
@@ -281,10 +280,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         tokenStatistics,
     });
 
-    const subscriptionWithUnitsExists = hasSubscriptionWithUnits(
-        subscriptions,
-        subscriberEntityId
-    );
+    const hasExistingSubscription = subscriptions[subscriberEntityId] != null;
 
     if (eventType === IDAEventType.IndexUpdated) {
         if (amountOrIndexValue == null) {
@@ -354,8 +350,8 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         extraEventData
     );
 
-	// handles IndexSubscribed, IndexUnitsUpdated, IndexUnsubscribed
-	// which also occur on the three events below, respectively
+    // handles IndexSubscribed, IndexUnitsUpdated, IndexUnsubscribed
+    // which also occur on the three events below, respectively
     if (
         [
             IDAEventType.SubscriptionApproved,
@@ -417,7 +413,7 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         subscriber,
         eventType,
         events,
-        subscriptionWithUnitsExists
+        hasExistingSubscription
     );
 
     return {
@@ -470,12 +466,12 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
         if (isDistribute) {
             txn = await ida.distribute({
                 ...baseData,
-                amount: amountOrIndexValue,
+                amount: amountOrIndexValue.toString(),
             });
         } else {
             txn = await ida.updateIndex({
                 ...baseData,
-                indexValue: amountOrIndexValue,
+                indexValue: amountOrIndexValue.toString(),
             });
         }
     } else if (type === IDAEventType.SubscriptionApproved) {
@@ -514,7 +510,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
 
         txn = await ida.updateSubscription({
             ...baseSubscriberData,
-            units,
+            units: units.toString(),
         });
     }
 

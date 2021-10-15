@@ -48,24 +48,55 @@ export const fetchStreamAndValidate = async (
 
     if (isCreate) {
         // validate accounts reverse lookup on Stream entity creation
-        fetchAccountsAndValidate(stream);
+        validateAccountReverseLookups({ stream });
     }
 };
 
-export const fetchAccountsAndValidate = async (stream: IStream) => {
-    const senderAccount = await fetchEntityAndEnsureExistence<IAccount>(
-        getAccount,
-        stream.sender.id,
-        "Account"
-    );
-    const receiverAccount = await fetchEntityAndEnsureExistence<IAccount>(
-        getAccount,
-        stream.receiver.id,
-        "Account"
-    );
-    const streamLightEntity = { id: stream.id };
-    validateReverseLookup(streamLightEntity, senderAccount.outflows);
-    validateReverseLookup(streamLightEntity, receiverAccount.inflows);
+export const validateAccountReverseLookups = async (data: {
+    stream?: IStream;
+    index?: IIndex;
+    subscription?: IIndexSubscription;
+}) => {
+    const { stream, index, subscription } = data;
+    if (stream) {
+        const senderAccount = await fetchEntityAndEnsureExistence<IAccount>(
+            getAccount,
+            stream.sender.id,
+            "Account"
+        );
+        const receiverAccount = await fetchEntityAndEnsureExistence<IAccount>(
+            getAccount,
+            stream.receiver.id,
+            "Account"
+        );
+        const streamLightEntity = { id: stream.id };
+        validateReverseLookup(streamLightEntity, senderAccount.outflows);
+        validateReverseLookup(streamLightEntity, receiverAccount.inflows);
+    }
+    if (index) {
+        const indexLightEntity = { id: index.id };
+        const publisherAccount = await fetchEntityAndEnsureExistence<IAccount>(
+            getAccount,
+            index.publisher.id,
+            "Account"
+        );
+        validateReverseLookup(
+            indexLightEntity,
+            publisherAccount.publishedIndexes
+        );
+    }
+    if (subscription) {
+        const subscriptionLightEntity = { id: subscription.id };
+        const subscriberAccount = await fetchEntityAndEnsureExistence<IAccount>(
+            getAccount,
+            subscription.subscriber.id,
+            "Account"
+        );
+        validateReverseLookup(
+            subscriptionLightEntity,
+            subscriberAccount.subscriptions
+        );
+    }
 };
 
 const getIndexEventsMap = (index: IIndex, events: IIDAEvents) => {
@@ -164,6 +195,9 @@ export const fetchIndexAndValidate = async (
         validateReverseLookup(events.IndexCreatedEvent, [
             index.indexCreatedEvent,
         ]);
+
+        // validate newly published index is added
+        validateAccountReverseLookups({ index });
     }
 
     if (Array.from(eventTypeToDataMap.keys()).includes(eventType)) {
@@ -182,8 +216,9 @@ export const fetchIndexAndValidate = async (
         (eventType === IDAEventType.SubscriptionUnitsUpdated ||
             eventType === IDAEventType.SubscriptionApproved)
     ) {
+        // We only enter here if a subscriber is being added for the first time
+        // subscribers who delete or set units to 0 are still in the array
         validateReverseLookup({ id: subscriptionId }, index.subscriptions);
-        // We expect a new subscriber if they are added the first time
     }
 };
 
@@ -192,7 +227,8 @@ export const fetchSubscriptionAndValidate = async (
     expectedSubscription: IIndexSubscription,
     newIndexValue: string,
     eventType: IDAEventType,
-    events: IIDAEvents
+    events: IIDAEvents,
+    subscriptionExists: boolean
 ) => {
     const indexSubscription =
         await fetchEntityAndEnsureExistence<IIndexSubscription>(
@@ -221,6 +257,16 @@ export const fetchSubscriptionAndValidate = async (
             );
         }
         validateReverseLookup(data.event, data.events);
+    }
+
+    if (
+        subscriptionExists === false &&
+        (eventType === IDAEventType.SubscriptionUnitsUpdated ||
+            eventType === IDAEventType.SubscriptionApproved)
+    ) {
+        // We only enter here if a subscriber is being added for the first time
+        // subscribers who delete or set units to 0 are still in the array
+        validateAccountReverseLookups({ subscription: indexSubscription });
     }
 };
 

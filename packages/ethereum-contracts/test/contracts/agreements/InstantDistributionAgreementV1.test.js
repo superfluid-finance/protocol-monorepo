@@ -304,6 +304,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
+
+                await verifyAll();
             });
 
             it("#1.2.2 subscriber should fail to approve a subscription twice", async () => {
@@ -332,7 +334,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 );
             });
 
-            it("#1.2.3 subscriber can delete its approved subscription", async () => {
+            it("#1.2.3 subscriber can revoke its approved subscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -373,13 +375,12 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "200",
                 });
 
-                await shouldDeleteSubscription({
+                await shouldRevokeSubscription({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    senderName: "bob",
                 });
                 subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
@@ -390,7 +391,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await verifyAll();
             });
 
-            it("#1.2.4 subscriber can delete its pending subscription", async () => {
+            it.skip("#1.2.4 subscriber can delete its pending subscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -418,13 +419,12 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "200",
                 });
 
-                await shouldDeleteSubscription({
+                await shouldRevokeSubscription({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    senderName: "bob",
                 });
                 subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
@@ -480,7 +480,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await verifyAll();
             });
 
-            it("#1.2.6 subscriber should fail to delete a non-existen subscription", async () => {
+            it("#1.2.6 publisher should fail to delete a non-existen subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,
@@ -494,13 +494,13 @@ describe("Using InstantDistributionAgreement v1", function () {
                         publisherName: "alice",
                         indexId: DEFAULT_INDEX_ID,
                         subscriberName: "bob",
-                        senderName: "bob",
+                        senderName: "alice",
                     }),
                     "IDA: E_NO_SUBS"
                 );
             });
 
-            it("#1.2.7 subscriber should fail to delete a subscription of a non-existent index", async () => {
+            it.skip("#1.2.7 subscriber should fail to delete a subscription of a non-existent index", async () => {
                 await expectRevert(
                     shouldDeleteSubscription({
                         testenv: t,
@@ -541,7 +541,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 );
             });
 
-            it("#1.2.9 subscriber can delete then resubscribe to subscription", async () => {
+            it("#1.2.4 subscriber can revoke and resubscribe multiple times to subscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -565,19 +565,22 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
                 assert.equal(subs.length, 1);
 
-                await shouldDeleteSubscription({
+                await verifyAll();
+
+                await shouldRevokeSubscription({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    senderName: "bob",
                 });
                 subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
                     subscriber: bob,
                 });
                 assert.equal(subs.length, 0);
+
+                await verifyAll();
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -591,6 +594,93 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriber: bob,
                 });
                 assert.equal(subs.length, 1);
+
+                await verifyAll();
+
+                await shouldRevokeSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await t.sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber: bob,
+                });
+                assert.equal(subs.length, 0);
+
+                await verifyAll();
+            });
+
+            it("#1.2.4 subscriber can have multiple subscription and then with subId 0 revoked", async () => {
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.001").toString(),
+                });
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName: "carol",
+                    indexId: DEFAULT_INDEX_ID,
+                });
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "carol",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                    units: toWad("0.002").toString(),
+                });
+
+                await shouldApproveSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                await shouldApproveSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "carol",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                let subs = await t.sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber: bob,
+                });
+                assert.equal(subs.length, 2);
+                assert.equal(subs[0].publisher, alice);
+                assert.equal(subs[1].publisher, carol);
+                await verifyAll();
+
+                await shouldRevokeSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "bob",
+                });
+                subs = await t.sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber: bob,
+                });
+                assert.equal(subs.length, 1);
+                assert.equal(subs[0].publisher, carol);
+                await verifyAll();
             });
 
             it("#1.2.10 one should fail to use a subscription of a non-existent index", async () => {
@@ -1460,7 +1550,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             );
         });
 
-        it("#2.5 subscriber deleteSubscription callbacks", async () => {
+        it.skip("#2.5 subscriber deleteSubscription callbacks", async () => {
             const units = toWad("0.003").toString();
             await shouldUpdateSubscription({
                 testenv: t,
@@ -1725,22 +1815,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "AgreementLibrary: unauthroized host"
             );
-            await expectRevert(
-                fakeHost.callAgreement(
-                    ida.address,
-                    ida.contract.methods
-                        .deleteSubscription(
-                            superToken.address,
-                            bob,
-                            42,
-                            alice,
-                            "0x"
-                        )
-                        .encodeABI(),
-                    { from: alice }
-                ),
-                "AgreementLibrary: unauthroized host"
-            );
         });
     });
 
@@ -1833,7 +1907,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "dan",
-                senderName: "dan",
+                senderName: "alice",
             });
             await testExpectedBalances([
                 [alice, toWad("99.82")],

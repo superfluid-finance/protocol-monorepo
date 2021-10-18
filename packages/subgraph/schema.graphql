@@ -517,11 +517,15 @@ type Index @entity {
 
     """
     The number of units allocated by the `Index` that are pending.
+    This refers to the current (as of updatedAt) `totalUnitsPending`
+    - not all that has ever been pending.
     """
     totalUnitsPending: BigInt!
 
     """
     The number of units allocated by the `Index` that are approved.
+    This refers to the current (as of updatedAt) `totalUnitsApproved`
+    - not all that has ever been approved.
     """
     totalUnitsApproved: BigInt!
 
@@ -708,12 +712,12 @@ type AccountTokenSnapshot @entity {
     totalNumberOfClosedStreams: Int!
 
     """
-    The number of subscriptions with units allocated to them tied to this `account`.
+    The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
     """
     totalSubscriptionsWithUnits: Int!
 
     """
-    Counts all approved subscriptions whether or not they have units.
+    Counts all currently (as of updatedAt) approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
 

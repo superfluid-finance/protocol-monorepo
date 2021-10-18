@@ -1,15 +1,13 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { FlowUpdated } from "../../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { FlowUpdatedEvent } from "../../../generated/schema";
+import { createEventID, BIG_INT_ZERO, tokenHasValidHost } from "../../utils";
 import {
-    createEventID,
     getOrInitStream,
-    updateAggregateEntitiesStreamData,
-    BIG_INT_ZERO,
     getOrInitStreamRevision,
-    tokenHasValidHost,
+    updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
-} from "../../utils";
+} from "../../mappingHelpers";
 
 enum FlowActionType {
     create,

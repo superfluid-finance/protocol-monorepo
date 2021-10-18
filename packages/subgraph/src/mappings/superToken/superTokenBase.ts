@@ -17,16 +17,15 @@ import {
     TransferEvent,
     SentEvent,
 } from "../../../generated/schema";
+import { createEventID, tokenHasValidHost } from "../../utils";
 import {
-    createEventID,
     getOrInitAccount,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
-    tokenHasValidHost,
     updateAggregateEntitiesTransferData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
-} from "../../utils";
+} from "../../mappingHelpers";
 
 export function handleAgreementLiquidatedBy(
     event: AgreementLiquidatedBy,

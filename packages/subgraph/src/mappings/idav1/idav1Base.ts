@@ -21,17 +21,19 @@ import {
 } from "../../../generated/schema";
 import {
     createEventID,
+    BIG_INT_ZERO,
+    subscriptionExists as subscriptionWithUnitsExists,
+    tokenHasValidHost,
+    getIndexID,
+} from "../../utils";
+import {
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
     updateAggregateIDASubscriptionsData,
-    BIG_INT_ZERO,
-    subscriptionExists as subscriptionWithUnitsExists,
-    tokenHasValidHost,
     updateTokenStatsStreamedUntilUpdatedAt,
     updateATSStreamedAndBalanceUntilUpdatedAt,
-    getIndexID,
-} from "../../utils";
+} from "../../mappingHelpers";
 
 export function handleIndexCreated(
     event: IndexCreated,

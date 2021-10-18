@@ -9,11 +9,8 @@ import {
     SuperTokenCreatedEvent,
     SuperTokenLogicCreatedEvent,
 } from "../../../generated/schema";
-import {
-    createEventID,
-    getOrInitSuperToken,
-    tokenHasValidHost,
-} from "../../utils";
+import { createEventID, tokenHasValidHost } from "../../utils";
+import { getOrInitSuperToken } from "../../mappingHelpers";
 
 export function handleSuperTokenCreated(
     event: SuperTokenCreated,

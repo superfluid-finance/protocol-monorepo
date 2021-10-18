@@ -22,7 +22,8 @@ interface ICLOWNSv1 {
      * - the bond changes dynamically and can both grow or shrink between blocks
      * - also returns the CLO address in order to allow for atomic querying (important in a continuous auction)
      */
-    function getCurrentCLOBond(ISuperToken token) external view returns(address clo, uint256 remainingBond);
+    function getCurrentCLOInfo(ISuperToken token) external view
+        returns(address clo, uint256 remainingBond, int96 exitRate);
 
     function getDefaultExitRateFor(ISuperToken token, uint256 bondAmount) external view returns(int96 exitRate);
 
@@ -48,7 +49,6 @@ interface ICLOWNSv1 {
     event ExitRateChanged(ISuperToken indexed token, int96 exitRate);
 }
 
-// TODO: document contract
 contract CLOWNS is ICLOWNSv1, IERC777Recipient {
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
     struct LockableCLO {
@@ -58,7 +58,7 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
     mapping(ISuperToken => LockableCLO) internal _currentCLOs;
     ISuperfluid internal immutable _host;
     IConstantFlowAgreementV1 internal immutable _cfa;
-    uint256 public immutable minBondDuration; // TODO: should maybe be a governance parameter
+    uint256 public immutable minBondDuration;
     IERC1820Registry constant internal _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
@@ -77,17 +77,27 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
         return _currentCLOs[token].addr;
     }
 
-    function getCurrentCLOBond(ISuperToken token) external view override returns(address clo, uint256 remainingBond) {
-        return (_currentCLOs[token].addr, _getCurrentCLOBond(token));
+    function getCurrentCLOInfo(ISuperToken token)
+        external view override
+        returns(address clo, uint256 remainingBond, int96 exitRate)
+    {
+        (, exitRate,,) = _cfa.getFlow(token, address(this), _currentCLOs[token].addr);
+        return (
+            _currentCLOs[token].addr,
+            _getCurrentCLOBond(token),
+            exitRate
+        );
     }
 
     function _becomeCLO(ISuperToken token, address newCLO, uint256 amount, int96 exitRate) internal {
         require(!_currentCLOs[token].lock, "CLOWNS: reentrancy not allowed");
         require(exitRate >= 0, "CLOWNS: negative exitRate not allowed");
         require(uint256(exitRate) * minBondDuration <= amount, "CLOWNS: exitRate too high");
+        // cannot underflow because amount was added to the balance before
         uint256 currentCLOBond = _getCurrentCLOBond(token)-amount;
         require(amount > currentCLOBond, "CLOWNS: bid too low");
         address currentCLOAddr = _currentCLOs[token].addr;
+
         _currentCLOs[token].lock = true;
 
         // close stream to current CLO if exists
@@ -159,8 +169,9 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
         require(newExitRate >= 0, "CLOWNS: negative exitRate not allowed");
         require(uint256(newExitRate) * minBondDuration <= _getCurrentCLOBond(token), "CLOWNS: exitRate too high");
 
-        (, int96 curFlowRate,,) = _cfa.getFlow(token, address(this), currentCLOAddr);
-        if (curFlowRate > 0) {
+        (, int96 curExitRate,,) = _cfa.getFlow(token, address(this), currentCLOAddr);
+        if (curExitRate > 0 && newExitRate > 0) {
+            // need to update existing flow
             _host.callAgreement(
                 _cfa,
                 abi.encodeWithSelector(
@@ -172,7 +183,7 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
                 ),
                 "0x"
             );
-        } else {
+        } else if (curExitRate == 0 && newExitRate > 0) {
             // no pre-existing flow, need to create
             _host.callAgreement(
                 _cfa,
@@ -185,7 +196,20 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
                 ),
                 "0x"
             );
-        }
+        } else if (curExitRate > 0 && newExitRate == 0) {
+            // need to close existing flow
+            _host.callAgreement(
+                _cfa,
+                abi.encodeWithSelector(
+                    _cfa.deleteFlow.selector,
+                    token,
+                    address(this),
+                    currentCLOAddr,
+                    new bytes(0)
+                ),
+                "0x"
+            );
+        } // else do nothing (no existing flow, newExitRate == 0)
 
         emit ExitRateChanged(token, newExitRate);
     }
@@ -193,8 +217,12 @@ contract CLOWNS is ICLOWNSv1, IERC777Recipient {
     // ============ internal ============
 
     function _getCurrentCLOBond(ISuperToken token) internal view returns(uint256 remainingBond) {
-        (,, uint256 deposit,) = _cfa.getFlow(token, address(this), _currentCLOs[token].addr);
-        return token.balanceOf(address(this)) + deposit;
+        (int256 availBal, uint256 deposit, , ) = token.realtimeBalanceOfNow(address(this));
+        // The protocol guarantees that we get no values leading to an overflow here
+        return availBal + int256(deposit) > 0 ? uint256(availBal + int256(deposit)) : 0;
+
+        //(,, uint256 deposit,) = _cfa.getFlow(token, address(this), _currentCLOs[token].addr);
+        //return token.balanceOf(address(this));// + deposit;
     }
 
     // ============ IERC777Recipient ============

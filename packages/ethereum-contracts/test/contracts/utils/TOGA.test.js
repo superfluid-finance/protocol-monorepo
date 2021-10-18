@@ -163,9 +163,7 @@ describe("TOGA", function () {
         let curPIC = await toga.getCurrentPIC(superToken.address);
         assert.equal(curPIC, alice);
 
-        const bond = (
-            await toga.getCurrentPICInfo(superToken.address)
-        ).bond;
+        const bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
         //console.log(`remaining bond: ${bond}`);
         assert.equal(bond.toString(), BOND_AMOUNT_1E12.toString());
 
@@ -375,9 +373,7 @@ describe("TOGA", function () {
         await toga.changeExitRate(superToken.address, 0, { from: alice });
         await assertNetFlow(superToken, alice, 0);
 
-        const bond = (
-            await toga.getCurrentPICInfo(superToken.address)
-        ).bond;
+        const bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
 
         // increase to currently allowed max
         const max1 = shouldMaxExitRate(bond);
@@ -472,7 +468,10 @@ describe("TOGA", function () {
         await assertNetFlow(superToken, toga.address, 0);
 
         // this assumes the flow deletion was not triggered by the PIC - otherwise rewards would be accrued
-        assert.equal((await toga.getCurrentPICInfo(superToken.address)).bond.toString(), "0");
+        assert.equal(
+            (await toga.getCurrentPICInfo(superToken.address)).bond.toString(),
+            "0"
+        );
 
         // alice tries to re-establish stream - fail because no bond left
         await expectRevert(
@@ -496,9 +495,8 @@ describe("TOGA", function () {
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         const alicePreBal = await superToken.balanceOf(alice);
-        const aliceBondLeft = (
-            await toga.getCurrentPICInfo(superToken.address)
-        ).bond;
+        const aliceBondLeft = (await toga.getCurrentPICInfo(superToken.address))
+            .bond;
 
         // bob outbids
         await expectRevert(
@@ -514,7 +512,7 @@ describe("TOGA", function () {
             (await superToken.balanceOf(alice)).toString()
         );
     });
-    
+
     it("#15 multiple PICs (one per token) in parallel", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         const superToken2 = (
@@ -544,9 +542,8 @@ describe("TOGA", function () {
 
         // alice takes over superToken2
         const bobPreBal = await superToken2.balanceOf(bob);
-        const bobBondLeft = (
-            await toga.getCurrentPICInfo(superToken2.address)
-        ).bond;
+        const bobBondLeft = (await toga.getCurrentPICInfo(superToken2.address))
+            .bond;
 
         await expectRevert(
             sendPICBid(alice, superToken2, BOND_AMOUNT_1E12, EXIT_RATE_1),
@@ -569,9 +566,7 @@ describe("TOGA", function () {
         await sendPICBid(alice, superToken, BOND_AMOUNT_2E12, 0);
         assert.equal(await toga.getCurrentPIC(superToken.address), alice);
 
-        const bond = (
-            await toga.getCurrentPICInfo(superToken.address)
-        ).bond;
+        const bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
         assert.equal(bond.toString(), BOND_AMOUNT_2E12.toString());
 
         assert.equal(

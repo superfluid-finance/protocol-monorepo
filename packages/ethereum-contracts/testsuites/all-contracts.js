@@ -8,9 +8,8 @@ require("./custom-tokens.js");
 
 // Utility contracts
 require("../test/contracts/utils/BatchLiquidator.test.js");
+require("../test/contracts/utils/TOGA.test");
 
 // UX contracts
 require("../test/contracts/ux/SuperUpgrader.test.js");
 
-// TOGA
-require("../test/contracts/superfluid/TOGA.test");

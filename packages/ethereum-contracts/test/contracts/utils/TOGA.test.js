@@ -29,13 +29,8 @@ describe("TOGA", function () {
             nAccounts: 4,
         });
         ({ admin, alice, bob } = t.aliases);
-
         ({ superfluid, erc1820, cfa } = t.contracts);
-
-        //await t.createNewToken({ doUpgrade: true });
         superToken = t.sf.tokens.TESTx;
-        //({ superToken } = t.contracts);
-        console.log(`superToken addr: ${superToken.address}`);
     });
 
     after(async function () {
@@ -44,7 +39,6 @@ describe("TOGA", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-
         toga = await TOGA.new(superfluid.address, MIN_BOND_DURATION);
         console.log(`TOGA deployed at: ${toga.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
@@ -89,11 +83,11 @@ describe("TOGA", function () {
         );
     }
 
-    // collects rewards through a stream. Will fast forward the chain by the given time
+    // emulates reward collection through a stream. Will fast forward the chain by the given time.
+    // Done with a stream because a transfer() or send() would trigger a bid
     async function collectRewards(token, flowrate, time) {
         await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
-        // this fast forwarded flow emulates received rewards
-        // Done with a stream because we need to avoid transfer() and send() in order to not trigger a bid
+
         await t.sf.cfa.createFlow({
             superToken: token.address,
             sender: admin,
@@ -152,11 +146,11 @@ describe("TOGA", function () {
         const curPIC = await toga.getCurrentPIC(superToken.address);
         assert.equal(curPIC, alice);
 
-        const { pic, remainingBond } = await toga.getCurrentPICInfo(
+        const { pic, bond: bond } = await toga.getCurrentPICInfo(
             superToken.address
         );
         assert.equal(pic, alice);
-        assert.equal(remainingBond.toString(), BOND_AMOUNT_1E12.toString());
+        assert.equal(bond.toString(), BOND_AMOUNT_1E12.toString());
 
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
     });
@@ -169,11 +163,11 @@ describe("TOGA", function () {
         let curPIC = await toga.getCurrentPIC(superToken.address);
         assert.equal(curPIC, alice);
 
-        const remainingBond = (
+        const bond = (
             await toga.getCurrentPICInfo(superToken.address)
-        ).remainingBond;
-        console.log(`remaining bond: ${remainingBond}`);
-        assert.equal(remainingBond.toString(), BOND_AMOUNT_1E12.toString());
+        ).bond;
+        //console.log(`remaining bond: ${bond}`);
+        assert.equal(bond.toString(), BOND_AMOUNT_1E12.toString());
 
         // fail with same amount (needs to be strictly greater)
         // fails to trigger if the timestamp is 1s off (happens sometimes randomly)
@@ -199,7 +193,7 @@ describe("TOGA", function () {
         curPIC = await toga.getCurrentPIC(superToken.address);
         assert.equal(curPIC, bob);
         assert.equal(
-            (await toga.getCurrentPICInfo(superToken.address)).remainingBond,
+            (await toga.getCurrentPICInfo(superToken.address)).bond,
             BOND_AMOUNT_1E12 + 1
         );
 
@@ -211,7 +205,6 @@ describe("TOGA", function () {
         });
     });
 
-    // check erc1820 registration
     it("#3 TOGA registered with ERC1820", async () => {
         assert.equal(
             await erc1820.getInterfaceImplementer(
@@ -222,7 +215,7 @@ describe("TOGA", function () {
         );
     });
 
-    it("#4 enforce min exitRate limit", async () => {
+    it("#4 enforce min exit rate limit", async () => {
         // lower limit: 0 wei/second (no negative value allowed)
         await expectRevert(
             sendPICBid(alice, superToken, BOND_AMOUNT_1E12, -1),
@@ -269,7 +262,6 @@ describe("TOGA", function () {
         );
     });
 
-    // interpret missing exitRate as default (min) exitRate
     it("#7 use default (max) exitRate as fallback if no exitRate specified", async () => {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12);
         await assertNetFlow(
@@ -282,8 +274,7 @@ describe("TOGA", function () {
         );
     });
 
-    // enforce min bid limit
-    it("#8 cannot become PIC with smaller bond bid", async () => {
+    it("#8 cannot become PIC with bid smaller than current PIC bond", async () => {
         await sendPICBid(alice, superToken, BOND_AMOUNT_2E12);
 
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
@@ -302,25 +293,18 @@ describe("TOGA", function () {
         This is important because an ERC20.transfer() would (currently) trigger a bid.
         For the sake of simplicity, this test uses a fast forwarded stream to fund the contract.
          */
-        /*
-        Note: there's a (very) theoretical edge case here:
-        the reward account could already have accrued more than half the tokens
-        in circulation, making it impossible to successfully bid.
-        If supply couldn't be increased, the accrued tokens would then effectively be burned.
-         */
-
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         await collectRewards(superToken, 1e6, 1e6);
         // 1e6 token/s x 1e6 seconds = ~1e12 tokens collected in the contract
 
-        const togaBal1 = await superToken.balanceOf(toga.address);
-        console.log(`toga bal pre close: ${togaBal1.toString()}`);
+        //const togaBal1 = await superToken.balanceOf(toga.address);
+        //console.log(`toga bal pre close: ${togaBal1.toString()}`);
 
         const togaPrelimBal = await superToken.balanceOf(toga.address);
         await sendPICBid(alice, superToken, BOND_AMOUNT_2E12);
         const aliceBond = (await toga.getCurrentPICInfo(superToken.address))
-            .remainingBond;
+            .bond;
 
         // the tokens previously collected in the contract are attributed to Alice's bond
         assert.equal(
@@ -338,8 +322,7 @@ describe("TOGA", function () {
         );
     });
 
-    // let current PIC re-bid
-    it("#10 alice can outbid herself", async () => {
+    it("#10 Current PIC can increase the bond", async () => {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12);
         const aliceIntermediateBal = await superToken.balanceOf(alice);
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12 + 1);
@@ -356,8 +339,7 @@ describe("TOGA", function () {
         );
     });
 
-    // changeFlowrate - respect limits
-    it("#11 alice can change her exit rate - limits enforced", async () => {
+    it("#11 PIC can change exit rate - limits enforced", async () => {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12);
 
         await expectRevert(
@@ -393,17 +375,17 @@ describe("TOGA", function () {
         await toga.changeExitRate(superToken.address, 0, { from: alice });
         await assertNetFlow(superToken, alice, 0);
 
-        const remainingBond = (
+        const bond = (
             await toga.getCurrentPICInfo(superToken.address)
-        ).remainingBond;
-        console.log(`remaining bond ${remainingBond}`);
+        ).bond;
+
         // increase to currently allowed max
-        const max1 = shouldMaxExitRate(remainingBond);
+        const max1 = shouldMaxExitRate(bond);
         await toga.changeExitRate(superToken.address, max1, { from: alice });
         await assertNetFlow(superToken, alice, max1);
 
         // due to the exit flow, the remaining bond changes with every new block
-        const max2 = shouldMaxExitRate(remainingBond);
+        const max2 = shouldMaxExitRate(bond);
         assert.equal(max1.toString(), max2.toString());
         await expectRevert(
             toga.changeExitRate(superToken.address, max2 + 1, {
@@ -414,7 +396,7 @@ describe("TOGA", function () {
     });
 
     // PIC closes stream: nothing breaks - can reopen with changeFlowrate
-    it("#12 can recover from closed exit flow", async () => {
+    it("#12 can re-open closed exit flow", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
@@ -454,8 +436,7 @@ describe("TOGA", function () {
         await assertNetFlow(superToken, bob, EXIT_RATE_1E3);
     });
 
-    // collected rewards are added added to the PIC bond
-    it("#13 collected rewards are added added to the PIC bond", async () => {
+    it("#13 collected rewards are added to the PIC bond", async () => {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);
 
         await collectRewards(superToken, 1e6, 1e6);
@@ -464,13 +445,13 @@ describe("TOGA", function () {
         assert.isTrue(
             (
                 await toga.getCurrentPICInfo(superToken.address)
-            ).remainingBond.toNumber() >=
+            ).bond.toNumber() >=
                 BOND_AMOUNT_1E12 + 1e12
         );
         // can't rely on that bcs the block timestamp is sometimes 1s higher
         /*
         assert.equal(
-            (await toga.getCurrentPICInfo(superToken.address)).remainingBond.toString(),
+            (await toga.getCurrentPICInfo(superToken.address)).bond.toString(),
             (BOND_AMOUNT_1E12 + 1e12).toString()
         );
          */
@@ -485,13 +466,13 @@ describe("TOGA", function () {
 
         // critical stream is liquidated - remaining bond goes to zero
         await timeTravelOnce(1e6);
-        await liquidateExitStream(superToken);
+        await liquidateExitStream(superToken); // a sentinel would do this
+
         await assertNetFlow(superToken, alice, 0);
         await assertNetFlow(superToken, toga.address, 0);
 
-        const remB = (await toga.getCurrentPICInfo(superToken.address))
-            .remainingBond;
-        assert.equal(remB.toString(), "0"); // remaining deposit is taken
+        // this assumes the flow deletion was not triggered by the PIC - otherwise rewards would be accrued
+        assert.equal((await toga.getCurrentPICInfo(superToken.address)).bond.toString(), "0");
 
         // alice tries to re-establish stream - fail because no bond left
         await expectRevert(
@@ -501,12 +482,12 @@ describe("TOGA", function () {
             "TOGA: exitRate too high"
         );
 
-        // more rewards, alice can re-establish stream
+        // after some more rewards being collected, alice can re-establish the exit stream
         await collectRewards(superToken, 1e9, 1e3);
         assert.isTrue(
             (
                 await toga.getCurrentPICInfo(superToken.address)
-            ).remainingBond.toNumber() >= 1e12
+            ).bond.toNumber() >= 1e12
         );
 
         await toga.changeExitRate(superToken.address, EXIT_RATE_1E3, {
@@ -517,7 +498,7 @@ describe("TOGA", function () {
         const alicePreBal = await superToken.balanceOf(alice);
         const aliceBondLeft = (
             await toga.getCurrentPICInfo(superToken.address)
-        ).remainingBond;
+        ).bond;
 
         // bob outbids
         await expectRevert(
@@ -532,50 +513,8 @@ describe("TOGA", function () {
             alicePreBal.add(aliceBondLeft).toString(),
             (await superToken.balanceOf(alice)).toString()
         );
-
-        // runs to zero again
-        await timeTravelOnce(2e6 + 1e3);
-
-        // this triggers stream closing by the contract - since already insolvent, the full deposit amount
-        // is rewarded to the closing account which is the contract. Thus ends up with a non-zero balance
-        await toga.changeExitRate(superToken.address, 0, { from: bob });
-        const picInfo = await toga.getCurrentPICInfo(superToken.address);
-        console.log(`picInfo ${JSON.stringify(picInfo, null, 2)}`);
-        console.log(`remainingBond: ${picInfo.remainingBond}`);
-        // TODO: why is there an overflow or underflow (-2^32) here?
-
-        /*
-        const { pic, remainingBond, exitRate } = await toga.getCurrentPICInfo(
-            superToken.address
-        );
-        const remBond = (await toga.getCurrentPICInfo(superToken.address))
-            .remainingBond;
-        console.log(`remBond: ${remBond}, picRemBond ${remainingBond.toString()}, exitRate: ${exitRate}`);
-         */
-
-        console.log(
-            `toga balance: ${JSON.stringify(
-                await superToken.realtimeBalanceOfNow(toga.address),
-                null,
-                2
-            )}`
-        );
-
-        // since the stream was closed through changeExitRate() by the contract (the sender) itself,
-        // after already being insolvent, the contract got full deposit amount as reward.
-
-        /*
-        assert.equal(
-            (await toga.getCurrentPICInfo(superToken.address)).remainingBond.toString(),
-            "0"
-        );
-         */
-
-        // alice can place a successful bid of 1 wad - NOT
-        //await sendPICBid(alice, superToken, 1, 0);
     });
-
-    // multiple tokens
+    
     it("#15 multiple PICs (one per token) in parallel", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         const superToken2 = (
@@ -607,7 +546,7 @@ describe("TOGA", function () {
         const bobPreBal = await superToken2.balanceOf(bob);
         const bobBondLeft = (
             await toga.getCurrentPICInfo(superToken2.address)
-        ).remainingBond;
+        ).bond;
 
         await expectRevert(
             sendPICBid(alice, superToken2, BOND_AMOUNT_1E12, EXIT_RATE_1),
@@ -630,10 +569,10 @@ describe("TOGA", function () {
         await sendPICBid(alice, superToken, BOND_AMOUNT_2E12, 0);
         assert.equal(await toga.getCurrentPIC(superToken.address), alice);
 
-        const remainingBond = (
+        const bond = (
             await toga.getCurrentPICInfo(superToken.address)
-        ).remainingBond;
-        assert.equal(remainingBond.toString(), BOND_AMOUNT_2E12.toString());
+        ).bond;
+        assert.equal(bond.toString(), BOND_AMOUNT_2E12.toString());
 
         assert.equal(
             (await superToken.balanceOf(alice)).toString(),

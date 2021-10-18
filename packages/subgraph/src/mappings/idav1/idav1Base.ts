@@ -24,14 +24,12 @@ import {
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
-    updateATSBalanceAndUpdatedAt,
     updateAggregateIDASubscriptionsData,
     BIG_INT_ZERO,
     subscriptionExists as subscriptionWithUnitsExists,
-    updateAccountUpdatedAt,
     tokenHasValidHost,
     updateTokenStatsStreamedUntilUpdatedAt,
-    updateATSStreamedUntilUpdatedAt,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
     getIndexID,
 } from "../../utils";
 
@@ -74,14 +72,8 @@ export function handleIndexCreated(
     tokenStatistic.updatedAtBlockNumber = event.block.number;
     tokenStatistic.save();
 
-    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
-
-    updateATSStreamedUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
-        event.block
-    );
-    updateATSBalanceAndUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         event.params.publisher.toHex(),
         event.params.token.toHex(),
         event.block
@@ -151,14 +143,8 @@ export function handleIndexUpdated(
     tokenStatistic.updatedAtBlockNumber = event.block.number;
     tokenStatistic.save();
 
-    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
-
-    updateATSStreamedUntilUpdatedAt(
-        event.params.publisher.toHex(),
-        event.params.token.toHex(),
-        event.block
-    );
-    updateATSBalanceAndUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         event.params.publisher.toHex(),
         event.params.token.toHex(),
         event.block
@@ -249,12 +235,8 @@ export function handleSubscriptionApproved(
     let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // this must be done whether subscription exists or not
-    updateATSStreamedUntilUpdatedAt(
-        event.params.subscriber.toHex(),
-        tokenId,
-        event.block
-    );
-    updateATSBalanceAndUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         event.params.subscriber.toHex(),
         tokenId,
         event.block
@@ -271,30 +253,15 @@ export function handleSubscriptionApproved(
         subscription.totalAmountReceivedUntilUpdatedAt =
             subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
-        updateATSStreamedUntilUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
-
-        // trade-off of using balanceOf vs. doing calculations locally for most accurate data
-        updateATSBalanceAndUpdatedAt(
-            event.params.publisher.toHex(),
-            tokenId,
-            event.block
-        );
-
-        // we only update publisher data if hasSubscription is true
-        updateAccountUpdatedAt(
+        updateATSStreamedAndBalanceUntilUpdatedAt(
             hostAddress,
-            event.params.publisher,
+            event.params.publisher.toHex(),
+            tokenId,
             event.block
         );
     }
 
     subscription.save();
-
-    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -377,9 +344,12 @@ export function handleSubscriptionRevoked(
     }
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
-    updateATSStreamedUntilUpdatedAt(subscriberAddress, tokenId, event.block);
-    updateATSBalanceAndUpdatedAt(subscriberAddress, tokenId, event.block);
-    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
+        subscriberAddress,
+        tokenId,
+        event.block
+    );
 
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -395,18 +365,12 @@ export function handleSubscriptionRevoked(
         event.block
     );
     // mimic ida logic more closely
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         event.params.publisher.toHex(),
         tokenId,
         event.block
     );
-    updateATSBalanceAndUpdatedAt(
-        event.params.publisher.toHex(),
-        tokenId,
-        event.block
-    );
-
-    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
 
     // occurs on revoke or delete
     subscription.totalAmountReceivedUntilUpdatedAt =
@@ -480,31 +444,23 @@ export function handleSubscriptionUnitsUpdated(
 
     // token.settleBalance should be the trigger for updating
     // totalAmountReceivedUntilUpdatedAt and calling
-    // updateATSBalanceAndUpdatedAt
     subscription.totalAmountReceivedUntilUpdatedAt =
         subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
     // We move both of these in here as we handle this in revoke or delete
     // as well, so if we put it outside it will be a duplicate call
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         event.params.publisher.toHex(),
         tokenId,
         event.block
     );
-    updateATSBalanceAndUpdatedAt(
-        event.params.publisher.toHex(),
-        tokenId,
-        event.block
-    );
-    updateAccountUpdatedAt(hostAddress, event.params.publisher, event.block);
-
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         event.params.subscriber.toHex(),
         tokenId,
         event.block
     );
-    updateATSBalanceAndUpdatedAt(subscription.subscriber, tokenId, event.block);
-    updateAccountUpdatedAt(hostAddress, event.params.subscriber, event.block);
 
     // when units are set to 0, the graph marks this as a deletion
     // and therefore subtracts the number of totalSubscriptionWithUnits and

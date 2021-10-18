@@ -4,12 +4,11 @@ import { FlowUpdatedEvent } from "../../../generated/schema";
 import {
     createEventID,
     getOrInitStream,
-    updateATSBalanceAndUpdatedAt,
     updateAggregateEntitiesStreamData,
     BIG_INT_ZERO,
     getOrInitStreamRevision,
-    updateAccountUpdatedAt,
     tokenHasValidHost,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../../utils";
 
 enum FlowActionType {
@@ -103,16 +102,25 @@ export function handleStreamUpdated(
         streamRevision.save();
     }
 
-    // update Account updatedAt field
-    updateAccountUpdatedAt(hostAddress, senderAddress, event.block);
-    updateAccountUpdatedAt(hostAddress, receiverAddress, event.block);
-
     // create event entity
     createFlowUpdatedEntity(
         event,
         oldFlowRate,
         stream.id,
         newStreamedUntilLastUpdate
+    );
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
+        senderId,
+        tokenId,
+        event.block
+    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
+        receiverId,
+        tokenId,
+        event.block
     );
 
     // update aggregate entities data
@@ -126,6 +134,4 @@ export function handleStreamUpdated(
         isDelete,
         event.block
     );
-    updateATSBalanceAndUpdatedAt(senderId, tokenId, event.block);
-    updateATSBalanceAndUpdatedAt(receiverId, tokenId, event.block);
 }

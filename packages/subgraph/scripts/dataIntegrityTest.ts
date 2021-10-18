@@ -45,6 +45,10 @@ const getMostRecentIndexedBlockNumber = async (subgraphEndpoint: string) => {
     return data._meta.block.number;
 };
 
+/**
+ * @dev Chunks the promises as we don't want to exhaust CPU.
+ * e.g. trying to do a promise for 5,000 items at once.
+ */
 function chunkPromises(promises: Promise<void>[], chunkLength: number) {
     const chunksLength = Math.ceil(promises.length / chunkLength);
     const batches = Array.apply(null, Array(chunksLength)).map((_x, i) =>
@@ -53,6 +57,10 @@ function chunkPromises(promises: Promise<void>[], chunkLength: number) {
     return batches;
 }
 
+/**
+ * @dev Gets all the results from the graph, we need this function
+ * due to the 1,000 item limitation imposed by the
+ */
 async function getAllResults<T>(
     query: string,
     endpoint: string,

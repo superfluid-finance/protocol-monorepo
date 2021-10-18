@@ -23,10 +23,8 @@ import {
     getOrInitSuperToken,
     getOrInitTokenStatistic,
     tokenHasValidHost,
-    updateAccountUpdatedAt,
     updateAggregateEntitiesTransferData,
-    updateATSBalanceAndUpdatedAt,
-    updateATSStreamedUntilUpdatedAt,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../../utils";
 
@@ -58,47 +56,22 @@ export function handleAgreementLiquidatedBy(
         event.block
     );
 
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.liquidatorAccount,
-        event.block
-    );
-    updateAccountUpdatedAt(
-        hostAddress,
-        event.params.penaltyAccount,
-        event.block
-    );
-    updateAccountUpdatedAt(hostAddress, event.params.bondAccount, event.block);
-
     getOrInitSuperToken(event.address, resolverAddress, event.block);
 
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         liquidatorAccount.id,
         event.address.toHex(),
         event.block
     );
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         penaltyAccount.id,
         event.address.toHex(),
         event.block
     );
-    updateATSStreamedUntilUpdatedAt(
-        bondAccount.id,
-        event.address.toHex(),
-        event.block
-    );
-
-    updateATSBalanceAndUpdatedAt(
-        liquidatorAccount.id,
-        event.address.toHex(),
-        event.block
-    );
-    updateATSBalanceAndUpdatedAt(
-        penaltyAccount.id,
-        event.address.toHex(),
-        event.block
-    );
-    updateATSBalanceAndUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         bondAccount.id,
         event.address.toHex(),
         event.block
@@ -125,16 +98,12 @@ export function handleTokenUpgraded(
 
     getOrInitSuperToken(event.address, resolverAddress, event.block);
 
-    let tokenId = event.address.toHex();
-    updateAccountUpdatedAt(hostAddress, event.params.account, event.block);
-
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         account.id,
         event.address.toHex(),
         event.block
     );
-
-    updateATSBalanceAndUpdatedAt(account.id, tokenId, event.block);
 }
 
 export function handleTokenDowngraded(
@@ -157,14 +126,12 @@ export function handleTokenDowngraded(
 
     getOrInitSuperToken(event.address, resolverAddress, event.block);
 
-    let tokenId = event.address.toHex();
-    updateAccountUpdatedAt(hostAddress, event.params.account, event.block);
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         account.id,
         event.address.toHex(),
         event.block
     );
-    updateATSBalanceAndUpdatedAt(account.id, tokenId, event.block);
 }
 
 export function handleTransfer(
@@ -189,23 +156,19 @@ export function handleTransfer(
 
     getOrInitSuperToken(event.address, resolverAddress, event.block);
 
-    updateAccountUpdatedAt(hostAddress, event.params.from, event.block);
-    updateAccountUpdatedAt(hostAddress, event.params.to, event.block);
-
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         toAccount.id,
         event.address.toHex(),
         event.block
     );
-    updateATSStreamedUntilUpdatedAt(
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        hostAddress,
         fromAccount.id,
         event.address.toHex(),
         event.block
     );
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
-
-    updateATSBalanceAndUpdatedAt(toAccount.id, tokenId, event.block);
-    updateATSBalanceAndUpdatedAt(fromAccount.id, tokenId, event.block);
 
     updateAggregateEntitiesTransferData(
         event.params.from.toHex(),

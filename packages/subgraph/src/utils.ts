@@ -4,7 +4,6 @@ import {
     ethereum,
     Address,
     log,
-    Entity,
 } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
@@ -679,24 +678,20 @@ export function updateAggregateIDASubscriptionsData(
  * @param tokenId
  * @param block
  */
-export function updateATSBalanceAndUpdatedAt(
-    accountId: string,
-    tokenId: string,
+function updateATSBalanceAndUpdatedAt(
+    accountTokenSnapshot: AccountTokenSnapshot,
     block: ethereum.Block
-): void {
-    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
-        accountId,
-        tokenId,
-        block
+): AccountTokenSnapshot {
+    let superTokenContract = SuperToken.bind(
+        Address.fromString(accountTokenSnapshot.token)
     );
-    let superTokenContract = SuperToken.bind(Address.fromString(tokenId));
     let newBalance = superTokenContract.balanceOf(
-        Address.fromString(accountId)
+        Address.fromString(accountTokenSnapshot.account)
     );
     accountTokenSnapshot.balanceUntilUpdatedAt = newBalance;
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
-    accountTokenSnapshot.save();
+    return accountTokenSnapshot as AccountTokenSnapshot;
 }
 
 function getAmountStreamedSinceLastUpdatedAt(
@@ -708,29 +703,47 @@ function getAmountStreamedSinceLastUpdatedAt(
     return timeDelta.times(previousTotalOutflowRate);
 }
 
-// TODO: it may make sense to combine this with getting update balance right after.
 /**
+ * Updates the amount streamed, balance until updated at for the AccountTokenSnapshot
+ * entity and also updates the updatedAt property on the account entity.
  * @dev Must call before updatedAt is updated.
  * @param accountId
  * @param tokenId
  * @param block
  */
-export function updateATSStreamedUntilUpdatedAt(
+export function updateATSStreamedAndBalanceUntilUpdatedAt(
+    hostAddress: Address,
     accountId: string,
     tokenId: string,
     block: ethereum.Block
 ): void {
-    let ats = getOrInitAccountTokenSnapshot(accountId, tokenId, block);
+    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+        accountId,
+        tokenId,
+        block
+    );
     let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
         block.timestamp,
-        ats.updatedAtTimestamp,
-        ats.totalOutflowRate
+        accountTokenSnapshot.updatedAtTimestamp,
+        accountTokenSnapshot.totalOutflowRate
     );
-    ats.totalAmountStreamedUntilUpdatedAt =
-        ats.totalAmountStreamedUntilUpdatedAt.plus(
+
+    // update the totalStreamedUntilUpdatedAt
+    accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt =
+        accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt.plus(
             amountStreamedSinceLastUpdatedAt
         );
-    ats.save();
+
+    // update the balance via external call and saves the entity
+    // NOTE: this is the main culprit which slows things down currently
+    accountTokenSnapshot = updateATSBalanceAndUpdatedAt(
+        accountTokenSnapshot,
+        block
+    );
+    accountTokenSnapshot.save();
+
+    // update the updatedAt property of the account that just made an update
+    updateAccountUpdatedAt(hostAddress, Address.fromString(accountId), block);
 }
 
 export function updateTokenStatsStreamedUntilUpdatedAt(
@@ -750,6 +763,19 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenStats.save();
 }
 
+/**
+ * Updates TokenStatistic and AccountTokenSnapshot countable stream
+ * data. Must be called after updating streamed amount data for the
+ * AccountTokenSnapshot entities.
+ * @param senderId
+ * @param receiverId
+ * @param tokenId
+ * @param newFlowRate
+ * @param flowRateDelta
+ * @param isCreate
+ * @param isDelete
+ * @param block
+ */
 export function updateAggregateEntitiesStreamData(
     senderId: string,
     receiverId: string,
@@ -790,12 +816,6 @@ export function updateAggregateEntitiesStreamData(
     tokenStatistic.updatedAtBlockNumber = block.number;
 
     let senderATS = getOrInitAccountTokenSnapshot(senderId, tokenId, block);
-    let senderATSAmountStreamedSinceLastUpdate =
-        getAmountStreamedSinceLastUpdatedAt(
-            block.timestamp,
-            senderATS.updatedAtTimestamp,
-            senderATS.totalOutflowRate
-        );
     senderATS.totalNetFlowRate =
         senderATS.totalNetFlowRate.minus(flowRateDelta);
     // the outflow rate should never go below 0.
@@ -808,10 +828,6 @@ export function updateAggregateEntitiesStreamData(
         senderATS.totalNumberOfActiveStreams + totalNumberOfActiveStreamsDelta;
     senderATS.totalNumberOfClosedStreams =
         senderATS.totalNumberOfClosedStreams + totalNumberOfClosedStreamsDelta;
-    senderATS.totalAmountStreamedUntilUpdatedAt =
-        senderATS.totalAmountStreamedUntilUpdatedAt.plus(
-            senderATSAmountStreamedSinceLastUpdate
-        );
 
     let receiverATS = getOrInitAccountTokenSnapshot(receiverId, tokenId, block);
     receiverATS.totalNetFlowRate =

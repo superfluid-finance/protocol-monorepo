@@ -1,4 +1,3 @@
-import { Address } from "@graphprotocol/graph-ts";
 import {
     TokenUpgraded,
     TokenDowngraded,
@@ -7,7 +6,7 @@ import {
     Burned,
     Minted,
     Sent,
-} from "../../../generated/templates/SuperToken/ISuperToken";
+} from "../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
     BurnedEvent,
@@ -16,8 +15,8 @@ import {
     TokenDowngradedEvent,
     TransferEvent,
     SentEvent,
-} from "../../../generated/schema";
-import { createEventID, tokenHasValidHost } from "../../utils";
+} from "../../generated/schema";
+import { createEventID, tokenHasValidHost } from "../utils";
 import {
     getOrInitAccount,
     getOrInitSuperToken,
@@ -25,13 +24,13 @@ import {
     updateAggregateEntitiesTransferData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
-} from "../../mappingHelpers";
+} from "../mappingHelpers";
+import { getHostAddress } from "../addresses";
 
 export function handleAgreementLiquidatedBy(
-    event: AgreementLiquidatedBy,
-    hostAddress: Address,
-    resolverAddress: Address
+    event: AgreementLiquidatedBy
 ): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
         return;
@@ -40,48 +39,36 @@ export function handleAgreementLiquidatedBy(
     createAgreementLiquidatedByEntity(event);
 
     let liquidatorAccount = getOrInitAccount(
-        hostAddress,
         event.params.liquidatorAccount,
         event.block
     );
     let penaltyAccount = getOrInitAccount(
-        hostAddress,
         event.params.penaltyAccount,
         event.block
     );
-    let bondAccount = getOrInitAccount(
-        hostAddress,
-        event.params.bondAccount,
-        event.block
-    );
+    let bondAccount = getOrInitAccount(event.params.bondAccount, event.block);
 
-    getOrInitSuperToken(event.address, resolverAddress, event.block);
+    getOrInitSuperToken(event.address, event.block);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         liquidatorAccount.id,
         event.address.toHex(),
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         penaltyAccount.id,
         event.address.toHex(),
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         bondAccount.id,
         event.address.toHex(),
         event.block
     );
 }
 
-export function handleTokenUpgraded(
-    event: TokenUpgraded,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleTokenUpgraded(event: TokenUpgraded): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
         return;
@@ -89,27 +76,19 @@ export function handleTokenUpgraded(
 
     createTokenUpgradedEntity(event);
 
-    let account = getOrInitAccount(
-        hostAddress,
-        event.params.account,
-        event.block
-    );
+    let account = getOrInitAccount(event.params.account, event.block);
 
-    getOrInitSuperToken(event.address, resolverAddress, event.block);
+    getOrInitSuperToken(event.address, event.block);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         account.id,
         event.address.toHex(),
         event.block
     );
 }
 
-export function handleTokenDowngraded(
-    event: TokenDowngraded,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleTokenDowngraded(event: TokenDowngraded): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
         return;
@@ -117,27 +96,19 @@ export function handleTokenDowngraded(
 
     createTokenDowngradedEntity(event);
 
-    let account = getOrInitAccount(
-        hostAddress,
-        event.params.account,
-        event.block
-    );
+    let account = getOrInitAccount(event.params.account, event.block);
 
-    getOrInitSuperToken(event.address, resolverAddress, event.block);
+    getOrInitSuperToken(event.address, event.block);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         account.id,
         event.address.toHex(),
         event.block
     );
 }
 
-export function handleTransfer(
-    event: Transfer,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleTransfer(event: Transfer): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
         return;
@@ -145,24 +116,18 @@ export function handleTransfer(
 
     createTransferEntity(event);
 
-    let fromAccount = getOrInitAccount(
-        hostAddress,
-        event.params.from,
-        event.block
-    );
-    let toAccount = getOrInitAccount(hostAddress, event.params.to, event.block);
+    let fromAccount = getOrInitAccount(event.params.from, event.block);
+    let toAccount = getOrInitAccount(event.params.to, event.block);
     let tokenId = event.address.toHex();
 
-    getOrInitSuperToken(event.address, resolverAddress, event.block);
+    getOrInitSuperToken(event.address, event.block);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         toAccount.id,
         event.address.toHex(),
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         fromAccount.id,
         event.address.toHex(),
         event.block
@@ -177,11 +142,8 @@ export function handleTransfer(
     );
 }
 
-export function handleSent(
-    event: Sent,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleSent(event: Sent): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.address);
     if (!hasValidHost) {
         return;

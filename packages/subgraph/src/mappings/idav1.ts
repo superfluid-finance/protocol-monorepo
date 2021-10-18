@@ -1,4 +1,4 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexUpdated,
@@ -8,7 +8,7 @@ import {
     SubscriptionApproved,
     SubscriptionRevoked,
     SubscriptionUnitsUpdated,
-} from "../../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
+} from "../../generated/InstantDistributionAgreementV1/IInstantDistributionAgreementV1";
 import {
     IndexCreatedEvent,
     IndexUpdatedEvent,
@@ -18,14 +18,14 @@ import {
     SubscriptionApprovedEvent,
     SubscriptionRevokedEvent,
     SubscriptionUnitsUpdatedEvent,
-} from "../../../generated/schema";
+} from "../../generated/schema";
 import {
     createEventID,
     BIG_INT_ZERO,
     subscriptionExists as subscriptionWithUnitsExists,
     tokenHasValidHost,
     getIndexID,
-} from "../../utils";
+} from "../utils";
 import {
     getOrInitIndex,
     getOrInitSubscription,
@@ -33,13 +33,11 @@ import {
     updateAggregateIDASubscriptionsData,
     updateTokenStatsStreamedUntilUpdatedAt,
     updateATSStreamedAndBalanceUntilUpdatedAt,
-} from "../../mappingHelpers";
+} from "../mappingHelpers";
+import { getHostAddress } from "../addresses";
 
-export function handleIndexCreated(
-    event: IndexCreated,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleIndexCreated(event: IndexCreated): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
@@ -48,8 +46,6 @@ export function handleIndexCreated(
     let currentTimestamp = event.block.timestamp;
     let indexCreatedId = createEventID(event);
     let index = getOrInitIndex(
-        hostAddress,
-        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -75,7 +71,6 @@ export function handleIndexCreated(
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         event.params.publisher.toHex(),
         event.params.token.toHex(),
         event.block
@@ -84,11 +79,8 @@ export function handleIndexCreated(
     createIndexCreatedEntity(event, index.id);
 }
 
-export function handleIndexUpdated(
-    event: IndexUpdated,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleIndexUpdated(event: IndexUpdated): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
@@ -103,8 +95,6 @@ export function handleIndexUpdated(
 
     // update Index entity
     let index = getOrInitIndex(
-        hostAddress,
-        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -146,7 +136,6 @@ export function handleIndexUpdated(
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         event.params.publisher.toHex(),
         event.params.token.toHex(),
         event.block
@@ -164,19 +153,13 @@ export function handleIndexSubscribed(event: IndexSubscribed): void {
     createIndexSubscribedEntity(event, indexId);
 }
 
-export function handleIndexUnitsUpdated(
-    event: IndexUnitsUpdated,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
     let indexId = getIndexID(
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
     let subscription = getOrInitSubscription(
-        hostAddress,
-        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -195,19 +178,14 @@ export function handleIndexUnsubscribed(event: IndexUnsubscribed): void {
     createIndexUnsubscribedEntity(event, indexId);
 }
 
-export function handleSubscriptionApproved(
-    event: SubscriptionApproved,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleSubscriptionApproved(event: SubscriptionApproved): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
 
     let index = getOrInitIndex(
-        hostAddress,
-        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -216,8 +194,6 @@ export function handleSubscriptionApproved(
     );
 
     let subscription = getOrInitSubscription(
-        hostAddress,
-        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -238,7 +214,6 @@ export function handleSubscriptionApproved(
 
     // this must be done whether subscription exists or not
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         event.params.subscriber.toHex(),
         tokenId,
         event.block
@@ -256,7 +231,6 @@ export function handleSubscriptionApproved(
             subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
         updateATSStreamedAndBalanceUntilUpdatedAt(
-            hostAddress,
             event.params.publisher.toHex(),
             tokenId,
             event.block
@@ -293,11 +267,8 @@ export function handleSubscriptionApproved(
  * @param hostAddress
  * @returns
  */
-export function handleSubscriptionRevoked(
-    event: SubscriptionRevoked,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
@@ -307,8 +278,6 @@ export function handleSubscriptionRevoked(
     let subscriberAddress = event.params.subscriber.toHex();
 
     let index = getOrInitIndex(
-        hostAddress,
-        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -318,8 +287,6 @@ export function handleSubscriptionRevoked(
 
     // This will always execute on an existing subscription
     let subscription = getOrInitSubscription(
-        hostAddress,
-        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -347,7 +314,6 @@ export function handleSubscriptionRevoked(
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         subscriberAddress,
         tokenId,
         event.block
@@ -368,7 +334,6 @@ export function handleSubscriptionRevoked(
     );
     // mimic ida logic more closely
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         event.params.publisher.toHex(),
         tokenId,
         event.block
@@ -392,10 +357,9 @@ export function handleSubscriptionRevoked(
  * @param event
  */
 export function handleSubscriptionUnitsUpdated(
-    event: SubscriptionUnitsUpdated,
-    hostAddress: Address,
-    resolverAddress: Address
+    event: SubscriptionUnitsUpdated
 ): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
@@ -403,8 +367,6 @@ export function handleSubscriptionUnitsUpdated(
     let tokenId = event.params.token.toHex();
 
     let subscription = getOrInitSubscription(
-        hostAddress,
-        resolverAddress,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
@@ -413,8 +375,6 @@ export function handleSubscriptionUnitsUpdated(
     );
 
     let index = getOrInitIndex(
-        hostAddress,
-        resolverAddress,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
@@ -452,13 +412,11 @@ export function handleSubscriptionUnitsUpdated(
     // We move both of these in here as we handle this in revoke or delete
     // as well, so if we put it outside it will be a duplicate call
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         event.params.publisher.toHex(),
         tokenId,
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
         event.params.subscriber.toHex(),
         tokenId,
         event.block

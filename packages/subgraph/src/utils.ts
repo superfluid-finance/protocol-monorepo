@@ -10,33 +10,6 @@ import { StreamRevision, IndexSubscription, Token } from "../generated/schema";
 export let BIG_INT_ZERO = BigInt.fromI32(0);
 export let BIG_INT_ONE = BigInt.fromI32(1);
 
-// the host address will be consistent as long as you use the
-// first account retrieved by hardhat's ethers.getSigners():
-// 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
-export let GANACHE_HOST_ADDRESS = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853"; // for testing
-export let GOERLI_HOST_ADDRESS = "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9";
-export let KOVAN_HOST_ADDRESS = "0xF0d7d1D47109bA426B9D8A3Cde1941327af1eea3";
-export let MATIC_HOST_ADDRESS = "0x3E14dC1b13c488a8d5D310918780c983bD5982E7";
-export let MUMBAI_HOST_ADDRESS = "0xEB796bdb90fFA0f28255275e16936D25d3418603";
-export let RINKEBY_HOST_ADDRESS = "0xeD5B5b32110c3Ded02a07c8b8e97513FAfb883B6";
-export let ROPSTEN_HOST_ADDRESS = "0xF2B4E81ba39F5215Db2e05B2F66f482BB8e87FD2";
-export let XDAI_HOST_ADDRESS = "0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7";
-
-export let GANACHE_RESOLVER_ADDRESS =
-    "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-export let GOERLI_RESOLVER_ADDRESS =
-    "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E";
-export let KOVAN_RESOLVER_ADDRESS =
-    "0x851d3dd9dc97c1df1DA73467449B3893fc76D85B";
-export let MATIC_RESOLVER_ADDRESS =
-    "0xE0cc76334405EE8b39213E620587d815967af39C";
-export let MUMBAI_RESOLVER_ADDRESS =
-    "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3";
-export let RINKEBY_RESOLVER_ADDRESS =
-    "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A";
-export let ROPSTEN_RESOLVER_ADDRESS =
-    "0x3b44e06D96BcA9412CBc23F80F41B9e30933571a";
-export let XDAI_RESOLVER_ADDRESS = "0xD2009765189164b495c110D61e4D301729079911";
 /**************************************************************************
  * Event entities util functions
  *************************************************************************/

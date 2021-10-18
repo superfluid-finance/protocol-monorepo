@@ -24,6 +24,7 @@ import {
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { getHostAddress, getResolverAddress } from "./addresses";
 
 /**************************************************************************
  * HOL initializer functions
@@ -31,17 +32,16 @@ import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISu
 /**
  * Gets the Account entity with id or creates one with it. updatedAt is
  * updated each time any data associated with the user is updated.
- * @param hostAddress
  * @param accountAddress
  * @param block
  * @returns Account
  */
 export function getOrInitAccount(
-    hostAddress: Address,
     accountAddress: Address,
     block: ethereum.Block
 ): Account {
     let account = Account.load(accountAddress.toHex());
+    let hostAddress = getHostAddress();
 
     // filter out 0 address accounts
     if (accountAddress.equals(new Address(0))) {
@@ -71,18 +71,17 @@ export function getOrInitAccount(
  * Creates a HOL Token (SuperToken) entity if non exists.
  * We also create token stats in here if it doesn't exist yet.
  * @param tokenAddress
- * @param resolverAddress
  * @param block
  * @returns
  */
 export function getOrInitSuperToken(
     tokenAddress: Address,
-    resolverAddress: Address,
     block: ethereum.Block
 ): Token {
     let tokenId = tokenAddress.toHex();
     let token = Token.load(tokenId);
     let currentTimestamp = block.timestamp;
+    let resolverAddress = getResolverAddress();
 
     if (token == null) {
         token = new Token(tokenId);
@@ -184,8 +183,6 @@ export function getOrInitStreamRevision(
 
 /**
  * Gets or initializes a Stream, always sets the updatedAt.
- * @param hostAddress
- * @param resolverAddress
  * @param senderAddress
  * @param receiverAddress
  * @param tokenAddress
@@ -193,16 +190,14 @@ export function getOrInitStreamRevision(
  * @returns
  */
 export function getOrInitStream(
-    hostAddress: Address,
-    resolverAddress: Address,
     senderAddress: Address,
     receiverAddress: Address,
     tokenAddress: Address,
     block: ethereum.Block
 ): Stream {
     // Create accounts if they do not exist
-    getOrInitAccount(hostAddress, senderAddress, block);
-    getOrInitAccount(hostAddress, receiverAddress, block);
+    getOrInitAccount(senderAddress, block);
+    getOrInitAccount(receiverAddress, block);
 
     // Create a streamRevision entity for this stream if one doesn't exist.
     let streamRevision = getOrInitStreamRevision(
@@ -245,15 +240,13 @@ export function getOrInitStream(
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         // also handles the fact that custom super tokens are
         // initialized after event is first initialized
-        getOrInitSuperToken(tokenAddress, resolverAddress, block);
+        getOrInitSuperToken(tokenAddress, block);
     }
     return stream as Stream;
 }
 
 /**
  * Gets or initializes an Index, always sets the updatedAt.
- * @param hostAddress
- * @param resolverAddress
  * @param publisherAddress
  * @param tokenAddress
  * @param indexId
@@ -262,8 +255,6 @@ export function getOrInitStream(
  * @returns
  */
 export function getOrInitIndex(
-    hostAddress: Address,
-    resolverAddress: Address,
     publisherAddress: Address,
     tokenAddress: Address,
     indexId: BigInt,
@@ -290,11 +281,11 @@ export function getOrInitIndex(
         index.publisher = publisherId;
         index.indexCreatedEvent = indexCreatedId;
 
-        getOrInitAccount(hostAddress, publisherAddress, block);
+        getOrInitAccount(publisherAddress, block);
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
-        getOrInitSuperToken(tokenAddress, resolverAddress, block);
+        getOrInitSuperToken(tokenAddress, block);
     }
     index.updatedAtTimestamp = currentTimestamp;
     index.updatedAtBlockNumber = block.number;
@@ -312,8 +303,6 @@ export function getOrInitIndex(
  * @returns subscription
  */
 export function getOrInitSubscription(
-    hostAddress: Address,
-    resolverAddress: Address,
     subscriberAddress: Address,
     publisherAddress: Address,
     tokenAddress: Address,
@@ -332,8 +321,6 @@ export function getOrInitSubscription(
 
     if (subscription == null) {
         let index = getOrInitIndex(
-            hostAddress,
-            resolverAddress,
             publisherAddress,
             tokenAddress,
             indexId,
@@ -352,7 +339,7 @@ export function getOrInitSubscription(
         subscription.indexValueUntilUpdatedAt = index.indexValue;
         subscription.index = indexEntityId;
 
-        getOrInitAccount(hostAddress, subscriberAddress, block);
+        getOrInitAccount(subscriberAddress, block);
     }
     subscription.updatedAtTimestamp = currentTimestamp;
     subscription.updatedAtBlockNumber = block.number;
@@ -426,7 +413,6 @@ export function getOrInitTokenStatistic(
  * @param block
  */
 export function updateAccountUpdatedAt(
-    hostAddress: Address,
     accountAddress: Address,
     block: ethereum.Block
 ): void {
@@ -434,7 +420,7 @@ export function updateAccountUpdatedAt(
     if (accountAddress.equals(new Address(0))) {
         return;
     }
-    let account = getOrInitAccount(hostAddress, accountAddress, block);
+    let account = getOrInitAccount(accountAddress, block);
     account.updatedAtTimestamp = block.timestamp;
     account.updatedAtBlockNumber = block.number;
     account.save();
@@ -542,7 +528,6 @@ function updateATSBalanceAndUpdatedAt(
  * @param block
  */
 export function updateATSStreamedAndBalanceUntilUpdatedAt(
-    hostAddress: Address,
     accountId: string,
     tokenId: string,
     block: ethereum.Block
@@ -573,7 +558,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     accountTokenSnapshot.save();
 
     // update the updatedAt property of the account that just made an update
-    updateAccountUpdatedAt(hostAddress, Address.fromString(accountId), block);
+    updateAccountUpdatedAt(Address.fromString(accountId), block);
 }
 
 export function updateTokenStatsStreamedUntilUpdatedAt(

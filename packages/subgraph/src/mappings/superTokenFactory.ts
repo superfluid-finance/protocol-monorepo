@@ -1,22 +1,19 @@
-import { Address } from "@graphprotocol/graph-ts";
 import {
     CustomSuperTokenCreated,
     SuperTokenCreated,
     SuperTokenLogicCreated,
-} from "../../../generated/SuperTokenFactory/ISuperTokenFactory";
+} from "../../generated/SuperTokenFactory/ISuperTokenFactory";
 import {
     CustomSuperTokenCreatedEvent,
     SuperTokenCreatedEvent,
     SuperTokenLogicCreatedEvent,
-} from "../../../generated/schema";
-import { createEventID, tokenHasValidHost } from "../../utils";
-import { getOrInitSuperToken } from "../../mappingHelpers";
+} from "../../generated/schema";
+import { createEventID, tokenHasValidHost } from "../utils";
+import { getOrInitSuperToken } from "../mappingHelpers";
+import { getHostAddress } from "../addresses";
 
-export function handleSuperTokenCreated(
-    event: SuperTokenCreated,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleSuperTokenCreated(event: SuperTokenCreated): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
@@ -29,14 +26,13 @@ export function handleSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitSuperToken(event.params.token, resolverAddress, event.block);
+    getOrInitSuperToken(event.params.token, event.block);
 }
 
 export function handleCustomSuperTokenCreated(
-    event: CustomSuperTokenCreated,
-    hostAddress: Address,
-    resolverAddress: Address
+    event: CustomSuperTokenCreated
 ): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
@@ -49,13 +45,13 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitSuperToken(event.params.token, resolverAddress, event.block);
+    getOrInitSuperToken(event.params.token, event.block);
 }
 
 export function handleSuperTokenLogicCreated(
-    event: SuperTokenLogicCreated,
-    hostAddress: Address
+    event: SuperTokenLogicCreated
 ): void {
+    let hostAddress = getHostAddress();
     let hasValidHost = tokenHasValidHost(hostAddress, event.params.tokenLogic);
     if (!hasValidHost) {
         return;

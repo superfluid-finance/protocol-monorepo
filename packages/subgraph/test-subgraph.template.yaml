@@ -15,7 +15,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/superTokenFactory/{{ testNetwork }}SuperTokenFactory.ts
+          file: ./src/mappings/superTokenFactory.ts
           entities:
               - CustomSuperTokenCreatedEvent
               - SuperTokenCreatedEvent
@@ -33,11 +33,11 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
-                handler: {{ testNetwork }}HandleSuperTokenCreated
+                handler: handleSuperTokenCreated
               - event: CustomSuperTokenCreated(indexed address)
-                handler: {{ testNetwork }}HandleCustomSuperTokenCreated
+                handler: handleCustomSuperTokenCreated
               - event: SuperTokenLogicCreated(indexed address)
-                handler: {{ testNetwork }}HandleSuperTokenLogicCreated
+                handler: handleSuperTokenLogicCreated
     - kind: ethereum/contract
       name: Host
       network: {{ network }}
@@ -87,7 +87,7 @@ dataSources:
           kind: ethereum/events
           apiVersion: 0.0.4
           language: wasm/assemblyscript
-          file: ./src/mappings/cfav1/{{ testNetwork }}CFAv1.ts
+          file: ./src/mappings/cfav1.ts
           entities:
               - Account
               - AccountTokenSnapshot
@@ -106,7 +106,7 @@ dataSources:
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: {{ testNetwork }}HandleStreamUpdated
+                handler: handleStreamUpdated
     - kind: ethereum/contract
       name: InstantDistributionAgreementV1
       network: {{ network }}
@@ -118,7 +118,7 @@ dataSources:
         kind: ethereum/events
         apiVersion: 0.0.4
         language: wasm/assemblyscript
-        file: ./src/mappings/idav1/{{ testNetwork }}IDAv1.ts
+        file: ./src/mappings/idav1.ts
         entities:
           - Account
           - AccountTokenSnapshot
@@ -145,21 +145,21 @@ dataSources:
             file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
-            handler: {{ testNetwork }}HandleIndexCreated
+            handler: handleIndexCreated
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
-            handler: {{ testNetwork }}HandleIndexUpdated
+            handler: handleIndexUpdated
           - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: {{ testNetwork }}HandleIndexSubscribed
+            handler: handleIndexSubscribed
           - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
-            handler: {{ testNetwork }}HandleIndexUnitsUpdated
+            handler: handleIndexUnitsUpdated
           - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
-            handler: {{ testNetwork }}HandleIndexUnsubscribed
+            handler: handleIndexUnsubscribed
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
-            handler: {{ testNetwork }}HandleSubscriptionApproved
+            handler: handleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
-            handler: {{ testNetwork }}HandleSubscriptionRevoked
+            handler: handleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
-            handler: {{ testNetwork }}HandleSubscriptionUnitsUpdated
+            handler: handleSubscriptionUnitsUpdated
     - kind: ethereum/contract
       name: SuperfluidGovernance
       network: {{ network }}
@@ -225,7 +225,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.4
       language: wasm/assemblyscript
-      file: ./src/mappings/superToken/{{ testNetwork }}SuperToken.ts
+      file: ./src/mappings/superToken.ts
       entities:
         - Account
         - AccountTokenSnapshot
@@ -247,16 +247,16 @@ templates:
           file: ./abis/ISuperfluid.json
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
-          handler: {{ testNetwork }}HandleAgreementLiquidatedBy
+          handler: handleAgreementLiquidatedBy
         - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{ testNetwork }}HandleBurned
+          handler: handleBurned
         - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{ testNetwork }}HandleMinted
+          handler: handleMinted
         - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
-          handler: {{ testNetwork }}HandleSent
+          handler: handleSent
         - event: TokenUpgraded(indexed address,uint256)
-          handler: {{ testNetwork }}HandleTokenUpgraded
+          handler: handleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)
-          handler: {{ testNetwork }}HandleTokenDowngraded
+          handler: handleTokenDowngraded
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: {{ testNetwork }}HandleTransfer
+          handler: handleTransfer

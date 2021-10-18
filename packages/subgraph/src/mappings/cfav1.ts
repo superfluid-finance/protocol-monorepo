@@ -1,13 +1,14 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { FlowUpdated } from "../../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { FlowUpdatedEvent } from "../../../generated/schema";
-import { createEventID, BIG_INT_ZERO, tokenHasValidHost } from "../../utils";
+import { BigInt } from "@graphprotocol/graph-ts";
+import { FlowUpdated } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { FlowUpdatedEvent } from "../../generated/schema";
+import { createEventID, BIG_INT_ZERO, tokenHasValidHost } from "../utils";
 import {
     getOrInitStream,
     getOrInitStreamRevision,
     updateAggregateEntitiesStreamData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
-} from "../../mappingHelpers";
+} from "../mappingHelpers";
+import { getHostAddress } from "../addresses";
 
 enum FlowActionType {
     create,
@@ -45,16 +46,13 @@ function createFlowUpdatedEntity(
     ev.save();
 }
 
-export function handleStreamUpdated(
-    event: FlowUpdated,
-    hostAddress: Address,
-    resolverAddress: Address
-): void {
+export function handleStreamUpdated(event: FlowUpdated): void {
     let senderAddress = event.params.sender;
     let receiverAddress = event.params.receiver;
     let tokenAddress = event.params.token;
     let flowRate = event.params.flowRate;
     let currentTimestamp = event.block.timestamp;
+    let hostAddress = getHostAddress();
 
     let hasValidHost = tokenHasValidHost(hostAddress, tokenAddress);
     if (!hasValidHost) {
@@ -62,8 +60,6 @@ export function handleStreamUpdated(
     }
 
     let stream = getOrInitStream(
-        hostAddress,
-        resolverAddress,
         senderAddress,
         receiverAddress,
         tokenAddress,
@@ -108,18 +104,8 @@ export function handleStreamUpdated(
         newStreamedUntilLastUpdate
     );
 
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
-        senderId,
-        tokenId,
-        event.block
-    );
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        hostAddress,
-        receiverId,
-        tokenId,
-        event.block
-    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);
 
     // update aggregate entities data
     updateAggregateEntitiesStreamData(

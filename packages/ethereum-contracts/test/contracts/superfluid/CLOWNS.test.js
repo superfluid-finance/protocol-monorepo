@@ -367,6 +367,12 @@ describe("CLOWNS", function () {
             "CLOWNS: only CLO allowed"
         );
 
+        // don't allow negative exitRate
+        await expectRevert(
+            clowns.changeExitRate(superToken.address, -1, { from: alice }),
+            "CLOWNS: negative exitRate not allowed"
+        );
+
         // lower to 1 wad
         const r = await clowns.changeExitRate(superToken.address, EXIT_RATE_1, {
             from: alice,

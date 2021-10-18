@@ -153,17 +153,8 @@ export const validateTokenStatsEntity = (
         graphTokenStats.totalAmountStreamedUntilUpdatedAt,
         "TokenStats: totalAmountStreamedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountStreamedUntilUpdatedAt);
-    // TODO: mints/burns are transfers
-    // expect(
-    //     graphTokenStats.totalAmountTransferredUntilUpdatedAt,
-    //     "totalAmountTransferredUntilUpdatedAt error"
-    // ).to.equal(expectedTotalAmountTransferredUntilUpdatedAt);
     expect(
         graphTokenStats.totalAmountDistributedUntilUpdatedAt,
         "totalAmountDistributedUntilUpdatedAt error"
     ).to.equal(expectedTotalAmountDistributedUntilUpdatedAt);
-    // TODO: handle the uprade/downgrade here
-    // expect(graphTokenStats.totalSupply, "totalSupply error").to.equal(
-    //     expectedTotalSupply
-    // );
 };

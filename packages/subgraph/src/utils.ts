@@ -21,13 +21,6 @@ import {
 } from "../generated/schema";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 
-// TODO: GET DATA 100% ACCURATE
-// THEN: WORK ON MAPPING OPTIMIZATION - this is mainly contract calls
-// and .load (kinda)
-// e.g. don't save in the modifier functions, instead let it take the object in
-// and always return the object - always save outside of the util functions at
-// the mapping level
-
 /**************************************************************************
  * Constants
  *************************************************************************/

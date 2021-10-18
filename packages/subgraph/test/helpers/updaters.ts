@@ -156,8 +156,6 @@ export const getExpectedTokenStatsForCFAEvent = (
         )
         .toString();
 
-    // TODO: consider summing all ATS and comparing it with that
-    // consider that the ATS updatedAt times are all different.
     const atsSum = accountTokenSnapshots
         .map((x) =>
             getCurrentTotalAmountStreamed(

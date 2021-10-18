@@ -167,11 +167,6 @@ export function handleTokenDowngraded(
     updateATSBalanceAndUpdatedAt(account.id, tokenId, event.block);
 }
 
-// TODO: mint, burns (upgrade/downgrades) are transfers as well
-// as actual minting of the token. I don't think this captures
-// what transfer really is, I believe the Sent event is better for this
-// Transfer represents the total amount of funds upgrade/downgraded as
-// well as minted and sent from one individual to another
 export function handleTransfer(
     event: Transfer,
     hostAddress: Address,
@@ -230,7 +225,7 @@ export function handleSent(
         return;
     }
 
-	createSentEntity(event);
+    createSentEntity(event);
 }
 
 /**

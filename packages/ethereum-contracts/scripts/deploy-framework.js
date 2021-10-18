@@ -25,7 +25,7 @@ async function deployAndRegisterContractIf(
 ) {
     let contractDeployed;
     const contractName = Contract.contractName;
-    const contractAddress = await testResolver.get(resolverKey);
+    const contractAddress = await testResolver.get.call(resolverKey);
     console.log(`${resolverKey} address`, contractAddress);
     if (resetSuperfluidFramework || (await cond(contractAddress))) {
         console.log(`${contractName} needs new deployment.`);

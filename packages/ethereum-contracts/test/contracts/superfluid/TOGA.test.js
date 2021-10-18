@@ -3,9 +3,9 @@ const { toBN } = require("@decentral.ee/web3-helpers");
 const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");
 
-const CLOWNS = artifacts.require("CLOWNS");
+const TOGA = artifacts.require("TOGA");
 
-describe("CLOWNS", function () {
+describe("TOGA", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
     const { ZERO_ADDRESS } = t.constants;
@@ -13,7 +13,7 @@ describe("CLOWNS", function () {
     let admin, alice, bob;
 
     let superfluid, erc1820, cfa;
-    let clowns;
+    let toga;
     let superToken;
     const MIN_BOND_DURATION = 3600 * 24 * 7; // 604800 s
     const EXIT_RATE_1 = 1; // 1 wad per second
@@ -39,14 +39,14 @@ describe("CLOWNS", function () {
     });
 
     after(async function () {
-        await t.report({ title: "CLOWNS.test" });
+        await t.report({ title: "TOGA.test" });
     });
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
 
-        clowns = await CLOWNS.new(superfluid.address, MIN_BOND_DURATION);
-        console.log(`CLOWNS deployed at: ${clowns.address}`);
+        toga = await TOGA.new(superfluid.address, MIN_BOND_DURATION);
+        console.log(`TOGA deployed at: ${toga.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
     });
 
@@ -61,12 +61,12 @@ describe("CLOWNS", function () {
     }
 
     // returns a promise
-    function sendCLOBid(sender, token, bondAmount, exitRate) {
+    function sendPICBid(sender, token, bondAmount, exitRate) {
         const exitRateEncoded =
             exitRate !== undefined
                 ? web3.eth.abi.encodeParameter("int96", exitRate)
                 : "0x";
-        return token.send(clowns.address, bondAmount, exitRateEncoded, {
+        return token.send(toga.address, bondAmount, exitRateEncoded, {
             from: sender,
         });
     }
@@ -97,7 +97,7 @@ describe("CLOWNS", function () {
         await t.sf.cfa.createFlow({
             superToken: token.address,
             sender: admin,
-            receiver: clowns.address,
+            receiver: toga.address,
             flowRate: flowrate.toString(),
         });
 
@@ -106,13 +106,13 @@ describe("CLOWNS", function () {
         await t.sf.cfa.deleteFlow({
             superToken: token.address,
             sender: admin,
-            receiver: clowns.address,
+            receiver: toga.address,
             by: admin,
         });
 
         console.log(
-            `CLOWNS balance after collectRewards: ${(
-                await token.balanceOf(clowns.address)
+            `TOGA balance after collectRewards: ${(
+                await token.balanceOf(toga.address)
             ).toString()}`
         );
     }
@@ -121,41 +121,41 @@ describe("CLOWNS", function () {
     async function liquidateExitStream(token) {
         await t.sf.cfa.deleteFlow({
             superToken: token.address,
-            sender: clowns.address,
-            receiver: await clowns.getCurrentCLO(token.address),
+            sender: toga.address,
+            receiver: await toga.getCurrentPIC(token.address),
             by: admin,
         });
     }
 
     // ================================================================================
 
-    it("#1 alice becomes CLO", async () => {
+    it("#1 alice becomes PIC", async () => {
         assert.equal(
-            await clowns.getCurrentCLO(superToken.address),
+            await toga.getCurrentPIC(superToken.address),
             ZERO_ADDRESS
         );
 
-        const r1 = await sendCLOBid(
+        const r1 = await sendPICBid(
             alice,
             superToken,
             BOND_AMOUNT_1E12,
             EXIT_RATE_1
         );
 
-        expectEvent.inTransaction(r1.tx, clowns.contract, "NewCLO", {
+        expectEvent.inTransaction(r1.tx, toga.contract, "NewPIC", {
             token: superToken.address,
-            clo: alice,
+            pic: alice,
             bond: BOND_AMOUNT_1E12.toString(),
             exitRate: EXIT_RATE_1.toString(),
         });
 
-        const curCLO = await clowns.getCurrentCLO(superToken.address);
-        assert.equal(curCLO, alice);
+        const curPIC = await toga.getCurrentPIC(superToken.address);
+        assert.equal(curPIC, alice);
 
-        const { clo, remainingBond } = await clowns.getCurrentCLOInfo(
+        const { pic, remainingBond } = await toga.getCurrentPICInfo(
             superToken.address
         );
-        assert.equal(clo, alice);
+        assert.equal(pic, alice);
         assert.equal(remainingBond.toString(), BOND_AMOUNT_1E12.toString());
 
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
@@ -164,13 +164,13 @@ describe("CLOWNS", function () {
     it("#2 bob can outbid alice with higher bond", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1);
 
-        let curCLO = await clowns.getCurrentCLO(superToken.address);
-        assert.equal(curCLO, alice);
+        let curPIC = await toga.getCurrentPIC(superToken.address);
+        assert.equal(curPIC, alice);
 
         const remainingBond = (
-            await clowns.getCurrentCLOInfo(superToken.address)
+            await toga.getCurrentPICInfo(superToken.address)
         ).remainingBond;
         console.log(`remaining bond: ${remainingBond}`);
         assert.equal(remainingBond.toString(), BOND_AMOUNT_1E12.toString());
@@ -179,57 +179,57 @@ describe("CLOWNS", function () {
         // fails to trigger if the timestamp is 1s off (happens sometimes randomly)
         // this detracting 1s exit flowrate
         await expectRevert(
-            sendCLOBid(
+            sendPICBid(
                 bob,
                 superToken,
                 BOND_AMOUNT_1E12 - EXIT_RATE_1,
                 EXIT_RATE_1
             ),
-            "CLOWNS: bid too low"
+            "TOGA: bid too low"
         );
 
         // should succeed with 1 wad more
-        const r2 = await sendCLOBid(
+        const r2 = await sendPICBid(
             bob,
             superToken,
             BOND_AMOUNT_1E12 + 1,
             EXIT_RATE_1
         );
 
-        curCLO = await clowns.getCurrentCLO(superToken.address);
-        assert.equal(curCLO, bob);
+        curPIC = await toga.getCurrentPIC(superToken.address);
+        assert.equal(curPIC, bob);
         assert.equal(
-            (await clowns.getCurrentCLOInfo(superToken.address)).remainingBond,
+            (await toga.getCurrentPICInfo(superToken.address)).remainingBond,
             BOND_AMOUNT_1E12 + 1
         );
 
-        expectEvent.inTransaction(r2.tx, clowns.contract, "NewCLO", {
+        expectEvent.inTransaction(r2.tx, toga.contract, "NewPIC", {
             token: superToken.address,
-            clo: bob,
+            pic: bob,
             bond: (BOND_AMOUNT_1E12 + 1).toString(),
             exitRate: EXIT_RATE_1.toString(),
         });
     });
 
     // check erc1820 registration
-    it("#3 CLOWNS registered with ERC1820", async () => {
+    it("#3 TOGA registered with ERC1820", async () => {
         assert.equal(
             await erc1820.getInterfaceImplementer(
-                clowns.address,
-                web3.utils.soliditySha3("CLOWNSv1")
+                toga.address,
+                web3.utils.soliditySha3("TOGAv1")
             ),
-            clowns.address
+            toga.address
         );
     });
 
     it("#4 enforce min exitRate limit", async () => {
         // lower limit: 0 wei/second (no negative value allowed)
         await expectRevert(
-            sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, -1),
-            "CLOWNS: negative exitRate not allowed"
+            sendPICBid(alice, superToken, BOND_AMOUNT_1E12, -1),
+            "TOGA: negative exitRate not allowed"
         );
 
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, 0);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);
         await assertNetFlow(superToken, alice, 0);
     });
 
@@ -238,30 +238,30 @@ describe("CLOWNS", function () {
         const maxRate = shouldMaxExitRate(bondAmount);
 
         await expectRevert(
-            sendCLOBid(alice, superToken, bondAmount, maxRate + 1),
-            "CLOWNS: exitRate too high"
+            sendPICBid(alice, superToken, bondAmount, maxRate + 1),
+            "TOGA: exitRate too high"
         );
 
         // exact upper limit
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, maxRate);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, maxRate);
         await assertNetFlow(superToken, alice, maxRate);
     });
 
     it("#6 max and default exitRate are calculated correctly", async () => {
         assert.equal(
             shouldMaxExitRate(BOND_AMOUNT_1E12).toString(),
-            await clowns.getMaxExitRateFor(superToken.address, BOND_AMOUNT_1E12)
+            await toga.getMaxExitRateFor(superToken.address, BOND_AMOUNT_1E12)
         );
 
         assert.equal(
             shouldMaxExitRate(BOND_AMOUNT_2E12).toString(),
-            await clowns.getMaxExitRateFor(superToken.address, BOND_AMOUNT_2E12)
+            await toga.getMaxExitRateFor(superToken.address, BOND_AMOUNT_2E12)
         );
 
         // the default exit rate needs to be equal or greater than the max exit rate
         assert(
             toBN(shouldMaxExitRate(BOND_AMOUNT_2E12)).gte(
-                await clowns.getDefaultExitRateFor(
+                await toga.getDefaultExitRateFor(
                     superToken.address,
                     BOND_AMOUNT_2E12
                 )
@@ -271,11 +271,11 @@ describe("CLOWNS", function () {
 
     // interpret missing exitRate as default (min) exitRate
     it("#7 use default (max) exitRate as fallback if no exitRate specified", async () => {
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12);
         await assertNetFlow(
             superToken,
             alice,
-            await clowns.getDefaultExitRateFor(
+            await toga.getDefaultExitRateFor(
                 superToken.address,
                 BOND_AMOUNT_1E12
             )
@@ -283,13 +283,13 @@ describe("CLOWNS", function () {
     });
 
     // enforce min bid limit
-    it("#8 cannot become CLO with smaller bond bid", async () => {
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_2E12);
+    it("#8 cannot become PIC with smaller bond bid", async () => {
+        await sendPICBid(alice, superToken, BOND_AMOUNT_2E12);
 
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         await expectRevert(
-            sendCLOBid(bob, superToken, BOND_AMOUNT_1E12),
-            "CLOWNS: bid too low"
+            sendPICBid(bob, superToken, BOND_AMOUNT_1E12),
+            "TOGA: bid too low"
         );
     });
 
@@ -314,22 +314,22 @@ describe("CLOWNS", function () {
         await collectRewards(superToken, 1e6, 1e6);
         // 1e6 token/s x 1e6 seconds = ~1e12 tokens collected in the contract
 
-        const clownsBal1 = await superToken.balanceOf(clowns.address);
-        console.log(`clowns bal pre close: ${clownsBal1.toString()}`);
+        const togaBal1 = await superToken.balanceOf(toga.address);
+        console.log(`toga bal pre close: ${togaBal1.toString()}`);
 
-        const clownsPrelimBal = await superToken.balanceOf(clowns.address);
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_2E12);
-        const aliceBond = (await clowns.getCurrentCLOInfo(superToken.address))
+        const togaPrelimBal = await superToken.balanceOf(toga.address);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_2E12);
+        const aliceBond = (await toga.getCurrentPICInfo(superToken.address))
             .remainingBond;
 
         // the tokens previously collected in the contract are attributed to Alice's bond
         assert.equal(
             aliceBond.toString(),
-            clownsPrelimBal.toNumber() + BOND_AMOUNT_2E12
+            togaPrelimBal.toNumber() + BOND_AMOUNT_2E12
         );
 
         const alicePreOutbidBal = await superToken.balanceOf(alice);
-        await sendCLOBid(bob, superToken, BOND_AMOUNT_10E12);
+        await sendPICBid(bob, superToken, BOND_AMOUNT_10E12);
 
         // the tokens previously collected are paid out to Alice if outbid
         assert.equal(
@@ -338,13 +338,13 @@ describe("CLOWNS", function () {
         );
     });
 
-    // let current CLO re-bid
+    // let current PIC re-bid
     it("#10 alice can outbid herself", async () => {
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12);
         const aliceIntermediateBal = await superToken.balanceOf(alice);
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12 + 1);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12 + 1);
 
-        assert.equal(await clowns.getCurrentCLO(superToken.address), alice);
+        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
         await assertNetFlow(
             superToken,
             alice,
@@ -358,83 +358,83 @@ describe("CLOWNS", function () {
 
     // changeFlowrate - respect limits
     it("#11 alice can change her exit rate - limits enforced", async () => {
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12);
 
         await expectRevert(
-            clowns.changeExitRate(superToken.address, EXIT_RATE_1, {
+            toga.changeExitRate(superToken.address, EXIT_RATE_1, {
                 from: bob,
             }),
-            "CLOWNS: only CLO allowed"
+            "TOGA: only PIC allowed"
         );
 
         // don't allow negative exitRate
         await expectRevert(
-            clowns.changeExitRate(superToken.address, -1, { from: alice }),
-            "CLOWNS: negative exitRate not allowed"
+            toga.changeExitRate(superToken.address, -1, { from: alice }),
+            "TOGA: negative exitRate not allowed"
         );
 
         // lower to 1 wad
-        const r = await clowns.changeExitRate(superToken.address, EXIT_RATE_1, {
+        const r = await toga.changeExitRate(superToken.address, EXIT_RATE_1, {
             from: alice,
         });
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
-        expectEvent.inTransaction(r.tx, clowns.contract, "ExitRateChanged", {
+        expectEvent.inTransaction(r.tx, toga.contract, "ExitRateChanged", {
             token: superToken.address,
             exitRate: EXIT_RATE_1.toString(),
         });
 
         // increase to 1000 wad
-        await clowns.changeExitRate(superToken.address, EXIT_RATE_1E3, {
+        await toga.changeExitRate(superToken.address, EXIT_RATE_1E3, {
             from: alice,
         });
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         // to 0
-        await clowns.changeExitRate(superToken.address, 0, { from: alice });
+        await toga.changeExitRate(superToken.address, 0, { from: alice });
         await assertNetFlow(superToken, alice, 0);
 
         const remainingBond = (
-            await clowns.getCurrentCLOInfo(superToken.address)
+            await toga.getCurrentPICInfo(superToken.address)
         ).remainingBond;
         console.log(`remaining bond ${remainingBond}`);
         // increase to currently allowed max
         const max1 = shouldMaxExitRate(remainingBond);
-        await clowns.changeExitRate(superToken.address, max1, { from: alice });
+        await toga.changeExitRate(superToken.address, max1, { from: alice });
         await assertNetFlow(superToken, alice, max1);
 
         // due to the exit flow, the remaining bond changes with every new block
         const max2 = shouldMaxExitRate(remainingBond);
         assert.equal(max1.toString(), max2.toString());
         await expectRevert(
-            clowns.changeExitRate(superToken.address, max2 + 1, {
+            toga.changeExitRate(superToken.address, max2 + 1, {
                 from: alice,
             }),
-            "CLOWNS: exitRate too high"
+            "TOGA: exitRate too high"
         );
     });
 
-    // CLO closes stream: nothing breaks - can reopen with changeFlowrate
+    // PIC closes stream: nothing breaks - can reopen with changeFlowrate
     it("#12 can recover from closed exit flow", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         await timeTravelOnce(1000);
         await t.sf.cfa.deleteFlow({
             superToken: superToken.address,
-            sender: clowns.address,
+            sender: toga.address,
             receiver: alice,
             by: alice,
         });
         await assertNetFlow(superToken, alice, 0);
 
         // 0 -> 0 (leave unchanged)
-        await clowns.changeExitRate(superToken.address, 0, { from: alice });
+        await toga.changeExitRate(superToken.address, 0, { from: alice });
         await assertNetFlow(superToken, alice, 0);
 
         // trigger re-opening
-        await clowns.changeExitRate(superToken.address, EXIT_RATE_1, {
+        await toga.changeExitRate(superToken.address, EXIT_RATE_1, {
             from: alice,
         });
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
@@ -443,34 +443,34 @@ describe("CLOWNS", function () {
         await timeTravelOnce(1000);
         await t.sf.cfa.deleteFlow({
             superToken: superToken.address,
-            sender: clowns.address,
+            sender: toga.address,
             receiver: alice,
             by: alice,
         });
         await assertNetFlow(superToken, alice, 0);
 
-        await sendCLOBid(bob, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
+        await sendPICBid(bob, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
         await assertNetFlow(superToken, alice, 0);
         await assertNetFlow(superToken, bob, EXIT_RATE_1E3);
     });
 
-    // collected rewards are added added to the CLO bond
-    it("#13 collected rewards are added added to the CLO bond", async () => {
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, 0);
+    // collected rewards are added added to the PIC bond
+    it("#13 collected rewards are added added to the PIC bond", async () => {
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);
 
         await collectRewards(superToken, 1e6, 1e6);
         // 1e6 token/s x 1e6 seconds = ~1e12 tokens collected in the contract
 
         assert.isTrue(
             (
-                await clowns.getCurrentCLOInfo(superToken.address)
+                await toga.getCurrentPICInfo(superToken.address)
             ).remainingBond.toNumber() >=
                 BOND_AMOUNT_1E12 + 1e12
         );
         // can't rely on that bcs the block timestamp is sometimes 1s higher
         /*
         assert.equal(
-            (await clowns.getCurrentCLOInfo(superToken.address)).remainingBond.toString(),
+            (await toga.getCurrentPICInfo(superToken.address)).remainingBond.toString(),
             (BOND_AMOUNT_1E12 + 1e12).toString()
         );
          */
@@ -480,51 +480,51 @@ describe("CLOWNS", function () {
     it("#14 bond is consumed by exit flow", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E6);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E6);
         await assertNetFlow(superToken, alice, EXIT_RATE_1E6);
 
         // critical stream is liquidated - remaining bond goes to zero
         await timeTravelOnce(1e6);
         await liquidateExitStream(superToken);
         await assertNetFlow(superToken, alice, 0);
-        await assertNetFlow(superToken, clowns.address, 0);
+        await assertNetFlow(superToken, toga.address, 0);
 
-        const remB = (await clowns.getCurrentCLOInfo(superToken.address))
+        const remB = (await toga.getCurrentPICInfo(superToken.address))
             .remainingBond;
         assert.equal(remB.toString(), "0"); // remaining deposit is taken
 
         // alice tries to re-establish stream - fail because no bond left
         await expectRevert(
-            clowns.changeExitRate(superToken.address, EXIT_RATE_1, {
+            toga.changeExitRate(superToken.address, EXIT_RATE_1, {
                 from: alice,
             }),
-            "CLOWNS: exitRate too high"
+            "TOGA: exitRate too high"
         );
 
         // more rewards, alice can re-establish stream
         await collectRewards(superToken, 1e9, 1e3);
         assert.isTrue(
             (
-                await clowns.getCurrentCLOInfo(superToken.address)
+                await toga.getCurrentPICInfo(superToken.address)
             ).remainingBond.toNumber() >= 1e12
         );
 
-        await clowns.changeExitRate(superToken.address, EXIT_RATE_1E3, {
+        await toga.changeExitRate(superToken.address, EXIT_RATE_1E3, {
             from: alice,
         });
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         const alicePreBal = await superToken.balanceOf(alice);
         const aliceBondLeft = (
-            await clowns.getCurrentCLOInfo(superToken.address)
+            await toga.getCurrentPICInfo(superToken.address)
         ).remainingBond;
 
         // bob outbids
         await expectRevert(
-            sendCLOBid(bob, superToken, 1, 0),
-            "CLOWNS: bid too low"
+            sendPICBid(bob, superToken, 1, 0),
+            "TOGA: bid too low"
         );
-        await sendCLOBid(bob, superToken, BOND_AMOUNT_2E12, EXIT_RATE_1E6);
+        await sendPICBid(bob, superToken, BOND_AMOUNT_2E12, EXIT_RATE_1E6);
         await assertNetFlow(superToken, alice, 0);
         await assertNetFlow(superToken, bob, EXIT_RATE_1E6);
 
@@ -538,24 +538,24 @@ describe("CLOWNS", function () {
 
         // this triggers stream closing by the contract - since already insolvent, the full deposit amount
         // is rewarded to the closing account which is the contract. Thus ends up with a non-zero balance
-        await clowns.changeExitRate(superToken.address, 0, { from: bob });
-        const cloInfo = await clowns.getCurrentCLOInfo(superToken.address);
-        console.log(`cloInfo ${JSON.stringify(cloInfo, null, 2)}`);
-        console.log(`remainingBond: ${cloInfo.remainingBond}`);
+        await toga.changeExitRate(superToken.address, 0, { from: bob });
+        const picInfo = await toga.getCurrentPICInfo(superToken.address);
+        console.log(`picInfo ${JSON.stringify(picInfo, null, 2)}`);
+        console.log(`remainingBond: ${picInfo.remainingBond}`);
         // TODO: why is there an overflow or underflow (-2^32) here?
 
         /*
-        const { clo, remainingBond, exitRate } = await clowns.getCurrentCLOInfo(
+        const { pic, remainingBond, exitRate } = await toga.getCurrentPICInfo(
             superToken.address
         );
-        const remBond = (await clowns.getCurrentCLOInfo(superToken.address))
+        const remBond = (await toga.getCurrentPICInfo(superToken.address))
             .remainingBond;
-        console.log(`remBond: ${remBond}, cloRemBond ${remainingBond.toString()}, exitRate: ${exitRate}`);
+        console.log(`remBond: ${remBond}, picRemBond ${remainingBond.toString()}, exitRate: ${exitRate}`);
          */
 
         console.log(
-            `clowns balance: ${JSON.stringify(
-                await superToken.realtimeBalanceOfNow(clowns.address),
+            `toga balance: ${JSON.stringify(
+                await superToken.realtimeBalanceOfNow(toga.address),
                 null,
                 2
             )}`
@@ -566,17 +566,17 @@ describe("CLOWNS", function () {
 
         /*
         assert.equal(
-            (await clowns.getCurrentCLOInfo(superToken.address)).remainingBond.toString(),
+            (await toga.getCurrentPICInfo(superToken.address)).remainingBond.toString(),
             "0"
         );
          */
 
         // alice can place a successful bid of 1 wad - NOT
-        //await sendCLOBid(alice, superToken, 1, 0);
+        //await sendPICBid(alice, superToken, 1, 0);
     });
 
     // multiple tokens
-    it("#15 multiple CLOs (one per token) in parallel", async () => {
+    it("#15 multiple PICs (one per token) in parallel", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         const superToken2 = (
             await t.deployNewToken("TEST2", {
@@ -585,19 +585,19 @@ describe("CLOWNS", function () {
             })
         ).superToken;
 
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
-        await sendCLOBid(bob, superToken2, BOND_AMOUNT_2E12, EXIT_RATE_1);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
+        await sendPICBid(bob, superToken2, BOND_AMOUNT_2E12, EXIT_RATE_1);
 
-        assert.equal(await clowns.getCurrentCLO(superToken.address), alice);
-        assert.equal(await clowns.getCurrentCLO(superToken2.address), bob);
+        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
+        assert.equal(await toga.getCurrentPIC(superToken2.address), bob);
 
         await expectRevert(
-            clowns.changeExitRate(superToken2.address, 0, { from: alice }),
-            "CLOWNS: only CLO allowed"
+            toga.changeExitRate(superToken2.address, 0, { from: alice }),
+            "TOGA: only PIC allowed"
         );
         await expectRevert(
-            clowns.changeExitRate(superToken.address, 0, { from: bob }),
-            "CLOWNS: only CLO allowed"
+            toga.changeExitRate(superToken.address, 0, { from: bob }),
+            "TOGA: only PIC allowed"
         );
 
         // let this run for a while...
@@ -606,15 +606,15 @@ describe("CLOWNS", function () {
         // alice takes over superToken2
         const bobPreBal = await superToken2.balanceOf(bob);
         const bobBondLeft = (
-            await clowns.getCurrentCLOInfo(superToken2.address)
+            await toga.getCurrentPICInfo(superToken2.address)
         ).remainingBond;
 
         await expectRevert(
-            sendCLOBid(alice, superToken2, BOND_AMOUNT_1E12, EXIT_RATE_1),
-            "CLOWNS: bid too low"
+            sendPICBid(alice, superToken2, BOND_AMOUNT_1E12, EXIT_RATE_1),
+            "TOGA: bid too low"
         );
 
-        await sendCLOBid(alice, superToken2, BOND_AMOUNT_10E12, EXIT_RATE_1E3);
+        await sendPICBid(alice, superToken2, BOND_AMOUNT_10E12, EXIT_RATE_1E3);
 
         assert.equal(
             bobPreBal.add(bobBondLeft).toString(),
@@ -622,16 +622,16 @@ describe("CLOWNS", function () {
         );
     });
 
-    it("#16 CLO can outbid themselves", async () => {
+    it("#16 PIC can outbid themselves", async () => {
         const alicePreBal = await superToken.balanceOf(alice);
 
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1E3);
         await timeTravelOnce(1e6);
-        await sendCLOBid(alice, superToken, BOND_AMOUNT_2E12, 0);
-        assert.equal(await clowns.getCurrentCLO(superToken.address), alice);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_2E12, 0);
+        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
 
         const remainingBond = (
-            await clowns.getCurrentCLOInfo(superToken.address)
+            await toga.getCurrentPICInfo(superToken.address)
         ).remainingBond;
         assert.equal(remainingBond.toString(), BOND_AMOUNT_2E12.toString());
 

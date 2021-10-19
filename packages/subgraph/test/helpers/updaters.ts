@@ -92,18 +92,17 @@ export const getExpectedATSForCFAEvent = async (
         isSender === true
             ? outflowRate.toString()
             : currentATS.totalOutflowRate;
-    const totalAmountStreamedUntilUpdatedAt =
-        isSender === true
-            ? toBN(currentATS.totalAmountStreamedUntilUpdatedAt)
-                  .add(
-                      toBN(currentATS.totalOutflowRate).mul(
-                          toBN(updatedAtTimestamp).sub(
-                              toBN(currentATS.updatedAtTimestamp)
-                          )
-                      )
-                  )
-                  .toString()
-            : currentATS.totalAmountStreamedUntilUpdatedAt;
+    const totalAmountStreamedUntilUpdatedAt = toBN(
+        currentATS.totalAmountStreamedUntilUpdatedAt
+    )
+        .add(
+            toBN(currentATS.totalOutflowRate).mul(
+                toBN(updatedAtTimestamp).sub(
+                    toBN(currentATS.updatedAtTimestamp)
+                )
+            )
+        )
+        .toString();
     return {
         ...currentATS,
         updatedAtBlockNumber,

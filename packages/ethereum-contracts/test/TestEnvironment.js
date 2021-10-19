@@ -193,7 +193,7 @@ module.exports = class TestEnvironment {
                 await this.mintTestTokensAndApprove("TEST", {
                     isTruffle,
                     web3,
-                    accounts: allAccounts.slice(0, MAX_TEST_ACCOUNTS),
+                    accounts: allAccounts.slice(0, nAccounts),
                 });
                 await this.pushEvmSnapshot();
             }

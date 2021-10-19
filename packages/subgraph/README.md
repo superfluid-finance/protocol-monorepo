@@ -107,6 +107,8 @@ fi
 docker-compose up;
 ```
 
+Also change line 20 in the `docker-compose.yml` to `ethereum: 'mainnet:http://host.docker.internal:8545'`.
+
 Then run `chmod +x setup_graph.sh`, this makes the shell script executable.
 Open another terminal window and run `./setup_graph.sh` and your local graph will start booting up.
 
@@ -161,11 +163,14 @@ Once the contracts and token have been deployed, you can run the following one l
 
 ```bash
 # To build and deploy the Subgraph in a single line:
-yarn prepare-local && yarn getAbi && yarn codegen && yarn create-local && yarn deploy-local
+yarn prepare-local && yarn set-network-local && yarn getAbi && yarn codegen && yarn create-local && yarn deploy-local
 
 # Step by step
-# Generate "subgraph.yaml" using the template
+# Generate `subgraph.yaml` using the test-subgraph.template.yaml
 yarn prepare-local
+
+# Generate `addresses.ts` using the addresses.template.ts file
+yarn set-network-local
 
 # Get the ABIs
 yarn getAbi

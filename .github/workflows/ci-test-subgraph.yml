@@ -41,10 +41,6 @@ jobs:
         run: docker-compose up &
         working-directory: ./graph-node/docker
 
-      - name: "Run ganache-cli node"
-        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
-        working-directory: ${{ env.subgraph-working-directory }}
-
       - name: Install node
         uses: actions/setup-node@v2
         with:
@@ -52,6 +48,10 @@ jobs:
       
       - name: "Install yarn"
         run: npm install -g yarn ganache-cli
+
+      - name: "Run ganache-cli node"
+        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Install contract dependencies"
         run: yarn install

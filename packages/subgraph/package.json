@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "0.0.2",
+    "version": "1.0.0",
     "description": "Subgraph for the Superfluid Ethereum contracts",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": "github:superfluid-finance/protocol-monorepo",
@@ -14,7 +14,7 @@
         "set-network-local": "mustache config/ganache.json src/addresses.template.ts > src/addresses.ts",
         "create-local": "graph create superfluid-test --node http://localhost:8020/",
         "remove-local": "graph remove superfluid-test --node http://localhost:8020/",
-        "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v0.0.1",
+        "deploy-local": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v1.0.0",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
         "deploy": "graph deploy $SUBGRAPH_NAME --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs --access-token $THEGRAPH_ACCESS_TOKEN",
         "deploy:feature": "run-s deploy:feature:*",

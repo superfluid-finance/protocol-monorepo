@@ -1,13 +1,21 @@
 import { ethers } from "hardhat";
+import _ from "lodash";
 import { toBN } from "../test/helpers/helpers";
 import maticAddresses from "../config/matic.json";
 import cfaABI from "../abis/IConstantFlowAgreementV1.json";
 import idaABI from "../abis/IInstantDistributionAgreementV1.json";
 import {
     getIndexes,
+    getStreams,
     getSubscriptions,
 } from "../test/queries/dataIntegrityQueries";
-import { IDataIntegrityIndex, IDataIntegritySubscription } from "./interfaces";
+import {
+    IBaseEntity,
+    IDataIntegrityAccountTokenSnapshot,
+    IDataIntegrityIndex,
+    IDataIntegrityStream,
+    IDataIntegritySubscription,
+} from "./interfaces";
 import { chainIdToData } from "./maps";
 import { ConstantFlowAgreementV1 } from "../typechain/ConstantFlowAgreementV1";
 import { InstantDistributionAgreementV1 } from "../typechain/InstantDistributionAgreementV1";
@@ -61,12 +69,12 @@ function chunkPromises(promises: Promise<void>[], chunkLength: number) {
  * @dev Gets all the results from the graph, we need this function
  * due to the 1,000 item limitation imposed by the
  */
-async function getAllResults<T>(
+async function getAllResults<T extends IBaseEntity>(
     query: string,
     endpoint: string,
     blockNumber: number,
     resultsPerPage: number,
-    counter: number
+    createdAtTimestamp: number = 0
 ): Promise<T[]> {
     const initialResults = await subgraphRequest<{ response: T[] }>(
         query,
@@ -74,13 +82,16 @@ async function getAllResults<T>(
         {
             blockNumber,
             first: resultsPerPage,
-            skip: resultsPerPage * counter,
+            createdAt: createdAtTimestamp,
         }
     );
 
     if (initialResults.response.length < resultsPerPage) {
         return initialResults.response;
     }
+    let newCreatedAtTimestamp =
+        initialResults.response[initialResults.response.length - 1]
+            .createdAtTimestamp;
 
     return [
         ...initialResults.response,
@@ -89,7 +100,7 @@ async function getAllResults<T>(
             endpoint,
             blockNumber,
             resultsPerPage,
-            counter + 1
+            Number(newCreatedAtTimestamp)
         )) as T[]),
     ];
 }
@@ -121,19 +132,97 @@ async function main() {
         maticAddresses.idaAddress
     )) as InstantDistributionAgreementV1;
 
+    async function validateNetFlowRate(
+        ats: IDataIntegrityAccountTokenSnapshot
+    ) {
+        const netFlowRate = await cfaV1.getNetFlow(
+            ats.token.id,
+            ats.account.id
+        );
+        const netFlowRateShouldMatch = netFlowRate.eq(
+            toBN(ats.totalNetFlowRate)
+        );
+        if (!netFlowRateShouldMatch) {
+            throw new Error(
+                "Values don't match. \n Subgraph Net Flow Rate: " +
+                    ats.totalNetFlowRate +
+                    "\n Contract Data Net Flow Rate: " +
+                    netFlowRate.toString()
+            );
+        }
+    }
+
+    const streams = await getAllResults<IDataIntegrityStream>(
+        getStreams,
+        chainIdData.subgraphAPIEndpoint,
+        currentBlockNumber,
+        1000
+    );
+    const uniqueStreams = _.uniqBy(
+        streams,
+        (x) => x.createdAtTimestamp + x.sender.id + x.receiver.id + x.token.id
+    );
+    const accountTokenSnapshots = _.uniqBy(
+        uniqueStreams
+            .map((x) => [
+                ...x.sender.accountTokenSnapshots,
+                ...x.receiver.accountTokenSnapshots,
+            ])
+            .flat(),
+        (x) => x.account.id + x.token.id
+    );
+
     const indexes = await getAllResults<IDataIntegrityIndex>(
         getIndexes,
         chainIdData.subgraphAPIEndpoint,
         currentBlockNumber,
-        1000,
-        0
+        1000
     );
     const subscriptions = await getAllResults<IDataIntegritySubscription>(
         getSubscriptions,
         chainIdData.subgraphAPIEndpoint,
         currentBlockNumber,
-        1000,
-        0
+        1000
+    );
+
+    const streamPromises = uniqueStreams.map(async (x) => {
+        const stream = x;
+        try {
+            const token = ethers.utils.getAddress(stream.token.id);
+            const sender = ethers.utils.getAddress(stream.sender.id);
+            const receiver = ethers.utils.getAddress(stream.receiver.id);
+            const [updatedAtTimestamp, flowRate] = await cfaV1.getFlow(
+                token,
+                sender,
+                receiver
+            );
+            const updatedAtShouldMatch = updatedAtTimestamp.eq(
+                toBN(stream.updatedAtTimestamp)
+            );
+            const flowRateShouldMatch = flowRate.eq(
+                toBN(stream.currentFlowRate)
+            );
+            const compareStream = {
+                updatedAtTimestamp: stream.updatedAtTimestamp,
+                currentFlowRate: stream.currentFlowRate,
+            };
+            if (!updatedAtShouldMatch || !flowRateShouldMatch) {
+                throw new Error(
+                    "Values don't match. \n Subgraph Stream: " +
+                        JSON.stringify(compareStream) +
+                        "\n Contract Data \n Updated At Timestamp: " +
+                        updatedAtTimestamp.toString() +
+                        " \n Flow Rate: " +
+                        flowRate.toString()
+                );
+            }
+        } catch (err) {
+            console.error("Error: ", err);
+        }
+    });
+
+    const accountTokenSnapshotPromises = accountTokenSnapshots.map(async (x) =>
+        validateNetFlowRate(x)
     );
 
     const indexPromises = indexes.map(async (x) => {
@@ -237,12 +326,19 @@ async function main() {
             console.error("Error: ", error);
         }
     });
-
+    const chunkedStreamPromises = chunkPromises(streamPromises, 100);
     const chunkedIndexPromises = chunkPromises(indexPromises, 100);
     const chunkedSubscriptionPromises = chunkPromises(
         subscriptionPromises,
         100
     );
+    const chunkedATSPromises = chunkPromises(accountTokenSnapshotPromises, 100);
+    console.log("Stream Tests Starting...");
+    console.log("Validating " + streamPromises.length + " streams.");
+    for (let i = 0; i < chunkedStreamPromises.length; i++) {
+        await Promise.all(chunkedStreamPromises[i]);
+    }
+    console.log("Stream Tests Successful!");
     console.log("Index Tests Starting...");
     console.log("Validating " + indexPromises.length + " indexes.");
     for (let i = 0; i < chunkedIndexPromises.length; i++) {
@@ -257,6 +353,16 @@ async function main() {
         await Promise.all(chunkedSubscriptionPromises[i]);
     }
     console.log("Subscription Tests Successful!");
+    console.log("Account Token Snapshot Tests Starting...");
+    console.log(
+        "Validating " +
+            accountTokenSnapshotPromises.length +
+            " account token snapshots."
+    );
+    for (let i = 0; i < chunkedATSPromises.length; i++) {
+        await Promise.all(chunkedATSPromises[i]);
+    }
+    console.log("Account Token Snapshot Tests Successful!");
 }
 
 main()

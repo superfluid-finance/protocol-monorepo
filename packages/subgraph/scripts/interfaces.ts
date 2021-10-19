@@ -1,15 +1,23 @@
 import { ILightEntity } from "../test/interfaces";
 
-export interface IDataIntegrityStream {
+export interface IBaseEntity {
     readonly id: string;
-    readonly currentFlowRate: string;
-    readonly token: ILightEntity;
-    readonly sender: ILightEntity;
-    readonly receiver: ILightEntity;
+    readonly createdAtTimestamp: string;
 }
 
-export interface IDataIntegrityIndex {
-    readonly id: string;
+export interface ILightStreamAccount extends ILightEntity {
+    readonly accountTokenSnapshots: IDataIntegrityAccountTokenSnapshot[];
+}
+
+export interface IDataIntegrityStream extends IBaseEntity {
+    readonly updatedAtTimestamp: string;
+    readonly currentFlowRate: string;
+    readonly token: ILightEntity;
+    readonly sender: ILightStreamAccount;
+    readonly receiver: ILightStreamAccount;
+}
+
+export interface IDataIntegrityIndex extends IBaseEntity {
     readonly indexId: string;
     readonly indexValue: string;
     readonly totalUnitsPending: string;
@@ -19,8 +27,7 @@ export interface IDataIntegrityIndex {
     readonly publisher: ILightEntity;
 }
 
-export interface IDataIntegritySubscription {
-    readonly id: string;
+export interface IDataIntegritySubscription extends IBaseEntity {
     readonly approved: boolean;
     readonly units: string;
     readonly indexValueUntilUpdatedAt: string;
@@ -31,4 +38,10 @@ export interface IDataIntegritySubscription {
         readonly token: ILightEntity;
         readonly publisher: ILightEntity;
     };
+}
+
+export interface IDataIntegrityAccountTokenSnapshot {
+    readonly totalNetFlowRate: string;
+    readonly token: ILightEntity;
+    readonly account: ILightEntity;
 }

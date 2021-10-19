@@ -62,6 +62,7 @@
         "@nomiclabs/hardhat-waffle": "^2.0.1",
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@types/chai": "^4.2.21",
+        "@types/lodash": "^4.14.175",
         "@types/mocha": "^9.0.0",
         "@types/node": "^16.9.1",
         "chai": "^4.3.4",
@@ -70,7 +71,8 @@
         "ethers": "^5.4.6",
         "graphql": "^15.5.3",
         "graphql-request": "^3.5.0",
-        "hardhat": "^2.6.4"
+        "hardhat": "^2.6.4",
+        "lodash": "^4.17.21"
     },
     "workspaces": {
         "nohoist": [

@@ -1,0 +1,30 @@
+{
+    "name": "@superfluid-finance/core-sdk",
+    "version": "1.0.0",
+    "description": "Core SDK for building with Superfluid Protocol",
+    "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/core-sdk#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
+    },
+    "license": "MIT",
+    "main": "bundle.js",
+    "types": "src/index.d.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "bugs": {
+        "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
+    },
+    "dependencies": {
+        "ethers": "^5.4.7",
+        "graphql": "^15.6.1",
+        "graphql-request": "^3.6.1"
+    },
+    "devDependencies": {
+        "@rollup/plugin-typescript": "^8.3.0",
+        "hardhat": "^2.6.6",
+        "rollup": "^2.58.0",
+        "typescript": "^4.4.4"
+    }
+}

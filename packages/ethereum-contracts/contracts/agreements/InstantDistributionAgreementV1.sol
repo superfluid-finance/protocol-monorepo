@@ -793,6 +793,9 @@ contract InstantDistributionAgreementV1 is
             token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
             token.settleBalance(subscriber, int256(pendingDistribution));
 
+            emit IndexDistributionClaimed(token, publisher, indexId, subscriber, pendingDistribution);
+            emit SubscriptionDistributionClaimed(token, subscriber, publisher, indexId, pendingDistribution);
+
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
             AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
         } else {

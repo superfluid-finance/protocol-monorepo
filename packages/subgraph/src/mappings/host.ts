@@ -1,4 +1,13 @@
 import {
+    AgreementClassRegisteredEvent,
+    AgreementClassUpdatedEvent,
+    AppRegisteredEvent,
+    GovernanceReplacedEvent,
+    JailEvent,
+    SuperTokenFactoryUpdatedEvent,
+    SuperTokenLogicUpdatedEvent,
+} from "../../generated/schema";
+import {
     AgreementClassRegistered,
     AgreementClassUpdated,
     AppRegistered,
@@ -6,20 +15,11 @@ import {
     Jail,
     SuperTokenFactoryUpdated,
     SuperTokenLogicUpdated,
-} from "../../generated/schema";
-import {
-    AgreementClassRegistered as AgreementClassRegisteredEvent,
-    AgreementClassUpdated as AgreementClassUpdatedEvent,
-    AppRegistered as AppRegisteredEvent,
-    GovernanceReplaced as GovernanceReplacedEvent,
-    Jail as JailEvent,
-    SuperTokenFactoryUpdated as SuperTokenFactoryUpdatedEvent,
-    SuperTokenLogicUpdated as SuperTokenLogicUpdatedEvent,
 } from "../../generated/Host/ISuperfluid";
 import { createEventID } from "../utils";
 
-export function handleGovernanceReplaced(event: GovernanceReplacedEvent): void {
-    let ev = new GovernanceReplaced(createEventID(event));
+export function handleGovernanceReplaced(event: GovernanceReplaced): void {
+    let ev = new GovernanceReplacedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -29,9 +29,9 @@ export function handleGovernanceReplaced(event: GovernanceReplacedEvent): void {
 }
 
 export function handleAgreementClassRegistered(
-    event: AgreementClassRegisteredEvent
+    event: AgreementClassRegistered
 ): void {
-    let ev = new AgreementClassRegistered(createEventID(event));
+    let ev = new AgreementClassRegisteredEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -41,9 +41,9 @@ export function handleAgreementClassRegistered(
 }
 
 export function handleAgreementClassUpdated(
-    event: AgreementClassUpdatedEvent
+    event: AgreementClassUpdated
 ): void {
-    let ev = new AgreementClassUpdated(createEventID(event));
+    let ev = new AgreementClassUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -53,9 +53,9 @@ export function handleAgreementClassUpdated(
 }
 
 export function handleSuperTokenFactoryUpdated(
-    event: SuperTokenFactoryUpdatedEvent
+    event: SuperTokenFactoryUpdated
 ): void {
-    let ev = new SuperTokenFactoryUpdated(createEventID(event));
+    let ev = new SuperTokenFactoryUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -64,9 +64,9 @@ export function handleSuperTokenFactoryUpdated(
 }
 
 export function handleSuperTokenLogicUpdated(
-    event: SuperTokenLogicUpdatedEvent
+    event: SuperTokenLogicUpdated
 ): void {
-    let ev = new SuperTokenLogicUpdated(createEventID(event));
+    let ev = new SuperTokenLogicUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -75,8 +75,8 @@ export function handleSuperTokenLogicUpdated(
     ev.save();
 }
 
-export function handleAppRegistered(event: AppRegisteredEvent): void {
-    let ev = new AppRegistered(createEventID(event));
+export function handleAppRegistered(event: AppRegistered): void {
+    let ev = new AppRegisteredEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -84,8 +84,8 @@ export function handleAppRegistered(event: AppRegisteredEvent): void {
     ev.save();
 }
 
-export function handleJail(event: JailEvent): void {
-    let ev = new Jail(createEventID(event));
+export function handleJail(event: Jail): void {
+    let ev = new JailEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;

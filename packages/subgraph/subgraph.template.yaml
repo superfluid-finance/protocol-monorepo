@@ -1,5 +1,5 @@
-specVersion: 0.0.2
-description: Super Tokens and Agreements (CFA, IDA) on the {{network}} network.
+specVersion: 0.0.3
+description: Super Tokens and Agreements (CFA, IDA) on the {{ network }} network.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
     file: ./schema.graphql
@@ -17,17 +17,20 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
-              - CustomSuperTokenCreated
-              - SuperTokenCreated
-              - SuperTokenLogicCreated
+              - CustomSuperTokenCreatedEvent
+              - SuperTokenCreatedEvent
+              - SuperTokenLogicCreatedEvent
               - Token
               - TokenStatistic
-              - Transaction
           abis:
+              - name: TestResolver
+                file: ./abis/TestResolver.json
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
@@ -48,14 +51,13 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/host.ts
           entities:
-              - Transaction
-              - GovernanceReplaced
-              - AgreementClassRegistered
-              - AgreementClassUpdated
-              - SuperTokenFactoryUpdated
-              - SuperTokenLogicUpdated
-              - AppRegistered
-              - Jail
+              - AgreementClassRegisteredEvent
+              - AgreementClassUpdatedEvent
+              - AppRegisteredEvent
+              - GovernanceReplacedEvent
+              - JailEvent
+              - SuperTokenFactoryUpdatedEvent
+              - SuperTokenLogicUpdatedEvent
           abis:
               - name: ISuperfluid
                 file: ./abis/ISuperfluid.json
@@ -89,16 +91,19 @@ dataSources:
           entities:
               - Account
               - AccountTokenSnapshot
-              - FlowUpdated
+              - FlowUpdatedEvent
               - Stream
               - StreamRevision
               - TokenStatistic
-              - Transaction
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
+              - name: TestResolver
+                file: ./abis/TestResolver.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleStreamUpdated
@@ -118,25 +123,37 @@ dataSources:
           - Account
           - AccountTokenSnapshot
           - Index
-          - IndexCreated
-          - IndexUpdated
+          - IndexCreatedEvent
+          - IndexUpdatedEvent
+          - IndexSubscription
+          - IndexSubscribedEvent
+          - IndexUnitsUpdatedEvent
+          - IndexUnsubscribedEvent
           - Token
           - TokenStatistic
-          - Transaction
-          - Subscriber
-          - SubscriptionApproved
-          - SubscriptionRevoked
-          - SubscriptionUnitsUpdated
+          - SubscriptionApprovedEvent
+          - SubscriptionRevokedEvent
+          - SubscriptionUnitsUpdatedEvent
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
+          - name: TestResolver
+            file: ./abis/TestResolver.json
           - name: ISuperToken
             file: ./abis/ISuperToken.json
+          - name: ISuperfluid
+            file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
             handler: handleIndexUpdated
+          - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
+            handler: handleIndexSubscribed
+          - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
+            handler: handleIndexUnitsUpdated
+          - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
+            handler: handleIndexUnsubscribed
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
@@ -156,11 +173,10 @@ dataSources:
         language: wasm/assemblyscript
         file: ./src/mappings/superfluidGovernance.ts
         entities:
-          - Transaction
-          - ConfigChanged
-          - RewardAddressChanged
-          - CFAv1LiquidationPeriodChanged
-          - TrustedForwarderChanged
+          - ConfigChangedEvent
+          - CFAv1LiquidationPeriodChangedEvent
+          - RewardAddressChangedEvent
+          - TrustedForwarderChangedEvent
         abis:
           - name: SuperfluidGovernanceBase
             file: ./abis/SuperfluidGovernanceBase.json
@@ -173,6 +189,32 @@ dataSources:
             handler: handleCFAv1LiquidationPeriodChanged
           - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
             handler: handleTrustedForwarderChanged
+    - kind: ethereum/contract
+      name: ResolverV1
+      network: {{ network }}
+      source:
+        address: "{{ resolverV1Address }}"
+        abi: TestResolver
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.4
+        language: wasm/assemblyscript
+        file: ./src/mappings/resolver.ts
+        entities:
+          - RoleAdminChangedEvent
+          - RoleGrantedEvent
+          - RoleRevokedEvent
+        abis:
+          - name: TestResolver
+            file: ./abis/TestResolver.json
+        eventHandlers:
+          - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+            handler: handleRoleAdminChanged
+          - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+            handler: handleRoleGranted
+          - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+            handler: handleRoleRevoked
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -187,17 +229,31 @@ templates:
       entities:
         - Account
         - AccountTokenSnapshot
-        - AgreementLiquidatedBy
-        - TokenDowngraded
-        - TokenUpgraded
-        - Transaction
-        - Transfer
+        - AgreementLiquidatedByEvent
+        - BurnedEvent
+        - MintedEvent
+        - SentEvent
+        - Token
+        - TokenDowngradedEvent
+        - TokenUpgradedEvent
+        - TokenStatistic
+        - TransferEvent
       abis:
+        - name: TestResolver
+          file: ./abis/TestResolver.json
         - name: ISuperToken
           file: ./abis/ISuperToken.json
+        - name: ISuperfluid
+          file: ./abis/ISuperfluid.json
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleAgreementLiquidatedBy
+        - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
+          handler: handleBurned
+        - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
+          handler: handleMinted
+        - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
+          handler: handleSent
         - event: TokenUpgraded(indexed address,uint256)
           handler: handleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)

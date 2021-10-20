@@ -112,6 +112,13 @@ const getIndexEventsMap = (index: IIndex, events: IIDAEvents) => {
             },
         ],
         [
+            IDAEventType.IndexDistributionClaimed,
+            {
+                event: events.IndexDistributionClaimedEvent,
+                events: index.indexDistributionClaimedEvents,
+            },
+        ],
+        [
             IDAEventType.IndexSubscribed,
             {
                 event: events.IndexSubscribedEvent,
@@ -148,6 +155,13 @@ const getSubscriptionEventsMap = (
             {
                 event: events.SubscriptionApprovedEvent,
                 events: indexSubscription.subscriptionApprovedEvents,
+            },
+        ],
+        [
+            IDAEventType.SubscriptionDistributionClaimed,
+            {
+                event: events.SubscriptionDistributionClaimedEvent,
+                events: indexSubscription.subscriptionDistributionClaimedEvents,
             },
         ],
         [

@@ -81,6 +81,21 @@ type IndexCreatedEvent implements Event @entity {
     index: Index!
 }
 
+type IndexDistributionClaimedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    subscriber: Bytes!
+    amount: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
 type IndexUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
@@ -158,6 +173,21 @@ type SubscriptionApprovedEvent implements Event @entity {
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    subscription: IndexSubscription!
+}
+
+type SubscriptionDistributionClaimedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    subscriber: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    amount: BigInt!
 
     # ---------------------------------- links ----------------------------------
     subscription: IndexSubscription!
@@ -554,6 +584,9 @@ type Index @entity {
     """
     indexCreatedEvent: IndexCreatedEvent!
 
+    indexDistributionClaimedEvents: [IndexDistributionClaimedEvent!]!
+        @derivedFrom(field: "index")
+
     indexUpdatedEvents: [IndexUpdatedEvent!]! @derivedFrom(field: "index")
     indexSubscribedEvents: [IndexSubscribedEvent!]! @derivedFrom(field: "index")
     indexUnitsUpdatedEvents: [IndexUnitsUpdatedEvent!]!
@@ -609,6 +642,9 @@ type IndexSubscription @entity {
     IndexSubscription approved events on the subscription.
     """
     subscriptionApprovedEvents: [SubscriptionApprovedEvent!]!
+        @derivedFrom(field: "subscription")
+
+    subscriptionDistributionClaimedEvents: [SubscriptionDistributionClaimedEvent!]!
         @derivedFrom(field: "subscription")
 
     subscriptionRevokedEvents: [SubscriptionRevokedEvent!]!

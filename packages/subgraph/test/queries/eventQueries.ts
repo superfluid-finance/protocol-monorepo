@@ -42,6 +42,27 @@ export const getIndexCreatedEvents = gql`
         }
     }
 `;
+
+export const getIndexDistributionClaimedEvents = gql`
+    query getIndexDistributionClaimedEvents($transactionHash: Bytes!) {
+        response: indexDistributionClaimedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            transactionHash
+            blockNumber
+            token
+            publisher
+            indexId
+            subscriber
+            amount
+            index {
+                id
+            }
+        }
+    }
+`;
+
 export const getIndexUpdatedEvents = gql`
     query getIndexUpdatedEvents($transactionHash: Bytes!) {
         response: indexUpdatedEvents(
@@ -142,6 +163,26 @@ export const getSubscriptionApprovedEvents = gql`
             publisher
             indexId
             userData
+        }
+    }
+`;
+
+export const getSubscriptionDistributionClaimedEvents = gql`
+    query getSubscriptionDistributionClaimedEvents($transactionHash: Bytes!) {
+        response: subscriptionDistributionClaimedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            transactionHash
+            blockNumber
+            token
+            subscriber
+            publisher
+            indexId
+            amount
+            subscription {
+                id
+            }
         }
     }
 `;

@@ -86,11 +86,11 @@ function handleStreamPeriodUpdate(
                 throw "Previous StreamPeriod not found for flow terminate action";
             }
             endStreamPeriod(
-                previousStreamPeriod as StreamPeriod, // is casting okay here?
+                previousStreamPeriod as StreamPeriod,
                 event,
+                streamRevision,
                 previousFlowRate
             );
-            incrementPeriodRevisionIndex(streamRevision);
             startStreamPeriod(event, streamRevision, stream.id);
             break;
         case FlowActionType.terminate:
@@ -98,8 +98,9 @@ function handleStreamPeriodUpdate(
                 throw "Previous StreamPeriod not found for flow terminate action";
             }
             endStreamPeriod(
-                previousStreamPeriod as StreamPeriod, // is casting okay here?
+                previousStreamPeriod as StreamPeriod,
                 event,
+                streamRevision,
                 previousFlowRate
             );
             break;
@@ -133,6 +134,7 @@ function startStreamPeriod(
 function endStreamPeriod(
     existingStreamPeriod: StreamPeriod,
     event: FlowUpdated,
+    streamRevision: StreamRevision,
     flowRateBeforeUpdate: BigInt
 ): void {
     let streamStopTime = event.block.timestamp;
@@ -142,6 +144,7 @@ function endStreamPeriod(
     );
     existingStreamPeriod.streamClosingTxHash = event.transaction.hash;
     existingStreamPeriod.save();
+    incrementPeriodRevisionIndex(streamRevision);
 }
 
 export function handleStreamUpdated(event: FlowUpdated): void {

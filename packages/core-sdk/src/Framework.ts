@@ -4,10 +4,12 @@ import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
-} from "./helpers";
+} from "./frameworkHelpers";
+import Query from "./Query";
 
 export default class Framework {
     options: IFrameworkOptions;
+    query: Query;
 
     constructor(options: IFrameworkOptions) {
         validateFrameworkConstructorOptions(options);
@@ -27,5 +29,7 @@ export default class Framework {
             protocolReleaseVersion: options.protocolReleaseVersion || "v1",
             networkName,
         };
+
+        this.query = new Query(customSubgraphQueriesEndpoint);
     }
 }

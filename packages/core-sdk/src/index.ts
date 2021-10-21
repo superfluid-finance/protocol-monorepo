@@ -1,4 +1,5 @@
 import Framework from "./Framework";
+import Query from "./Query";
 
 export const enum ChainId {
     ROPSTEN = 3,
@@ -27,4 +28,5 @@ export const enum NetworkName {
 
 export default {
     Framework,
+    Query,
 };

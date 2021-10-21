@@ -19,3 +19,49 @@
 ### ✨ [Superfluid App](https://app.superfluid.finance/)
 
 ### 📖 [Docs](https://docs.superfluid.finance)
+
+# Usage
+
+## Read-only Initialization
+
+Here is a quick look at using the SDK in different environments:
+
+TypeScript:
+
+```ts
+import SuperfluidSDK, {
+    ChainId,
+    NetworkName,
+} from "@superfluid-finance/core-sdk";
+
+const sf = new SuperfluidSDK.Framework({
+    chainId: ChainId.MATIC,
+    networkName: NetworkName.MATIC,
+});
+```
+
+JavaScript (Module):
+
+```js
+import SuperfluidSDK from "@superfluid-finance/core-sdk";
+
+const sf = new SuperfluidSDK.Framework({
+    chainId: 137,
+    networkName: "matic",
+});
+```
+
+JavaScript (CommonJS) - usually a Node.js environment:
+
+```js
+const SuperfluidSDK = require("@superfluid-finance/core-sdk");
+
+const sf = new SuperfluidSDK.Framework({
+    chainId: 137,
+	networkName: "matic"
+});
+```
+
+> Note: You specify your project type in `package.json` - `"type": "module"` or `"type": "commonjs"`.
+
+This is the absolute minimum you need to provide the constructor (`chainId` or `networkName`) if all you want to do is query data.

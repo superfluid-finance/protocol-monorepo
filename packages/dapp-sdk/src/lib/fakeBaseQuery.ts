@@ -9,9 +9,9 @@ export type NEVER = typeof _NEVER
  */
 export function fakeBaseQuery<ErrorType>(): BaseQueryFn<
     void,
-    NEVER,
-    ErrorType
-    > {
+    unknown,
+    ErrorType,
+    unknown> {
     return function () {
         throw new Error(
             'When using `fakeBaseQuery`, all queries & mutations must use the `queryFn` definition syntax.'

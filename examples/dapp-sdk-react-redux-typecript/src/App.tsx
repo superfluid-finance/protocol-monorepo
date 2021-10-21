@@ -1,0 +1,177 @@
+import React, {
+    createContext,
+    FC,
+    ReactElement,
+    SyntheticEvent,
+    useContext,
+    useState,
+} from "react";
+import {
+    Alert,
+    Box,
+    Button,
+    Container,
+    FormGroup,
+    TextField,
+    Typography,
+} from "@mui/material";
+import { Framework } from "@superfluid-finance/js-sdk";
+import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
+import { useCreateOrUpdateOrDeleteFlowMutation } from "dapp-sdk";
+import { Loader } from "./Loader";
+import { SignerContext } from "./SignerContext";
+import { StreamTable } from "./StreamTable";
+import { TransactionTable } from "./TransactionTable";
+
+export const CreateStream: FC = (): ReactElement => {
+    const [createOrUpdateOrDeleteFlow, { isLoading, error }] =
+        useCreateOrUpdateOrDeleteFlowMutation();
+
+    const [networkName, signerAddress] = useContext(SignerContext);
+
+    const [receiver, setReceiver] = useState<string>("");
+    const [superToken, setSuperToken] = useState<string>("");
+    const [flowRate, setFlowRate] = useState<string>("");
+
+    const handleCreateStream = (e: SyntheticEvent) => {
+        e.preventDefault();
+        createOrUpdateOrDeleteFlow({
+            sender: signerAddress,
+            receiver,
+            flowRate,
+            networkName,
+            superToken,
+        });
+    };
+
+    return (
+        <>
+            {isLoading ? (
+                <Loader />
+            ) : (
+                <>
+                    {error && (
+                        <Alert sx={{ m: 1 }} severity="error">
+                            {error.message}
+                        </Alert>
+                    )}
+                    <form onSubmit={handleCreateStream}>
+                        <FormGroup>
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Receiver"
+                                onChange={(e) =>
+                                    setReceiver(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="SuperToken"
+                                onChange={(e) =>
+                                    setSuperToken(e.currentTarget.value)
+                                }
+                            />
+                            <TextField
+                                sx={{ m: 1 }}
+                                label="Flow Rate"
+                                type="number"
+                                onChange={(e) =>
+                                    setFlowRate(e.currentTarget.value)
+                                }
+                            />
+                            <Button
+                                sx={{ m: 1 }}
+                                type="submit"
+                                variant="contained"
+                                fullWidth={true}
+                            >
+                                Create
+                            </Button>
+                        </FormGroup>
+                    </form>
+                </>
+            )}
+        </>
+    );
+};
+
+function App() {
+    const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
+
+    const [signerAddress, setSignerAddress] = useState<string | undefined>();
+    const [networkName, setNetworkName] = useState<string | undefined>();
+
+    const onSuperfluidSdkInitialized = async (superfluidSdk: Framework) => {
+        setSuperfluidSdk(superfluidSdk);
+
+        superfluidSdk.ethers
+            .getSigner()
+            .getAddress()
+            .then((address) => setSignerAddress(address));
+
+        superfluidSdk.ethers
+            .getNetwork()
+            .then((network) => setNetworkName(network.name));
+    };
+
+    return (
+        <Container maxWidth={false}>
+            <Box sx={{ my: 4 }}>
+                <Typography variant="h2" component="h2" gutterBottom>
+                    Redux-SDK example
+                </Typography>
+                {!superfluidSdk ? (
+                    <InitializeSuperfluidSdk
+                        onSuperfluidSdkInitialized={(x) =>
+                            onSuperfluidSdkInitialized(x)
+                        }
+                    />
+                ) : !networkName || !signerAddress ? (
+                    <Loader />
+                ) : (
+                    <SignerContext.Provider
+                        value={[networkName, signerAddress]}
+                    >
+                        <Box maxWidth="sm">
+                            <Typography sx={{ mb: 4 }}>
+                                You are connected. You are on network [
+                                {networkName}] and your wallet address is [
+                                {signerAddress}].
+                            </Typography>
+                            <Typography
+                                variant="h3"
+                                component="h3"
+                                gutterBottom
+                            >
+                                Create stream
+                            </Typography>
+                            <CreateStream />
+                        </Box>
+                        <Box maxWidth="xl">
+                            <Typography
+                                variant="h3"
+                                component="h3"
+                                gutterBottom
+                            >
+                                Active Streams
+                            </Typography>
+                            <StreamTable />
+                        </Box>
+                        <Box maxWidth="xl">
+                            <Typography
+                                variant="h3"
+                                component="h3"
+                                gutterBottom
+                            >
+                                Transactions
+                            </Typography>
+                            <TransactionTable />
+                        </Box>
+                    </SignerContext.Provider>
+                )}
+            </Box>
+        </Container>
+    );
+}
+
+export default App;

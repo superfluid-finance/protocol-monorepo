@@ -1,0 +1,43 @@
+{
+    "name": "dapp-sdk-react-redux-typecript",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@emotion/react": "latest",
+        "@emotion/styled": "latest",
+        "@ethersproject/contracts": "latest",
+        "@ethersproject/providers": "latest",
+        "@mui/material": "latest",
+        "@reduxjs/toolkit": "latest",
+        "@superfluid-finance/js-sdk": "latest",
+        "@types/node": "latest",
+        "@types/react": "latest",
+        "@types/react-dom": "latest",
+        "@types/react-redux": "latest",
+        "react": "latest",
+        "react-dom": "latest",
+        "react-redux": "latest",
+        "react-scripts": "latest",
+        "typescript": "latest",
+        "web3modal": "^1.9.4"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build"
+    },
+    "eslintConfig": {
+        "extends": "react-app"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
+}

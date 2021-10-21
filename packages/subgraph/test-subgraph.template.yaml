@@ -93,6 +93,7 @@ dataSources:
               - AccountTokenSnapshot
               - FlowUpdatedEvent
               - Stream
+              - StreamPeriod
               - StreamRevision
               - TokenStatistic
           abis:

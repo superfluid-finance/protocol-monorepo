@@ -83,7 +83,7 @@ function handleStreamPeriodUpdate(
             break;
         case FlowActionType.update:
             if (!previousStreamPeriod) {
-                throw "Previous StreamPeriod not found for flow terminate action";
+                throw Error("Previous StreamPeriod not found for flow update action");
             }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod,
@@ -95,7 +95,7 @@ function handleStreamPeriodUpdate(
             break;
         case FlowActionType.terminate:
             if (!previousStreamPeriod) {
-                throw "Previous StreamPeriod not found for flow terminate action";
+                throw Error("Previous StreamPeriod not found for flow terminate action");
             }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod,
@@ -122,11 +122,10 @@ function startStreamPeriod(
     let streamPeriod = new StreamPeriod(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
     );
-    streamPeriod.from = event.params.sender.toHex();
-    streamPeriod.to = event.params.receiver.toHex();
     streamPeriod.flowRate = event.params.flowRate;
-    streamPeriod.streamStartTime = event.block.timestamp;
-    streamPeriod.streamOpeningTxHash = event.transaction.hash;
+    streamPeriod.startedAtTimestamp = event.block.timestamp;
+    streamPeriod.startedAtTransactionHash = event.transaction.hash;
+    streamPeriod.startedAtBlockNumber = event.block.number;
     streamPeriod.stream = streamId;
     streamPeriod.save();
 }
@@ -138,11 +137,12 @@ function endStreamPeriod(
     flowRateBeforeUpdate: BigInt
 ): void {
     let streamStopTime = event.block.timestamp;
-    existingStreamPeriod.streamStopTime = streamStopTime;
-    existingStreamPeriod.totalStreamed = flowRateBeforeUpdate.times(
-        streamStopTime.minus(existingStreamPeriod.streamStartTime)
+    existingStreamPeriod.stoppedAtTimestamp = streamStopTime;
+    existingStreamPeriod.stoppedAtTransactionHash = event.transaction.hash;
+    existingStreamPeriod.stoppedAtBlockNumber = event.block.number;
+    existingStreamPeriod.totalAmountStreamed = flowRateBeforeUpdate.times(
+        streamStopTime.minus(existingStreamPeriod.startedAtTimestamp)
     );
-    existingStreamPeriod.streamClosingTxHash = event.transaction.hash;
     existingStreamPeriod.save();
     incrementPeriodRevisionIndex(streamRevision);
 }

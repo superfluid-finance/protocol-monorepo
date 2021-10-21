@@ -662,29 +662,25 @@ type StreamPeriod @entity {
     """
     id: ID!
 
-    to: Account!
-    from: Account!
-
     stream: Stream!
-	
+
     """
     null until the StreamPeriod is terminated
     """
-    totalStreamed: BigInt
-	
+
     flowRate: BigInt!
-	
-    streamStartTime: BigInt!
+
+    startedAtTimestamp: BigInt!
+    startedAtBlockNumber: BigInt!
+    startedAtTransactionHash: Bytes!
+
     """
-    null until the StreamPeriod is terminated
+    Following values are null until the StreamPeriod is terminated
     """
-	streamStopTime: BigInt
-	
-    streamOpeningTxHash: Bytes!
-    """
-    null until the StreamPeriod is terminated
-    """
-	streamClosingTxHash: Bytes
+    stoppedAtTimestamp: BigInt
+    stoppedAtBlockNumber: BigInt
+    stoppedAtTransactionHash: Bytes
+    totalAmountStreamed: BigInt
 }
 
 

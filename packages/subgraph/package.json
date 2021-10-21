@@ -73,11 +73,5 @@
         "graphql-request": "^3.5.0",
         "hardhat": "^2.6.4",
         "lodash": "^4.17.21"
-    },
-    "workspaces": {
-        "nohoist": [
-            "**/@graphprotocol",
-            "**/@graphprotocol/**"
-        ]
     }
 }

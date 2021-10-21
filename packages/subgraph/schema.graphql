@@ -654,7 +654,7 @@ type Stream @entity {
 }
 
 """
-StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate. TODO: Improve comment
+StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
 """
 type StreamPeriod @entity {
     """
@@ -667,14 +667,23 @@ type StreamPeriod @entity {
 
     stream: Stream!
 	
+    """
+    null until the StreamPeriod is terminated
+    """
     totalStreamed: BigInt
 	
     flowRate: BigInt!
 	
     streamStartTime: BigInt!
+    """
+    null until the StreamPeriod is terminated
+    """
 	streamStopTime: BigInt
 	
     streamOpeningTxHash: Bytes!
+    """
+    null until the StreamPeriod is terminated
+    """
 	streamClosingTxHash: Bytes
 }
 

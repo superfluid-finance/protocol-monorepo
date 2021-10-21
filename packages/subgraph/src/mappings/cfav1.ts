@@ -82,6 +82,9 @@ function handleStreamPeriodUpdate(
             startStreamPeriod(event, streamRevision, stream.id);
             break;
         case FlowActionType.update:
+            if (!previousStreamPeriod) {
+                throw "Previous StreamPeriod not found for flow terminate action";
+            }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod, // is casting okay here?
                 event,
@@ -91,6 +94,9 @@ function handleStreamPeriodUpdate(
             startStreamPeriod(event, streamRevision, stream.id);
             break;
         case FlowActionType.terminate:
+            if (!previousStreamPeriod) {
+                throw "Previous StreamPeriod not found for flow terminate action";
+            }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod, // is casting okay here?
                 event,
@@ -98,7 +104,7 @@ function handleStreamPeriodUpdate(
             );
             break;
         default:
-        // TODO: throw an exception for unsupported flow action type?
+            throw "Unrecognized FlowActionType";
     }
 }
 
@@ -132,7 +138,7 @@ function endStreamPeriod(
     let streamStopTime = event.block.timestamp;
     existingStreamPeriod.streamStopTime = streamStopTime;
     existingStreamPeriod.totalStreamed = flowRateBeforeUpdate.times(
-        streamStopTime.minus(streamStopTime)
+        streamStopTime.minus(existingStreamPeriod.streamStartTime)
     );
     existingStreamPeriod.streamClosingTxHash = event.transaction.hash;
     existingStreamPeriod.save();

@@ -1,11 +1,12 @@
 import ethers from "ethers";
 import {
     ILightAccountTokenSnapshot,
+    IStream,
     ISubgraphResponse,
     ISuperToken,
 } from "./interfaces";
 import { getAccountTokenSnapshotsByAccount } from "./queries/aggregateQueries";
-import { getSuperTokens } from "./queries/holQueries";
+import { getStreams, getSuperTokens } from "./queries/holQueries";
 import { subgraphRequest } from "./queryHelpers";
 import { normalizeAddressForSubgraph } from "./utils";
 
@@ -16,7 +17,7 @@ export default class Query {
         this.endpoint = endpoint;
     }
 
-    query = async <T>(
+    custom = async <T>(
         query: string,
         variables?: { [key: string]: any }
     ): Promise<ISubgraphResponse<T>> => {
@@ -30,7 +31,26 @@ export default class Query {
     listAllSuperTokens = async (): Promise<
         ISubgraphResponse<ISuperToken[]>
     > => {
-        return this.query<ISuperToken[]>(getSuperTokens);
+        return this.custom<ISuperToken[]>(getSuperTokens);
+    };
+
+    listStreams = async ({
+        sender,
+        receiver,
+        token,
+    }: {
+        sender?: string;
+        receiver?: string;
+        token?: string;
+    }): Promise<ISubgraphResponse<IStream[]>> => {
+        const normalizedSender = normalizeAddressForSubgraph(sender || "");
+        const normalizedReceiver = normalizeAddressForSubgraph(receiver || "");
+        const normalizedToken = normalizeAddressForSubgraph(token || "");
+        return this.custom<IStream[]>(getStreams, {
+            sender: normalizedSender,
+            receiver: normalizedReceiver,
+            token: normalizedToken,
+        });
     };
 
     listUserInteractedSuperTokens = async (
@@ -42,7 +62,7 @@ export default class Query {
         }
         const normalizedAddress = normalizeAddressForSubgraph(account);
 
-        return this.query<ILightAccountTokenSnapshot[]>(
+        return this.custom<ILightAccountTokenSnapshot[]>(
             getAccountTokenSnapshotsByAccount,
             { account: normalizedAddress }
         );

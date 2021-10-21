@@ -1,4 +1,4 @@
-import { ChainId, DataMode, NetworkName } from ".";
+import { ChainId, DataMode, FlowActionType, NetworkName } from ".";
 
 type ChainIdType =
     | ChainId.ROPSTEN
@@ -28,6 +28,7 @@ export interface IFrameworkOptions {
     protocolReleaseVersion?: string;
 }
 
+// response interfaces
 export interface ISubgraphResponse<T> {
     readonly response: T;
 }
@@ -41,6 +42,19 @@ export interface IEventEntityBase {
     readonly blockNumber: string;
     readonly timestamp: string;
     readonly transactionHash: string;
+}
+
+export interface IFlowUpdatedEvent extends IEventEntityBase {
+    readonly token: string;
+    readonly sender: string;
+    readonly receiver: string;
+    readonly flowRate: string;
+    readonly totalSenderFlowRate: string;
+    readonly totalReceiverFlowRate: string;
+    readonly userData: string;
+    readonly oldFlowRate: string;
+    readonly type: FlowActionType;
+    readonly totalAmountStreamedUntilTimestamp: string;
 }
 
 export interface IHOLEntityBase {
@@ -57,7 +71,12 @@ export interface IHOLUpdateable extends IHOLEntityBase {
 export interface IStream extends IHOLUpdateable {
     readonly currentFlowRate: string;
     readonly streamedUntilUpdatedAt: string;
+    readonly token: ISuperToken;
+    readonly sender: ILightEntity;
+    readonly receiver: ILightEntity;
+    readonly flowUpdatedEvents: IStreamFlowUpdatedEvent[];
 }
+export interface IStreamFlowUpdatedEvent extends IFlowUpdatedEvent {}
 
 export interface ISuperToken extends IHOLEntityBase {
     readonly name: string;

@@ -26,6 +26,11 @@ export const enum NetworkName {
     MUMBAI = "mumbai",
 }
 
+export const enum FlowActionType {
+    CREATE,
+    UPDATE,
+    TERMINATE,
+}
 export default {
     Framework,
     Query,

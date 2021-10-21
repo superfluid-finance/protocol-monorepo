@@ -1,7 +1,17 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { FlowUpdated } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { FlowUpdatedEvent } from "../../generated/schema";
-import { createEventID, BIG_INT_ZERO, tokenHasValidHost } from "../utils";
+import {
+    FlowUpdatedEvent,
+    StreamPeriod,
+    Stream,
+    StreamRevision,
+} from "../../generated/schema";
+import {
+    createEventID,
+    BIG_INT_ZERO,
+    tokenHasValidHost,
+    getStreamPeriodID,
+} from "../utils";
 import {
     getOrInitStream,
     getOrInitStreamRevision,
@@ -37,13 +47,95 @@ function createFlowUpdatedEntity(
     ev.stream = streamId;
     ev.totalAmountStreamedUntilTimestamp = totalAmountStreamedUntilTimestamp;
 
-    let type = oldFlowRate.equals(BIG_INT_ZERO)
+    let type = getFlowActionType(oldFlowRate, event);
+    ev.type = type;
+    ev.save();
+}
+
+function getFlowActionType(
+    oldFlowRate: BigInt,
+    event: FlowUpdated
+): FlowActionType {
+    return oldFlowRate.equals(BIG_INT_ZERO)
         ? FlowActionType.create
         : event.params.flowRate.equals(BIG_INT_ZERO)
         ? FlowActionType.terminate
         : FlowActionType.update;
-    ev.type = type;
-    ev.save();
+}
+
+function handleStreamPeriodUpdate(
+    event: FlowUpdated,
+    previousFlowRate: BigInt,
+    stream: Stream
+): void {
+    let streamRevision = getOrInitStreamRevision(
+        event.params.sender.toHex(),
+        event.params.receiver.toHex(),
+        event.params.token.toHex()
+    );
+    let flowActionType = getFlowActionType(previousFlowRate, event);
+    let previousStreamPeriod = StreamPeriod.load(
+        getStreamPeriodID(stream.id, streamRevision.periodRevisionIndex)
+    );
+    switch (flowActionType) {
+        case FlowActionType.create:
+            startStreamPeriod(event, streamRevision, stream.id);
+            break;
+        case FlowActionType.update:
+            endStreamPeriod(
+                previousStreamPeriod as StreamPeriod, // is casting okay here?
+                event,
+                previousFlowRate
+            );
+            incrementPeriodRevisionIndex(streamRevision);
+            startStreamPeriod(event, streamRevision, stream.id);
+            break;
+        case FlowActionType.terminate:
+            endStreamPeriod(
+                previousStreamPeriod as StreamPeriod, // is casting okay here?
+                event,
+                previousFlowRate
+            );
+            break;
+        default:
+        // TODO: throw an exception for unsupported flow action type?
+    }
+}
+
+function incrementPeriodRevisionIndex(streamRevision: StreamRevision): void {
+    streamRevision.periodRevisionIndex = streamRevision.periodRevisionIndex + 1;
+    streamRevision.save();
+}
+
+function startStreamPeriod(
+    event: FlowUpdated,
+    streamRevision: StreamRevision,
+    streamId: string
+): void {
+    let streamPeriod = new StreamPeriod(
+        getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
+    );
+    streamPeriod.from = event.params.sender.toHex();
+    streamPeriod.to = event.params.receiver.toHex();
+    streamPeriod.flowRate = event.params.flowRate;
+    streamPeriod.streamStartTime = event.block.timestamp;
+    streamPeriod.streamOpeningTxHash = event.transaction.hash;
+    streamPeriod.stream = streamId;
+    streamPeriod.save();
+}
+
+function endStreamPeriod(
+    existingStreamPeriod: StreamPeriod,
+    event: FlowUpdated,
+    flowRateBeforeUpdate: BigInt
+): void {
+    let streamStopTime = event.block.timestamp;
+    existingStreamPeriod.streamStopTime = streamStopTime;
+    existingStreamPeriod.totalStreamed = flowRateBeforeUpdate.times(
+        streamStopTime.minus(streamStopTime)
+    );
+    existingStreamPeriod.streamClosingTxHash = event.transaction.hash;
+    existingStreamPeriod.save();
 }
 
 export function handleStreamUpdated(event: FlowUpdated): void {
@@ -103,6 +195,7 @@ export function handleStreamUpdated(event: FlowUpdated): void {
         stream.id,
         newStreamedUntilLastUpdate
     );
+    handleStreamPeriodUpdate(event, oldFlowRate, stream);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
     updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);

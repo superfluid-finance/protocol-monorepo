@@ -31,7 +31,7 @@ function createFlowUpdatedEntity(
     oldFlowRate: BigInt,
     streamId: string,
     totalAmountStreamedUntilTimestamp: BigInt
-): void {
+): FlowUpdatedEvent {
     let ev = new FlowUpdatedEvent(createEventID(event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -47,39 +47,40 @@ function createFlowUpdatedEntity(
     ev.stream = streamId;
     ev.totalAmountStreamedUntilTimestamp = totalAmountStreamedUntilTimestamp;
 
-    let type = getFlowActionType(oldFlowRate, event);
+    let type = getFlowActionType(oldFlowRate, event.params.flowRate);
     ev.type = type;
     ev.save();
+    return ev;
 }
 
 function getFlowActionType(
     oldFlowRate: BigInt,
-    event: FlowUpdated
+    newFlowRate: BigInt
 ): FlowActionType {
     return oldFlowRate.equals(BIG_INT_ZERO)
         ? FlowActionType.create
-        : event.params.flowRate.equals(BIG_INT_ZERO)
+        : newFlowRate.equals(BIG_INT_ZERO)
         ? FlowActionType.terminate
         : FlowActionType.update;
 }
 
 function handleStreamPeriodUpdate(
-    event: FlowUpdated,
+    eventEntity: FlowUpdatedEvent,
     previousFlowRate: BigInt,
     stream: Stream
 ): void {
     let streamRevision = getOrInitStreamRevision(
-        event.params.sender.toHex(),
-        event.params.receiver.toHex(),
-        event.params.token.toHex()
+        eventEntity.sender.toHex(),
+        eventEntity.receiver.toHex(),
+        eventEntity.token.toHex()
     );
-    let flowActionType = getFlowActionType(previousFlowRate, event);
+    let flowActionType = getFlowActionType(previousFlowRate, eventEntity.flowRate);
     let previousStreamPeriod = StreamPeriod.load(
         getStreamPeriodID(stream.id, streamRevision.periodRevisionIndex)
     );
     switch (flowActionType) {
         case FlowActionType.create:
-            startStreamPeriod(event, streamRevision, stream.id);
+            startStreamPeriod(eventEntity, streamRevision, stream.id);
             break;
         case FlowActionType.update:
             if (!previousStreamPeriod) {
@@ -89,11 +90,11 @@ function handleStreamPeriodUpdate(
             }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod,
-                event,
+                eventEntity,
                 streamRevision,
                 previousFlowRate
             );
-            startStreamPeriod(event, streamRevision, stream.id);
+            startStreamPeriod(eventEntity, streamRevision, stream.id);
             break;
         case FlowActionType.terminate:
             if (!previousStreamPeriod) {
@@ -103,7 +104,7 @@ function handleStreamPeriodUpdate(
             }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod,
-                event,
+                eventEntity,
                 streamRevision,
                 previousFlowRate
             );
@@ -119,34 +120,34 @@ function incrementPeriodRevisionIndex(streamRevision: StreamRevision): void {
 }
 
 function startStreamPeriod(
-    event: FlowUpdated,
+    event: FlowUpdatedEvent,
     streamRevision: StreamRevision,
     streamId: string
 ): void {
     let streamPeriod = new StreamPeriod(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
     );
-    streamPeriod.sender = event.params.sender.toHex();
-    streamPeriod.receiver = event.params.receiver.toHex();
-    streamPeriod.token = event.params.token.toHex();
-    streamPeriod.flowRate = event.params.flowRate;
-    streamPeriod.startedAtTimestamp = event.block.timestamp;
-    streamPeriod.startedAtTransactionHash = event.transaction.hash;
-    streamPeriod.startedAtBlockNumber = event.block.number;
+    streamPeriod.sender = event.sender.toHex();
+    streamPeriod.receiver = event.receiver.toHex();
+    streamPeriod.token = event.token.toHex();
+    streamPeriod.flowRate = event.flowRate;
+    streamPeriod.startedAtTimestamp = event.timestamp;
+    streamPeriod.startedAtBlockNumber = event.blockNumber;
+    streamPeriod.startedAtEvent = event.id;
     streamPeriod.stream = streamId;
     streamPeriod.save();
 }
 
 function endStreamPeriod(
     existingStreamPeriod: StreamPeriod,
-    event: FlowUpdated,
+    event: FlowUpdatedEvent,
     streamRevision: StreamRevision,
     flowRateBeforeUpdate: BigInt
 ): void {
-    let streamStopTime = event.block.timestamp;
+    let streamStopTime = event.timestamp;
     existingStreamPeriod.stoppedAtTimestamp = streamStopTime;
-    existingStreamPeriod.stoppedAtTransactionHash = event.transaction.hash;
-    existingStreamPeriod.stoppedAtBlockNumber = event.block.number;
+    existingStreamPeriod.stoppedAtBlockNumber = event.blockNumber;
+    existingStreamPeriod.stoppedAtEvent = event.id;
     existingStreamPeriod.totalAmountStreamed = flowRateBeforeUpdate.times(
         streamStopTime.minus(existingStreamPeriod.startedAtTimestamp)
     );
@@ -205,13 +206,13 @@ export function handleStreamUpdated(event: FlowUpdated): void {
     }
 
     // create event entity
-    createFlowUpdatedEntity(
+    let flowUpdateEvent = createFlowUpdatedEntity(
         event,
         oldFlowRate,
         stream.id,
         newStreamedUntilLastUpdate
     );
-    handleStreamPeriodUpdate(event, oldFlowRate, stream);
+    handleStreamPeriodUpdate(flowUpdateEvent, oldFlowRate, stream);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
     updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);

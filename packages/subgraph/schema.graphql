@@ -673,14 +673,14 @@ type StreamPeriod @entity {
 
     startedAtTimestamp: BigInt!
     startedAtBlockNumber: BigInt!
-    startedAtTransactionHash: Bytes!
-
+    startedAtEvent: FlowUpdatedEvent!
     """
     Following values are null until the StreamPeriod is terminated
     """
     stoppedAtTimestamp: BigInt
     stoppedAtBlockNumber: BigInt
-    stoppedAtTransactionHash: Bytes
+    stoppedAtEvent: FlowUpdatedEvent
+
     totalAmountStreamed: BigInt
 }
 

@@ -1,20 +1,25 @@
 import ethers from "ethers";
+import Framework from "./Framework";
 import {
     ILightAccountTokenSnapshot,
     IStream,
+    IStreamRequest,
     ISubgraphResponse,
     ISuperToken,
 } from "./interfaces";
 import { getAccountTokenSnapshotsByAccount } from "./queries/aggregateQueries";
 import { getStreams, getSuperTokens } from "./queries/holQueries";
 import { subgraphRequest } from "./queryHelpers";
-import { normalizeAddressForSubgraph } from "./utils";
+import {
+    buildWhereForSubgraphQuery,
+    normalizeAddressForSubgraph,
+} from "./utils";
 
 export default class Query {
-    endpoint: string;
+    framework: Framework;
 
-    constructor(endpoint: string) {
-        this.endpoint = endpoint;
+    constructor(framework: Framework) {
+        this.framework = framework;
     }
 
     custom = async <T>(
@@ -22,7 +27,7 @@ export default class Query {
         variables?: { [key: string]: any }
     ): Promise<ISubgraphResponse<T>> => {
         return await subgraphRequest<ISubgraphResponse<T>>(
-            this.endpoint,
+            this.framework.options.customSubgraphQueriesEndpoint,
             query,
             variables
         );
@@ -34,23 +39,11 @@ export default class Query {
         return this.custom<ISuperToken[]>(getSuperTokens);
     };
 
-    listStreams = async ({
-        sender,
-        receiver,
-        token,
-    }: {
-        sender?: string;
-        receiver?: string;
-        token?: string;
-    }): Promise<ISubgraphResponse<IStream[]>> => {
-        const normalizedSender = normalizeAddressForSubgraph(sender || "");
-        const normalizedReceiver = normalizeAddressForSubgraph(receiver || "");
-        const normalizedToken = normalizeAddressForSubgraph(token || "");
-        return this.custom<IStream[]>(getStreams, {
-            sender: normalizedSender,
-            receiver: normalizedReceiver,
-            token: normalizedToken,
-        });
+    listStreams = async (
+        data: IStreamRequest
+    ): Promise<ISubgraphResponse<IStream[]>> => {
+        const where = buildWhereForSubgraphQuery(data);
+        return this.custom<IStream[]>(getStreams(where));
     };
 
     listUserInteractedSuperTokens = async (

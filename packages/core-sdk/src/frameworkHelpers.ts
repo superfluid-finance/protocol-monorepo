@@ -4,10 +4,10 @@ import {
     networkNames,
     networkNameToChainIdMap,
 } from "./constants";
-import { IFrameworkOptions } from "./interfaces";
+import { IConstructorFrameworkOptions } from "./interfaces";
 
 export const validateFrameworkConstructorOptions = (
-    options: IFrameworkOptions
+    options: IConstructorFrameworkOptions
 ) => {
     if (options.chainId == null && options.networkName == null) {
         throw new Error("You must input chainId or networkName.");
@@ -32,7 +32,9 @@ export const validateFrameworkConstructorOptions = (
     }
 };
 
-export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
+export const getSubgraphQueriesEndpoint = (
+    options: IConstructorFrameworkOptions
+) => {
     return options.chainId
         ? chainIdToDataMap.get(options.chainId)!.subgraphAPIEndpoint
         : options.networkName
@@ -42,6 +44,12 @@ export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
         : options.customSubgraphQueriesEndpoint;
 };
 
-export const getNetworkName = (options: IFrameworkOptions) => {
+/**
+ * @dev We check that the user has input a networkName or chainId and that
+ * they are both supported.
+ * @param options
+ * @returns
+ */
+export const getNetworkName = (options: IConstructorFrameworkOptions) => {
     return options.networkName || chainIdToDataMap.get(options.chainId!)!.name;
 };

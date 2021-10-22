@@ -1,11 +1,10 @@
 import { gql } from "graphql-request";
+import { baseHOLProperties, baseUpdateableProperties } from "./baseProperties";
 
 export const getSuperTokens = gql`
     {
         response: tokens(where: { isSuperToken: true }) {
-            id
-            createdAtTimestamp
-            createdAtBlockNumber
+            ${baseHOLProperties}
             name
             symbol
             isListed
@@ -14,16 +13,12 @@ export const getSuperTokens = gql`
     }
 `;
 
-export const getStreams = gql`
-    query getStreams($sender: ID!, $receiver: ID!, $token: ID) {
+export const getStreams = (where: string) => gql`
+    {
         response: streams(
-            where: { sender: $sender, receiver: $receiver, token: $token }
+            where: { ${where} }
         ) {
-            id
-            createdAtTimestamp
-            createdAtBlockNumber
-            updatedAtTimestamp
-            updatedAtBlockNumber
+            ${baseUpdateableProperties}
             currentFlowRate
             streamedUntilUpdatedAt
             token {

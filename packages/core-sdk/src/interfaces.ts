@@ -1,4 +1,4 @@
-import { ChainId, DataMode, FlowActionType, NetworkName } from ".";
+import { ChainId, DataMode, FlowActionType, NetworkName } from "./index";
 
 type ChainIdType =
     | ChainId.ROPSTEN
@@ -20,12 +20,27 @@ type NetworkNameType =
     | NetworkName.MATIC
     | NetworkName.MUMBAI;
 
-export interface IFrameworkOptions {
+export interface IConstructorFrameworkOptions {
     chainId?: ChainIdType;
     customSubgraphQueriesEndpoint?: string;
     dataMode?: DataModeType;
     networkName?: NetworkNameType;
     protocolReleaseVersion?: string;
+}
+
+export interface IFrameworkOptions {
+    chainId: ChainIdType;
+    customSubgraphQueriesEndpoint: string;
+    dataMode: DataModeType;
+    networkName: NetworkNameType;
+    protocolReleaseVersion: string;
+}
+
+// request interfaces
+export interface IStreamRequest {
+    readonly sender?: string;
+    readonly receiver?: string;
+    readonly token?: string;
 }
 
 // response interfaces

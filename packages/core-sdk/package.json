@@ -11,10 +11,16 @@
     "main": "dist/main/index.js",
     "module": "dist/module/index.js",
     "types": "dist/main/index.d.ts",
+    "files": [
+        "dist/**/*.js",
+        "dist/**/*.d.ts"
+    ],
     "scripts": {
         "build": "rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs"
+        "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
+        "pre-commit": "run-s pre-commit:*",
+        "pre-commit:lint": "echo no pre-commit currently"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

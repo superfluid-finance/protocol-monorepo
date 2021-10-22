@@ -1,17 +1,18 @@
-import { IFrameworkOptions } from "./interfaces";
-import { DataMode } from ".";
+import { IConstructorFrameworkOptions, IFrameworkOptions } from "./interfaces";
+import { DataMode } from "./index";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
 import Query from "./Query";
+import { networkNameToChainIdMap } from "./constants";
 
 export default class Framework {
     options: IFrameworkOptions;
     query: Query;
 
-    constructor(options: IFrameworkOptions) {
+    constructor(options: IConstructorFrameworkOptions) {
         validateFrameworkConstructorOptions(options);
         const customSubgraphQueriesEndpoint =
             getSubgraphQueriesEndpoint(options);
@@ -23,13 +24,14 @@ export default class Framework {
         const networkName = getNetworkName(options);
 
         this.options = {
-            chainId: options.chainId,
+            chainId:
+                options.chainId || networkNameToChainIdMap.get(networkName)!,
             customSubgraphQueriesEndpoint,
             dataMode: options.dataMode || DataMode.SUBGRAPH_WEB3,
             protocolReleaseVersion: options.protocolReleaseVersion || "v1",
             networkName,
         };
 
-        this.query = new Query(customSubgraphQueriesEndpoint);
+        this.query = new Query(this);
     }
 }

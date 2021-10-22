@@ -1,4 +1,4 @@
-import { ChainId, NetworkName } from ".";
+import { ChainId, NetworkName } from "./index";
 
 export const chainIds = [
     ChainId.ROPSTEN,

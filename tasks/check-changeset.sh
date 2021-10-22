@@ -38,6 +38,7 @@ if ! [ -z "$GITHUB_ENV" ];then
 	if grep -E "^packages/sdk-core(src/|test/|package.json)" changed-files.list;then
 		BUILD_SDK_CORE=1
 		echo SDK CORE will be tested.
+	fi
     # if subgraph package changed
     if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|test|truffle-config.js|package.json)" changed-files.list;then
         BUILD_SUBGRAH=1

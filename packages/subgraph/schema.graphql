@@ -667,6 +667,8 @@ type StreamPeriod @entity {
     sender: Account!
     receiver: Account!
 
+    token: Token!
+
     flowRate: BigInt!
 
     startedAtTimestamp: BigInt!

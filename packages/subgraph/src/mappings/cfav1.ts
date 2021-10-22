@@ -83,7 +83,9 @@ function handleStreamPeriodUpdate(
             break;
         case FlowActionType.update:
             if (!previousStreamPeriod) {
-                throw Error("Previous StreamPeriod not found for flow update action");
+                throw Error(
+                    "Previous StreamPeriod not found for flow update action"
+                );
             }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod,
@@ -95,7 +97,9 @@ function handleStreamPeriodUpdate(
             break;
         case FlowActionType.terminate:
             if (!previousStreamPeriod) {
-                throw Error("Previous StreamPeriod not found for flow terminate action");
+                throw Error(
+                    "Previous StreamPeriod not found for flow terminate action"
+                );
             }
             endStreamPeriod(
                 previousStreamPeriod as StreamPeriod,
@@ -124,6 +128,7 @@ function startStreamPeriod(
     );
     streamPeriod.sender = event.params.sender.toHex();
     streamPeriod.receiver = event.params.receiver.toHex();
+    streamPeriod.token = event.params.token.toHex();
     streamPeriod.flowRate = event.params.flowRate;
     streamPeriod.startedAtTimestamp = event.block.timestamp;
     streamPeriod.startedAtTransactionHash = event.transaction.hash;

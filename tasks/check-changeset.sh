@@ -53,7 +53,7 @@ if ! [ -z "$GITHUB_ENV" ];then
 	echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAH=${BUILD_SUBGRAH}" >> $GITHUB_ENV
     echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
-    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE == 1" ];then
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
     fi

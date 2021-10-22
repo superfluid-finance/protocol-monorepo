@@ -664,9 +664,8 @@ type StreamPeriod @entity {
 
     stream: Stream!
 
-    """
-    null until the StreamPeriod is terminated
-    """
+    sender: Account!
+    receiver: Account!
 
     flowRate: BigInt!
 

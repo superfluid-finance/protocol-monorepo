@@ -122,6 +122,8 @@ function startStreamPeriod(
     let streamPeriod = new StreamPeriod(
         getStreamPeriodID(streamId, streamRevision.periodRevisionIndex)
     );
+    streamPeriod.sender = event.params.sender.toHex();
+    streamPeriod.receiver = event.params.receiver.toHex();
     streamPeriod.flowRate = event.params.flowRate;
     streamPeriod.startedAtTimestamp = event.block.timestamp;
     streamPeriod.startedAtTransactionHash = event.transaction.hash;

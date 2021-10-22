@@ -1,0 +1,34 @@
+cabal-version: 3.0
+name:          superfluid-protocol-spec-core
+version:       0.0.1.0
+license:       MIT
+maintainer:    miao@superfluid.finance
+author:        Miao ZhiCheng
+homepage:      https://www.superfluid.finance/
+synopsis:      Superfluid protocol core specifications in Haskell
+category:      Money
+build-type:    Simple
+
+library
+    exposed-modules:
+        Money.Superfluid.Concepts.TaggedTypeable
+        Money.Superfluid.Concepts.Liquidity
+        Money.Superfluid.Concepts.RealtimeBalance
+        Money.Superfluid.Concepts.SuperfluidTypes
+        Money.Superfluid.Concepts.Agreement
+        Money.Superfluid.SubSystems.BufferBasedSolvency
+        Money.Superfluid.Agreements.TransferableBalanceAgreement
+        Money.Superfluid.Agreements.ConstantFlowAgreement
+        Money.Superfluid.Agreements.DistributionAgreement
+        Money.Superfluid.Agreements.DecayingFlowAgreement
+        Money.Superfluid.System.Serialization
+        Money.Superfluid.System.AccountTokenModel
+
+    hs-source-dirs:   src
+    default-language: Haskell2010
+    ghc-options:      -Wall
+    build-depends:
+        base >=4.12,
+        data-default,
+        containers,
+        transformers

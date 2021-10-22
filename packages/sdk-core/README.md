@@ -1,9 +1,9 @@
-<h1 align="center">core-sdk</h1>
+<h1 align="center">sdk-core</h1>
 <div align="center">
 <img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
 <p>
-  <a href="https://www.npmjs.com/package/@superfluid-finance/core-sdk" target="_blank">
-    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/core-sdk.svg">
+  <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-core" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-core.svg">
   </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
@@ -32,7 +32,7 @@ TypeScript:
 import SuperfluidSDK, {
     ChainId,
     NetworkName,
-} from "@superfluid-finance/core-sdk";
+} from "@superfluid-finance/sdk-core";
 
 const sf = new SuperfluidSDK.Framework({
     chainId: ChainId.MATIC,
@@ -43,7 +43,7 @@ const sf = new SuperfluidSDK.Framework({
 JavaScript (Module):
 
 ```js
-import SuperfluidSDK from "@superfluid-finance/core-sdk";
+import SuperfluidSDK from "@superfluid-finance/sdk-core";
 
 const sf = new SuperfluidSDK.Framework({
     chainId: 137,
@@ -54,7 +54,7 @@ const sf = new SuperfluidSDK.Framework({
 JavaScript (CommonJS) - usually a Node.js environment:
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/core-sdk");
+const SuperfluidSDK = require("@superfluid-finance/sdk-core");
 
 const sf = new SuperfluidSDK.Framework({
     chainId: 137,

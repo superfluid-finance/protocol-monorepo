@@ -34,6 +34,10 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_JS_SDK=1
         echo JS SDK will be tested.
     fi
+	# if sdk-core package changed
+	if grep -E "^packages/sdk-core(src/|test/|package.json)" changed-files.list;then
+		BUILD_SDK_CORE=1
+		echo SDK CORE will be tested.
     # if subgraph package changed
     if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|test|truffle-config.js|package.json)" changed-files.list;then
         BUILD_SUBGRAH=1
@@ -46,9 +50,10 @@ if ! [ -z "$GITHUB_ENV" ];then
     fi
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
     echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
+	echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAH=${BUILD_SUBGRAH}" >> $GITHUB_ENV
     echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
-    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ];then
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE == 1" ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
     fi

@@ -114,7 +114,7 @@ jobs:
         run: |
           tasks/npm-publish.sh packages/ethereum-contracts dev
           tasks/npm-publish.sh packages/js-sdk dev
-          tasks/npm-publish.sh packages/core-sdk dev
+          tasks/npm-publish.sh packages/sdk-core dev
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

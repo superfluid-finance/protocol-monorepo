@@ -19,9 +19,10 @@ echo ---
 # set BUILD_* variables to GITHUB_ENV
 if ! [ -z "$GITHUB_ENV" ];then
     # if ci workflow changed
-    if grep -E "^.github/workflows/ci.hml$" changed-files.list;then
+    if grep -E "^.github/workflows/ci.yml$" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1
+        BUILD_SDK_CORE=1
     fi
     # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
@@ -35,7 +36,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         echo JS SDK will be tested.
     fi
 	# if sdk-core package changed
-	if grep -E "^packages/sdk-core(src/|test/|package.json)" changed-files.list;then
+	if grep -E "^packages/sdk-core/(src/|test/|package.json)" changed-files.list;then
 		BUILD_SDK_CORE=1
 		echo SDK CORE will be tested.
 	fi

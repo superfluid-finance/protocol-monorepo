@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { IPaginate, IPaginateOptions } from "./interfaces";
 
 export const normalizeAddressForContract = (address?: string) => {
     if (!address) return "";
@@ -17,4 +18,13 @@ export const buildWhereForSubgraphQuery = <T>(data: T) => {
         .filter((x) => x[1] != null && x[1] !== "")
         .map((x) => `${[x[0]]}: "${normalizeAddressForSubgraph(x[1])}"`)
         .join(",");
+};
+
+export const defaultPaginateOptions = (
+    options: IPaginateOptions
+): IPaginate => {
+    return {
+        first: options.first == null ? 100 : options.first,
+        skip: options.skip == null ? 0 : options.skip,
+    };
 };

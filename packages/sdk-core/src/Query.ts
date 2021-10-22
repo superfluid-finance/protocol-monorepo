@@ -2,6 +2,8 @@ import ethers from "ethers";
 import Framework from "./Framework";
 import {
     ILightAccountTokenSnapshot,
+    IPaginatedResponse,
+    IPaginateOptions,
     IStream,
     IStreamRequest,
     ISubgraphResponse,
@@ -12,6 +14,7 @@ import { getStreams, getSuperTokens } from "./queries/holQueries";
 import { subgraphRequest } from "./queryHelpers";
 import {
     buildWhereForSubgraphQuery,
+    defaultPaginateOptions,
     normalizeAddressForSubgraph,
 } from "./utils";
 
@@ -40,10 +43,17 @@ export default class Query {
     };
 
     listStreams = async (
-        data: IStreamRequest
-    ): Promise<ISubgraphResponse<IStream[]>> => {
+        data: IStreamRequest,
+        paginateOptions: IPaginateOptions
+    ): Promise<IPaginatedResponse<IStream[]>> => {
         const where = buildWhereForSubgraphQuery(data);
-        return this.custom<IStream[]>(getStreams(where));
+        const options = defaultPaginateOptions(paginateOptions);
+        return {
+            response: (await this.custom<IStream[]>(getStreams(where, options)))
+                .response,
+            first: options.first,
+            skip: options.skip,
+        };
     };
 
     listUserInteractedSuperTokens = async (

@@ -1,4 +1,5 @@
 import { gql } from "graphql-request";
+import { IPaginate } from "../interfaces";
 import { baseHOLProperties, baseUpdateableProperties } from "./baseProperties";
 
 export const getSuperTokens = gql`
@@ -13,10 +14,12 @@ export const getSuperTokens = gql`
     }
 `;
 
-export const getStreams = (where: string) => gql`
+export const getStreams = (where: string, paginateOptions: IPaginate) => gql`
     {
         response: streams(
-            where: { ${where} }
+			where: { ${where} },
+			first: ${paginateOptions.first},
+			skip: ${paginateOptions.skip}
         ) {
             ${baseUpdateableProperties}
             currentFlowRate

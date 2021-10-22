@@ -41,9 +41,24 @@ export interface IStreamRequest {
     readonly sender?: string;
     readonly receiver?: string;
     readonly token?: string;
+    readonly first?: number;
+    readonly skip?: number;
+}
+export interface IPaginateOptions {
+    readonly first?: number;
+    readonly skip?: number;
+}
+export interface IPaginate {
+    readonly first: number;
+    readonly skip: number;
 }
 
 // response interfaces
+export interface IPaginatedResponse<T> {
+    readonly response: T;
+    readonly first: number;
+    readonly skip: number;
+}
 export interface ISubgraphResponse<T> {
     readonly response: T;
 }

@@ -1,4 +1,4 @@
-const { expectRevert } = require("@openzeppelin/test-helpers");
+const { expectRevert, expectEvent } = require("@openzeppelin/test-helpers");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
@@ -119,11 +119,16 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
             (await token.balanceOf(bob)).toString(),
             toWad(0).toString()
         );
-        await token.deposit(
+        const r1 = await token.deposit(
             bob,
             web3.eth.abi.encodeParameter("uint256", AMOUNT_1),
             { from: chainMgr }
         );
+        await expectEvent(r1, "Transfer", {
+            from: t.constants.ZERO_ADDRESS,
+            to: bob,
+            value: AMOUNT_1,
+        });
         assert.equal(
             (await token.balanceOf(bob)).toString(),
             AMOUNT_1.toString()
@@ -146,6 +151,10 @@ describe("MaticBridgedNativeSuperTokenProxy Contract", function () {
         await token.withdraw(AMOUNT_1, { from: bob });
         assert.equal(
             (await token.balanceOf(bob)).toString(),
+            AMOUNT_2.toString()
+        );
+        assert.equal(
+            (await token.totalSupply()).toString(),
             AMOUNT_2.toString()
         );
     });

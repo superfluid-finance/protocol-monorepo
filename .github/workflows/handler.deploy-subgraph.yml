@@ -10,7 +10,7 @@ on:
 
 jobs:
   deploy-subgraph:
-    name: Deploy Subgraph (Feature Branch)
+    name: Deploy Subgraph
 
     runs-on: ubuntu-latest
 

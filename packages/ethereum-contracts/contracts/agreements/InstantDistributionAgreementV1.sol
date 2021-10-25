@@ -96,23 +96,30 @@ contract InstantDistributionAgreementV1 is
         bytes32[] memory sidList;
         (slotIds, sidList) = _listSubscriptionIds(token, account);
         for (uint32 i = 0; i < sidList.length; ++i) {
-            uint32 subId = slotIds[i];
-            bytes32 sId = sidList[i];
-            IndexData memory idata;
+            bool exist;
             SubscriptionData memory sdata;
+            bytes32 iId;
 
-            (, sdata) = _getSubscriptionData(token, sId);
-            //require(exist, "IDA: E_NO_SUBS");
-            bytes32 iId = token.getAgreementStateSlot(
-                address(this),
-                account,
-                _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
-            (, idata) = _getIndexData(token, iId);
-            assert(exist);
-            assert(sdata.subId == subId);
-            dynamicBalance = dynamicBalance.add(
-                int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
-            );
+            {
+                uint32 subId = slotIds[i];
+                (exist, sdata) = _getSubscriptionData(token, sidList[i]);
+                assert(exist);
+                assert(sdata.subId == subId);
+                //require(exist, "IDA: E_NO_SUBS");
+                iId = token.getAgreementStateSlot(
+                    address(this),
+                    account,
+                    _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
+            }
+
+            {
+                IndexData memory idata;
+                (exist, idata) = _getIndexData(token, iId);
+                assert(exist);
+                dynamicBalance = dynamicBalance.add(
+                    int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
+                );
+            }
         }
 
         // as a publisher

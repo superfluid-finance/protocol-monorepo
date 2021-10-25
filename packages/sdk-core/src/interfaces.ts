@@ -37,25 +37,33 @@ export interface IFrameworkOptions {
 }
 
 // request interfaces
-export interface IStreamRequest {
+export interface IIndexRequestFilter {
+    readonly indexId?: string;
+    readonly publisher?: string;
+    readonly token?: string;
+}
+export interface IStreamRequestFilter {
     readonly sender?: string;
     readonly receiver?: string;
     readonly token?: string;
+}
+export interface IIndexSubscriptionRequestFilter {
+    readonly subscriber?: string;
+    readonly approved?: boolean;
+}
+export interface IPaginateRequest {
     readonly first?: number;
     readonly skip?: number;
 }
-export interface IPaginateOptions {
-    readonly first?: number;
-    readonly skip?: number;
-}
-export interface IPaginate {
+export interface IPaginateResponse {
     readonly first: number;
     readonly skip: number;
 }
 
 // response interfaces
 export interface IPaginatedResponse<T> {
-    readonly response: T;
+    readonly hasNextPage: boolean;
+	readonly response: T;
     readonly first: number;
     readonly skip: number;
 }
@@ -96,6 +104,34 @@ export interface IHOLEntityBase {
 export interface IHOLUpdateable extends IHOLEntityBase {
     readonly updatedAtTimestamp: string;
     readonly updatedAtBlockNumber: string;
+}
+
+export interface IIndex extends IHOLUpdateable {
+    readonly indexId: string;
+    readonly indexValue: string;
+    readonly totalSubscriptionsWithUnits: number;
+    readonly totalUnitsPending: string;
+    readonly totalUnitsApproved: string;
+    readonly totalUnits: string;
+    readonly totalAmountDistributedUntilUpdatedAt: string;
+    readonly token: ISuperToken;
+    readonly publisher: ILightEntity;
+}
+
+export interface IIndexSubscription extends IHOLUpdateable {
+    readonly subscriber: ILightEntity;
+    readonly approved: boolean;
+    readonly units: string;
+    readonly totalAmountReceivedUntilUpdatedAt: string;
+    readonly indexValueUntilUpdatedAt: string;
+    readonly index: IIndexSubscriptionIndex;
+}
+
+interface IIndexSubscriptionIndex {
+    readonly id: string;
+    readonly indexId: string;
+    readonly indexValue: string;
+    readonly token: ISuperToken;
 }
 
 export interface IStream extends IHOLUpdateable {

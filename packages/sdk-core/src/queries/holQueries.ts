@@ -1,8 +1,8 @@
 import { gql } from "graphql-request";
-import { IPaginate } from "../interfaces";
+import { IPaginateResponse } from "../interfaces";
 import { baseHOLProperties, baseUpdateableProperties } from "./baseProperties";
 
-export const getSuperTokens = gql`
+export const getSuperTokensQuery = gql`
     {
         response: tokens(where: { isSuperToken: true }) {
             ${baseHOLProperties}
@@ -14,7 +14,10 @@ export const getSuperTokens = gql`
     }
 `;
 
-export const getStreams = (where: string, paginateOptions: IPaginate) => gql`
+export const getStreamsQuery = (
+    where: string,
+    paginateOptions: IPaginateResponse
+) => gql`
     {
         response: streams(
 			where: { ${where} },
@@ -57,4 +60,74 @@ export const getStreams = (where: string, paginateOptions: IPaginate) => gql`
             }
         }
     }
+`;
+
+export const getIndexesQuery = (
+    where: string,
+    paginateOptions: IPaginateResponse
+) => gql`
+	{
+		response: indexes(
+			where: { ${where} },
+			first: ${paginateOptions.first},
+			skip: ${paginateOptions.skip}
+		) {
+			${baseUpdateableProperties}
+			indexId
+			indexValue
+			totalSubscriptionsWithUnits
+			totalUnitsPending
+			totalUnitsApproved
+			totalUnits
+			totalAmountDistributedUntilUpdatedAt
+			token {
+				id
+				createdAtTimestamp
+				createdAtBlockNumber
+				name
+				symbol
+				isListed
+				underlyingAddress
+			}
+			publisher {
+				id
+			}
+		}
+	}
+`;
+
+export const getIndexSubscriptionsQuery = (
+    where: string,
+    paginateOptions: IPaginateResponse
+) => gql`
+	{
+		response: indexSubscriptions(
+			where: { ${where} }, 
+			first: ${paginateOptions.first}, 
+			skip: ${paginateOptions.skip}
+		) {
+			${baseUpdateableProperties}
+			subscriber {
+				id
+			}
+			approved
+			units
+			totalAmountReceivedUntilUpdatedAt
+			indexValueUntilUpdatedAt
+			index {
+				id
+				indexId
+				indexValue
+				token {
+					id
+					createdAtTimestamp
+					createdAtBlockNumber
+					name
+					symbol
+					isListed
+					underlyingAddress
+				}
+			}
+		}
+	}
 `;

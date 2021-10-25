@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { IPaginate, IPaginateOptions } from "./interfaces";
+import { IPaginateResponse, IPaginateRequest } from "./interfaces";
 
 export const normalizeAddressForContract = (address?: string) => {
     if (!address) return "";
@@ -21,8 +21,8 @@ export const buildWhereForSubgraphQuery = <T>(data: T) => {
 };
 
 export const defaultPaginateOptions = (
-    options: IPaginateOptions
-): IPaginate => {
+    options: IPaginateRequest
+): IPaginateResponse => {
     return {
         first: options.first == null ? 100 : options.first,
         skip: options.skip == null ? 0 : options.skip,

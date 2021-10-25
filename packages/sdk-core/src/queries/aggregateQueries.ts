@@ -1,6 +1,6 @@
 import { gql } from "graphql-request";
 
-export const getAccountTokenSnapshotsByAccount = gql`
+export const getAccountTokenSnapshotsByAccountQuery = gql`
     query getAccountTokenSnapshotsByAccount($account: ID!) {
         response: accountTokenSnapshots(where: { account: $account }) {
             id

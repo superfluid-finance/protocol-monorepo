@@ -1,0 +1,66 @@
+@startuml
+
+' Subscriber
+
+object Subscriber {
+    «Agreement State Slots»
+    ' _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID
+    [0] = subsBitmap : SlotsBitmap.Bitmap
+    ' _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START
+    [1<<128..+255] = iID | uint32.max : SlotsBitmap.SlotData
+}
+
+note top of Subscriber
+(0) bitmap => 0
+
+-> make first subscription
+(0) bitmap => 01
+(1<<128+0) => indexId of the publishder index that sbuscriber subsribes to (data0)
+listData -> ([0], [data0])
+
+-> make second subscription
+(0) bitmap => 11
+(1<<128+0) => first publisher index (data0)
+(1<<128+1) => second publisher index (data1)
+listData -> ([0, 1], [data0, data1])
+
+-> revoke first subscription
+(0) bitmap => 10 => [1] error([0])
+(1<<128+1) => second publisher index (data1)
+listData -> ([1], [data1])
+end note
+
+object Publisher {
+    «Agreement State Slots»
+    ' _PUBLISHER_DEPOSIT_STATE_SLOT_ID
+    [1<<32] : publisher deposit
+}
+
+class Index {
+    iID: sha3("publisher", publisher, indexId)
+    uint128 indexValue
+    uint128 totalUnitsApproved
+    uint128 totalUnitsPending
+}
+
+class IndexSubscription {
+    sID: sha3("subscription", subscriber, iID)
+    uint32 subId # slotId in subs bitmap
+    address publisher
+    uint32 indexId
+    uint128 indexValue
+    uint128 units
+}
+
+note top of IndexSubscription
+subscriber
+    -> subsBitmap
+    -> ([subId...], [iID...])
+    -> [sID...]
+    -> map getAgreementData [sID...]
+    -> [IndexSubscription...]
+]
+end note
+
+
+@enduml

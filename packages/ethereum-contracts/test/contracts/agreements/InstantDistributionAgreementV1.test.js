@@ -391,51 +391,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await verifyAll();
             });
 
-            it.skip("#1.2.4 subscriber can delete its pending subscription", async () => {
-                let subs;
-                await t.upgradeBalance("alice", INIT_BALANCE);
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad("0.001").toString(),
-                });
-
-                await shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
-                });
-
-                await shouldRevokeSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
-
-                await verifyAll();
-            });
-
-            it("#1.2.5 publisher can delete a subscription", async () => {
+            it("#1.2.4 publisher can delete a subscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -480,7 +436,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await verifyAll();
             });
 
-            it("#1.2.6 publisher should fail to delete a non-existen subscription", async () => {
+            it("#1.2.5 publisher should fail to delete a non-existen subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,
@@ -500,21 +456,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 );
             });
 
-            it.skip("#1.2.7 subscriber should fail to delete a subscription of a non-existent index", async () => {
-                await expectRevert(
-                    shouldDeleteSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriberName: "bob",
-                        senderName: "bob",
-                    }),
-                    "IDA: E_NO_INDEX"
-                );
-            });
-
-            it("#1.2.8 one should fail to delete other's subscription", async () => {
+            it("#1.2.6 one should fail to delete other's subscription", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,
@@ -541,7 +483,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 );
             });
 
-            it("#1.2.4 subscriber can revoke and resubscribe multiple times to subscription", async () => {
+            it("#1.2.7 subscriber can revoke and resubscribe multiple times to subscription", async () => {
                 let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
@@ -613,7 +555,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 await verifyAll();
             });
 
-            it("#1.2.4 subscriber can have multiple subscription and then with subId 0 revoked", async () => {
+            it("#1.2.8 subscriber can have multiple subscription and then with subId 0 revoked", async () => {
                 await shouldCreateIndex({
                     testenv: t,
                     superToken,

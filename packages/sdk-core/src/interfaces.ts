@@ -1,38 +1,18 @@
 import { ChainId, DataMode, FlowActionType, NetworkName } from "./index";
 
-type ChainIdType =
-    | ChainId.ROPSTEN
-    | ChainId.RINKEBY
-    | ChainId.GOERLI
-    | ChainId.KOVAN
-    | ChainId.XDAI
-    | ChainId.MATIC
-    | ChainId.MUMBAI;
-
-type DataModeType = DataMode.SUBGRAPH_WEB3 | DataMode.WEB3_ONLY;
-
-type NetworkNameType =
-    | NetworkName.ROPSTEN
-    | NetworkName.RINKEBY
-    | NetworkName.GOERLI
-    | NetworkName.KOVAN
-    | NetworkName.XDAI
-    | NetworkName.MATIC
-    | NetworkName.MUMBAI;
-
 export interface IConstructorFrameworkOptions {
-    chainId?: ChainIdType;
+    chainId?: ChainId;
     customSubgraphQueriesEndpoint?: string;
-    dataMode?: DataModeType;
-    networkName?: NetworkNameType;
+    dataMode?: DataMode;
+    networkName?: NetworkName;
     protocolReleaseVersion?: string;
 }
 
 export interface IFrameworkOptions {
-    chainId: ChainIdType;
+    chainId: ChainId;
     customSubgraphQueriesEndpoint: string;
-    dataMode: DataModeType;
-    networkName: NetworkNameType;
+    dataMode: DataMode;
+    networkName: NetworkName;
     protocolReleaseVersion: string;
 }
 
@@ -63,7 +43,7 @@ export interface IPaginateResponse {
 // response interfaces
 export interface IPaginatedResponse<T> {
     readonly hasNextPage: boolean;
-	readonly response: T;
+    readonly response: T;
     readonly first: number;
     readonly skip: number;
 }

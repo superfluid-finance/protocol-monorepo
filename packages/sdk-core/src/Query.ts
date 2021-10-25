@@ -1,5 +1,5 @@
 import ethers from "ethers";
-import Framework from "./Framework";
+import { DataMode } from ".";
 import {
     IIndex,
     IIndexRequestFilter,
@@ -33,11 +33,16 @@ import {
     validateStreamRequest,
 } from "./validation";
 
-export default class Query {
-    framework: Framework;
+export interface IQueryOptions {
+    readonly customSubgraphQueriesEndpoint: string;
+    readonly dataMode: DataMode;
+}
 
-    constructor(framework: Framework) {
-        this.framework = framework;
+export default class Query {
+    options: IQueryOptions;
+
+    constructor(options: IQueryOptions) {
+        this.options = options;
     }
 
     custom = async <T>(
@@ -45,7 +50,7 @@ export default class Query {
         variables?: { [key: string]: any }
     ): Promise<ISubgraphResponse<T>> => {
         return await subgraphRequest<ISubgraphResponse<T>>(
-            this.framework.options.customSubgraphQueriesEndpoint,
+            this.options.customSubgraphQueriesEndpoint,
             query,
             variables
         );
@@ -56,8 +61,6 @@ export default class Query {
     > => {
         return this.custom<ISuperToken[]>(getSuperTokensQuery);
     };
-
-    // TODO: maybe there is some way to refactor listIndexes, listIndexSubscriptions, listStreams
 
     listIndexes = async (
         filter: IIndexRequestFilter,

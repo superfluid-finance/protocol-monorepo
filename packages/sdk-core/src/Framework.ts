@@ -32,6 +32,6 @@ export default class Framework {
             networkName,
         };
 
-        this.query = new Query(this);
+        this.query = new Query(this.options);
     }
 }

@@ -108,8 +108,8 @@ contract InstantDistributionAgreementV1 is
                 account,
                 _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
             (, idata) = _getIndexData(token, iId);
-            //require(exist, "IDA: E_NO_INDEX");
-            //assert(sdata.subId == subId);
+            assert(exist);
+            assert(sdata.subId == subId);
             dynamicBalance = dynamicBalance.add(
                 int256(idata.indexValue - sdata.indexValue) * int256(sdata.units)
             );

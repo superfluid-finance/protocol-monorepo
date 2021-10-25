@@ -9,7 +9,7 @@ import { IConstructorFrameworkOptions } from "./interfaces";
 export const validateFrameworkConstructorOptions = (
     options: IConstructorFrameworkOptions
 ) => {
-    if (options.chainId == null && options.networkName == null) {
+    if (!options.chainId && !options.networkName) {
         throw new Error("You must input chainId or networkName.");
     }
     if (options.chainId != null && !chainIds.includes(options.chainId)) {

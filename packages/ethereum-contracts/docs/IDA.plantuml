@@ -102,14 +102,14 @@ frame Example1 {
     rectangle E1_Alice {
         map "IDA States" as E1_AliceStates {
             0 => 1b
-            [1<<128] => iID(Ricochet)
+            1<<128 => iID(Ricochet)
         }
     }
 
     rectangle E1_Bob {
         map "IDA States" as E1_BobStates {
             0 => 1b
-            [1<<128] => iID(Ricochet)
+            1<<128 => iID(Ricochet)
         }
     }
 
@@ -143,7 +143,7 @@ frame Example2 {
     rectangle "Alice:1" as E2_Alice1 {
         map "IDA States" as E2_Alice1States {
             0 => 1b
-            [1<<128] => iID(Index1)
+            1<<128 => iID(Index1)
         }
     }
     E2_Alice1 -> E2_Index1
@@ -151,8 +151,8 @@ frame Example2 {
     rectangle "Alice:2" as E2_Alice2 {
         map "IDA States" as E2_Alice2States {
             0 => 11b
-            [1<<128] => iID(Index1)
-            [1<<128+1] => iID(Index2)
+            1<<128 => iID(Index1)
+            1<<128+1 => iID(Index2)
         }
     }
     E2_Alice2 -> E2_Index1
@@ -161,7 +161,7 @@ frame Example2 {
     rectangle "Alice:3" as E2_Alice3 {
         map "IDA States" as E2_Alice3States {
             0 => 10b
-            [1<<128+1] => iID(Index2)
+            1<<128+1 => iID(Index2)
         }
     }
     E2_Alice3 -> E2_Index2

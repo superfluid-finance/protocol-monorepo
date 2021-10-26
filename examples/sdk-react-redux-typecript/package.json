@@ -19,7 +19,7 @@
         "react-redux": "latest",
         "react-scripts": "latest",
         "typescript": "latest",
-        "web3modal": "^1.9.4"
+        "web3modal": "latest"
     },
     "scripts": {
         "start": "react-scripts start",

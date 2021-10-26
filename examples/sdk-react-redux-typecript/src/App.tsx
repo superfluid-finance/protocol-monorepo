@@ -21,7 +21,7 @@ import {
     useCreateOrUpdateOrDeleteFlowMutation,
     useDeleteFlowMutation,
     useUpdateFlowMutation,
-} from "dapp-sdk";
+} from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import { SignerContext } from "./SignerContext";
 import { StreamTable } from "./StreamTable";

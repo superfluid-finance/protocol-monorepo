@@ -1,5 +1,5 @@
 {
-    "name": "dapp-sdk",
+    "name": "@superfluid-finance/sdk-redux",
     "version": "1.0.0",
     "description": "Quickly build dApps with Superfluid!",
     "main": "build/main/index.js",
@@ -91,9 +91,9 @@
         "singleQuote": true
     },
     "bugs": {
-        "url": "https://github.com/kasparkallas/dapp-sdk/issues"
+        "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
-    "homepage": "https://github.com/kasparkallas/dapp-sdk#readme",
+    "homepage": "https://docs.superfluid.finance/",
     "directories": {
         "test": "test"
     },

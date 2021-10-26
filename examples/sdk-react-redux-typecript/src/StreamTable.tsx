@@ -1,5 +1,5 @@
 import React, { FC, ReactElement, useContext } from "react";
-import { Flow, useFetchFlowsQuery } from "dapp-sdk";
+import { Flow, useFetchFlowsQuery } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {
     Table,

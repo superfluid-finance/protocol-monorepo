@@ -1,5 +1,5 @@
 import {configureStore, Dispatch} from "@reduxjs/toolkit";
-import { createSuperfluidSlice } from "dapp-sdk";
+import { createSuperfluidSlice } from "@superfluid-finance/sdk-redux";
 import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
 
 const [

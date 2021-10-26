@@ -1,20 +1,4 @@
-import { ChainId, DataMode, FlowActionType, NetworkName } from "./index";
-
-export interface IConstructorFrameworkOptions {
-    chainId?: ChainId;
-    customSubgraphQueriesEndpoint?: string;
-    dataMode?: DataMode;
-    networkName?: NetworkName;
-    protocolReleaseVersion?: string;
-}
-
-export interface IFrameworkOptions {
-    chainId: ChainId;
-    customSubgraphQueriesEndpoint: string;
-    dataMode: DataMode;
-    networkName: NetworkName;
-    protocolReleaseVersion: string;
-}
+import { FlowActionType } from "./index";
 
 // request interfaces
 export interface IIndexRequestFilter {

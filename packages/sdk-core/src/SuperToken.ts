@@ -17,7 +17,7 @@ export interface ITokenOptions {
     readonly networkName: NetworkName;
 }
 
-export default class Token {
+export default class SuperToken {
     readonly options: ITokenOptions;
 
     constructor(options: ITokenConstructorOptions) {
@@ -33,6 +33,14 @@ export default class Token {
         };
     }
 
+    hostContract(signer: ethers.Signer | ethers.providers.Provider) {
+        return new ethers.Contract(
+            chainIdToAddresses.get(this.options.chainId)!.host,
+            constantFlowAgreementV1ABI,
+            signer
+        ) as ISuperfluid;
+    }
+
     createFlow = async ({
         sender,
         receiver,
@@ -44,7 +52,7 @@ export default class Token {
         receiver: string;
         flowRate: string;
         userData: string;
-        signer: ethers.Signer | ethers.providers.Provider | undefined;
+        signer: ethers.Signer | ethers.providers.Provider;
     }) => {
         const normalizedToken = normalizeAddressForContract(
             this.options.address
@@ -53,7 +61,7 @@ export default class Token {
         const normalizedReceiver = normalizeAddressForContract(receiver);
 
         const ABI = [
-            "function createFlow(address token, address receiver, int96 flowRate, bytes ctx)",
+            "function createFlow(address token,address receiver,int96 flowRate,bytes ctx)",
         ];
         const iface = new ethers.utils.Interface(ABI);
         const callData = iface.encodeFunctionData("createFlow", [
@@ -62,11 +70,7 @@ export default class Token {
             flowRate,
             "0x",
         ]);
-        const hostContract = new ethers.Contract(
-            chainIdToAddresses.get(this.options.chainId)!.host,
-            constantFlowAgreementV1ABI,
-            signer
-        ) as ISuperfluid;
+        const hostContract = this.hostContract(signer);
         return await hostContract.callAgreement(
             chainIdToAddresses.get(this.options.chainId)!.cfaV1,
             callData,

@@ -155,8 +155,7 @@ describe("TOGA", function () {
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
     });
 
-    // FIXME this test is flacky and sometimes fail in coverage environment
-    it("#2 bob can outbid alice with higher bond [ @skip-on-coverage ]", async () => {
+    it("#2 bob can outbid alice with higher bond", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);

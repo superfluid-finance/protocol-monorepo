@@ -7,7 +7,7 @@ import { createApi } from '@reduxjs/toolkit/dist/query/react';
 import request, { gql } from 'graphql-request';
 import type { Transaction } from 'web3-core';
 
-import { fakeBaseQuery } from '../../lib/fakeBaseQuery';
+import { fakeBaseQuery } from './lib/fakeBaseQuery';
 
 export type EthersTransaction = Transaction;
 

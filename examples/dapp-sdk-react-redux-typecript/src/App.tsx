@@ -1,5 +1,4 @@
 import React, {
-    createContext,
     FC,
     ReactElement,
     SyntheticEvent,
@@ -17,15 +16,41 @@ import {
 } from "@mui/material";
 import { Framework } from "@superfluid-finance/js-sdk";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
-import { useCreateOrUpdateOrDeleteFlowMutation } from "dapp-sdk";
+import {
+    useCreateFlowMutation,
+    useCreateOrUpdateOrDeleteFlowMutation,
+    useDeleteFlowMutation,
+    useUpdateFlowMutation,
+} from "dapp-sdk";
 import { Loader } from "./Loader";
 import { SignerContext } from "./SignerContext";
 import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
+import { SerializedError } from "@reduxjs/toolkit";
 
 export const CreateStream: FC = (): ReactElement => {
-    const [createOrUpdateOrDeleteFlow, { isLoading, error }] =
-        useCreateOrUpdateOrDeleteFlowMutation();
+    const [
+        createFlow,
+        { isLoading: createFlowIsLoading, error: createFlowError },
+    ] = useCreateFlowMutation();
+
+    const [
+        updateFlow,
+        { isLoading: updateFlowIsLoading, error: updateFlowError },
+    ] = useUpdateFlowMutation();
+
+    const [
+        deleteFlow,
+        { isLoading: deleteFlowIsLoading, error: deleteFlowError },
+    ] = useDeleteFlowMutation();
+
+    const [
+        createOrUpdateOrDeleteFlow,
+        {
+            isLoading: createOrUpdateOrDeleteIsLoading,
+            error: createOrUpdateOrDeleteError,
+        },
+    ] = useCreateOrUpdateOrDeleteFlowMutation();
 
     const [networkName, signerAddress] = useContext(SignerContext);
 
@@ -33,8 +58,49 @@ export const CreateStream: FC = (): ReactElement => {
     const [superToken, setSuperToken] = useState<string>("");
     const [flowRate, setFlowRate] = useState<string>("");
 
+    const isAnythingLoading =
+        createFlowIsLoading ||
+        updateFlowIsLoading ||
+        deleteFlowIsLoading ||
+        createOrUpdateOrDeleteIsLoading;
+
+    const errors = [
+        createFlowError,
+        updateFlowError,
+        deleteFlowError,
+        createOrUpdateOrDeleteError,
+    ].filter((item): item is Error | SerializedError => !!item);
+
     const handleCreateStream = (e: SyntheticEvent) => {
-        e.preventDefault();
+        createFlow({
+            sender: signerAddress,
+            receiver,
+            flowRate,
+            networkName,
+            superToken,
+        });
+    };
+
+    const handleUpdateStream = (e: SyntheticEvent) => {
+        updateFlow({
+            sender: signerAddress,
+            receiver,
+            flowRate,
+            networkName,
+            superToken,
+        });
+    };
+
+    const handleDeleteStream = (e: SyntheticEvent) => {
+        deleteFlow({
+            sender: signerAddress,
+            receiver,
+            networkName,
+            superToken,
+        });
+    };
+
+    const handleCreateOrUpdateOrDeleteStream = (e: SyntheticEvent) => {
         createOrUpdateOrDeleteFlow({
             sender: signerAddress,
             receiver,
@@ -46,16 +112,20 @@ export const CreateStream: FC = (): ReactElement => {
 
     return (
         <>
-            {isLoading ? (
+            {isAnythingLoading ? (
                 <Loader />
             ) : (
                 <>
-                    {error && (
-                        <Alert sx={{ m: 1 }} severity="error">
-                            {error.message}
-                        </Alert>
+                    {errors.length ? (
+                        errors.map((error) => (
+                            <Alert sx={{ m: 1 }} severity="error">
+                                {error.message}
+                            </Alert>
+                        ))
+                    ) : (
+                        <></>
                     )}
-                    <form onSubmit={handleCreateStream}>
+                    <form onSubmit={(e: SyntheticEvent) => e.preventDefault()}>
                         <FormGroup>
                             <TextField
                                 sx={{ m: 1 }}
@@ -84,8 +154,36 @@ export const CreateStream: FC = (): ReactElement => {
                                 type="submit"
                                 variant="contained"
                                 fullWidth={true}
+                                onClick={handleCreateStream}
                             >
                                 Create
+                            </Button>
+                            <Button
+                                sx={{ m: 1 }}
+                                type="submit"
+                                variant="contained"
+                                fullWidth={true}
+                                onClick={handleUpdateStream}
+                            >
+                                Update
+                            </Button>
+                            <Button
+                                sx={{ m: 1 }}
+                                type="submit"
+                                variant="contained"
+                                fullWidth={true}
+                                onClick={handleDeleteStream}
+                            >
+                                Delete
+                            </Button>
+                            <Button
+                                sx={{ m: 1 }}
+                                type="submit"
+                                variant="contained"
+                                fullWidth={true}
+                                onClick={handleCreateOrUpdateOrDeleteStream}
+                            >
+                                Create | Update | Delete
                             </Button>
                         </FormGroup>
                     </form>
@@ -143,7 +241,7 @@ function App() {
                                 component="h3"
                                 gutterBottom
                             >
-                                Create stream
+                                Create Stream
                             </Typography>
                             <CreateStream />
                         </Box>

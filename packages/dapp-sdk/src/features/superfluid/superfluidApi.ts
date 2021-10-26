@@ -9,6 +9,8 @@ import type { Transaction } from 'web3-core';
 
 import { fakeBaseQuery } from '../../lib/fakeBaseQuery';
 
+export type EthersTransaction = Transaction;
+
 import {
     SuperfluidFrameworkSource,
     superfluidFrameworkSource as superfluidFrameworkSourcePreinitialized,
@@ -47,13 +49,33 @@ export interface FetchFlowsArg {
     accountAddress: string;
 }
 
-export interface CreateOrUpdateOrDeleteFlowArg {
+export interface CreateFlowArg {
     networkName: string;
     superToken: string;
     sender: string;
     receiver: string;
     flowRate: string;
 }
+
+export interface UpdateFlowArg {
+    networkName: string;
+    superToken: string;
+    sender: string;
+    receiver: string;
+    flowRate: string;
+}
+
+export interface DeleteFlowArg {
+    networkName: string;
+    superToken: string;
+    sender: string;
+    receiver: string;
+}
+
+export interface CreateOrUpdateOrDeleteFlowArg
+    extends CreateFlowArg,
+        UpdateFlowArg,
+        DeleteFlowArg {}
 
 interface Error {
     message: string;
@@ -249,24 +271,18 @@ const reduxApiSlice = createApi({
                 },
             ],
         }),
-        createOrUpdateOrDeleteFlow: builder.mutation<
-            Transaction,
-            CreateOrUpdateOrDeleteFlowArg
-        >({
+        createFlow: builder.mutation<EthersTransaction, CreateFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const framework = await superfluidFrameworkSource.getForWrite(
                     arg.networkName
                 );
-                const cfa = framework.cfa!;
-
-                if (arg.flowRate === '0') {
-                    const transaction = await cfa.deleteFlow({
+                return {
+                    data: await framework.cfa!.createFlow({
                         superToken: arg.superToken,
                         sender: arg.sender,
                         receiver: arg.receiver,
-                        by: arg.sender, // What is this?
-                        userData: undefined,
                         flowRate: arg.flowRate,
+                        userData: undefined,
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         onTransaction: (transactionHash) => {
@@ -277,9 +293,123 @@ const reduxApiSlice = createApi({
                                 })
                             );
                         },
-                    });
+                    }),
+                };
+            },
+            invalidatesTags: (_1, _2, arg) => [
+                {
+                    type: 'Flow',
+                    id: `${arg.networkName}_${arg.sender}`,
+                },
+                {
+                    type: 'Flow',
+                    id: `${arg.networkName}_${arg.receiver}`,
+                },
+            ],
+        }),
+        updateFlow: builder.mutation<EthersTransaction, UpdateFlowArg>({
+            queryFn: async (arg, queryApi) => {
+                const framework = await superfluidFrameworkSource.getForWrite(
+                    arg.networkName
+                );
+                return {
+                    data: await framework.cfa!.updateFlow({
+                        superToken: arg.superToken,
+                        sender: arg.sender,
+                        receiver: arg.receiver,
+                        flowRate: arg.flowRate,
+                        userData: undefined,
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        onTransaction: (transactionHash) => {
+                            queryApi.dispatch(
+                                trackTransaction({
+                                    networkName: arg.networkName,
+                                    transactionHash: transactionHash,
+                                })
+                            );
+                        },
+                    }),
+                };
+            },
+            invalidatesTags: (_1, _2, arg) => [
+                {
+                    type: 'Flow',
+                    id: `${arg.networkName}_${arg.sender}`,
+                },
+                {
+                    type: 'Flow',
+                    id: `${arg.networkName}_${arg.receiver}`,
+                },
+            ],
+        }),
+        deleteFlow: builder.mutation<EthersTransaction, DeleteFlowArg>({
+            queryFn: async (arg, queryApi) => {
+                const framework = await superfluidFrameworkSource.getForWrite(
+                    arg.networkName
+                );
+                return {
+                    data: await framework.cfa!.deleteFlow({
+                        superToken: arg.superToken,
+                        sender: arg.sender,
+                        receiver: arg.receiver,
+                        by: arg.sender, // What is this?
+                        userData: undefined,
+                        flowRate: '0',
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        onTransaction: (transactionHash) => {
+                            queryApi.dispatch(
+                                trackTransaction({
+                                    networkName: arg.networkName,
+                                    transactionHash: transactionHash,
+                                })
+                            );
+                        },
+                    }),
+                };
+            },
+            invalidatesTags: (_1, _2, arg) => [
+                {
+                    type: 'Flow',
+                    id: `${arg.networkName}_${arg.sender}`,
+                },
+                {
+                    type: 'Flow',
+                    id: `${arg.networkName}_${arg.receiver}`,
+                },
+            ],
+        }),
+        createOrUpdateOrDeleteFlow: builder.mutation<
+            EthersTransaction,
+            CreateOrUpdateOrDeleteFlowArg
+        >({
+            queryFn: async (arg, queryApi) => {
+                const framework = await superfluidFrameworkSource.getForWrite(
+                    arg.networkName
+                );
+                const cfa = framework.cfa!;
+
+                if (arg.flowRate === '0') {
                     return {
-                        data: transaction,
+                        data: await cfa.deleteFlow({
+                            superToken: arg.superToken,
+                            sender: arg.sender,
+                            receiver: arg.receiver,
+                            by: arg.sender, // What is this?
+                            userData: undefined,
+                            flowRate: arg.flowRate,
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            onTransaction: (transactionHash) => {
+                                queryApi.dispatch(
+                                    trackTransaction({
+                                        networkName: arg.networkName,
+                                        transactionHash: transactionHash,
+                                    })
+                                );
+                            },
+                        }),
                     };
                 }
 
@@ -367,5 +497,10 @@ export const createSuperfluidSlice = (
     return [superfluidFrameworkSource, reduxApiSlice, transactionSlice];
 };
 
-export const { useCreateOrUpdateOrDeleteFlowMutation, useFetchFlowsQuery } =
-    reduxApiSlice;
+export const {
+    useCreateFlowMutation,
+    useUpdateFlowMutation,
+    useDeleteFlowMutation,
+    useCreateOrUpdateOrDeleteFlowMutation,
+    useFetchFlowsQuery,
+} = reduxApiSlice;

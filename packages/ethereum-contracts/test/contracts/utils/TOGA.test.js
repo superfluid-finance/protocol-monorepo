@@ -158,7 +158,7 @@ describe("TOGA", function () {
     it("#2 bob can outbid alice with higher bond", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
-        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, EXIT_RATE_1);
+        await sendPICBid(alice, superToken, BOND_AMOUNT_1E12, 0);
 
         let curPIC = await toga.getCurrentPIC(superToken.address);
         assert.equal(curPIC, alice);

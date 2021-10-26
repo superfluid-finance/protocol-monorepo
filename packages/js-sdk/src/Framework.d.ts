@@ -1,11 +1,12 @@
 import type Web3 from "web3";
-import ConstantFlowAgreementV1Helper from "./ConstantFlowAgreementV1Helper";
-import InstantDistributionAgreementV1Helper from "./InstantDistributionAgreementV1Helper";
-import GasMeter from "./utils/gasMetering/gasMetering";
+import type { ConstantFlowAgreementV1Helper } from "./ConstantFlowAgreementV1Helper";
+import type { InstantDistributionAgreementV1Helper } from "./InstantDistributionAgreementV1Helper";
+import type { GasMeter, Record } from "./utils/gasMetering/gasMetering";
 import LoadContracts from "./loadContracts";
 import Config from "./getConfig";
-import User from "./User";
-import Utils from "./Utils";
+import type { User } from "./User";
+import type { Utils } from "./Utils";
+import type { Web3Provider } from "@ethersproject/providers";
 
 declare type GasReportTypeOptions = 'JSON' | 'HTML' | 'TENDERLY';
 
@@ -16,10 +17,10 @@ export interface Agreements {
 
 export interface FrameworkOptions {
     version?: string,
-    isTruffle: boolean,
+    isTruffle?: boolean,
     web3?: Web3,
-    ethers?: LoadContracts.EthersWithSigner,
-    gasReportType: GasReportTypeOptions,
+    ethers?: Web3Provider,
+    gasReportType?: GasReportTypeOptions,
     additionalContracts?: string[],
     tokens?: string[],
     loadSuperNativeToken?: boolean,
@@ -33,7 +34,7 @@ export declare class Framework {
     _options: FrameworkOptions;
     version: string;
     web3: Web3;
-    ethers: LoadContracts.EthersWithSigner;
+    ethers: Web3Provider;
     _gasReportType: GasReportTypeOptions;
     config: Config.NetworkConfig;
     contracts: Promise<LoadContracts.LoadedContract[]> | undefined;
@@ -47,10 +48,10 @@ export declare class Framework {
     utils: Utils | undefined;
     _gasMetering: GasMeter | undefined;
 
-    initialize(): Promise<any>;
+    initialize(): Promise<void>;
     isSuperTokenListed(superTokenKey: string): Promise<boolean>;
     loadToken(tokenKey: string): Promise<void>;
-    createERC20Wrapper(tokenInfo: any, 
+    createERC20Wrapper(tokenInfo: any,
         { superTokenSymbol, superTokenName, from, upgradability }: {
             superTokenSymbol?: string,
             superTokenName?: string,
@@ -64,6 +65,8 @@ export declare class Framework {
         options?: any;
     }): User;
     batchCall(calls: any): any;
-    _pushTxForGasReport(tx: GasMeter.Record, actionName: string): void;
+    subgraphQuery(query: string): Promise<any>;
+    getPastEvents(contract: any, eventName: any, filter: any, options: any): Promise<any>;
+    _pushTxForGasReport(tx: Record, actionName: string): void;
     generateGasReport(name: string): void;
 }

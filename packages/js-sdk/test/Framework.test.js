@@ -8,27 +8,50 @@ const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/
 const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
 const SuperfluidSDK = require("../src");
 
-contract("Framework class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 1), { isTruffle: true });
-    const { admin } = t.aliases;
+describe("Framework class", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
 
-    before(async () => {
-        await t.reset();
-        await deployTestToken(t.errorHandler, [":", "fDAI"], {
-            isTruffle: true,
+    let admin;
+
+    before(async function () {
+        await t.beforeTestSuite({
+            isTruffle: false,
+            web3,
+            nAccounts: 1,
         });
-        await deployTestToken(t.errorHandler, [":", "fUSDC"], {
-            isTruffle: true,
+
+        ({ admin } = t.aliases);
+
+        await deployTestToken(t.createErrorHandler(), [":", "fDAI"], {
+            isTruffle: false,
+            web3,
         });
-        await deploySuperToken(t.errorHandler, [":", "ETH"], {
-            isTruffle: true,
+        await deployTestToken(t.createErrorHandler(), [":", "fUSDC"], {
+            isTruffle: false,
+            web3,
         });
-        await deploySuperToken(t.errorHandler, [":", "fDAI"], {
-            isTruffle: true,
+        await deploySuperToken(t.createErrorHandler(), [":", "ETH"], {
+            isTruffle: false,
+            web3,
         });
-        await deploySuperToken(t.errorHandler, [":", "fUSDC"], {
-            isTruffle: true,
+        await deploySuperToken(t.createErrorHandler(), [":", "fDAI"], {
+            isTruffle: false,
+            web3,
         });
+        await deploySuperToken(t.createErrorHandler(), [":", "fUSDC"], {
+            isTruffle: false,
+            web3,
+        });
+        await t.pushEvmSnapshot();
+    });
+
+    after(async () => {
+        await t.popEvmSnapshot();
+    });
+
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     describe("initialization", () => {
@@ -220,6 +243,32 @@ contract("Framework class", (accounts) => {
                 );
             });
 
+            it("load by native token symbol", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["ETH"],
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
+                assert.equal(sf.superTokens.ETHx.superTokenCustomType, "SETH");
+                assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
+            });
+
+            it("load by native token symbol plus x", async () => {
+                const sf = new SuperfluidSDK.Framework({
+                    isTruffle: true,
+                    tokens: ["ETHx"],
+                    version: "test",
+                });
+                await sf.initialize();
+
+                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
+                assert.equal(sf.superTokens.ETHx.superTokenCustomType, "SETH");
+                assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
+            });
+
             it("load by superToken address", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
@@ -240,6 +289,8 @@ contract("Framework class", (accounts) => {
                     await sf.superTokens[fDAIxAddress].symbol(),
                     "fDAIx"
                 );
+                assert.isUndefined(await sf.tokens.fDAI);
+                assert.isUndefined(await sf.tokens.fDAIx);
                 assert.equal(
                     await sf.superTokens[fDAIxAddress].underlyingToken.symbol(),
                     "fDAI"
@@ -272,10 +323,14 @@ contract("Framework class", (accounts) => {
             });
 
             it("failed due to no super token wrapper", async () => {
-                await deployTestToken(t.errorHandler, [":", "SASHIMI"], {
-                    from: admin,
-                    isTruffle: true,
-                });
+                await deployTestToken(
+                    t.createErrorHandler(),
+                    [":", "SASHIMI"],
+                    {
+                        from: admin,
+                        isTruffle: true,
+                    }
+                );
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,
                     tokens: ["SASHIMI"],
@@ -303,7 +358,7 @@ contract("Framework class", (accounts) => {
         });
 
         it("create new super token", async () => {
-            await deployTestToken(t.errorHandler, [":", "MISO"], {
+            await deployTestToken(t.createErrorHandler(), [":", "MISO"], {
                 isTruffle: true,
                 from: admin,
             });

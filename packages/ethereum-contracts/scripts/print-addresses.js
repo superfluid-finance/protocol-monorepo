@@ -15,7 +15,7 @@ const {
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/print-addresses : output_file
+ * Usage: npx truffle exec scripts/print-addresses.js : output_file
  */
 module.exports = async function (callback, argv, options = {}) {
     let output = "";
@@ -93,7 +93,7 @@ module.exports = async function (callback, argv, options = {}) {
             }\n`;
         }
 
-        await fs.writeFile(outputFilename, output, callback);
+        fs.writeFile(outputFilename, output, callback);
     } catch (err) {
         console.log("Output so far:\n", output);
         callback(err);

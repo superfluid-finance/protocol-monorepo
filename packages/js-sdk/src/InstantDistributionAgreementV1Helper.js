@@ -464,17 +464,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
         const publisherNorm = await this._sf.utils.normalizeAddressParam(
             publisher
         );
-        // TODO ethers support
         return (
-            await this._ida.getPastEvents("IndexCreated", {
-                fromBlock: 0,
-                toBlock: "latest",
-                filter: {
-                    token: superTokenNorm,
-                    publisher: publisherNorm,
-                },
+            await this._sf.getPastEvents(this._ida, "IndexCreated", {
+                token: superTokenNorm,
+                publisher: publisherNorm,
             })
-        ).map((e) => Number(e.args.indexId.toString()));
+        ).map((e) => Number(e.indexId.toString()));
     }
 
     /**
@@ -492,26 +487,21 @@ module.exports = class InstantDistributionAgreementV1Helper {
             publisher
         );
         let updates;
-        updates = await this._ida.getPastEvents("IndexUnitsUpdated", {
-            fromBlock: 0,
-            toBlock: "latest",
-            filter: {
-                token: superTokenNorm,
-                publisher: publisherNorm,
-                indexId,
-            },
+        updates = await this._sf.getPastEvents(this._ida, "IndexUnitsUpdated", {
+            token: superTokenNorm,
+            publisher: publisherNorm,
+            indexId,
         });
-        // TODO ethers support
         return Object.values(
             updates.reduce((acc, i) => {
-                acc[i.args.subscriber] = i;
+                acc[i.subscriber] = i;
                 return acc;
             }, {})
         )
-            .filter((i) => i.args.units.toString() != "0")
+            .filter((i) => i.units.toString() != "0")
             .map((i) => ({
-                subscriber: i.args.subscriber,
-                units: i.args.units.toString(),
+                subscriber: i.subscriber,
+                units: i.units.toString(),
             }));
     }
 

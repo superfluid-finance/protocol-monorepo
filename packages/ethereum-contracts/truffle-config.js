@@ -27,6 +27,8 @@ try {
     );
 }
 
+const DEFAULT_NETWORK_TIMEOUT = 60000;
+
 //
 // This is a hack to resolve that HDWallet doesn't work with openethereum (xdai & kovan)
 //
@@ -85,11 +87,12 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 4,
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: 10e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         ropsten: {
@@ -102,11 +105,12 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 3,
-            gas: 7.9e6,
+            //gas: 7.9e6,
             gasPrice: 10e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         goerli: {
@@ -119,11 +123,12 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 5,
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: +process.env.GOERLI_GAS_PRICE || 10e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         kovan: {
@@ -139,11 +144,12 @@ module.exports = {
                 );
             },
             network_id: 42,
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         arbitrum: {
@@ -157,7 +163,7 @@ module.exports = {
                 );
             },
             network_id: "*",
-            gas: 1e9, // arbgas is a different beast, 1G gas is normal
+            //gas: 1e9, // arbgas is a different beast, 1G gas is normal
             gasPrice: 0,
         },
 
@@ -174,11 +180,12 @@ module.exports = {
                 );
             },
             network_id: 0x64,
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: +process.env.XDAI_GAS_PRICE || 10e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         matic: {
@@ -194,11 +201,12 @@ module.exports = {
                 );
             },
             network_id: 137,
-            gas: 8e6,
-            gasPrice: +process.env.MATIC_GAS_PRICE || 10e9,
+            //gas: 8e6,
+            gasPrice: +process.env.MATIC_GAS_PRICE || 25e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         mumbai: {
@@ -211,11 +219,12 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 80001,
-            gas: 8e6,
-            gasPrice: +process.env.MUMBAI_GAS_PRICE || 10e9,
+            //gas: 8e6,
+            gasPrice: +process.env.MUMBAI_GAS_PRICE || 20e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         artis_tau1: {
@@ -228,11 +237,12 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 0x03c401, // artis tau1 network
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: +process.env.ARTIS_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         mainnet: {
@@ -245,25 +255,41 @@ module.exports = {
                     true // shareNonce
                 ),
             network_id: 1, // mainnet's id
-            gas: 8e6,
+            //gas: 8e6,
             gasPrice: +process.env.MAINNET_GAS_PRICE || 1e9, // default 1 gwei
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        /// For truffle development environment
+        development: {
+            host: "localhost",
+            port: 47545,
+            network_id: "4447",
+
+            // workaround to improve testing speed
+            // see https://github.com/trufflesuite/truffle/issues/3522
+            disableConfirmationListener: true,
         },
 
         coverage: {
             host: "localhost",
-            network_id: "*",
             port: 8555, // <-- If you change this, also set the port option in .solcover.js.
-            gas: 0xfffffffffff, // <-- Use this high gas value
-            gasPrice: 0x01, // <-- Use this low gas price
+
+            // ditto
+            disableConfirmationListener: true,
         },
 
-        ganache: {
-            host: "127.0.0.1",
+        /// For other private test environment
+        private: {
+            host: "localhost",
+            port: process.env.PRIVATE_PROVIDER_PORT || 8545,
             network_id: "*",
-            port: process.env.GANACHE_PORT || 8545,
+
+            // ditto
+            disableConfirmationListener: true,
         },
 
         // Another network with more advanced options...

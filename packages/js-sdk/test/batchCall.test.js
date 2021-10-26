@@ -8,16 +8,26 @@ const {
 
 const { batchCall } = require("../src/batchCall");
 
-contract("batchCall helper class", (accounts) => {
-    const t = new TestEnvironment(accounts.slice(0, 4), { isTruffle: true });
-    const { admin: adminAddress, alice: aliceAddress } = t.aliases;
+describe("batchCall helper class", function () {
+    this.timeout(300e3);
+    const t = TestEnvironment.getSingleton();
 
+    let adminAddress, aliceAddress;
     let sf;
-    let superToken;
     let testToken;
+    let superToken;
 
     before(async () => {
-        await t.reset();
+        await t.beforeTestSuite({
+            isTruffle: false,
+            web3,
+            nAccounts: 2,
+        });
+
+        ({ admin: adminAddress, alice: aliceAddress } = t.aliases);
+        testToken = t.sf.tokens.TEST;
+        superToken = t.sf.tokens.TESTx;
+
         sf = t.sf;
         sf.batchCall = (calls) => {
             console.log(batchCall({ agreements: sf.agreements, calls: calls }));
@@ -27,9 +37,8 @@ contract("batchCall helper class", (accounts) => {
         };
     });
 
-    beforeEach(async () => {
-        await t.createNewToken({ doUpgrade: false });
-        ({ superToken, testToken } = t.contracts);
+    beforeEach(async function () {
+        await t.beforeEachTestCase();
     });
 
     const exampleERC20TransferFromData = {
@@ -61,7 +70,7 @@ contract("batchCall helper class", (accounts) => {
                 assert.equal(
                     err.message,
                     // eslint-disable-next-line
-                    'Error: @superfluid-finance/js-sdk batchCall: You did not provide a required argument for "data"  in item #0 in your batch call array. Please see https://docs.superfluid.finaince/batchCall for more help'
+                    'Error: @superfluid-finance/js-sdk batchCall: You did not provide a required argument for "data"  in item #0 in your batch call array. Please see https://docs.superfluid.finance/superfluid/docs/batch-call for more help'
                 );
             }
         });

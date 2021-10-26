@@ -1,192 +1,170 @@
-import {
-    BigInt,
-    BigDecimal,
-    Bytes,
-    ByteArray,
-    ethereum,
-    Address,
-    crypto,
-    log,
-    dataSource,
-    Value,
-    DataSourceContext,
-} from "@graphprotocol/graph-ts";
-
-import { SuperToken as SuperTokenTemplate } from "../generated/templates";
-import {
-    Account,
-    Flow,
-    Token,
-    Transaction,
-    AccountWithToken,
-    Subscriber,
-    Index
-} from "../generated/schema";
+import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
-import { ISuperfluid as SuperFluid } from "../generated/SuperTokenFactory/ISuperfluid";
-import { ISuperTokenFactory as SuperTokenFactory } from "../generated/SuperTokenFactory/ISuperTokenFactory";
+import { TestResolver } from "../generated/ResolverV1/TestResolver";
+import { StreamRevision, IndexSubscription, Token } from "../generated/schema";
 
+/**************************************************************************
+ * Constants
+ *************************************************************************/
 
+export let BIG_INT_ZERO = BigInt.fromI32(0);
+export let BIG_INT_ONE = BigInt.fromI32(1);
 
-import { SubscriptionApproved} from "../generated/IInstantDistributionAgreementV1/IInstantDistributionAgreementV1"
+/**************************************************************************
+ * Event entities util functions
+ *************************************************************************/
 
 export function createEventID(event: ethereum.Event): string {
-    return event.block.number
-        .toString()
+    return event.transaction.hash
+        .toHexString()
         .concat("-")
         .concat(event.logIndex.toString());
 }
 
-function createFlowID(owner: string, recipient: string, token: string): string {
-    return owner
-        .concat("-")
-        .concat(recipient)
-        .concat("-")
-        .concat(token);
+/**************************************************************************
+ * HOL entities util functions
+ *************************************************************************/
+
+export function getTokenInfoAndReturn(
+    token: Token,
+    tokenAddress: Address
+): Token {
+    let tokenContract = SuperToken.bind(tokenAddress);
+    let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
+    let nameResult = tokenContract.try_name();
+    let symbolResult = tokenContract.try_symbol();
+    token.underlyingAddress = underlyingAddressResult.reverted
+        ? new Address(0)
+        : underlyingAddressResult.value;
+    token.name = nameResult.reverted ? "" : nameResult.value;
+    token.symbol = symbolResult.reverted ? "" : symbolResult.value;
+    return token;
 }
 
-export function logTransaction(event: ethereum.Event): Transaction {
-    let tx = new Transaction(event.transaction.hash.toHex());
-    tx.timestamp = event.block.timestamp;
-    tx.blockNumber = event.block.number;
-    tx.save();
-    return tx as Transaction;
-}
-
-export function toDai(value: BigInt): BigDecimal {
-    return value.divDecimal(BigDecimal.fromString("1000000000000000000")); // 18 decimal
-}
-
-export function fetchAccount(id: string): Account {
-    let account = Account.load(id);
-    if (account == null) {
-        account = new Account(id);
-    }
-    return account as Account;
-}
-
-export function fetchToken(address: string): Token {
-    let token = Token.load(address);
-    if (token == null) {
-        let tokenContract = SuperToken.bind(Address.fromString(address));
-        let underlyingAddress = tokenContract.getUnderlyingToken();
-        let name = tokenContract.name();
-        let symbol = tokenContract.symbol();
-        token = new Token(address);
-        token.underlyingAddress = underlyingAddress;
-        token.name = name;
-        token.symbol = symbol;
-        SuperTokenTemplate.create(Address.fromString(address));
-        // Additional context can be added here. See docs: https://thegraph.com/docs/define-a-subgraph#instantiating-a-data-source-template
-        // let context = new DataSourceContext();
-        // context.setString("dummyValue", "foo");
-        // SuperTokenTemplate.createWithContext(
-        //     Address.fromString(address),
-        //     context
-        // );
-    }
+export function getIsListedToken(
+    token: Token,
+    tokenAddress: Address,
+    resolverAddress: Address,
+    symbol: string
+): Token {
+    let resolverContract = TestResolver.bind(resolverAddress);
+    let result = resolverContract.try_get(`supertokens.v1.${symbol}`);
+    let superTokenAddress = result.reverted ? new Address(0) : result.value;
+    token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;
 }
 
-export function fetchAccountWithToken(
+/**
+ * Helper function which finds out whether a token has a valid host address.
+ * If it does not, we should not create any HOL/events related to the token.
+ * @param hostAddress
+ * @param tokenAddress
+ * @returns
+ */
+export function tokenHasValidHost(
+    hostAddress: Address,
+    tokenAddress: Address
+): boolean {
+    let tokenId = tokenAddress.toHex();
+    let token = Token.load(tokenId);
+    if (token == null) {
+        let tokenContract = SuperToken.bind(tokenAddress);
+        let tokenHostAddressResult = tokenContract.try_getHost();
+
+        if (tokenHostAddressResult.reverted) {
+            log.error("REVERTED GET HOST = {}", [tokenAddress.toHex()]);
+            return false;
+        }
+
+        return tokenHostAddressResult.value.toHex() == hostAddress.toHex();
+    }
+
+    return true;
+}
+
+// Get HOL ID functions
+export function getStreamRevisionPrefix(
+    senderId: string,
+    receiverId: string,
+    tokenId: string
+): string {
+    return senderId.concat("-").concat(receiverId).concat("-").concat(tokenId);
+}
+
+export function getStreamID(
+    senderId: string,
+    receiverId: string,
+    tokenId: string,
+    revisionIndex: number
+): string {
+    return getStreamRevisionPrefix(senderId, receiverId, tokenId)
+        .concat("-")
+        .concat(revisionIndex.toString());
+}
+
+export function getSubscriptionID(
+    subscriberAddress: Bytes,
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt
+): string {
+    return (
+        subscriberAddress.toHex() +
+        "-" +
+        publisherAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        indexId.toString()
+    );
+}
+
+export function getIndexID(
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
+    indexId: BigInt
+): string {
+    return (
+        publisherAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
+        "-" +
+        indexId.toString()
+    );
+}
+
+// Get HOL Exists Functions
+
+export function streamRevisionExists(id: string): boolean {
+    return StreamRevision.load(id) != null;
+}
+
+/**
+ * If your units get set to 0, you will still have a subscription
+ * entity, but your subscription technically no longer exists.
+ * Similarly, you may be approved, but the subscription by this
+ * definition does not exist.
+ * @param id
+ * @returns
+ */
+export function subscriptionExists(id: string): boolean {
+    let subscription = IndexSubscription.load(id);
+    return subscription != null && subscription.units.gt(BIG_INT_ZERO);
+}
+
+export function getAmountStreamedSinceLastUpdatedAt(
+    currentTime: BigInt,
+    lastUpdatedTime: BigInt,
+    previousTotalOutflowRate: BigInt
+): BigInt {
+    let timeDelta = currentTime.minus(lastUpdatedTime);
+    return timeDelta.times(previousTotalOutflowRate);
+}
+
+// Get Aggregate ID functions
+export function getAccountTokenSnapshotID(
     accountId: string,
     tokenId: string
-): AccountWithToken {
-    let id = accountId.concat("-").concat(tokenId);
-    let accountWithToken = AccountWithToken.load(id);
-    if (accountWithToken == null) {
-        let account = fetchAccount(accountId); // Ensure these exist
-        let token = fetchToken(tokenId);
-        account.save();
-        token.save();
-        accountWithToken = new AccountWithToken(id);
-        accountWithToken.balance = BigDecimal.fromString("0");
-        accountWithToken.account = accountId;
-        accountWithToken.token = tokenId;
-    }
-    return accountWithToken as AccountWithToken;
-}
-
-export function fetchFlow(
-    ownerAddress: string,
-    recipientAddress: string,
-    tokenAddress: string,
-    timestamp: BigInt
-): Flow {
-    let id = createFlowID(ownerAddress, recipientAddress, tokenAddress);
-    let flow = Flow.load(id);
-    if (flow == null) {
-        flow = new Flow(id);
-        flow.sum = BigDecimal.fromString("0");
-        flow.flowRate = BigInt.fromI32(0);
-        let token = fetchToken(tokenAddress);
-        flow.token = token.id;
-        flow.owner = ownerAddress;
-        flow.lastUpdate = timestamp;
-        flow.recipient = recipientAddress;
-
-        // Create accounts and tokens if they do not exist
-        let ownerAccount = fetchAccount(ownerAddress);
-        let recipientAccount = fetchAccount(recipientAddress);
-        ownerAccount.save();
-        recipientAccount.save();
-        token.save();
-    }
-    return flow as Flow;
-}
-
-export function updateBalance(accountId: string, tokenId: string): void {
-    let accountWithToken = fetchAccountWithToken(accountId, tokenId);
-    log.info("Token updateBalance: {}", [tokenId]);
-    let tokenContract = SuperToken.bind(Address.fromString(tokenId));
-    let newBalance = tokenContract.balanceOf(Address.fromString(accountId));
-    accountWithToken.balance = newBalance.toBigDecimal();
-    accountWithToken.save();
-    return;
-}
-//IDA
-
-export function createSubscriptionID(event: SubscriptionApproved): string {
-    return event.params.subscriber.toHexString()+event.params.publisher.toHexString()+event.params.indexId.toHexString()+event.params.token.toHexString()
-}
-
-export function fetchIndex(publisher:Bytes,token:Bytes,indexId:BigInt):Index{
-    let entity = Index.load(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
-    if(entity==null){
-        entity = new Index(publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
-        entity.totalDistribution = new BigInt(0);
-        entity.totalUnits = new BigInt(0);
-        entity.totalUnitsApproved = new BigInt(0);
-        entity.totalUnitsPending = new BigInt(0);
-    }
-    return entity as Index;
-}
-
-export function fetchSubscriber(subscriber:Bytes,publisher:Bytes,token:Bytes,indexId:BigInt):Subscriber{
-    let entity = Subscriber.load(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString());
-    if(entity==null){
-        entity = new Subscriber(subscriber.toHexString()+"-"+publisher.toHexString()+"-"+token.toHexString()+"-"+indexId.toHexString())
-        entity.subscriber = subscriber;
-        entity.publisher=  publisher;
-        entity.token = token;
-        entity.indexId = indexId;
-        entity.approved = false;
-        entity.totalReceived = new BigInt(0);
-        entity.totalPendingApproval =new BigInt(0); 
-        entity.units = new BigInt(0);
-        entity.index = fetchIndex(publisher,token,indexId).id;
-    }
-    return entity as Subscriber;
-}
-
-export function removeSubscription(subscribers: Bytes[],sub:Bytes): Bytes[] {
-    let temp:Bytes[]=[]
-    var ss =sub.toHexString()
-    for (let index = 0; index < subscribers.length; index++) {
-        let element = subscribers[index].toHexString();
-        if(ss!=element){
-            temp.push(subscribers[index])
-        }
-    }
-    return temp;
+): string {
+    return accountId.concat("-").concat(tokenId);
 }

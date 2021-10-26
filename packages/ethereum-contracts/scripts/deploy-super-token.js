@@ -17,7 +17,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/deploy-super-token.js : ${UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS}
+ * Usage: npx truffle exec scripts/deploy-super-token.js : {UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS}
  *
  * NOTE:
  * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the same as the nativeTokenSymbol defined in
@@ -181,7 +181,7 @@ module.exports = async function (callback, argv, options = {}) {
                             superTokenAddress
                         )
                     );
-                    if (!process.env.GOVERNANCE_TYPE) {
+                    if (!process.env.GOVERNANCE_ADMIN_TYPE) {
                         // validate the token logic update for default governance type updates
                         const superTokenLogic3 = await (
                             await UUPSProxiable.at(superTokenAddress)

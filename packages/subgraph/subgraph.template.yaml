@@ -1,5 +1,5 @@
-specVersion: 0.0.2
-description: Super Tokens and Agreements (CFA, IDA) on the {{network}} network.
+specVersion: 0.0.3
+description: Super Tokens and Agreements (CFA, IDA) on the {{ network }} network.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
     file: ./schema.graphql
@@ -17,42 +17,65 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
+              - CustomSuperTokenCreatedEvent
+              - SuperTokenCreatedEvent
+              - SuperTokenLogicCreatedEvent
               - Token
-              - SuperToken
+              - TokenStatistic
           abis:
+              - name: TestResolver
+                file: ./abis/TestResolver.json
               - name: ISuperTokenFactory
                 file: ./abis/ISuperTokenFactory.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
-            # TODO: remove here ISuperfluid once the cfaAddres issue is resolved
               - name: ISuperfluid
                 file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
               - event: CustomSuperTokenCreated(indexed address)
-                handler: handleSuperTokenCreated
-    # - kind: ethereum/contract
-    #   name: Host
-    #   network: {{ network }}
-    #   source:
-    #       abi: ISuperfluid
-    #       address: "{{ hostAddress }}"
-    #       startBlock: {{ hostStartBlock }}
-    #   mapping:
-    #       kind: ethereum/events
-    #       apiVersion: 0.0.3
-    #       language: wasm/assemblyscript
-    #       file: ./src/mappings/host.ts
-          # entities:
-          #     - Transaction
-          #     - Account
-          #     - Transfer
-          # abis:
-          #     - name: ISuperfluid
-          #       file: ./abis/Superfluid.json
-          # eventHandlers:
-
+                handler: handleCustomSuperTokenCreated
+              - event: SuperTokenLogicCreated(indexed address)
+                handler: handleSuperTokenLogicCreated
+    - kind: ethereum/contract
+      name: Host
+      network: {{ network }}
+      source:
+          abi: ISuperfluid
+          address: "{{ hostAddress }}"
+          startBlock: {{ hostStartBlock }}
+      mapping:
+          kind: ethereum/events
+          apiVersion: 0.0.4
+          language: wasm/assemblyscript
+          file: ./src/mappings/host.ts
+          entities:
+              - AgreementClassRegisteredEvent
+              - AgreementClassUpdatedEvent
+              - AppRegisteredEvent
+              - GovernanceReplacedEvent
+              - JailEvent
+              - SuperTokenFactoryUpdatedEvent
+              - SuperTokenLogicUpdatedEvent
+          abis:
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
+          eventHandlers:
+              - event: GovernanceReplaced(address,address)
+                handler: handleGovernanceReplaced
+              - event: AgreementClassRegistered(bytes32,address)
+                handler: handleAgreementClassRegistered
+              - event: AgreementClassUpdated(bytes32,address)
+                handler: handleAgreementClassUpdated
+              - event: SuperTokenFactoryUpdated(address)
+                handler: handleSuperTokenFactoryUpdated
+              - event: SuperTokenLogicUpdated(indexed address,address)
+                handler: handleSuperTokenLogicUpdated
+              - event: AppRegistered(indexed address)
+                handler: handleAppRegistered
+              - event: Jail(indexed address,uint256)
+                handler: handleJail
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1
       network: {{ network }}
@@ -66,21 +89,26 @@ dataSources:
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
-              - Transaction
               - Account
-              - AccountWithToken
-              - Transfer
-              - Token
+              - AccountTokenSnapshot
+              - FlowUpdatedEvent
+              - Stream
+              - StreamRevision
+              - TokenStatistic
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
+              - name: TestResolver
+                file: ./abis/TestResolver.json
               - name: ISuperToken
                 file: ./abis/ISuperToken.json
+              - name: ISuperfluid
+                file: ./abis/ISuperfluid.json
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
-                handler: handleFlowUpdated
+                handler: handleStreamUpdated
     - kind: ethereum/contract
-      name: IInstantDistributionAgreementV1
+      name: InstantDistributionAgreementV1
       network: {{ network }}
       source:
         address: "{{ idaAddress }}"
@@ -88,38 +116,105 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.3
+        apiVersion: 0.0.4
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
-          - IndexCreated
-          - IndexSubscribed
-          - IndexUnitsUpdated
-          - IndexUnsubscribed
-          - IndexUpdated
-          - SubscriptionApproved
-          - SubscriptionRevoked
-          - SubscriptionUnitsUpdated
+          - Account
+          - AccountTokenSnapshot
+          - Index
+          - IndexCreatedEvent
+          - IndexUpdatedEvent
+          - IndexSubscription
+          - IndexSubscribedEvent
+          - IndexUnitsUpdatedEvent
+          - IndexUnsubscribedEvent
+          - Token
+          - TokenStatistic
+          - SubscriptionApprovedEvent
+          - SubscriptionRevokedEvent
+          - SubscriptionUnitsUpdatedEvent
         abis:
           - name: IInstantDistributionAgreementV1
             file: ./abis/IInstantDistributionAgreementV1.json
+          - name: TestResolver
+            file: ./abis/TestResolver.json
+          - name: ISuperToken
+            file: ./abis/ISuperToken.json
+          - name: ISuperfluid
+            file: ./abis/ISuperfluid.json
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated
+          - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
+            handler: handleIndexUpdated
           - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
             handler: handleIndexSubscribed
           - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
             handler: handleIndexUnitsUpdated
           - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
             handler: handleIndexUnsubscribed
-          - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
-            handler: handleIndexUpdated
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionApproved
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
+    - kind: ethereum/contract
+      name: SuperfluidGovernance
+      network: {{ network }}
+      source:
+        address: "{{ superfluidGovernanceAddress }}"
+        abi: SuperfluidGovernanceBase
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.4
+        language: wasm/assemblyscript
+        file: ./src/mappings/superfluidGovernance.ts
+        entities:
+          - ConfigChangedEvent
+          - CFAv1LiquidationPeriodChangedEvent
+          - RewardAddressChangedEvent
+          - TrustedForwarderChangedEvent
+        abis:
+          - name: SuperfluidGovernanceBase
+            file: ./abis/SuperfluidGovernanceBase.json
+        eventHandlers:
+          - event: ConfigChanged(indexed address,indexed address,bytes32,bool,uint256)
+            handler: handleConfigChanged
+          - event: RewardAddressChanged(indexed address,indexed address,bool,address)
+            handler: handleRewardAddressChanged
+          - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
+            handler: handleCFAv1LiquidationPeriodChanged
+          - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
+            handler: handleTrustedForwarderChanged
+    - kind: ethereum/contract
+      name: ResolverV1
+      network: {{ network }}
+      source:
+        address: "{{ resolverV1Address }}"
+        abi: TestResolver
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.4
+        language: wasm/assemblyscript
+        file: ./src/mappings/resolver.ts
+        entities:
+          - RoleAdminChangedEvent
+          - RoleGrantedEvent
+          - RoleRevokedEvent
+        abis:
+          - name: TestResolver
+            file: ./abis/TestResolver.json
+        eventHandlers:
+          - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+            handler: handleRoleAdminChanged
+          - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+            handler: handleRoleGranted
+          - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+            handler: handleRoleRevoked
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -132,13 +227,33 @@ templates:
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
+        - Account
+        - AccountTokenSnapshot
+        - AgreementLiquidatedByEvent
+        - BurnedEvent
+        - MintedEvent
+        - SentEvent
         - Token
-        - SuperToken
-        - AccountWithToken
+        - TokenDowngradedEvent
+        - TokenUpgradedEvent
+        - TokenStatistic
+        - TransferEvent
       abis:
+        - name: TestResolver
+          file: ./abis/TestResolver.json
         - name: ISuperToken
           file: ./abis/ISuperToken.json
+        - name: ISuperfluid
+          file: ./abis/ISuperfluid.json
       eventHandlers:
+        - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
+          handler: handleAgreementLiquidatedBy
+        - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
+          handler: handleBurned
+        - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
+          handler: handleMinted
+        - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
+          handler: handleSent
         - event: TokenUpgraded(indexed address,uint256)
           handler: handleTokenUpgraded
         - event: TokenDowngraded(indexed address,uint256)

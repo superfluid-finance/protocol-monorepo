@@ -1,53 +1,121 @@
-import { BigDecimal, BigInt, ethereum, log } from "@graphprotocol/graph-ts";
-
+import { BigInt } from "@graphprotocol/graph-ts";
+import { FlowUpdated } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { FlowUpdatedEvent } from "../../generated/schema";
+import { createEventID, BIG_INT_ZERO, tokenHasValidHost } from "../utils";
 import {
-    // IConstantFlowAgreementV1 as ConstantFlowAgreementV1,
-    FlowUpdated as FlowUpdatedEvent,
-} from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+    getOrInitStream,
+    getOrInitStreamRevision,
+    updateAggregateEntitiesStreamData,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
+} from "../mappingHelpers";
+import { getHostAddress } from "../addresses";
 
-import {
-    Transaction,
-    Account,
-    Flow,
-    Token,
-    FlowUpdated,
-} from "../../generated/schema";
+enum FlowActionType {
+    create,
+    update,
+    terminate,
+}
 
-import {
-    createEventID,
-    fetchFlow,
-    fetchToken,
-    logTransaction,
-    updateBalance,
-} from "../utils";
-
-export function handleFlowUpdated(event: FlowUpdatedEvent): void {
-    let ownerId = event.params.sender.toHex();
-    let recipientId = event.params.receiver.toHex();
-    let tokenId = event.params.token.toHex();
-    let flowRate = event.params.flowRate;
-
-    let currentTimestamp = event.block.timestamp;
-    // Get the existing flow
-    let flow = fetchFlow(ownerId, recipientId, tokenId, currentTimestamp);
-    // TODO: No need for BigDecimal here?
-    let oldFlowRate = flow.flowRate;
-    let duration = currentTimestamp.minus(flow.lastUpdate).toBigDecimal();
-
-    flow.flowRate = flowRate;
-    let sum = flow.sum;
-    sum = sum + oldFlowRate.toBigDecimal().times(duration);
-    flow.sum = sum;
-    flow.save();
-
-    let ev = new FlowUpdated(createEventID(event));
-    ev.transaction = logTransaction(event).id;
-    ev.flow = flow.id;
+function createFlowUpdatedEntity(
+    event: FlowUpdated,
+    oldFlowRate: BigInt,
+    streamId: string,
+    totalAmountStreamedUntilTimestamp: BigInt
+): void {
+    let ev = new FlowUpdatedEvent(createEventID(event));
+    ev.transactionHash = event.transaction.hash;
+    ev.timestamp = event.block.timestamp;
+    ev.blockNumber = event.block.number;
+    ev.token = event.params.token;
+    ev.sender = event.params.sender;
+    ev.receiver = event.params.receiver;
+    ev.flowRate = event.params.flowRate;
+    ev.totalSenderFlowRate = event.params.totalSenderFlowRate;
+    ev.totalReceiverFlowRate = event.params.totalReceiverFlowRate;
+    ev.userData = event.params.userData;
     ev.oldFlowRate = oldFlowRate;
-    ev.flowRate = flowRate;
-    ev.sum = sum;
-    ev.save();
+    ev.stream = streamId;
+    ev.totalAmountStreamedUntilTimestamp = totalAmountStreamedUntilTimestamp;
 
-    updateBalance(ownerId, tokenId);
-    updateBalance(recipientId, tokenId);
+    let type = oldFlowRate.equals(BIG_INT_ZERO)
+        ? FlowActionType.create
+        : event.params.flowRate.equals(BIG_INT_ZERO)
+        ? FlowActionType.terminate
+        : FlowActionType.update;
+    ev.type = type;
+    ev.save();
+}
+
+export function handleStreamUpdated(event: FlowUpdated): void {
+    let senderAddress = event.params.sender;
+    let receiverAddress = event.params.receiver;
+    let tokenAddress = event.params.token;
+    let flowRate = event.params.flowRate;
+    let currentTimestamp = event.block.timestamp;
+    let hostAddress = getHostAddress();
+
+    let hasValidHost = tokenHasValidHost(hostAddress, tokenAddress);
+    if (!hasValidHost) {
+        return;
+    }
+
+    let stream = getOrInitStream(
+        senderAddress,
+        receiverAddress,
+        tokenAddress,
+        event.block
+    );
+    let oldFlowRate = stream.currentFlowRate;
+
+    let timeSinceLastUpdate = currentTimestamp.minus(stream.updatedAtTimestamp);
+    let userAmountStreamedSinceLastUpdate =
+        oldFlowRate.times(timeSinceLastUpdate);
+    let newStreamedUntilLastUpdate = stream.streamedUntilUpdatedAt.plus(
+        userAmountStreamedSinceLastUpdate
+    );
+    stream.currentFlowRate = flowRate;
+    stream.streamedUntilUpdatedAt = newStreamedUntilLastUpdate;
+    stream.updatedAtTimestamp = currentTimestamp;
+    stream.updatedAtBlockNumber = event.block.number;
+    stream.save();
+
+    let senderId = senderAddress.toHex();
+    let receiverId = receiverAddress.toHex();
+    let tokenId = tokenAddress.toHex();
+
+    let flowRateDelta = flowRate.minus(oldFlowRate);
+    let isCreate = oldFlowRate.equals(BIG_INT_ZERO);
+    let isDelete = flowRate.equals(BIG_INT_ZERO);
+    if (isDelete) {
+        let streamRevision = getOrInitStreamRevision(
+            senderId,
+            receiverId,
+            tokenId
+        );
+        streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
+        streamRevision.save();
+    }
+
+    // create event entity
+    createFlowUpdatedEntity(
+        event,
+        oldFlowRate,
+        stream.id,
+        newStreamedUntilLastUpdate
+    );
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(senderId, tokenId, event.block);
+    updateATSStreamedAndBalanceUntilUpdatedAt(receiverId, tokenId, event.block);
+
+    // update aggregate entities data
+    updateAggregateEntitiesStreamData(
+        senderId,
+        receiverId,
+        tokenId,
+        flowRate,
+        flowRateDelta,
+        isCreate,
+        isDelete,
+        event.block
+    );
 }

@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/create-new-app-registration-key : {DEPLOYER} {REGISTRATION_KEY}
+ * Usage: npx truffle exec scripts/create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
@@ -48,20 +48,20 @@ module.exports = async function (callback, argv, options = {}) {
         });
         await sf.initialize();
 
-        const secretKey = web3.utils.sha3(
+        const appKey = web3.utils.sha3(
             web3.eth.abi.encodeParameters(
                 ["string", "address", "string"],
                 [
-                    "org.superfluid-finance.superfluid.appWhiteListing.seed",
+                    "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
                     deployer,
                     registrationkey,
                 ]
             )
         );
-        console.log("Secret key", secretKey);
+        console.log("App key", appKey);
 
         await sendGovernanceAction(sf, (gov) =>
-            gov.whiteListNewApp(sf.host.address, secretKey)
+            gov.whiteListNewApp(sf.host.address, appKey)
         );
 
         callback();

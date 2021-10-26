@@ -41,7 +41,6 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: [check]
-
     if: needs.check.outputs.build_ethereum_contracts
 
     strategy:
@@ -69,13 +68,37 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
 
+  coverage-ethereum-contracts:
+    name: Build and test coverage of ethereum-contracts (Feature Branch)
+
+    runs-on: ubuntu-latest
+
+    needs: [check]
+    if: needs.check.outputs.build_ethereum_contracts
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+
+      - name: Install and build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Run coverage test
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
   test-js-sdk:
     name: Build and test js-sdk (Feature Branch)
 
     runs-on: ubuntu-latest
 
     needs: [check]
-
     if: needs.check.outputs.build_js_sdk
 
     strategy:
@@ -99,14 +122,20 @@ jobs:
       - name: Test js-sdk
         run: |
           yarn workspace @superfluid-finance/js-sdk test
+        env:
+          GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
 
   test-subgraph:
     name: Build and test subgraph (Feature Branch)
 
     runs-on: ubuntu-latest
 
-    needs: [check]
+    env:
+      subgraph-working-directory: ./packages/subgraph
+      contracts-working-directory: ./packages/ethereum-contracts
+      sdk-working-directory: ./packages/js-sdk
 
+    needs: [check]
     if: needs.check.outputs.build_subgraph
 
     strategy:
@@ -121,12 +150,72 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Install, lint and build
+      - name: "Checkout graph node repo and set up local graph node"
+        uses: actions/checkout@v2
+        with:
+          repository: graphprotocol/graph-node
+          path: graph-node
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Run setup because linux and docker-compose"
         run: |
-          yarn install --frozen-lockfilepull_request
-          yarn lint
-          yarn build
-          # yarn workspace @superfluid-finance/subgraph build
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+          chmod +x setup.sh
+          ./setup.sh
+        working-directory: ./graph-node/docker
+      
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ./graph-node/docker
+      
+      - name: "Install yarn"
+        run: npm install -g yarn ganache-cli
+
+      - name: "Run ganache-cli node"
+        run: ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Install contract dependencies"
+        run: yarn install
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Build contracts"
+        run: yarn run build:contracts
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Generate Typechain files and move to subgraph directory"
+        run: |
+          yarn run generate-ethers-types
+          mv typechain ../subgraph
+        working-directory: ${{ env.contracts-working-directory }}
+
+      - name: "Install subgraph dependencies"
+        run: yarn install
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Get ABI for subgraph.yaml"
+        run: node scripts/getAbi.js
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Get abi.js file for js-sdk to deploy locally"
+        run: |
+          chmod +x ./tasks/build-abi-js.sh
+          ./tasks/build-abi-js.sh
+        working-directory: ${{ env.sdk-working-directory }}
+
+      - name: "Deploy contracts and token locally"
+        run: npx hardhat run scripts/deployContractsAndToken.ts --network localhost
+        working-directory: ${{ env.subgraph-working-directory }}
+
+
+      - name: "Prepare, set network, build and deploy subgraph locally"
+        run: yarn prepare-local && yarn set-network-local && yarn codegen && yarn create-local && yarn deploy-local
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Run integration test suite"
+        run: npx hardhat test --network localhost
+        working-directory: ${{ env.subgraph-working-directory }}
 
   all-packages-tested:
     name: All packages tested (Feature Branch)
@@ -134,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, test-js-sdk, test-subgraph]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph]
 
     steps:
       - name: Test Results

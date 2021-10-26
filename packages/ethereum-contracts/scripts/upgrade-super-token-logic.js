@@ -16,7 +16,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/upgrade-super-token-logic.js : ${SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec scripts/upgrade-super-token-logic.js : {SUPER_TOKEN_ADDRESS}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
@@ -25,11 +25,10 @@ module.exports = async function (callback, argv, options = {}) {
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
 
-        const args = parseColonArgs(argv || process.argv);
-        if (args.length !== 1) {
+        const superTokenAddresses = parseColonArgs(argv || process.argv);
+        if (superTokenAddresses.length < 1) {
             throw new Error("Not enough arguments");
         }
-        const superTokenAddress = args.pop();
 
         protocolReleaseVersion =
             protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
@@ -57,38 +56,46 @@ module.exports = async function (callback, argv, options = {}) {
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
             await sf.host.getSuperTokenFactory.call()
         );
-        const superToken = await ISuperToken.at(superTokenAddress);
-        if ((await superToken.getHost()) !== sf.host.address) {
-            throw new Error("Super token is from a different universe");
-        }
 
-        const superTokenLogic1 = await superTokenFactory.getSuperTokenLogic();
-        console.log("Latest SuperToken logic address", superTokenLogic1);
-        const superTokenLogic2 = await (
-            await UUPSProxiable.at(superTokenAddress)
-        ).getCodeAddress();
-        console.log("Current SuperToken logic address", superTokenLogic2);
-
-        if (superTokenLogic1 !== superTokenLogic2) {
-            console.log("SuperToken logic needs to be updated.");
-            await sendGovernanceAction(sf, (gov) =>
-                gov.updateSuperTokenLogic(sf.host.address, superTokenAddress)
-            );
-            if (!process.env.GOVERNANCE_TYPE) {
-                // validate the token logic update for default governance type updates
-                const superTokenLogic3 = await (
-                    await UUPSProxiable.at(superTokenAddress)
-                ).getCodeAddress();
-                console.log(
-                    "Updated SuperToken logic address",
-                    superTokenLogic3
-                );
-                if (superTokenLogic3 !== superTokenLogic1)
-                    throw new Error("SuperToken logic not updated");
-                console.log("SuperToken's logic has been updated.");
+        while (superTokenAddresses.length > 0) {
+            const superTokenAddress = superTokenAddresses.pop();
+            const superToken = await ISuperToken.at(superTokenAddress);
+            if ((await superToken.getHost()) !== sf.host.address) {
+                throw new Error("Super token is from a different universe");
             }
-        } else {
-            console.log("SuperToken's logic is up to date.");
+
+            const superTokenLogic1 =
+                await superTokenFactory.getSuperTokenLogic();
+            console.log("Latest SuperToken logic address", superTokenLogic1);
+            const superTokenLogic2 = await (
+                await UUPSProxiable.at(superTokenAddress)
+            ).getCodeAddress();
+            console.log("Current SuperToken logic address", superTokenLogic2);
+
+            if (superTokenLogic1 !== superTokenLogic2) {
+                console.log("SuperToken logic needs to be updated.");
+                await sendGovernanceAction(sf, (gov) =>
+                    gov.updateSuperTokenLogic(
+                        sf.host.address,
+                        superTokenAddress
+                    )
+                );
+                if (!process.env.GOVERNANCE_ADMIN_TYPE) {
+                    // validate the token logic update for default governance type updates
+                    const superTokenLogic3 = await (
+                        await UUPSProxiable.at(superTokenAddress)
+                    ).getCodeAddress();
+                    console.log(
+                        "Updated SuperToken logic address",
+                        superTokenLogic3
+                    );
+                    if (superTokenLogic3 !== superTokenLogic1)
+                        throw new Error("SuperToken logic not updated");
+                    console.log("SuperToken's logic has been updated.");
+                }
+            } else {
+                console.log("SuperToken's logic is up to date.");
+            }
         }
 
         callback();

@@ -1,77 +1,179 @@
 @startuml
 
-left to right direction
+title <b>InstantDistributionAgreement</b>
 
-frame IDA {
-    together {
-        class Index {
-            bytes iID()
-            uint128 indexValue
-            uint128 totalUnitsApproved
-            uint128 totalUnitsPending
-        }
-        note as iIDNote
-            sha3("publisher", publisher, indexId)
-        end note
-        Index::iID --> iIDNote
+'left to right direction
 
-        class IndexSubscription {
-            bytes sID()
-            uint32 subId # slotId in subs bitmap
-            address publisher
-            uint32 indexId
-            uint128 indexValue
-            uint128 units
-        }
-        note as sIDNote
-            sha3("subscription", subscriber, iID)
-        end note
-        IndexSubscription::sID --> sIDNote
+frame "IDA Classes" as IDAClasses {
+    class PublisherIDAStates {
+        - uint256 publisherDeposit //@1<<32//
     }
 
-    map "Account Agreement State Slots for IDA" as AccountASS {
-        subsBitmap => 0 : SlotsBitmap.Bitmap\n_SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID
-        list_iIDs => [1<<128..1<<128+255] : **[iID | uint32.max]** : [Maybe SlotsBitmap.SlotData]\n_SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START
-        publisherDeposit => 1<<32 : uint\n_PUBLISHER_DEPOSIT_STATE_SLOT_ID
+    class SubscriberIDAStates {
+        - uint256 subsBitmap //@0//
+        - [bytes32] iIDs //@[1<<128..1<<128+256]//
     }
-    AccountASS::list_iIDs --> Index
-}
 
-frame Notes {
-    note as listSubscriptions
+    class Index {
+        + bytes iID()
+        - uint128 indexValue
+        - uint128 totalUnitsApproved
+        - uint128 totalUnitsPending
+    }
+    note left of Index::iID
+        sha3("publisher", publisher, indexId)
+    end note
+
+    class IndexSubscription {
+        + bytes sID()
+        - uint32 subId
+        - address publisher
+        - uint32 indexId
+        - uint128 lastIndexValue
+        - uint128 units
+    }
+    note left of IndexSubscription::subId
+        slotId in subsBitmap
+    end note
+    note left of IndexSubscription::lastIndexValue
+        a snapshot of Index::indexValue, for calculating the RTB of IDA
+    end note
+    note left of IndexSubscription::sID
+        sha3("subscription", subscriber, iID)
+    end note
+
+    class IDA {
+        + realtimeBalanceOf(subscriber: Account): RTB
+        --
+        + createIndex(publisher: Account, indexId: uint32):  ()
+        + getIndex(publisher: Account, indexId: uint32): Index
+        + updateIndex(publisher: Account, index: Index, indexValue: uint128): Index
+        + distribute(publisher: Account, index: Index, amount: uint256): ()
+        --
+        + updateSubscription(publisher: Account, index: Index, subscriber: Account, uinits: uint128): ()
+        + deleteSubscription(publisher: Account, index: Index, subscriber: Account): ()
+        --
+        + approveSubscription(subscriber: Account, index: Index): ()
+        + revokeSubscription(subscriber: Account, index: Index): ()
+        + getSubscription(subscriber: Account, index: Index): IndexSubscription
+        + listSubscriptions(subscriber: Account): [IndexSubscription]
+        + claim(subscriber: Account, index: Index): ()
+    }
+    note left of IDA::listSubscriptions
     <code>
-    listSubscriptions subscriber =
-        [subId...] = subsBitmap subscriber
-        [iID...] = SlotsBitmapLibrary.listData [subId...]
-        [sID...] = map (to_sID subscriber) [iID...]
-        [subscriptions...] :: [IndexSubscription] = map getAgreementData [sID...]
-    ]
+        let [subId...] = subsBitmap subscriber
+            [iID...] = SlotsBitmapLibrary.listData [subId...]
+            [sID...] = map (to_sID subscriber) [iID...]
+            [subscriptions...] = map getAgreementData [sID...]
+        return
+            [subscriptions...] :: [IndexSubscription]
+    </code>
+    end note
+    note left of IDA::realtimeBalanceOf
+    <code>
+    RTB {
+        availableBalance: sum
+            (sub -> sub.units * (sub.lastIndexValue - sub.index.indexValue))
+            0 (listSubscriptions subscriber)
+        deposit: publisherDeposit $
+            PublisherIDAStates publisher
+    }
     </code>
     end note
 
-    note as subscriptionsExample
-    <code>
-    (0) bitmap => 0
-
-    -> make first subscription
-    (0) bitmap => 01
-    (1<<128+0) => indexId of the publishder index that sbuscriber subsribes to (data0)
-    listData -> ([0], [data0])
-
-    -> make second subscription
-    (0) bitmap => 11
-    (1<<128+0) => first publisher index (data0)
-    (1<<128+1) => second publisher index (data1)
-    listData -> ([0, 1], [data0, data1])
-
-    -> revoke first subscription
-    (0) bitmap => 10 => [1] error([0])
-    (1<<128+1) => second publisher index (data1)
-    listData -> ([1], [data1])
-    </code>
-    end note
+    ' Layout
+    IDA -up[hidden]-> SubscriberIDAStates
+    IDA -up[hidden]-> PublisherIDAStates
+    IDA -up[hidden]-> Index
+    IDA -up[hidden]-> IndexSubscription
 }
 
-Notes -left[hidden]-> IDA
+frame Example1 {
+    note as E1_Note
+        **Alice and Bob both subscribed to the Ricochet index**
+    end note
+
+    rectangle "Ricochet the Publisher" as E1_Ricochet {
+        map "IDA States" as PublisherStates {
+             1<<32 => 0
+        }
+    }
+
+    rectangle E1_Alice {
+        map "IDA States" as E1_AliceStates {
+            0 => 1b
+            [1<<128] => iID(Ricochet)
+        }
+    }
+
+    rectangle E1_Bob {
+        map "IDA States" as E1_BobStates {
+            0 => 1b
+            [1<<128] => iID(Ricochet)
+        }
+    }
+
+    'Layout
+    E1_Note -down[hidden]-> E1_Alice
+    E1_Note -down[hidden]-> E1_Bob
+    E1_Bob -down-> E1_Ricochet: subscribe
+    E1_Alice -down-> E1_Ricochet: subscribe
+}
+
+frame Example2 {
+    note as E2_Note
+    <b>An example of multiple subscriptions</b>
+
+    <code>
+    -> Alice initial state => Alice:0
+    -> Alice subscribes to Index1 => Alice:1
+    -> Alice subscribes to Index2 => Alice:2
+    -> Alice revokes subscription to Index1 => Alice:3
+    end note
+
+    object "Index1" as E2_Index1
+    object "Index2" as E2_Index2
+
+    rectangle "Alice:0" as E2_Alice0 {
+        map "IDA States" as E2_Alice0States {
+            0 => 0
+        }
+    }
+
+    rectangle "Alice:1" as E2_Alice1 {
+        map "IDA States" as E2_Alice1States {
+            0 => 1b
+            [1<<128] => iID(Index1)
+        }
+    }
+    E2_Alice1 -> E2_Index1
+
+    rectangle "Alice:2" as E2_Alice2 {
+        map "IDA States" as E2_Alice2States {
+            0 => 11b
+            [1<<128] => iID(Index1)
+            [1<<128+1] => iID(Index2)
+        }
+    }
+    E2_Alice2 -> E2_Index1
+    E2_Alice2 -> E2_Index2
+
+    rectangle "Alice:3" as E2_Alice3 {
+        map "IDA States" as E2_Alice3States {
+            0 => 10b
+            [1<<128+1] => iID(Index2)
+        }
+    }
+    E2_Alice3 -> E2_Index2
+
+    E2_Note -down[hidden]-> E2_Alice0
+    E2_Alice0 .down.> E2_Alice1
+    E2_Alice1 .down.> E2_Alice2
+    E2_Alice2 .down.> E2_Alice3
+}
+
+' Layout
+IDAClasses --down[hidden]--> Example1
+Example1 --left[hidden]--> Example2
 
 @enduml

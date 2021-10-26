@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { ChainId, NetworkName } from ".";
-import constantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
+import * as constantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import { chainIdToAddresses, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import { normalizeAddressForContract } from "./utils";

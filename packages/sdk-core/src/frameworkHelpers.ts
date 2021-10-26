@@ -4,7 +4,7 @@ import {
     networkNames,
     networkNameToChainIdMap,
 } from "./constants";
-import { IConstructorFrameworkOptions } from "./interfaces";
+import { IConstructorFrameworkOptions } from "./Framework";
 
 export const validateFrameworkConstructorOptions = (
     options: IConstructorFrameworkOptions

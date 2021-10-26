@@ -4,7 +4,6 @@
     <content url="file://$MODULE_DIR$/examples/continuous-auction">
       <sourceFolder url="file://$MODULE_DIR$/examples/continuous-auction/test" isTestSource="true" />
     </content>
-    <content url="file://$MODULE_DIR$/examples/dapp-sdk-react-typescript" />
     <content url="file://$MODULE_DIR$/examples/dev-playground" />
     <content url="file://$MODULE_DIR$/examples/flowlottery">
       <sourceFolder url="file://$MODULE_DIR$/examples/flowlottery/test" isTestSource="true" />

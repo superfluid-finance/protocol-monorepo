@@ -44,12 +44,12 @@ export const superfluidFrameworkSource: SuperfluidFrameworkSource = {
         frameworkPromise: Promise<Framework>
     ) => {
         console.log({
-            method: "setForRead",
+            method: 'setForRead',
             args: {
                 networkName,
-                frameworkPromise
-            }
-        })
+                frameworkPromise,
+            },
+        });
         frameworkForReading.set(networkName, frameworkPromise);
     },
     setForWrite: (
@@ -57,12 +57,12 @@ export const superfluidFrameworkSource: SuperfluidFrameworkSource = {
         frameworkPromise: Promise<Framework>
     ) => {
         console.log({
-            method: "setForWrite",
+            method: 'setForWrite',
             args: {
                 networkName,
-                frameworkPromise
-            }
-        })
+                frameworkPromise,
+            },
+        });
         frameworkForWriting.set(networkName, frameworkPromise);
     },
     setForReadAndWrite: (

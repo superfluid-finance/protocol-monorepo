@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 export type NetworkName =
     | "ropsten"
     | "rinkeby"
@@ -22,6 +24,8 @@ export type FlowActionType =
     | 0 // CREATE
     | 1 // UPDATE
     | 2; // TERMINATE
+
+export type SignerOrProvider = ethers.Signer | ethers.providers.Provider;
 
 // request interfaces
 export interface IIndexRequestFilter {

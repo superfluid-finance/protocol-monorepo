@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 import { ChainId, NetworkName } from ".";
-import * as constantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import { chainIdToAddresses, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import { normalizeAddressForContract } from "./utils";
@@ -36,7 +35,9 @@ export default class SuperToken {
     hostContract(signer: ethers.Signer | ethers.providers.Provider) {
         return new ethers.Contract(
             chainIdToAddresses.get(this.options.chainId)!.host,
-            constantFlowAgreementV1ABI,
+            [
+                "function callAgreement(address agreementClass,bytes callData,bytes userData)",
+            ],
             signer
         ) as ISuperfluid;
     }
@@ -60,10 +61,10 @@ export default class SuperToken {
         const normalizedSender = normalizeAddressForContract(sender);
         const normalizedReceiver = normalizeAddressForContract(receiver);
 
-        const ABI = [
-            "function createFlow(address token,address receiver,int96 flowRate,bytes ctx)",
-        ];
-        const iface = new ethers.utils.Interface(ABI);
+        const iface = new ethers.utils.Interface([
+            "function createFlow(address token, address receiver, int96 flowRate, bytes ctx)",
+        ]);
+
         const callData = iface.encodeFunctionData("createFlow", [
             normalizedToken,
             normalizedReceiver,

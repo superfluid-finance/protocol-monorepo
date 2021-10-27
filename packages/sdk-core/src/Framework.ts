@@ -28,7 +28,8 @@ export interface IFrameworkOptions {
 }
 
 export interface ISignerConstructorOptions {
-    readonly provider?: ethers.providers.Web3Provider; // Web3Provider
+    readonly web3Provider?: ethers.providers.Web3Provider; // Web3Provider (client side - metamask, web3modal)
+    readonly provider?: ethers.providers.Provider; // Provider
     readonly privateKey?: string; // private key (best to store a test account PK in .env file)
     readonly signer?: ethers.Signer; // ethers.Wallet
 }
@@ -81,8 +82,8 @@ export default class Framework {
             return options.signer;
         }
 
-        if (options.provider) {
-            return options.provider;
+        if (options.web3Provider) {
+            return options.web3Provider;
         }
 
         throw new Error("Something went wrong, this should never occur.");

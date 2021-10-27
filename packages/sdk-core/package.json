@@ -27,6 +27,7 @@
     },
     "dependencies": {
         "@ethersproject/providers": "^5.5.0",
+        "@rollup/plugin-json": "^4.1.0",
         "ajv": "^8.6.3",
         "ethers": "^5.4.7",
         "graphql": "^15.6.1",

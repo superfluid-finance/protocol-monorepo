@@ -1,12 +1,11 @@
 import { ethers } from "ethers";
-import { ChainId } from ".";
 import { chainIdToAddresses, networkNameToChainIdMap } from "./constants";
 import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as IConstantFlowAgreementV1 } from "./abi/IConstantFlowAgreementV1.json";
 import { getNetworkName } from "./frameworkHelpers";
 import { normalizeAddressForContract } from "./utils";
 import { ISuperfluid } from "./typechain";
-import { NetworkName } from "./interfaces";
+import { ChainId, NetworkName } from "./interfaces";
 
 export interface ITokenConstructorOptions {
     readonly address: string;

@@ -1,5 +1,6 @@
-import { ChainId, DataMode } from "./index";
-import { NetworkName } from "./interfaces";
+import { ethers } from "ethers";
+import { Signer } from "@ethersproject/abstract-signer";
+import { ChainId, DataMode, NetworkName } from "./interfaces";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
@@ -8,6 +9,7 @@ import {
 import Query from "./Query";
 import { networkNameToChainIdMap } from "./constants";
 import SuperToken from "./SuperToken";
+import { Web3Provider } from "@ethersproject/providers";
 
 export interface IConstructorFrameworkOptions {
     chainId?: ChainId;
@@ -23,6 +25,12 @@ export interface IFrameworkOptions {
     dataMode: DataMode;
     networkName: NetworkName;
     protocolReleaseVersion: string;
+}
+
+export interface ISignerConstructorOptions {
+    readonly provider?: ethers.providers.Web3Provider; // Web3Provider
+    readonly privateKey?: string; // private key (best to store a test account PK in .env file)
+    readonly signer?: ethers.Signer; // ethers.Wallet
 }
 
 export default class Framework {
@@ -44,13 +52,41 @@ export default class Framework {
             chainId:
                 options.chainId || networkNameToChainIdMap.get(networkName)!,
             customSubgraphQueriesEndpoint,
-            dataMode: options.dataMode || DataMode.SUBGRAPH_WEB3,
+            dataMode: options.dataMode || "SUBGRAPH_WEB3",
             protocolReleaseVersion: options.protocolReleaseVersion || "v1",
             networkName,
         };
 
         this.query = new Query(this.options);
     }
+
+    createSigner = (
+        options: ISignerConstructorOptions
+    ): Signer | Web3Provider => {
+        if (!options.privateKey && !options.provider && !options.signer) {
+            throw new Error(
+                "You must pass in a private key, provider or signer."
+            );
+        }
+        if (options.privateKey) {
+            if (!options.provider) {
+                throw new Error(
+                    "You must pass in a provider with your private key."
+                );
+            }
+            return new ethers.Wallet(options.privateKey, options.provider);
+        }
+
+        if (options.signer) {
+            return options.signer;
+        }
+
+        if (options.provider) {
+            return options.provider;
+        }
+
+        throw new Error("Something went wrong, this should never occur.");
+    };
 
     // initializes the framework to query the correct resolver contract
     // which will get the host contract and the agreement contract addresses

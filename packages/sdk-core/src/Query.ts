@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { DataMode } from ".";
+import { DataMode } from "./interfaces";
 import {
     IIndex,
     IIndexRequestFilter,

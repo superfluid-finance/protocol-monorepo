@@ -3,8 +3,8 @@ import { BaseQueryFn } from '@reduxjs/toolkit/dist/query/react';
 export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;
 
-export interface Error {
-    message: string;
+export interface ValidationError {
+    message: string; // Keep it named "message" to have same structure with Redux Toolkit's SerializedError.
 }
 
 /**
@@ -14,7 +14,7 @@ export interface Error {
 export function rtkQuerySliceBaseQuery(): BaseQueryFn<
     void,
     unknown,
-    Error,
+    ValidationError,
     unknown
 > {
     return function () {

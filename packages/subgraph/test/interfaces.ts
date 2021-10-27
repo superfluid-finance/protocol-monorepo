@@ -180,6 +180,8 @@ export interface IStream extends IBaseEntity {
     readonly flowUpdatedEvents: ILightEntity[];
 }
 
+// TEST-TODO: write out the IStreamPeriod type
+
 export interface IIndexSubscription extends IBaseEntity {
     readonly subscriber: ILightEntity;
     readonly approved: boolean;
@@ -269,6 +271,7 @@ export interface ILightEntity {
 export interface IStreamData {
     id: string;
     revisionIndex: string;
+    // TEST-TODO: add streamRevisionIndex here
     oldFlowRate: string;
     streamedUntilUpdatedAt: string;
     updatedAtTimestamp: string;
@@ -328,6 +331,7 @@ export interface IBaseTestData {
 
 export interface IStreamLocalData extends IAggregateLocalData {
     readonly revisionIndexes: { [id: string]: number | undefined };
+    // TEST-TODO: add periodRevisionIndexes here
     readonly streamData: { [id: string]: IStreamData | undefined };
 }
 export interface IDistributionLocalData extends IAggregateLocalData {

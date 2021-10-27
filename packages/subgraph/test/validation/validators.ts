@@ -42,6 +42,8 @@ export async function validateFlowUpdated(
         isCreate
     );
 
+    // TEST-TODO: fetchStreamPeriod and validate (similar to above)
+
     // validate sender ATS
     await fetchATSAndValidate(updatedSenderATS.id, updatedSenderATS);
 

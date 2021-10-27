@@ -20,7 +20,7 @@ export const getAccount = gql`
         }
     }
 `;
-
+// TEST-TODO: write the query for getting StreamPeriod here
 export const getStream = gql`
     query getStream($id: ID!) {
         response: stream(id: $id) {

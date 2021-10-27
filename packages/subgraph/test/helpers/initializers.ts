@@ -23,6 +23,7 @@ import {
     getSubscriptionId,
 } from "./helpers";
 
+// TEST-TODO: create one of these for revisionPeriodIndex
 export const getOrInitRevisionIndex = (
     revisionIndexes: { [id: string]: number | undefined },
     revisionIndexId: string
@@ -38,6 +39,7 @@ export const getOrInitStreamData = (
 ): IStreamData => {
     const existingStreamData = streamData[streamId];
     if (existingStreamData == null) {
+        // TEST-TODO: revisionPeriodIndex
         return {
             id: streamId,
             revisionIndex,
@@ -188,6 +190,7 @@ export function getOrInitializeDataForFlowUpdated(
         updatedAtTimestamp,
         receiver,
         revisionIndexes,
+        // TEST-TODO: pull out revisionPeriodIndex here
         sender,
         streamData,
         token,
@@ -195,6 +198,7 @@ export function getOrInitializeDataForFlowUpdated(
         totalSupply,
     } = testData;
 
+    // TEST-TODO: revisionIndexId is the same as revisionPeriodIndexId
     const revisionIndexId = getRevisionIndexId(sender, receiver, token);
     const tokenId = token.toLowerCase();
     const currentRevisionIndex = getOrInitRevisionIndex(
@@ -234,7 +238,8 @@ export function getOrInitializeDataForFlowUpdated(
         updatedAtTimestamp,
         totalSupply
     );
-
+    
+    // TEST-TODO: return revisionPeriodIndexId
     return {
         currentSenderATS,
         currentReceiverATS,

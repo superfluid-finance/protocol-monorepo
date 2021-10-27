@@ -33,6 +33,7 @@ export const getExpectedStreamData = (
     lastUpdatedAtTimestamp: string,
     streamedAmountSinceUpdatedAt: BigNumber
 ) => {
+    // TEST-TODO: add the logic for incrementing the revisionPeriodIndex here.
     const revisionIndexDelta =
         actionTypeToClosedStreamsDeltaMap.get(actionType)!;
     const revisionIndex = (

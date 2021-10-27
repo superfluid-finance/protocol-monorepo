@@ -1,5 +1,14 @@
 import { FlowActionType } from "./index";
 
+export type NetworkName =
+    | "ropsten"
+    | "rinkeby"
+    | "goerli"
+    | "kovan"
+    | "xdai"
+    | "matic"
+    | "mumbai";
+
 // request interfaces
 export interface IIndexRequestFilter {
     readonly indexId?: string;

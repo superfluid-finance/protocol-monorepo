@@ -1,11 +1,12 @@
 import { ethers } from "ethers";
-import { ChainId, NetworkName } from ".";
+import { ChainId } from ".";
 import { chainIdToAddresses, networkNameToChainIdMap } from "./constants";
 import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as IConstantFlowAgreementV1 } from "./abi/IConstantFlowAgreementV1.json";
 import { getNetworkName } from "./frameworkHelpers";
 import { normalizeAddressForContract } from "./utils";
 import { ISuperfluid } from "./typechain";
+import { NetworkName } from "./interfaces";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -17,6 +18,9 @@ export interface ITokenOptions {
     readonly chainId: ChainId;
     readonly networkName: NetworkName;
 }
+
+const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1);
+// const idaInterface = new ethers.utils.Interface(IInstantDistributionAgreementV1);
 
 export default class SuperToken {
     readonly options: ITokenOptions;
@@ -61,9 +65,7 @@ export default class SuperToken {
         const normalizedSender = normalizeAddressForContract(sender);
         const normalizedReceiver = normalizeAddressForContract(receiver);
 
-        const iface = new ethers.utils.Interface(IConstantFlowAgreementV1);
-
-        const callData = iface.encodeFunctionData("createFlow", [
+        const callData = cfaInterface.encodeFunctionData("createFlow", [
             normalizedToken,
             normalizedReceiver,
             flowRate,

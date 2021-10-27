@@ -5,6 +5,7 @@ import {
     networkNameToChainIdMap,
 } from "./constants";
 import { IConstructorFrameworkOptions } from "./Framework";
+import { NetworkName } from "./interfaces";
 
 export const validateFrameworkConstructorOptions = (
     options: IConstructorFrameworkOptions
@@ -50,6 +51,8 @@ export const getSubgraphQueriesEndpoint = (
  * @param options
  * @returns
  */
-export const getNetworkName = (options: IConstructorFrameworkOptions) => {
+export const getNetworkName = (
+    options: IConstructorFrameworkOptions
+): NetworkName => {
     return options.networkName || chainIdToDataMap.get(options.chainId!)!.name;
 };

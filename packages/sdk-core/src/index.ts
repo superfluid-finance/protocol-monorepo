@@ -17,16 +17,6 @@ export const enum DataMode {
     WEB3_ONLY = "WEB3_ONLY",
 }
 
-export const enum NetworkName {
-    ROPSTEN = "ropsten",
-    RINKEBY = "rinkeby",
-    GOERLI = "goerli",
-    KOVAN = "kovan",
-    XDAI = "xdai",
-    MATIC = "matic",
-    MUMBAI = "mumbai",
-}
-
 export const enum FlowActionType {
     CREATE,
     UPDATE,

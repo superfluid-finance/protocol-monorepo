@@ -1,4 +1,5 @@
-import { ChainId, DataMode, NetworkName } from "./index";
+import { ChainId, DataMode } from "./index";
+import { NetworkName } from "./interfaces";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
@@ -51,11 +52,9 @@ export default class Framework {
         this.query = new Query(this.options);
     }
 
-	// initializes the framework to query the correct resolver contract
-	// which will get the host contract and the agreement contract addresses
- 	initialize = async () => {
-
-	}
+    // initializes the framework to query the correct resolver contract
+    // which will get the host contract and the agreement contract addresses
+    initialize = async () => {};
 
     // TODO: do we only want to take address or should we give users
     // the option to pass in one of a few types of

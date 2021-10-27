@@ -1,4 +1,5 @@
-import { ChainId, NetworkName } from "./index";
+import { ChainId } from "./index";
+import { NetworkName } from "./interfaces";
 
 export const chainIds = [
     ChainId.ROPSTEN,
@@ -10,23 +11,26 @@ export const chainIds = [
     ChainId.MUMBAI,
 ];
 
-export const networkNames = [
-    NetworkName.ROPSTEN,
-    NetworkName.RINKEBY,
-    NetworkName.GOERLI,
-    NetworkName.KOVAN,
-    NetworkName.XDAI,
-    NetworkName.MATIC,
-    NetworkName.MUMBAI,
+export const networkNames: NetworkName[] = [
+    "ropsten",
+    "rinkeby",
+    "goerli",
+    "kovan",
+    "xdai",
+    "matic",
+    "mumbai",
 ];
 
-export const chainIdToDataMap = new Map([
+export const chainIdToDataMap = new Map<
+    ChainId,
+    { subgraphAPIEndpoint: string; name: NetworkName }
+>([
     [
         ChainId.ROPSTEN,
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten",
-            name: NetworkName.ROPSTEN,
+            name: "ropsten",
         },
     ],
     [
@@ -34,7 +38,7 @@ export const chainIdToDataMap = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-rinkeby",
-            name: NetworkName.RINKEBY,
+            name: "rinkeby",
         },
     ],
     [
@@ -42,7 +46,7 @@ export const chainIdToDataMap = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli",
-            name: NetworkName.GOERLI,
+            name: "goerli",
         },
     ],
     [
@@ -50,7 +54,7 @@ export const chainIdToDataMap = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-kovan",
-            name: NetworkName.KOVAN,
+            name: "kovan",
         },
     ],
     [
@@ -58,7 +62,7 @@ export const chainIdToDataMap = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-xdai",
-            name: NetworkName.XDAI,
+            name: "xdai",
         },
     ],
     [
@@ -66,7 +70,7 @@ export const chainIdToDataMap = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-matic",
-            name: NetworkName.MATIC,
+            name: "matic",
         },
     ],
     [
@@ -74,19 +78,19 @@ export const chainIdToDataMap = new Map([
         {
             subgraphAPIEndpoint:
                 "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
-            name: NetworkName.MUMBAI,
+            name: "mumbai",
         },
     ],
 ]);
 
-export const networkNameToChainIdMap = new Map([
-    [NetworkName.ROPSTEN, ChainId.ROPSTEN],
-    [NetworkName.RINKEBY, ChainId.RINKEBY],
-    [NetworkName.GOERLI, ChainId.GOERLI],
-    [NetworkName.KOVAN, ChainId.KOVAN],
-    [NetworkName.XDAI, ChainId.XDAI],
-    [NetworkName.MATIC, ChainId.MATIC],
-    [NetworkName.MUMBAI, ChainId.MUMBAI],
+export const networkNameToChainIdMap = new Map<NetworkName, ChainId>([
+    ["ropsten", ChainId.ROPSTEN],
+    ["rinkeby", ChainId.RINKEBY],
+    ["goerli", ChainId.GOERLI],
+    ["kovan", ChainId.KOVAN],
+    ["xdai", ChainId.XDAI],
+    ["matic", ChainId.MATIC],
+    ["mumbai", ChainId.MUMBAI],
 ]);
 
 // TODO: refactor it to get it working w/ resolver similar to js-sdk

@@ -3,12 +3,11 @@ import {
     createEntityAdapter,
     createSlice,
 } from '@reduxjs/toolkit';
-import { NetworkName } from '@superfluid-finance/sdk-core';
 
 import { superfluidFrameworkSource } from '../../superfluidFrameworkSource';
 
 export type TransactionId = {
-    networkName: NetworkName;
+    chainId: number; // TODO(KK): Can I use "extends" here?
     transactionHash: string;
 };
 
@@ -19,15 +18,15 @@ export enum TransactionStatus {
 }
 
 // "Redux" stuff needs to be serializable. Blockchain transaction object is unserializable.
-export interface SuperfluidTransaction {
-    networkName: string;
+export interface TransactionTracking {
+    chainId: number;
     hash: string;
     status: TransactionStatus;
     error?: string;
 }
 
 // Not strictly necessary to use: https://redux-toolkit.js.org/api/createEntityAdapter
-export const transactionsAdapter = createEntityAdapter<SuperfluidTransaction>({
+export const transactionsAdapter = createEntityAdapter<TransactionTracking>({
     selectId: (transaction) => transaction.hash,
     sortComparer: (a, b) => a.hash.localeCompare(b.hash),
 });
@@ -35,40 +34,43 @@ export const transactionsAdapter = createEntityAdapter<SuperfluidTransaction>({
 export const superfluidTransactionSelectors =
     transactionsAdapter.getSelectors();
 
+export interface TrackTransactionArg {
+    chainId: number;
+    hash: string;
+}
+
 // Having a single "track" action makes it easy to use transaction tracking logic.
 export const trackTransaction = createAsyncThunk<
-    SuperfluidTransaction,
-    TransactionId,
-    { rejectValue: SuperfluidTransaction }
+    TransactionTracking,
+    TrackTransactionArg,
+    { rejectValue: TransactionTracking }
 >('trackTransaction', async (arg, thunkAPI) => {
-    const framework = await superfluidFrameworkSource.getForRead(
-        arg.networkName
-    );
+    const framework = await superfluidFrameworkSource.getForRead(arg.chainId);
     try {
         // TODO: What's the best confirmation amount and timeout?
         const transactionReceipt = await framework.ethers.waitForTransaction(
-            arg.transactionHash,
+            arg.hash,
             1,
             60000
         );
         if (transactionReceipt.status === 1) {
             return {
-                networkName: arg.networkName,
-                hash: arg.transactionHash,
+                chainId: arg.chainId,
+                hash: arg.hash,
                 status: TransactionStatus.Succeeded,
             };
         } else {
             return thunkAPI.rejectWithValue({
-                networkName: arg.networkName,
-                hash: arg.transactionHash,
+                chainId: arg.chainId,
+                hash: arg.hash,
                 status: TransactionStatus.Failed,
                 error: 'Whatever error...',
             });
         }
     } catch (e) {
         return thunkAPI.rejectWithValue({
-            networkName: arg.networkName,
-            hash: arg.transactionHash,
+            chainId: arg.chainId,
+            hash: arg.hash,
             status: TransactionStatus.Failed,
             error: 'Whatever error...',
         });
@@ -85,8 +87,8 @@ export const transactionSlice = createSlice({
         builder
             .addCase(trackTransaction.pending, (state, action) => {
                 transactionsAdapter.upsertOne(state, {
-                    networkName: action.meta.arg.networkName,
-                    hash: action.meta.arg.transactionHash,
+                    chainId: action.meta.arg.chainId,
+                    hash: action.meta.arg.hash,
                     status: TransactionStatus.Pending,
                 });
             })

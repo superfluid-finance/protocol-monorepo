@@ -33,7 +33,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         await superfluidSdk.initialize();
 
         superfluidFrameworkSource.setForReadAndWrite(
-            networkName,
+            5,
             Promise.resolve(superfluidSdk)
         );
         onSuperfluidSdkInitialized(superfluidSdk);

@@ -1,33 +1,38 @@
-import SuperfluidSDK, { NetworkName } from '@superfluid-finance/sdk-core';
-import { ethers } from 'ethers';
+import SuperfluidSDK, { ChainId } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
+import { MutationArg } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface CreateFlowArg {
-    networkName: NetworkName;
+export interface CreateFlowArg extends MutationArg {
     superToken: string;
     sender: string;
     receiver: string;
     flowRate: string;
+    confirmations?: number;
+}
+
+export interface TransactionInfo {
+    chainId: number;
+    hash: string;
 }
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        createFlow: builder.mutation<ethers.Transaction, CreateFlowArg>({
+        createFlow: builder.mutation<TransactionInfo, CreateFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const framework =
                     await initializedSuperfluidFrameworkSource.getForWrite(
-                        arg.networkName
+                        arg.chainId
                     );
 
                 const superToken = new SuperfluidSDK.SuperToken({
-                    networkName: arg.networkName,
+                    chainId: arg.chainId as ChainId,
                     address: arg.superToken,
                 });
 
-                const transaction = await superToken.createFlow({
+                const transactionResponse = await superToken.createFlow({
                     sender: arg.sender,
                     receiver: arg.receiver,
                     flowRate: arg.flowRate,
@@ -35,31 +40,28 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     signer: framework.ethers.getSigner() as any, // TODO
                 });
 
-                queryApi.dispatch(
-                    trackTransaction({
-                        networkName: arg.networkName,
-                        transactionHash: transaction.hash,
-                    })
-                );
+                queryApi.dispatch(trackTransaction({
+                    hash: transactionResponse.hash,
+                    chainId: arg.chainId
+                }));
 
-                await framework.ethers.waitForTransaction(
-                    transaction.hash,
-                    1,
-                    60000
-                );
+                await transactionResponse.wait(arg.confirmations);
 
                 return {
-                    data: transaction,
+                    data: {
+                        hash: transactionResponse.hash,
+                        chainId: arg.chainId,
+                    },
                 };
             },
             invalidatesTags: (_1, _2, arg) => [
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.sender}`,
+                    id: `${arg.chainId}_${arg.sender}`,
                 },
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.receiver}`,
+                    id: `${arg.chainId}_${arg.receiver}`,
                 },
             ],
         }),

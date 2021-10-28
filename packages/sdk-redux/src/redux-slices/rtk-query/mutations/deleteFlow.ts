@@ -1,12 +1,11 @@
-import { NetworkName } from '@superfluid-finance/sdk-core';
 import { Transaction } from 'web3-core';
 
 import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
+import { MutationArg } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface DeleteFlowArg {
-    networkName: NetworkName;
+export interface DeleteFlowArg extends MutationArg {
     superToken: string;
     sender: string;
     receiver: string;
@@ -18,7 +17,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
             queryFn: async (arg, queryApi) => {
                 const framework =
                     await initializedSuperfluidFrameworkSource.getForWrite(
-                        arg.networkName
+                        arg.chainId
                     );
                 return {
                     data: await framework.cfa!.deleteFlow({
@@ -33,8 +32,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                         onTransaction: (transactionHash) => {
                             queryApi.dispatch(
                                 trackTransaction({
-                                    networkName: arg.networkName,
-                                    transactionHash: transactionHash,
+                                    chainId: arg.chainId,
+                                    hash: transactionHash,
                                 })
                             );
                         },
@@ -44,11 +43,11 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
             invalidatesTags: (_1, _2, arg) => [
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.sender}`,
+                    id: `${arg.chainId}_${arg.sender}`,
                 },
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.receiver}`,
+                    id: `${arg.chainId}_${arg.receiver}`,
                 },
             ],
         }),

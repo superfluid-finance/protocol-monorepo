@@ -22,7 +22,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
             queryFn: async (arg, queryApi) => {
                 const framework =
                     await initializedSuperfluidFrameworkSource.getForWrite(
-                        arg.networkName
+                        arg.chainId
                     );
                 const cfa = framework.cfa!;
 
@@ -40,8 +40,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                             onTransaction: (transactionHash) => {
                                 queryApi.dispatch(
                                     trackTransaction({
-                                        networkName: arg.networkName,
-                                        transactionHash: transactionHash,
+                                        chainId: arg.chainId,
+                                        hash: transactionHash,
                                     })
                                 );
                             },
@@ -67,8 +67,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                             onTransaction: (transactionHash) => {
                                 queryApi.dispatch(
                                     trackTransaction({
-                                        networkName: arg.networkName,
-                                        transactionHash: transactionHash,
+                                        chainId: arg.chainId,
+                                        hash: transactionHash,
                                     })
                                 );
                             },
@@ -88,8 +88,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                         onTransaction: (transactionHash) => {
                             queryApi.dispatch(
                                 trackTransaction({
-                                    networkName: arg.networkName,
-                                    transactionHash: transactionHash,
+                                    chainId: arg.chainId,
+                                    hash: transactionHash,
                                 })
                             );
                         },
@@ -99,11 +99,11 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
             invalidatesTags: (_1, _2, arg) => [
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.sender}`,
+                    id: `${arg.chainId}_${arg.sender}`,
                 },
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.receiver}`,
+                    id: `${arg.chainId}_${arg.receiver}`,
                 },
             ],
         }),

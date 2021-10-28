@@ -1,20 +1,18 @@
-
-import {NetworkName} from "@superfluid-finance/sdk-core";
 import request, { gql } from 'graphql-request';
 
 import {
     Flow,
     initializedSuperfluidFrameworkSource,
 } from '../../../superfluidApi';
+import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 // TODO: Get rid of this from here.
 const subgraphUrls: { [key: string]: string } = {
-    goerli: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli',
+    5: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli',
 };
 
-export interface FetchFlowsArg {
-    networkName: NetworkName;
+export interface FetchFlowsArg extends QueryArg {
     accountAddress: string;
 }
 
@@ -29,7 +27,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                         };
                     }[];
                 }>(
-                    subgraphUrls[arg.networkName],
+                    subgraphUrls[arg.chainId],
                     gql`
                         query ($accountAddress: String) {
                             accountTokenSnapshots(
@@ -48,7 +46,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
 
                 const framework =
                     await initializedSuperfluidFrameworkSource.getForRead(
-                        arg.networkName
+                        arg.chainId
                     );
 
                 const userFlowsPromises: Promise<Flow[]>[] =
@@ -87,7 +85,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
             providesTags: (_1, _2, arg) => [
                 {
                     type: 'Flow',
-                    id: `${arg.networkName}_${arg.accountAddress}`,
+                    id: `${arg.chainId}_${arg.accountAddress}`,
                 },
             ],
         }),

@@ -12,9 +12,9 @@ import {
 import { SignerContext } from "./SignerContext";
 
 export const StreamTable: FC = (): ReactElement => {
-    const [networkName, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress] = useContext(SignerContext);
     const { data: flows, isLoading } = useFetchFlowsQuery({
-        networkName,
+        chainId,
         accountAddress: signerAddress,
     });
 
@@ -27,7 +27,7 @@ export const StreamTable: FC = (): ReactElement => {
                     <Table aria-label="simple table">
                         <TableHead>
                             <TableRow>
-                                <TableCell>Network</TableCell>
+                                <TableCell>Chain</TableCell>
                                 <TableCell>SuperToken</TableCell>
                                 <TableCell>Sender</TableCell>
                                 <TableCell>Receiver</TableCell>
@@ -44,7 +44,7 @@ export const StreamTable: FC = (): ReactElement => {
                                         },
                                     }}
                                 >
-                                    <TableCell>{networkName}</TableCell>
+                                    <TableCell>{chainId}</TableCell>
                                     <TableCell>{flow.superToken}</TableCell>
                                     <TableCell>{flow.sender}</TableCell>
                                     <TableCell>{flow.receiver}</TableCell>

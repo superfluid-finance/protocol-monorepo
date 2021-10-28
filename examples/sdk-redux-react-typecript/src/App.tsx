@@ -27,7 +27,7 @@ import { SignerContext } from "./SignerContext";
 import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
 import { SerializedError } from "@reduxjs/toolkit";
-import {NetworkName} from "@superfluid-finance/sdk-core";
+import { ChainId } from "@superfluid-finance/sdk-core";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -53,7 +53,7 @@ export const CreateStream: FC = (): ReactElement => {
         },
     ] = useCreateOrUpdateOrDeleteFlowMutation();
 
-    const [networkName, signerAddress] = useContext(SignerContext);
+    const [chainId, signerAddress] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
@@ -77,7 +77,7 @@ export const CreateStream: FC = (): ReactElement => {
             sender: signerAddress,
             receiver,
             flowRate,
-            networkName,
+            chainId,
             superToken,
         });
     };
@@ -87,7 +87,7 @@ export const CreateStream: FC = (): ReactElement => {
             sender: signerAddress,
             receiver,
             flowRate,
-            networkName,
+            chainId,
             superToken,
         });
     };
@@ -96,7 +96,7 @@ export const CreateStream: FC = (): ReactElement => {
         deleteFlow({
             sender: signerAddress,
             receiver,
-            networkName,
+            chainId,
             superToken,
         });
     };
@@ -106,7 +106,7 @@ export const CreateStream: FC = (): ReactElement => {
             sender: signerAddress,
             receiver,
             flowRate,
-            networkName,
+            chainId,
             superToken,
         });
     };
@@ -198,7 +198,7 @@ function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
 
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
-    const [networkName, setNetworkName] = useState<NetworkName | undefined>();
+    const [chainId, setChainId] = useState<ChainId | undefined>();
 
     const onSuperfluidSdkInitialized = async (superfluidSdk: Framework) => {
         setSuperfluidSdk(superfluidSdk);
@@ -210,7 +210,7 @@ function App() {
 
         superfluidSdk.ethers
             .getNetwork()
-            .then((network) => setNetworkName(network.name as NetworkName));
+            .then((network) => setChainId(network.chainId as ChainId));
     };
 
     return (
@@ -225,16 +225,16 @@ function App() {
                             onSuperfluidSdkInitialized(x)
                         }
                     />
-                ) : !networkName || !signerAddress ? (
+                ) : !chainId || !signerAddress ? (
                     <Loader />
                 ) : (
                     <SignerContext.Provider
-                        value={[networkName, signerAddress]}
+                        value={[chainId, signerAddress]}
                     >
                         <Box maxWidth="sm">
                             <Typography sx={{ mb: 4 }}>
                                 You are connected. You are on network [
-                                {networkName}] and your wallet address is [
+                                {chainId}] and your wallet address is [
                                 {signerAddress}].
                             </Typography>
                             <Typography

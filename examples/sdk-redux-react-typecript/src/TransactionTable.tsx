@@ -1,7 +1,7 @@
 import React, { FC, ReactElement, useContext } from "react";
 import {
     Flow,
-    SuperfluidTransaction,
+    TransactionTracking,
     superfluidTransactionSelectors,
     useFetchFlowsQuery,
 } from "@superfluid-finance/sdk-redux";
@@ -38,7 +38,7 @@ export const TransactionTable: FC = (): ReactElement => {
                         </TableHead>
                         <TableBody>
                             {transactions!.map(
-                                (transaction: SuperfluidTransaction) => (
+                                (transaction: TransactionTracking) => (
                                     <TableRow
                                         key={transaction.hash}
                                         sx={{

@@ -1,74 +1,50 @@
 import { Framework } from '@superfluid-finance/js-sdk';
-import { NetworkName } from '@superfluid-finance/sdk-core';
 
-const frameworkForReading = new Map<NetworkName, Promise<Framework>>();
-const frameworkForWriting = new Map<NetworkName, Promise<Framework>>();
+const frameworkForReading = new Map<number, Promise<Framework>>();
+const frameworkForWriting = new Map<number, Promise<Framework>>();
 
 export interface SuperfluidFrameworkSource {
-    getForRead: (networkName: NetworkName) => Promise<Framework>;
-    getForWrite: (networkName: NetworkName) => Promise<Framework>;
-    setForRead: (
-        networkName: NetworkName,
-        frameworkPromise: Promise<Framework>
-    ) => void;
+    getForRead: (chainId: number) => Promise<Framework>;
+    getForWrite: (chainId: number) => Promise<Framework>;
+    setForRead: (chainId: number, frameworkPromise: Promise<Framework>) => void;
     setForWrite: (
-        networkName: NetworkName,
+        chainId: number,
         frameworkPromise: Promise<Framework>
     ) => void;
     setForReadAndWrite: (
-        networkName: NetworkName,
+        chainId: number,
         frameworkPromise: Promise<Framework>
     ) => void;
 }
 
 export const superfluidFrameworkSource: SuperfluidFrameworkSource = {
-    getForRead: (networkName: NetworkName): Promise<Framework> => {
-        const frameworkPromise = frameworkForReading.get(networkName);
+    getForRead: (chainId: number): Promise<Framework> => {
+        const frameworkPromise = frameworkForReading.get(chainId);
         if (!frameworkPromise)
             throw Error(
-                `Don't know how to get Superfluid. :( Please set up a *read* source for network [${networkName}].`
+                `Don't know how to get Superfluid. :( Please set up a *read* source for chain [${chainId}].`
             );
         return frameworkPromise;
     },
-    getForWrite: (networkName: NetworkName): Promise<Framework> => {
-        const frameworkPromise = frameworkForWriting.get(networkName);
+    getForWrite: (chainId: number): Promise<Framework> => {
+        const frameworkPromise = frameworkForWriting.get(chainId);
         if (!frameworkPromise)
             throw Error(
-                `Don't know how to get Superfluid. :( Please set up a *write* source for network [${networkName}].`
+                `Don't know how to get Superfluid. :( Please set up a *write* source for chain [${chainId}].`
             );
         return frameworkPromise;
     },
-    setForRead: (
-        networkName: NetworkName,
-        frameworkPromise: Promise<Framework>
-    ) => {
-        console.log({
-            method: 'setForRead',
-            args: {
-                networkName,
-                frameworkPromise,
-            },
-        });
-        frameworkForReading.set(networkName, frameworkPromise);
+    setForRead: (chainId: number, frameworkPromise: Promise<Framework>) => {
+        frameworkForReading.set(chainId, frameworkPromise);
     },
-    setForWrite: (
-        networkName: NetworkName,
-        frameworkPromise: Promise<Framework>
-    ) => {
-        console.log({
-            method: 'setForWrite',
-            args: {
-                networkName,
-                frameworkPromise,
-            },
-        });
-        frameworkForWriting.set(networkName, frameworkPromise);
+    setForWrite: (chainId: number, frameworkPromise: Promise<Framework>) => {
+        frameworkForWriting.set(chainId, frameworkPromise);
     },
     setForReadAndWrite: (
-        networkName: NetworkName,
+        chainId: number,
         frameworkPromise: Promise<Framework>
     ) => {
-        superfluidFrameworkSource.setForRead(networkName, frameworkPromise);
-        superfluidFrameworkSource.setForWrite(networkName, frameworkPromise);
+        superfluidFrameworkSource.setForRead(chainId, frameworkPromise);
+        superfluidFrameworkSource.setForWrite(chainId, frameworkPromise);
     },
 };

@@ -13,7 +13,7 @@ export default class Operation {
         try {
             return await signer.sendTransaction(this.transaction);
         } catch (err) {
-            throw new Error("Error: " + JSON.stringify(err));
+            throw new Error(JSON.stringify(err));
         }
     };
 
@@ -23,7 +23,7 @@ export default class Operation {
         try {
             return await signer.populateTransaction(this.transaction);
         } catch (err) {
-            throw new Error("Error: " + JSON.stringify(err));
+            throw new Error(JSON.stringify(err));
         }
     };
 
@@ -32,7 +32,7 @@ export default class Operation {
             const signedTxn = await signer.signTransaction(this.transaction);
             return signedTxn;
         } catch (err) {
-            throw new Error("Error: " + JSON.stringify(err));
+            throw new Error(JSON.stringify(err));
         }
     };
 
@@ -41,7 +41,7 @@ export default class Operation {
             const signedTxn = await this.getSignedTransaction(signer);
             return ethers.utils.keccak256(signedTxn);
         } catch (err) {
-            throw new Error("Error: " + JSON.stringify(err));
+            throw new Error(JSON.stringify(err));
         }
     };
 }

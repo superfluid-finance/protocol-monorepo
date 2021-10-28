@@ -24,7 +24,7 @@ import { createPaginationResult, subgraphRequest } from "./queryHelpers";
 import {
     buildWhereForSubgraphQuery,
     defaultPaginateOptions,
-    normalizeAddressForSubgraph,
+    normalizeAddress,
 } from "./utils";
 import {
     handleValidatePaginate,
@@ -45,7 +45,7 @@ export default class Query {
         this.options = options;
     }
 
-    custom = async <T>(
+    customQuery = async <T>(
         query: string,
         variables?: { [key: string]: any }
     ): Promise<ISubgraphResponse<T>> => {
@@ -56,10 +56,16 @@ export default class Query {
         );
     };
 
-    listAllSuperTokens = async (): Promise<
-        ISubgraphResponse<ISuperToken[]>
-    > => {
-        return this.custom<ISuperToken[]>(getSuperTokensQuery);
+    listAllSuperTokens = async (
+        filter: IIndexRequestFilter,
+        paginateOptions: IPaginateRequest
+    ): Promise<ISubgraphResponse<ISuperToken[]>> => {
+        const where = buildWhereForSubgraphQuery(filter);
+        const options = defaultPaginateOptions(paginateOptions);
+        const result = await this.customQuery<ISuperToken[]>(
+            getSuperTokensQuery(where, { ...options, first: options.first + 1 })
+        );
+        return createPaginationResult(result.response, options);
     };
 
     listIndexes = async (
@@ -76,7 +82,7 @@ export default class Query {
 
         const where = buildWhereForSubgraphQuery(filter);
         const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.custom<IIndex[]>(
+        const result = await this.customQuery<IIndex[]>(
             getIndexesQuery(where, {
                 ...options,
                 first: options.first + 1,
@@ -100,7 +106,7 @@ export default class Query {
 
         const where = buildWhereForSubgraphQuery(filter);
         const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.custom<IIndexSubscription[]>(
+        const result = await this.customQuery<IIndexSubscription[]>(
             getIndexSubscriptionsQuery(where, {
                 ...options,
                 first: options.first + 1,
@@ -124,7 +130,7 @@ export default class Query {
 
         const where = buildWhereForSubgraphQuery(filter);
         const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.custom<IStream[]>(
+        const result = await this.customQuery<IStream[]>(
             getStreamsQuery(where, {
                 ...options,
                 first: options.first + 1,
@@ -140,9 +146,9 @@ export default class Query {
         if (isValidAddress === false) {
             throw new Error("The address you have entered is invalid.");
         }
-        const normalizedAddress = normalizeAddressForSubgraph(account);
+        const normalizedAddress = normalizeAddress(account);
 
-        return this.custom<ILightAccountTokenSnapshot[]>(
+        return this.customQuery<ILightAccountTokenSnapshot[]>(
             getAccountTokenSnapshotsByAccountQuery,
             { account: normalizedAddress }
         );

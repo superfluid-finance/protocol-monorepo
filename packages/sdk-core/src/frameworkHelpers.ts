@@ -4,11 +4,11 @@ import {
     networkNames,
     networkNameToChainIdMap,
 } from "./constants";
-import { IConstructorFrameworkOptions } from "./Framework";
+import { IFrameworkOptions } from "./Framework";
 import { NetworkName } from "./interfaces";
 
 export const validateFrameworkConstructorOptions = (
-    options: IConstructorFrameworkOptions
+    options: IFrameworkOptions
 ) => {
     if (!options.chainId && !options.networkName) {
         throw new Error("You must input chainId or networkName.");
@@ -33,16 +33,20 @@ export const validateFrameworkConstructorOptions = (
     }
 };
 
-export const getSubgraphQueriesEndpoint = (
-    options: IConstructorFrameworkOptions
-) => {
-    return options.chainId
+/**
+ * @dev options.networkName is casted as not null as we check
+ * to ensure at least one of the settings are not null.
+ * @param options
+ * @returns
+ */
+export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
+    return options.customSubgraphQueriesEndpoint != null
+        ? options.customSubgraphQueriesEndpoint
+        : options.chainId
         ? chainIdToDataMap.get(options.chainId)!.subgraphAPIEndpoint
-        : options.networkName
-        ? chainIdToDataMap.get(
-              networkNameToChainIdMap.get(options.networkName)!
-          )!.subgraphAPIEndpoint
-        : options.customSubgraphQueriesEndpoint;
+        : chainIdToDataMap.get(
+              networkNameToChainIdMap.get(options.networkName!)!
+          )!.subgraphAPIEndpoint;
 };
 
 /**
@@ -51,8 +55,6 @@ export const getSubgraphQueriesEndpoint = (
  * @param options
  * @returns
  */
-export const getNetworkName = (
-    options: IConstructorFrameworkOptions
-): NetworkName => {
+export const getNetworkName = (options: IFrameworkOptions): NetworkName => {
     return options.networkName || chainIdToDataMap.get(options.chainId!)!.name;
 };

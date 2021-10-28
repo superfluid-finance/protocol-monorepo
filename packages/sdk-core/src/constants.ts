@@ -144,3 +144,9 @@ export const chainIdToAddresses = new Map([
         },
     ],
 ]);
+
+export const MONTHS_PER_YEAR = 12;
+export const DAYS_PER_MONTH = 30;
+export const HOURS_PER_DAY = 24;
+export const MINUTES_PER_HOUR = 60;
+export const SECONDS_PER_MINUTE = 60;

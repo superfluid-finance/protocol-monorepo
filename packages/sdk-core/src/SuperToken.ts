@@ -4,10 +4,10 @@ import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as SuperTokenABI } from "./abi/SuperToken.json";
 import { abi as IConstantFlowAgreementV1 } from "./abi/IConstantFlowAgreementV1.json";
 import { getNetworkName } from "./frameworkHelpers";
-import { normalizeAddressForContract } from "./utils";
 import { ISuperfluid, ISuperToken } from "./typechain";
 import { ChainId, ICreateFlowParams, NetworkName } from "./interfaces";
 import Operation from "./Operation";
+import { normalizeAddress } from "./utils";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -127,17 +127,21 @@ export default class SuperToken {
         ) as ISuperfluid;
     };
 
+    // TODO: abstract the CFA data into its own class
+    // do the same w/ IDA and then just call the functinos from within this class.
+    // all you need to initialize the CFA/IDA class is an address
+    // createFlow in the token context would just pass in this.options.address as token
     createFlow = async ({
         sender,
         receiver,
         flowRate,
         userData,
     }: ICreateFlowParams) => {
-        const normalizedToken = normalizeAddressForContract(
-            this.options.address
-        );
-        const normalizedSender = normalizeAddressForContract(sender);
-        const normalizedReceiver = normalizeAddressForContract(receiver);
+        // TODO: check if address, if not throw error else
+        // normalize to lowercase internally
+        const normalizedToken = normalizeAddress(this.options.address);
+        const normalizedSender = normalizeAddress(sender);
+        const normalizedReceiver = normalizeAddress(receiver);
 
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             normalizedToken,

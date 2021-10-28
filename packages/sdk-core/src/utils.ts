@@ -1,13 +1,20 @@
-import { ethers } from "ethers";
+import {
+    DAYS_PER_MONTH,
+    HOURS_PER_DAY,
+    MINUTES_PER_HOUR,
+    MONTHS_PER_YEAR,
+    SECONDS_PER_MINUTE,
+} from "./constants";
 import { IPaginateResponse, IPaginateRequest } from "./interfaces";
 
-export const normalizeAddressForContract = (address?: string) => {
-    if (!address) return "";
-
-    return ethers.utils.getAddress(address);
-};
-
-export const normalizeAddressForSubgraph = (address?: string) => {
+/**
+ * Normalizes addresses for the library by setting them to
+ * lower case so it can be used seamlessly by both the
+ * subgraph and web 3 calls.
+ * @param address
+ * @returns
+ */
+export const normalizeAddress = (address?: string): string => {
     if (!address) return "";
 
     return address.toLowerCase();
@@ -16,7 +23,7 @@ export const normalizeAddressForSubgraph = (address?: string) => {
 export const buildWhereForSubgraphQuery = <T>(data: T) => {
     return Object.entries(data)
         .filter((x) => x[1] != null && x[1] !== "")
-        .map((x) => `${[x[0]]}: "${normalizeAddressForSubgraph(x[1])}"`)
+        .map((x) => `${[x[0]]}: "${normalizeAddress(x[1])}"`)
         .join(",");
 };
 
@@ -27,4 +34,34 @@ export const defaultPaginateOptions = (
         first: options.first == null ? 100 : options.first,
         skip: options.skip == null ? 0 : options.skip,
     };
+};
+
+export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
+    return Math.round(
+        Number(amountPerYear) *
+            MONTHS_PER_YEAR *
+            DAYS_PER_MONTH *
+            HOURS_PER_DAY *
+            MINUTES_PER_HOUR *
+            SECONDS_PER_MINUTE
+    );
+};
+
+export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
+    return Math.round(
+        Number(amountPerMonth) *
+            DAYS_PER_MONTH *
+            HOURS_PER_DAY *
+            MINUTES_PER_HOUR *
+            SECONDS_PER_MINUTE
+    );
+};
+
+export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
+    return Math.round(
+        Number(amountPerDay) *
+            HOURS_PER_DAY *
+            MINUTES_PER_HOUR *
+            SECONDS_PER_MINUTE
+    );
 };

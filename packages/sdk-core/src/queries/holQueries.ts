@@ -2,9 +2,16 @@ import { gql } from "graphql-request";
 import { IPaginateResponse } from "../interfaces";
 import { baseHOLProperties, baseUpdateableProperties } from "./baseProperties";
 
-export const getSuperTokensQuery = gql`
+export const getSuperTokensQuery = (
+    where: string,
+    paginateOptions: IPaginateResponse
+) => gql`
     {
-        response: tokens(where: { isSuperToken: true }) {
+        response: tokens(
+			where: { isSuperToken: true, ${where} },
+			first: ${paginateOptions.first},
+			skip: ${paginateOptions.skip}
+		) {
             ${baseHOLProperties}
             name
             symbol

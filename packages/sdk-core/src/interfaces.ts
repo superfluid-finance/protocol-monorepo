@@ -23,8 +23,10 @@ export type FlowActionType =
     | 1 // UPDATE
     | 2; // TERMINATE
 
-
 // request interfaces
+export interface ISuperTokenRequestFilter {
+    readonly isListed?: string;
+}
 export interface IIndexRequestFilter {
     readonly indexId?: string;
     readonly publisher?: string;

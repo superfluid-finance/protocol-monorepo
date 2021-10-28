@@ -22,7 +22,7 @@ function createFlowUpdatedEntity(
     streamId: string,
     totalAmountStreamedUntilTimestamp: BigInt
 ): void {
-    let ev = new FlowUpdatedEvent(createEventID(event));
+    let ev = new FlowUpdatedEvent(createEventID("flowUpdatedEvent", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;

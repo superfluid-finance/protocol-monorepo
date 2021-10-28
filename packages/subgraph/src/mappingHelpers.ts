@@ -89,12 +89,7 @@ export function getOrInitSuperToken(
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token = getIsListedToken(
-            token as Token,
-            tokenAddress,
-            resolverAddress,
-            token.symbol
-        );
+        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         token.save();
 
         // Note: we initalize and create tokenStatistic whenever we create a
@@ -124,12 +119,11 @@ export function getOrInitSuperToken(
     // // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token = getIsListedToken(
-            token as Token,
-            tokenAddress,
-            resolverAddress,
-            token.symbol
-        );
+        token.save();
+    }
+
+    if (token.isListed == false) {
+        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         token.save();
     }
 

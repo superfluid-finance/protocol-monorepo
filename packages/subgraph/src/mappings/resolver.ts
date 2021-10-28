@@ -11,7 +11,9 @@ import {
 import { createEventID } from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
-    let ev = new RoleAdminChangedEvent(createEventID(event));
+    let ev = new RoleAdminChangedEvent(
+        createEventID("roleAdminChangedEvent", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -22,7 +24,7 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 }
 
 export function handleRoleGranted(event: RoleGranted): void {
-    let ev = new RoleGrantedEvent(createEventID(event));
+    let ev = new RoleGrantedEvent(createEventID("roleGrantedEvent", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -32,7 +34,7 @@ export function handleRoleGranted(event: RoleGranted): void {
     ev.save();
 }
 export function handleRoleRevoked(event: RoleRevoked): void {
-    let ev = new RoleRevokedEvent(createEventID(event));
+    let ev = new RoleRevokedEvent(createEventID("roleRevokedEvent", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;

@@ -6,8 +6,10 @@ import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { IMeta, IIndexSubscription } from "../interfaces";
 import { FlowActionType } from "./constants";
+import { abi as TestResolverABI } from "../../abis/TestResolver.json";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
+import { TestResolver } from "../../typechain";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
@@ -64,6 +66,20 @@ export const beforeSetup = async (tokenAmount: number) => {
             from: address,
         });
         totalSupply += Number(stringBigIntAmount);
+    }
+    const signer = await ethers.getSigner(
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+    );
+    const resolver = (await ethers.getContractAt(
+        TestResolverABI,
+        RESOLVER_ADDRESS,
+        signer
+    )) as TestResolver;
+    await resolver.set("fDAIx", daix.address);
+    const resolverAddress = await resolver.get("supertokens.test.fDAIx");
+
+    if (resolverAddress !== daix.address) {
+        throw new Error("fDAIx not set properly in resolver.");
     }
 
     console.log(
@@ -185,12 +201,6 @@ export const getCurrentTotalAmountStreamed = (
 /**************************************************************************
  * Entity ID Getters
  *************************************************************************/
-
-export const getEventId = (receipt: ContractReceipt) => {
-    return (
-        receipt.transactionHash.toLowerCase() + "-" + receipt.transactionIndex
-    );
-};
 
 export const getStreamId = (
     sender: string,

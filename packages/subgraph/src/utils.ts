@@ -14,9 +14,13 @@ export let BIG_INT_ONE = BigInt.fromI32(1);
  * Event entities util functions
  *************************************************************************/
 
-export function createEventID(event: ethereum.Event): string {
-    return event.transaction.hash
-        .toHexString()
+export function createEventID(
+    eventName: string,
+    event: ethereum.Event
+): string {
+    return eventName
+        .concat("-")
+        .concat(event.transaction.hash.toHexString())
         .concat("-")
         .concat(event.logIndex.toString());
 }
@@ -44,11 +48,16 @@ export function getTokenInfoAndReturn(
 export function getIsListedToken(
     token: Token,
     tokenAddress: Address,
-    resolverAddress: Address,
-    symbol: string
+    resolverAddress: Address
 ): Token {
     let resolverContract = TestResolver.bind(resolverAddress);
-    let result = resolverContract.try_get(`supertokens.v1.${symbol}`);
+    let version =
+        resolverAddress.toHex() == "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
+            ? "test"
+            : "v1";
+    let result = resolverContract.try_get(
+        "supertokens.".concat(version).concat(".").concat(token.symbol)
+    );
     let superTokenAddress = result.reverted ? new Address(0) : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;

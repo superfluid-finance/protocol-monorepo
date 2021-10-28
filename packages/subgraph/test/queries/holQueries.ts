@@ -66,6 +66,12 @@ export const getIndex = gql`
             indexCreatedEvent(orderBy: timestamp, orderDirection: asc) {
                 id
             }
+            indexDistributionClaimedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
+                id
+            }
             indexUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
                 id
             }
@@ -104,6 +110,12 @@ export const getSubscription = gql`
                 }
             }
             subscriptionApprovedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
+                id
+            }
+            subscriptionDistributionClaimedEvents(
                 orderBy: timestamp
                 orderDirection: asc
             ) {

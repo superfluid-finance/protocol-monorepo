@@ -359,6 +359,11 @@ export const getExpectedDataForIndexUpdated = async (
     };
 };
 
+/**
+ * Same expected data for IndexSubscribed
+ * @param data
+ * @returns
+ */
 export const getExpectedDataForSubscriptionApproved = async (
     data: IGetExpectedIDADataParams
 ) => {
@@ -465,6 +470,89 @@ export const getExpectedDataForSubscriptionApproved = async (
     };
 };
 
+/**
+ * Same expected data for IndexDistributionClaimed
+ * @param data 
+ * @returns 
+ */
+export const getExpectedDataForSubscriptionDistributionClaimed = async (
+    data: IGetExpectedIDADataParams
+) => {
+    const {
+        token,
+        currentIndex,
+        currentSubscription,
+        currentPublisherATS,
+        currentSubscriberATS,
+        currentTokenStats,
+        updatedAtBlockNumber,
+        timestamp,
+    } = data;
+    const distributionDelta = toBN(currentSubscription.units).mul(
+        toBN(currentIndex.indexValue).sub(
+            toBN(currentSubscription.indexValueUntilUpdatedAt)
+        )
+    );
+
+    let updatedTokenStats: ITokenStatistic = {
+        ...currentTokenStats,
+    };
+
+    let updatedIndex: IIndex = {
+        ...currentIndex,
+    };
+
+    let updatedSubscription: IIndexSubscription = {
+        ...currentSubscription,
+        totalAmountReceivedUntilUpdatedAt: toBN(
+            currentSubscription.totalAmountReceivedUntilUpdatedAt
+        )
+            .add(distributionDelta)
+            .toString(),
+        indexValueUntilUpdatedAt: updatedIndex.indexValue,
+    };
+
+    let updatedSubscriberATS: IAccountTokenSnapshot = {
+        ...(await getExpectedATSForCFAEvent(
+            token,
+            currentSubscriberATS,
+            updatedAtBlockNumber,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
+
+    let updatedPublisherATS: IAccountTokenSnapshot = {
+        ...(await getExpectedATSForCFAEvent(
+            token,
+            currentPublisherATS,
+            updatedAtBlockNumber,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
+
+    return {
+        updatedIndex,
+        updatedSubscription,
+        updatedPublisherATS,
+        updatedSubscriberATS,
+        updatedTokenStats,
+    };
+};
+
+/**
+ * @dev Same expected data for IndexUnsubscribed
+ * @param data
+ * @param isRevoke
+ * @returns
+ */
 export const getExpectedDataForRevokeOrDeleteSubscription = async (
     data: IGetExpectedIDADataParams,
     isRevoke: boolean

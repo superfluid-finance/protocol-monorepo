@@ -1,11 +1,13 @@
 import { IEventQueryData } from "../interfaces";
 import {
     getIndexCreatedEvents,
+    getIndexDistributionClaimedEvents,
     getIndexSubscribedEvents,
     getIndexUnitsUpdatedEvents,
     getIndexUnsubscribedEvents,
     getIndexUpdatedEvents,
     getSubscriptionApprovedEvents,
+    getSubscriptionDistributionClaimedEvents,
     getSubscriptionRevokedEvents,
     getSubscriptionUnitsUpdatedEvents,
 } from "../queries/eventQueries";
@@ -18,16 +20,17 @@ export const enum FlowActionType {
 
 export const enum IDAEventType {
     IndexCreated,
+    IndexDistributionClaimed,
     IndexUpdated,
     IndexSubscribed,
     IndexUnitsUpdated,
     IndexUnsubscribed,
     SubscriptionApproved,
+    SubscriptionDistributionClaimed,
     SubscriptionUnitsUpdated,
     SubscriptionRevoked,
 
     // There isn't an event for this, but we need to test for this case.
-    Claim,
 }
 
 export const actionTypeToActiveStreamsDeltaMap = new Map([
@@ -46,6 +49,10 @@ export const subscriptionEventTypeToIndexEventType = new Map([
     [IDAEventType.SubscriptionApproved, IDAEventType.IndexSubscribed],
     [IDAEventType.SubscriptionUnitsUpdated, IDAEventType.IndexUnitsUpdated],
     [IDAEventType.SubscriptionRevoked, IDAEventType.IndexUnsubscribed],
+    [
+        IDAEventType.SubscriptionDistributionClaimed,
+        IDAEventType.IndexDistributionClaimed,
+    ],
 ]);
 
 export const idaEventTypeToEventQueryDataMap = new Map<
@@ -57,6 +64,13 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         {
             query: getIndexCreatedEvents,
             queryName: "IndexCreatedEvent",
+        },
+    ],
+    [
+        IDAEventType.IndexDistributionClaimed,
+        {
+            query: getIndexDistributionClaimedEvents,
+            queryName: "IndexDistributionClaimedEvent",
         },
     ],
     [
@@ -92,6 +106,13 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         {
             query: getSubscriptionApprovedEvents,
             queryName: "SubscriptionApprovedEvent",
+        },
+    ],
+    [
+        IDAEventType.SubscriptionDistributionClaimed,
+        {
+            query: getSubscriptionDistributionClaimedEvents,
+            queryName: "SubscriptionDistributionClaimedEvent",
         },
     ],
     [

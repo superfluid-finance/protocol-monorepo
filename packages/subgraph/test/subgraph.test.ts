@@ -134,7 +134,7 @@ describe("Subgraph Tests", () => {
 
     before(async () => {
         let [UserAddresses, SF, DAI, DAIx, totalSupply] = await beforeSetup(
-            100000
+            10000000
         );
         initialTotalSupply = totalSupply;
         userAddresses = UserAddresses;
@@ -328,6 +328,8 @@ describe("Subgraph Tests", () => {
      * Note: The goal of the IDA tests are to test out all of the mapping function logic
      * by not always following the happy path, but rather trying out some alternative paths
      * which are unlikely, but still possible.
+     * Also, please use the Subscription event type for actions which contain both a subscription
+     * and index event type.
      */
     describe("InstantDistributionAgreement Tests", () => {
         /**
@@ -365,15 +367,16 @@ describe("Subgraph Tests", () => {
             // Testing half the users on the last created index.
             for (let i = 1; i < Math.floor(userAddresses.length / 2); i++) {
                 const subscriber = userAddresses[i];
+                const publisher = userAddresses[0];
                 const baseParams: ISubscriberDistributionTesterParams = {
                     token,
-                    publisher: userAddresses[0],
+                    publisher,
                     indexId: 0,
                     userData: "0x",
                     subscriber,
                 };
 
-                let units = new BN(100);
+                let units = new BN((100 ** 18).toString());
 
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
@@ -384,7 +387,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(150);
+                units = new BN((150 ** 18).toString());
 
                 // update sub units again
                 updateGlobalObjectsForIDAEvents(
@@ -396,7 +399,7 @@ describe("Subgraph Tests", () => {
                 );
 
                 // distribute units to non-approved subscribers
-                const amountOrIndexValue = new BN(10);
+                const amountOrIndexValue = new BN((20).toString());
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -416,7 +419,7 @@ describe("Subgraph Tests", () => {
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: false,
-                        sender: subscriber,
+                        sender: publisher,
                     })
                 );
 
@@ -433,7 +436,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
+                        units: new BN((0 ** 18).toString()),
                     })
                 );
 
@@ -443,7 +446,7 @@ describe("Subgraph Tests", () => {
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: false,
-                        sender: subscriber,
+                        sender: publisher,
                     })
                 );
 
@@ -452,7 +455,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(100),
+                        units: new BN((100 ** 18).toString()),
                     })
                 );
 
@@ -461,7 +464,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
+                        units: new BN((0 ** 18).toString()),
                     })
                 );
             }
@@ -497,7 +500,7 @@ describe("Subgraph Tests", () => {
                     subscriber,
                 };
 
-                let units = new BN(100);
+                let units = new BN((100 ** 18).toString());
 
                 // update sub units
                 updateGlobalObjectsForIDAEvents(
@@ -516,7 +519,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(0);
+                units = new BN((0 ** 18).toString());
 
                 // update approved sub units to 0
                 updateGlobalObjectsForIDAEvents(
@@ -551,7 +554,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(150),
+                        units: new BN((150 ** 18).toString()),
                     })
                 );
 
@@ -578,7 +581,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(175),
+                        units: new BN((175 ** 18).toString()),
                     })
                 );
 
@@ -587,7 +590,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
+                        units: new BN((0 ** 18).toString()),
                     })
                 );
                 // update revoked sub w/o units to 0
@@ -595,7 +598,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
+                        units: new BN((0 ** 18).toString()),
                     })
                 );
             }
@@ -620,9 +623,10 @@ describe("Subgraph Tests", () => {
                 i++
             ) {
                 const subscriber = userAddresses[i];
+                const publisher = userAddresses[2];
                 const baseParams: ISubscriberDistributionTesterParams = {
                     token,
-                    publisher: userAddresses[2],
+                    publisher,
                     indexId: 2,
                     userData: "0x",
                     subscriber,
@@ -641,7 +645,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(100),
+                        units: new BN((100 ** 18).toString()),
                     })
                 );
 
@@ -650,12 +654,12 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(150),
+                        units: new BN((150 ** 18).toString()),
                     })
                 );
 
                 // distribute units to approved subscribers
-                const amountOrIndexValue = new BN(100);
+                const amountOrIndexValue = new BN((100 ** 18).toString());
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(
@@ -674,7 +678,7 @@ describe("Subgraph Tests", () => {
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionRevoked,
                         isRevoke: false,
-                        sender: subscriber,
+                        sender: publisher,
                     })
                 );
 
@@ -683,7 +687,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
+                        units: new BN((0 ** 18).toString()),
                     })
                 );
 
@@ -692,7 +696,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(0),
+                        units: new BN((0 ** 18).toString()),
                     })
                 );
 
@@ -709,7 +713,7 @@ describe("Subgraph Tests", () => {
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
                         eventType: IDAEventType.SubscriptionUnitsUpdated,
-                        units: new BN(150),
+                        units: new BN((150 ** 18).toString()),
                     })
                 );
             }
@@ -749,7 +753,7 @@ describe("Subgraph Tests", () => {
                 );
 
                 // update sub units
-                let units = new BN(100);
+                let units = new BN((100 ** 18).toString());
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -758,7 +762,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(150);
+                units = new BN((150 ** 18).toString());
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -781,7 +785,7 @@ describe("Subgraph Tests", () => {
                 };
 
                 // update sub units
-                let units = new BN(100);
+                let units = new BN((100 ** 18).toString());
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
@@ -790,7 +794,7 @@ describe("Subgraph Tests", () => {
                     })
                 );
 
-                units = new BN(150);
+                units = new BN((150 ** 18).toString());
 
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
@@ -802,7 +806,7 @@ describe("Subgraph Tests", () => {
             }
 
             // distribute units to pending + claimed users
-            const amountOrIndexValue = new BN(100);
+            const amountOrIndexValue = new BN((200 ** 18).toString());
             updateGlobalObjectsForIDAEvents(
                 await testModifyIDA({
                     ...getBaseIDAData(
@@ -829,7 +833,7 @@ describe("Subgraph Tests", () => {
                 updateGlobalObjectsForIDAEvents(
                     await testModifyIDA({
                         ...getBaseIDAData(baseParams, provider),
-                        eventType: IDAEventType.Claim,
+                        eventType: IDAEventType.SubscriptionDistributionClaimed,
                     })
                 );
             }

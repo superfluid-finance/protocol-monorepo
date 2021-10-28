@@ -47,6 +47,12 @@ export interface IPaginateResponse {
     readonly first: number;
     readonly skip: number;
 }
+export interface ICreateFlowParams {
+    readonly sender: string;
+    readonly receiver: string;
+    readonly flowRate: string;
+    readonly userData: string;
+}
 
 // response interfaces
 export interface IPaginatedResponse<T> {

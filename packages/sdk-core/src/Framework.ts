@@ -9,7 +9,6 @@ import {
 import Query from "./Query";
 import { networkNameToChainIdMap } from "./constants";
 import SuperToken from "./SuperToken";
-import { Web3Provider } from "@ethersproject/providers";
 
 export interface IConstructorFrameworkOptions {
     chainId?: ChainId;
@@ -61,9 +60,7 @@ export default class Framework {
         this.query = new Query(this.options);
     }
 
-    createSigner = (
-        options: ISignerConstructorOptions
-    ): Signer | Web3Provider => {
+    createSigner = (options: ISignerConstructorOptions): Signer => {
         if (!options.privateKey && !options.provider && !options.signer) {
             throw new Error(
                 "You must pass in a private key, provider or signer."
@@ -83,7 +80,7 @@ export default class Framework {
         }
 
         if (options.web3Provider) {
-            return options.web3Provider;
+            return options.web3Provider.getSigner();
         }
 
         throw new Error("Something went wrong, this should never occur.");

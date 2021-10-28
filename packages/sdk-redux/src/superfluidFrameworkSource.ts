@@ -1,6 +1,5 @@
 import { Framework } from '@superfluid-finance/js-sdk';
-
-type NetworkName = string;
+import { NetworkName } from '@superfluid-finance/sdk-core';
 
 const frameworkForReading = new Map<NetworkName, Promise<Framework>>();
 const frameworkForWriting = new Map<NetworkName, Promise<Framework>>();

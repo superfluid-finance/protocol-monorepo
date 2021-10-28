@@ -1,3 +1,4 @@
+import { NetworkName } from '@superfluid-finance/sdk-core';
 import { Transaction } from 'web3-core';
 
 import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
@@ -5,7 +6,7 @@ import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export interface UpdateFlowArg {
-    networkName: string;
+    networkName: NetworkName;
     superToken: string;
     sender: string;
     receiver: string;

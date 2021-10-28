@@ -1,3 +1,5 @@
+
+import {NetworkName} from "@superfluid-finance/sdk-core";
 import request, { gql } from 'graphql-request';
 
 import {
@@ -12,7 +14,7 @@ const subgraphUrls: { [key: string]: string } = {
 };
 
 export interface FetchFlowsArg {
-    networkName: string;
+    networkName: NetworkName;
     accountAddress: string;
 }
 

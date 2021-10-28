@@ -27,6 +27,7 @@ import { SignerContext } from "./SignerContext";
 import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
 import { SerializedError } from "@reduxjs/toolkit";
+import {NetworkName} from "@superfluid-finance/sdk-core";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -197,7 +198,7 @@ function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
 
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
-    const [networkName, setNetworkName] = useState<string | undefined>();
+    const [networkName, setNetworkName] = useState<NetworkName | undefined>();
 
     const onSuperfluidSdkInitialized = async (superfluidSdk: Framework) => {
         setSuperfluidSdk(superfluidSdk);
@@ -209,7 +210,7 @@ function App() {
 
         superfluidSdk.ethers
             .getNetwork()
-            .then((network) => setNetworkName(network.name));
+            .then((network) => setNetworkName(network.name as NetworkName));
     };
 
     return (

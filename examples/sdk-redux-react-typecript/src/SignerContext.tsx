@@ -1,5 +1,6 @@
 import { createContext } from "react";
+import { NetworkName } from "@superfluid-finance/sdk-core"
 
 export const SignerContext = createContext<
-    [networkName: string, signerAddress: string]
+    [networkName: NetworkName, signerAddress: string]
 >(undefined!);

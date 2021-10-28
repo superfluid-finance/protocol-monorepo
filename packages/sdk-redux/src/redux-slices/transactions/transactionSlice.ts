@@ -3,11 +3,12 @@ import {
     createEntityAdapter,
     createSlice,
 } from '@reduxjs/toolkit';
+import { NetworkName } from '@superfluid-finance/sdk-core';
 
 import { superfluidFrameworkSource } from '../../superfluidFrameworkSource';
 
 export type TransactionId = {
-    networkName: string;
+    networkName: NetworkName;
     transactionHash: string;
 };
 
@@ -44,9 +45,10 @@ export const trackTransaction = createAsyncThunk<
         arg.networkName
     );
     try {
+        // TODO: What's the best confirmation amount and timeout?
         const transactionReceipt = await framework.ethers.waitForTransaction(
             arg.transactionHash,
-            3,
+            1,
             60000
         );
         if (transactionReceipt.status === 1) {

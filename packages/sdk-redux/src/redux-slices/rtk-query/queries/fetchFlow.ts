@@ -1,3 +1,5 @@
+import { NetworkName } from '@superfluid-finance/sdk-core';
+
 import {
     FlowDetails,
     initializedSuperfluidFrameworkSource,
@@ -5,7 +7,7 @@ import {
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export interface FetchFlowArg {
-    networkName: string;
+    networkName: NetworkName;
     superToken: string;
     sender: string;
     receiver: string;

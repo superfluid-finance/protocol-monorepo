@@ -1,11 +1,12 @@
-import { Transaction } from 'web3-core';
+import SuperfluidSDK, { NetworkName } from '@superfluid-finance/sdk-core';
+import { ethers } from 'ethers';
 
 import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export interface CreateFlowArg {
-    networkName: string;
+    networkName: NetworkName;
     superToken: string;
     sender: string;
     receiver: string;
@@ -14,30 +15,41 @@ export interface CreateFlowArg {
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        createFlow: builder.mutation<Transaction, CreateFlowArg>({
+        createFlow: builder.mutation<ethers.Transaction, CreateFlowArg>({
             queryFn: async (arg, queryApi) => {
                 const framework =
                     await initializedSuperfluidFrameworkSource.getForWrite(
                         arg.networkName
                     );
+
+                const superToken = new SuperfluidSDK.SuperToken({
+                    networkName: arg.networkName,
+                    address: arg.superToken,
+                });
+
+                const transaction = await superToken.createFlow({
+                    sender: arg.sender,
+                    receiver: arg.receiver,
+                    flowRate: arg.flowRate,
+                    userData: '0x',
+                    signer: framework.ethers.getSigner() as any, // TODO
+                });
+
+                queryApi.dispatch(
+                    trackTransaction({
+                        networkName: arg.networkName,
+                        transactionHash: transaction.hash,
+                    })
+                );
+
+                await framework.ethers.waitForTransaction(
+                    transaction.hash,
+                    1,
+                    60000
+                );
+
                 return {
-                    data: await framework.cfa!.createFlow({
-                        superToken: arg.superToken,
-                        sender: arg.sender,
-                        receiver: arg.receiver,
-                        flowRate: arg.flowRate,
-                        userData: undefined,
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        onTransaction: (transactionHash) => {
-                            queryApi.dispatch(
-                                trackTransaction({
-                                    networkName: arg.networkName,
-                                    transactionHash: transactionHash,
-                                })
-                            );
-                        },
-                    }),
+                    data: transaction,
                 };
             },
             invalidatesTags: (_1, _2, arg) => [

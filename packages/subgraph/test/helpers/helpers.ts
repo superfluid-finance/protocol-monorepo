@@ -6,7 +6,7 @@ import SuperfluidSDK from "@superfluid-finance/js-sdk";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { IMeta, IIndexSubscription } from "../interfaces";
 import { FlowActionType } from "./constants";
-import { abi as TestResolverABI } from "../../abis/TestResolver.json";
+import IResolverABI from "../../abis/IResolver.json";
 import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
 import { ConstantFlowAgreementV1Helper } from "@superfluid-finance/js-sdk/src/ConstantFlowAgreementV1Helper";
 import { TestResolver } from "../../typechain";
@@ -67,15 +67,10 @@ export const beforeSetup = async (tokenAmount: number) => {
         });
         totalSupply += Number(stringBigIntAmount);
     }
-    const signer = await ethers.getSigner(
-        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
-    );
     const resolver = (await ethers.getContractAt(
-        TestResolverABI,
-        RESOLVER_ADDRESS,
-        signer
+        IResolverABI,
+        RESOLVER_ADDRESS
     )) as TestResolver;
-    await resolver.set("fDAIx", daix.address);
     const resolverAddress = await resolver.get("supertokens.test.fDAIx");
 
     if (resolverAddress !== daix.address) {

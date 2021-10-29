@@ -136,7 +136,7 @@ export default class SuperToken {
         receiver,
         flowRate,
         userData,
-    }: ICreateFlowParams) => {
+    }: ICreateFlowParams) : Promise<Operation> => {
         // TODO: check if address, if not throw error else
         // normalize to lowercase internally
         const normalizedToken = normalizeAddress(this.options.address);
@@ -153,7 +153,7 @@ export default class SuperToken {
         const txn = await hostContract.populateTransaction.callAgreement(
             chainIdToAddresses.get(this.options.chainId)!.cfaV1,
             callData,
-            userData,
+            userData ?? "0x", // TODO(KK): Test
             { from: normalizedSender }
         );
         return new Operation(txn);

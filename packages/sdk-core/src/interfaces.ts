@@ -53,7 +53,7 @@ export interface ICreateFlowParams {
     readonly sender: string;
     readonly receiver: string;
     readonly flowRate: string;
-    readonly userData: string;
+    readonly userData?: string;
 }
 
 // response interfaces

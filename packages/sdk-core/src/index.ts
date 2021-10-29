@@ -5,8 +5,6 @@ import Query from "./Query";
 export * from "./interfaces";
 export * from "./utils";
 
-export default {
-    Framework,
-    SuperToken,
-    Query,
-};
+export { Framework };
+export { SuperToken };
+export { Query };

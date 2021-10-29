@@ -71,6 +71,13 @@ export const beforeSetup = async (tokenAmount: number) => {
         IResolverABI,
         RESOLVER_ADDRESS
     )) as TestResolver;
+
+    // NOTE: although we already set this in initialization, we need to reset it here to ensure
+    // we wait for the indexer to catch up before the tests start
+    const txn = await resolver.set("supertokens.test.fDAIx", daix.address);
+    const receipt = await txn.wait();
+    await waitUntilBlockIndexed(receipt.blockNumber);
+
     const resolverAddress = await resolver.get("supertokens.test.fDAIx");
 
     if (resolverAddress !== daix.address) {

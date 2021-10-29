@@ -21,6 +21,7 @@ import {
     getSubscriptionID,
     getTokenInfoAndReturn,
     streamRevisionExists,
+    ZERO_ADDRESS,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -82,6 +83,10 @@ export function getOrInitSuperToken(
     let token = Token.load(tokenId);
     let currentTimestamp = block.timestamp;
     let resolverAddress = getResolverAddress();
+
+    if (tokenAddress.equals(ZERO_ADDRESS)) {
+        return token as Token;
+    }
 
     if (token == null) {
         token = new Token(tokenId);

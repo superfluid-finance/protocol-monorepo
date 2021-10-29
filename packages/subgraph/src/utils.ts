@@ -9,6 +9,7 @@ import { StreamRevision, IndexSubscription, Token } from "../generated/schema";
 
 export let BIG_INT_ZERO = BigInt.fromI32(0);
 export let BIG_INT_ONE = BigInt.fromI32(1);
+export let ZERO_ADDRESS = Address.fromString("0x0000000000000000000000000000000000000000");
 
 /**************************************************************************
  * Event entities util functions

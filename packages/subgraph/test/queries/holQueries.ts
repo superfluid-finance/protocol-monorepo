@@ -21,6 +21,18 @@ export const getAccount = gql`
     }
 `;
 
+export const getToken = gql`
+    query getToken($id: ID!) {
+        response: token(id: $id) {
+            id
+            name
+            symbol
+            underlyingAddress
+            isListed
+        }
+    }
+`;
+
 export const getStream = gql`
     query getStream($id: ID!) {
         response: stream(id: $id) {

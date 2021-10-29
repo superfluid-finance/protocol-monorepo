@@ -25,6 +25,7 @@ import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
+import { fetchTokenAndValidate } from "./validation/holValidators";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];
@@ -133,6 +134,7 @@ describe("Subgraph Tests", () => {
     }
 
     before(async () => {
+        // NOTE: make the token symbol more customizable in the future
         let [UserAddresses, SF, DAI, DAIx, totalSupply] = await beforeSetup(
             10000000
         );
@@ -149,6 +151,26 @@ describe("Subgraph Tests", () => {
             idaABI,
             localAddresses.idaAddress
         )) as InstantDistributionAgreementV1;
+    });
+
+    describe("Token Tests", () => {
+        it("Should return the correct data for the superToken", async () => {
+            await fetchTokenAndValidate(
+                daix.address.toLowerCase(),
+                "Super fDAI Fake Token",
+                "fDAIx",
+                true
+            );
+        });
+
+        it("Should return the correct data for the regularToken", async () => {
+            await fetchTokenAndValidate(
+                dai.address.toLowerCase(),
+                "fDAI Fake Token",
+                "fDAI",
+                false
+            );
+        });
     });
 
     describe("ConstantFlowAgreementV1 Tests", () => {

@@ -48,7 +48,7 @@ export function handleIndexCreated(event: IndexCreated): void {
     }
 
     let currentTimestamp = event.block.timestamp;
-    let indexCreatedId = createEventID("indexCreatedEvent", event);
+    let indexCreatedId = createEventID("IndexCreated", event);
     let index = getOrInitIndex(
         event.params.publisher,
         event.params.token,
@@ -538,7 +538,7 @@ export function handleSubscriptionUnitsUpdated(
  * Create Event Entity Helper Functions
  *************************************************************************/
 function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
-    let ev = new IndexCreatedEvent(createEventID("indexCreatedEvent", event));
+    let ev = new IndexCreatedEvent(createEventID("IndexCreated", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -555,7 +555,7 @@ function createIndexDistributionClaimedEntity(
     indexId: string
 ): void {
     let ev = new IndexDistributionClaimedEvent(
-        createEventID("indexDistributionClaimedEvent", event)
+        createEventID("IndexDistributionClaimed", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -570,7 +570,7 @@ function createIndexDistributionClaimedEntity(
 }
 
 function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
-    let ev = new IndexUpdatedEvent(createEventID("indexUpdatedEvent", event));
+    let ev = new IndexUpdatedEvent(createEventID("IndexUpdated", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -589,9 +589,7 @@ function createIndexSubscribedEntity(
     event: IndexSubscribed,
     indexId: string
 ): void {
-    let ev = new IndexSubscribedEvent(
-        createEventID("indexSubscribedEvent", event)
-    );
+    let ev = new IndexSubscribedEvent(createEventID("IndexSubscribed", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -610,7 +608,7 @@ function createIndexUnitsUpdatedEntity(
     oldUnits: BigInt
 ): void {
     let ev = new IndexUnitsUpdatedEvent(
-        createEventID("indexUnitsUpdatedEvent", event)
+        createEventID("IndexUnitsUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -631,7 +629,7 @@ function createIndexUnsubscribedEntity(
     indexId: string
 ): void {
     let ev = new IndexUnsubscribedEvent(
-        createEventID("indexUnsubscribedEvent", event)
+        createEventID("IndexUnsubscribed", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -650,7 +648,7 @@ function createSubscriptionApprovedEntity(
     subscriptionId: string
 ): void {
     let ev = new SubscriptionApprovedEvent(
-        createEventID("subscriptionApprovedEvent", event)
+        createEventID("SubscriptionApproved", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -669,7 +667,7 @@ function createSubscriptionDistributionClaimedEntity(
     subscriptionId: string
 ): void {
     let ev = new SubscriptionDistributionClaimedEvent(
-        createEventID("subscriptionDistributionClaimedEvent", event)
+        createEventID("SubscriptionDistributionClaimed", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -688,7 +686,7 @@ function createSubscriptionRevokedEntity(
     subscriptionId: string
 ): void {
     let ev = new SubscriptionRevokedEvent(
-        createEventID("subscriptionRevokedEvent", event)
+        createEventID("SubscriptionRevoked", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -708,7 +706,7 @@ function createSubscriptionUnitsUpdatedEntity(
     oldUnits: BigInt
 ): void {
     let ev = new SubscriptionUnitsUpdatedEvent(
-        createEventID("subscriptionUnitsUpdatedEvent", event)
+        createEventID("SubscriptionUnitsUpdated", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;

@@ -19,7 +19,9 @@ import {
 import { createEventID } from "../utils";
 
 export function handleGovernanceReplaced(event: GovernanceReplaced): void {
-    let ev = new GovernanceReplacedEvent(createEventID("governanceReplacedEvent", event));
+    let ev = new GovernanceReplacedEvent(
+        createEventID("GovernanceReplaced", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -31,7 +33,9 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
 export function handleAgreementClassRegistered(
     event: AgreementClassRegistered
 ): void {
-    let ev = new AgreementClassRegisteredEvent(createEventID("agreementClassRegisteredEvent", event));
+    let ev = new AgreementClassRegisteredEvent(
+        createEventID("AgreementClassRegistered", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -43,7 +47,9 @@ export function handleAgreementClassRegistered(
 export function handleAgreementClassUpdated(
     event: AgreementClassUpdated
 ): void {
-    let ev = new AgreementClassUpdatedEvent(createEventID("agreementClassUpdatedEvent", event));
+    let ev = new AgreementClassUpdatedEvent(
+        createEventID("AgreementClassUpdated", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -55,7 +61,9 @@ export function handleAgreementClassUpdated(
 export function handleSuperTokenFactoryUpdated(
     event: SuperTokenFactoryUpdated
 ): void {
-    let ev = new SuperTokenFactoryUpdatedEvent(createEventID("superTokenFactoryUpdatedEvent", event));
+    let ev = new SuperTokenFactoryUpdatedEvent(
+        createEventID("SuperTokenFactoryUpdated", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -66,7 +74,9 @@ export function handleSuperTokenFactoryUpdated(
 export function handleSuperTokenLogicUpdated(
     event: SuperTokenLogicUpdated
 ): void {
-    let ev = new SuperTokenLogicUpdatedEvent(createEventID("superTokenLogicUpdatedEvent", event));
+    let ev = new SuperTokenLogicUpdatedEvent(
+        createEventID("SuperTokenLogicUpdated", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -76,7 +86,7 @@ export function handleSuperTokenLogicUpdated(
 }
 
 export function handleAppRegistered(event: AppRegistered): void {
-    let ev = new AppRegisteredEvent(createEventID("appRegisteredEvent", event));
+    let ev = new AppRegisteredEvent(createEventID("AppRegistered", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -85,7 +95,7 @@ export function handleAppRegistered(event: AppRegistered): void {
 }
 
 export function handleJail(event: Jail): void {
-    let ev = new JailEvent(createEventID("jailEvent", event));
+    let ev = new JailEvent(createEventID("Jail", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;

@@ -191,7 +191,7 @@ export function handleMinted(event: Minted): void {
  *************************************************************************/
 function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
     let ev = new AgreementLiquidatedByEvent(
-        createEventID("agreementLiquidatedByEvent", event)
+        createEventID("AgreementLiquidatedBy", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -208,7 +208,7 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
 }
 
 function createBurnedEntity(event: Burned): void {
-    let ev = new BurnedEvent(createEventID("burnedEvent", event));
+    let ev = new BurnedEvent(createEventID("Burned", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -221,7 +221,7 @@ function createBurnedEntity(event: Burned): void {
 }
 
 function createMintedEntity(event: Minted): void {
-    let ev = new MintedEvent(createEventID("mintedEvent", event));
+    let ev = new MintedEvent(createEventID("Minted", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -234,7 +234,7 @@ function createMintedEntity(event: Minted): void {
 }
 
 function createSentEntity(event: Sent): void {
-    let ev = new SentEvent(createEventID("sentEvent", event));
+    let ev = new SentEvent(createEventID("Sent", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -247,7 +247,7 @@ function createSentEntity(event: Sent): void {
 }
 
 function createTokenUpgradedEntity(event: TokenUpgraded): void {
-    let ev = new TokenUpgradedEvent(createEventID("tokenUpgradedEvent", event));
+    let ev = new TokenUpgradedEvent(createEventID("TokenUpgraded", event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -258,9 +258,7 @@ function createTokenUpgradedEntity(event: TokenUpgraded): void {
 }
 
 function createTokenDowngradedEntity(event: TokenDowngraded): void {
-    let ev = new TokenDowngradedEvent(
-        createEventID("tokenDowngradedEvent", event)
-    );
+    let ev = new TokenDowngradedEvent(createEventID("TokenDowngraded", event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -271,7 +269,7 @@ function createTokenDowngradedEntity(event: TokenDowngraded): void {
 }
 
 function createTransferEntity(event: Transfer): void {
-    let ev = new TransferEvent(createEventID("transferEvent", event));
+    let ev = new TransferEvent(createEventID("Transfer", event));
     let value = event.params.value;
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;

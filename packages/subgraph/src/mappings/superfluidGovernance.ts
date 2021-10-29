@@ -13,7 +13,7 @@ import {
 import { createEventID } from "../utils";
 
 export function handleConfigChanged(event: ConfigChanged): void {
-    let ev = new ConfigChangedEvent(createEventID("configChangedEvent", event));
+    let ev = new ConfigChangedEvent(createEventID("ConfigChanged", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
@@ -27,7 +27,7 @@ export function handleConfigChanged(event: ConfigChanged): void {
 
 export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     let ev = new RewardAddressChangedEvent(
-        createEventID("rewardAddressChangedEvent", event)
+        createEventID("RewardAddressChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -43,7 +43,7 @@ export function handleCFAv1LiquidationPeriodChanged(
     event: CFAv1LiquidationPeriodChanged
 ): void {
     let ev = new CFAv1LiquidationPeriodChangedEvent(
-        createEventID("cfaV1LiquidationPeriodChangedEvent", event)
+        createEventID("CFAv1LiquidationPeriodChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
@@ -59,7 +59,7 @@ export function handleTrustedForwarderChanged(
     event: TrustedForwarderChanged
 ): void {
     let ev = new TrustedForwarderChangedEvent(
-        createEventID("trustedForwarderChangedEvent", event)
+        createEventID("TrustedForwarderChanged", event)
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;

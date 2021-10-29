@@ -20,7 +20,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
         "pre-commit": "run-s pre-commit:*",
-        "pre-commit:lint": "echo no pre-commit currently"
+        "pre-commit:lint": "echo no pre-commit currently",
+        "generate-types": "typechain --target=ethers-v5 --out-dir=./typechain \"./src/abi/**/*.json\""
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
@@ -34,11 +35,17 @@
         "graphql-request": "^3.6.1"
     },
     "devDependencies": {
+        "@nomiclabs/hardhat-ethers": "^2.0.2",
+        "@nomiclabs/hardhat-waffle": "^2.0.1",
+        "@nomiclabs/hardhat-web3": "^2.0.0",
         "@rollup/plugin-typescript": "^8.3.0",
-        "hardhat": "^2.6.6",
+        "@typechain/ethers-v5": "^8.0.0",
+        "@typechain/hardhat": "^3.0.0",
+        "hardhat": "^2.6.7",
         "mocha": "^9.1.3",
         "nyc": "^15.1.0",
         "rollup": "^2.58.0",
+        "typechain": "^6.0.0",
         "typedoc": "^0.22.6",
         "typescript": "^4.4.4"
     }

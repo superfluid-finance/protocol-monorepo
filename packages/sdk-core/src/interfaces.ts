@@ -5,7 +5,8 @@ export type NetworkName =
     | "kovan"
     | "xdai"
     | "matic"
-    | "mumbai";
+    | "mumbai"
+    | "custom";
 
 export type ChainId =
     | 3 // ROPSTEN
@@ -16,7 +17,7 @@ export type ChainId =
     | 137 // MATIC
     | 80001; // MUMBAI
 
-export type DataMode = "SUBGRAPH_WEB3" | "WEB3_ONLY";
+export type DataMode = "SUBGRAPH_ONLY" | "SUBGRAPH_WEB3" | "WEB3_ONLY";
 
 export type FlowActionType =
     | 0 // CREATE
@@ -166,4 +167,10 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly account: ILightEntity;
     readonly token: ISuperToken;
+}
+
+export interface IResolverData {
+    readonly subgraphAPIEndpoint: string;
+    readonly networkName: NetworkName;
+    readonly resolverAddress: string;
 }

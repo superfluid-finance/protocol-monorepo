@@ -4,9 +4,25 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { ISuperfluid, ISuperfluidInterface } from "../ISuperfluid";
+import type { Superfluid, SuperfluidInterface } from "../Superfluid";
 
 const _abi = [
+  {
+    inputs: [
+      {
+        internalType: "bool",
+        name: "nonUpgradable",
+        type: "bool",
+      },
+      {
+        internalType: "bool",
+        name: "appWhiteListingEnabled",
+        type: "bool",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
   {
     anonymous: false,
     inputs: [
@@ -56,6 +72,25 @@ const _abi = [
       },
     ],
     name: "AppRegistered",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "uuid",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "codeAddress",
+        type: "address",
+      },
+    ],
+    name: "CodeUpdated",
     type: "event",
   },
   {
@@ -130,11 +165,115 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "APP_WHITE_LISTING_ENABLED",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "CALLBACK_GAS_LIMIT",
+    outputs: [
+      {
+        internalType: "uint64",
+        name: "",
+        type: "uint64",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "MAX_APP_LEVEL",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "NON_UPGRADABLE_DEPLOYMENT",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getCodeAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "codeAddress",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract ISuperfluidGovernance",
+        name: "gov",
+        type: "address",
+      },
+    ],
+    name: "initialize",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "proxiableUUID",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+    ],
+    name: "updateCode",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getGovernance",
     outputs: [
       {
         internalType: "contract ISuperfluidGovernance",
-        name: "governance",
+        name: "",
         type: "address",
       },
     ],
@@ -428,7 +567,7 @@ const _abi = [
     inputs: [
       {
         internalType: "contract ISuperApp",
-        name: "app",
+        name: "appAddr",
         type: "address",
       },
     ],
@@ -436,7 +575,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint8",
-        name: "appLevel",
+        name: "",
         type: "uint8",
       },
     ],
@@ -484,7 +623,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "isJail",
+        name: "",
         type: "bool",
       },
     ],
@@ -521,7 +660,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "isAppAllowed",
+        name: "",
         type: "bool",
       },
     ],
@@ -589,7 +728,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes",
-        name: "appCtx",
+        name: "newCtx",
         type: "bytes",
       },
     ],
@@ -993,17 +1132,49 @@ const _abi = [
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "forwarder",
+        type: "address",
+      },
+    ],
+    name: "isTrustedForwarder",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "versionRecipient",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
 ];
 
-export class ISuperfluid__factory {
+export class Superfluid__factory {
   static readonly abi = _abi;
-  static createInterface(): ISuperfluidInterface {
-    return new utils.Interface(_abi) as ISuperfluidInterface;
+  static createInterface(): SuperfluidInterface {
+    return new utils.Interface(_abi) as SuperfluidInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ISuperfluid {
-    return new Contract(address, _abi, signerOrProvider) as ISuperfluid;
+  ): Superfluid {
+    return new Contract(address, _abi, signerOrProvider) as Superfluid;
   }
 }

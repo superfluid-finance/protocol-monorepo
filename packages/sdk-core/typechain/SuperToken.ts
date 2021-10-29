@@ -17,14 +17,20 @@ import {
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+} from "./common";
 
-interface ISuperTokenInterface extends ethers.utils.Interface {
+export interface SuperTokenInterface extends ethers.utils.Interface {
   functions: {
     "createAgreement(bytes32,bytes32[])": FunctionFragment;
     "getAccountActiveAgreements(address)": FunctionFragment;
     "getAgreementData(address,bytes32,uint256)": FunctionFragment;
     "getAgreementStateSlot(address,address,uint256,uint256)": FunctionFragment;
+    "getCodeAddress()": FunctionFragment;
     "getHost()": FunctionFragment;
     "isAccountCritical(address,uint256)": FunctionFragment;
     "isAccountCriticalNow(address)": FunctionFragment;
@@ -38,6 +44,8 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
     "updateAgreementData(bytes32,bytes32[])": FunctionFragment;
     "updateAgreementStateSlot(address,uint256,bytes32[])": FunctionFragment;
     "initialize(address,uint8,string,string)": FunctionFragment;
+    "proxiableUUID()": FunctionFragment;
+    "updateCode(address)": FunctionFragment;
     "name()": FunctionFragment;
     "symbol()": FunctionFragment;
     "decimals()": FunctionFragment;
@@ -86,6 +94,10 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "getAgreementStateSlot",
     values: [string, string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCodeAddress",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "getHost", values?: undefined): string;
   encodeFunctionData(
@@ -136,6 +148,11 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
     functionFragment: "initialize",
     values: [string, BigNumberish, string, string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "updateCode", values: [string]): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
@@ -262,6 +279,10 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
     functionFragment: "getAgreementStateSlot",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCodeAddress",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getHost", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isAccountCritical",
@@ -308,6 +329,11 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "updateCode", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
@@ -403,6 +429,7 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
     "AuthorizedOperator(address,address)": EventFragment;
     "Bailout(address,uint256)": EventFragment;
     "Burned(address,address,uint256,bytes,bytes)": EventFragment;
+    "CodeUpdated(bytes32,address)": EventFragment;
     "Minted(address,address,uint256,bytes,bytes)": EventFragment;
     "RevokedOperator(address,address)": EventFragment;
     "Sent(address,address,address,uint256,bytes,bytes)": EventFragment;
@@ -424,6 +451,7 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "AuthorizedOperator"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Bailout"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Burned"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CodeUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Minted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RevokedOperator"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Sent"): EventFragment;
@@ -433,23 +461,24 @@ interface ISuperTokenInterface extends ethers.utils.Interface {
 }
 
 export type AgreementAccountStateUpdatedEvent = TypedEvent<
-  [string, string, string] & {
-    agreementClass: string;
-    account: string;
-    state: string;
-  }
+  [string, string, string],
+  { agreementClass: string; account: string; state: string }
 >;
+
+export type AgreementAccountStateUpdatedEventFilter =
+  TypedEventFilter<AgreementAccountStateUpdatedEvent>;
 
 export type AgreementCreatedEvent = TypedEvent<
-  [string, string, string[]] & {
-    agreementClass: string;
-    id: string;
-    data: string[];
-  }
+  [string, string, string[]],
+  { agreementClass: string; id: string; data: string[] }
 >;
 
+export type AgreementCreatedEventFilter =
+  TypedEventFilter<AgreementCreatedEvent>;
+
 export type AgreementLiquidatedEvent = TypedEvent<
-  [string, string, string, string, BigNumber] & {
+  [string, string, string, string, BigNumber],
+  {
     agreementClass: string;
     id: string;
     penaltyAccount: string;
@@ -458,8 +487,12 @@ export type AgreementLiquidatedEvent = TypedEvent<
   }
 >;
 
+export type AgreementLiquidatedEventFilter =
+  TypedEventFilter<AgreementLiquidatedEvent>;
+
 export type AgreementLiquidatedByEvent = TypedEvent<
-  [string, string, string, string, string, BigNumber, BigNumber] & {
+  [string, string, string, string, string, BigNumber, BigNumber],
+  {
     liquidatorAccount: string;
     agreementClass: string;
     id: string;
@@ -470,44 +503,58 @@ export type AgreementLiquidatedByEvent = TypedEvent<
   }
 >;
 
+export type AgreementLiquidatedByEventFilter =
+  TypedEventFilter<AgreementLiquidatedByEvent>;
+
 export type AgreementStateUpdatedEvent = TypedEvent<
-  [string, string, BigNumber] & {
-    agreementClass: string;
-    account: string;
-    slotId: BigNumber;
-  }
+  [string, string, BigNumber],
+  { agreementClass: string; account: string; slotId: BigNumber }
 >;
+
+export type AgreementStateUpdatedEventFilter =
+  TypedEventFilter<AgreementStateUpdatedEvent>;
 
 export type AgreementTerminatedEvent = TypedEvent<
-  [string, string] & { agreementClass: string; id: string }
+  [string, string],
+  { agreementClass: string; id: string }
 >;
+
+export type AgreementTerminatedEventFilter =
+  TypedEventFilter<AgreementTerminatedEvent>;
 
 export type AgreementUpdatedEvent = TypedEvent<
-  [string, string, string[]] & {
-    agreementClass: string;
-    id: string;
-    data: string[];
-  }
+  [string, string, string[]],
+  { agreementClass: string; id: string; data: string[] }
 >;
+
+export type AgreementUpdatedEventFilter =
+  TypedEventFilter<AgreementUpdatedEvent>;
 
 export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber] & {
-    owner: string;
-    spender: string;
-    value: BigNumber;
-  }
+  [string, string, BigNumber],
+  { owner: string; spender: string; value: BigNumber }
 >;
+
+export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
 export type AuthorizedOperatorEvent = TypedEvent<
-  [string, string] & { operator: string; tokenHolder: string }
+  [string, string],
+  { operator: string; tokenHolder: string }
 >;
+
+export type AuthorizedOperatorEventFilter =
+  TypedEventFilter<AuthorizedOperatorEvent>;
 
 export type BailoutEvent = TypedEvent<
-  [string, BigNumber] & { bailoutAccount: string; bailoutAmount: BigNumber }
+  [string, BigNumber],
+  { bailoutAccount: string; bailoutAmount: BigNumber }
 >;
+
+export type BailoutEventFilter = TypedEventFilter<BailoutEvent>;
 
 export type BurnedEvent = TypedEvent<
-  [string, string, BigNumber, string, string] & {
+  [string, string, BigNumber, string, string],
+  {
     operator: string;
     from: string;
     amount: BigNumber;
@@ -515,9 +562,19 @@ export type BurnedEvent = TypedEvent<
     operatorData: string;
   }
 >;
+
+export type BurnedEventFilter = TypedEventFilter<BurnedEvent>;
+
+export type CodeUpdatedEvent = TypedEvent<
+  [string, string],
+  { uuid: string; codeAddress: string }
+>;
+
+export type CodeUpdatedEventFilter = TypedEventFilter<CodeUpdatedEvent>;
 
 export type MintedEvent = TypedEvent<
-  [string, string, BigNumber, string, string] & {
+  [string, string, BigNumber, string, string],
+  {
     operator: string;
     to: string;
     amount: BigNumber;
@@ -526,12 +583,18 @@ export type MintedEvent = TypedEvent<
   }
 >;
 
+export type MintedEventFilter = TypedEventFilter<MintedEvent>;
+
 export type RevokedOperatorEvent = TypedEvent<
-  [string, string] & { operator: string; tokenHolder: string }
+  [string, string],
+  { operator: string; tokenHolder: string }
 >;
 
+export type RevokedOperatorEventFilter = TypedEventFilter<RevokedOperatorEvent>;
+
 export type SentEvent = TypedEvent<
-  [string, string, string, BigNumber, string, string] & {
+  [string, string, string, BigNumber, string, string],
+  {
     operator: string;
     from: string;
     to: string;
@@ -541,60 +604,54 @@ export type SentEvent = TypedEvent<
   }
 >;
 
+export type SentEventFilter = TypedEventFilter<SentEvent>;
+
 export type TokenDowngradedEvent = TypedEvent<
-  [string, BigNumber] & { account: string; amount: BigNumber }
+  [string, BigNumber],
+  { account: string; amount: BigNumber }
 >;
+
+export type TokenDowngradedEventFilter = TypedEventFilter<TokenDowngradedEvent>;
 
 export type TokenUpgradedEvent = TypedEvent<
-  [string, BigNumber] & { account: string; amount: BigNumber }
+  [string, BigNumber],
+  { account: string; amount: BigNumber }
 >;
+
+export type TokenUpgradedEventFilter = TypedEventFilter<TokenUpgradedEvent>;
 
 export type TransferEvent = TypedEvent<
-  [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
+  [string, string, BigNumber],
+  { from: string; to: string; value: BigNumber }
 >;
 
-export class ISuperToken extends BaseContract {
+export type TransferEventFilter = TypedEventFilter<TransferEvent>;
+
+export interface SuperToken extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
-  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
-  off<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  on<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  once<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
-  ): this;
+  interface: SuperTokenInterface;
 
-  listeners(eventName?: string): Array<Listener>;
-  off(eventName: string, listener: Listener): this;
-  on(eventName: string, listener: Listener): this;
-  once(eventName: string, listener: Listener): this;
-  removeListener(eventName: string, listener: Listener): this;
-  removeAllListeners(eventName?: string): this;
-
-  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
-    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
+  ): Promise<Array<TEvent>>;
 
-  interface: ISuperTokenInterface;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
   functions: {
     createAgreement(
@@ -606,7 +663,7 @@ export class ISuperToken extends BaseContract {
     getAccountActiveAgreements(
       account: string,
       overrides?: CallOverrides
-    ): Promise<[string[]] & { activeAgreements: string[] }>;
+    ): Promise<[string[]]>;
 
     getAgreementData(
       agreementClass: string,
@@ -622,6 +679,10 @@ export class ISuperToken extends BaseContract {
       dataLength: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string[]] & { slotData: string[] }>;
+
+    getCodeAddress(
+      overrides?: CallOverrides
+    ): Promise<[string] & { codeAddress: string }>;
 
     getHost(overrides?: CallOverrides): Promise<[string] & { host: string }>;
 
@@ -713,6 +774,13 @@ export class ISuperToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
+
+    updateCode(
+      newAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     name(overrides?: CallOverrides): Promise<[string]>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
@@ -733,7 +801,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     allowance(
-      owner: string,
+      account: string,
       spender: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
@@ -745,7 +813,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<ContractTransaction>;
 
     transferFrom(
-      sender: string,
+      holder: string,
       recipient: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -832,9 +900,7 @@ export class ISuperToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getUnderlyingToken(
-      overrides?: CallOverrides
-    ): Promise<[string] & { tokenAddr: string }>;
+    getUnderlyingToken(overrides?: CallOverrides): Promise<[string]>;
 
     upgrade(
       amount: BigNumberish,
@@ -906,6 +972,8 @@ export class ISuperToken extends BaseContract {
     dataLength: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string[]>;
+
+  getCodeAddress(overrides?: CallOverrides): Promise<string>;
 
   getHost(overrides?: CallOverrides): Promise<string>;
 
@@ -997,6 +1065,13 @@ export class ISuperToken extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  proxiableUUID(overrides?: CallOverrides): Promise<string>;
+
+  updateCode(
+    newAddress: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   name(overrides?: CallOverrides): Promise<string>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
@@ -1014,7 +1089,7 @@ export class ISuperToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   allowance(
-    owner: string,
+    account: string,
     spender: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
@@ -1026,7 +1101,7 @@ export class ISuperToken extends BaseContract {
   ): Promise<ContractTransaction>;
 
   transferFrom(
-    sender: string,
+    holder: string,
     recipient: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1186,6 +1261,8 @@ export class ISuperToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<string[]>;
 
+    getCodeAddress(overrides?: CallOverrides): Promise<string>;
+
     getHost(overrides?: CallOverrides): Promise<string>;
 
     isAccountCritical(
@@ -1276,6 +1353,10 @@ export class ISuperToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    proxiableUUID(overrides?: CallOverrides): Promise<string>;
+
+    updateCode(newAddress: string, overrides?: CallOverrides): Promise<void>;
+
     name(overrides?: CallOverrides): Promise<string>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
@@ -1293,7 +1374,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<boolean>;
 
     allowance(
-      owner: string,
+      account: string,
       spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1305,7 +1386,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<boolean>;
 
     transferFrom(
-      sender: string,
+      holder: string,
       recipient: string,
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -1432,37 +1513,23 @@ export class ISuperToken extends BaseContract {
       agreementClass?: string | null,
       account?: string | null,
       state?: null
-    ): TypedEventFilter<
-      [string, string, string],
-      { agreementClass: string; account: string; state: string }
-    >;
-
+    ): AgreementAccountStateUpdatedEventFilter;
     AgreementAccountStateUpdated(
       agreementClass?: string | null,
       account?: string | null,
       state?: null
-    ): TypedEventFilter<
-      [string, string, string],
-      { agreementClass: string; account: string; state: string }
-    >;
+    ): AgreementAccountStateUpdatedEventFilter;
 
     "AgreementCreated(address,bytes32,bytes32[])"(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
-
+    ): AgreementCreatedEventFilter;
     AgreementCreated(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
+    ): AgreementCreatedEventFilter;
 
     "AgreementLiquidated(address,bytes32,address,address,uint256)"(
       agreementClass?: string | null,
@@ -1470,33 +1537,14 @@ export class ISuperToken extends BaseContract {
       penaltyAccount?: string | null,
       rewardAccount?: string | null,
       rewardAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, BigNumber],
-      {
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        rewardAccount: string;
-        rewardAmount: BigNumber;
-      }
-    >;
-
+    ): AgreementLiquidatedEventFilter;
     AgreementLiquidated(
       agreementClass?: string | null,
       id?: null,
       penaltyAccount?: string | null,
       rewardAccount?: string | null,
       rewardAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, BigNumber],
-      {
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        rewardAccount: string;
-        rewardAmount: BigNumber;
-      }
-    >;
+    ): AgreementLiquidatedEventFilter;
 
     "AgreementLiquidatedBy(address,address,bytes32,address,address,uint256,uint256)"(
       liquidatorAccount?: null,
@@ -1506,19 +1554,7 @@ export class ISuperToken extends BaseContract {
       bondAccount?: string | null,
       rewardAmount?: null,
       bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, string, BigNumber, BigNumber],
-      {
-        liquidatorAccount: string;
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        bondAccount: string;
-        rewardAmount: BigNumber;
-        bailoutAmount: BigNumber;
-      }
-    >;
-
+    ): AgreementLiquidatedByEventFilter;
     AgreementLiquidatedBy(
       liquidatorAccount?: null,
       agreementClass?: string | null,
@@ -1527,120 +1563,67 @@ export class ISuperToken extends BaseContract {
       bondAccount?: string | null,
       rewardAmount?: null,
       bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, string, BigNumber, BigNumber],
-      {
-        liquidatorAccount: string;
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        bondAccount: string;
-        rewardAmount: BigNumber;
-        bailoutAmount: BigNumber;
-      }
-    >;
+    ): AgreementLiquidatedByEventFilter;
 
     "AgreementStateUpdated(address,address,uint256)"(
       agreementClass?: string | null,
       account?: string | null,
       slotId?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { agreementClass: string; account: string; slotId: BigNumber }
-    >;
-
+    ): AgreementStateUpdatedEventFilter;
     AgreementStateUpdated(
       agreementClass?: string | null,
       account?: string | null,
       slotId?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { agreementClass: string; account: string; slotId: BigNumber }
-    >;
+    ): AgreementStateUpdatedEventFilter;
 
     "AgreementTerminated(address,bytes32)"(
       agreementClass?: string | null,
       id?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementClass: string; id: string }
-    >;
-
+    ): AgreementTerminatedEventFilter;
     AgreementTerminated(
       agreementClass?: string | null,
       id?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementClass: string; id: string }
-    >;
+    ): AgreementTerminatedEventFilter;
 
     "AgreementUpdated(address,bytes32,bytes32[])"(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
-
+    ): AgreementUpdatedEventFilter;
     AgreementUpdated(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
+    ): AgreementUpdatedEventFilter;
 
     "Approval(address,address,uint256)"(
       owner?: string | null,
       spender?: string | null,
       value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { owner: string; spender: string; value: BigNumber }
-    >;
-
+    ): ApprovalEventFilter;
     Approval(
       owner?: string | null,
       spender?: string | null,
       value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { owner: string; spender: string; value: BigNumber }
-    >;
+    ): ApprovalEventFilter;
 
     "AuthorizedOperator(address,address)"(
       operator?: string | null,
       tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
-
+    ): AuthorizedOperatorEventFilter;
     AuthorizedOperator(
       operator?: string | null,
       tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
+    ): AuthorizedOperatorEventFilter;
 
     "Bailout(address,uint256)"(
       bailoutAccount?: string | null,
       bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { bailoutAccount: string; bailoutAmount: BigNumber }
-    >;
-
+    ): BailoutEventFilter;
     Bailout(
       bailoutAccount?: string | null,
       bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { bailoutAccount: string; bailoutAmount: BigNumber }
-    >;
+    ): BailoutEventFilter;
 
     "Burned(address,address,uint256,bytes,bytes)"(
       operator?: string | null,
@@ -1648,33 +1631,20 @@ export class ISuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
+    ): BurnedEventFilter;
     Burned(
       operator?: string | null,
       from?: string | null,
       amount?: null,
       data?: null,
       operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
+    ): BurnedEventFilter;
+
+    "CodeUpdated(bytes32,address)"(
+      uuid?: null,
+      codeAddress?: null
+    ): CodeUpdatedEventFilter;
+    CodeUpdated(uuid?: null, codeAddress?: null): CodeUpdatedEventFilter;
 
     "Minted(address,address,uint256,bytes,bytes)"(
       operator?: string | null,
@@ -1682,49 +1652,23 @@ export class ISuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
+    ): MintedEventFilter;
     Minted(
       operator?: string | null,
       to?: string | null,
       amount?: null,
       data?: null,
       operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
+    ): MintedEventFilter;
 
     "RevokedOperator(address,address)"(
       operator?: string | null,
       tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
-
+    ): RevokedOperatorEventFilter;
     RevokedOperator(
       operator?: string | null,
       tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
+    ): RevokedOperatorEventFilter;
 
     "Sent(address,address,address,uint256,bytes,bytes)"(
       operator?: string | null,
@@ -1733,18 +1677,7 @@ export class ISuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): TypedEventFilter<
-      [string, string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
+    ): SentEventFilter;
     Sent(
       operator?: string | null,
       from?: string | null,
@@ -1752,67 +1685,36 @@ export class ISuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): TypedEventFilter<
-      [string, string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
+    ): SentEventFilter;
 
     "TokenDowngraded(address,uint256)"(
       account?: string | null,
       amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
-
+    ): TokenDowngradedEventFilter;
     TokenDowngraded(
       account?: string | null,
       amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
+    ): TokenDowngradedEventFilter;
 
     "TokenUpgraded(address,uint256)"(
       account?: string | null,
       amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
-
+    ): TokenUpgradedEventFilter;
     TokenUpgraded(
       account?: string | null,
       amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
+    ): TokenUpgradedEventFilter;
 
     "Transfer(address,address,uint256)"(
       from?: string | null,
       to?: string | null,
       value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { from: string; to: string; value: BigNumber }
-    >;
-
+    ): TransferEventFilter;
     Transfer(
       from?: string | null,
       to?: string | null,
       value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { from: string; to: string; value: BigNumber }
-    >;
+    ): TransferEventFilter;
   };
 
   estimateGas: {
@@ -1841,6 +1743,8 @@ export class ISuperToken extends BaseContract {
       dataLength: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getCodeAddress(overrides?: CallOverrides): Promise<BigNumber>;
 
     getHost(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1919,6 +1823,13 @@ export class ISuperToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateCode(
+      newAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1936,7 +1847,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<BigNumber>;
 
     allowance(
-      owner: string,
+      account: string,
       spender: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1948,7 +1859,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<BigNumber>;
 
     transferFrom(
-      sender: string,
+      holder: string,
       recipient: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2109,6 +2020,8 @@ export class ISuperToken extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getCodeAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getHost(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isAccountCritical(
@@ -2186,6 +2099,13 @@ export class ISuperToken extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    updateCode(
+      newAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2206,7 +2126,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     allowance(
-      owner: string,
+      account: string,
       spender: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -2218,7 +2138,7 @@ export class ISuperToken extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     transferFrom(
-      sender: string,
+      holder: string,
       recipient: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

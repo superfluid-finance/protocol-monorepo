@@ -4,9 +4,20 @@
 
 import { Contract, Signer, utils } from "ethers";
 import { Provider } from "@ethersproject/providers";
-import type { ISuperToken, ISuperTokenInterface } from "../ISuperToken";
+import type { SuperToken, SuperTokenInterface } from "../SuperToken";
 
 const _abi = [
+  {
+    inputs: [
+      {
+        internalType: "contract ISuperfluid",
+        name: "host",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
   {
     anonymous: false,
     inputs: [
@@ -316,6 +327,25 @@ const _abi = [
     anonymous: false,
     inputs: [
       {
+        indexed: false,
+        internalType: "bytes32",
+        name: "uuid",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "codeAddress",
+        type: "address",
+      },
+    ],
+    name: "CodeUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: true,
         internalType: "address",
         name: "operator",
@@ -504,7 +534,7 @@ const _abi = [
     outputs: [
       {
         internalType: "contract ISuperAgreement[]",
-        name: "activeAgreements",
+        name: "",
         type: "address[]",
       },
     ],
@@ -569,6 +599,19 @@ const _abi = [
         internalType: "bytes32[]",
         name: "slotData",
         type: "bytes32[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getCodeAddress",
+    outputs: [
+      {
+        internalType: "address",
+        name: "codeAddress",
+        type: "address",
       },
     ],
     stateMutability: "view",
@@ -881,6 +924,32 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "proxiableUUID",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "newAddress",
+        type: "address",
+      },
+    ],
+    name: "updateCode",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "name",
     outputs: [
       {
@@ -915,7 +984,7 @@ const _abi = [
         type: "uint8",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -978,7 +1047,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "owner",
+        name: "account",
         type: "address",
       },
       {
@@ -1026,7 +1095,7 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
-        name: "sender",
+        name: "holder",
         type: "address",
       },
       {
@@ -1109,7 +1178,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -1342,7 +1411,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "tokenAddr",
+        name: "",
         type: "address",
       },
     ],
@@ -1487,15 +1556,15 @@ const _abi = [
   },
 ];
 
-export class ISuperToken__factory {
+export class SuperToken__factory {
   static readonly abi = _abi;
-  static createInterface(): ISuperTokenInterface {
-    return new utils.Interface(_abi) as ISuperTokenInterface;
+  static createInterface(): SuperTokenInterface {
+    return new utils.Interface(_abi) as SuperTokenInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ISuperToken {
-    return new Contract(address, _abi, signerOrProvider) as ISuperToken;
+  ): SuperToken {
+    return new Contract(address, _abi, signerOrProvider) as SuperToken;
   }
 }

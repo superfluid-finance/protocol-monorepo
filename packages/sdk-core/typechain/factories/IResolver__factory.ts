@@ -14,6 +14,24 @@ const _abi = [
         name: "name",
         type: "string",
       },
+      {
+        internalType: "address",
+        name: "target",
+        type: "address",
+      },
+    ],
+    name: "set",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
     ],
     name: "get",
     outputs: [

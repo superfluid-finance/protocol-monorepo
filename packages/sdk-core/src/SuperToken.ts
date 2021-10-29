@@ -1,10 +1,13 @@
 import { ethers } from "ethers";
-import { chainIdToAddresses, networkNameToChainIdMap } from "./constants";
+import { networkNameToChainIdMap } from "./constants";
 import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as SuperTokenABI } from "./abi/SuperToken.json";
 import { abi as IConstantFlowAgreementV1 } from "./abi/IConstantFlowAgreementV1.json";
 import { getNetworkName } from "./frameworkHelpers";
-import { ISuperfluid, ISuperToken } from "./typechain";
+import {
+    Superfluid as ISuperfluid,
+    SuperToken as ISuperToken,
+} from "./typechain";
 import { ChainId, ICreateFlowParams, NetworkName } from "./interfaces";
 import Operation from "./Operation";
 import { normalizeAddress } from "./utils";
@@ -121,7 +124,7 @@ export default class SuperToken {
     // All classes should just take a config
     hostContract = (signer?: ethers.Signer) => {
         return new ethers.Contract(
-            chainIdToAddresses.get(this.options.chainId)!.host,
+            "TODO: NOT THIS",
             SuperfluidABI,
             signer
         ) as ISuperfluid;
@@ -136,7 +139,7 @@ export default class SuperToken {
         receiver,
         flowRate,
         userData,
-    }: ICreateFlowParams) : Promise<Operation> => {
+    }: ICreateFlowParams): Promise<Operation> => {
         // TODO: check if address, if not throw error else
         // normalize to lowercase internally
         const normalizedToken = normalizeAddress(this.options.address);
@@ -151,7 +154,7 @@ export default class SuperToken {
         ]);
         const hostContract = this.hostContract();
         const txn = await hostContract.populateTransaction.callAgreement(
-            chainIdToAddresses.get(this.options.chainId)!.cfaV1,
+            "TODO: NOT THIS",
             callData,
             userData ?? "0x", // TODO(KK): Test
             { from: normalizedSender }

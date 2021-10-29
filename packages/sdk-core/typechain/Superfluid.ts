@@ -17,10 +17,75 @@ import {
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
+import type {
+  TypedEventFilter,
+  TypedEvent,
+  TypedListener,
+  OnEvent,
+} from "./common";
 
-interface ISuperfluidInterface extends ethers.utils.Interface {
+export type ContextStruct = {
+  appLevel: BigNumberish;
+  callType: BigNumberish;
+  timestamp: BigNumberish;
+  msgSender: string;
+  agreementSelector: BytesLike;
+  userData: BytesLike;
+  appAllowanceGranted: BigNumberish;
+  appAllowanceWanted: BigNumberish;
+  appAllowanceUsed: BigNumberish;
+  appAddress: string;
+  appAllowanceToken: string;
+};
+
+export type ContextStructOutput = [
+  number,
+  number,
+  BigNumber,
+  string,
+  string,
+  string,
+  BigNumber,
+  BigNumber,
+  BigNumber,
+  string,
+  string
+] & {
+  appLevel: number;
+  callType: number;
+  timestamp: BigNumber;
+  msgSender: string;
+  agreementSelector: string;
+  userData: string;
+  appAllowanceGranted: BigNumber;
+  appAllowanceWanted: BigNumber;
+  appAllowanceUsed: BigNumber;
+  appAddress: string;
+  appAllowanceToken: string;
+};
+
+export type OperationStruct = {
+  operationType: BigNumberish;
+  target: string;
+  data: BytesLike;
+}[];
+
+export type OperationStructOutput = ([number, string, string] & {
+  operationType: number;
+  target: string;
+  data: string;
+})[];
+
+export interface SuperfluidInterface extends ethers.utils.Interface {
   functions: {
+    "APP_WHITE_LISTING_ENABLED()": FunctionFragment;
+    "CALLBACK_GAS_LIMIT()": FunctionFragment;
+    "MAX_APP_LEVEL()": FunctionFragment;
+    "NON_UPGRADABLE_DEPLOYMENT()": FunctionFragment;
+    "getCodeAddress()": FunctionFragment;
+    "initialize(address)": FunctionFragment;
+    "proxiableUUID()": FunctionFragment;
+    "updateCode(address)": FunctionFragment;
     "getGovernance()": FunctionFragment;
     "replaceGovernance(address)": FunctionFragment;
     "registerAgreementClass(address)": FunctionFragment;
@@ -56,10 +121,38 @@ interface ISuperfluidInterface extends ethers.utils.Interface {
     "callAppActionWithContext(address,bytes,bytes)": FunctionFragment;
     "decodeCtx(bytes)": FunctionFragment;
     "isCtxValid(bytes)": FunctionFragment;
-    "batchCall(tuple[])": FunctionFragment;
-    "forwardBatchCall(tuple[])": FunctionFragment;
+    "batchCall((uint32,address,bytes)[])": FunctionFragment;
+    "forwardBatchCall((uint32,address,bytes)[])": FunctionFragment;
+    "isTrustedForwarder(address)": FunctionFragment;
+    "versionRecipient()": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "APP_WHITE_LISTING_ENABLED",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "CALLBACK_GAS_LIMIT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MAX_APP_LEVEL",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "NON_UPGRADABLE_DEPLOYMENT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getCodeAddress",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "proxiableUUID",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "updateCode", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getGovernance",
     values?: undefined
@@ -193,13 +286,47 @@ interface ISuperfluidInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "batchCall",
-    values: [{ operationType: BigNumberish; target: string; data: BytesLike }[]]
+    values: [OperationStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "forwardBatchCall",
-    values: [{ operationType: BigNumberish; target: string; data: BytesLike }[]]
+    values: [OperationStruct[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isTrustedForwarder",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "versionRecipient",
+    values?: undefined
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "APP_WHITE_LISTING_ENABLED",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "CALLBACK_GAS_LIMIT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MAX_APP_LEVEL",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "NON_UPGRADABLE_DEPLOYMENT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getCodeAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "proxiableUUID",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "updateCode", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getGovernance",
     data: BytesLike
@@ -333,11 +460,20 @@ interface ISuperfluidInterface extends ethers.utils.Interface {
     functionFragment: "forwardBatchCall",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "isTrustedForwarder",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "versionRecipient",
+    data: BytesLike
+  ): Result;
 
   events: {
     "AgreementClassRegistered(bytes32,address)": EventFragment;
     "AgreementClassUpdated(bytes32,address)": EventFragment;
     "AppRegistered(address)": EventFragment;
+    "CodeUpdated(bytes32,address)": EventFragment;
     "GovernanceReplaced(address,address)": EventFragment;
     "Jail(address,uint256)": EventFragment;
     "SuperTokenFactoryUpdated(address)": EventFragment;
@@ -347,6 +483,7 @@ interface ISuperfluidInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "AgreementClassRegistered"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AgreementClassUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AppRegistered"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "CodeUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GovernanceReplaced"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Jail"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SuperTokenFactoryUpdated"): EventFragment;
@@ -354,78 +491,115 @@ interface ISuperfluidInterface extends ethers.utils.Interface {
 }
 
 export type AgreementClassRegisteredEvent = TypedEvent<
-  [string, string] & { agreementType: string; code: string }
+  [string, string],
+  { agreementType: string; code: string }
 >;
+
+export type AgreementClassRegisteredEventFilter =
+  TypedEventFilter<AgreementClassRegisteredEvent>;
 
 export type AgreementClassUpdatedEvent = TypedEvent<
-  [string, string] & { agreementType: string; code: string }
+  [string, string],
+  { agreementType: string; code: string }
 >;
 
-export type AppRegisteredEvent = TypedEvent<[string] & { app: string }>;
+export type AgreementClassUpdatedEventFilter =
+  TypedEventFilter<AgreementClassUpdatedEvent>;
+
+export type AppRegisteredEvent = TypedEvent<[string], { app: string }>;
+
+export type AppRegisteredEventFilter = TypedEventFilter<AppRegisteredEvent>;
+
+export type CodeUpdatedEvent = TypedEvent<
+  [string, string],
+  { uuid: string; codeAddress: string }
+>;
+
+export type CodeUpdatedEventFilter = TypedEventFilter<CodeUpdatedEvent>;
 
 export type GovernanceReplacedEvent = TypedEvent<
-  [string, string] & { oldGov: string; newGov: string }
+  [string, string],
+  { oldGov: string; newGov: string }
 >;
+
+export type GovernanceReplacedEventFilter =
+  TypedEventFilter<GovernanceReplacedEvent>;
 
 export type JailEvent = TypedEvent<
-  [string, BigNumber] & { app: string; reason: BigNumber }
+  [string, BigNumber],
+  { app: string; reason: BigNumber }
 >;
+
+export type JailEventFilter = TypedEventFilter<JailEvent>;
 
 export type SuperTokenFactoryUpdatedEvent = TypedEvent<
-  [string] & { newFactory: string }
+  [string],
+  { newFactory: string }
 >;
+
+export type SuperTokenFactoryUpdatedEventFilter =
+  TypedEventFilter<SuperTokenFactoryUpdatedEvent>;
 
 export type SuperTokenLogicUpdatedEvent = TypedEvent<
-  [string, string] & { token: string; code: string }
+  [string, string],
+  { token: string; code: string }
 >;
 
-export class ISuperfluid extends BaseContract {
+export type SuperTokenLogicUpdatedEventFilter =
+  TypedEventFilter<SuperTokenLogicUpdatedEvent>;
+
+export interface Superfluid extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
-  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
-  off<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  on<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  once<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
-  ): this;
+  interface: SuperfluidInterface;
 
-  listeners(eventName?: string): Array<Listener>;
-  off(eventName: string, listener: Listener): this;
-  on(eventName: string, listener: Listener): this;
-  once(eventName: string, listener: Listener): this;
-  removeListener(eventName: string, listener: Listener): this;
-  removeAllListeners(eventName?: string): this;
-
-  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
-    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+  queryFilter<TEvent extends TypedEvent>(
+    event: TypedEventFilter<TEvent>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
+  ): Promise<Array<TEvent>>;
 
-  interface: ISuperfluidInterface;
+  listeners<TEvent extends TypedEvent>(
+    eventFilter?: TypedEventFilter<TEvent>
+  ): Array<TypedListener<TEvent>>;
+  listeners(eventName?: string): Array<Listener>;
+  removeAllListeners<TEvent extends TypedEvent>(
+    eventFilter: TypedEventFilter<TEvent>
+  ): this;
+  removeAllListeners(eventName?: string): this;
+  off: OnEvent<this>;
+  on: OnEvent<this>;
+  once: OnEvent<this>;
+  removeListener: OnEvent<this>;
 
   functions: {
-    getGovernance(
+    APP_WHITE_LISTING_ENABLED(overrides?: CallOverrides): Promise<[boolean]>;
+
+    CALLBACK_GAS_LIMIT(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    MAX_APP_LEVEL(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    NON_UPGRADABLE_DEPLOYMENT(overrides?: CallOverrides): Promise<[boolean]>;
+
+    getCodeAddress(
       overrides?: CallOverrides
-    ): Promise<[string] & { governance: string }>;
+    ): Promise<[string] & { codeAddress: string }>;
+
+    initialize(
+      gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
+
+    updateCode(
+      newAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getGovernance(overrides?: CallOverrides): Promise<[string]>;
 
     replaceGovernance(
       newGov: string,
@@ -511,10 +685,7 @@ export class ISuperfluid extends BaseContract {
 
     isApp(app: string, overrides?: CallOverrides): Promise<[boolean]>;
 
-    getAppLevel(
-      app: string,
-      overrides?: CallOverrides
-    ): Promise<[number] & { appLevel: number }>;
+    getAppLevel(appAddr: string, overrides?: CallOverrides): Promise<[number]>;
 
     getAppManifest(
       app: string,
@@ -527,10 +698,7 @@ export class ISuperfluid extends BaseContract {
       }
     >;
 
-    isAppJailed(
-      app: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { isJail: boolean }>;
+    isAppJailed(app: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     allowCompositeApp(
       targetApp: string,
@@ -541,7 +709,7 @@ export class ISuperfluid extends BaseContract {
       app: string,
       targetApp: string,
       overrides?: CallOverrides
-    ): Promise<[boolean] & { isAppAllowed: boolean }>;
+    ): Promise<[boolean]>;
 
     callAppBeforeCallback(
       app: string,
@@ -619,82 +787,49 @@ export class ISuperfluid extends BaseContract {
     decodeCtx(
       ctx: BytesLike,
       overrides?: CallOverrides
-    ): Promise<
-      [
-        [
-          number,
-          number,
-          BigNumber,
-          string,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          string,
-          string
-        ] & {
-          appLevel: number;
-          callType: number;
-          timestamp: BigNumber;
-          msgSender: string;
-          agreementSelector: string;
-          userData: string;
-          appAllowanceGranted: BigNumber;
-          appAllowanceWanted: BigNumber;
-          appAllowanceUsed: BigNumber;
-          appAddress: string;
-          appAllowanceToken: string;
-        }
-      ] & {
-        context: [
-          number,
-          number,
-          BigNumber,
-          string,
-          string,
-          string,
-          BigNumber,
-          BigNumber,
-          BigNumber,
-          string,
-          string
-        ] & {
-          appLevel: number;
-          callType: number;
-          timestamp: BigNumber;
-          msgSender: string;
-          agreementSelector: string;
-          userData: string;
-          appAllowanceGranted: BigNumber;
-          appAllowanceWanted: BigNumber;
-          appAllowanceUsed: BigNumber;
-          appAddress: string;
-          appAllowanceToken: string;
-        };
-      }
-    >;
+    ): Promise<[ContextStructOutput] & { context: ContextStructOutput }>;
 
     isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     batchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     forwardBatchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    versionRecipient(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  APP_WHITE_LISTING_ENABLED(overrides?: CallOverrides): Promise<boolean>;
+
+  CALLBACK_GAS_LIMIT(overrides?: CallOverrides): Promise<BigNumber>;
+
+  MAX_APP_LEVEL(overrides?: CallOverrides): Promise<BigNumber>;
+
+  NON_UPGRADABLE_DEPLOYMENT(overrides?: CallOverrides): Promise<boolean>;
+
+  getCodeAddress(overrides?: CallOverrides): Promise<string>;
+
+  initialize(
+    gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  proxiableUUID(overrides?: CallOverrides): Promise<string>;
+
+  updateCode(
+    newAddress: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getGovernance(overrides?: CallOverrides): Promise<string>;
 
@@ -778,7 +913,7 @@ export class ISuperfluid extends BaseContract {
 
   isApp(app: string, overrides?: CallOverrides): Promise<boolean>;
 
-  getAppLevel(app: string, overrides?: CallOverrides): Promise<number>;
+  getAppLevel(appAddr: string, overrides?: CallOverrides): Promise<number>;
 
   getAppManifest(
     app: string,
@@ -880,55 +1015,44 @@ export class ISuperfluid extends BaseContract {
   decodeCtx(
     ctx: BytesLike,
     overrides?: CallOverrides
-  ): Promise<
-    [
-      number,
-      number,
-      BigNumber,
-      string,
-      string,
-      string,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      string,
-      string
-    ] & {
-      appLevel: number;
-      callType: number;
-      timestamp: BigNumber;
-      msgSender: string;
-      agreementSelector: string;
-      userData: string;
-      appAllowanceGranted: BigNumber;
-      appAllowanceWanted: BigNumber;
-      appAllowanceUsed: BigNumber;
-      appAddress: string;
-      appAllowanceToken: string;
-    }
-  >;
+  ): Promise<ContextStructOutput>;
 
   isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   batchCall(
-    operations: {
-      operationType: BigNumberish;
-      target: string;
-      data: BytesLike;
-    }[],
+    operations: OperationStruct[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   forwardBatchCall(
-    operations: {
-      operationType: BigNumberish;
-      target: string;
-      data: BytesLike;
-    }[],
+    operations: OperationStruct[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  isTrustedForwarder(
+    forwarder: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  versionRecipient(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
+    APP_WHITE_LISTING_ENABLED(overrides?: CallOverrides): Promise<boolean>;
+
+    CALLBACK_GAS_LIMIT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    MAX_APP_LEVEL(overrides?: CallOverrides): Promise<BigNumber>;
+
+    NON_UPGRADABLE_DEPLOYMENT(overrides?: CallOverrides): Promise<boolean>;
+
+    getCodeAddress(overrides?: CallOverrides): Promise<string>;
+
+    initialize(gov: string, overrides?: CallOverrides): Promise<void>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<string>;
+
+    updateCode(newAddress: string, overrides?: CallOverrides): Promise<void>;
+
     getGovernance(overrides?: CallOverrides): Promise<string>;
 
     replaceGovernance(newGov: string, overrides?: CallOverrides): Promise<void>;
@@ -1008,7 +1132,7 @@ export class ISuperfluid extends BaseContract {
 
     isApp(app: string, overrides?: CallOverrides): Promise<boolean>;
 
-    getAppLevel(app: string, overrides?: CallOverrides): Promise<number>;
+    getAppLevel(appAddr: string, overrides?: CallOverrides): Promise<number>;
 
     getAppManifest(
       app: string,
@@ -1110,142 +1234,111 @@ export class ISuperfluid extends BaseContract {
     decodeCtx(
       ctx: BytesLike,
       overrides?: CallOverrides
-    ): Promise<
-      [
-        number,
-        number,
-        BigNumber,
-        string,
-        string,
-        string,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string,
-        string
-      ] & {
-        appLevel: number;
-        callType: number;
-        timestamp: BigNumber;
-        msgSender: string;
-        agreementSelector: string;
-        userData: string;
-        appAllowanceGranted: BigNumber;
-        appAllowanceWanted: BigNumber;
-        appAllowanceUsed: BigNumber;
-        appAddress: string;
-        appAllowanceToken: string;
-      }
-    >;
+    ): Promise<ContextStructOutput>;
 
     isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     batchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     forwardBatchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: CallOverrides
     ): Promise<void>;
+
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    versionRecipient(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
     "AgreementClassRegistered(bytes32,address)"(
       agreementType?: null,
       code?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementType: string; code: string }
-    >;
-
+    ): AgreementClassRegisteredEventFilter;
     AgreementClassRegistered(
       agreementType?: null,
       code?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementType: string; code: string }
-    >;
+    ): AgreementClassRegisteredEventFilter;
 
     "AgreementClassUpdated(bytes32,address)"(
       agreementType?: null,
       code?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementType: string; code: string }
-    >;
-
+    ): AgreementClassUpdatedEventFilter;
     AgreementClassUpdated(
       agreementType?: null,
       code?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementType: string; code: string }
-    >;
+    ): AgreementClassUpdatedEventFilter;
 
-    "AppRegistered(address)"(
-      app?: string | null
-    ): TypedEventFilter<[string], { app: string }>;
+    "AppRegistered(address)"(app?: string | null): AppRegisteredEventFilter;
+    AppRegistered(app?: string | null): AppRegisteredEventFilter;
 
-    AppRegistered(
-      app?: string | null
-    ): TypedEventFilter<[string], { app: string }>;
+    "CodeUpdated(bytes32,address)"(
+      uuid?: null,
+      codeAddress?: null
+    ): CodeUpdatedEventFilter;
+    CodeUpdated(uuid?: null, codeAddress?: null): CodeUpdatedEventFilter;
 
     "GovernanceReplaced(address,address)"(
       oldGov?: null,
       newGov?: null
-    ): TypedEventFilter<[string, string], { oldGov: string; newGov: string }>;
-
+    ): GovernanceReplacedEventFilter;
     GovernanceReplaced(
       oldGov?: null,
       newGov?: null
-    ): TypedEventFilter<[string, string], { oldGov: string; newGov: string }>;
+    ): GovernanceReplacedEventFilter;
 
     "Jail(address,uint256)"(
       app?: string | null,
       reason?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { app: string; reason: BigNumber }
-    >;
-
-    Jail(
-      app?: string | null,
-      reason?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { app: string; reason: BigNumber }
-    >;
+    ): JailEventFilter;
+    Jail(app?: string | null, reason?: null): JailEventFilter;
 
     "SuperTokenFactoryUpdated(address)"(
       newFactory?: null
-    ): TypedEventFilter<[string], { newFactory: string }>;
-
+    ): SuperTokenFactoryUpdatedEventFilter;
     SuperTokenFactoryUpdated(
       newFactory?: null
-    ): TypedEventFilter<[string], { newFactory: string }>;
+    ): SuperTokenFactoryUpdatedEventFilter;
 
     "SuperTokenLogicUpdated(address,address)"(
       token?: string | null,
       code?: null
-    ): TypedEventFilter<[string, string], { token: string; code: string }>;
-
+    ): SuperTokenLogicUpdatedEventFilter;
     SuperTokenLogicUpdated(
       token?: string | null,
       code?: null
-    ): TypedEventFilter<[string, string], { token: string; code: string }>;
+    ): SuperTokenLogicUpdatedEventFilter;
   };
 
   estimateGas: {
+    APP_WHITE_LISTING_ENABLED(overrides?: CallOverrides): Promise<BigNumber>;
+
+    CALLBACK_GAS_LIMIT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    MAX_APP_LEVEL(overrides?: CallOverrides): Promise<BigNumber>;
+
+    NON_UPGRADABLE_DEPLOYMENT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getCodeAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+    initialize(
+      gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
+
+    updateCode(
+      newAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getGovernance(overrides?: CallOverrides): Promise<BigNumber>;
 
     replaceGovernance(
@@ -1328,7 +1421,7 @@ export class ISuperfluid extends BaseContract {
 
     isApp(app: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAppLevel(app: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getAppLevel(appAddr: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     getAppManifest(app: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1423,25 +1516,52 @@ export class ISuperfluid extends BaseContract {
     isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     batchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     forwardBatchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    versionRecipient(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    APP_WHITE_LISTING_ENABLED(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    CALLBACK_GAS_LIMIT(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    MAX_APP_LEVEL(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    NON_UPGRADABLE_DEPLOYMENT(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getCodeAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    initialize(
+      gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    updateCode(
+      newAddress: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getGovernance(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     replaceGovernance(
@@ -1532,7 +1652,7 @@ export class ISuperfluid extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getAppLevel(
-      app: string,
+      appAddr: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1641,21 +1761,20 @@ export class ISuperfluid extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     batchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     forwardBatchCall(
-      operations: {
-        operationType: BigNumberish;
-        target: string;
-        data: BytesLike;
-      }[],
+      operations: OperationStruct[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    isTrustedForwarder(
+      forwarder: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    versionRecipient(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

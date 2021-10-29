@@ -1,21 +1,28 @@
 import { ethers } from "ethers";
 import { Signer } from "@ethersproject/abstract-signer";
 import { ChainId, DataMode, NetworkName } from "./interfaces";
+import { abi as IResolverABI } from "./abi/IResolver.json";
+import { abi as SuperfluidLoaderABI } from "./abi/SuperfluidLoader.json";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
 import Query from "./Query";
-import { networkNameToChainIdMap } from "./constants";
+import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import SuperToken from "./SuperToken";
+import { IResolver, SuperfluidLoader } from "./typechain";
 
+// TODO: do not commit typechain, have the build handle
+// generating the types and publishing it with the types
 export interface IFrameworkOptions {
     chainId?: ChainId;
     customSubgraphQueriesEndpoint?: string;
     dataMode?: DataMode;
     networkName?: NetworkName;
+    resolverAddress?: string;
     protocolReleaseVersion?: string;
+    providerOrSigner?: ethers.providers.Provider | ethers.Signer;
 }
 
 export interface IFrameworkSettings {
@@ -24,6 +31,7 @@ export interface IFrameworkSettings {
     dataMode: DataMode;
     networkName: NetworkName;
     protocolReleaseVersion: string;
+    config: IConfig;
 }
 
 export interface ISignerConstructorOptions {
@@ -35,6 +43,7 @@ export interface ISignerConstructorOptions {
 
 export interface IConfig {
     readonly hostAddress: string;
+    readonly superTokenFactoryAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
 }
@@ -50,33 +59,70 @@ export default class Framework {
 
     query: Query;
 
-    private constructor(options: IFrameworkOptions) {
+    private constructor(
+        options: IFrameworkOptions,
+        settings: IFrameworkSettings
+    ) {
         this.userInputOptions = options;
-        const networkName = getNetworkName(options);
-
-        const customSubgraphQueriesEndpoint =
-            getSubgraphQueriesEndpoint(options);
-
-        if (customSubgraphQueriesEndpoint == null) {
-            throw new Error("You cannot have a null subgaphQueriesEndpoint.");
-        }
-        // allow passing in provider
-        this.settings = {
-            chainId:
-                options.chainId || networkNameToChainIdMap.get(networkName)!,
-            customSubgraphQueriesEndpoint,
-            dataMode: options.dataMode || "SUBGRAPH_WEB3", // this should default to SUBGRAPH, if subgraph_web3, must pass provider
-            protocolReleaseVersion: options.protocolReleaseVersion || "v1",
-            networkName,
-        };
+        this.settings = settings;
 
         this.query = new Query(this.settings);
     }
 
     static create = async (options: IFrameworkOptions) => {
         validateFrameworkConstructorOptions(options);
+
+        const networkName = getNetworkName(options);
+        const data = chainIdToDataMap.get(
+            options.chainId || networkNameToChainIdMap.get(networkName)!
+        );
+        const releaseVersion = options.protocolReleaseVersion || "v1";
+
+        const resolverAddress =
+            options.resolverAddress || data != null
+                ? data!.resolverAddress
+                : "";
+        const resolver = new ethers.Contract(
+            resolverAddress,
+            IResolverABI,
+            options.providerOrSigner
+        ) as IResolver;
+        const superfluidLoaderAddress = await resolver.get(
+            "SuperfluidLoader-v1"
+        );
+        const superfluidLoader = new ethers.Contract(
+            superfluidLoaderAddress,
+            SuperfluidLoaderABI,
+            options.providerOrSigner
+        ) as SuperfluidLoader;
+        const framework = await superfluidLoader.loadFramework(releaseVersion);
+        const customSubgraphQueriesEndpoint =
+            options.customSubgraphQueriesEndpoint ||
+            getSubgraphQueriesEndpoint(options);
+
+        if (customSubgraphQueriesEndpoint == null) {
+            throw new Error("You cannot have a null subgaphQueriesEndpoint.");
+        }
+
+        // TODO: allow passing in provider
+        const settings: IFrameworkSettings = {
+            chainId:
+                options.chainId || networkNameToChainIdMap.get(networkName)!,
+            customSubgraphQueriesEndpoint,
+            dataMode: options.dataMode || "SUBGRAPH_ONLY", // this should default to SUBGRAPH, if subgraph_web3, must pass provider
+            protocolReleaseVersion: options.protocolReleaseVersion || "v1",
+            networkName,
+            config: {
+                hostAddress: framework.superfluid,
+                superTokenFactoryAddress: framework.superTokenFactory,
+                cfaV1Address: framework.agreementCFAv1,
+                idaV1Address: framework.agreementIDAv1,
+            },
+        };
+        console.log("settings", settings);
+
         // TODO: load resolver and get all the necessary data from that there and pass it into the constructor
-        return new Framework(options);
+        return new Framework(options, settings);
     };
 
     createSigner = (options: ISignerConstructorOptions): Signer => {

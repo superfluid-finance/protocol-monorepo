@@ -20,6 +20,10 @@ export const normalizeAddress = (address?: string): string => {
     return address.toLowerCase();
 };
 
+export const isNullOrEmpty = (str: string | null | undefined) => {
+    return str == null || str === "";
+};
+
 export const buildWhereForSubgraphQuery = <T>(data: T) => {
     return Object.entries(data)
         .filter((x) => x[1] != null && x[1] !== "")

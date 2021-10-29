@@ -13,14 +13,31 @@ import {
     IAccount,
     IIDAEvents,
     ILightEntity,
+    IToken,
 } from "../interfaces";
 import {
     getAccount,
     getIndex,
     getStream,
     getSubscription,
+    getToken,
 } from "../queries/holQueries";
 import { validateReverseLookup } from "./validators";
+
+export const fetchTokenAndValidate = async (
+    address: string,
+    expectedName: string,
+    expectedSymbol: string,
+    expectedIsListed: boolean
+) => {
+    const token = await fetchEntityAndEnsureExistence<IToken>(
+        getToken,
+        address,
+        "Token"
+    );
+
+    validateTokenEntity(token, expectedName, expectedSymbol, expectedIsListed);
+};
 
 export const fetchStreamAndValidate = async (
     streamData: IStreamData,
@@ -282,6 +299,23 @@ export const fetchSubscriptionAndValidate = async (
         // subscribers who delete or set units to 0 are still in the array
         validateAccountReverseLookups({ subscription: indexSubscription });
     }
+};
+
+export const validateTokenEntity = (
+    subgraphToken: IToken,
+    expectedName: string,
+    expectedSymbol: string,
+    expectedIsListed: boolean
+) => {
+    expect(subgraphToken.name, "SuperToken: name error").to.be.equal(
+        expectedName
+    );
+    expect(subgraphToken.symbol, "SuperToken: symbol error").to.equal(
+        expectedSymbol
+    );
+    expect(subgraphToken.isListed, "SuperToken: isListed error").to.be.equal(
+        expectedIsListed
+    );
 };
 
 export const validateStreamEntity = (

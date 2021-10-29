@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+// Types
 export type NetworkName =
     | "ropsten"
     | "rinkeby"
@@ -169,8 +171,24 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
     readonly token: ISuperToken;
 }
 
+// Internal Interfaces
+
 export interface IResolverData {
     readonly subgraphAPIEndpoint: string;
     readonly networkName: NetworkName;
     readonly resolverAddress: string;
+}
+
+export interface ISignerConstructorOptions {
+    readonly web3Provider?: ethers.providers.Web3Provider; // Web3Provider (client side - metamask, web3modal)
+    readonly provider?: ethers.providers.Provider; // Provider
+    readonly privateKey?: string; // private key (best to store a test account PK in .env file)
+    readonly signer?: ethers.Signer; // ethers.Wallet
+}
+
+export interface IConfig {
+    readonly hostAddress: string;
+    readonly superTokenFactoryAddress: string;
+    readonly cfaV1Address: string;
+    readonly idaV1Address: string;
 }

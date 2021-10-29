@@ -2,28 +2,30 @@ import { ethers } from "ethers";
 import { networkNameToChainIdMap } from "./constants";
 import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as SuperTokenABI } from "./abi/SuperToken.json";
-import { abi as IConstantFlowAgreementV1 } from "./abi/IConstantFlowAgreementV1.json";
+import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
 import { getNetworkName } from "./frameworkHelpers";
 import {
     Superfluid as ISuperfluid,
     SuperToken as ISuperToken,
 } from "./typechain";
-import { ChainId, ICreateFlowParams, NetworkName } from "./interfaces";
+import { ChainId, ICreateFlowParams, IConfig, NetworkName } from "./interfaces";
 import Operation from "./Operation";
 import { normalizeAddress } from "./utils";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
+    readonly config: IConfig;
     readonly chainId?: ChainId;
     readonly networkName?: NetworkName;
 }
 export interface ITokenOptions {
     readonly address: string;
+    readonly config: IConfig;
     readonly chainId: ChainId;
     readonly networkName: NetworkName;
 }
 
-const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1);
+const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 // const idaInterface = new ethers.utils.Interface(IInstantDistributionAgreementV1);
 
 export default class SuperToken {
@@ -38,93 +40,128 @@ export default class SuperToken {
             address: options.address,
             chainId:
                 options.chainId || networkNameToChainIdMap.get(networkName)!,
+            config: options.config,
             networkName,
         };
     }
 
-    private superTokenContract = (signer?: ethers.Signer) => {
+    private get superTokenContract() {
         return new ethers.Contract(
             this.options.address,
-            SuperTokenABI,
-            signer
+            SuperTokenABI
         ) as ISuperToken;
-    };
+    }
 
     // SuperToken Contract Read Functions
-    balanceOf = async (address: string, provider: ethers.Signer) => {
-        return await this.superTokenContract(provider).balanceOf(address);
-    };
-
-    realtimeBalanceOf = async (
-        address: string,
-        timestamp: string,
-        provider: ethers.Signer
-    ) => {
-        return await this.superTokenContract(provider).realtimeBalanceOf(
-            address,
-            timestamp
-        );
-    };
-
-    realtimeBalanceOfNow = async (address: string, provider: ethers.Signer) => {
-        return await this.superTokenContract(provider).realtimeBalanceOfNow(
-            address
-        );
-    };
-
-    // SuperToken Contract Write Functions
-    approve = async (
-        recipient: string,
-        amount: string,
-        signer: ethers.Signer
-    ) => {
+    balanceOf = async (address: string) => {
         try {
-            return await this.superTokenContract(signer).approve(
-                recipient,
-                amount
-            );
+            const txn =
+                await this.superTokenContract.populateTransaction.balanceOf(
+                    address
+                );
+            return new Operation(txn);
         } catch (err) {
             throw new Error(JSON.stringify(err));
         }
     };
 
-    downgrade = async (amount: string, signer: ethers.Signer) => {
-        return await this.superTokenContract(signer).downgrade(amount);
+    realtimeBalanceOf = async (address: string, timestamp: string) => {
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.realtimeBalanceOf(
+                    address,
+                    timestamp
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
     };
 
-    transfer = async (
-        recipient: string,
-        amount: string,
-        signer: ethers.Signer
-    ) => {
-        return await this.superTokenContract(signer).transfer(
-            recipient,
-            amount
-        );
+    realtimeBalanceOfNow = async (address: string) => {
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.realtimeBalanceOfNow(
+                    address
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
+    };
+
+    // SuperToken Contract Write Functions
+    approve = async (recipient: string, amount: string) => {
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.approve(
+                    recipient,
+                    amount
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
+    };
+
+    downgrade = async (amount: string) => {
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.downgrade(
+                    amount
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
+    };
+
+    transfer = async (recipient: string, amount: string) => {
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.transfer(
+                    recipient,
+                    amount
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
     };
 
     transferFrom = async (
         sender: string,
         recipient: string,
-        amount: string,
-        signer: ethers.Signer
+        amount: string
     ) => {
-        return await this.superTokenContract(signer).transferFrom(
-            sender,
-            recipient,
-            amount
-        );
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.transferFrom(
+                    sender,
+                    recipient,
+                    amount
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
     };
 
-    upgrade = async (amount: string, signer: ethers.Signer) => {
-        return await this.superTokenContract(signer).upgrade(amount);
+    upgrade = async (amount: string) => {
+        try {
+            const txn =
+                await this.superTokenContract.populateTransaction.upgrade(
+                    amount
+                );
+            return new Operation(txn);
+        } catch (err) {
+            throw new Error(JSON.stringify(err));
+        }
     };
 
-    // TODO: move this out to the sf class
-    // All classes should just take a config
     hostContract = (signer?: ethers.Signer) => {
         return new ethers.Contract(
-            "TODO: NOT THIS",
+            this.options.config.hostAddress,
             SuperfluidABI,
             signer
         ) as ISuperfluid;
@@ -154,9 +191,9 @@ export default class SuperToken {
         ]);
         const hostContract = this.hostContract();
         const txn = await hostContract.populateTransaction.callAgreement(
-            "TODO: NOT THIS",
+            this.options.config.cfaV1Address,
             callData,
-            userData ?? "0x", // TODO(KK): Test
+            userData || "0x", // TODO(KK): Test
             { from: normalizedSender }
         );
         return new Operation(txn);

@@ -27,6 +27,12 @@ export const validateFrameworkConstructorOptions = (
         );
     }
 
+    if (!options.providerOrSigner) {
+        throw new Error(
+            "You must pass in a provider when initializing the framework."
+        );
+    }
+
     // if the user inputs a networkName or chainId that isn't part of the resolver
     if (
         (options.networkName != null &&

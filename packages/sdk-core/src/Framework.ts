@@ -12,6 +12,7 @@ import Query from "./Query";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import SuperToken from "./SuperToken";
 import { IResolver, SuperfluidLoader } from "./typechain";
+import { IConfig, ISignerConstructorOptions } from "./interfaces";
 
 // TODO: do not commit typechain, have the build handle
 // generating the types and publishing it with the types
@@ -35,21 +36,6 @@ export interface IFrameworkSettings {
     config: IConfig;
 }
 
-export interface ISignerConstructorOptions {
-    readonly web3Provider?: ethers.providers.Web3Provider; // Web3Provider (client side - metamask, web3modal)
-    readonly provider?: ethers.providers.Provider; // Provider
-    readonly privateKey?: string; // private key (best to store a test account PK in .env file)
-    readonly signer?: ethers.Signer; // ethers.Wallet
-}
-
-export interface IConfig {
-    readonly hostAddress: string;
-    readonly superTokenFactoryAddress: string;
-    readonly cfaV1Address: string;
-    readonly idaV1Address: string;
-}
-
-// TODO: figure out how to expose the comments.
 /**
  * @dev Framework class which allows you to do a bunch of cool stuff.
  */
@@ -127,9 +113,7 @@ export default class Framework {
                     idaV1Address: framework.agreementIDAv1,
                 },
             };
-            console.log("settings", settings);
 
-            // TODO: load resolver and get all the necessary data from that there and pass it into the constructor
             return new Framework(options, settings);
         } catch (error) {
             throw new Error(JSON.stringify(error));
@@ -162,17 +146,9 @@ export default class Framework {
         throw new Error("Something went wrong, this should never occur.");
     };
 
-    // TODO: will be part of create now
-    // initializes the framework to query the correct resolver contract
-    // which will get the host contract and the agreement contract addresses
-    initialize = async () => {};
-
-    // TODO: load up the config file to get all the different addresses from the different networks
-    loadConfig = async () => {};
-
     // TODO: do we only want to take address or should we give users
     // the option to pass in one of a few types of
     loadSuperToken = (address: string): SuperToken => {
-        return new SuperToken({ ...this.userInputOptions, address });
+        return new SuperToken({ ...this.settings, address });
     };
 }

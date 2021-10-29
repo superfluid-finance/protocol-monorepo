@@ -178,9 +178,24 @@ export interface IStream extends IBaseEntity {
     readonly sender: ILightEntity;
     readonly receiver: ILightEntity;
     readonly flowUpdatedEvents: ILightEntity[];
+    readonly streamPeriods: ILightEntity[];
 }
 
-// TEST-TODO: write out the IStreamPeriod type
+export interface IStreamPeriod extends IBaseEntity {
+    readonly id: string;
+    readonly stream: ILightEntity;
+    readonly sender: ILightEntity;
+    readonly receiver: ILightEntity;
+    readonly token: ILightEntity;
+    readonly flowRate: string;
+    readonly startedAtTimestamp: string;
+    readonly startedAtBlockNumber: string;
+    readonly startedAtEvent: ILightEntity;
+    readonly stoppedAtTimestamp: string;
+    readonly stoppedAtBlockNumber: string;
+    readonly stoppedAtEvent: ILightEntity;
+    readonly totalAmountStreamed: string;
+}
 
 export interface IIndexSubscription extends IBaseEntity {
     readonly subscriber: ILightEntity;
@@ -271,7 +286,7 @@ export interface ILightEntity {
 export interface IStreamData {
     id: string;
     revisionIndex: string;
-    // TEST-TODO: add streamRevisionIndex here
+    periodRevisionIndex: string;
     oldFlowRate: string;
     streamedUntilUpdatedAt: string;
     updatedAtTimestamp: string;
@@ -331,7 +346,7 @@ export interface IBaseTestData {
 
 export interface IStreamLocalData extends IAggregateLocalData {
     readonly revisionIndexes: { [id: string]: number | undefined };
-    // TEST-TODO: add periodRevisionIndexes here
+    readonly periodRevisionIndexes: { [id: string]: number | undefined };
     readonly streamData: { [id: string]: IStreamData | undefined };
 }
 export interface IDistributionLocalData extends IAggregateLocalData {

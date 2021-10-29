@@ -39,7 +39,8 @@ describe("Subgraph Tests", () => {
     // A set of locally updated variables to compare with data from the Graph.
     // The data in here comes from
     let revisionIndexes: { [id: string]: number | undefined } = {}; // id is sender-recipient-token
-    // TEST-TODO: add a periodRevisionIndex object similar to above.
+    let periodRevisionIndexes: { [id: string]: number | undefined } = {}; // id is sender-recipient-token
+
     let streamData: { [id: string]: IStreamData | undefined } = {}; // id is stream id
     let indexes: { [id: string]: IIndex | undefined } = {}; // id is index id
     let subscription: { [id: string]: IIndexSubscription | undefined } = {}; // id is subscription id
@@ -52,7 +53,10 @@ describe("Subgraph Tests", () => {
         revisionIndexes[data.revisionIndexId] = Number(
             data.updatedStreamData.revisionIndex
         );
-        // TEST-TODO: update periodRevisionIndex object similar to above.
+        periodRevisionIndexes[data.revisionIndexId] = Number(
+            data.updatedStreamData.periodRevisionIndex
+        );
+
         streamData[data.updatedStreamData.id] = data.updatedStreamData;
         accountTokenSnapshots[data.updatedSenderATS.id] = data.updatedSenderATS;
         accountTokenSnapshots[data.updatedReceiverATS.id] =
@@ -89,10 +93,10 @@ describe("Subgraph Tests", () => {
     }
 
     function getStreamLocalData(): IStreamLocalData {
-        // TEST-TODO: return the revisionPeriodIndexes object here
         return {
             accountTokenSnapshots,
             revisionIndexes,
+            periodRevisionIndexes,
             streamData,
             tokenStatistics,
         };

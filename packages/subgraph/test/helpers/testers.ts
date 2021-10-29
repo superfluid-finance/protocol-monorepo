@@ -96,7 +96,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
     const { sf, cfaV1, superToken } = contracts;
     const {
         accountTokenSnapshots,
-        // TEST-TODO: pull out revisionPeriodIndex here
+        periodRevisionIndexes,
         revisionIndexes,
         streamData,
         tokenStatistics,
@@ -132,8 +132,8 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         receiver,
         token: superToken.address,
         accountTokenSnapshots,
-        // TEST-TODO: put revisionPeriodIndex here
         revisionIndexes,
+        periodRevisionIndexes,
         streamData,
         tokenStatistics,
     });
@@ -195,7 +195,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         updatedReceiverATS,
         updatedTokenStats,
         event,
-        actionType === FlowActionType.Create
+        actionType
     );
 
     let updatedStreamData = getExpectedStreamData(

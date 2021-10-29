@@ -658,7 +658,7 @@ StreamPeriod: A HOL entity that represents a period of time in a Stream with a c
 """
 type StreamPeriod @entity {
     """
-    ID composed of: Transaction starting hash
+    ID composed of: streamId - periodRevisionIndex
     """
     id: ID!
 

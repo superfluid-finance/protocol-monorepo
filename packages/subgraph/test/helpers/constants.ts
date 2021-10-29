@@ -42,6 +42,12 @@ export const actionTypeToClosedStreamsDeltaMap = new Map([
     [FlowActionType.Delete, 1],
 ]);
 
+export const actionTypeToPeriodRevisionIndexDeltaMap = new Map([
+    [FlowActionType.Create, 0],
+    [FlowActionType.Update, 1],
+    [FlowActionType.Delete, 1],
+]);
+
 export const subscriptionEventTypeToIndexEventType = new Map([
     [IDAEventType.SubscriptionApproved, IDAEventType.IndexSubscribed],
     [IDAEventType.SubscriptionUnitsUpdated, IDAEventType.IndexUnitsUpdated],

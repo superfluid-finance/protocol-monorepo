@@ -23,26 +23,32 @@ import {
     getSubscriptionId,
 } from "./helpers";
 
-// TEST-TODO: create one of these for revisionPeriodIndex
 export const getOrInitRevisionIndex = (
     revisionIndexes: { [id: string]: number | undefined },
     revisionIndexId: string
 ): number => {
     return revisionIndexes[revisionIndexId] || 0;
 };
+export const getOrInitPeriodRevisionIndex = (
+    periodRevisionIndexes: { [id: string]: number | undefined },
+    revisionIndexId: string
+): number => {
+    return periodRevisionIndexes[revisionIndexId] || 0;
+};
 
 export const getOrInitStreamData = (
     streamData: { [id: string]: IStreamData | undefined },
     revisionIndex: string,
+    periodRevisionIndex: string,
     streamId: string,
     updatedAtTimestamp: string
 ): IStreamData => {
     const existingStreamData = streamData[streamId];
     if (existingStreamData == null) {
-        // TEST-TODO: revisionPeriodIndex
         return {
             id: streamId,
             revisionIndex,
+            periodRevisionIndex,
             oldFlowRate: "0",
             streamedUntilUpdatedAt: "0",
             updatedAtTimestamp,
@@ -190,7 +196,7 @@ export function getOrInitializeDataForFlowUpdated(
         updatedAtTimestamp,
         receiver,
         revisionIndexes,
-        // TEST-TODO: pull out revisionPeriodIndex here
+        periodRevisionIndexes,
         sender,
         streamData,
         token,
@@ -198,11 +204,14 @@ export function getOrInitializeDataForFlowUpdated(
         totalSupply,
     } = testData;
 
-    // TEST-TODO: revisionIndexId is the same as revisionPeriodIndexId
     const revisionIndexId = getRevisionIndexId(sender, receiver, token);
     const tokenId = token.toLowerCase();
     const currentRevisionIndex = getOrInitRevisionIndex(
         revisionIndexes,
+        revisionIndexId
+    );
+    const currentPeriodRevisionIndex = getOrInitPeriodRevisionIndex(
+        periodRevisionIndexes,
         revisionIndexId
     );
     const streamId = getStreamId(
@@ -214,6 +223,7 @@ export function getOrInitializeDataForFlowUpdated(
     const pastStreamData = getOrInitStreamData(
         streamData,
         currentRevisionIndex.toString(),
+        currentPeriodRevisionIndex.toString(),
         streamId,
         updatedAtTimestamp
     );
@@ -239,7 +249,6 @@ export function getOrInitializeDataForFlowUpdated(
         totalSupply
     );
     
-    // TEST-TODO: return revisionPeriodIndexId
     return {
         currentSenderATS,
         currentReceiverATS,

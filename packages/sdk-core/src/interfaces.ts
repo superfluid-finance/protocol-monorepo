@@ -52,10 +52,17 @@ export interface IPaginateResponse {
     readonly first: number;
     readonly skip: number;
 }
-export interface ICreateFlowParams {
-    readonly sender: string;
-    readonly receiver: string;
+export interface ISuperTokenCreateFlowParams {
     readonly flowRate: string;
+    readonly receiver: string;
+    readonly sender: string;
+    readonly userData?: string;
+}
+export interface ICreateFlowParams {
+    readonly flowRate: string;
+    readonly receiver: string;
+    readonly sender: string;
+    readonly token: string;
     readonly userData?: string;
 }
 

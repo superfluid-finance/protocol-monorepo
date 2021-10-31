@@ -2,15 +2,16 @@ import { ethers } from "ethers";
 import { networkNameToChainIdMap } from "./constants";
 import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as SuperTokenABI } from "./abi/SuperToken.json";
-import { abi as IConstantFlowAgreementV1ABI } from "./abi/IConstantFlowAgreementV1.json";
 import { getNetworkName } from "./frameworkHelpers";
 import {
     Superfluid as ISuperfluid,
     SuperToken as ISuperToken,
 } from "./typechain";
-import { ChainId, ICreateFlowParams, IConfig, NetworkName } from "./interfaces";
+import { ChainId, IConfig, NetworkName } from "./interfaces";
 import Operation from "./Operation";
-import { normalizeAddress } from "./utils";
+import { handleError } from "./errorHelper";
+import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import { ISuperTokenCreateFlowParams } from ".";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -25,11 +26,11 @@ export interface ITokenOptions {
     readonly networkName: NetworkName;
 }
 
-const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 // const idaInterface = new ethers.utils.Interface(IInstantDistributionAgreementV1);
 
 export default class SuperToken {
     readonly options: ITokenOptions;
+    readonly constantFlowAgreementV1: ConstantFlowAgreementV1;
 
     constructor(options: ITokenConstructorOptions) {
         if (!options.chainId && !options.networkName) {
@@ -43,6 +44,10 @@ export default class SuperToken {
             config: options.config,
             networkName,
         };
+        this.constantFlowAgreementV1 = new ConstantFlowAgreementV1({
+            config: this.options.config,
+            hostContract: this.hostContract(),
+        });
     }
 
     private get superTokenContract() {
@@ -61,7 +66,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_READ", JSON.stringify(err));
         }
     };
 
@@ -74,7 +79,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_READ", JSON.stringify(err));
         }
     };
 
@@ -86,7 +91,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_READ", JSON.stringify(err));
         }
     };
 
@@ -100,7 +105,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
         }
     };
 
@@ -112,7 +117,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
         }
     };
 
@@ -125,7 +130,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
         }
     };
 
@@ -143,7 +148,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
         }
     };
 
@@ -155,7 +160,7 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
         }
     };
 
@@ -167,35 +172,24 @@ export default class SuperToken {
         ) as ISuperfluid;
     };
 
-    // TODO: abstract the CFA data into its own class
-    // do the same w/ IDA and then just call the functinos from within this class.
-    // all you need to initialize the CFA/IDA class is an address
-    // createFlow in the token context would just pass in this.options.address as token
+    // CFA Functions
+    /**
+     * Create a flow of the token of this class.
+     * @param {{ sender: string, receiver: string, flowRate: string, userData?: string }}
+     * @returns {Promise<Operation>}
+     */
     createFlow = async ({
         sender,
         receiver,
         flowRate,
         userData,
-    }: ICreateFlowParams): Promise<Operation> => {
-        // TODO: check if address, if not throw error else
-        // normalize to lowercase internally
-        const normalizedToken = normalizeAddress(this.options.address);
-        const normalizedSender = normalizeAddress(sender);
-        const normalizedReceiver = normalizeAddress(receiver);
-
-        const callData = cfaInterface.encodeFunctionData("createFlow", [
-            normalizedToken,
-            normalizedReceiver,
+    }: ISuperTokenCreateFlowParams): Promise<Operation> => {
+        return await this.constantFlowAgreementV1.createFlow({
             flowRate,
-            "0x",
-        ]);
-        const hostContract = this.hostContract();
-        const txn = await hostContract.populateTransaction.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            userData || "0x", // TODO(KK): Test
-            { from: normalizedSender }
-        );
-        return new Operation(txn);
+            receiver,
+            sender,
+            token: this.options.address,
+            userData,
+        });
     };
 }

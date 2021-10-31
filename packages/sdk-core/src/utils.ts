@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import {
     DAYS_PER_MONTH,
     HOURS_PER_DAY,
@@ -5,10 +6,12 @@ import {
     MONTHS_PER_YEAR,
     SECONDS_PER_MINUTE,
 } from "./constants";
+import { handleError } from "./errorHelper";
 import { IPaginateResponse, IPaginateRequest } from "./interfaces";
 
 /**
- * Normalizes addresses for the library by setting them to
+ * Checks if address is a valid ethereum address and if it is,
+ * normalizes addresses for the library by setting them to
  * lower case so it can be used seamlessly by both the
  * subgraph and web 3 calls.
  * @param address
@@ -16,6 +19,12 @@ import { IPaginateResponse, IPaginateRequest } from "./interfaces";
  */
 export const normalizeAddress = (address?: string): string => {
     if (!address) return "";
+    if (ethers.utils.isAddress(address) === false) {
+        handleError(
+            "INVALID_ADDRESS",
+            "The address you have entered is not a valid ethereum address."
+        );
+    }
 
     return address.toLowerCase();
 };

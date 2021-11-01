@@ -1,17 +1,19 @@
 import { ethers } from "ethers";
 import { networkNameToChainIdMap } from "./constants";
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
 import { abi as SuperTokenABI } from "./abi/SuperToken.json";
 import { getNetworkName } from "./frameworkHelpers";
+import { SuperToken as ISuperToken } from "./typechain";
 import {
-    Superfluid as ISuperfluid,
-    SuperToken as ISuperToken,
-} from "./typechain";
-import { ChainId, IConfig, NetworkName } from "./interfaces";
+    ChainId,
+    IConfig,
+    ISuperTokenCreateFlowParams,
+    ISuperTokenDeleteFlowParams,
+    ISuperTokenUpdateFlowParams,
+    NetworkName,
+} from "./interfaces";
 import Operation from "./Operation";
 import { handleError } from "./errorHelper";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
-import { ISuperTokenCreateFlowParams } from ".";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -49,10 +51,6 @@ export default class SuperToken {
         };
         this.constantFlowAgreementV1 = new ConstantFlowAgreementV1({
             config: this.options.config,
-            hostContract: new ethers.Contract(
-                this.options.config.hostAddress,
-                SuperfluidABI
-            ) as ISuperfluid,
         });
     }
 
@@ -124,8 +122,8 @@ export default class SuperToken {
             return new Operation(txn);
         } catch (err) {
             return handleError(
-                "SUPERTOKEN_WRITE",
-                "There was an error approving token spend",
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
                 JSON.stringify(err)
             );
         }
@@ -140,8 +138,8 @@ export default class SuperToken {
             return new Operation(txn);
         } catch (err) {
             return handleError(
-                "SUPERTOKEN_WRITE",
-                "There was an error downgrading the token",
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
                 JSON.stringify(err)
             );
         }
@@ -157,8 +155,8 @@ export default class SuperToken {
             return new Operation(txn);
         } catch (err) {
             return handleError(
-                "SUPERTOKEN_WRITE",
-                "There was an error transferring the token",
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
                 JSON.stringify(err)
             );
         }
@@ -179,8 +177,8 @@ export default class SuperToken {
             return new Operation(txn);
         } catch (err) {
             return handleError(
-                "SUPERTOKEN_WRITE",
-                "There was an error transferring (transferFrom) the token",
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
                 JSON.stringify(err)
             );
         }
@@ -195,8 +193,8 @@ export default class SuperToken {
             return new Operation(txn);
         } catch (err) {
             return handleError(
-                "SUPERTOKEN_WRITE",
-                "There was an error upgrading the token",
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
                 JSON.stringify(err)
             );
         }
@@ -205,7 +203,7 @@ export default class SuperToken {
     // CFA Functions
     /**
      * Create a flow of the token of this class.
-     * @param {{ sender: string, receiver: string, flowRate: string, userData?: string }}
+     * @param
      * @returns {Promise<Operation>}
      */
     createFlow = async ({
@@ -219,6 +217,44 @@ export default class SuperToken {
             receiver,
             sender,
             token: this.options.address,
+            userData,
+        });
+    };
+
+    /**
+     * Update a flow of the token of this class.
+     * @param
+     * @returns {Promise<Operation>}
+     */
+    updateFlow = async ({
+        sender,
+        receiver,
+        flowRate,
+        userData,
+    }: ISuperTokenUpdateFlowParams): Promise<Operation> => {
+        return await this.constantFlowAgreementV1.updateFlow({
+            flowRate,
+            receiver,
+            sender,
+            token: this.options.address,
+            userData,
+        });
+    };
+
+    /**
+     * Delete a flow of the token of this class.
+     * @param
+     * @returns {Promise<Operation>}
+     */
+    deleteFlow = async ({
+        sender,
+        receiver,
+        userData,
+    }: ISuperTokenDeleteFlowParams): Promise<Operation> => {
+        return await this.constantFlowAgreementV1.deleteFlow({
+            token: this.options.address,
+            sender,
+            receiver,
             userData,
         });
     };

@@ -14,6 +14,7 @@ import SuperToken from "./SuperToken";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
 import { handleError } from "./errorHelper";
+import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 
 // TODO: do not commit typechain, have the build handle
 // generating the types and publishing it with the types
@@ -45,6 +46,7 @@ export default class Framework {
     settings: IFrameworkSettings;
 
     query: Query;
+    cfaV1: ConstantFlowAgreementV1;
 
     private constructor(
         options: IFrameworkOptions,
@@ -54,6 +56,9 @@ export default class Framework {
         this.settings = settings;
 
         this.query = new Query(this.settings);
+        this.cfaV1 = new ConstantFlowAgreementV1({
+            config: this.settings.config,
+        });
     }
 
     static create = async (options: IFrameworkOptions) => {

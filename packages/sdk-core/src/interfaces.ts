@@ -56,18 +56,37 @@ export interface IPaginateResponse {
     readonly first: number;
     readonly skip: number;
 }
-export interface ISuperTokenCreateFlowParams {
-    readonly flowRate: string;
+export interface ISuperTokenModifyFlowParams {
+    readonly flowRate?: string;
     readonly receiver: string;
-    readonly sender: string;
+    readonly sender?: string;
     readonly userData?: string;
 }
-export interface ICreateFlowParams {
+export interface ISuperTokenCreateFlowParams
+    extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
-    readonly receiver: string;
     readonly sender: string;
+}
+export interface ISuperTokenUpdateFlowParams
+    extends ISuperTokenCreateFlowParams {}
+export interface ISuperTokenDeleteFlowParams
+    extends ISuperTokenModifyFlowParams {
+    readonly sender: string;
+}
+export interface IModifyFlowParams {
+    readonly receiver: string;
     readonly token: string;
+    readonly flowRate?: string;
+    readonly sender?: string;
     readonly userData?: string;
+}
+export interface ICreateFlowParams extends IModifyFlowParams {
+    readonly flowRate: string;
+}
+
+export interface IUpdateFlowParams extends ICreateFlowParams {}
+export interface IDeleteFlowParams extends IModifyFlowParams {
+    readonly sender: string;
 }
 
 // response interfaces

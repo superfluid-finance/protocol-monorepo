@@ -1,8 +1,8 @@
 import Ajv, { JSONSchemaType } from "ajv";
 import { ethers } from "ethers";
-import { IAccountTokenSnapshotFilter } from ".";
 import { handleError } from "./errorHelper";
 import {
+    IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
     IIndexSubscriptionRequestFilter,
     IPaginateRequest,

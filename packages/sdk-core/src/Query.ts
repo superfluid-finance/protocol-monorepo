@@ -1,19 +1,23 @@
-import { ethers } from "ethers";
-import { DataMode } from "./interfaces";
+import { ValidateFunction } from "ajv";
+import { handleError } from "./errorHelper";
 import {
+    DataMode,
+    IAccountTokenSnapshotFilter,
     IIndex,
     IIndexRequestFilter,
     IIndexSubscription,
     IIndexSubscriptionRequestFilter,
     ILightAccountTokenSnapshot,
+    IPaginateResponse,
     IPaginatedResponse,
     IPaginateRequest,
     IStream,
     IStreamRequestFilter,
     ISubgraphResponse,
     ISuperToken,
+    ISuperTokenRequestFilter,
 } from "./interfaces";
-import { getAccountTokenSnapshotsByAccountQuery } from "./queries/aggregateQueries";
+import { getAccountTokenSnapshotsQuery } from "./queries/aggregateQueries";
 import {
     getIndexesQuery,
     getIndexSubscriptionsQuery,
@@ -21,16 +25,14 @@ import {
     getSuperTokensQuery,
 } from "./queries/holQueries";
 import { createPaginationResult, subgraphRequest } from "./queryHelpers";
-import {
-    buildWhereForSubgraphQuery,
-    defaultPaginateOptions,
-    normalizeAddress,
-} from "./utils";
+import { buildWhereForSubgraphQuery, defaultPaginateOptions } from "./utils";
 import {
     handleValidatePaginate,
+    validateAccountTokenSnapshotRequest,
     validateIndexRequest,
     validateIndexSubscriptionRequest,
     validateStreamRequest,
+    validateSuperTokenRequest,
 } from "./validation";
 
 export interface IQueryOptions {
@@ -45,112 +47,100 @@ export default class Query {
         this.options = options;
     }
 
-    customQuery = async <T>(
+    customQuery = async <T, S>(
         query: string,
-        variables?: { [key: string]: any }
+        variables?: S
     ): Promise<ISubgraphResponse<T>> => {
-        return await subgraphRequest<ISubgraphResponse<T>>(
+        return await subgraphRequest<ISubgraphResponse<T>, S>(
             this.options.customSubgraphQueriesEndpoint,
             query,
             variables
         );
     };
 
-    listAllSuperTokens = async (
-        filter: IIndexRequestFilter,
-        paginateOptions: IPaginateRequest
-    ): Promise<ISubgraphResponse<ISuperToken[]>> => {
+    paginatedQuery = async <T, S, U>(
+        filter: T,
+        paginateOptions: IPaginateRequest,
+        validateFunction: ValidateFunction<T>,
+        getQueryFunction: (
+            where: string,
+            paginateOptions: IPaginateResponse
+        ) => string
+    ): Promise<IPaginatedResponse<S[]>> => {
+        if (!validateFunction(filter)) {
+            handleError(
+                "INVALID_OBJECT",
+                "Invalid Filter Object",
+                JSON.stringify(validateFunction.errors)
+            );
+        }
+        handleValidatePaginate(paginateOptions);
+
         const where = buildWhereForSubgraphQuery(filter);
         const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.customQuery<ISuperToken[]>(
-            getSuperTokensQuery(where, { ...options, first: options.first + 1 })
+        const result = await this.customQuery<S[], U>(
+            getQueryFunction(where, { ...options, first: options.first + 1 })
         );
         return createPaginationResult(result.response, options);
+    };
+
+    listAllSuperTokens = async (
+        filter: ISuperTokenRequestFilter,
+        paginateOptions: IPaginateRequest
+    ): Promise<IPaginatedResponse<ISuperToken[]>> => {
+        return this.paginatedQuery(
+            filter,
+            paginateOptions,
+            validateSuperTokenRequest,
+            getSuperTokensQuery
+        );
     };
 
     listIndexes = async (
         filter: IIndexRequestFilter,
         paginateOptions: IPaginateRequest
     ): Promise<IPaginatedResponse<IIndex[]>> => {
-        if (!validateIndexRequest(filter)) {
-            throw new Error(
-                "Invalid filter object - " +
-                    JSON.stringify(validateIndexRequest.errors)
-            );
-        }
-        handleValidatePaginate(paginateOptions);
-
-        const where = buildWhereForSubgraphQuery(filter);
-        const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.customQuery<IIndex[]>(
-            getIndexesQuery(where, {
-                ...options,
-                first: options.first + 1,
-            })
+        return this.paginatedQuery(
+            filter,
+            paginateOptions,
+            validateIndexRequest,
+            getIndexesQuery
         );
-
-        return createPaginationResult(result.response, options);
     };
 
     listIndexSubscriptions = async (
         filter: IIndexSubscriptionRequestFilter,
         paginateOptions: IPaginateRequest
     ): Promise<IPaginatedResponse<IIndexSubscription[]>> => {
-        if (!validateIndexSubscriptionRequest(filter)) {
-            throw new Error(
-                "Invalid filter object - " +
-                    JSON.stringify(validateIndexSubscriptionRequest.errors)
-            );
-        }
-        handleValidatePaginate(paginateOptions);
-
-        const where = buildWhereForSubgraphQuery(filter);
-        const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.customQuery<IIndexSubscription[]>(
-            getIndexSubscriptionsQuery(where, {
-                ...options,
-                first: options.first + 1,
-            })
+        return this.paginatedQuery(
+            filter,
+            paginateOptions,
+            validateIndexSubscriptionRequest,
+            getIndexSubscriptionsQuery
         );
-
-        return createPaginationResult(result.response, options);
     };
 
     listStreams = async (
         filter: IStreamRequestFilter,
         paginateOptions: IPaginateRequest
     ): Promise<IPaginatedResponse<IStream[]>> => {
-        if (!validateStreamRequest(filter)) {
-            throw new Error(
-                "Invalid filter object - " +
-                    JSON.stringify(validateStreamRequest.errors)
-            );
-        }
-        handleValidatePaginate(paginateOptions);
-
-        const where = buildWhereForSubgraphQuery(filter);
-        const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.customQuery<IStream[]>(
-            getStreamsQuery(where, {
-                ...options,
-                first: options.first + 1,
-            })
+        return this.paginatedQuery(
+            filter,
+            paginateOptions,
+            validateStreamRequest,
+            getStreamsQuery
         );
-        return createPaginationResult(result.response, options);
     };
 
     listUserInteractedSuperTokens = async (
-        account: string
-    ): Promise<ISubgraphResponse<ILightAccountTokenSnapshot[]>> => {
-        const isValidAddress = ethers.utils.isAddress(account);
-        if (isValidAddress === false) {
-            throw new Error("The address you have entered is invalid.");
-        }
-        const normalizedAddress = normalizeAddress(account);
-
-        return this.customQuery<ILightAccountTokenSnapshot[]>(
-            getAccountTokenSnapshotsByAccountQuery,
-            { account: normalizedAddress }
+        filter: IAccountTokenSnapshotFilter,
+        paginateOptions: IPaginateRequest
+    ): Promise<IPaginatedResponse<ILightAccountTokenSnapshot[]>> => {
+        return this.paginatedQuery(
+            filter,
+            paginateOptions,
+            validateAccountTokenSnapshotRequest,
+            getAccountTokenSnapshotsQuery
         );
     };
 }

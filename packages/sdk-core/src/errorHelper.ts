@@ -1,5 +1,7 @@
 type ErrorType =
     | "FRAMEWORK_INITIALIZATION"
+    | "SUPERTOKEN_INITIALIZATION"
+    | "CREATE_SIGNER"
     | "SUPERTOKEN_READ"
     | "SUPERTOKEN_WRITE"
     | "SUBGRAPH_ERROR"
@@ -8,10 +10,16 @@ type ErrorType =
     | "IDAV1_READ"
     | "IDAV1_WRITE"
     | "INVALID_ADDRESS"
-    | "POPULATE_TRANSACTION";
+    | "INVALID_OBJECT"
+    | "EXECUTE_TRANSACTION"
+    | "POPULATE_TRANSACTION"
+    | "SIGN_TRANSACTION"
+    | "GET_TRANSACTION_HASH";
 
 const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["FRAMEWORK_INITIALIZATION", "Framework Initialization"],
+    ["SUPERTOKEN_INITIALIZATION", "SuperToken Initialization"],
+    ["CREATE_SIGNER", "Create Signer"],
     ["SUPERTOKEN_READ", "SuperToken Read"],
     ["SUPERTOKEN_WRITE", "SuperToken Write"],
     ["SUBGRAPH_ERROR", "Subgraph"],
@@ -20,14 +28,22 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
     ["IDAV1_WRITE", "InstantDistributionAgreementV1 Write"],
     ["INVALID_ADDRESS", "Invalid Address"],
+    ["INVALID_OBJECT", "Invalid Object"],
     ["POPULATE_TRANSACTION", "Populate Transaction"],
+    ["EXECUTE_TRANSACTION", "Execute Transaction"],
+    ["SIGN_TRANSACTION", "Sign Transaction"],
+    ["GET_TRANSACTION_HASH", "Get Transaction Hash"],
 ]);
 
-export const handleError = (errorType: ErrorType, text: string, errObject?: string) => {
+export const handleError = (
+    errorType: ErrorType,
+    text: string,
+    errObject?: string
+) => {
     let errorTitle = errorTypeToTitleMap.get(errorType);
     if (!errorTitle) {
         errorTitle = "Unknown Error";
     }
-    const errObjectFormatted = errObject ? "\n" + errObject : "";
-    throw new Error(errorTitle + " Error - " + text + errObjectFormatted,);
+    const errObjectFormatted = errObject ? ": \n" + errObject : "";
+    throw new Error(errorTitle + " Error - " + text + errObjectFormatted);
 };

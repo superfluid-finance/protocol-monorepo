@@ -49,7 +49,7 @@ export default class ConstantFlowAgreementV1 {
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",
-                "There was an error populating the transaction: ",
+                "There was an error populating the transaction",
                 JSON.stringify(err)
             );
         }

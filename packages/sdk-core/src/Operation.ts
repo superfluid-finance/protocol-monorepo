@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { handleError } from "./errorHelper";
 
 export default class Operation {
     readonly transaction: ethers.PopulatedTransaction;
@@ -13,7 +14,11 @@ export default class Operation {
         try {
             return await signer.sendTransaction(this.transaction);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError(
+                "EXECUTE_TRANSACTION",
+                "There was an error executing the transaction",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -23,7 +28,11 @@ export default class Operation {
         try {
             return await signer.populateTransaction(this.transaction);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError(
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -32,7 +41,11 @@ export default class Operation {
             const signedTxn = await signer.signTransaction(this.transaction);
             return signedTxn;
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError(
+                "SIGN_TRANSACTION",
+                "There was an error signing the transaction",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -41,7 +54,11 @@ export default class Operation {
             const signedTxn = await this.getSignedTransaction(signer);
             return ethers.utils.keccak256(signedTxn);
         } catch (err) {
-            throw new Error(JSON.stringify(err));
+            return handleError(
+                "GET_TRANSACTION_HASH",
+                "There was an error getting the transaction hash",
+                JSON.stringify(err)
+            );
         }
     };
 }

@@ -13,6 +13,7 @@ import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import SuperToken from "./SuperToken";
 import { IResolver, SuperfluidLoader } from "./typechain";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import { handleError } from "./errorHelper";
 
 // TODO: do not commit typechain, have the build handle
 // generating the types and publishing it with the types
@@ -92,7 +93,8 @@ export default class Framework {
                 getSubgraphQueriesEndpoint(options);
 
             if (customSubgraphQueriesEndpoint == null) {
-                throw new Error(
+                return handleError(
+                    "FRAMEWORK_INITIALIZATION",
                     "You cannot have a null subgaphQueriesEndpoint."
                 );
             }
@@ -115,20 +117,26 @@ export default class Framework {
             };
 
             return new Framework(options, settings);
-        } catch (error) {
-            throw new Error(JSON.stringify(error));
+        } catch (err) {
+            return handleError(
+                "FRAMEWORK_INITIALIZATION",
+                "There was an error initializing the framework",
+                JSON.stringify(err)
+            );
         }
     };
 
     createSigner = (options: ISignerConstructorOptions): Signer => {
         if (!options.privateKey && !options.provider && !options.signer) {
-            throw new Error(
+            return handleError(
+                "CREATE_SIGNER",
                 "You must pass in a private key, provider or signer."
             );
         }
         if (options.privateKey) {
             if (!options.provider) {
-                throw new Error(
+                return handleError(
+                    "CREATE_SIGNER",
                     "You must pass in a provider with your private key."
                 );
             }
@@ -143,11 +151,12 @@ export default class Framework {
             return options.web3Provider.getSigner();
         }
 
-        throw new Error("Something went wrong, this should never occur.");
+        return handleError(
+            "CREATE_SIGNER",
+            "Something went wrong, this should never occur."
+        );
     };
 
-    // TODO: do we only want to take address or should we give users
-    // the option to pass in one of a few types of
     loadSuperToken = (address: string): SuperToken => {
         return new SuperToken({ ...this.settings, address });
     };

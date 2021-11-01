@@ -1,8 +1,16 @@
 import { gql } from "graphql-request";
+import { IPaginateResponse } from "../interfaces";
 
-export const getAccountTokenSnapshotsByAccountQuery = gql`
+export const getAccountTokenSnapshotsQuery = (
+    where: string,
+    paginateOptions: IPaginateResponse
+) => gql`
     query getAccountTokenSnapshotsByAccount($account: ID!) {
-        response: accountTokenSnapshots(where: { account: $account }) {
+        response: accountTokenSnapshots(
+            where: { ${where} },
+			first: ${paginateOptions.first}, 
+			skip: ${paginateOptions.skip}
+        ) {
             id
             updatedAtTimestamp
             updatedAtBlockNumber

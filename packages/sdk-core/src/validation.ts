@@ -1,10 +1,13 @@
 import Ajv, { JSONSchemaType } from "ajv";
 import { ethers } from "ethers";
+import { IAccountTokenSnapshotFilter } from ".";
+import { handleError } from "./errorHelper";
 import {
     IIndexRequestFilter,
     IIndexSubscriptionRequestFilter,
     IPaginateRequest,
     IStreamRequestFilter,
+    ISuperTokenRequestFilter,
 } from "./interfaces";
 
 const ajv = new Ajv();
@@ -27,6 +30,14 @@ const paginateSchema: JSONSchemaType<IPaginateRequest> = {
     },
 };
 
+const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        isListed: { type: "boolean", nullable: true },
+    },
+};
+
 const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     type: "object",
     additionalProperties: false,
@@ -36,6 +47,20 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
         token: { type: "string", format: "addressOrEmpty", nullable: true },
     },
 };
+
+const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> =
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            account: {
+                type: "string",
+                format: "addressOrEmpty",
+                nullable: true,
+            },
+            token: { type: "string", format: "addressOrEmpty", nullable: true },
+        },
+    };
 
 const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> =
     {
@@ -62,17 +87,24 @@ const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
 };
 
 // Validate functions
+export const validateSuperTokenRequest = ajv.compile(superTokenRequestSchema);
 export const validateIndexRequest = ajv.compile(indexRequestSchema);
-export const validateIndexSubscriptionRequest = ajv.compile(indexSubscriptionRequestSchema);
+export const validateIndexSubscriptionRequest = ajv.compile(
+    indexSubscriptionRequestSchema
+);
 export const validatePaginateOptions = ajv.compile(paginateSchema);
 export const validateStreamRequest = ajv.compile(streamRequestSchema);
+export const validateAccountTokenSnapshotRequest = ajv.compile(
+    accountTokenSnapshotRequestSchema
+);
 
 // Validate function helper
 export const handleValidatePaginate = (paginateOptions: IPaginateRequest) => {
     if (!validatePaginateOptions(paginateOptions)) {
-        throw new Error(
-            "Invalid paginate object - " +
-                JSON.stringify(validatePaginateOptions.errors)
+        handleError(
+            "INVALID_OBJECT",
+            "Invalid Paginate Object",
+            JSON.stringify(validatePaginateOptions.errors)
         );
     }
 };

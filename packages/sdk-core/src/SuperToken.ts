@@ -34,7 +34,10 @@ export default class SuperToken {
 
     constructor(options: ITokenConstructorOptions) {
         if (!options.chainId && !options.networkName) {
-            throw new Error("You must input chainId or networkName.");
+            handleError(
+                "SUPERTOKEN_INITIALIZATION",
+                "You must input chainId or networkName."
+            );
         }
         const networkName = getNetworkName(options);
         this.options = {
@@ -46,7 +49,10 @@ export default class SuperToken {
         };
         this.constantFlowAgreementV1 = new ConstantFlowAgreementV1({
             config: this.options.config,
-            hostContract: this.hostContract(),
+            hostContract: new ethers.Contract(
+                this.options.config.hostAddress,
+                SuperfluidABI
+            ) as ISuperfluid,
         });
     }
 
@@ -66,7 +72,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_READ", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_READ",
+                "There was an error getting balanceOf",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -79,7 +89,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_READ", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_READ",
+                "There was an error getting realtimeBalanceOf",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -91,7 +105,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_READ", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_READ",
+                "There was an error getting realtimeBalanceOfNow",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -105,7 +123,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_WRITE",
+                "There was an error approving token spend",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -117,7 +139,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_WRITE",
+                "There was an error downgrading the token",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -130,7 +156,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_WRITE",
+                "There was an error transferring the token",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -148,7 +178,11 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_WRITE",
+                "There was an error transferring (transferFrom) the token",
+                JSON.stringify(err)
+            );
         }
     };
 
@@ -160,16 +194,12 @@ export default class SuperToken {
                 );
             return new Operation(txn);
         } catch (err) {
-            return handleError("SUPERTOKEN_WRITE", JSON.stringify(err));
+            return handleError(
+                "SUPERTOKEN_WRITE",
+                "There was an error upgrading the token",
+                JSON.stringify(err)
+            );
         }
-    };
-
-    hostContract = (signer?: ethers.Signer) => {
-        return new ethers.Contract(
-            this.options.config.hostAddress,
-            SuperfluidABI,
-            signer
-        ) as ISuperfluid;
     };
 
     // CFA Functions

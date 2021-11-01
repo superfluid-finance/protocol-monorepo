@@ -1,19 +1,20 @@
 import { request } from "graphql-request";
+import { handleError } from "./errorHelper";
 import { IPaginatedResponse, IPaginateResponse } from "./interfaces";
 
-export const subgraphRequest = async <T>(
+export const subgraphRequest = async <T, S>(
     endpoint: string,
     query: string,
-    variables?: { [key: string]: any }
+    variables?: S
 ): Promise<T> => {
     try {
-        const response = await request<T>(endpoint, query, variables);
+        const response = await request<T, S>(endpoint, query, variables);
         return response;
     } catch (err) {
-        // TODO: consider creating an error class for different types of error
-        // wrap w/ type
-        throw new Error(
-            `Failed call to subgraph with query ${query} and error ${err}`
+        return handleError(
+            "SUBGRAPH_ERROR",
+            `Failed call to subgraph with query ${query}`,
+            JSON.stringify(err)
         );
     }
 };

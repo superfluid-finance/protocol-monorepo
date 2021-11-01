@@ -27,8 +27,12 @@ export type FlowActionType =
     | 2; // TERMINATE
 
 // request interfaces
+export interface IAccountTokenSnapshotFilter {
+    readonly account?: string;
+    readonly token?: string;
+}
 export interface ISuperTokenRequestFilter {
-    readonly isListed?: string;
+    readonly isListed?: boolean;
 }
 export interface IIndexRequestFilter {
     readonly indexId?: string;

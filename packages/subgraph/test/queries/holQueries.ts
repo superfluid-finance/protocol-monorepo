@@ -51,6 +51,44 @@ export const getStream = gql`
             flowUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
                 id
             }
+            streamPeriods(orderBy: startedAtTimestamp, orderDirection: asc) {
+                id
+            }
+        }
+    }
+`;
+
+export const getStreamPeriod = gql`
+    query getStreamPeriod($id: ID!) {
+        response: streamPeriod(id: $id) {
+            id
+            flowRate
+
+            token {
+                id
+            }
+            sender {
+                id
+            }
+            receiver {
+                id
+            }
+            startedAtTimestamp
+            startedAtBlockNumber
+            startedAtEvent {
+                id
+            }
+
+            stoppedAtTimestamp
+            stoppedAtBlockNumber
+            stoppedAtEvent {
+                id
+            }
+            stream {
+                id
+            }
+
+            totalAmountStreamed
         }
     }
 `;

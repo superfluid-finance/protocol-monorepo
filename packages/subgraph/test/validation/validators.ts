@@ -8,11 +8,10 @@ import {
     ILightEntity,
     IIDAEvents,
 } from "../interfaces";
-import {
-    fetchIndexAndValidate,
-    fetchStreamAndValidate,
-    fetchSubscriptionAndValidate,
-} from "./holValidators";
+import { fetchStreamPeriodAndValidate } from "./hol/streamPeriodValidator";
+import { fetchIndexAndValidate } from "./hol/indexValidator";
+import { fetchStreamAndValidate } from "./hol/streamValidator";
+import { fetchSubscriptionAndValidate } from "./hol/subscriptionValidator";
 import {
     fetchATSAndValidate,
     fetchTokenStatsAndValidate,
@@ -20,7 +19,7 @@ import {
 import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
-import { IDAEventType } from "../helpers/constants";
+import { FlowActionType, IDAEventType } from "../helpers/constants";
 
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
@@ -31,7 +30,7 @@ export async function validateFlowUpdated(
     updatedReceiverATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
     event: IEvent,
-    isCreate: boolean
+    actionType: FlowActionType
 ) {
     // validate Stream HOL
     await fetchStreamAndValidate(
@@ -39,7 +38,14 @@ export async function validateFlowUpdated(
         streamedAmountUntilTimestamp,
         flowRate.toString(),
         event,
-        isCreate
+        actionType === FlowActionType.Create
+    );
+    // validate StreamPeriod HOL
+    await fetchStreamPeriodAndValidate(
+        pastStreamData,
+        flowRate.toString(),
+        event,
+        actionType
     );
 
     // validate sender ATS

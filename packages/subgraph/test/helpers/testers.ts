@@ -52,6 +52,7 @@ import {
     getExpectedDataForIndexUpdated,
     getExpectedDataForRevokeOrDeleteSubscription,
     getExpectedDataForSubscriptionApproved,
+    getExpectedDataForSubscriptionDistributionClaimed,
     getExpectedDataForSubscriptionUnitsUpdated,
     getExpectedStreamData,
 } from "./updaters";
@@ -63,10 +64,10 @@ import {
 } from "./constants";
 import { Framework } from "@superfluid-finance/js-sdk/src/Framework";
 import { BigNumber } from "@ethersproject/bignumber";
+import { BaseProvider } from "@ethersproject/providers";
 import { getSubscription } from "../queries/holQueries";
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { BaseProvider } from "@ethersproject/providers";
 
 /**
  * A "God" function used to test modify flow events.
@@ -305,18 +306,27 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
                 : toBN(amountOrIndexValue.toString());
     }
 
+    let distributionDelta = toBN(currentSubscription.units).mul(
+        toBN(currentIndex.indexValue).sub(
+            toBN(currentSubscription.indexValueUntilUpdatedAt)
+        )
+    );
+
     const extraEventData: IExtraEventData = {
         units,
         oldIndexValue: currentIndex.indexValue,
         newIndexValue,
         totalUnitsApproved: indexTotalUnitsApproved,
         totalUnitsPending: indexTotalUnitsPending,
+        distributionDelta,
     };
 
     // Claim is tested quite differently as no event is emitted for it (currently)
     // in the future we can write some logic which handles the event in this block
     // as it will require special logic to accurately do so.
-    if (eventType === IDAEventType.Claim) {
+    // NOTE: we are keeping this here too cause right now claim event isn't being
+    // mapped.
+    if (eventType === IDAEventType.SubscriptionDistributionClaimed) {
         const indexSubscription =
             await fetchEntityAndEnsureExistence<IIndexSubscription>(
                 getSubscription,
@@ -352,13 +362,14 @@ export async function testModifyIDA(data: ITestModifyIDAData) {
         extraEventData
     );
 
-    // handles IndexSubscribed, IndexUnitsUpdated, IndexUnsubscribed
+    // handles IndexSubscribed, IndexDistributionClaimed, IndexUnitsUpdated, IndexUnsubscribed
     // which also occur on the three events below, respectively
     if (
         [
             IDAEventType.SubscriptionApproved,
             IDAEventType.SubscriptionUnitsUpdated,
             IDAEventType.SubscriptionRevoked,
+            IDAEventType.SubscriptionDistributionClaimed,
         ].includes(eventType)
     ) {
         const otherEventType =
@@ -497,7 +508,7 @@ async function executeIDATransactionByTypeAndWaitForIndexer(
                 sender,
             });
         }
-    } else if (type === IDAEventType.Claim) {
+    } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
         txn = await ida.claim({
             ...baseSubscriberData,
             sender: subscriber,
@@ -539,6 +550,7 @@ function getIDAEventDataForValidation(
         newIndexValue,
         oldIndexValue,
         units,
+        distributionDelta,
     } = extraEventData;
 
     const subscriptionId = getSubscriptionId(
@@ -559,7 +571,7 @@ function getIDAEventDataForValidation(
         subscription: { id: subscriptionId },
         subscriber: subscriber.toLowerCase(),
     };
-    const baseIndexData = {
+    const baseIndexEventData = {
         ...baseEventData,
         index: { id: indexEntityId },
         subscriber: subscriber.toLowerCase(),
@@ -590,12 +602,12 @@ function getIDAEventDataForValidation(
             type
         )
     ) {
-        return baseIndexData;
+        return baseIndexEventData;
     } else if (type === IDAEventType.IndexUnitsUpdated) {
         if (units == null) {
             throw new Error("You must pass units for IndexUnitsUpdated");
         }
-        return { ...baseIndexData, units: units.toString() };
+        return { ...baseIndexEventData, units: units.toString() };
     } else if (
         [
             IDAEventType.SubscriptionApproved,
@@ -603,6 +615,29 @@ function getIDAEventDataForValidation(
         ].includes(type)
     ) {
         return baseSubscriptionEventData;
+    } else if (type === IDAEventType.IndexDistributionClaimed) {
+        if (distributionDelta == null) {
+            throw new Error(
+                "distributionDelta is required for IndexDistributionClaimed"
+            );
+        }
+        const { userData, ...claimEventIndexData } = baseIndexEventData;
+        return {
+            ...claimEventIndexData,
+            distributionDelta: distributionDelta.toString(),
+        };
+    } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
+        if (distributionDelta == null) {
+            throw new Error(
+                "distributionDelta is required for SubscriptionDistributionClaimed"
+            );
+        }
+        const { userData, ...claimEventSubscriptionData } =
+            baseSubscriptionEventData;
+        return {
+            ...claimEventSubscriptionData,
+            distributionDelta: distributionDelta.toString(),
+        };
     } else {
         // type === IDAEventType.SubscriptionUnitsUpdated
         if (units == null) {
@@ -677,6 +712,10 @@ async function getExpectedDataForIDA(
         );
     } else if (type === IDAEventType.SubscriptionApproved) {
         return await getExpectedDataForSubscriptionApproved(expectedDataParams);
+    } else if (type === IDAEventType.SubscriptionDistributionClaimed) {
+        return await getExpectedDataForSubscriptionDistributionClaimed(
+            expectedDataParams
+        );
     } else if (type === IDAEventType.SubscriptionRevoked) {
         if (isRevoke == null) {
             throw new Error("isRevoke is required for SubscriptionRevoked");

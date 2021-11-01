@@ -104,6 +104,8 @@ contract TOGA is ITOGAv1, IERC777Recipient {
     uint256 public immutable minBondDuration;
     IERC1820Registry constant internal _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+    // solhint-disable-next-line var-name-mixedcase
+    uint64 immutable public ERC777_SEND_GAS_LIMIT = 3000000;
 
     constructor(ISuperfluid host_, uint256 minBondDuration_) {
         _host = ISuperfluid(host_);
@@ -237,11 +239,10 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         }
 
         // send remaining bond to current PIC
-        // send() allows the PIC to automatically re-bid
         // If the current PIC causes the send() to fail (iff contract with failing hook), we're sorry for them.
         // In this case the new PIC will "inherit" the remainder of their bond.
         // solhint-disable-next-line check-send-result
-        try token.send(currentPICAddr, currentPICBond, "0x")
+        try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
         // solhint-disable-next-line no-empty-blocks
         {} catch {}
 

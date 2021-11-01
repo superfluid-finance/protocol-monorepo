@@ -21,6 +21,18 @@ export const getAccount = gql`
     }
 `;
 
+export const getToken = gql`
+    query getToken($id: ID!) {
+        response: token(id: $id) {
+            id
+            name
+            symbol
+            underlyingAddress
+            isListed
+        }
+    }
+`;
+
 export const getStream = gql`
     query getStream($id: ID!) {
         response: stream(id: $id) {
@@ -104,6 +116,12 @@ export const getIndex = gql`
             indexCreatedEvent(orderBy: timestamp, orderDirection: asc) {
                 id
             }
+            indexDistributionClaimedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
+                id
+            }
             indexUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
                 id
             }
@@ -142,6 +160,12 @@ export const getSubscription = gql`
                 }
             }
             subscriptionApprovedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
+                id
+            }
+            subscriptionDistributionClaimedEvents(
                 orderBy: timestamp
                 orderDirection: asc
             ) {

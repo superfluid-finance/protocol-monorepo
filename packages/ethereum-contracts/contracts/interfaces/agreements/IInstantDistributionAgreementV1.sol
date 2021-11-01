@@ -401,4 +401,18 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         virtual
         returns(bytes memory newCtx);
 
+    event IndexDistributionClaimed(
+        ISuperfluidToken indexed token,
+        address indexed publisher,
+        uint32 indexed indexId,
+        address subscriber,
+        uint256 amount);
+
+    event SubscriptionDistributionClaimed(
+        ISuperfluidToken indexed token,
+        address indexed subscriber,
+        address publisher,
+        uint32 indexId,
+        uint256 amount);
+
 }

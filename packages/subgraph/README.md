@@ -136,7 +136,7 @@ ip a | grep docker | grep inet
 Try changing the line in the docker-compose using the output above
 
 ```
-ethereum: 'ganache:http://172.17.0.1:8545'
+ethereum: 'mainnet:http://172.17.0.1:8545'
 ```
 
 ## Deploy the contracts to Ganache
@@ -147,6 +147,13 @@ Open your third terminal window and navigate to the **root of the repo** and run
 
 ```bash
 yarn build
+```
+
+This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call: 
+```bash
+yarn install
+yarn run generate-ethers-types
+mv typechain ../subgraph
 ```
 
 Now come back here in `packages/subgraph` and run the following command to deploy contracts:
@@ -212,6 +219,8 @@ If you are continuing from the previous steps, you can immediately run the tests
 ```bash
 npx hardhat test --network localhost
 ```
+
+> Note: If you get an error complaining about workspaces requiring an array, delete the workspaces property in the subgraph folder's package.json.
 
 This goes over an integration tests which test that the data we are mapping to the subgraph is expected given the inputs for creating a flow, index, subscription, etc. If you're interested in learning about how the test code is structured, you can click [here](#test-structure) to learn more.
 

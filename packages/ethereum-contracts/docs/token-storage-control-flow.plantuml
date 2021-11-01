@@ -1,0 +1,14 @@
+@startuml
+' Current model
+
+Host -> Agreement: callAgreement(updateFlow)
+Agreement -> Host: authorizeTokenAccess
+Agreement -> Agreement: some agreement logic
+Agreement -> SuperfluidToken: (extCall) agreementDataOps | agreementStateOps
+
+... A different control flow ...
+
+SuperfluidToken -> SuperfluidToken: updateFlow
+SuperfluidToken -> Agreement: (delegateCall) updateFlow
+
+@enduml

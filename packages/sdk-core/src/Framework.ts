@@ -15,9 +15,8 @@ import { IResolver, SuperfluidLoader } from "./typechain";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
 import { handleError } from "./errorHelper";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 
-// TODO: do not commit typechain, have the build handle
-// generating the types and publishing it with the types
 export interface IFrameworkOptions {
     chainId?: ChainId;
     customSubgraphQueriesEndpoint?: string;
@@ -47,6 +46,7 @@ export default class Framework {
 
     query: Query;
     cfaV1: ConstantFlowAgreementV1;
+    idaV1: InstantDistributionAgreementV1;
 
     private constructor(
         options: IFrameworkOptions,
@@ -57,6 +57,9 @@ export default class Framework {
 
         this.query = new Query(this.settings);
         this.cfaV1 = new ConstantFlowAgreementV1({
+            config: this.settings.config,
+        });
+        this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
     }

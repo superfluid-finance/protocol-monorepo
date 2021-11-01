@@ -6,14 +6,20 @@ import { SuperToken as ISuperToken } from "./typechain";
 import {
     ChainId,
     IConfig,
+    ISuperTokenBaseIDAParams,
+    ISuperTokenBaseSubscriptionParams,
     ISuperTokenCreateFlowParams,
     ISuperTokenDeleteFlowParams,
+    ISuperTokenDistributeParams,
     ISuperTokenUpdateFlowParams,
+    ISuperTokenUpdateIndexValueParams,
+    ISuperTokenUpdateSubscriptionUnitsParams,
     NetworkName,
 } from "./interfaces";
 import Operation from "./Operation";
 import { handleError } from "./errorHelper";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -28,11 +34,10 @@ export interface ITokenOptions {
     readonly networkName: NetworkName;
 }
 
-// const idaInterface = new ethers.utils.Interface(IInstantDistributionAgreementV1);
-
 export default class SuperToken {
     readonly options: ITokenOptions;
-    readonly constantFlowAgreementV1: ConstantFlowAgreementV1;
+    readonly cfaV1: ConstantFlowAgreementV1;
+    readonly idaV1: InstantDistributionAgreementV1;
 
     constructor(options: ITokenConstructorOptions) {
         if (!options.chainId && !options.networkName) {
@@ -49,7 +54,10 @@ export default class SuperToken {
             config: options.config,
             networkName,
         };
-        this.constantFlowAgreementV1 = new ConstantFlowAgreementV1({
+        this.cfaV1 = new ConstantFlowAgreementV1({
+            config: this.options.config,
+        });
+        this.idaV1 = new InstantDistributionAgreementV1({
             config: this.options.config,
         });
     }
@@ -212,7 +220,7 @@ export default class SuperToken {
         flowRate,
         userData,
     }: ISuperTokenCreateFlowParams): Promise<Operation> => {
-        return await this.constantFlowAgreementV1.createFlow({
+        return await this.cfaV1.createFlow({
             flowRate,
             receiver,
             sender,
@@ -232,7 +240,7 @@ export default class SuperToken {
         flowRate,
         userData,
     }: ISuperTokenUpdateFlowParams): Promise<Operation> => {
-        return await this.constantFlowAgreementV1.updateFlow({
+        return await this.cfaV1.updateFlow({
             flowRate,
             receiver,
             sender,
@@ -251,10 +259,119 @@ export default class SuperToken {
         receiver,
         userData,
     }: ISuperTokenDeleteFlowParams): Promise<Operation> => {
-        return await this.constantFlowAgreementV1.deleteFlow({
+        return await this.cfaV1.deleteFlow({
             token: this.options.address,
             sender,
             receiver,
+            userData,
+        });
+    };
+
+    // IDA Functions
+    createIndex = async ({
+        indexId,
+        userData,
+    }: ISuperTokenBaseIDAParams): Promise<Operation> => {
+        return await this.idaV1.createIndex({
+            indexId,
+            superToken: this.options.address,
+            userData,
+        });
+    };
+
+    distribute = async ({
+        indexId,
+        amount,
+        userData,
+    }: ISuperTokenDistributeParams): Promise<Operation> => {
+        return await this.idaV1.distribute({
+            indexId,
+            amount,
+            superToken: this.options.address,
+            userData,
+        });
+    };
+
+    updateIndexValue = async ({
+        indexId,
+        indexValue,
+        userData,
+    }: ISuperTokenUpdateIndexValueParams): Promise<Operation> => {
+        return await this.idaV1.updateIndexValue({
+            indexId,
+            indexValue,
+            superToken: this.options.address,
+            userData,
+        });
+    };
+
+    updateSubscriptionUnits = async ({
+        indexId,
+        subscriber,
+        units,
+        userData,
+    }: ISuperTokenUpdateSubscriptionUnitsParams): Promise<Operation> => {
+        return await this.idaV1.updateSubscriptionUnits({
+            indexId,
+            superToken: this.options.address,
+            subscriber,
+            units,
+            userData,
+        });
+    };
+
+    approveSubscription = async ({
+        indexId,
+        subscriber,
+        userData,
+    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
+        return await this.idaV1.approveSubscription({
+            indexId,
+            superToken: this.options.address,
+            subscriber,
+            userData,
+        });
+    };
+
+    revokeSubscription = async ({
+        indexId,
+        subscriber,
+        userData,
+    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
+        return await this.idaV1.revokeSubscription({
+            indexId,
+            superToken: this.options.address,
+            subscriber,
+            userData,
+        });
+    };
+
+    deleteSubscription = async ({
+        indexId,
+        subscriber,
+        publisher,
+        userData,
+    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
+        return await this.idaV1.deleteSubscription({
+            indexId,
+            superToken: this.options.address,
+            subscriber,
+            publisher,
+            userData,
+        });
+    };
+
+    claim = async ({
+        indexId,
+        subscriber,
+        publisher,
+        userData,
+    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
+        return await this.idaV1.claim({
+            indexId,
+            superToken: this.options.address,
+            subscriber,
+            publisher,
             userData,
         });
     };

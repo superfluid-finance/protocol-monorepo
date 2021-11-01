@@ -26,7 +26,7 @@ export type FlowActionType =
     | 1 // UPDATE
     | 2; // TERMINATE
 
-// request interfaces
+// read request interfaces
 export interface IAccountTokenSnapshotFilter {
     readonly account?: string;
     readonly token?: string;
@@ -56,6 +56,8 @@ export interface IPaginateResponse {
     readonly first: number;
     readonly skip: number;
 }
+
+// write request interfaces
 export interface ISuperTokenModifyFlowParams {
     readonly flowRate?: string;
     readonly receiver: string;
@@ -73,6 +75,27 @@ export interface ISuperTokenDeleteFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly sender: string;
 }
+
+export interface ISuperTokenBaseIDAParams {
+    readonly indexId: string;
+    readonly publisher?: string;
+    readonly userData?: string;
+}
+export interface ISuperTokenBaseSubscriptionParams
+    extends ISuperTokenBaseIDAParams {
+    readonly subscriber: string;
+}
+export interface ISuperTokenDistributeParams extends ISuperTokenBaseIDAParams {
+    readonly amount: string;
+}
+export interface ISuperTokenUpdateIndexValueParams
+    extends ISuperTokenBaseIDAParams {
+    readonly indexValue: string;
+}
+export interface ISuperTokenUpdateSubscriptionUnitsParams
+    extends ISuperTokenBaseSubscriptionParams {
+    readonly units: string;
+}
 export interface IModifyFlowParams {
     readonly receiver: string;
     readonly token: string;
@@ -87,6 +110,37 @@ export interface ICreateFlowParams extends IModifyFlowParams {
 export interface IUpdateFlowParams extends ICreateFlowParams {}
 export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
+}
+
+export interface IBaseIDAParams {
+    readonly indexId: string;
+    readonly superToken: string;
+    readonly publisher?: string;
+    readonly userData?: string;
+}
+export interface IBaseSubscriptionParams extends IBaseIDAParams {
+    readonly subscriber: string;
+}
+
+export interface IDistributeParams extends IBaseIDAParams {
+    readonly amount: string;
+}
+
+export interface IUpdateIndexValueParams extends IBaseIDAParams {
+    readonly indexValue: string;
+}
+
+export interface IUpdateSubscriptionUnitsParams
+    extends IBaseSubscriptionParams {
+    readonly units: string;
+}
+
+export interface IApproveSubscriptionParams extends IBaseSubscriptionParams {
+    readonly publisher: string;
+}
+
+export interface IRevokeSubscriptionParams extends IBaseSubscriptionParams {
+    readonly publisher: string;
 }
 
 // response interfaces
@@ -221,4 +275,8 @@ export interface IConfig {
     readonly superTokenFactoryAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
+}
+
+export interface IAgreementV1Options {
+    readonly config: IConfig;
 }

@@ -25,7 +25,7 @@ import localAddresses from "../config/ganache.json";
 import { FlowActionType, IDAEventType } from "./helpers/constants";
 import { testFlowUpdated, testModifyIDA } from "./helpers/testers";
 import { BaseProvider } from "@ethersproject/providers";
-import { fetchTokenAndValidate } from "./validation/holValidators";
+import { fetchTokenAndValidate } from "./validation/hol/tokenValidator";
 
 describe("Subgraph Tests", () => {
     let userAddresses: string[] = [];

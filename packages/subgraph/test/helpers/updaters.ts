@@ -22,6 +22,7 @@ import {
 import {
     actionTypeToActiveStreamsDeltaMap,
     actionTypeToClosedStreamsDeltaMap,
+    actionTypeToPeriodRevisionIndexDeltaMap,
     FlowActionType,
 } from "./constants";
 import { getCurrentTotalAmountStreamed, toBN } from "./helpers";
@@ -33,21 +34,40 @@ export const getExpectedStreamData = (
     lastUpdatedAtTimestamp: string,
     streamedAmountSinceUpdatedAt: BigNumber
 ) => {
-    const revisionIndexDelta =
-        actionTypeToClosedStreamsDeltaMap.get(actionType)!;
-    const revisionIndex = (
-        Number(currentStreamData.revisionIndex) + revisionIndexDelta
-    ).toString();
+    const {
+        revisionIndex: currentRevisionIndex,
+        periodRevisionIndex: currentPeriodRevisionIndex,
+    } = currentStreamData;
+    const revisionIndex = getUpdatedIndex(
+        currentRevisionIndex,
+        actionTypeToClosedStreamsDeltaMap,
+        actionType
+    );
+    const periodRevisionIndex = getUpdatedIndex(
+        currentPeriodRevisionIndex,
+        actionTypeToPeriodRevisionIndexDeltaMap,
+        actionType
+    );
     const updatedStreamedUntilUpdatedAt = toBN(
         currentStreamData.streamedUntilUpdatedAt
     ).add(streamedAmountSinceUpdatedAt);
     return {
         ...currentStreamData,
         revisionIndex,
+        periodRevisionIndex,
         oldFlowRate,
         streamedUntilUpdatedAt: updatedStreamedUntilUpdatedAt.toString(),
         updatedAtTimestamp: lastUpdatedAtTimestamp,
     } as IStreamData;
+};
+
+const getUpdatedIndex = (
+    currentIndex: string,
+    actionToIndexDeltaMap: Map<FlowActionType, number>,
+    actionType: FlowActionType
+) => {
+    const indexDelta = actionToIndexDeltaMap.get(actionType)!;
+    return (Number(currentIndex) + indexDelta).toString();
 };
 
 /**

@@ -685,7 +685,41 @@ type Stream @entity {
     receiver: Account!
 
     flowUpdatedEvents: [FlowUpdatedEvent!]! @derivedFrom(field: "stream")
+    streamPeriods: [StreamPeriod!]! @derivedFrom(field: "stream")
+
 }
+
+"""
+StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
+"""
+type StreamPeriod @entity {
+    """
+    ID composed of: streamId - periodRevisionIndex
+    """
+    id: ID!
+
+    stream: Stream!
+
+    sender: Account!
+    receiver: Account!
+
+    token: Token!
+
+    flowRate: BigInt!
+
+    startedAtTimestamp: BigInt!
+    startedAtBlockNumber: BigInt!
+    startedAtEvent: FlowUpdatedEvent!
+    """
+    Following values are null until the StreamPeriod is terminated
+    """
+    stoppedAtTimestamp: BigInt
+    stoppedAtBlockNumber: BigInt
+    stoppedAtEvent: FlowUpdatedEvent
+
+    totalAmountStreamed: BigInt
+}
+
 
 ####################
 #  Helper Entities #
@@ -693,6 +727,7 @@ type Stream @entity {
 type StreamRevision @entity {
     id: ID!
     revisionIndex: Int!
+    periodRevisionIndex: Int!
 }
 
 """

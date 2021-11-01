@@ -176,6 +176,7 @@ export function getOrInitStreamRevision(
     if (streamRevision == null) {
         streamRevision = new StreamRevision(streamRevisionId);
         streamRevision.revisionIndex = 0;
+        streamRevision.periodRevisionIndex = 0;
     }
     return streamRevision as StreamRevision;
 }

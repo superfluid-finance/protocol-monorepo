@@ -1,7 +1,7 @@
 import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { TestResolver } from "../generated/ResolverV1/TestResolver";
-import { StreamRevision, IndexSubscription, Token } from "../generated/schema";
+import { StreamRevision, IndexSubscription, Token, Stream } from "../generated/schema";
 
 /**************************************************************************
  * Constants
@@ -110,6 +110,15 @@ export function getStreamID(
     return getStreamRevisionPrefix(senderId, receiverId, tokenId)
         .concat("-")
         .concat(revisionIndex.toString());
+}
+
+export function getStreamPeriodID(
+    streamId: string,
+    periodRevisionIndex: number
+): string {
+    return streamId
+        .concat("-")
+        .concat(periodRevisionIndex.toString());
 }
 
 export function getSubscriptionID(

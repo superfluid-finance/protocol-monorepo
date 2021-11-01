@@ -7,6 +7,7 @@ export const getFlowUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            timestamp
             transactionHash
             blockNumber
             token

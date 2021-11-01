@@ -60,7 +60,7 @@ All subgraphs are available via The Graph's hosted service:
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-kovan |
 | Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-rinkeby |
 
-*Note: Dev endpoints are a work in progress, and the official Superfluid docs will not reflect new features included here that have not been released to v1
+*Note: Development endpoints will include features that are still in progress. Documentation will not reflect new features yet to be released in V1
 
 
 # 🤓 Local development

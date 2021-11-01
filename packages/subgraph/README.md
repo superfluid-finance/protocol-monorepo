@@ -27,6 +27,18 @@ https://docs.superfluid.finance/superfluid/docs/subgraph
 
 All subgraphs are available via The Graph's hosted service:
 
+**V1 Endpoints**
+| Network | URL |
+| --- | --- |
+| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-xdai |
+| Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-matic |
+| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-mumbai |
+| Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-goerli |
+| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-ropsten |
+| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-kovan |
+| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-v1-rinkeby |
+
+**Legacy Endpoints**
 | Network | URL |
 | --- | --- |
 | xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-xdai |
@@ -36,6 +48,20 @@ All subgraphs are available via The Graph's hosted service:
 | Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-ropsten |
 | Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-kovan |
 | Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/superfluid-rinkeby |
+
+**Development Endpoints**
+| Network | URL |
+| --- | --- |
+| xDAI| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-xdai |
+| Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-matic |
+| Mumbai | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-mumbai |
+| Goerli| https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-goerli |
+| Ropsten | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-ropsten |
+| Kovan | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-kovan |
+| Rinkeby | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-dev-rinkeby |
+
+*Note: Dev endpoints are a work in progress, and the official Superfluid docs will not reflect new features included here that have not been released to v1
+
 
 # 🤓 Local development
 

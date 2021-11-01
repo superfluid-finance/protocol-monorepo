@@ -10,12 +10,13 @@ import { handleError } from "./errorHelper";
 import { IPaginateResponse, IPaginateRequest } from "./interfaces";
 
 /**
- * Checks if address is a valid ethereum address and if it is,
- * normalizes addresses for the library by setting them to
- * lower case so it can be used seamlessly by both the
- * subgraph and web 3 calls.
+ * @dev Normalizes ethereum addresses for use in sdk-core.
+ * Checks if address is a valid ethereum address,
+ * throws an error if it is not, else, normalizes 
+ * addresses by converting to lower case so it can be used
+ * by both the subgraph and web 3 calls.
  * @param address
- * @returns
+ * @returns {string} The normalized address.
  */
 export const normalizeAddress = (address?: string): string => {
     if (!address) return "";
@@ -40,6 +41,11 @@ export const buildWhereForSubgraphQuery = <T>(data: T) => {
         .join(",");
 };
 
+/**
+ * @dev Provides default paginate options if user doesn't pass anything.
+ * @param options User submitted paginate request object
+ * @returns {first: number, skip: number}
+ */
 export const defaultPaginateOptions = (
     options: IPaginateRequest
 ): IPaginateResponse => {

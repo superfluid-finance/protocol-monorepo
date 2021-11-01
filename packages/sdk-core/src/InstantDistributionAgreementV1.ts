@@ -18,6 +18,9 @@ const idaInterface = new ethers.utils.Interface(
     IInstantDistributionAgreementV1ABI
 );
 
+/**
+ * @dev Instant Distribution Agreement V1 Helper Class
+ */
 export default class InstantDistributionAgreementV1 {
     readonly options: IAgreementV1Options;
 
@@ -53,7 +56,18 @@ export default class InstantDistributionAgreementV1 {
         }
     };
 
-    createIndex = async ({ indexId, superToken, userData }: IBaseIDAParams) => {
+    /**
+     * @dev Creates an IDA Index.
+     * @param indexId The id of the index.
+     * @param superToken The address of the `index` superToken.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
+    createIndex = async ({
+        indexId,
+        superToken,
+        userData,
+    }: IBaseIDAParams): Promise<Operation> => {
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("createIndex", [
             normalizedToken,
@@ -67,12 +81,20 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Distributes `amount` of `superToken` to an index
+     * @param indexId The id of the index.
+     * @param amount The amount of `superToken` to be distributed.
+     * @param superToken The superToken to be distributed.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     distribute = async ({
         indexId,
         amount,
         superToken,
         userData,
-    }: IDistributeParams) => {
+    }: IDistributeParams): Promise<Operation> => {
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("distribute", [
             normalizedToken,
@@ -86,12 +108,22 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Updates the `indexValue` of an index.
+     * @param indexId The id of the index.
+     * @param indexValue The new indexValue.
+     * @param superToken The superToken to be distributed.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     *
+     * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
+     */
     updateIndexValue = async ({
         indexId,
         indexValue,
         superToken,
         userData,
-    }: IUpdateIndexValueParams) => {
+    }: IUpdateIndexValueParams): Promise<Operation> => {
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("updateIndex", [
             normalizedToken,
@@ -105,13 +137,22 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Updates the `units` allocated to a Subscription.
+     * @param indexId The id of the index.
+     * @param superToken The superToken of the index.
+     * @param subscriber The subscriber address whose units you want to update.
+     * @param units The amount of units you want to update to.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     updateSubscriptionUnits = async ({
         indexId,
         superToken,
         subscriber,
         units,
         userData,
-    }: IUpdateSubscriptionUnitsParams) => {
+    }: IUpdateSubscriptionUnitsParams): Promise<Operation> => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);
         const callData = idaInterface.encodeFunctionData("updateSubscription", [
@@ -127,12 +168,20 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
+     * @param indexId The id of the index.
+     * @param superToken The superToken of the index.
+     * @param subscriber The subscriber address whose subscription you want to approve.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     approveSubscription = async ({
         indexId,
         superToken,
         publisher,
         userData,
-    }: IBaseSubscriptionParams) => {
+    }: IBaseSubscriptionParams): Promise<Operation> => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData(
@@ -145,12 +194,20 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributres.
+     * @param indexId The id of the index.
+     * @param superToken The superToken of the index.
+     * @param subscriber The subscriber address whose subscription you want to revoke.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     revokeSubscription = async ({
         indexId,
         superToken,
         publisher,
         userData,
-    }: IBaseSubscriptionParams) => {
+    }: IBaseSubscriptionParams): Promise<Operation> => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("revokeSubscription", [
@@ -165,13 +222,22 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
+     * @param indexId The id of the index.
+     * @param superToken The superToken of the index.
+     * @param subscriber The subscriber address whose subscription you want to delete.
+     * @param publisher The publisher address of the index you are targetting.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     deleteSubscription = async ({
         indexId,
         superToken,
         subscriber,
         publisher,
         userData,
-    }: IBaseSubscriptionParams) => {
+    }: IBaseSubscriptionParams): Promise<Operation> => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);
@@ -188,13 +254,22 @@ export default class InstantDistributionAgreementV1 {
         );
     };
 
+    /**
+     * @dev Claims any pending tokens allocated to the Subscription (unapproved).
+     * @param indexId The id of the index.
+     * @param superToken The superToken of the index.
+     * @param subscriber The subscriber address whose subscription you want to delete.
+     * @param publisher The publisher address of the index you are targetting.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     claim = async ({
         indexId,
         superToken,
         subscriber,
         publisher,
         userData,
-    }: IBaseSubscriptionParams) => {
+    }: IBaseSubscriptionParams): Promise<Operation> => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);

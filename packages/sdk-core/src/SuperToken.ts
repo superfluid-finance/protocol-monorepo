@@ -34,6 +34,9 @@ export interface ITokenOptions {
     readonly networkName: NetworkName;
 }
 
+/**
+ * @dev SuperToken Class
+ */
 export default class SuperToken {
     readonly options: ITokenOptions;
     readonly cfaV1: ConstantFlowAgreementV1;
@@ -70,6 +73,8 @@ export default class SuperToken {
     }
 
     // SuperToken Contract Read Functions
+    // TODO: Reads should not be Operation object
+    // - should just straight up call the contract, passing in a signerOrProvider
     balanceOf = async (address: string) => {
         try {
             const txn =
@@ -120,6 +125,12 @@ export default class SuperToken {
     };
 
     // SuperToken Contract Write Functions
+    /**
+     * @dev Approve `recipient` to spend `amount` tokens.
+     * @param recipient The recipient approved.
+     * @param amount The amount approved.
+     * @returns An instance of Operation which can be executed or batched.
+     */
     approve = async (recipient: string, amount: string) => {
         try {
             const txn =
@@ -137,6 +148,11 @@ export default class SuperToken {
         }
     };
 
+    /**
+     * @dev Downgrade `amount` SuperToken's.
+     * @param amount The amount to be downgraded.
+     * @returns An instance of Operation which can be executed or batched.
+     */
     downgrade = async (amount: string) => {
         try {
             const txn =
@@ -153,6 +169,12 @@ export default class SuperToken {
         }
     };
 
+    /**
+     * @dev Transfer `recipient` `amount` tokens.
+     * @param recipient The recipient of the transfer.
+     * @param amount The amount to be transferred.
+     * @returns An instance of Operation which can be executed or batched.
+     */
     transfer = async (recipient: string, amount: string) => {
         try {
             const txn =
@@ -170,6 +192,13 @@ export default class SuperToken {
         }
     };
 
+    /**
+     * @dev Transfer from `sender` to `recipient` `amount` tokens.
+     * @param sender The sender of the transfer.
+     * @param recipient The recipient of the transfer.
+     * @param amount The amount to be transferred.
+     * @returns An instance of Operation which can be executed or batched.
+     */
     transferFrom = async (
         sender: string,
         recipient: string,
@@ -192,6 +221,11 @@ export default class SuperToken {
         }
     };
 
+    /**
+     * @dev Upgrade `amount` SuperToken's.
+     * @param amount The amount to be upgraded.
+     * @returns An instance of Operation which can be executed or batched.
+     */
     upgrade = async (amount: string) => {
         try {
             const txn =
@@ -210,9 +244,12 @@ export default class SuperToken {
 
     // CFA Functions
     /**
-     * Create a flow of the token of this class.
-     * @param
-     * @returns {Promise<Operation>}
+     * @dev Create a flow of the token of this class.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param flowRate The specified flow rate.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
      */
     createFlow = async ({
         sender,
@@ -230,9 +267,12 @@ export default class SuperToken {
     };
 
     /**
-     * Update a flow of the token of this class.
-     * @param
-     * @returns {Promise<Operation>}
+     * @dev Update a flow of the token of this class.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param flowRate The specified flow rate.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
      */
     updateFlow = async ({
         sender,
@@ -250,9 +290,11 @@ export default class SuperToken {
     };
 
     /**
-     * Delete a flow of the token of this class.
-     * @param
-     * @returns {Promise<Operation>}
+     * @dev Delete a flow of the token of this class.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
      */
     deleteFlow = async ({
         sender,
@@ -268,6 +310,12 @@ export default class SuperToken {
     };
 
     // IDA Functions
+    /**
+     * @dev Creates an IDA Index.
+     * @param indexId The id of the index.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     createIndex = async ({
         indexId,
         userData,
@@ -279,6 +327,13 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Distributes `amount` of token to an index
+     * @param indexId The id of the index.
+     * @param amount The amount of tokens to be distributed.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     distribute = async ({
         indexId,
         amount,
@@ -292,6 +347,15 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Updates the `IndexValue` field of an index.
+     * @param indexId The id of the index.
+     * @param indexValue The new indexValue.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     *
+     * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
+     */
     updateIndexValue = async ({
         indexId,
         indexValue,
@@ -305,6 +369,14 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Updates the `units` allocated to a Subscription.
+     * @param indexId The id of the index.
+     * @param subscriber The subscriber address whose units you want to update.
+     * @param units The amount of units you want to update to.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     updateSubscriptionUnits = async ({
         indexId,
         subscriber,
@@ -320,6 +392,13 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
+     * @param indexId The id of the index.
+     * @param subscriber The subscriber address whose subscription you want to approve.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     approveSubscription = async ({
         indexId,
         subscriber,
@@ -333,6 +412,13 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributres.
+     * @param indexId The id of the index.
+     * @param subscriber The subscriber address whose subscription you want to revoke.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     revokeSubscription = async ({
         indexId,
         subscriber,
@@ -346,6 +432,14 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Deletes a Subscription by setting the `units` allocated to the Subscriber to 0.
+     * @param indexId The id of the index.
+     * @param subscriber The subscriber address whose subscription you want to delete.
+     * @param publisher The publisher address of the index you are targetting.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     deleteSubscription = async ({
         indexId,
         subscriber,
@@ -361,6 +455,14 @@ export default class SuperToken {
         });
     };
 
+    /**
+     * @dev Claims any pending tokens allocated to the Subscription (unapproved).
+     * @param indexId The id of the index.
+     * @param subscriber The subscriber address whose subscription you want to delete.
+     * @param publisher The publisher address of the index you are targetting.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     claim = async ({
         indexId,
         subscriber,

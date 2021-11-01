@@ -40,6 +40,9 @@ export interface IQueryOptions {
     readonly dataMode: DataMode;
 }
 
+/**
+ * @dev Query Helper Class
+ */
 export default class Query {
     options: IQueryOptions;
 

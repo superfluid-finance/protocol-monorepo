@@ -1,12 +1,12 @@
 import React, { FC, ReactElement } from "react";
-import { Framework } from "@superfluid-finance/js-sdk";
+import { Framework } from "@superfluid-finance/sdk-redux";
 import { Web3Provider } from "@ethersproject/providers";
 import { Button } from "@mui/material";
 import Web3Modal from "web3modal";
 import { superfluidFrameworkSource } from "./redux/store";
 
 interface Props {
-    onSuperfluidSdkInitialized: (sf: Framework) => void;
+    onSuperfluidSdkInitialized: (sf: Framework, provider: Web3Provider) => void;
 }
 
 export const InitializeSuperfluidSdk: FC<Props> = ({
@@ -24,19 +24,20 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
             providerOptions, // required
         });
 
-        const provider = await web3Modal.connect();
-        const ethers = new Web3Provider(provider);
+        const web3ModalProvider = await web3Modal.connect();
+        const ethersWeb3Provider = new Web3Provider(web3ModalProvider);
 
-        const superfluidSdk = new Framework({
-            ethers: ethers,
-        });
-        await superfluidSdk.initialize();
+        const superfluidSdk = await Framework.create({chainId: 5, provider: ethersWeb3Provider});
 
-        superfluidFrameworkSource.setForReadAndWrite(
+        superfluidFrameworkSource.setFramework(
             5,
             Promise.resolve(superfluidSdk)
         );
-        onSuperfluidSdkInitialized(superfluidSdk);
+        superfluidFrameworkSource.setSigner(
+            5,
+            Promise.resolve(ethersWeb3Provider.getSigner() as any) // TODO(KK): as any
+        );
+        onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
     };
 
     return (

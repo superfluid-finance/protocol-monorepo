@@ -1,7 +1,5 @@
-import SuperfluidSDK, { ChainId } from '@superfluid-finance/sdk-core';
-
-import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
-import { MutationArg } from '../../baseArg';
+import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
@@ -13,39 +11,22 @@ export interface CreateFlowArg extends MutationArg {
     confirmations?: number;
 }
 
-export interface TransactionInfo {
-    chainId: number;
-    hash: string;
-}
-
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         createFlow: builder.mutation<TransactionInfo, CreateFlowArg>({
-            queryFn: async (arg, queryApi) => {
-                const framework =
-                    await initializedSuperfluidFrameworkSource.getForWrite(
+            queryFn: async (arg) => {
+                const [framework, signer] =
+                    await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
-
-                const superToken = new SuperfluidSDK.SuperToken({
-                    chainId: arg.chainId as ChainId,
-                    address: arg.superToken,
-                });
-
-                const transactionResponse = await superToken.createFlow({
-                    sender: arg.sender,
-                    receiver: arg.receiver,
-                    flowRate: arg.flowRate,
-                    userData: '0x',
-                    signer: framework.ethers.getSigner() as any, // TODO
-                });
-
-                queryApi.dispatch(trackTransaction({
-                    hash: transactionResponse.hash,
-                    chainId: arg.chainId
-                }));
-
-                await transactionResponse.wait(arg.confirmations);
+                const superToken = framework.loadSuperToken(arg.superToken);
+                const transactionResponse = await superToken
+                    .createFlow({
+                        sender: arg.sender,
+                        receiver: arg.receiver,
+                        flowRate: arg.flowRate,
+                    })
+                    .then((x) => x.exec(signer as any)); // TODO(KK): "as any"
 
                 return {
                     data: {
@@ -54,16 +35,30 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     },
                 };
             },
-            invalidatesTags: (_1, _2, arg) => [
-                {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.sender}`,
-                },
-                {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.receiver}`,
-                },
-            ],
+            onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
+                const queryResult = await queryFulfilled;
+                dispatch(
+                    trackTransaction({
+                        hash: queryResult.data.hash,
+                        chainId: queryResult.data.chainId,
+                    })
+                )
+                    .unwrap()
+                    .then(() => {
+                        dispatch(
+                            rtkQuerySlice.util.invalidateTags([
+                                {
+                                    type: 'Flow',
+                                    id: `${arg.chainId}_${arg.sender}`,
+                                },
+                                {
+                                    type: 'Flow',
+                                    id: `${arg.chainId}_${arg.receiver}`,
+                                },
+                            ])
+                        );
+                    });
+            },
         }),
     }),
     overrideExisting: false,

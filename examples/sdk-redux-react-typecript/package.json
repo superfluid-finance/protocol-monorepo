@@ -9,7 +9,6 @@
         "@ethersproject/providers": "latest",
         "@mui/material": "latest",
         "@reduxjs/toolkit": "latest",
-        "@superfluid-finance/js-sdk": "latest",
         "@types/node": "latest",
         "@types/react": "latest",
         "@types/react-dom": "latest",

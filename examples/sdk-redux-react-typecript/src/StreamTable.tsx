@@ -1,5 +1,5 @@
 import React, { FC, ReactElement, useContext } from "react";
-import { Flow, useFetchFlowsQuery } from "@superfluid-finance/sdk-redux";
+import { IStream, useFetchFlowsQuery } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {
     Table,
@@ -35,7 +35,7 @@ export const StreamTable: FC = (): ReactElement => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {flows!.map((flow: Flow, index) => (
+                            {flows!.map((flow: IStream, index) => (
                                 <TableRow
                                     key={index}
                                     sx={{
@@ -45,10 +45,10 @@ export const StreamTable: FC = (): ReactElement => {
                                     }}
                                 >
                                     <TableCell>{chainId}</TableCell>
-                                    <TableCell>{flow.superToken}</TableCell>
-                                    <TableCell>{flow.sender}</TableCell>
-                                    <TableCell>{flow.receiver}</TableCell>
-                                    <TableCell>{flow.flowRate}</TableCell>
+                                    <TableCell>{flow.token.id}</TableCell>
+                                    <TableCell>{flow.sender.id}</TableCell>
+                                    <TableCell>{flow.receiver.id}</TableCell>
+                                    <TableCell>{flow.currentFlowRate}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

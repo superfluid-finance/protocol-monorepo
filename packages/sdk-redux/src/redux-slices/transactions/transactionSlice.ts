@@ -4,7 +4,7 @@ import {
     createSlice,
 } from '@reduxjs/toolkit';
 
-import { superfluidFrameworkSource } from '../../superfluidFrameworkSource';
+import { superfluidSource } from '../../superfluidSource';
 
 export type TransactionId = {
     chainId: number; // TODO(KK): Can I use "extends" here?
@@ -45,10 +45,10 @@ export const trackTransaction = createAsyncThunk<
     TrackTransactionArg,
     { rejectValue: TransactionTracking }
 >('trackTransaction', async (arg, thunkAPI) => {
-    const framework = await superfluidFrameworkSource.getForRead(arg.chainId);
+    const framework = await superfluidSource.getFramework(arg.chainId);
     try {
         // TODO: What's the best confirmation amount and timeout?
-        const transactionReceipt = await framework.ethers.waitForTransaction(
+        const transactionReceipt = await framework.settings.provider.waitForTransaction(
             arg.hash,
             1,
             60000

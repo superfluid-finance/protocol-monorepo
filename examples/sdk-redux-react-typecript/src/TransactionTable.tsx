@@ -1,6 +1,5 @@
 import React, { FC, ReactElement, useContext } from "react";
 import {
-    Flow,
     TransactionTracking,
     superfluidTransactionSelectors,
     useFetchFlowsQuery,

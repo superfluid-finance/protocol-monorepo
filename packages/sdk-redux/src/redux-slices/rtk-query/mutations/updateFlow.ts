@@ -1,7 +1,5 @@
-import { Transaction } from 'web3-core';
-
-import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
-import { MutationArg } from '../../baseArg';
+import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
@@ -14,42 +12,51 @@ export interface UpdateFlowArg extends MutationArg {
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        updateFlow: builder.mutation<Transaction, UpdateFlowArg>({
-            queryFn: async (arg, queryApi) => {
-                const framework =
-                    await initializedSuperfluidFrameworkSource.getForWrite(
+        updateFlow: builder.mutation<TransactionInfo, UpdateFlowArg>({
+            queryFn: async (arg, _) => {
+                const [framework, signer] =
+                    await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
-                return {
-                    data: await framework.cfa!.updateFlow({
-                        superToken: arg.superToken,
+                const superToken = framework.loadSuperToken(arg.superToken);
+                const transactionResponse = await superToken
+                    .updateFlow({
                         sender: arg.sender,
                         receiver: arg.receiver,
                         flowRate: arg.flowRate,
-                        userData: undefined,
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        onTransaction: (transactionHash) => {
-                            queryApi.dispatch(
-                                trackTransaction({
-                                    chainId: arg.chainId,
-                                    hash: transactionHash,
-                                })
-                            );
-                        },
-                    }),
+                    })
+                    .then((x) => x.exec(signer as any)); // TODO(KK): as any
+                return {
+                    data: {
+                        chainId: arg.chainId,
+                        hash: transactionResponse.hash,
+                    },
                 };
             },
-            invalidatesTags: (_1, _2, arg) => [
-                {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.sender}`,
-                },
-                {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.receiver}`,
-                },
-            ],
+            onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
+                const queryResult = await queryFulfilled;
+                dispatch(
+                    trackTransaction({
+                        hash: queryResult.data.hash,
+                        chainId: queryResult.data.chainId,
+                    })
+                )
+                    .unwrap()
+                    .then(() => {
+                        dispatch(
+                            rtkQuerySlice.util.invalidateTags([
+                                {
+                                    type: 'Flow',
+                                    id: `${arg.chainId}_${arg.sender}`,
+                                },
+                                {
+                                    type: 'Flow',
+                                    id: `${arg.chainId}_${arg.receiver}`,
+                                },
+                            ])
+                        );
+                    });
+            },
         }),
     }),
     overrideExisting: false,

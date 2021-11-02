@@ -1,7 +1,5 @@
-import { Transaction } from 'web3-core';
-
-import { initializedSuperfluidFrameworkSource } from '../../../superfluidApi';
-import { MutationArg } from '../../baseArg';
+import { initializedSuperfluidSource } from '../../../superfluidApi';
+import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
@@ -13,43 +11,56 @@ export interface DeleteFlowArg extends MutationArg {
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        deleteFlow: builder.mutation<Transaction, DeleteFlowArg>({
+        deleteFlow: builder.mutation<TransactionInfo, DeleteFlowArg>({
             queryFn: async (arg, queryApi) => {
-                const framework =
-                    await initializedSuperfluidFrameworkSource.getForWrite(
+                const [framework, signer] =
+                    await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
-                return {
-                    data: await framework.cfa!.deleteFlow({
-                        superToken: arg.superToken,
+                const superToken = framework.loadSuperToken(arg.superToken);
+                const transactionResponse = await superToken
+                    .deleteFlow({
                         sender: arg.sender,
                         receiver: arg.receiver,
-                        by: arg.sender, // What is this?
-                        userData: undefined,
-                        flowRate: '0',
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        // @ts-ignore
-                        onTransaction: (transactionHash) => {
-                            queryApi.dispatch(
-                                trackTransaction({
-                                    chainId: arg.chainId,
-                                    hash: transactionHash,
-                                })
-                            );
-                        },
-                    }),
+                    })
+                    .then((x) => x.exec(signer as any)); // TODO(KK): as any
+                queryApi.dispatch(
+                    trackTransaction({
+                        chainId: arg.chainId,
+                        hash: transactionResponse.hash,
+                    })
+                );
+                return {
+                    data: {
+                        chainId: arg.chainId,
+                        hash: transactionResponse.hash,
+                    },
                 };
             },
-            invalidatesTags: (_1, _2, arg) => [
-                {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.sender}`,
-                },
-                {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.receiver}`,
-                },
-            ],
+            onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
+                const queryResult = await queryFulfilled;
+                dispatch(
+                    trackTransaction({
+                        hash: queryResult.data.hash,
+                        chainId: queryResult.data.chainId,
+                    })
+                )
+                    .unwrap()
+                    .then(() => {
+                        dispatch(
+                            rtkQuerySlice.util.invalidateTags([
+                                {
+                                    type: 'Flow',
+                                    id: `${arg.chainId}_${arg.sender}`,
+                                },
+                                {
+                                    type: 'Flow',
+                                    id: `${arg.chainId}_${arg.receiver}`,
+                                },
+                            ])
+                        );
+                    });
+            },
         }),
     }),
     overrideExisting: false,

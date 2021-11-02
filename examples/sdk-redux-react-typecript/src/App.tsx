@@ -14,11 +14,11 @@ import {
     TextField,
     Typography,
 } from "@mui/material";
-import { Framework } from "@superfluid-finance/js-sdk";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import {
+    ChainId,
+    Framework,
     useCreateFlowMutation,
-    useCreateOrUpdateOrDeleteFlowMutation,
     useDeleteFlowMutation,
     useUpdateFlowMutation,
 } from "@superfluid-finance/sdk-redux";
@@ -27,7 +27,7 @@ import { SignerContext } from "./SignerContext";
 import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
 import { SerializedError } from "@reduxjs/toolkit";
-import { ChainId } from "@superfluid-finance/sdk-core";
+import {Web3Provider} from "@ethersproject/providers";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -45,14 +45,6 @@ export const CreateStream: FC = (): ReactElement => {
         { isLoading: deleteFlowIsLoading, error: deleteFlowError },
     ] = useDeleteFlowMutation();
 
-    const [
-        createOrUpdateOrDeleteFlow,
-        {
-            isLoading: createOrUpdateOrDeleteIsLoading,
-            error: createOrUpdateOrDeleteError,
-        },
-    ] = useCreateOrUpdateOrDeleteFlowMutation();
-
     const [chainId, signerAddress] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
@@ -62,14 +54,12 @@ export const CreateStream: FC = (): ReactElement => {
     const isAnythingLoading =
         createFlowIsLoading ||
         updateFlowIsLoading ||
-        deleteFlowIsLoading ||
-        createOrUpdateOrDeleteIsLoading;
+        deleteFlowIsLoading;
 
     const errors = [
         createFlowError,
         updateFlowError,
-        deleteFlowError,
-        createOrUpdateOrDeleteError,
+        deleteFlowError
     ].filter((item): item is Error | SerializedError => !!item);
 
     const handleCreateStream = (e: SyntheticEvent) => {
@@ -96,16 +86,6 @@ export const CreateStream: FC = (): ReactElement => {
         deleteFlow({
             sender: signerAddress,
             receiver,
-            chainId,
-            superToken,
-        });
-    };
-
-    const handleCreateOrUpdateOrDeleteStream = (e: SyntheticEvent) => {
-        createOrUpdateOrDeleteFlow({
-            sender: signerAddress,
-            receiver,
-            flowRate,
             chainId,
             superToken,
         });
@@ -177,15 +157,6 @@ export const CreateStream: FC = (): ReactElement => {
                             >
                                 Delete
                             </Button>
-                            <Button
-                                sx={{ m: 1 }}
-                                type="submit"
-                                variant="contained"
-                                fullWidth={true}
-                                onClick={handleCreateOrUpdateOrDeleteStream}
-                            >
-                                Create | Update | Delete
-                            </Button>
                         </FormGroup>
                     </form>
                 </>
@@ -200,15 +171,15 @@ function App() {
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
     const [chainId, setChainId] = useState<ChainId | undefined>();
 
-    const onSuperfluidSdkInitialized = async (superfluidSdk: Framework) => {
+    const onSuperfluidSdkInitialized = async (superfluidSdk: Framework, provider: Web3Provider) => {
         setSuperfluidSdk(superfluidSdk);
 
-        superfluidSdk.ethers
+        provider
             .getSigner()
             .getAddress()
             .then((address) => setSignerAddress(address));
 
-        superfluidSdk.ethers
+        provider
             .getNetwork()
             .then((network) => setChainId(network.chainId as ChainId));
     };
@@ -221,8 +192,8 @@ function App() {
                 </Typography>
                 {!superfluidSdk ? (
                     <InitializeSuperfluidSdk
-                        onSuperfluidSdkInitialized={(x) =>
-                            onSuperfluidSdkInitialized(x)
+                        onSuperfluidSdkInitialized={(x, provider) =>
+                            onSuperfluidSdkInitialized(x, provider)
                         }
                     />
                 ) : !chainId || !signerAddress ? (

@@ -6,3 +6,8 @@ export interface MutationArg {
     chainId: number;
     confirmations?: number;
 }
+
+export interface TransactionInfo {
+    chainId: number;
+    hash: string;
+}

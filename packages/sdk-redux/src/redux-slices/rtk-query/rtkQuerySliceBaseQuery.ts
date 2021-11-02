@@ -1,6 +1,6 @@
 import { BaseQueryFn } from '@reduxjs/toolkit/dist/query/react';
 
-import { MutationArg, QueryArg } from '../baseArg';
+import {MutationArg, QueryArg, TransactionInfo} from '../baseArg';
 
 export const _NEVER = /* @__PURE__ */ Symbol();
 export type NEVER = typeof _NEVER;
@@ -14,8 +14,8 @@ export interface ValidationError {
  * This also allows you to specify a specific error type to be shared by all your `queryFn` definitions.
  */
 export function rtkQuerySliceBaseQuery(): BaseQueryFn<
-    QueryArg | MutationArg,
-    unknown,
+    MutationArg | QueryArg,
+    TransactionInfo | Record<string, unknown>,
     ValidationError,
     unknown
 > {

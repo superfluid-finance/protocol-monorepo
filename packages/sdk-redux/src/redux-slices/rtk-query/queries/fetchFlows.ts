@@ -1,16 +1,8 @@
-import request, { gql } from 'graphql-request';
+import {IStream} from "@superfluid-finance/sdk-core";
 
-import {
-    Flow,
-    initializedSuperfluidFrameworkSource,
-} from '../../../superfluidApi';
+import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { QueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
-
-// TODO: Get rid of this from here.
-const subgraphUrls: { [key: string]: string } = {
-    5: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli',
-};
 
 export interface FetchFlowsArg extends QueryArg {
     accountAddress: string;
@@ -18,68 +10,33 @@ export interface FetchFlowsArg extends QueryArg {
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        fetchFlows: builder.query<Flow[], FetchFlowsArg>({
+        fetchFlows: builder.query<IStream[], FetchFlowsArg>({
             queryFn: async (arg) => {
-                const subgraphResponse = await request<{
-                    accountTokenSnapshots: {
-                        token: {
-                            id: string;
-                        };
-                    }[];
-                }>(
-                    subgraphUrls[arg.chainId],
-                    gql`
-                        query ($accountAddress: String) {
-                            accountTokenSnapshots(
-                                where: { account: $accountAddress }
-                            ) {
-                                token {
-                                    id
-                                }
-                            }
-                        }
-                    `,
-                    {
-                        accountAddress: arg.accountAddress.toLowerCase(),
-                    }
-                );
+                console.log({
+                    arg
+                })
 
                 const framework =
-                    await initializedSuperfluidFrameworkSource.getForRead(
-                        arg.chainId
-                    );
+                    await initializedSuperfluidSource.getFramework(arg.chainId);
 
-                const userFlowsPromises: Promise<Flow[]>[] =
-                    subgraphResponse.accountTokenSnapshots
-                        .map((x) => x.token.id)
-                        .map(async (tokenId) =>
-                            framework
-                                .cfa!.listFlows({
-                                    superToken: tokenId,
-                                    account: arg.accountAddress,
-                                    onlyInFlows: false,
-                                    onlyOutFlows: false,
-                                })
-                                .then((x) => [...x.inFlows, ...x.outFlows])
-                                .then((flows) =>
-                                    flows.map(
-                                        (x) =>
-                                            ({
-                                                sender: x.sender,
-                                                receiver: x.receiver,
-                                                flowRate: x.flowRate,
-                                                superToken: tokenId,
-                                            } as Flow)
-                                    )
-                                )
-                        );
+                // TODO(KK): Handle with a single query.
 
-                const allUserFlows = await Promise.all(userFlowsPromises).then(
-                    (arrayOfArrays) => arrayOfArrays.flat()
-                );
+                const inflows = await framework.query.listStreams({
+                    receiver: arg.accountAddress.toLowerCase()
+                });
+
+                const outflows = await framework.query.listStreams({
+                    sender: arg.accountAddress.toLowerCase()
+                });
+
+                const result = [...inflows.data, ...outflows.data];
+
+                console.log({
+                    result
+                })
 
                 return {
-                    data: allUserFlows,
+                    data: result,
                 };
             },
             providesTags: (_1, _2, arg) => [

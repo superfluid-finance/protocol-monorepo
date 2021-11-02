@@ -12,10 +12,6 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
         fetchFlows: builder.query<IStream[], FetchFlowsArg>({
             queryFn: async (arg) => {
-                console.log({
-                    arg
-                })
-
                 const framework =
                     await initializedSuperfluidSource.getFramework(arg.chainId);
 
@@ -30,11 +26,6 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                 });
 
                 const result = [...inflows.data, ...outflows.data];
-
-                console.log({
-                    result
-                })
-
                 return {
                     data: result,
                 };

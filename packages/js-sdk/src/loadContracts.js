@@ -100,6 +100,21 @@ const loadContracts = async ({
     } else if (web3) {
         try {
             const TruffleContract = require("@truffle/contract");
+            // TruffleContract.at does detect network and code checking network IOs.
+            // This causes js-sdk contract initialization slow and some rpc endpoints rate limit.
+            // To implement a new version of at dubbed betterAt, that removes all network IOs.
+            TruffleContract.constructor.prototype.betterAt = async function(address){
+                if (
+                    address == null ||
+                    typeof address !== "string" ||
+                    address.length !== 42
+                ) {
+                    throw new Error(
+                        `Invalid address passed to ${this.contractName}.betterAt(): ${address}`
+                    );
+                }
+                return new this(address);
+            }
             console.debug(
                 `Using @superfluid-finance/js-sdk in a non-native Truffle environment.
                 Peer dependency @truffle/contract is required.`

@@ -357,7 +357,7 @@ describe("Framework class", function () {
                 from: admin,
             });
             const misoAddress = await sf.resolver.get("tokens.MISO");
-            const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
+            const misoToken = await sf.contracts.TokenInfo.betterAt(misoAddress);
             const superMisoToken = await sf.createERC20Wrapper(misoToken, {
                 from: admin,
             });

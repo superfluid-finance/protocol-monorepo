@@ -105,10 +105,10 @@ module.exports = class Framework {
         const resolverAddress =
             this._options.resolverAddress || this.config.resolverAddress;
         console.debug("Resolver at", resolverAddress);
-        this.resolver = await this.contracts.IResolver.at(resolverAddress);
+        this.resolver = await this.contracts.IResolver.betterAt(resolverAddress);
 
         // get framework loader and load
-        this.loader = await this.contracts.SuperfluidLoader.at(
+        this.loader = await this.contracts.SuperfluidLoader.betterAt(
             await this.resolver.get("SuperfluidLoader-v1")
         );
         console.debug("Superfluid Loader v1", this.loader.address);
@@ -140,12 +140,12 @@ module.exports = class Framework {
         [this.host, this.agreements.cfa, this.agreements.ida] =
             await Promise.all([
                 // load host
-                this.contracts.ISuperfluid.at(loaderResult.superfluid),
+                this.contracts.ISuperfluid.betterAt(loaderResult.superfluid),
                 // load agreements
-                this.contracts.IConstantFlowAgreementV1.at(
+                this.contracts.IConstantFlowAgreementV1.betterAt(
                     loaderResult.agreementCFAv1
                 ),
-                this.contracts.IInstantDistributionAgreementV1.at(
+                this.contracts.IInstantDistributionAgreementV1.betterAt(
                     loaderResult.agreementIDAv1
                 ),
                 // load tokens
@@ -186,7 +186,7 @@ module.exports = class Framework {
             return superTokenAddress !== ZERO_ADDRESS;
         } else {
             try {
-                const superToken = await this.contracts.ISuperToken.at(
+                const superToken = await this.contracts.ISuperToken.betterAt(
                     superTokenKey
                 );
                 const symbol = await superToken.symbol();
@@ -246,7 +246,7 @@ module.exports = class Framework {
                 if (tokenAddress !== ZERO_ADDRESS) {
                     // if it is, we assume its ERC20 super token wrapper is postfixed with "x"
                     underlyingToken =
-                        await this.contracts.ERC20WithTokenInfo.at(
+                        await this.contracts.ERC20WithTokenInfo.betterAt(
                             tokenAddress
                         );
                     this.tokens[tokenKey] = underlyingToken;
@@ -276,7 +276,7 @@ module.exports = class Framework {
             isLoadingByAddress = true;
         }
 
-        superToken = await superTokenContractType.at(superTokenAddress);
+        superToken = await superTokenContractType.betterAt(superTokenAddress);
         superToken.superTokenCustomType = superTokenCustomType;
         this.tokens[superTokenKey] = superToken;
         this.superTokens[superTokenKey] = superToken;
@@ -300,7 +300,7 @@ module.exports = class Framework {
         // if underlying token is still null or undefined, load it
         if (!underlyingToken) {
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
-                underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
+                underlyingToken = await this.contracts.ERC20WithTokenInfo.betterAt(
                     underlyingTokenAddress
                 );
                 if (!isLoadingByAddress) {
@@ -336,7 +336,7 @@ module.exports = class Framework {
         const tokenSymbol = await tokenInfo.symbol.call();
         superTokenName = superTokenName || `Super ${tokenName}`;
         superTokenSymbol = superTokenSymbol || `${tokenSymbol}x`;
-        const factory = await this.contracts.ISuperTokenFactory.at(
+        const factory = await this.contracts.ISuperTokenFactory.betterAt(
             await this.host.getSuperTokenFactory()
         );
         upgradability =
@@ -356,7 +356,7 @@ module.exports = class Framework {
         console.log(
             `${u} super token ${superTokenSymbol} created at ${wrapperAddress}`
         );
-        const superToken = await this.contracts.ISuperToken.at(wrapperAddress);
+        const superToken = await this.contracts.ISuperToken.betterAt(wrapperAddress);
         superToken.tx = tx;
         return superToken;
     }

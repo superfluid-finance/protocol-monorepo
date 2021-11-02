@@ -2,6 +2,8 @@
 
 **Use Superfluid Streams, Price Oracles, and NFTs to Create an Options Contract**
 
+Disclaimer - this code is unaudited and should not be used by itself in production. It is meant to be a proof of concept & used for instructional purposes. 
+
 **Basic Overview**
 1) Run npm install
 2) Run hardhat deploy --reset

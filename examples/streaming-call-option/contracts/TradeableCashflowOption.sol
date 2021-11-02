@@ -3,12 +3,12 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 
-import {RedirectAllOption, ISuperToken, IConstantFlowAgreementV1, ISuperfluid} from "./RedirectAllOption.sol";
+import {RedirectAllOption, ISuperToken, IConstantFlowAgreementV1, ISuperfluid} from "./RedirectAllCallOption.sol";
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 
-contract TradeableCashflowOption is ERC721, RedirectAllOption {
+contract TradeableCashflowOption is ERC721, RedirectAllCallOption {
 
   constructor (
     address owner,

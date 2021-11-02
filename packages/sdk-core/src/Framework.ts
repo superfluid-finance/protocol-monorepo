@@ -38,7 +38,7 @@ export interface IFrameworkSettings {
 }
 
 /**
- * @dev Framework class which allows you to do a bunch of cool stuff.
+ * @dev Superfluid Framework class
  */
 export default class Framework {
     readonly userInputOptions: IFrameworkOptions;

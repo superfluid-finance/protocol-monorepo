@@ -14,6 +14,9 @@ import { handleError } from "./errorHelper";
 
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
+/**
+ * @dev Constant Flow Agreement V1 Helper Class
+ */
 export default class ConstantFlowAgreementV1 {
     readonly options: IAgreementV1Options;
 
@@ -49,6 +52,15 @@ export default class ConstantFlowAgreementV1 {
         }
     };
 
+    // TODO: change token to superToken
+    /**
+     * @dev Create a flow.
+     * @param flowRate The specified flow rate.
+     * @param receiver The receiver of the flow.
+     * @param token The token to be flowed.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     createFlow = async ({
         flowRate,
         receiver,
@@ -71,6 +83,14 @@ export default class ConstantFlowAgreementV1 {
         );
     };
 
+    /**
+     * @dev Update a flow.
+     * @param flowRate The specified flow rate.
+     * @param receiver The receiver of the flow.
+     * @param token The token to be flowed.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     updateFlow = async ({
         flowRate,
         receiver,
@@ -93,6 +113,14 @@ export default class ConstantFlowAgreementV1 {
         );
     };
 
+    /**
+     * @dev Delete a flow.
+     * @param token The token to be flowed.
+     * @param sender The sender of the flow.
+     * @param receiver The receiver of the flow.
+     * @param userData Extra user data provided.
+     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     */
     deleteFlow = async ({
         token,
         sender,

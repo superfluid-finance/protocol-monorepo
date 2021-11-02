@@ -1,5 +1,4 @@
-//coming soon...
-//write script which initiates the option contract
+//script which initiates the option contract
 
 const hre = require("hardhat");
 require("dotenv");

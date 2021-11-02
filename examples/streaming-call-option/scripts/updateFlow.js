@@ -2,7 +2,7 @@ const hre = require("hardhat");
 require("dotenv");
 const Web3 = require("web3");
 
-//all addresses hardcoded for goerli
+//all addresses hardcoded for rinkeby
 const hostJSON = require("../artifacts/@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol/ISuperfluid.json")
 const hostABI = hostJSON.abi;
 const hostAddress = "0xeD5B5b32110c3Ded02a07c8b8e97513FAfb883B6";

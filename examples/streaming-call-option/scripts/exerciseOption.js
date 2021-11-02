@@ -1,10 +1,8 @@
-//coming soon...
-//write script which initiates the option contract
+//script which exercises the option
 
 const hre = require("hardhat");
 require("dotenv");
 const Web3 = require("web3");
-// const ethers = require("@nomiclabs/hardhat-ethers");
 const ethers = require("ethers");
 
 //all addresses hardcoded for rinkeby

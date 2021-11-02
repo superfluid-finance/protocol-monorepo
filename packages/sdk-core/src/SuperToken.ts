@@ -73,15 +73,15 @@ export default class SuperToken {
     }
 
     // SuperToken Contract Read Functions
-    // TODO: Reads should not be Operation object
-    // - should just straight up call the contract, passing in a signerOrProvider
-    balanceOf = async (address: string) => {
+    balanceOf = async (
+        address: string,
+        providerOrSigner: ethers.providers.Provider | ethers.Signer
+    ) => {
         try {
-            const txn =
-                await this.superTokenContract.populateTransaction.balanceOf(
-                    address
-                );
-            return new Operation(txn);
+            const balanceOf = await this.superTokenContract
+                .connect(providerOrSigner)
+                .balanceOf(address);
+            return balanceOf;
         } catch (err) {
             return handleError(
                 "SUPERTOKEN_READ",
@@ -91,14 +91,16 @@ export default class SuperToken {
         }
     };
 
-    realtimeBalanceOf = async (address: string, timestamp: string) => {
+    realtimeBalanceOf = async (
+        address: string,
+        timestamp: string,
+        providerOrSigner: ethers.providers.Provider | ethers.Signer
+    ) => {
         try {
-            const txn =
-                await this.superTokenContract.populateTransaction.realtimeBalanceOf(
-                    address,
-                    timestamp
-                );
-            return new Operation(txn);
+            const realtimeBalanceOf = await this.superTokenContract
+                .connect(providerOrSigner)
+                .realtimeBalanceOf(address, timestamp);
+            return realtimeBalanceOf.availableBalance;
         } catch (err) {
             return handleError(
                 "SUPERTOKEN_READ",
@@ -108,13 +110,15 @@ export default class SuperToken {
         }
     };
 
-    realtimeBalanceOfNow = async (address: string) => {
+    realtimeBalanceOfNow = async (
+        address: string,
+        providerOrSigner: ethers.providers.Provider | ethers.Signer
+    ) => {
         try {
-            const txn =
-                await this.superTokenContract.populateTransaction.realtimeBalanceOfNow(
-                    address
-                );
-            return new Operation(txn);
+            const realtimeBalanceOfNow = await this.superTokenContract
+                .connect(providerOrSigner)
+                .realtimeBalanceOfNow(address);
+            return realtimeBalanceOfNow.availableBalance;
         } catch (err) {
             return handleError(
                 "SUPERTOKEN_READ",
@@ -261,7 +265,7 @@ export default class SuperToken {
             flowRate,
             receiver,
             sender,
-            token: this.options.address,
+            superToken: this.options.address,
             userData,
         });
     };
@@ -284,7 +288,7 @@ export default class SuperToken {
             flowRate,
             receiver,
             sender,
-            token: this.options.address,
+            superToken: this.options.address,
             userData,
         });
     };
@@ -302,7 +306,7 @@ export default class SuperToken {
         userData,
     }: ISuperTokenDeleteFlowParams): Promise<Operation> => {
         return await this.cfaV1.deleteFlow({
-            token: this.options.address,
+            superToken: this.options.address,
             sender,
             receiver,
             userData,

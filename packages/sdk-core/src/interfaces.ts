@@ -91,7 +91,7 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams
 }
 export interface IModifyFlowParams {
     readonly receiver: string;
-    readonly token: string;
+    readonly superToken: string;
     readonly flowRate?: string;
     readonly sender?: string;
     readonly userData?: string;

@@ -24,7 +24,7 @@ export interface IFrameworkOptions {
     networkName?: NetworkName;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
-    provider?: ethers.providers.Provider;
+    provider: ethers.providers.Provider;
 }
 
 export interface IFrameworkSettings {
@@ -114,7 +114,7 @@ export default class Framework {
                 customSubgraphQueriesEndpoint,
                 dataMode: options.dataMode || "SUBGRAPH_ONLY",
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
-                provider: options.provider!,
+                provider: options.provider,
                 networkName,
                 config: {
                     hostAddress: framework.superfluid,

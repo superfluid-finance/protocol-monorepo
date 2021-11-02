@@ -8,11 +8,9 @@ import {
     IUpdateIndexValueParams,
     IUpdateSubscriptionUnitsParams,
 } from "./interfaces";
-import { abi as SuperfluidABI } from "./abi/Superfluid.json";
-import { Superfluid } from "./typechain";
 import { normalizeAddress } from "./utils";
-import { handleError } from "./errorHelper";
 import Operation from "./Operation";
+import Host from "./Host";
 
 const idaInterface = new ethers.utils.Interface(
     IInstantDistributionAgreementV1ABI
@@ -23,38 +21,12 @@ const idaInterface = new ethers.utils.Interface(
  */
 export default class InstantDistributionAgreementV1 {
     readonly options: IAgreementV1Options;
+    readonly host: Host;
 
     constructor(options: IAgreementV1Options) {
         this.options = options;
+        this.host = new Host(options.config.hostAddress);
     }
-
-    get hostContract() {
-        return new ethers.Contract(
-            this.options.config.hostAddress,
-            SuperfluidABI
-        ) as Superfluid;
-    }
-
-    private populateTransactionAndReturnOperation = async (
-        callData: string,
-        userData: string | undefined
-    ) => {
-        try {
-            const txn =
-                await this.hostContract.populateTransaction.callAgreement(
-                    this.options.config.idaV1Address,
-                    callData,
-                    userData || "0x"
-                );
-            return new Operation(txn);
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
-    };
 
     /**
      * @dev Creates an IDA Index.
@@ -75,7 +47,8 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.populateTransactionAndReturnOperation(
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -102,7 +75,9 @@ export default class InstantDistributionAgreementV1 {
             amount,
             "0x",
         ]);
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -131,7 +106,9 @@ export default class InstantDistributionAgreementV1 {
             indexValue,
             "0x",
         ]);
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -162,7 +139,9 @@ export default class InstantDistributionAgreementV1 {
             units,
             "0x",
         ]);
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -188,7 +167,9 @@ export default class InstantDistributionAgreementV1 {
             "approveSubscription",
             [normalizedToken, normalizedPublisher, indexId, "0x"]
         );
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -216,7 +197,9 @@ export default class InstantDistributionAgreementV1 {
             indexId,
             "0x",
         ]);
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -248,7 +231,9 @@ export default class InstantDistributionAgreementV1 {
             normalizedSubscriber,
             "0x",
         ]);
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );
@@ -280,7 +265,9 @@ export default class InstantDistributionAgreementV1 {
             normalizedSubscriber,
             "0x",
         ]);
-        return await this.populateTransactionAndReturnOperation(
+
+        return await this.host.populateTransactionAndReturnOperation(
+            this.options.config.idaV1Address,
             callData,
             userData
         );

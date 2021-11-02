@@ -6,7 +6,7 @@ import {
     networkNameToChainIdMap,
 } from "./constants";
 import { IFrameworkOptions } from "./Framework";
-import { NetworkName } from "./interfaces";
+import { ChainId, NetworkName } from "./interfaces";
 import { handleError } from "./errorHelper";
 
 export const validateFrameworkConstructorOptions = (
@@ -80,13 +80,18 @@ export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
           )!.subgraphAPIEndpoint;
 };
 
+interface INetworkNameParams {
+    readonly chainId?: ChainId;
+    readonly networkName?: NetworkName;
+}
+
 /**
  * @dev We check that the user has input a networkName or chainId and that
  * they are both supported.
  * @param options
  * @returns
  */
-export const getNetworkName = (options: IFrameworkOptions): NetworkName => {
+export const getNetworkName = (options: INetworkNameParams): NetworkName => {
     const networkName =
         chainIdToDataMap.get(options.chainId!) != null
             ? chainIdToDataMap.get(options.chainId!)!.networkName

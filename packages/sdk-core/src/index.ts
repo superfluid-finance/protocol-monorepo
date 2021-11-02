@@ -4,6 +4,7 @@ import Query from "./Query";
 
 export * from "./interfaces";
 export * from "./utils";
+export * from "./pagination";
 
 export { Framework };
 export { SuperToken };

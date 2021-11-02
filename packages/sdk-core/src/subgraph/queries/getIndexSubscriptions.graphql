@@ -1,0 +1,34 @@
+query getIndexSubscriptions($where: IndexSubscription_filter!, $skip: Int!, $first: Int!) {
+    result: indexSubscriptions(
+        where: $where,
+        skip: $skip,
+        first: $first
+    ) {
+        id
+        createdAtTimestamp
+        createdAtBlockNumber
+        updatedAtTimestamp
+        updatedAtBlockNumber
+        subscriber {
+            id
+        }
+        approved
+        units
+        totalAmountReceivedUntilUpdatedAt
+        indexValueUntilUpdatedAt
+        index {
+            id
+            indexId
+            indexValue
+            token {
+                id
+                createdAtTimestamp
+                createdAtBlockNumber
+                name
+                symbol
+                isListed
+                underlyingAddress
+            }
+        }
+    }
+}

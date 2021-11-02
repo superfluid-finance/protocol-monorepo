@@ -1,0 +1,23 @@
+schema: "src/subgraph/schema.graphql"
+documents: "src/subgraph/**/*.graphql"
+overwrite: true
+config:
+    scalars:
+        Bytes: string
+        BigInt: string
+        BigDecimal: string
+generates:
+    src/subgraph/schema.generated.ts:
+        plugins:
+            - "typescript"
+    src/subgraph/queries/:
+        config:
+            nonOptionalTypename: false
+            skipTypename: true
+            preResolveTypes: true
+        preset: near-operation-file
+        presetConfig:
+            baseTypesPath: ../schema.generated.ts
+        plugins:
+            - "typescript-operations"
+            - "typed-document-node"

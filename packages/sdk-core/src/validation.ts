@@ -1,11 +1,10 @@
-import Ajv, { JSONSchemaType } from "ajv";
+import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 import { ethers } from "ethers";
 import { handleError } from "./errorHelper";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
     IIndexSubscriptionRequestFilter,
-    IPaginateRequest,
     IStreamRequestFilter,
     ISuperTokenRequestFilter,
 } from "./interfaces";
@@ -21,15 +20,6 @@ ajv.addFormat("stringNumber", {
 });
 
 // Schemas
-const paginateSchema: JSONSchemaType<IPaginateRequest> = {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-        first: { type: "number", nullable: true },
-        skip: { type: "number", nullable: true },
-    },
-};
-
 const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
     type: "object",
     additionalProperties: false,
@@ -44,7 +34,7 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     properties: {
         indexId: { type: "string", format: "stringNumber", nullable: true },
         publisher: { type: "string", format: "addressOrEmpty", nullable: true },
-        token: { type: "string", format: "addressOrEmpty", nullable: true },
+        token: { type: "string", format: "addressOrEmpty", nullable: true }
     },
 };
 
@@ -86,25 +76,25 @@ const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     },
 };
 
-// Validate functions
-export const validateSuperTokenRequest = ajv.compile(superTokenRequestSchema);
-export const validateIndexRequest = ajv.compile(indexRequestSchema);
-export const validateIndexSubscriptionRequest = ajv.compile(
-    indexSubscriptionRequestSchema
-);
-export const validatePaginateOptions = ajv.compile(paginateSchema);
-export const validateStreamRequest = ajv.compile(streamRequestSchema);
-export const validateAccountTokenSnapshotRequest = ajv.compile(
-    accountTokenSnapshotRequestSchema
-);
-
-// Validate function helper
-export const handleValidatePaginate = (paginateOptions: IPaginateRequest) => {
-    if (!validatePaginateOptions(paginateOptions)) {
-        handleError(
-            "INVALID_OBJECT",
-            "Invalid Paginate Object",
-            JSON.stringify(validatePaginateOptions.errors)
-        );
+function wrapValidationWithCustomError<T>(validateFunction: ValidateFunction<T>) {
+    return (filter: T) => {
+        if (!validateFunction(filter)) {
+            handleError(
+                "INVALID_OBJECT",
+                "Invalid Filter Object",
+                JSON.stringify(validateFunction.errors)
+            );
+        }
     }
-};
+}
+
+// Validate functions
+export const validateSuperTokenRequest = wrapValidationWithCustomError(ajv.compile<ISuperTokenRequestFilter>(superTokenRequestSchema));
+export const validateIndexRequest = wrapValidationWithCustomError(ajv.compile<IIndexRequestFilter>(indexRequestSchema));
+export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(ajv.compile<IIndexSubscriptionRequestFilter>(
+    indexSubscriptionRequestSchema
+));
+export const validateStreamRequest = wrapValidationWithCustomError(ajv.compile<IStreamRequestFilter>(streamRequestSchema));
+export const validateAccountTokenSnapshotRequest = wrapValidationWithCustomError(ajv.compile<IAccountTokenSnapshotFilter>(
+    accountTokenSnapshotRequestSchema
+));

@@ -31,6 +31,7 @@ export interface IAccountTokenSnapshotFilter {
     readonly account?: string;
     readonly token?: string;
 }
+
 export interface ISuperTokenRequestFilter {
     readonly isListed?: boolean;
 }
@@ -47,14 +48,6 @@ export interface IStreamRequestFilter {
 export interface IIndexSubscriptionRequestFilter {
     readonly subscriber?: string;
     readonly approved?: boolean;
-}
-export interface IPaginateRequest {
-    readonly first?: number;
-    readonly skip?: number;
-}
-export interface IPaginateResponse {
-    readonly first: number;
-    readonly skip: number;
 }
 
 // write request interfaces
@@ -143,17 +136,6 @@ export interface IRevokeSubscriptionParams extends IBaseSubscriptionParams {
     readonly publisher: string;
 }
 
-// response interfaces
-export interface IPaginatedResponse<T> {
-    readonly hasNextPage: boolean;
-    readonly response: T;
-    readonly first: number;
-    readonly skip: number;
-}
-export interface ISubgraphResponse<T> {
-    readonly response: T;
-}
-
 export interface ILightEntity {
     readonly id: string;
 }
@@ -174,7 +156,7 @@ export interface IFlowUpdatedEvent extends IEventEntityBase {
     readonly totalReceiverFlowRate: string;
     readonly userData: string;
     readonly oldFlowRate: string;
-    readonly type: FlowActionType;
+    readonly type: number; // TODO(KK): Can't use the union type here because we get number/Int from subgraph.
     readonly totalAmountStreamedUntilTimestamp: string;
 }
 

@@ -1,5 +1,3 @@
-import { ValidateFunction } from "ajv";
-import { handleError } from "./errorHelper";
 import {
     DataMode,
     IAccountTokenSnapshotFilter,
@@ -8,32 +6,31 @@ import {
     IIndexSubscription,
     IIndexSubscriptionRequestFilter,
     ILightAccountTokenSnapshot,
-    IPaginateResponse,
-    IPaginatedResponse,
-    IPaginateRequest,
     IStream,
     IStreamRequestFilter,
-    ISubgraphResponse,
     ISuperToken,
-    ISuperTokenRequestFilter,
+    ISuperTokenRequestFilter
 } from "./interfaces";
-import { getAccountTokenSnapshotsQuery } from "./queries/aggregateQueries";
+import {GetIndexesDocument, GetIndexesQuery, GetIndexesQueryVariables} from "./subgraph/queries/getIndexes.generated";
 import {
-    getIndexesQuery,
-    getIndexSubscriptionsQuery,
-    getStreamsQuery,
-    getSuperTokensQuery,
-} from "./queries/holQueries";
-import { createPaginationResult, subgraphRequest } from "./queryHelpers";
-import { buildWhereForSubgraphQuery, defaultPaginateOptions } from "./utils";
-import {
-    handleValidatePaginate,
     validateAccountTokenSnapshotRequest,
     validateIndexRequest,
     validateIndexSubscriptionRequest,
     validateStreamRequest,
-    validateSuperTokenRequest,
+    validateSuperTokenRequest
 } from "./validation";
+import {PagedResult, Paging} from "./pagination";
+import {SubgraphClient} from "./subgraph/SubgraphClient";
+import {GetTokensDocument, GetTokensQuery, GetTokensQueryVariables} from "./subgraph/queries/getTokens.generated";
+import {
+    GetIndexSubscriptionsDocument, GetIndexSubscriptionsQuery,
+    GetIndexSubscriptionsQueryVariables
+} from "./subgraph/queries/getIndexSubscriptions.generated";
+import {GetStreamsDocument, GetStreamsQuery, GetStreamsQueryVariables} from "./subgraph/queries/getStreams.generated";
+import {
+    GetAccountTokenSnapshotsDocument, GetAccountTokenSnapshotsQuery,
+    GetAccountTokenSnapshotsQueryVariables
+} from "./subgraph/queries/getAccountTokenSnapshots.generated";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -42,105 +39,91 @@ export interface IQueryOptions {
 
 export default class Query {
     options: IQueryOptions;
+    private subgraphClient: SubgraphClient;
 
     constructor(options: IQueryOptions) {
         this.options = options;
+        this.subgraphClient = new SubgraphClient(this.options.customSubgraphQueriesEndpoint)
     }
-
-    customQuery = async <T, S>(
-        query: string,
-        variables?: S
-    ): Promise<ISubgraphResponse<T>> => {
-        return await subgraphRequest<ISubgraphResponse<T>, S>(
-            this.options.customSubgraphQueriesEndpoint,
-            query,
-            variables
-        );
-    };
-
-    paginatedQuery = async <T, S, U>(
-        filter: T,
-        paginateOptions: IPaginateRequest,
-        validateFunction: ValidateFunction<T>,
-        getQueryFunction: (
-            where: string,
-            paginateOptions: IPaginateResponse
-        ) => string
-    ): Promise<IPaginatedResponse<S[]>> => {
-        if (!validateFunction(filter)) {
-            handleError(
-                "INVALID_OBJECT",
-                "Invalid Filter Object",
-                JSON.stringify(validateFunction.errors)
-            );
-        }
-        handleValidatePaginate(paginateOptions);
-
-        const where = buildWhereForSubgraphQuery(filter);
-        const options = defaultPaginateOptions(paginateOptions);
-        const result = await this.customQuery<S[], U>(
-            getQueryFunction(where, { ...options, first: options.first + 1 })
-        );
-        return createPaginationResult(result.response, options);
-    };
 
     listAllSuperTokens = async (
         filter: ISuperTokenRequestFilter,
-        paginateOptions: IPaginateRequest
-    ): Promise<IPaginatedResponse<ISuperToken[]>> => {
-        return this.paginatedQuery(
-            filter,
-            paginateOptions,
-            validateSuperTokenRequest,
-            getSuperTokensQuery
-        );
+        paging: Paging = new Paging()
+    ): Promise<PagedResult<ISuperToken>> => {
+        validateSuperTokenRequest(filter);
+
+        const response = await this.subgraphClient.request<GetTokensQuery, GetTokensQueryVariables>(GetTokensDocument, {
+            where: {
+                isSuperToken: true,
+                ...filter
+            },
+            skip: paging.skip,
+            first: paging.takePlusOne()
+        });
+
+        return new PagedResult<ISuperToken>(response.result, paging);
     };
 
     listIndexes = async (
         filter: IIndexRequestFilter,
-        paginateOptions: IPaginateRequest
-    ): Promise<IPaginatedResponse<IIndex[]>> => {
-        return this.paginatedQuery(
-            filter,
-            paginateOptions,
-            validateIndexRequest,
-            getIndexesQuery
-        );
+        paging: Paging = new Paging()
+    ): Promise<PagedResult<IIndex>> => {
+        validateIndexRequest(filter);
+
+        const response = await this.subgraphClient.request<GetIndexesQuery, GetIndexesQueryVariables>(GetIndexesDocument, {
+            where: filter,
+            skip: paging.skip,
+            first: paging.takePlusOne()
+        });
+
+        return new PagedResult<IIndex>(response.result, paging);
     };
 
     listIndexSubscriptions = async (
         filter: IIndexSubscriptionRequestFilter,
-        paginateOptions: IPaginateRequest
-    ): Promise<IPaginatedResponse<IIndexSubscription[]>> => {
-        return this.paginatedQuery(
-            filter,
-            paginateOptions,
-            validateIndexSubscriptionRequest,
-            getIndexSubscriptionsQuery
-        );
+        paging: Paging = new Paging()
+    ): Promise<PagedResult<IIndexSubscription>> => {
+        validateIndexSubscriptionRequest(filter);
+
+        const response = await this.subgraphClient.request<GetIndexSubscriptionsQuery, GetIndexSubscriptionsQueryVariables>(GetIndexSubscriptionsDocument, {
+            where: filter,
+            skip: paging.skip,
+            first: paging.takePlusOne()
+        });
+
+        return new PagedResult<IIndexSubscription>(response.result, paging);
     };
 
     listStreams = async (
         filter: IStreamRequestFilter,
-        paginateOptions: IPaginateRequest
-    ): Promise<IPaginatedResponse<IStream[]>> => {
-        return this.paginatedQuery(
-            filter,
-            paginateOptions,
-            validateStreamRequest,
-            getStreamsQuery
-        );
+        paging: Paging = new Paging()
+    ): Promise<PagedResult<IStream>> => {
+        validateStreamRequest(filter);
+
+        const response = await this.subgraphClient.request<GetStreamsQuery, GetStreamsQueryVariables>(GetStreamsDocument, {
+            where: filter,
+            skip: paging.skip,
+            first: paging.takePlusOne()
+        });
+
+        return new PagedResult<IStream>(response.result, paging);
     };
 
     listUserInteractedSuperTokens = async (
         filter: IAccountTokenSnapshotFilter,
-        paginateOptions: IPaginateRequest
-    ): Promise<IPaginatedResponse<ILightAccountTokenSnapshot[]>> => {
-        return this.paginatedQuery(
-            filter,
-            paginateOptions,
-            validateAccountTokenSnapshotRequest,
-            getAccountTokenSnapshotsQuery
-        );
+        paging: Paging = new Paging()
+    ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
+        validateAccountTokenSnapshotRequest(filter);
+
+        const response = await this.subgraphClient.request<GetAccountTokenSnapshotsQuery, GetAccountTokenSnapshotsQueryVariables>(GetAccountTokenSnapshotsDocument, {
+            where: filter,
+            skip: paging.skip,
+            first: paging.takePlusOne()
+        });
+
+        return new PagedResult<ILightAccountTokenSnapshot>(response.result, paging);
     };
 }
+
+
+

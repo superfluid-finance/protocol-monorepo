@@ -32,7 +32,7 @@ export const validateFrameworkConstructorOptions = (
         );
     }
 
-    if (!options.providerOrSigner) {
+    if (!options.provider) {
         handleError(
             "FRAMEWORK_INITIALIZATION",
             "You must pass in a provider when initializing the framework."

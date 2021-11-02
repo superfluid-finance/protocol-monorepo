@@ -24,7 +24,7 @@ export interface IFrameworkOptions {
     networkName?: NetworkName;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
-    providerOrSigner?: ethers.providers.Provider | ethers.Signer;
+    provider?: ethers.providers.Provider;
 }
 
 export interface IFrameworkSettings {
@@ -33,7 +33,7 @@ export interface IFrameworkSettings {
     dataMode: DataMode;
     networkName: NetworkName;
     protocolReleaseVersion: string;
-    providerOrSigner?: ethers.providers.Provider | ethers.Signer;
+    provider: ethers.providers.Provider;
     config: IConfig;
 }
 
@@ -80,7 +80,7 @@ export default class Framework {
         const resolver = new ethers.Contract(
             resolverAddress,
             IResolverABI,
-            options.providerOrSigner
+            options.provider
         ) as IResolver;
 
         try {
@@ -90,7 +90,7 @@ export default class Framework {
             const superfluidLoader = new ethers.Contract(
                 superfluidLoaderAddress,
                 SuperfluidLoaderABI,
-                options.providerOrSigner
+                options.provider
             ) as SuperfluidLoader;
 
             const framework = await superfluidLoader.loadFramework(
@@ -114,7 +114,7 @@ export default class Framework {
                 customSubgraphQueriesEndpoint,
                 dataMode: options.dataMode || "SUBGRAPH_ONLY",
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
-                providerOrSigner: options.providerOrSigner,
+                provider: options.provider!,
                 networkName,
                 config: {
                     hostAddress: framework.superfluid,

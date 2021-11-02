@@ -51,7 +51,7 @@ async function main() {
             "0xd8bD0a1cB028a31AA859A21A3758685a95dE4623", //LINK/USD price feed
             8, //price feed will return 8 decimal value
             "38580246913580", //~100 per mo
-            1638362980,  //,
+            1638362980,  //Dec 1, 2021,
             web3.utils.toWei("28", "ether") //strike price of this call option is $28
         ).encodeABI());
 

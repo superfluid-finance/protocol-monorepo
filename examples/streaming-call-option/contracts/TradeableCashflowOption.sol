@@ -19,7 +19,7 @@ contract TradeableCashflowOption is ERC721, RedirectAllCallOption {
     ISuperToken acceptedToken
   )
     ERC721 ( _name, _symbol )
-    RedirectAllOption (
+    RedirectAllCallOption (
       host,
       cfa,
       acceptedToken,

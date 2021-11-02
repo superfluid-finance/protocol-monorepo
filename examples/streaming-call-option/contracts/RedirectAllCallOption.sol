@@ -28,7 +28,7 @@ import {
     SuperAppBase
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
-contract RedirectAllOption is SuperAppBase {
+contract RedirectAllCallOption is SuperAppBase {
     
     //underlyingAsset for the option 
     ERC20 public _underlyingAsset;

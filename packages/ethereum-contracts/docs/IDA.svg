@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="1578px" preserveAspectRatio="none" style="width:2798px;height:1578px;background:#FFFFFF;" version="1.1" viewBox="0 0 2798 1578" width="2798px" zoomAndPan="magnify"><defs><filter height="300%" id="f1d63wiym4g2zz" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><text fill="#000000" font-family="sans-serif" font-size="18" font-weight="bold" lengthAdjust="spacing" textLength="308" x="1238.5" y="16.708">InstantDistributionAgreement</text><!--MD5=[aa46f249049c12d591b281a201b9ab2d]
+cluster IDAClasses--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="490" style="stroke:#000000;stroke-width:1.5;" width="1721" x="7" y="27.9531"/><path d="M109,27.9531 L109,37.25 L99,47.25 L7,47.25 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="92" x="10" y="41.9482">IDA Classes</text><!--MD5=[29b024739d2bee80c8f19a1943f77d42]
+cluster Example1--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="502.5" style="stroke:#000000;stroke-width:1.5;" width="538" x="1719" y="666.9531"/><path d="M1804,666.9531 L1804,676.25 L1794,686.25 L1719,686.25 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="75" x="1722" y="680.9482">Example1</text><!--MD5=[f69b163ba356b58b705bf535abf645a0]
+cluster E1_Ricochet--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="107" style="stroke:#000000;stroke-width:1.5;" width="194" x="1896" y="1022.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="178" x="1904" y="1037.4482">Ricochet the Publisher</text><!--MD5=[017ec26cf27fa6e88c6c66d82c0c655b]
+cluster E1_Alice--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="122" style="stroke:#000000;stroke-width:1.5;" width="205" x="1767" y="827.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="64" x="1837.5" y="842.9482">E1_Alice</text><!--MD5=[4cdffd64cfdbcbef94ae3b0098ce7181]
+cluster E1_Bob--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="122" style="stroke:#000000;stroke-width:1.5;" width="205" x="2012" y="827.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="56" x="2086.5" y="842.9482">E1_Bob</text><!--MD5=[9547fa2351fb379c12b36f6736d7cdfb]
+cluster Example2--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="937.5" style="stroke:#000000;stroke-width:1.5;" width="489" x="2297" y="628.9531"/><path d="M2382,628.9531 L2382,638.25 L2372,648.25 L2297,648.25 " fill="none" style="stroke:#000000;stroke-width:1.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="75" x="2300" y="642.9482">Example2</text><!--MD5=[c2ab3a054d8ead21ad78ba83c9599727]
+cluster E2_Alice0--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="107" style="stroke:#000000;stroke-width:1.5;" width="163" x="2541" y="835.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="54" x="2595.5" y="850.4482">Alice:0</text><!--MD5=[48731ce97fce44379b715fd685fe2162]
+cluster E2_Alice1--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="122" style="stroke:#000000;stroke-width:1.5;" width="197" x="2535" y="1014.9531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="54" x="2606.5" y="1029.9482">Alice:1</text><!--MD5=[76ae0102b5c757624e23b53ae55f44ca]
+cluster E2_Alice2--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="137" style="stroke:#000000;stroke-width:1.5;" width="211" x="2535" y="1218.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="54" x="2613.5" y="1233.4482">Alice:2</text><!--MD5=[18d252f172c1983789b6aab63411434a]
+cluster E2_Alice3--><rect fill="#FFFFFF" filter="url(#f1d63wiym4g2zz)" height="122" style="stroke:#000000;stroke-width:1.5;" width="211" x="2535" y="1404.4531"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="54" x="2613.5" y="1419.4482">Alice:3</text><!--MD5=[8a41eb2c5a67772b608a6c5a312e36d1]
+class PublisherIDAStates--><rect codeLine="7" fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="60.8047" id="PublisherIDAStates" style="stroke:#A80036;stroke-width:1.5;" width="222" x="324" y="102.9531"/><ellipse cx="371.25" cy="118.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke:#A80036;stroke-width:1.0;"/><path d="M374.2188,124.5938 Q373.6406,124.8906 373,125.0313 Q372.3594,125.1875 371.6563,125.1875 Q369.1563,125.1875 367.8281,123.5469 Q366.5156,121.8906 366.5156,118.7656 Q366.5156,115.6406 367.8281,113.9844 Q369.1563,112.3281 371.6563,112.3281 Q372.3594,112.3281 373,112.4844 Q373.6563,112.6406 374.2188,112.9375 L374.2188,115.6563 Q373.5938,115.0781 373,114.8125 Q372.4063,114.5313 371.7813,114.5313 Q370.4375,114.5313 369.75,115.6094 Q369.0625,116.6719 369.0625,118.7656 Q369.0625,120.8594 369.75,121.9375 Q370.4375,123 371.7813,123 Q372.4063,123 373,122.7344 Q373.5938,122.4531 374.2188,121.875 L374.2188,124.5938 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="119" x="391.75" y="123.1074">PublisherIDAStates</text><line style="stroke:#A80036;stroke-width:1.5;" x1="325" x2="545" y1="134.9531" y2="134.9531"/><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="332" y="142.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="142" x="344" y="149.1636">uint256 publisherDeposit</text><text fill="#000000" font-family="sans-serif" font-size="11" font-style="italic" lengthAdjust="spacing" textLength="50" x="490" y="149.1636">@1&lt;&lt;32</text><line style="stroke:#A80036;stroke-width:1.5;" x1="325" x2="545" y1="155.7578" y2="155.7578"/><!--MD5=[608ede2d2ce59985a0845a062feabc0d]
+class SubscriberIDAStates--><rect codeLine="11" fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="73.6094" id="SubscriberIDAStates" style="stroke:#A80036;stroke-width:1.5;" width="257" x="31.5" y="96.4531"/><ellipse cx="91.75" cy="112.4531" fill="#ADD1B2" rx="11" ry="11" style="stroke:#A80036;stroke-width:1.0;"/><path d="M94.7188,118.0938 Q94.1406,118.3906 93.5,118.5313 Q92.8594,118.6875 92.1563,118.6875 Q89.6563,118.6875 88.3281,117.0469 Q87.0156,115.3906 87.0156,112.2656 Q87.0156,109.1406 88.3281,107.4844 Q89.6563,105.8281 92.1563,105.8281 Q92.8594,105.8281 93.5,105.9844 Q94.1563,106.1406 94.7188,106.4375 L94.7188,109.1563 Q94.0938,108.5781 93.5,108.3125 Q92.9063,108.0313 92.2813,108.0313 Q90.9375,108.0313 90.25,109.1094 Q89.5625,110.1719 89.5625,112.2656 Q89.5625,114.3594 90.25,115.4375 Q90.9375,116.5 92.2813,116.5 Q92.9063,116.5 93.5,116.2344 Q94.0938,115.9531 94.7188,115.375 L94.7188,118.0938 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="128" x="112.25" y="116.6074">SubscriberIDAStates</text><line style="stroke:#A80036;stroke-width:1.5;" x1="32.5" x2="287.5" y1="128.4531" y2="128.4531"/><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="39.5" y="136.4531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="114" x="51.5" y="142.6636">uint256 subsBitmap</text><text fill="#000000" font-family="sans-serif" font-size="11" font-style="italic" lengthAdjust="spacing" textLength="18" x="169.5" y="142.6636">@0</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="39.5" y="149.2578"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="78" x="51.5" y="155.4683">[bytes32] iIDs</text><text fill="#000000" font-family="sans-serif" font-size="11" font-style="italic" lengthAdjust="spacing" textLength="149" x="133.5" y="155.4683">@[1&lt;&lt;128..1&lt;&lt;128+256]</text><line style="stroke:#A80036;stroke-width:1.5;" x1="32.5" x2="287.5" y1="162.0625" y2="162.0625"/><!--MD5=[15b9a87b033c6044cf0e9bbdacb18726]
+class Index--><rect codeLine="16" fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="99.2188" id="Index" style="stroke:#A80036;stroke-width:1.5;" width="179" x="1505.5" y="83.9531"/><ellipse cx="1574.25" cy="99.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke:#A80036;stroke-width:1.0;"/><path d="M1577.2188,105.5938 Q1576.6406,105.8906 1576,106.0313 Q1575.3594,106.1875 1574.6563,106.1875 Q1572.1563,106.1875 1570.8281,104.5469 Q1569.5156,102.8906 1569.5156,99.7656 Q1569.5156,96.6406 1570.8281,94.9844 Q1572.1563,93.3281 1574.6563,93.3281 Q1575.3594,93.3281 1576,93.4844 Q1576.6563,93.6406 1577.2188,93.9375 L1577.2188,96.6563 Q1576.5938,96.0781 1576,95.8125 Q1575.4063,95.5313 1574.7813,95.5313 Q1573.4375,95.5313 1572.75,96.6094 Q1572.0625,97.6719 1572.0625,99.7656 Q1572.0625,101.8594 1572.75,102.9375 Q1573.4375,104 1574.7813,104 Q1575.4063,104 1576,103.7344 Q1576.5938,103.4531 1577.2188,102.875 L1577.2188,105.5938 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="33" x="1594.75" y="104.1074">Index</text><line style="stroke:#A80036;stroke-width:1.5;" x1="1506.5" x2="1683.5" y1="115.9531" y2="115.9531"/><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1513.5" y="123.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="107" x="1525.5" y="130.1636">uint128 indexValue</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1513.5" y="136.7578"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="153" x="1525.5" y="142.9683">uint128 totalUnitsApproved</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1513.5" y="149.5625"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="145" x="1525.5" y="155.7729">uint128 totalUnitsPending</text><line style="stroke:#A80036;stroke-width:1.5;" x1="1506.5" x2="1683.5" y1="162.3672" y2="162.3672"/><ellipse cx="1516.5" cy="173.3672" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="57" x="1525.5" y="176.5776">bytes iID()</text><path d="M1221.5,115.9531 L1221.5,141.0859 A0,0 0 0 0 1221.5,141.0859 L1470.5,141.0859 A0,0 0 0 0 1470.5,141.0859 L1470.5,133.9531 L1509.5,172.7695 L1470.5,125.9531 L1470.5,125.9531 L1460.5,115.9531 L1221.5,115.9531 A0,0 0 0 0 1221.5,115.9531 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M1460.5,115.9531 L1460.5,125.9531 L1470.5,125.9531 L1460.5,115.9531 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="228" x="1227.5" y="133.02">sha3("publisher", publisher, indexId)</text><!--MD5=[edbee5699fd167718914de6efbd8d21c]
+class IndexSubscription--><rect codeLine="26" fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="124.8281" id="IndexSubscription" style="stroke:#A80036;stroke-width:1.5;" width="154" x="1032" y="70.9531"/><ellipse cx="1051.95" cy="86.9531" fill="#ADD1B2" rx="11" ry="11" style="stroke:#A80036;stroke-width:1.0;"/><path d="M1054.9188,92.5938 Q1054.3406,92.8906 1053.7,93.0313 Q1053.0594,93.1875 1052.3563,93.1875 Q1049.8563,93.1875 1048.5281,91.5469 Q1047.2156,89.8906 1047.2156,86.7656 Q1047.2156,83.6406 1048.5281,81.9844 Q1049.8563,80.3281 1052.3563,80.3281 Q1053.0594,80.3281 1053.7,80.4844 Q1054.3563,80.6406 1054.9188,80.9375 L1054.9188,83.6563 Q1054.2938,83.0781 1053.7,82.8125 Q1053.1063,82.5313 1052.4813,82.5313 Q1051.1375,82.5313 1050.45,83.6094 Q1049.7625,84.6719 1049.7625,86.7656 Q1049.7625,88.8594 1050.45,89.9375 Q1051.1375,91 1052.4813,91 Q1053.1063,91 1053.7,90.7344 Q1054.2938,90.4531 1054.9188,89.875 L1054.9188,92.5938 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="111" x="1067.05" y="91.1074">IndexSubscription</text><line style="stroke:#A80036;stroke-width:1.5;" x1="1033" x2="1185" y1="102.9531" y2="102.9531"/><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1040" y="110.9531"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="70" x="1052" y="117.1636">uint32 subId</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1040" y="123.7578"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="104" x="1052" y="129.9683">address publisher</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1040" y="136.5625"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="79" x="1052" y="142.7729">uint32 indexId</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1040" y="149.3672"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="128" x="1052" y="155.5776">uint128 lastIndexValue</text><rect fill="none" height="6" style="stroke:#C82930;stroke-width:1.0;" width="6" x="1040" y="162.1719"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="74" x="1052" y="168.3823">uint128 units</text><line style="stroke:#A80036;stroke-width:1.5;" x1="1033" x2="1185" y1="174.9766" y2="174.9766"/><ellipse cx="1043" cy="185.9766" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="61" x="1052" y="189.187">bytes sID()</text><path d="M581,80.9531 L581,106.0859 A0,0 0 0 0 581,106.0859 L731,106.0859 A0,0 0 0 0 731,106.0859 L731,98.9531 L1036,113.3555 L731,90.9531 L731,90.9531 L721,80.9531 L581,80.9531 A0,0 0 0 0 581,80.9531 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M721,80.9531 L721,90.9531 L731,90.9531 L721,80.9531 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="129" x="587" y="98.02">slotId in subsBitmap</text><path d="M581,116.0859 L581,141.2188 A0,0 0 0 0 581,141.2188 L997,141.2188 A0,0 0 0 0 997,141.2188 L997,134.0859 L1036,151.7695 L997,126.0859 L997,126.0859 L987,116.0859 L581,116.0859 A0,0 0 0 0 581,116.0859 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M987,116.0859 L987,126.0859 L997,126.0859 L987,116.0859 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="395" x="587" y="133.1528">a snapshot of Index::indexValue, for calculating the RTB of IDA</text><path d="M581,151.2188 L581,176.3516 A0,0 0 0 0 581,176.3516 L828,176.3516 A0,0 0 0 0 828,176.3516 L828,169.2188 L1036,185.3789 L828,161.2188 L828,161.2188 L818,151.2188 L581,151.2188 A0,0 0 0 0 581,151.2188 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M818,151.2188 L818,161.2188 L828,161.2188 L818,151.2188 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="226" x="587" y="168.2856">sha3("subscription", subscriber, iID)</text><!--MD5=[c6e4d4faf16fbf616b59a4887bec745e]
+class IDA--><rect codeLine="44" fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="217.6563" id="IDA" style="stroke:#A80036;stroke-width:1.5;" width="551" x="748.5" y="266.4531"/><ellipse cx="1009.75" cy="282.4531" fill="#ADD1B2" rx="11" ry="11" style="stroke:#A80036;stroke-width:1.0;"/><path d="M1012.7188,288.0938 Q1012.1406,288.3906 1011.5,288.5313 Q1010.8594,288.6875 1010.1563,288.6875 Q1007.6563,288.6875 1006.3281,287.0469 Q1005.0156,285.3906 1005.0156,282.2656 Q1005.0156,279.1406 1006.3281,277.4844 Q1007.6563,275.8281 1010.1563,275.8281 Q1010.8594,275.8281 1011.5,275.9844 Q1012.1563,276.1406 1012.7188,276.4375 L1012.7188,279.1563 Q1012.0938,278.5781 1011.5,278.3125 Q1010.9063,278.0313 1010.2813,278.0313 Q1008.9375,278.0313 1008.25,279.1094 Q1007.5625,280.1719 1007.5625,282.2656 Q1007.5625,284.3594 1008.25,285.4375 Q1008.9375,286.5 1010.2813,286.5 Q1010.9063,286.5 1011.5,286.2344 Q1012.0938,285.9531 1012.7188,285.375 L1012.7188,288.0938 Z " fill="#000000"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="20" x="1030.25" y="286.6074">IDA</text><line style="stroke:#A80036;stroke-width:1.5;" x1="749.5" x2="1298.5" y1="298.4531" y2="298.4531"/><ellipse cx="759.5" cy="309.4531" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="256" x="768.5" y="312.6636">realtimeBalanceOf(subscriber: Account): RTB</text><line style="stroke:#A80036;stroke-width:1.0;" x1="749.5" x2="1298.5" y1="319.2578" y2="319.2578"/><ellipse cx="759.5" cy="330.2578" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="290" x="768.5" y="333.4683">createIndex(publisher: Account, indexId: uint32):  ()</text><ellipse cx="759.5" cy="343.0625" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="290" x="768.5" y="346.2729">getIndex(publisher: Account, indexId: uint32): Index</text><ellipse cx="759.5" cy="355.8672" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="415" x="768.5" y="359.0776">updateIndex(publisher: Account, index: Index, indexValue: uint128): Index</text><ellipse cx="759.5" cy="368.6719" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="360" x="768.5" y="371.8823">distribute(publisher: Account, index: Index, amount: uint256): ()</text><line style="stroke:#A80036;stroke-width:1.0;" x1="749.5" x2="1298.5" y1="378.4766" y2="378.4766"/><ellipse cx="759.5" cy="389.4766" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="525" x="768.5" y="392.687">updateSubscription(publisher: Account, index: Index, subscriber: Account, uinits: uint128): ()</text><ellipse cx="759.5" cy="402.2813" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="432" x="768.5" y="405.4917">deleteSubscription(publisher: Account, index: Index, subscriber: Account): ()</text><line style="stroke:#A80036;stroke-width:1.0;" x1="749.5" x2="1298.5" y1="412.0859" y2="412.0859"/><ellipse cx="759.5" cy="423.0859" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="330" x="768.5" y="426.2964">approveSubscription(subscriber: Account, index: Index): ()</text><ellipse cx="759.5" cy="435.8906" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="322" x="768.5" y="439.1011">revokeSubscription(subscriber: Account, index: Index): ()</text><ellipse cx="759.5" cy="448.6953" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="395" x="768.5" y="451.9058">getSubscription(subscriber: Account, index: Index): IndexSubscription</text><ellipse cx="759.5" cy="461.5" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="333" x="768.5" y="464.7104">listSubscriptions(subscriber: Account): [IndexSubscription]</text><ellipse cx="759.5" cy="474.3047" fill="#84BE84" rx="3" ry="3" style="stroke:#038048;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="11" lengthAdjust="spacing" textLength="243" x="768.5" y="477.5151">claim(subscriber: Account, index: Index): ()</text><path d="M116.5,256.9531 L116.5,357.75 A0,0 0 0 0 116.5,357.75 L601.5,357.75 A0,0 0 0 0 601.5,357.75 L601.5,311.3516 L752.5,460.9023 L601.5,303.3516 L601.5,266.9531 L591.5,256.9531 L116.5,256.9531 A0,0 0 0 0 116.5,256.9531 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M591.5,256.9531 L591.5,266.9531 L601.5,266.9531 L591.5,256.9531 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="304" x="154.5" y="274.02">let [subId...] = subsBitmap subscriber</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="392" x="186.5" y="289.1528">[iID...] = SlotsBitmapLibrary.listData [subId...]</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="344" x="186.5" y="304.2856">[sID...] = map (to_sID subscriber) [iID...]</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="400" x="186.5" y="319.4185">[subscriptions...] = map getAgreementData [sID...]</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="48" x="154.5" y="334.5513">return</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="328" x="186.5" y="349.6841">[subscriptions...] :: [IndexSubscription]</text><path d="M116.5,367.75 L116.5,483.6797 A0,0 0 0 0 116.5,483.6797 L713.5,483.6797 A0,0 0 0 0 713.5,483.6797 L713.5,429.7148 L752.5,308.8555 L713.5,421.7148 L713.5,377.75 L703.5,367.75 L116.5,367.75 A0,0 0 0 0 116.5,367.75 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M703.5,367.75 L703.5,377.75 L713.5,377.75 L703.5,367.75 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="40" x="122.5" y="384.8169">RTB {</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="168" x="154.5" y="399.9497">availableBalance: sum</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="512" x="186.5" y="415.0825">(sub -&gt; sub.units * (sub.lastIndexValue - sub.index.indexValue))</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="256" x="186.5" y="430.2153">0 (listSubscriptions subscriber)</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="216" x="154.5" y="445.3481">deposit: publisherDeposit $</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="224" x="186.5" y="460.481">PublisherIDAStates publisher</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="8" x="122.5" y="475.6138">}</text><path d="M1788.5,709.9531 L1788.5,735.0859 L2199.5,735.0859 L2199.5,719.9531 L2189.5,709.9531 L1788.5,709.9531 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M2189.5,709.9531 L2189.5,719.9531 L2199.5,719.9531 L2189.5,709.9531 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="390" x="1794.5" y="727.02">Alice and Bob both subscribed to the Ricochet index</text><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="33.6094" style="stroke:#A80036;stroke-width:1.5;" width="79" x="1970.5" y="1069.4531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="1977.5" y="1082.5918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="1970.5" x2="2049.5" y1="1087.4219" y2="1087.4219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="34" x="1975.5" y="1098.7041">1&lt;&lt;32</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2019.5" y="1098.7041">0</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2014.5" x2="2014.5" y1="1087.4219" y2="1103.0625"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="49.25" style="stroke:#A80036;stroke-width:1.5;" width="122" x="1818" y="874.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="1846.5" y="888.0918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="1818" x2="1940" y1="892.9219" y2="892.9219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="1840" y="904.2041">0</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="12" x="1873" y="904.2041">1b</text><line style="stroke:#A80036;stroke-width:1.0;" x1="1868" x2="1868" y1="892.9219" y2="908.5625"/><line style="stroke:#A80036;stroke-width:1.0;" x1="1818" x2="1940" y1="908.5625" y2="908.5625"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="40" x="1823" y="919.8447">1&lt;&lt;128</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="62" x="1873" y="919.8447">iID(Ricochet)</text><line style="stroke:#A80036;stroke-width:1.0;" x1="1868" x2="1868" y1="908.5625" y2="924.2031"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="49.25" style="stroke:#A80036;stroke-width:1.5;" width="122" x="2063" y="874.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="2091.5" y="888.0918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2063" x2="2185" y1="892.9219" y2="892.9219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2085" y="904.2041">0</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="12" x="2118" y="904.2041">1b</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2113" x2="2113" y1="892.9219" y2="908.5625"/><line style="stroke:#A80036;stroke-width:1.0;" x1="2063" x2="2185" y1="908.5625" y2="908.5625"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="40" x="2068" y="919.8447">1&lt;&lt;128</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="62" x="2118" y="919.8447">iID(Ricochet)</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2113" x2="2113" y1="908.5625" y2="924.2031"/><path d="M2340.5,671.9531 L2340.5,772.75 L2761.5,772.75 L2761.5,681.9531 L2751.5,671.9531 L2340.5,671.9531 " fill="#FBFB77" filter="url(#f1d63wiym4g2zz)" style="stroke:#A80036;stroke-width:1.0;"/><path d="M2751.5,671.9531 L2751.5,681.9531 L2761.5,681.9531 L2751.5,671.9531 " fill="#FBFB77" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" font-weight="bold" lengthAdjust="spacing" textLength="276" x="2346.5" y="689.02">An example of multiple subscriptions</text><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="0" x="2350.5" y="704.1528"/><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="264" x="2346.5" y="719.2856">-&gt; Alice initial state =&gt; Alice:0</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="320" x="2346.5" y="734.4185">-&gt; Alice subscribes to Index1 =&gt; Alice:1</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="320" x="2346.5" y="749.5513">-&gt; Alice subscribes to Index2 =&gt; Alice:2</text><text fill="#000000" font-family="monospace" font-size="13" lengthAdjust="spacing" textLength="400" x="2346.5" y="764.6841">-&gt; Alice revokes subscription to Index1 =&gt; Alice:3</text><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="55" x="2452.5" y="1279.4531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="41" x="2459.5" y="1292.5918">Index1</text><line style="stroke:#A80036;stroke-width:1.5;" x1="2453.5" x2="2506.5" y1="1297.4219" y2="1297.4219"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="33.9688" style="stroke:#A80036;stroke-width:1.5;" width="55" x="2452.5" y="1457.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="41" x="2459.5" y="1471.0918">Index2</text><line style="stroke:#A80036;stroke-width:1.5;" x1="2453.5" x2="2506.5" y1="1475.9219" y2="1475.9219"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="33.6094" style="stroke:#A80036;stroke-width:1.5;" width="79" x="2592.5" y="882.4531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="2599.5" y="895.5918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2592.5" x2="2671.5" y1="900.4219" y2="900.4219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2597.5" y="911.7041">0</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2613.5" y="911.7041">0</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2608.5" x2="2608.5" y1="900.4219" y2="916.0625"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="49.25" style="stroke:#A80036;stroke-width:1.5;" width="114" x="2586" y="1061.9531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="2610.5" y="1075.0918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2700" y1="1079.9219" y2="1079.9219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2608" y="1091.2041">0</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="12" x="2641" y="1091.2041">1b</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2636" x2="2636" y1="1079.9219" y2="1095.5625"/><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2700" y1="1095.5625" y2="1095.5625"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="40" x="2591" y="1106.8447">1&lt;&lt;128</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="54" x="2641" y="1106.8447">iID(Index1)</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2636" x2="2636" y1="1095.5625" y2="1111.2031"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="64.8906" style="stroke:#A80036;stroke-width:1.5;" width="128" x="2586" y="1265.4531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="2617.5" y="1278.5918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2714" y1="1283.4219" y2="1283.4219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2615" y="1294.7041">0</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="18" x="2655" y="1294.7041">11b</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2650" x2="2650" y1="1283.4219" y2="1299.0625"/><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2714" y1="1299.0625" y2="1299.0625"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="40" x="2598" y="1310.3447">1&lt;&lt;128</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="54" x="2655" y="1310.3447">iID(Index1)</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2650" x2="2650" y1="1299.0625" y2="1314.7031"/><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2714" y1="1314.7031" y2="1314.7031"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="54" x="2591" y="1325.9854">1&lt;&lt;128+1</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="54" x="2655" y="1325.9854">iID(Index2)</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2650" x2="2650" y1="1314.7031" y2="1330.3438"/><rect fill="#FEFECE" filter="url(#f1d63wiym4g2zz)" height="49.25" style="stroke:#A80036;stroke-width:1.5;" width="128" x="2586" y="1451.4531"/><text fill="#000000" font-family="sans-serif" font-size="12" lengthAdjust="spacing" textLength="65" x="2617.5" y="1464.5918">IDA States</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2714" y1="1469.4219" y2="1469.4219"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="6" x="2615" y="1480.7041">0</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="18" x="2655" y="1480.7041">10b</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2650" x2="2650" y1="1469.4219" y2="1485.0625"/><line style="stroke:#A80036;stroke-width:1.0;" x1="2586" x2="2714" y1="1485.0625" y2="1485.0625"/><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="54" x="2591" y="1496.3447">1&lt;&lt;128+1</text><text fill="#000000" font-family="sans-serif" font-size="10" lengthAdjust="spacing" textLength="54" x="2655" y="1496.3447">iID(Index2)</text><line style="stroke:#A80036;stroke-width:1.0;" x1="2650" x2="2650" y1="1485.0625" y2="1500.7031"/><!--MD5=[644ec53568afcc98738a5afdfebda662]
+link Index$$$LEFT to Index--><!--MD5=[9883dff24ec89be8b0c5f5680166ae51]
+link IndexSubscription$$$LEFT to IndexSubscription--><!--MD5=[7d52d8608768183b03f10ee3722a037c]
+link IDA$$$LEFT to IDA--><!--MD5=[41542555b09a13ba3b8ab2a3345a3a74]
+reverse link SubscriberIDAStates to IDA--><!--MD5=[09ee8d93903abc883068b61fa720f79c]
+reverse link PublisherIDAStates to IDA--><!--MD5=[b35db8b5921032812998664c12cce144]
+reverse link Index to IDA--><!--MD5=[ad3d50e05fd8b91edba216e679c70f32]
+reverse link IndexSubscription to IDA--><!--MD5=[7f38255118dc72504258f7d00d1e7a1b]
+link E1_Note to E1_Alice--><!--MD5=[6ead57f689ae4ffcefc8bb8fe74e8950]
+link E1_Note to E1_Bob--><!--MD5=[f40a19d9c4afdd42d586f94d2e1ecf0e]
+link E1_Bob to E1_Ricochet--><path d="M2011.9244,908.149 C2011.7734,908.3158 2011.6207,908.4846 2011.4662,908.6556 C2011.1572,908.9976 2010.8413,909.3481 2010.5188,909.7069 C2005.3581,915.4475 1998.495,923.3156 1990.9625,932.5756 C1975.8975,951.0956 1958.155,975.1831 1946,998.9531 C1943.8025,1003.2494 1941.7413,1007.7589 1939.8155,1012.3671 C1938.8526,1014.6712 1937.9236,1016.9999 1937.0284,1019.339 C1936.8046,1019.9237 1936.5829,1020.5091 1936.3633,1021.095 C1936.2535,1021.3879 1936.1442,1021.6809 1936.0355,1021.974 C1935.9811,1022.1206 1935.9269,1022.2671 1935.8728,1022.4137 " fill="none" id="E1_Bob-to-E1_Ricochet" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="1935.8728,1022.4137,1942.7418,1015.3556,1937.6041,1017.723,1935.2367,1012.5854,1935.8728,1022.4137" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="61" x="1960" y="987.02">subscribe</text><!--MD5=[f5c7cfb200ed94f6fa229d0a1179340e]
+link E1_Alice to E1_Ricochet--><path d="M1786.3993,950.2412 C1786.4428,950.3532 1786.4865,950.4651 1786.5303,950.5769 C1787.2318,952.3665 1787.9739,954.1411 1788.7588,955.8887 C1790.3288,959.3838 1792.07,962.7706 1794,965.9531 C1813.54,998.1681 1844.1275,1027.3781 1870.1538,1048.7369 C1876.6603,1054.0766 1882.8818,1058.9255 1888.5743,1063.2081 C1889.9974,1064.2787 1891.3875,1065.314 1892.7407,1066.3126 C1893.4173,1066.812 1894.0847,1067.3021 1894.7424,1067.783 C1895.0712,1068.0235 1895.3976,1068.2616 1895.7216,1068.4974 " fill="none" id="E1_Alice-to-E1_Ricochet" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="1895.7216,1068.4974,1890.7989,1059.967,1891.679,1065.555,1886.091,1066.4351,1895.7216,1068.4974" style="stroke:#A80036;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="61" x="1811" y="987.02">subscribe</text><!--MD5=[dabf201251db4ed0fd1ed941134a1e2b]
+link E2_Alice1 to E2_Index1--><path codeLine="148" d="M2534.9002,1113.3202 C2534.6308,1114.2142 2534.3561,1115.1256 2534.0764,1116.0536 C2533.5171,1117.9096 2532.9377,1119.832 2532.3402,1121.8146 C2531.1451,1125.7798 2529.8775,1129.986 2528.5521,1134.3835 C2525.9014,1143.1784 2523.02,1152.7384 2520.0275,1162.6669 C2508.0575,1202.3806 2494.31,1247.9881 2486.44,1274.0931 " fill="none" id="E2_Alice1-to-E2_Index1" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="2484.9,1279.1931,2491.3277,1271.7309,2486.3433,1274.406,2483.6682,1269.4216,2484.9,1279.1931" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[3a44c9600d6d7a6f30845b3f29e7480f]
+link E2_Alice2 to E2_Index1--><path codeLine="157" d="M2534.9031,1296.4531 C2534.8644,1296.4531 2534.8258,1296.4531 2534.7871,1296.4531 C2534.7097,1296.4531 2534.6323,1296.4531 2534.5549,1296.4531 C2534.4001,1296.4531 2534.2454,1296.4531 2534.0906,1296.4531 C2533.7811,1296.4531 2533.4715,1296.4531 2533.162,1296.4531 C2532.543,1296.4531 2531.9239,1296.4531 2531.3049,1296.4531 C2530.067,1296.4531 2528.8291,1296.4531 2527.5913,1296.4531 C2522.64,1296.4531 2517.69,1296.4531 2512.74,1296.4531 " fill="none" id="E2_Alice2-to-E2_Index1" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="2507.56,1296.4531,2516.56,1300.4531,2512.56,1296.4531,2516.56,1292.4531,2507.56,1296.4531" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[aa3cc22822adef521efb77eb0a9cf16d]
+link E2_Alice2 to E2_Index2--><path codeLine="158" d="M2542.982,1355.5656 C2542.9603,1355.6924 2542.9385,1355.8191 2542.9164,1355.9457 C2542.8724,1356.1991 2542.8275,1356.4523 2542.7818,1356.7052 C2542.5991,1357.7171 2542.4037,1358.7258 2542.1948,1359.7297 C2541.3592,1363.7455 2540.3088,1367.6856 2539,1371.4531 C2535.97,1380.1931 2531.9,1380.6131 2527,1388.4531 C2513.54,1409.9831 2499.73,1435.6131 2490.59,1453.1631 " fill="none" id="E2_Alice2-to-E2_Index2" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="2488.14,1457.8931,2495.8298,1451.7395,2490.4387,1453.4528,2488.7254,1448.0617,2488.14,1457.8931" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[2897e5fbbb63af03c819dfacbf86ce98]
+link E2_Alice3 to E2_Index2--><path codeLine="166" d="M2534.9031,1474.9531 C2534.8644,1474.9531 2534.8258,1474.9531 2534.7871,1474.9531 C2534.7097,1474.9531 2534.6323,1474.9531 2534.5549,1474.9531 C2534.4001,1474.9531 2534.2454,1474.9531 2534.0906,1474.9531 C2533.7811,1474.9531 2533.4715,1474.9531 2533.162,1474.9531 C2532.543,1474.9531 2531.9239,1474.9531 2531.3049,1474.9531 C2530.067,1474.9531 2528.8291,1474.9531 2527.5913,1474.9531 C2522.64,1474.9531 2517.69,1474.9531 2512.74,1474.9531 " fill="none" id="E2_Alice3-to-E2_Index2" style="stroke:#A80036;stroke-width:1.0;"/><polygon fill="#A80036" points="2507.56,1474.9531,2516.56,1478.9531,2512.56,1474.9531,2516.56,1470.9531,2507.56,1474.9531" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[8d1509acd1415cc0b4a6db7e443bc879]
+link E2_Note to E2_Alice0--><!--MD5=[8ebaf65a41cf2312c13c9db12ef19378]
+link E2_Alice0 to E2_Alice1--><path d="M2547.5944,942.8739 C2547.5846,943.1759 2547.5748,943.4789 2547.5649,943.7828 C2547.407,948.6463 2547.2411,953.7561 2547.0699,959.0301 C2546.7275,969.578 2546.3638,980.7828 2546,991.9869 C2545.8181,997.5889 2545.6363,1003.1908 2545.457,1008.7103 C2545.4122,1010.0901 2545.3676,1011.4649 2545.3232,1012.8332 C2545.301,1013.5173 2545.2788,1014.1998 2545.2567,1014.8806 " fill="none" id="E2_Alice0-to-E2_Alice1" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="2545.2567,1014.8806,2549.5467,1006.0152,2545.419,1009.8832,2541.5509,1005.7555,2545.2567,1014.8806" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[8b65bde252320f437abb9e87b13b32f4]
+link E2_Alice1 to E2_Alice2--><path d="M2543,1137.567 C2543,1137.9125 2543,1138.2592 2543,1138.6068 C2543,1139.3021 2543,1140.0016 2543,1140.705 C2543,1142.1119 2543,1143.5348 2543,1144.9721 C2543,1147.8468 2543,1150.7795 2543,1153.7586 C2543,1165.6748 2543,1178.3331 2543,1190.9906 C2543,1197.3194 2543,1203.6479 2543,1209.8834 C2543,1211.4423 2543,1212.9954 2543,1214.5412 C2543,1215.3141 2543,1216.0851 2543,1216.8542 C2543,1217.2388 2543,1217.6228 2543,1218.0063 " fill="none" id="E2_Alice1-to-E2_Alice2" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="2543,1218.0063,2547,1209.0063,2543,1213.0063,2539,1209.0063,2543,1218.0063" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[fac297e7f12d879099356d14267b9bef]
+link E2_Alice2 to E2_Alice3--><path d="M2543,1356.1895 C2543,1356.8232 2543,1357.4592 2543,1358.0973 C2543,1359.3736 2543,1360.6584 2543,1361.9506 C2543,1364.535 2543,1367.1487 2543,1369.782 C2543,1375.0486 2543,1380.3934 2543,1385.7381 C2543,1391.0828 2543,1396.4273 2543,1401.6933 C2543,1402.3516 2543,1403.0086 2543,1403.6642 C2543,1403.8281 2543,1403.9919 2543,1404.1557 " fill="none" id="E2_Alice2-to-E2_Alice3" style="stroke:#A80036;stroke-width:1.0;stroke-dasharray:7.0,7.0;"/><polygon fill="#A80036" points="2543,1404.1557,2547,1395.1557,2543,1399.1557,2539,1395.1557,2543,1404.1557" style="stroke:#A80036;stroke-width:1.0;"/><!--MD5=[39cd255403fb182532c38d8a3ca3b9fe]
+link IDAClasses to Example1--><!--MD5=[b6a1c2dc2596d097752892f8d0939daa]
+link Example1 to Example2--><!--MD5=[405828f3f9cf95703dd16df13f505d26]
+@startuml
+
+title <b>InstantDistributionAgreement</b>
+
+'left to right direction
+
+frame "IDA Classes" as IDAClasses {
+    class PublisherIDAStates {
+        - uint256 publisherDeposit //@1<<32//
+    }
+
+    class SubscriberIDAStates {
+        - uint256 subsBitmap //@0//
+        - [bytes32] iIDs //@[1<<128..1<<128+256]//
+    }
+
+    class Index {
+        + bytes iID()
+        - uint128 indexValue
+        - uint128 totalUnitsApproved
+        - uint128 totalUnitsPending
+    }
+    note left of Index::iID
+        sha3("publisher", publisher, indexId)
+    end note
+
+    class IndexSubscription {
+        + bytes sID()
+        - uint32 subId
+        - address publisher
+        - uint32 indexId
+        - uint128 lastIndexValue
+        - uint128 units
+    }
+    note left of IndexSubscription::subId
+        slotId in subsBitmap
+    end note
+    note left of IndexSubscription::lastIndexValue
+        a snapshot of Index::indexValue, for calculating the RTB of IDA
+    end note
+    note left of IndexSubscription::sID
+        sha3("subscription", subscriber, iID)
+    end note
+
+    class IDA {
+        + realtimeBalanceOf(subscriber: Account): RTB
+        - -
+        + createIndex(publisher: Account, indexId: uint32):  ()
+        + getIndex(publisher: Account, indexId: uint32): Index
+        + updateIndex(publisher: Account, index: Index, indexValue: uint128): Index
+        + distribute(publisher: Account, index: Index, amount: uint256): ()
+        - -
+        + updateSubscription(publisher: Account, index: Index, subscriber: Account, uinits: uint128): ()
+        + deleteSubscription(publisher: Account, index: Index, subscriber: Account): ()
+        - -
+        + approveSubscription(subscriber: Account, index: Index): ()
+        + revokeSubscription(subscriber: Account, index: Index): ()
+        + getSubscription(subscriber: Account, index: Index): IndexSubscription
+        + listSubscriptions(subscriber: Account): [IndexSubscription]
+        + claim(subscriber: Account, index: Index): ()
+    }
+    note left of IDA::listSubscriptions
+    <code>
+        let [subId...] = subsBitmap subscriber
+            [iID...] = SlotsBitmapLibrary.listData [subId...]
+            [sID...] = map (to_sID subscriber) [iID...]
+            [subscriptions...] = map getAgreementData [sID...]
+        return
+            [subscriptions...] :: [IndexSubscription]
+    </code>
+    end note
+    note left of IDA::realtimeBalanceOf
+    <code>
+    RTB {
+        availableBalance: sum
+            (sub -> sub.units * (sub.lastIndexValue - sub.index.indexValue))
+            0 (listSubscriptions subscriber)
+        deposit: publisherDeposit $
+            PublisherIDAStates publisher
+    }
+    </code>
+    end note
+
+    ' Layout
+    IDA -up[hidden]-> SubscriberIDAStates
+    IDA -up[hidden]-> PublisherIDAStates
+    IDA -up[hidden]-> Index
+    IDA -up[hidden]-> IndexSubscription
+}
+
+frame Example1 {
+    note as E1_Note
+        **Alice and Bob both subscribed to the Ricochet index**
+    end note
+
+    rectangle "Ricochet the Publisher" as E1_Ricochet {
+        map "IDA States" as PublisherStates {
+             1<<32 => 0
+        }
+    }
+
+    rectangle E1_Alice {
+        map "IDA States" as E1_AliceStates {
+            0 => 1b
+            1<<128 => iID(Ricochet)
+        }
+    }
+
+    rectangle E1_Bob {
+        map "IDA States" as E1_BobStates {
+            0 => 1b
+            1<<128 => iID(Ricochet)
+        }
+    }
+
+    'Layout
+    E1_Note -down[hidden]-> E1_Alice
+    E1_Note -down[hidden]-> E1_Bob
+    E1_Bob -down-> E1_Ricochet: subscribe
+    E1_Alice -down-> E1_Ricochet: subscribe
+}
+
+frame Example2 {
+    note as E2_Note
+    <b>An example of multiple subscriptions</b>
+
+    <code>
+    -> Alice initial state => Alice:0
+    -> Alice subscribes to Index1 => Alice:1
+    -> Alice subscribes to Index2 => Alice:2
+    -> Alice revokes subscription to Index1 => Alice:3
+    end note
+
+    object "Index1" as E2_Index1
+    object "Index2" as E2_Index2
+
+    rectangle "Alice:0" as E2_Alice0 {
+        map "IDA States" as E2_Alice0States {
+            0 => 0
+        }
+    }
+
+    rectangle "Alice:1" as E2_Alice1 {
+        map "IDA States" as E2_Alice1States {
+            0 => 1b
+            1<<128 => iID(Index1)
+        }
+    }
+    E2_Alice1 -> E2_Index1
+
+    rectangle "Alice:2" as E2_Alice2 {
+        map "IDA States" as E2_Alice2States {
+            0 => 11b
+            1<<128 => iID(Index1)
+            1<<128+1 => iID(Index2)
+        }
+    }
+    E2_Alice2 -> E2_Index1
+    E2_Alice2 -> E2_Index2
+
+    rectangle "Alice:3" as E2_Alice3 {
+        map "IDA States" as E2_Alice3States {
+            0 => 10b
+            1<<128+1 => iID(Index2)
+        }
+    }
+    E2_Alice3 -> E2_Index2
+
+    E2_Note -down[hidden]-> E2_Alice0
+    E2_Alice0 .down.> E2_Alice1
+    E2_Alice1 .down.> E2_Alice2
+    E2_Alice2 .down.> E2_Alice3
+}
+
+' Layout
+IDAClasses - -down[hidden]- -> Example1
+Example1 - -left[hidden]- -> Example2
+
+@enduml
+
+@startuml
+
+title <b>InstantDistributionAgreement</b>
+
+
+frame "IDA Classes" as IDAClasses {
+    class PublisherIDAStates {
+        - uint256 publisherDeposit //@1<<32//
+    }
+
+    class SubscriberIDAStates {
+        - uint256 subsBitmap //@0//
+        - [bytes32] iIDs //@[1<<128..1<<128+256]//
+    }
+
+    class Index {
+        + bytes iID()
+        - uint128 indexValue
+        - uint128 totalUnitsApproved
+        - uint128 totalUnitsPending
+    }
+    note left of Index::iID
+        sha3("publisher", publisher, indexId)
+    end note
+
+    class IndexSubscription {
+        + bytes sID()
+        - uint32 subId
+        - address publisher
+        - uint32 indexId
+        - uint128 lastIndexValue
+        - uint128 units
+    }
+    note left of IndexSubscription::subId
+        slotId in subsBitmap
+    end note
+    note left of IndexSubscription::lastIndexValue
+        a snapshot of Index::indexValue, for calculating the RTB of IDA
+    end note
+    note left of IndexSubscription::sID
+        sha3("subscription", subscriber, iID)
+    end note
+
+    class IDA {
+        + realtimeBalanceOf(subscriber: Account): RTB
+        - -
+        + createIndex(publisher: Account, indexId: uint32):  ()
+        + getIndex(publisher: Account, indexId: uint32): Index
+        + updateIndex(publisher: Account, index: Index, indexValue: uint128): Index
+        + distribute(publisher: Account, index: Index, amount: uint256): ()
+        - -
+        + updateSubscription(publisher: Account, index: Index, subscriber: Account, uinits: uint128): ()
+        + deleteSubscription(publisher: Account, index: Index, subscriber: Account): ()
+        - -
+        + approveSubscription(subscriber: Account, index: Index): ()
+        + revokeSubscription(subscriber: Account, index: Index): ()
+        + getSubscription(subscriber: Account, index: Index): IndexSubscription
+        + listSubscriptions(subscriber: Account): [IndexSubscription]
+        + claim(subscriber: Account, index: Index): ()
+    }
+    note left of IDA::listSubscriptions
+    <code>
+        let [subId...] = subsBitmap subscriber
+            [iID...] = SlotsBitmapLibrary.listData [subId...]
+            [sID...] = map (to_sID subscriber) [iID...]
+            [subscriptions...] = map getAgreementData [sID...]
+        return
+            [subscriptions...] :: [IndexSubscription]
+    </code>
+    end note
+    note left of IDA::realtimeBalanceOf
+    <code>
+    RTB {
+        availableBalance: sum
+            (sub -> sub.units * (sub.lastIndexValue - sub.index.indexValue))
+            0 (listSubscriptions subscriber)
+        deposit: publisherDeposit $
+            PublisherIDAStates publisher
+    }
+    </code>
+    end note
+
+    IDA -up[hidden]-> SubscriberIDAStates
+    IDA -up[hidden]-> PublisherIDAStates
+    IDA -up[hidden]-> Index
+    IDA -up[hidden]-> IndexSubscription
+}
+
+frame Example1 {
+    note as E1_Note
+        **Alice and Bob both subscribed to the Ricochet index**
+    end note
+
+    rectangle "Ricochet the Publisher" as E1_Ricochet {
+        map "IDA States" as PublisherStates {
+             1<<32 => 0
+        }
+    }
+
+    rectangle E1_Alice {
+        map "IDA States" as E1_AliceStates {
+            0 => 1b
+            1<<128 => iID(Ricochet)
+        }
+    }
+
+    rectangle E1_Bob {
+        map "IDA States" as E1_BobStates {
+            0 => 1b
+            1<<128 => iID(Ricochet)
+        }
+    }
+
+    E1_Note -down[hidden]-> E1_Alice
+    E1_Note -down[hidden]-> E1_Bob
+    E1_Bob -down-> E1_Ricochet: subscribe
+    E1_Alice -down-> E1_Ricochet: subscribe
+}
+
+frame Example2 {
+    note as E2_Note
+    <b>An example of multiple subscriptions</b>
+
+    <code>
+    -> Alice initial state => Alice:0
+    -> Alice subscribes to Index1 => Alice:1
+    -> Alice subscribes to Index2 => Alice:2
+    -> Alice revokes subscription to Index1 => Alice:3
+    end note
+
+    object "Index1" as E2_Index1
+    object "Index2" as E2_Index2
+
+    rectangle "Alice:0" as E2_Alice0 {
+        map "IDA States" as E2_Alice0States {
+            0 => 0
+        }
+    }
+
+    rectangle "Alice:1" as E2_Alice1 {
+        map "IDA States" as E2_Alice1States {
+            0 => 1b
+            1<<128 => iID(Index1)
+        }
+    }
+    E2_Alice1 -> E2_Index1
+
+    rectangle "Alice:2" as E2_Alice2 {
+        map "IDA States" as E2_Alice2States {
+            0 => 11b
+            1<<128 => iID(Index1)
+            1<<128+1 => iID(Index2)
+        }
+    }
+    E2_Alice2 -> E2_Index1
+    E2_Alice2 -> E2_Index2
+
+    rectangle "Alice:3" as E2_Alice3 {
+        map "IDA States" as E2_Alice3States {
+            0 => 10b
+            1<<128+1 => iID(Index2)
+        }
+    }
+    E2_Alice3 -> E2_Index2
+
+    E2_Note -down[hidden]-> E2_Alice0
+    E2_Alice0 .down.> E2_Alice1
+    E2_Alice1 .down.> E2_Alice2
+    E2_Alice2 .down.> E2_Alice3
+}
+
+IDAClasses - -down[hidden]- -> Example1
+Example1 - -left[hidden]- -> Example2
+
+@enduml
+
+PlantUML version 1.2021.12(Tue Oct 05 19:01:58 EEST 2021)
+(GPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: US
+--></g></svg>

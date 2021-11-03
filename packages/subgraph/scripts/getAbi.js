@@ -3,6 +3,7 @@ const path = require("path");
 
 const contracts = [
     "IConstantFlowAgreementV1",
+    "IResolver",
     "ISuperTokenFactory",
     "ISuperToken",
     "ISuperfluid",

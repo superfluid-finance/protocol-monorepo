@@ -1,7 +1,7 @@
 import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { TestResolver } from "../generated/ResolverV1/TestResolver";
-import { StreamRevision, IndexSubscription, Token } from "../generated/schema";
+import { StreamRevision, IndexSubscription, Token, Stream } from "../generated/schema";
 
 /**************************************************************************
  * Constants
@@ -9,14 +9,19 @@ import { StreamRevision, IndexSubscription, Token } from "../generated/schema";
 
 export let BIG_INT_ZERO = BigInt.fromI32(0);
 export let BIG_INT_ONE = BigInt.fromI32(1);
+export let ZERO_ADDRESS = Address.fromString("0x0000000000000000000000000000000000000000");
 
 /**************************************************************************
  * Event entities util functions
  *************************************************************************/
 
-export function createEventID(event: ethereum.Event): string {
-    return event.transaction.hash
-        .toHexString()
+export function createEventID(
+    eventName: string,
+    event: ethereum.Event
+): string {
+    return eventName
+        .concat("-")
+        .concat(event.transaction.hash.toHexString())
         .concat("-")
         .concat(event.logIndex.toString());
 }
@@ -44,11 +49,16 @@ export function getTokenInfoAndReturn(
 export function getIsListedToken(
     token: Token,
     tokenAddress: Address,
-    resolverAddress: Address,
-    symbol: string
+    resolverAddress: Address
 ): Token {
     let resolverContract = TestResolver.bind(resolverAddress);
-    let result = resolverContract.try_get(`supertokens.v1.${symbol}`);
+    let version =
+        resolverAddress.toHex() == "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
+            ? "test"
+            : "v1";
+    let result = resolverContract.try_get(
+        "supertokens.".concat(version).concat(".").concat(token.symbol)
+    );
     let superTokenAddress = result.reverted ? new Address(0) : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;
@@ -100,6 +110,15 @@ export function getStreamID(
     return getStreamRevisionPrefix(senderId, receiverId, tokenId)
         .concat("-")
         .concat(revisionIndex.toString());
+}
+
+export function getStreamPeriodID(
+    streamId: string,
+    periodRevisionIndex: number
+): string {
+    return streamId
+        .concat("-")
+        .concat(periodRevisionIndex.toString());
 }
 
 export function getSubscriptionID(

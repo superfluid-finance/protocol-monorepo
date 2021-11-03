@@ -1,5 +1,5 @@
 specVersion: 0.0.3
-description: Super Tokens and Agreements (CFA, IDA) on the {{ testNetwork }} network.
+description: Subgraph for the Superfluid Ethereum contracts.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
     file: ./schema.graphql
@@ -93,6 +93,7 @@ dataSources:
               - AccountTokenSnapshot
               - FlowUpdatedEvent
               - Stream
+              - StreamPeriod
               - StreamRevision
               - TokenStatistic
           abis:
@@ -124,6 +125,7 @@ dataSources:
           - AccountTokenSnapshot
           - Index
           - IndexCreatedEvent
+          - IndexDistributionClaimedEvent
           - IndexUpdatedEvent
           - IndexSubscription
           - IndexSubscribedEvent
@@ -132,6 +134,7 @@ dataSources:
           - Token
           - TokenStatistic
           - SubscriptionApprovedEvent
+          - SubscriptionDistributionClaimedEvent
           - SubscriptionRevokedEvent
           - SubscriptionUnitsUpdatedEvent
         abis:
@@ -146,6 +149,8 @@ dataSources:
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated
+          - event: IndexDistributionClaimed(indexed address,indexed address,indexed uint32,address,uint256)
+            handler: handleIndexDistributionClaimed
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
             handler: handleIndexUpdated
           - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
@@ -156,6 +161,8 @@ dataSources:
             handler: handleIndexUnsubscribed
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionApproved
+          - event: SubscriptionDistributionClaimed(indexed address,indexed address,address,uint32,uint256)
+            handler: handleSubscriptionDistributionClaimed
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionRevoked
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)

@@ -81,6 +81,21 @@ type IndexCreatedEvent implements Event @entity {
     index: Index!
 }
 
+type IndexDistributionClaimedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    subscriber: Bytes!
+    amount: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
 type IndexUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
@@ -158,6 +173,21 @@ type SubscriptionApprovedEvent implements Event @entity {
     publisher: Bytes!
     indexId: BigInt!
     userData: Bytes!
+
+    # ---------------------------------- links ----------------------------------
+    subscription: IndexSubscription!
+}
+
+type SubscriptionDistributionClaimedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    blockNumber: BigInt!
+    token: Bytes!
+    subscriber: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    amount: BigInt!
 
     # ---------------------------------- links ----------------------------------
     subscription: IndexSubscription!
@@ -554,6 +584,9 @@ type Index @entity {
     """
     indexCreatedEvent: IndexCreatedEvent!
 
+    indexDistributionClaimedEvents: [IndexDistributionClaimedEvent!]!
+        @derivedFrom(field: "index")
+
     indexUpdatedEvents: [IndexUpdatedEvent!]! @derivedFrom(field: "index")
     indexSubscribedEvents: [IndexSubscribedEvent!]! @derivedFrom(field: "index")
     indexUnitsUpdatedEvents: [IndexUnitsUpdatedEvent!]!
@@ -611,6 +644,9 @@ type IndexSubscription @entity {
     subscriptionApprovedEvents: [SubscriptionApprovedEvent!]!
         @derivedFrom(field: "subscription")
 
+    subscriptionDistributionClaimedEvents: [SubscriptionDistributionClaimedEvent!]!
+        @derivedFrom(field: "subscription")
+
     subscriptionRevokedEvents: [SubscriptionRevokedEvent!]!
         @derivedFrom(field: "subscription")
 
@@ -649,7 +685,41 @@ type Stream @entity {
     receiver: Account!
 
     flowUpdatedEvents: [FlowUpdatedEvent!]! @derivedFrom(field: "stream")
+    streamPeriods: [StreamPeriod!]! @derivedFrom(field: "stream")
+
 }
+
+"""
+StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
+"""
+type StreamPeriod @entity {
+    """
+    ID composed of: streamId - periodRevisionIndex
+    """
+    id: ID!
+
+    stream: Stream!
+
+    sender: Account!
+    receiver: Account!
+
+    token: Token!
+
+    flowRate: BigInt!
+
+    startedAtTimestamp: BigInt!
+    startedAtBlockNumber: BigInt!
+    startedAtEvent: FlowUpdatedEvent!
+    """
+    Following values are null until the StreamPeriod is terminated
+    """
+    stoppedAtTimestamp: BigInt
+    stoppedAtBlockNumber: BigInt
+    stoppedAtEvent: FlowUpdatedEvent
+
+    totalAmountStreamed: BigInt
+}
+
 
 ####################
 #  Helper Entities #
@@ -657,6 +727,7 @@ type Stream @entity {
 type StreamRevision @entity {
     id: ID!
     revisionIndex: Int!
+    periodRevisionIndex: Int!
 }
 
 """

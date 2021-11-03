@@ -137,14 +137,14 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         public view override
         returns(int96 exitRate)
     {
-        return int96(bondAmount / minBondDuration);
+        return int96(bondAmount / (minBondDuration * 4));
     }
 
-    function getMaxExitRateFor(ISuperToken token, uint256 bondAmount)
+    function getMaxExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
         external view override
         returns(int96 exitRate)
     {
-        return getDefaultExitRateFor(token, bondAmount);
+        return int96(bondAmount / minBondDuration);
     }
 
     function changeExitRate(ISuperToken token, int96 newExitRate) external override {
@@ -204,9 +204,6 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         (int256 availBal, uint256 deposit, , ) = token.realtimeBalanceOfNow(address(this));
         // The protocol guarantees that we get no values leading to an overflow here
         return availBal + int256(deposit) > 0 ? uint256(availBal + int256(deposit)) : 0;
-
-        //(,, uint256 deposit,) = _cfa.getFlow(token, address(this), _currentPICs[token].addr);
-        //return token.balanceOf(address(this));// + deposit;
     }
 
     // This is the logic for designating a PIC via successful bid - invoked only by the ERC777 send() hook

@@ -1,0 +1,123 @@
+query getAccountEvents($accountBytes: Bytes!, $accountString: String!, $timestamp_gte: BigInt!) {
+    flowUpdatedEvents_receiver: flowUpdatedEvents(where: {receiver: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...flowUpdatedEventFields
+    }
+    flowUpdatedEvents_sender: flowUpdatedEvents(where: {sender: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...flowUpdatedEventFields
+    }
+    indexCreatedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        token
+        publisher
+        indexId
+        userData
+        ...eventFields
+    }
+    indexDistributionClaimedEvents_subscriber: indexDistributionClaimedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexDistributionClaimedEvents
+    }
+    indexDistributionClaimedEvents_publisher: indexDistributionClaimedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexDistributionClaimedEvents
+    }
+    indexSubscribedEvents_subscriber: indexSubscribedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexSubscribedEventFields
+    }
+    indexSubscribedEvents_publisher: indexSubscribedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexSubscribedEventFields
+    }
+    indexUnitsUpdatedEvents_subscriber: indexUnitsUpdatedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexUnitUpdatedEventFields
+    }
+    indexUnitsUpdatedEvents_publisher: indexUnitsUpdatedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexUnitUpdatedEventFields
+    }
+    indexUnsubscribedEvents_subscriber: indexUnsubscribedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexUnsubscribedEventFields
+    }
+    indexUnsubscribedEvents_publisher: indexUnsubscribedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...indexUnsubscribedEventFields
+    }
+    indexUpdatedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        token
+        publisher
+        indexId
+        oldIndexValue
+        newIndexValue
+        totalUnitsPending
+        totalUnitsApproved
+        userData
+        ...eventFields
+    }
+    tokenDowngradedEvents(where: {account: $accountString, timestamp_gte: $timestamp_gte}) {
+        token
+        amount
+        ...eventFields
+    }
+    tokenUpgradedEvents(where: {account: $accountString, timestamp_gte: $timestamp_gte}) {
+        token
+        amount
+        ...eventFields
+    }
+    transferEvents_to: transferEvents(where: {to: $accountString, timestamp_gte: $timestamp_gte}) {
+        ...transferEventFields
+    }
+    transferEvents_from: transferEvents(where: {from: $accountString, timestamp_gte: $timestamp_gte}) {
+        ...transferEventFields
+    }
+}
+
+fragment eventFields on Event {
+    __typename
+}
+
+fragment flowUpdatedEventFields on FlowUpdatedEvent {
+    token
+    sender
+    receiver
+    flowRate
+    ...eventFields
+}
+
+fragment transferEventFields on TransferEvent {
+    from {id}
+    to {id}
+    value
+    token
+    ...eventFields
+}
+
+fragment indexUnitUpdatedEventFields on IndexUnitsUpdatedEvent {
+    token
+    publisher
+    indexId
+    subscriber
+    units
+    userData
+    oldUnits
+    ...eventFields
+}
+
+fragment indexUnsubscribedEventFields on IndexUnsubscribedEvent {
+    token
+    publisher
+    indexId
+    subscriber
+    userData
+    ...eventFields
+}
+
+fragment indexSubscribedEventFields on IndexSubscribedEvent {
+    token
+    publisher
+    indexId
+    subscriber
+    ...eventFields
+}
+
+fragment indexDistributionClaimedEvents on IndexDistributionClaimedEvent {
+    token
+    publisher
+    indexId
+    subscriber
+    amount
+    ...eventFields
+}

@@ -1,6 +1,6 @@
 import {
     DataMode,
-    IAccountTokenSnapshotFilter, IEventEntityBase, IFlowUpdatedEvent,
+    IAccountTokenSnapshotFilter, IFlowUpdatedEvent,
     IIndex,
     IIndexRequestFilter,
     IIndexSubscription,
@@ -37,6 +37,12 @@ import {
     GetFlowUpdatedEventsQuery, GetFlowUpdatedEventsQueryVariables
 } from "./subgraph/queries/getFlowUpdatedEvents.generated";
 import {FlowUpdatedEvent_Filter} from "./subgraph/schema.generated";
+import {
+    GetAccountEventsDocument,
+    GetAccountEventsQuery,
+    GetAccountEventsQueryVariables
+} from "./subgraph/queries/getAccountEvents.generated";
+import {Events, TransferEvent} from "./events";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -148,24 +154,58 @@ export default class Query {
     };
 
     // TODO(KK): Handle other events besides FlowUpdatedEvent...
-    on(callback: (events: IEventEntityBase[]) => void, ms: number, timeout?: number, filter?: FlowUpdatedEvent_Filter) {
+    on(callback: (events: Events[]) => void, ms: number, account: string, timeout?: number) {
         console.log("on")
+        if (ms < 1000)
+            throw Error("Let's not go crazy with the queries...");
+
+        // TODO: Wait for answer before next query...
+
         let nextNow = _.now();
         const intervalId = setInterval(async () => {
             console.log("interval")
             const now = nextNow;
             nextNow += ms;
 
-            const pagedResult = await this.listFlowUpdatedEvents({
-                ...filter,
+            const response = await this.subgraphClient.request<GetAccountEventsQuery, GetAccountEventsQueryVariables>(GetAccountEventsDocument, {
+                accountBytes: account,
+                accountString: account,
                 timestamp_gte: now.toString()
             })
 
-            if (pagedResult.data.length) {
-                console.log({
-                    data: pagedResult.data
-                })
-                callback(pagedResult.data);
+            const allEvents = [
+                ...response.flowUpdatedEvents_receiver,
+                ...response.flowUpdatedEvents_sender,
+                ...response.indexCreatedEvents,
+                ...response.indexUpdatedEvents,
+                ...response.indexUnitsUpdatedEvents_publisher,
+                ...response.indexUnitsUpdatedEvents_subscriber,
+                ...response.indexSubscribedEvents_publisher,
+                ...response.indexSubscribedEvents_subscriber,
+                ...response.indexUnsubscribedEvents_publisher,
+                ...response.indexUnsubscribedEvents_subscriber,
+                ...response.indexDistributionClaimedEvents_publisher,
+                ...response.indexDistributionClaimedEvents_subscriber,
+                ...response.transferEvents_to.map<TransferEvent>(x => ({
+                    __typename: x.__typename,
+                    token: x.token,
+                    value: x.value,
+                    from: x.from.id,
+                    to: x.to.id
+                })),
+                ...response.transferEvents_from.map<TransferEvent>(x => ({
+                    __typename: x.__typename,
+                    token: x.token,
+                    value: x.value,
+                    from: x.from.id,
+                    to: x.to.id
+                })),
+                ...response.tokenDowngradedEvents,
+                ...response.tokenUpgradedEvents,
+            ]
+
+            if (allEvents.length) {
+                callback(allEvents);
             }
         }, ms)
 

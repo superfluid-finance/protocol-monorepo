@@ -100,21 +100,6 @@ const loadContracts = async ({
     } else if (web3) {
         try {
             const TruffleContract = require("@truffle/contract");
-            // TruffleContract.at does detect network and code checking network IOs.
-            // This causes js-sdk contract initialization slow and some rpc endpoints rate limit.
-            // To implement a new version of at dubbed betterAt, that removes all network IOs.
-            TruffleContract.constructor.prototype.betterAt = async function(address){
-                if (
-                    address == null ||
-                    typeof address !== "string" ||
-                    address.length !== 42
-                ) {
-                    throw new Error(
-                        `Invalid address passed to ${this.contractName}.betterAt(): ${address}`
-                    );
-                }
-                return new this(address);
-            }
             console.debug(
                 `Using @superfluid-finance/js-sdk in a non-native Truffle environment.
                 Peer dependency @truffle/contract is required.`
@@ -131,8 +116,18 @@ const loadContracts = async ({
             }
             await Promise.all(
                 allContractNames.map(async (name) => {
+                    const _normalizedObject = await contractLoader(name);
+                    Object.assign(_normalizedObject, {
+                        networks:{
+                            [networkId]:{
+                                "events": {},
+                                "links": {},
+                                "address": undefined // setting undefined, not sure what to set here.. , will discuss it with Miao.
+                            }
+                        }
+                    })
                     const c = (contracts[name] = TruffleContract(
-                        await contractLoader(name)
+                        _normalizedObject
                     ));
                     c.setProvider(web3.currentProvider);
                     setTruffleContractDefaults(c, networkId, from);

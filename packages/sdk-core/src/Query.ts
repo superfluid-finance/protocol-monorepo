@@ -1,6 +1,6 @@
 import {
     DataMode,
-    IAccountTokenSnapshotFilter,
+    IAccountTokenSnapshotFilter, IEventEntityBase, IFlowUpdatedEvent,
     IIndex,
     IIndexRequestFilter,
     IIndexSubscription,
@@ -31,6 +31,12 @@ import {
     GetAccountTokenSnapshotsDocument, GetAccountTokenSnapshotsQuery,
     GetAccountTokenSnapshotsQueryVariables
 } from "./subgraph/queries/getAccountTokenSnapshots.generated";
+import _ from "lodash";
+import {
+    GetFlowUpdatedEventsDocument,
+    GetFlowUpdatedEventsQuery, GetFlowUpdatedEventsQueryVariables
+} from "./subgraph/queries/getFlowUpdatedEvents.generated";
+import {FlowUpdatedEvent_Filter} from "./subgraph/schema.generated";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
@@ -126,7 +132,57 @@ export default class Query {
 
         return new PagedResult<ILightAccountTokenSnapshot>(response.result, paging);
     };
-}
 
+    // TODO(KK): Don't use "FlowUpdatedEvent_Filter"
+    listFlowUpdatedEvents = async (
+        filter: FlowUpdatedEvent_Filter,
+        paging: Paging = new Paging()
+    ): Promise<PagedResult<IFlowUpdatedEvent>> => {
+        const response = await this.subgraphClient.request<GetFlowUpdatedEventsQuery, GetFlowUpdatedEventsQueryVariables>(GetFlowUpdatedEventsDocument, {
+            where: filter,
+            skip: paging.skip,
+            first: paging.takePlusOne()
+        });
+
+        return new PagedResult<IFlowUpdatedEvent>(response.result, paging);
+    };
+
+    // TODO(KK): Handle other events besides FlowUpdatedEvent...
+    on(callback: (events: IEventEntityBase[]) => void, ms: number, timeout?: number, filter?: FlowUpdatedEvent_Filter) {
+        console.log("on")
+        let nextNow = _.now();
+        const intervalId = setInterval(async () => {
+            console.log("interval")
+            const now = nextNow;
+            nextNow += ms;
+
+            const pagedResult = await this.listFlowUpdatedEvents({
+                ...filter,
+                timestamp_gte: now.toString()
+            })
+
+            if (pagedResult.data.length) {
+                console.log({
+                    data: pagedResult.data
+                })
+                callback(pagedResult.data);
+            }
+        }, ms)
+
+        const unsubscribe = () => {
+            console.log("unsubscribe")
+            clearInterval(intervalId);
+        }
+
+        if (timeout) {
+            setTimeout(() => {
+                console.log("timeout")
+                unsubscribe();
+            })
+        }
+
+        return unsubscribe;
+    }
+}
 
 

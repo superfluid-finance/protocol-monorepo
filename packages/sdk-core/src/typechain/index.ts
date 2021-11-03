@@ -2,12 +2,14 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { IConstantFlowAgreementV1 } from "./IConstantFlowAgreementV1";
+export type { IInstantDistributionAgreementV1 } from "./IInstantDistributionAgreementV1";
 export type { IResolver } from "./IResolver";
 export type { Superfluid } from "./Superfluid";
 export type { SuperfluidLoader } from "./SuperfluidLoader";
 export type { SuperToken } from "./SuperToken";
 
 export { IConstantFlowAgreementV1__factory } from "./factories/IConstantFlowAgreementV1__factory";
+export { IInstantDistributionAgreementV1__factory } from "./factories/IInstantDistributionAgreementV1__factory";
 export { IResolver__factory } from "./factories/IResolver__factory";
 export { Superfluid__factory } from "./factories/Superfluid__factory";
 export { SuperfluidLoader__factory } from "./factories/SuperfluidLoader__factory";

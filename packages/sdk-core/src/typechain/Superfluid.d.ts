@@ -17,66 +17,9 @@ import {
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-export type ContextStruct = {
-  appLevel: BigNumberish;
-  callType: BigNumberish;
-  timestamp: BigNumberish;
-  msgSender: string;
-  agreementSelector: BytesLike;
-  userData: BytesLike;
-  appAllowanceGranted: BigNumberish;
-  appAllowanceWanted: BigNumberish;
-  appAllowanceUsed: BigNumberish;
-  appAddress: string;
-  appAllowanceToken: string;
-};
-
-export type ContextStructOutput = [
-  number,
-  number,
-  BigNumber,
-  string,
-  string,
-  string,
-  BigNumber,
-  BigNumber,
-  BigNumber,
-  string,
-  string
-] & {
-  appLevel: number;
-  callType: number;
-  timestamp: BigNumber;
-  msgSender: string;
-  agreementSelector: string;
-  userData: string;
-  appAllowanceGranted: BigNumber;
-  appAllowanceWanted: BigNumber;
-  appAllowanceUsed: BigNumber;
-  appAddress: string;
-  appAllowanceToken: string;
-};
-
-export type OperationStruct = {
-  operationType: BigNumberish;
-  target: string;
-  data: BytesLike;
-}[];
-
-export type OperationStructOutput = ([number, string, string] & {
-  operationType: number;
-  target: string;
-  data: string;
-})[];
-
-export interface SuperfluidInterface extends ethers.utils.Interface {
+interface SuperfluidInterface extends ethers.utils.Interface {
   functions: {
     "APP_WHITE_LISTING_ENABLED()": FunctionFragment;
     "CALLBACK_GAS_LIMIT()": FunctionFragment;
@@ -121,8 +64,8 @@ export interface SuperfluidInterface extends ethers.utils.Interface {
     "callAppActionWithContext(address,bytes,bytes)": FunctionFragment;
     "decodeCtx(bytes)": FunctionFragment;
     "isCtxValid(bytes)": FunctionFragment;
-    "batchCall((uint32,address,bytes)[])": FunctionFragment;
-    "forwardBatchCall((uint32,address,bytes)[])": FunctionFragment;
+    "batchCall(tuple[])": FunctionFragment;
+    "forwardBatchCall(tuple[])": FunctionFragment;
     "isTrustedForwarder(address)": FunctionFragment;
     "versionRecipient()": FunctionFragment;
   };
@@ -286,11 +229,11 @@ export interface SuperfluidInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "batchCall",
-    values: [OperationStruct[]]
+    values: [{ operationType: BigNumberish; target: string; data: BytesLike }[]]
   ): string;
   encodeFunctionData(
     functionFragment: "forwardBatchCall",
-    values: [OperationStruct[]]
+    values: [{ operationType: BigNumberish; target: string; data: BytesLike }[]]
   ): string;
   encodeFunctionData(
     functionFragment: "isTrustedForwarder",
@@ -491,88 +434,77 @@ export interface SuperfluidInterface extends ethers.utils.Interface {
 }
 
 export type AgreementClassRegisteredEvent = TypedEvent<
-  [string, string],
-  { agreementType: string; code: string }
+  [string, string] & { agreementType: string; code: string }
 >;
-
-export type AgreementClassRegisteredEventFilter =
-  TypedEventFilter<AgreementClassRegisteredEvent>;
 
 export type AgreementClassUpdatedEvent = TypedEvent<
-  [string, string],
-  { agreementType: string; code: string }
+  [string, string] & { agreementType: string; code: string }
 >;
 
-export type AgreementClassUpdatedEventFilter =
-  TypedEventFilter<AgreementClassUpdatedEvent>;
-
-export type AppRegisteredEvent = TypedEvent<[string], { app: string }>;
-
-export type AppRegisteredEventFilter = TypedEventFilter<AppRegisteredEvent>;
+export type AppRegisteredEvent = TypedEvent<[string] & { app: string }>;
 
 export type CodeUpdatedEvent = TypedEvent<
-  [string, string],
-  { uuid: string; codeAddress: string }
+  [string, string] & { uuid: string; codeAddress: string }
 >;
-
-export type CodeUpdatedEventFilter = TypedEventFilter<CodeUpdatedEvent>;
 
 export type GovernanceReplacedEvent = TypedEvent<
-  [string, string],
-  { oldGov: string; newGov: string }
+  [string, string] & { oldGov: string; newGov: string }
 >;
-
-export type GovernanceReplacedEventFilter =
-  TypedEventFilter<GovernanceReplacedEvent>;
 
 export type JailEvent = TypedEvent<
-  [string, BigNumber],
-  { app: string; reason: BigNumber }
+  [string, BigNumber] & { app: string; reason: BigNumber }
 >;
-
-export type JailEventFilter = TypedEventFilter<JailEvent>;
 
 export type SuperTokenFactoryUpdatedEvent = TypedEvent<
-  [string],
-  { newFactory: string }
+  [string] & { newFactory: string }
 >;
-
-export type SuperTokenFactoryUpdatedEventFilter =
-  TypedEventFilter<SuperTokenFactoryUpdatedEvent>;
 
 export type SuperTokenLogicUpdatedEvent = TypedEvent<
-  [string, string],
-  { token: string; code: string }
+  [string, string] & { token: string; code: string }
 >;
 
-export type SuperTokenLogicUpdatedEventFilter =
-  TypedEventFilter<SuperTokenLogicUpdatedEvent>;
-
-export interface Superfluid extends BaseContract {
+export class Superfluid extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: SuperfluidInterface;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  interface: SuperfluidInterface;
 
   functions: {
     APP_WHITE_LISTING_ENABLED(overrides?: CallOverrides): Promise<[boolean]>;
@@ -787,17 +719,79 @@ export interface Superfluid extends BaseContract {
     decodeCtx(
       ctx: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[ContextStructOutput] & { context: ContextStructOutput }>;
+    ): Promise<
+      [
+        [
+          number,
+          number,
+          BigNumber,
+          string,
+          string,
+          string,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          string,
+          string
+        ] & {
+          appLevel: number;
+          callType: number;
+          timestamp: BigNumber;
+          msgSender: string;
+          agreementSelector: string;
+          userData: string;
+          appAllowanceGranted: BigNumber;
+          appAllowanceWanted: BigNumber;
+          appAllowanceUsed: BigNumber;
+          appAddress: string;
+          appAllowanceToken: string;
+        }
+      ] & {
+        context: [
+          number,
+          number,
+          BigNumber,
+          string,
+          string,
+          string,
+          BigNumber,
+          BigNumber,
+          BigNumber,
+          string,
+          string
+        ] & {
+          appLevel: number;
+          callType: number;
+          timestamp: BigNumber;
+          msgSender: string;
+          agreementSelector: string;
+          userData: string;
+          appAllowanceGranted: BigNumber;
+          appAllowanceWanted: BigNumber;
+          appAllowanceUsed: BigNumber;
+          appAddress: string;
+          appAllowanceToken: string;
+        };
+      }
+    >;
 
     isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
 
     batchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     forwardBatchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1015,17 +1009,51 @@ export interface Superfluid extends BaseContract {
   decodeCtx(
     ctx: BytesLike,
     overrides?: CallOverrides
-  ): Promise<ContextStructOutput>;
+  ): Promise<
+    [
+      number,
+      number,
+      BigNumber,
+      string,
+      string,
+      string,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      string,
+      string
+    ] & {
+      appLevel: number;
+      callType: number;
+      timestamp: BigNumber;
+      msgSender: string;
+      agreementSelector: string;
+      userData: string;
+      appAllowanceGranted: BigNumber;
+      appAllowanceWanted: BigNumber;
+      appAllowanceUsed: BigNumber;
+      appAddress: string;
+      appAllowanceToken: string;
+    }
+  >;
 
   isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   batchCall(
-    operations: OperationStruct[],
+    operations: {
+      operationType: BigNumberish;
+      target: string;
+      data: BytesLike;
+    }[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   forwardBatchCall(
-    operations: OperationStruct[],
+    operations: {
+      operationType: BigNumberish;
+      target: string;
+      data: BytesLike;
+    }[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1234,17 +1262,51 @@ export interface Superfluid extends BaseContract {
     decodeCtx(
       ctx: BytesLike,
       overrides?: CallOverrides
-    ): Promise<ContextStructOutput>;
+    ): Promise<
+      [
+        number,
+        number,
+        BigNumber,
+        string,
+        string,
+        string,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string,
+        string
+      ] & {
+        appLevel: number;
+        callType: number;
+        timestamp: BigNumber;
+        msgSender: string;
+        agreementSelector: string;
+        userData: string;
+        appAllowanceGranted: BigNumber;
+        appAllowanceWanted: BigNumber;
+        appAllowanceUsed: BigNumber;
+        appAddress: string;
+        appAllowanceToken: string;
+      }
+    >;
 
     isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
     batchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     forwardBatchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1260,60 +1322,102 @@ export interface Superfluid extends BaseContract {
     "AgreementClassRegistered(bytes32,address)"(
       agreementType?: null,
       code?: null
-    ): AgreementClassRegisteredEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { agreementType: string; code: string }
+    >;
+
     AgreementClassRegistered(
       agreementType?: null,
       code?: null
-    ): AgreementClassRegisteredEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { agreementType: string; code: string }
+    >;
 
     "AgreementClassUpdated(bytes32,address)"(
       agreementType?: null,
       code?: null
-    ): AgreementClassUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { agreementType: string; code: string }
+    >;
+
     AgreementClassUpdated(
       agreementType?: null,
       code?: null
-    ): AgreementClassUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { agreementType: string; code: string }
+    >;
 
-    "AppRegistered(address)"(app?: string | null): AppRegisteredEventFilter;
-    AppRegistered(app?: string | null): AppRegisteredEventFilter;
+    "AppRegistered(address)"(
+      app?: string | null
+    ): TypedEventFilter<[string], { app: string }>;
+
+    AppRegistered(
+      app?: string | null
+    ): TypedEventFilter<[string], { app: string }>;
 
     "CodeUpdated(bytes32,address)"(
       uuid?: null,
       codeAddress?: null
-    ): CodeUpdatedEventFilter;
-    CodeUpdated(uuid?: null, codeAddress?: null): CodeUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { uuid: string; codeAddress: string }
+    >;
+
+    CodeUpdated(
+      uuid?: null,
+      codeAddress?: null
+    ): TypedEventFilter<
+      [string, string],
+      { uuid: string; codeAddress: string }
+    >;
 
     "GovernanceReplaced(address,address)"(
       oldGov?: null,
       newGov?: null
-    ): GovernanceReplacedEventFilter;
+    ): TypedEventFilter<[string, string], { oldGov: string; newGov: string }>;
+
     GovernanceReplaced(
       oldGov?: null,
       newGov?: null
-    ): GovernanceReplacedEventFilter;
+    ): TypedEventFilter<[string, string], { oldGov: string; newGov: string }>;
 
     "Jail(address,uint256)"(
       app?: string | null,
       reason?: null
-    ): JailEventFilter;
-    Jail(app?: string | null, reason?: null): JailEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { app: string; reason: BigNumber }
+    >;
+
+    Jail(
+      app?: string | null,
+      reason?: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { app: string; reason: BigNumber }
+    >;
 
     "SuperTokenFactoryUpdated(address)"(
       newFactory?: null
-    ): SuperTokenFactoryUpdatedEventFilter;
+    ): TypedEventFilter<[string], { newFactory: string }>;
+
     SuperTokenFactoryUpdated(
       newFactory?: null
-    ): SuperTokenFactoryUpdatedEventFilter;
+    ): TypedEventFilter<[string], { newFactory: string }>;
 
     "SuperTokenLogicUpdated(address,address)"(
       token?: string | null,
       code?: null
-    ): SuperTokenLogicUpdatedEventFilter;
+    ): TypedEventFilter<[string, string], { token: string; code: string }>;
+
     SuperTokenLogicUpdated(
       token?: string | null,
       code?: null
-    ): SuperTokenLogicUpdatedEventFilter;
+    ): TypedEventFilter<[string, string], { token: string; code: string }>;
   };
 
   estimateGas: {
@@ -1516,12 +1620,20 @@ export interface Superfluid extends BaseContract {
     isCtxValid(ctx: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     batchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     forwardBatchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1761,12 +1873,20 @@ export interface Superfluid extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     batchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     forwardBatchCall(
-      operations: OperationStruct[],
+      operations: {
+        operationType: BigNumberish;
+        target: string;
+        data: BytesLike;
+      }[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

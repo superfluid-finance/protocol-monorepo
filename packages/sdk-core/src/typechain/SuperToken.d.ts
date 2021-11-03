@@ -17,14 +17,9 @@ import {
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-export interface SuperTokenInterface extends ethers.utils.Interface {
+interface SuperTokenInterface extends ethers.utils.Interface {
   functions: {
     "createAgreement(bytes32,bytes32[])": FunctionFragment;
     "getAccountActiveAgreements(address)": FunctionFragment;
@@ -461,24 +456,23 @@ export interface SuperTokenInterface extends ethers.utils.Interface {
 }
 
 export type AgreementAccountStateUpdatedEvent = TypedEvent<
-  [string, string, string],
-  { agreementClass: string; account: string; state: string }
+  [string, string, string] & {
+    agreementClass: string;
+    account: string;
+    state: string;
+  }
 >;
-
-export type AgreementAccountStateUpdatedEventFilter =
-  TypedEventFilter<AgreementAccountStateUpdatedEvent>;
 
 export type AgreementCreatedEvent = TypedEvent<
-  [string, string, string[]],
-  { agreementClass: string; id: string; data: string[] }
+  [string, string, string[]] & {
+    agreementClass: string;
+    id: string;
+    data: string[];
+  }
 >;
 
-export type AgreementCreatedEventFilter =
-  TypedEventFilter<AgreementCreatedEvent>;
-
 export type AgreementLiquidatedEvent = TypedEvent<
-  [string, string, string, string, BigNumber],
-  {
+  [string, string, string, string, BigNumber] & {
     agreementClass: string;
     id: string;
     penaltyAccount: string;
@@ -487,12 +481,8 @@ export type AgreementLiquidatedEvent = TypedEvent<
   }
 >;
 
-export type AgreementLiquidatedEventFilter =
-  TypedEventFilter<AgreementLiquidatedEvent>;
-
 export type AgreementLiquidatedByEvent = TypedEvent<
-  [string, string, string, string, string, BigNumber, BigNumber],
-  {
+  [string, string, string, string, string, BigNumber, BigNumber] & {
     liquidatorAccount: string;
     agreementClass: string;
     id: string;
@@ -503,58 +493,44 @@ export type AgreementLiquidatedByEvent = TypedEvent<
   }
 >;
 
-export type AgreementLiquidatedByEventFilter =
-  TypedEventFilter<AgreementLiquidatedByEvent>;
-
 export type AgreementStateUpdatedEvent = TypedEvent<
-  [string, string, BigNumber],
-  { agreementClass: string; account: string; slotId: BigNumber }
+  [string, string, BigNumber] & {
+    agreementClass: string;
+    account: string;
+    slotId: BigNumber;
+  }
 >;
-
-export type AgreementStateUpdatedEventFilter =
-  TypedEventFilter<AgreementStateUpdatedEvent>;
 
 export type AgreementTerminatedEvent = TypedEvent<
-  [string, string],
-  { agreementClass: string; id: string }
+  [string, string] & { agreementClass: string; id: string }
 >;
-
-export type AgreementTerminatedEventFilter =
-  TypedEventFilter<AgreementTerminatedEvent>;
 
 export type AgreementUpdatedEvent = TypedEvent<
-  [string, string, string[]],
-  { agreementClass: string; id: string; data: string[] }
+  [string, string, string[]] & {
+    agreementClass: string;
+    id: string;
+    data: string[];
+  }
 >;
-
-export type AgreementUpdatedEventFilter =
-  TypedEventFilter<AgreementUpdatedEvent>;
 
 export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber],
-  { owner: string; spender: string; value: BigNumber }
+  [string, string, BigNumber] & {
+    owner: string;
+    spender: string;
+    value: BigNumber;
+  }
 >;
-
-export type ApprovalEventFilter = TypedEventFilter<ApprovalEvent>;
 
 export type AuthorizedOperatorEvent = TypedEvent<
-  [string, string],
-  { operator: string; tokenHolder: string }
+  [string, string] & { operator: string; tokenHolder: string }
 >;
-
-export type AuthorizedOperatorEventFilter =
-  TypedEventFilter<AuthorizedOperatorEvent>;
 
 export type BailoutEvent = TypedEvent<
-  [string, BigNumber],
-  { bailoutAccount: string; bailoutAmount: BigNumber }
+  [string, BigNumber] & { bailoutAccount: string; bailoutAmount: BigNumber }
 >;
-
-export type BailoutEventFilter = TypedEventFilter<BailoutEvent>;
 
 export type BurnedEvent = TypedEvent<
-  [string, string, BigNumber, string, string],
-  {
+  [string, string, BigNumber, string, string] & {
     operator: string;
     from: string;
     amount: BigNumber;
@@ -562,19 +538,13 @@ export type BurnedEvent = TypedEvent<
     operatorData: string;
   }
 >;
-
-export type BurnedEventFilter = TypedEventFilter<BurnedEvent>;
 
 export type CodeUpdatedEvent = TypedEvent<
-  [string, string],
-  { uuid: string; codeAddress: string }
+  [string, string] & { uuid: string; codeAddress: string }
 >;
 
-export type CodeUpdatedEventFilter = TypedEventFilter<CodeUpdatedEvent>;
-
 export type MintedEvent = TypedEvent<
-  [string, string, BigNumber, string, string],
-  {
+  [string, string, BigNumber, string, string] & {
     operator: string;
     to: string;
     amount: BigNumber;
@@ -583,18 +553,12 @@ export type MintedEvent = TypedEvent<
   }
 >;
 
-export type MintedEventFilter = TypedEventFilter<MintedEvent>;
-
 export type RevokedOperatorEvent = TypedEvent<
-  [string, string],
-  { operator: string; tokenHolder: string }
+  [string, string] & { operator: string; tokenHolder: string }
 >;
 
-export type RevokedOperatorEventFilter = TypedEventFilter<RevokedOperatorEvent>;
-
 export type SentEvent = TypedEvent<
-  [string, string, string, BigNumber, string, string],
-  {
+  [string, string, string, BigNumber, string, string] & {
     operator: string;
     from: string;
     to: string;
@@ -604,54 +568,60 @@ export type SentEvent = TypedEvent<
   }
 >;
 
-export type SentEventFilter = TypedEventFilter<SentEvent>;
-
 export type TokenDowngradedEvent = TypedEvent<
-  [string, BigNumber],
-  { account: string; amount: BigNumber }
+  [string, BigNumber] & { account: string; amount: BigNumber }
 >;
-
-export type TokenDowngradedEventFilter = TypedEventFilter<TokenDowngradedEvent>;
 
 export type TokenUpgradedEvent = TypedEvent<
-  [string, BigNumber],
-  { account: string; amount: BigNumber }
+  [string, BigNumber] & { account: string; amount: BigNumber }
 >;
-
-export type TokenUpgradedEventFilter = TypedEventFilter<TokenUpgradedEvent>;
 
 export type TransferEvent = TypedEvent<
-  [string, string, BigNumber],
-  { from: string; to: string; value: BigNumber }
+  [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
-export type TransferEventFilter = TypedEventFilter<TransferEvent>;
-
-export interface SuperToken extends BaseContract {
+export class SuperToken extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: SuperTokenInterface;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  interface: SuperTokenInterface;
 
   functions: {
     createAgreement(
@@ -1513,23 +1483,37 @@ export interface SuperToken extends BaseContract {
       agreementClass?: string | null,
       account?: string | null,
       state?: null
-    ): AgreementAccountStateUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string],
+      { agreementClass: string; account: string; state: string }
+    >;
+
     AgreementAccountStateUpdated(
       agreementClass?: string | null,
       account?: string | null,
       state?: null
-    ): AgreementAccountStateUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string],
+      { agreementClass: string; account: string; state: string }
+    >;
 
     "AgreementCreated(address,bytes32,bytes32[])"(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): AgreementCreatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string[]],
+      { agreementClass: string; id: string; data: string[] }
+    >;
+
     AgreementCreated(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): AgreementCreatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string[]],
+      { agreementClass: string; id: string; data: string[] }
+    >;
 
     "AgreementLiquidated(address,bytes32,address,address,uint256)"(
       agreementClass?: string | null,
@@ -1537,14 +1521,33 @@ export interface SuperToken extends BaseContract {
       penaltyAccount?: string | null,
       rewardAccount?: string | null,
       rewardAmount?: null
-    ): AgreementLiquidatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, string, BigNumber],
+      {
+        agreementClass: string;
+        id: string;
+        penaltyAccount: string;
+        rewardAccount: string;
+        rewardAmount: BigNumber;
+      }
+    >;
+
     AgreementLiquidated(
       agreementClass?: string | null,
       id?: null,
       penaltyAccount?: string | null,
       rewardAccount?: string | null,
       rewardAmount?: null
-    ): AgreementLiquidatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, string, BigNumber],
+      {
+        agreementClass: string;
+        id: string;
+        penaltyAccount: string;
+        rewardAccount: string;
+        rewardAmount: BigNumber;
+      }
+    >;
 
     "AgreementLiquidatedBy(address,address,bytes32,address,address,uint256,uint256)"(
       liquidatorAccount?: null,
@@ -1554,7 +1557,19 @@ export interface SuperToken extends BaseContract {
       bondAccount?: string | null,
       rewardAmount?: null,
       bailoutAmount?: null
-    ): AgreementLiquidatedByEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, string, string, BigNumber, BigNumber],
+      {
+        liquidatorAccount: string;
+        agreementClass: string;
+        id: string;
+        penaltyAccount: string;
+        bondAccount: string;
+        rewardAmount: BigNumber;
+        bailoutAmount: BigNumber;
+      }
+    >;
+
     AgreementLiquidatedBy(
       liquidatorAccount?: null,
       agreementClass?: string | null,
@@ -1563,67 +1578,120 @@ export interface SuperToken extends BaseContract {
       bondAccount?: string | null,
       rewardAmount?: null,
       bailoutAmount?: null
-    ): AgreementLiquidatedByEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, string, string, BigNumber, BigNumber],
+      {
+        liquidatorAccount: string;
+        agreementClass: string;
+        id: string;
+        penaltyAccount: string;
+        bondAccount: string;
+        rewardAmount: BigNumber;
+        bailoutAmount: BigNumber;
+      }
+    >;
 
     "AgreementStateUpdated(address,address,uint256)"(
       agreementClass?: string | null,
       account?: string | null,
       slotId?: null
-    ): AgreementStateUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { agreementClass: string; account: string; slotId: BigNumber }
+    >;
+
     AgreementStateUpdated(
       agreementClass?: string | null,
       account?: string | null,
       slotId?: null
-    ): AgreementStateUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { agreementClass: string; account: string; slotId: BigNumber }
+    >;
 
     "AgreementTerminated(address,bytes32)"(
       agreementClass?: string | null,
       id?: null
-    ): AgreementTerminatedEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { agreementClass: string; id: string }
+    >;
+
     AgreementTerminated(
       agreementClass?: string | null,
       id?: null
-    ): AgreementTerminatedEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { agreementClass: string; id: string }
+    >;
 
     "AgreementUpdated(address,bytes32,bytes32[])"(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): AgreementUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string[]],
+      { agreementClass: string; id: string; data: string[] }
+    >;
+
     AgreementUpdated(
       agreementClass?: string | null,
       id?: null,
       data?: null
-    ): AgreementUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string[]],
+      { agreementClass: string; id: string; data: string[] }
+    >;
 
     "Approval(address,address,uint256)"(
       owner?: string | null,
       spender?: string | null,
       value?: null
-    ): ApprovalEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { owner: string; spender: string; value: BigNumber }
+    >;
+
     Approval(
       owner?: string | null,
       spender?: string | null,
       value?: null
-    ): ApprovalEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { owner: string; spender: string; value: BigNumber }
+    >;
 
     "AuthorizedOperator(address,address)"(
       operator?: string | null,
       tokenHolder?: string | null
-    ): AuthorizedOperatorEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { operator: string; tokenHolder: string }
+    >;
+
     AuthorizedOperator(
       operator?: string | null,
       tokenHolder?: string | null
-    ): AuthorizedOperatorEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { operator: string; tokenHolder: string }
+    >;
 
     "Bailout(address,uint256)"(
       bailoutAccount?: string | null,
       bailoutAmount?: null
-    ): BailoutEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { bailoutAccount: string; bailoutAmount: BigNumber }
+    >;
+
     Bailout(
       bailoutAccount?: string | null,
       bailoutAmount?: null
-    ): BailoutEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { bailoutAccount: string; bailoutAmount: BigNumber }
+    >;
 
     "Burned(address,address,uint256,bytes,bytes)"(
       operator?: string | null,
@@ -1631,20 +1699,49 @@ export interface SuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): BurnedEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber, string, string],
+      {
+        operator: string;
+        from: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+      }
+    >;
+
     Burned(
       operator?: string | null,
       from?: string | null,
       amount?: null,
       data?: null,
       operatorData?: null
-    ): BurnedEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber, string, string],
+      {
+        operator: string;
+        from: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+      }
+    >;
 
     "CodeUpdated(bytes32,address)"(
       uuid?: null,
       codeAddress?: null
-    ): CodeUpdatedEventFilter;
-    CodeUpdated(uuid?: null, codeAddress?: null): CodeUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { uuid: string; codeAddress: string }
+    >;
+
+    CodeUpdated(
+      uuid?: null,
+      codeAddress?: null
+    ): TypedEventFilter<
+      [string, string],
+      { uuid: string; codeAddress: string }
+    >;
 
     "Minted(address,address,uint256,bytes,bytes)"(
       operator?: string | null,
@@ -1652,23 +1749,49 @@ export interface SuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): MintedEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber, string, string],
+      {
+        operator: string;
+        to: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+      }
+    >;
+
     Minted(
       operator?: string | null,
       to?: string | null,
       amount?: null,
       data?: null,
       operatorData?: null
-    ): MintedEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber, string, string],
+      {
+        operator: string;
+        to: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+      }
+    >;
 
     "RevokedOperator(address,address)"(
       operator?: string | null,
       tokenHolder?: string | null
-    ): RevokedOperatorEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { operator: string; tokenHolder: string }
+    >;
+
     RevokedOperator(
       operator?: string | null,
       tokenHolder?: string | null
-    ): RevokedOperatorEventFilter;
+    ): TypedEventFilter<
+      [string, string],
+      { operator: string; tokenHolder: string }
+    >;
 
     "Sent(address,address,address,uint256,bytes,bytes)"(
       operator?: string | null,
@@ -1677,7 +1800,18 @@ export interface SuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): SentEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, string, string],
+      {
+        operator: string;
+        from: string;
+        to: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+      }
+    >;
+
     Sent(
       operator?: string | null,
       from?: string | null,
@@ -1685,36 +1819,67 @@ export interface SuperToken extends BaseContract {
       amount?: null,
       data?: null,
       operatorData?: null
-    ): SentEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, string, string],
+      {
+        operator: string;
+        from: string;
+        to: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+      }
+    >;
 
     "TokenDowngraded(address,uint256)"(
       account?: string | null,
       amount?: null
-    ): TokenDowngradedEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { account: string; amount: BigNumber }
+    >;
+
     TokenDowngraded(
       account?: string | null,
       amount?: null
-    ): TokenDowngradedEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { account: string; amount: BigNumber }
+    >;
 
     "TokenUpgraded(address,uint256)"(
       account?: string | null,
       amount?: null
-    ): TokenUpgradedEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { account: string; amount: BigNumber }
+    >;
+
     TokenUpgraded(
       account?: string | null,
       amount?: null
-    ): TokenUpgradedEventFilter;
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { account: string; amount: BigNumber }
+    >;
 
     "Transfer(address,address,uint256)"(
       from?: string | null,
       to?: string | null,
       value?: null
-    ): TransferEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { from: string; to: string; value: BigNumber }
+    >;
+
     Transfer(
       from?: string | null,
       to?: string | null,
       value?: null
-    ): TransferEventFilter;
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { from: string; to: string; value: BigNumber }
+    >;
   };
 
   estimateGas: {

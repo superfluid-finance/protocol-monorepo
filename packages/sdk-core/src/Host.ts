@@ -26,7 +26,7 @@ export default class Host {
                     callData,
                     userData || "0x"
                 );
-            return new Operation(txn);
+            return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",

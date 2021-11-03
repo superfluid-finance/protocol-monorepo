@@ -1,4 +1,7 @@
 import { ethers } from "ethers";
+// TODO (0xdavinchee): reorganize this
+// Maybe moving these into categorical files
+// makes more sense than stuffing them all here
 // Types
 export type NetworkName =
     | "ropsten"

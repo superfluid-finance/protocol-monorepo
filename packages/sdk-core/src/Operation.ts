@@ -1,14 +1,25 @@
 import { ethers } from "ethers";
 import { handleError } from "./errorHelper";
 
+export type OperationType =
+    | "UNSUPPORTED" // 0
+    | "ERC20_APPROVE" // 1
+    | "ERC20_TRANSFER_FROM" // 2
+    | "SUPERTOKEN_UPGRADE" // 101
+    | "SUPERTOKEN_DOWNGRADE" // 102
+    | "SUPERFLUID_CALL_AGREEMENT" // 201
+    | "CALL_APP_ACTION"; // 202
+
 /**
  * @dev Operation Class
  */
 export default class Operation {
     readonly transaction: ethers.PopulatedTransaction;
+    readonly type: OperationType;
 
-    constructor(txn: ethers.PopulatedTransaction) {
+    constructor(txn: ethers.PopulatedTransaction, type: OperationType) {
         this.transaction = txn;
+        this.type = type;
     }
 
     /**

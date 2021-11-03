@@ -17,15 +17,9 @@ import {
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
-import type {
-  TypedEventFilter,
-  TypedEvent,
-  TypedListener,
-  OnEvent,
-} from "./common";
+import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
-export interface IConstantFlowAgreementV1Interface
-  extends ethers.utils.Interface {
+interface IConstantFlowAgreementV1Interface extends ethers.utils.Interface {
   functions: {
     "initialize()": FunctionFragment;
     "realtimeBalanceOf(address,address,uint256)": FunctionFragment;
@@ -129,8 +123,7 @@ export interface IConstantFlowAgreementV1Interface
 }
 
 export type FlowUpdatedEvent = TypedEvent<
-  [string, string, string, BigNumber, BigNumber, BigNumber, string],
-  {
+  [string, string, string, BigNumber, BigNumber, BigNumber, string] & {
     token: string;
     sender: string;
     receiver: string;
@@ -141,33 +134,48 @@ export type FlowUpdatedEvent = TypedEvent<
   }
 >;
 
-export type FlowUpdatedEventFilter = TypedEventFilter<FlowUpdatedEvent>;
-
-export interface IConstantFlowAgreementV1 extends BaseContract {
+export class IConstantFlowAgreementV1 extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: IConstantFlowAgreementV1Interface;
+  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+  off<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  on<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  once<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+    listener: TypedListener<EventArgsArray, EventArgsObject>
+  ): this;
+  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+  ): this;
 
-  queryFilter<TEvent extends TypedEvent>(
-    event: TypedEventFilter<TEvent>,
+  listeners(eventName?: string): Array<Listener>;
+  off(eventName: string, listener: Listener): this;
+  on(eventName: string, listener: Listener): this;
+  once(eventName: string, listener: Listener): this;
+  removeListener(eventName: string, listener: Listener): this;
+  removeAllListeners(eventName?: string): this;
+
+  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
     fromBlockOrBlockhash?: string | number | undefined,
     toBlock?: string | number | undefined
-  ): Promise<Array<TEvent>>;
+  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  listeners<TEvent extends TypedEvent>(
-    eventFilter?: TypedEventFilter<TEvent>
-  ): Array<TypedListener<TEvent>>;
-  listeners(eventName?: string): Array<Listener>;
-  removeAllListeners<TEvent extends TypedEvent>(
-    eventFilter: TypedEventFilter<TEvent>
-  ): this;
-  removeAllListeners(eventName?: string): this;
-  off: OnEvent<this>;
-  on: OnEvent<this>;
-  once: OnEvent<this>;
-  removeListener: OnEvent<this>;
+  interface: IConstantFlowAgreementV1Interface;
 
   functions: {
     initialize(
@@ -483,7 +491,19 @@ export interface IConstantFlowAgreementV1 extends BaseContract {
       totalSenderFlowRate?: null,
       totalReceiverFlowRate?: null,
       userData?: null
-    ): FlowUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, BigNumber, BigNumber, string],
+      {
+        token: string;
+        sender: string;
+        receiver: string;
+        flowRate: BigNumber;
+        totalSenderFlowRate: BigNumber;
+        totalReceiverFlowRate: BigNumber;
+        userData: string;
+      }
+    >;
+
     FlowUpdated(
       token?: string | null,
       sender?: string | null,
@@ -492,7 +512,18 @@ export interface IConstantFlowAgreementV1 extends BaseContract {
       totalSenderFlowRate?: null,
       totalReceiverFlowRate?: null,
       userData?: null
-    ): FlowUpdatedEventFilter;
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, BigNumber, BigNumber, string],
+      {
+        token: string;
+        sender: string;
+        receiver: string;
+        flowRate: BigNumber;
+        totalSenderFlowRate: BigNumber;
+        totalReceiverFlowRate: BigNumber;
+        userData: string;
+      }
+    >;
   };
 
   estimateGas: {

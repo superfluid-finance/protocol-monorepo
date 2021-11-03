@@ -142,7 +142,7 @@ export default class SuperToken {
                     recipient,
                     amount
                 );
-            return new Operation(txn);
+            return new Operation(txn, "ERC20_APPROVE");
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",
@@ -163,7 +163,7 @@ export default class SuperToken {
                 await this.superTokenContract.populateTransaction.downgrade(
                     amount
                 );
-            return new Operation(txn);
+            return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",
@@ -186,7 +186,7 @@ export default class SuperToken {
                     recipient,
                     amount
                 );
-            return new Operation(txn);
+            return new Operation(txn, "UNSUPPORTED");
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",
@@ -215,7 +215,7 @@ export default class SuperToken {
                     recipient,
                     amount
                 );
-            return new Operation(txn);
+            return new Operation(txn, "ERC20_TRANSFER_FROM");
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",
@@ -236,7 +236,7 @@ export default class SuperToken {
                 await this.superTokenContract.populateTransaction.upgrade(
                     amount
                 );
-            return new Operation(txn);
+            return new Operation(txn, "SUPERTOKEN_UPGRADE");
         } catch (err) {
             return handleError(
                 "POPULATE_TRANSACTION",

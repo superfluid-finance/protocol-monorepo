@@ -1,3 +1,4 @@
+import { JsonFragment } from "@ethersproject/abi";
 import { ethers } from "ethers";
 import {
     DAYS_PER_MONTH,
@@ -7,6 +8,8 @@ import {
     SECONDS_PER_MINUTE,
 } from "./constants";
 import { handleError } from "./errorHelper";
+
+const EMPTY = "0x00000000";
 
 /**
  * @dev Normalizes ethereum addresses for use in sdk-core.
@@ -31,6 +34,34 @@ export const normalizeAddress = (address?: string): string => {
 
 export const isNullOrEmpty = (str: string | null | undefined) => {
     return str == null || str === "";
+};
+
+/**
+ * Removes the 8-character signature hash from `callData`.
+ * @param callData
+ * @returns function parameters
+ */
+export const removeSigHashFromCallData = (callData: string) =>
+    EMPTY.concat(callData.slice(10));
+
+/**
+ * A wrapper function for getting the ethers TransactionDescription
+ * object given fragments (e.g. ABI), callData and the value amount sent.
+ * @param fragments ABI
+ * @param data callData of a function
+ * @param value amount of ether sent
+ * @returns ethers.TransactionDescription object
+ */
+export const getTransactionDescription = (
+    fragments:
+        | string
+        | readonly (string | ethers.utils.Fragment | JsonFragment)[],
+    data: string,
+    value?: string
+) => {
+    const iface = new ethers.utils.Interface(fragments);
+    const txnDescription = iface.parseTransaction({ data, value });
+    return txnDescription;
 };
 
 export const getPerSecondFlowRateByYear = (amountPerYear: string) => {

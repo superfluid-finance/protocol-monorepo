@@ -119,11 +119,8 @@ const loadContracts = async ({
                     const _normalizedObject = await contractLoader(name);
                     Object.assign(_normalizedObject, {
                         networks:{
-                            [networkId]:{
-                                "events": {},
-                                "links": {},
-                                "address": undefined // setting undefined, not sure what to set here.. , will discuss it with Miao.
-                            }
+                            [networkId]:{}
+                            // setting it for truffle contract detectNetwork method
                         }
                     })
                     const c = (contracts[name] = TruffleContract(

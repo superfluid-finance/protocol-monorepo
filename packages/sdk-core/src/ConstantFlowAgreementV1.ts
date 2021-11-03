@@ -48,7 +48,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData
@@ -79,7 +79,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData
@@ -111,7 +111,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData

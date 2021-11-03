@@ -14,7 +14,7 @@ export default class Host {
         ) as Superfluid;
     }
 
-    populateTransactionAndReturnOperation = async (
+    populateCallAgreementTxnAndReturnOperation = async (
         agreementAddress: string,
         callData: string,
         userData: string | undefined

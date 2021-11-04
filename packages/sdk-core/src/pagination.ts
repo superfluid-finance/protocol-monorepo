@@ -1,3 +1,6 @@
+/**
+ * @dev Paging Helper Class
+ */
 export class Paging {
     readonly skip: number;
     readonly take: number;
@@ -7,12 +10,18 @@ export class Paging {
         this.take = take;
     }
 
-    // TODO(KK): Comment why.
+    /**
+     * @dev Used to determine whether there is another page for pagination.
+     * @returns the user's specified `take` plus one
+     */
     public takePlusOne() {
         return this.take + 1;
     }
 }
 
+/**
+ * @dev PagedResult Helper Class
+ */
 export class PagedResult<T> {
     readonly hasNextPage: boolean;
     readonly skip: number;
@@ -26,5 +35,14 @@ export class PagedResult<T> {
         this.data = dataPlusOne.slice(0, paging.take);
     }
 
-    // TODO(KK) nextPage(): Paging
+    /**
+     * @dev Gets the next page given the skip/take used to initialize the `PagedResult` class.
+     * @returns the `Paging` class with the next page
+     */
+    public nextPage(): Paging {
+        return new Paging({
+            skip: this.take,
+            take: this.take + (this.take - this.skip),
+        });
+    }
 }

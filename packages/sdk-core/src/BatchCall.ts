@@ -28,7 +28,8 @@ const operationTypeStringToTypeMap = new Map<OperationType, number>([
 ]);
 
 /**
- * @dev BatchCall Class
+ * @dev BatchCall Helper Class
+ * @description A helper class to create `BatchCall` objects which can be executed.
  */
 export default class BatchCall {
     options: IBatchCallOptions;
@@ -87,7 +88,6 @@ export default class BatchCall {
                 data: functionArgs["callData"],
             };
         }
-
         // Handles other cases which are not
         return {
             operationType: operationType!,
@@ -106,9 +106,9 @@ export default class BatchCall {
     }
 
     /**
-     *
-     * @param signer
-     * @returns
+     * @dev Executes a batch call given the current operations on this class.
+     * @param signer the signer of the transaction
+     * @returns ethers.ContractTransaction object
      */
     execBatchCall = async (signer: ethers.Signer) => {
         return await this.host.hostContract
@@ -117,9 +117,9 @@ export default class BatchCall {
     };
 
     /**
-     *
-     * @param signer
-     * @returns
+     * @dev Executes a forward batch call given the current operations on this class.
+     * @param signer the signer of the transaction
+     * @returns ethers.ContractTransaction object
      */
     execForwardBatchCall = async (signer: ethers.Signer) => {
         return await this.host.hostContract

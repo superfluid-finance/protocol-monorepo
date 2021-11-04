@@ -1,21 +1,24 @@
 import { ethers } from "ethers";
 import { Signer } from "@ethersproject/abstract-signer";
-import { ChainId, DataMode, NetworkName } from "./interfaces";
 import { abi as IResolverABI } from "./abi/IResolver.json";
 import { abi as SuperfluidLoaderABI } from "./abi/SuperfluidLoader.json";
+import { IResolver, SuperfluidLoader } from "./typechain";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import Query from "./Query";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
-import SuperToken from "./SuperToken";
-import { IResolver, SuperfluidLoader } from "./typechain";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import { ChainId, DataMode, NetworkName } from "./types";
 import { handleError } from "./errorHelper";
+import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import SuperToken from "./SuperToken";
+import Query from "./Query";
+import Operation from "./Operation";
 
 export interface IFrameworkOptions {
     chainId?: ChainId;
@@ -38,15 +41,17 @@ export interface IFrameworkSettings {
 }
 
 /**
- * @dev Superfluid Framework class
+ * @dev Superfluid Framework Class
+ * @description The entrypoint for the SDK-core, `create` an instance of this for full functionality.
  */
 export default class Framework {
     readonly userInputOptions: IFrameworkOptions;
     settings: IFrameworkSettings;
 
-    query: Query;
     cfaV1: ConstantFlowAgreementV1;
+    host: Host;
     idaV1: InstantDistributionAgreementV1;
+    query: Query;
 
     private constructor(
         options: IFrameworkOptions,
@@ -55,15 +60,27 @@ export default class Framework {
         this.userInputOptions = options;
         this.settings = settings;
 
-        this.query = new Query(this.settings);
         this.cfaV1 = new ConstantFlowAgreementV1({
             config: this.settings.config,
         });
+        this.host = new Host(this.settings.config.hostAddress);
         this.idaV1 = new InstantDistributionAgreementV1({
             config: this.settings.config,
         });
+        this.query = new Query(this.settings);
     }
 
+    /**
+     * @dev Creates the Framework object based on user provided `options`.
+     * @param options.chainId the chainId of your desired network (e.g. 137 = matic)
+     * @param options.customSubgraphQueriesEndpoint your custom subgraph endpoint
+     * @param options.dataMode the data mode you'd like the framework to use (SUBGRAPH_ONLY, SUBGRAPH_WEB3, WEB3_ONLY)
+     * @param options.networkName the desired network (e.g. "matic", "rinkeby", etc.)
+     * @param options.resolverAddress a custom resolver address (advanced use for testing)
+     * @param options.protocolReleaseVersion a custom release version (advanced use for testing)
+     * @param options.provider a provider object necessary ofr initializing the framework
+     * @returns `Framework` class
+     */
     static create = async (options: IFrameworkOptions) => {
         validateFrameworkConstructorOptions(options);
 
@@ -134,6 +151,14 @@ export default class Framework {
         }
     };
 
+    /**
+     * @dev Create a signer which can be used to sign transactions.
+     * @param options.web3Provider a Web3Provider object (e.g. client side - metamask, web3modal)
+     * @param options.provider an ethers Provider object (e.g. via Hardhat ethers)
+     * @param options.privateKey a test account private key
+     * @param options.signer a signer object (e.g. ethers.Wallet instance)
+     * @returns `ethers.Signer` object
+     */
     createSigner = (options: ISignerConstructorOptions): Signer => {
         if (!options.privateKey && !options.provider && !options.signer) {
             return handleError(
@@ -165,6 +190,20 @@ export default class Framework {
         );
     };
 
+    /**
+     * @dev Create a `BatchCall` class from the `Framework`.
+     * @param operations the list of operations to execute
+     * @returns `BatchCall` class
+     */
+    batchCall = (operations: Operation[]) => {
+        return new BatchCall({ operations, config: this.settings.config });
+    };
+
+    /**
+     * @dev Load a `SuperToken` class from the `Framework`.
+     * @param address the `SuperToken` address
+     * @returns `SuperToken` class
+     */
     loadSuperToken = (address: string): SuperToken => {
         return new SuperToken({ ...this.settings, address });
     };

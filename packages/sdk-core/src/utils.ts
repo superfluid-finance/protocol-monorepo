@@ -9,7 +9,7 @@ import {
 } from "./constants";
 import { handleError } from "./errorHelper";
 
-const EMPTY = "0x00000000";
+const EMPTY = "0x";
 
 /**
  * @dev Normalizes ethereum addresses for use in sdk-core.

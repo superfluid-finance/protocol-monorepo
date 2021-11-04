@@ -18,6 +18,7 @@ const idaInterface = new ethers.utils.Interface(
 
 /**
  * @dev Instant Distribution Agreement V1 Helper Class
+ * @description A helper class to interact with the IDAV1 contract.
  */
 export default class InstantDistributionAgreementV1 {
     readonly options: IAgreementV1Options;
@@ -47,7 +48,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -76,7 +77,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -107,7 +108,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -140,7 +141,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -168,7 +169,7 @@ export default class InstantDistributionAgreementV1 {
             [normalizedToken, normalizedPublisher, indexId, "0x"]
         );
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -198,7 +199,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -232,7 +233,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -266,7 +267,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData

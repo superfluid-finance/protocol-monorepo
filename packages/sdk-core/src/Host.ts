@@ -4,6 +4,10 @@ import { handleError } from "./errorHelper";
 import Operation from "./Operation";
 import { Superfluid } from "./typechain";
 
+/**
+ * @dev Host Helper Class
+ * @description A helper class which can be used as a standalone class to populate call agreement transactions.
+ */
 export default class Host {
     hostContract: Superfluid;
 
@@ -14,7 +18,7 @@ export default class Host {
         ) as Superfluid;
     }
 
-    populateTransactionAndReturnOperation = async (
+    populateCallAgreementTxnAndReturnOperation = async (
         agreementAddress: string,
         callData: string,
         userData: string | undefined

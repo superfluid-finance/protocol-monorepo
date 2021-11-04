@@ -11,7 +11,8 @@ export type OperationType =
     | "CALL_APP_ACTION"; // 202
 
 /**
- * @dev Operation Class
+ * @dev Operation Helper Class
+ * @description A helper class to create `Operation` objects which can be executed or batched.
  */
 export default class Operation {
     readonly transaction: ethers.PopulatedTransaction;
@@ -24,6 +25,7 @@ export default class Operation {
 
     /**
      * @dev Executes the operation via the provided signer.
+     * 
      * Populates all fields of the transaction, signs it and
      * sends it to the network.
      * @param signer The signer of the transacation
@@ -63,6 +65,7 @@ export default class Operation {
 
     /**
      * @dev Gets the transaction hash of the transaction.
+     * 
      * Calculates this by getting the keccak256 hash of the signedTxn.
      * @param signer The signer of the transacation
      * @returns {string} The transaction hash of the transaction

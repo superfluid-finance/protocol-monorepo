@@ -14,6 +14,7 @@ const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
 
 /**
  * @dev Constant Flow Agreement V1 Helper Class
+ * @description A helper class to interact with the CFAV1 contract.
  */
 export default class ConstantFlowAgreementV1 {
     readonly options: IAgreementV1Options;
@@ -48,7 +49,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData
@@ -79,7 +80,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData
@@ -111,7 +112,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateTransactionAndReturnOperation(
+        return await this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData

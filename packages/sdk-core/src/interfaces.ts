@@ -1,33 +1,8 @@
 import { ethers } from "ethers";
+import { NetworkName } from "./types";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
-// Types
-export type NetworkName =
-    | "ropsten"
-    | "rinkeby"
-    | "goerli"
-    | "kovan"
-    | "xdai"
-    | "matic"
-    | "mumbai"
-    | "custom";
-
-export type ChainId =
-    | 3 // ROPSTEN
-    | 4 // RINKEBY
-    | 5 // GOERLI
-    | 42 // KOVAN
-    | 100 // XDAI
-    | 137 // MATIC
-    | 80001; // MUMBAI
-
-export type DataMode = "SUBGRAPH_ONLY" | "SUBGRAPH_WEB3" | "WEB3_ONLY";
-
-export type FlowActionType =
-    | 0 // CREATE
-    | 1 // UPDATE
-    | 2; // TERMINATE
 
 // read request interfaces
 export interface IAccountTokenSnapshotFilter {

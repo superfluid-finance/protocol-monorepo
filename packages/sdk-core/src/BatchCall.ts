@@ -1,10 +1,9 @@
 import { ethers } from "ethers";
 import { abi as SuperfluidABI } from "../../sdk-core/src/abi/Superfluid.json";
-import { getTransactionDescription } from "./utils";
+import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 import Host from "./Host";
 import { IConfig } from "./interfaces";
 import Operation, { OperationType } from "./Operation";
-import { removeSigHashFromCallData } from ".";
 import { handleError } from "./errorHelper";
 
 interface IBatchCallOptions {

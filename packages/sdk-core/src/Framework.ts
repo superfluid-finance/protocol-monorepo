@@ -160,12 +160,13 @@ export default class Framework {
      * @returns `ethers.Signer` object
      */
     createSigner = (options: ISignerConstructorOptions): Signer => {
-        if (!options.privateKey && !options.provider && !options.signer) {
+        if (!options.privateKey && !options.provider && !options.signer && !options.web3Provider) {
             return handleError(
                 "CREATE_SIGNER",
                 "You must pass in a private key, provider or signer."
             );
         }
+
         if (options.privateKey) {
             if (!options.provider) {
                 return handleError(

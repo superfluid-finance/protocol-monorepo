@@ -63,4 +63,28 @@ query getAccountEvents($accountBytes: Bytes!, $accountString: String!, $timestam
     transferEvents_from: transferEvents(where: {from: $accountString, timestamp_gte: $timestamp_gte}) {
         ...transferEventFields
     }
+    subscriptionApprovedEvents_subscriber: subscriptionApprovedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...eventFields
+    }
+    subscriptionApprovedEvents_publisher: subscriptionApprovedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...eventFields
+    }
+    subscriptionDistributionClaimedEvents_subscriber: subscriptionDistributionClaimedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...eventFields
+    }
+    subscriptionDistributionClaimedEvents_publisher: subscriptionDistributionClaimedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
+        ...eventFields
+    }
+    subscriptionRevokedEvents_subscriber: subscriptionRevokedEvents(where: { subscriber: $accountBytes, timestamp_gte: $timestamp_gte }) {
+        ...eventFields
+    }
+    subscriptionRevokedEvents_publisher: subscriptionRevokedEvents(where: { publisher: $accountBytes, timestamp_gte: $timestamp_gte }) {
+        ...eventFields
+    }
+    subscriptionUnitsUpdatedEvents_subscriber: subscriptionUnitsUpdatedEvents(where: { subscriber: $accountBytes, timestamp_gte: $timestamp_gte }) {
+        ...eventFields
+    }
+    subscriptionUnitsUpdatedEvents_publisher: subscriptionUnitsUpdatedEvents(where: { publisher: $accountBytes, timestamp_gte: $timestamp_gte }) {
+        ...eventFields
+    }
 }

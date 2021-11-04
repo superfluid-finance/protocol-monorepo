@@ -302,7 +302,7 @@ export default class Query {
                 timestamp_gte: now.toString(),
             });
 
-            const allEvents = [
+            const allEvents: AccountEvents[] = [
                 ...response.flowUpdatedEvents_receiver,
                 ...response.flowUpdatedEvents_sender,
                 ...response.indexCreatedEvents,
@@ -337,6 +337,14 @@ export default class Query {
                 })),
                 ...response.tokenDowngradedEvents,
                 ...response.tokenUpgradedEvents,
+                ...response.subscriptionApprovedEvents_subscriber,
+                ...response.subscriptionApprovedEvents_publisher,
+                ...response.subscriptionDistributionClaimedEvents_subscriber,
+                ...response.subscriptionDistributionClaimedEvents_publisher,
+                ...response.subscriptionRevokedEvents_subscriber,
+                ...response.subscriptionRevokedEvents_publisher,
+                ...response.subscriptionUnitsUpdatedEvents_subscriber,
+                ...response.subscriptionUnitsUpdatedEvents_publisher,
             ];
 
             if (allEvents.length) {

@@ -14,7 +14,11 @@ export type AccountEvents =
     | IndexUpdatedEvent
     | TokenDowngradedEvent
     | TransferEvent
-    | TokenUpgradedEvent;
+    | TokenUpgradedEvent
+    | SubscriptionApprovedEvent
+    | SubscriptionDistributionClaimedEvent
+    | SubscriptionRevokedEvent
+    | SubscriptionUnitsUpdatedEvent;
 
 export type OtherEvents =
     | AgreementClassRegisteredEvent
@@ -33,11 +37,6 @@ export type OtherEvents =
     | RoleGrantedEvent
     | RoleRevokedEvent
     | SentEvent
-    // TODO(KK): Actually account events
-    | SubscriptionApprovedEvent
-    | SubscriptionDistributionClaimedEvent
-    | SubscriptionRevokedEvent
-    | SubscriptionUnitsUpdatedEvent
     | SuperTokenCreatedEvent
     | SuperTokenFactoryUpdatedEvent
     | SuperTokenLogicCreatedEvent

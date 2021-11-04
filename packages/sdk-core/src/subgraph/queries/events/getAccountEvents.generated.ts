@@ -185,6 +185,54 @@ export type GetAccountEventsQuery = {
         from: { id: string };
         to: { id: string };
     }>;
+    subscriptionApprovedEvents_subscriber: Array<{
+        __typename: "SubscriptionApprovedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionApprovedEvents_publisher: Array<{
+        __typename: "SubscriptionApprovedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionDistributionClaimedEvents_subscriber: Array<{
+        __typename: "SubscriptionDistributionClaimedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionDistributionClaimedEvents_publisher: Array<{
+        __typename: "SubscriptionDistributionClaimedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionRevokedEvents_subscriber: Array<{
+        __typename: "SubscriptionRevokedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionRevokedEvents_publisher: Array<{
+        __typename: "SubscriptionRevokedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionUnitsUpdatedEvents_subscriber: Array<{
+        __typename: "SubscriptionUnitsUpdatedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
+    subscriptionUnitsUpdatedEvents_publisher: Array<{
+        __typename: "SubscriptionUnitsUpdatedEvent";
+        blockNumber: string;
+        transactionHash: string;
+        timestamp: string;
+    }>;
 };
 
 export const GetAccountEventsDocument = {
@@ -1249,6 +1297,502 @@ export const GetAccountEventsDocument = {
                                     name: {
                                         kind: "Name",
                                         value: "transferEventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionApprovedEvents_subscriber",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionApprovedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "subscriber",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionApprovedEvents_publisher",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionApprovedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "publisher",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionDistributionClaimedEvents_subscriber",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionDistributionClaimedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "subscriber",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionDistributionClaimedEvents_publisher",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionDistributionClaimedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "publisher",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionRevokedEvents_subscriber",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionRevokedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "subscriber",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionRevokedEvents_publisher",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionRevokedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "publisher",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionUnitsUpdatedEvents_subscriber",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionUnitsUpdatedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "subscriber",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                    {
+                        kind: "Field",
+                        alias: {
+                            kind: "Name",
+                            value: "subscriptionUnitsUpdatedEvents_publisher",
+                        },
+                        name: {
+                            kind: "Name",
+                            value: "subscriptionUnitsUpdatedEvents",
+                        },
+                        arguments: [
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "where" },
+                                value: {
+                                    kind: "ObjectValue",
+                                    fields: [
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "publisher",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "accountBytes",
+                                                },
+                                            },
+                                        },
+                                        {
+                                            kind: "ObjectField",
+                                            name: {
+                                                kind: "Name",
+                                                value: "timestamp_gte",
+                                            },
+                                            value: {
+                                                kind: "Variable",
+                                                name: {
+                                                    kind: "Name",
+                                                    value: "timestamp_gte",
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        ],
+                        selectionSet: {
+                            kind: "SelectionSet",
+                            selections: [
+                                {
+                                    kind: "FragmentSpread",
+                                    name: {
+                                        kind: "Name",
+                                        value: "eventFields",
                                     },
                                 },
                             ],

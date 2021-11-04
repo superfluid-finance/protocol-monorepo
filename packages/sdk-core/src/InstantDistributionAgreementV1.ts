@@ -18,6 +18,7 @@ const idaInterface = new ethers.utils.Interface(
 
 /**
  * @dev Instant Distribution Agreement V1 Helper Class
+ * @description A helper class to interact with the IDAV1 contract.
  */
 export default class InstantDistributionAgreementV1 {
     readonly options: IAgreementV1Options;

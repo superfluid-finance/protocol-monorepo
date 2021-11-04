@@ -4,7 +4,6 @@ import { abi as SuperTokenABI } from "./abi/SuperToken.json";
 import { getNetworkName } from "./frameworkHelpers";
 import { SuperToken as ISuperToken } from "./typechain";
 import {
-    ChainId,
     IConfig,
     ISuperTokenBaseIDAParams,
     ISuperTokenBaseSubscriptionParams,
@@ -14,8 +13,8 @@ import {
     ISuperTokenUpdateFlowParams,
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
-    NetworkName,
 } from "./interfaces";
+import { ChainId, NetworkName } from "./types";
 import Operation from "./Operation";
 import { handleError } from "./errorHelper";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -35,7 +34,8 @@ export interface ITokenOptions {
 }
 
 /**
- * @dev SuperToken Class
+ * @dev SuperToken Helper Class
+ * @description A helper class to create `SuperToken` objects which can interact with the `SuperToken` contract as well as the CFAV1 and IDAV1 contracts of the desired `SuperToken`.
  */
 export default class SuperToken {
     readonly options: ITokenOptions;

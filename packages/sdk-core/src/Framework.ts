@@ -9,13 +9,8 @@ import {
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
-import {
-    ChainId,
-    DataMode,
-    IConfig,
-    ISignerConstructorOptions,
-    NetworkName,
-} from "./interfaces";
+import { IConfig, ISignerConstructorOptions } from "./interfaces";
+import { ChainId, DataMode, NetworkName } from "./types";
 import { handleError } from "./errorHelper";
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -46,7 +41,8 @@ export interface IFrameworkSettings {
 }
 
 /**
- * @dev Superfluid Framework class
+ * @dev Superfluid Framework Class
+ * @description The entrypoint for the SDK-core, `create` an instance of this for full functionality.
  */
 export default class Framework {
     readonly userInputOptions: IFrameworkOptions;
@@ -161,7 +157,7 @@ export default class Framework {
      * @param options.provider an ethers Provider object (e.g. via Hardhat ethers)
      * @param options.privateKey a test account private key
      * @param options.signer a signer object (e.g. ethers.Wallet instance)
-     * @returns ethers.Signer object
+     * @returns `ethers.Signer` object
      */
     createSigner = (options: ISignerConstructorOptions): Signer => {
         if (!options.privateKey && !options.provider && !options.signer) {

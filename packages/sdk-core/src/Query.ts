@@ -1,5 +1,4 @@
 import {
-    DataMode,
     IAccountTokenSnapshotFilter, IFlowUpdatedEvent,
     IIndex,
     IIndexRequestFilter,
@@ -11,6 +10,7 @@ import {
     ISuperToken,
     ISuperTokenRequestFilter
 } from "./interfaces";
+import { DataMode } from "./types";
 import {GetIndexesDocument, GetIndexesQuery, GetIndexesQueryVariables} from "./subgraph/queries/getIndexes.generated";
 import {
     validateAccountTokenSnapshotRequest,
@@ -51,6 +51,7 @@ export interface IQueryOptions {
 
 /**
  * @dev Query Helper Class
+ * @description A helper class to create `Query` objects which can be used to query different data.
  */
 export default class Query {
     options: IQueryOptions;

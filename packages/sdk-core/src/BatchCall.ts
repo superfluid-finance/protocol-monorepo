@@ -28,7 +28,8 @@ const operationTypeStringToTypeMap = new Map<OperationType, number>([
 ]);
 
 /**
- * @dev BatchCall Class
+ * @dev BatchCall Helper Class
+ * @description A helper class to create `BatchCall` objects which can be executed.
  */
 export default class BatchCall {
     options: IBatchCallOptions;

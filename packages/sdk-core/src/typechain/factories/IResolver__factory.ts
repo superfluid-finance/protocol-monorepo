@@ -7,54 +7,54 @@ import { Provider } from "@ethersproject/providers";
 import type { IResolver, IResolverInterface } from "../IResolver";
 
 const _abi = [
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "name",
-        type: "string",
-      },
-      {
-        internalType: "address",
-        name: "target",
-        type: "address",
-      },
-    ],
-    name: "set",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "name",
-        type: "string",
-      },
-    ],
-    name: "get",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
+    {
+        inputs: [
+            {
+                internalType: "string",
+                name: "name",
+                type: "string",
+            },
+            {
+                internalType: "address",
+                name: "target",
+                type: "address",
+            },
+        ],
+        name: "set",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+    },
+    {
+        inputs: [
+            {
+                internalType: "string",
+                name: "name",
+                type: "string",
+            },
+        ],
+        name: "get",
+        outputs: [
+            {
+                internalType: "address",
+                name: "",
+                type: "address",
+            },
+        ],
+        stateMutability: "view",
+        type: "function",
+    },
 ];
 
 export class IResolver__factory {
-  static readonly abi = _abi;
-  static createInterface(): IResolverInterface {
-    return new utils.Interface(_abi) as IResolverInterface;
-  }
-  static connect(
-    address: string,
-    signerOrProvider: Signer | Provider
-  ): IResolver {
-    return new Contract(address, _abi, signerOrProvider) as IResolver;
-  }
+    static readonly abi = _abi;
+    static createInterface(): IResolverInterface {
+        return new utils.Interface(_abi) as IResolverInterface;
+    }
+    static connect(
+        address: string,
+        signerOrProvider: Signer | Provider
+    ): IResolver {
+        return new Contract(address, _abi, signerOrProvider) as IResolver;
+    }
 }

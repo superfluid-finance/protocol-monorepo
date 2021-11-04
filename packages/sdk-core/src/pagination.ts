@@ -2,7 +2,7 @@ export class Paging {
     readonly skip: number;
     readonly take: number;
 
-    constructor({skip = 0, take = 100} = {}) {
+    constructor({ skip = 0, take = 100 } = {}) {
         this.skip = skip;
         this.take = take;
     }

@@ -1,0 +1,7 @@
+fragment indexSubscribedEventFields on IndexSubscribedEvent {
+    token
+    publisher
+    indexId
+    subscriber
+    ...eventFields
+}

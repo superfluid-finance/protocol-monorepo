@@ -1,6 +1,6 @@
-import Ajv, {JSONSchemaType, ValidateFunction} from "ajv";
-import {ethers} from "ethers";
-import {handleError} from "./errorHelper";
+import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
+import { ethers } from "ethers";
+import { handleError } from "./errorHelper";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
@@ -12,7 +12,8 @@ import {
 const ajv = new Ajv();
 ajv.addFormat("addressOrEmpty", {
     type: "string",
-    validate: (x: string) => x === "" || (ethers.utils.isAddress(x) && (x === x.toLowerCase())), // TODO(KK): Handle lower-case use-case better. Probably should not be a matter of validation.
+    validate: (x: string) =>
+        x === "" || (ethers.utils.isAddress(x) && x === x.toLowerCase()), // TODO(KK): Handle lower-case use-case better. Probably should not be a matter of validation.
 });
 ajv.addFormat("stringNumber", {
     type: "string",
@@ -24,7 +25,7 @@ const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
     type: "object",
     additionalProperties: false,
     properties: {
-        isListed: {type: "boolean", nullable: true},
+        isListed: { type: "boolean", nullable: true },
     },
 };
 
@@ -32,9 +33,9 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     type: "object",
     additionalProperties: false,
     properties: {
-        indexId: {type: "string", format: "stringNumber", nullable: true},
-        publisher: {type: "string", format: "addressOrEmpty", nullable: true},
-        token: {type: "string", format: "addressOrEmpty", nullable: true}
+        indexId: { type: "string", format: "stringNumber", nullable: true },
+        publisher: { type: "string", format: "addressOrEmpty", nullable: true },
+        token: { type: "string", format: "addressOrEmpty", nullable: true },
     },
 };
 
@@ -48,7 +49,7 @@ const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFil
                 format: "addressOrEmpty",
                 nullable: true,
             },
-            token: {type: "string", format: "addressOrEmpty", nullable: true},
+            token: { type: "string", format: "addressOrEmpty", nullable: true },
         },
     };
 
@@ -62,7 +63,7 @@ const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFi
                 format: "stringNumber",
                 nullable: true,
             },
-            approved: {type: "boolean", nullable: true},
+            approved: { type: "boolean", nullable: true },
         },
     };
 
@@ -70,13 +71,15 @@ const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     type: "object",
     additionalProperties: false,
     properties: {
-        sender: {type: "string", format: "addressOrEmpty", nullable: true},
-        receiver: {type: "string", format: "addressOrEmpty", nullable: true},
-        token: {type: "string", format: "addressOrEmpty", nullable: true},
+        sender: { type: "string", format: "addressOrEmpty", nullable: true },
+        receiver: { type: "string", format: "addressOrEmpty", nullable: true },
+        token: { type: "string", format: "addressOrEmpty", nullable: true },
     },
 };
 
-function wrapValidationWithCustomError<T>(validateFunction: ValidateFunction<T>) {
+function wrapValidationWithCustomError<T>(
+    validateFunction: ValidateFunction<T>
+) {
     return (filter: T) => {
         if (!validateFunction(filter)) {
             handleError(
@@ -85,16 +88,25 @@ function wrapValidationWithCustomError<T>(validateFunction: ValidateFunction<T>)
                 JSON.stringify(validateFunction.errors)
             );
         }
-    }
+    };
 }
 
 // Validate functions
-export const validateSuperTokenRequest = wrapValidationWithCustomError(ajv.compile<ISuperTokenRequestFilter>(superTokenRequestSchema));
-export const validateIndexRequest = wrapValidationWithCustomError(ajv.compile<IIndexRequestFilter>(indexRequestSchema));
-export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(ajv.compile<IIndexSubscriptionRequestFilter>(
-    indexSubscriptionRequestSchema
-));
-export const validateStreamRequest = wrapValidationWithCustomError(ajv.compile<IStreamRequestFilter>(streamRequestSchema));
-export const validateAccountTokenSnapshotRequest = wrapValidationWithCustomError(ajv.compile<IAccountTokenSnapshotFilter>(
-    accountTokenSnapshotRequestSchema
-));
+export const validateSuperTokenRequest = wrapValidationWithCustomError(
+    ajv.compile<ISuperTokenRequestFilter>(superTokenRequestSchema)
+);
+export const validateIndexRequest = wrapValidationWithCustomError(
+    ajv.compile<IIndexRequestFilter>(indexRequestSchema)
+);
+export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(
+    ajv.compile<IIndexSubscriptionRequestFilter>(indexSubscriptionRequestSchema)
+);
+export const validateStreamRequest = wrapValidationWithCustomError(
+    ajv.compile<IStreamRequestFilter>(streamRequestSchema)
+);
+export const validateAccountTokenSnapshotRequest =
+    wrapValidationWithCustomError(
+        ajv.compile<IAccountTokenSnapshotFilter>(
+            accountTokenSnapshotRequestSchema
+        )
+    );

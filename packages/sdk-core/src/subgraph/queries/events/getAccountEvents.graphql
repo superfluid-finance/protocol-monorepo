@@ -13,10 +13,10 @@ query getAccountEvents($accountBytes: Bytes!, $accountString: String!, $timestam
         ...eventFields
     }
     indexDistributionClaimedEvents_subscriber: indexDistributionClaimedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
-        ...indexDistributionClaimedEvents
+        ...indexDistributionClaimedEventFields
     }
     indexDistributionClaimedEvents_publisher: indexDistributionClaimedEvents(where: {publisher: $accountBytes, timestamp_gte: $timestamp_gte}) {
-        ...indexDistributionClaimedEvents
+        ...indexDistributionClaimedEventFields
     }
     indexSubscribedEvents_subscriber: indexSubscribedEvents(where: {subscriber: $accountBytes, timestamp_gte: $timestamp_gte}) {
         ...indexSubscribedEventFields
@@ -63,61 +63,4 @@ query getAccountEvents($accountBytes: Bytes!, $accountString: String!, $timestam
     transferEvents_from: transferEvents(where: {from: $accountString, timestamp_gte: $timestamp_gte}) {
         ...transferEventFields
     }
-}
-
-fragment eventFields on Event {
-    __typename
-}
-
-fragment flowUpdatedEventFields on FlowUpdatedEvent {
-    token
-    sender
-    receiver
-    flowRate
-    ...eventFields
-}
-
-fragment transferEventFields on TransferEvent {
-    from {id}
-    to {id}
-    value
-    token
-    ...eventFields
-}
-
-fragment indexUnitUpdatedEventFields on IndexUnitsUpdatedEvent {
-    token
-    publisher
-    indexId
-    subscriber
-    units
-    userData
-    oldUnits
-    ...eventFields
-}
-
-fragment indexUnsubscribedEventFields on IndexUnsubscribedEvent {
-    token
-    publisher
-    indexId
-    subscriber
-    userData
-    ...eventFields
-}
-
-fragment indexSubscribedEventFields on IndexSubscribedEvent {
-    token
-    publisher
-    indexId
-    subscriber
-    ...eventFields
-}
-
-fragment indexDistributionClaimedEvents on IndexDistributionClaimedEvent {
-    token
-    publisher
-    indexId
-    subscriber
-    amount
-    ...eventFields
 }

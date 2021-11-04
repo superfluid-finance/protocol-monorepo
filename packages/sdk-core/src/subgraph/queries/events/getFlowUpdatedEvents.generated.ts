@@ -1,31 +1,38 @@
-import * as Types from "../schema.generated";
+import * as Types from "../../schema.generated";
 
 import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
-export type GetTokensQueryVariables = Types.Exact<{
-    where: Types.Token_Filter;
+export type GetFlowUpdatedEventsQueryVariables = Types.Exact<{
+    where: Types.FlowUpdatedEvent_Filter;
     skip: Types.Scalars["Int"];
     first: Types.Scalars["Int"];
 }>;
 
-export type GetTokensQuery = {
+export type GetFlowUpdatedEventsQuery = {
     result: Array<{
         id: string;
-        createdAtTimestamp: string;
-        createdAtBlockNumber: string;
-        name: string;
-        symbol: string;
-        isListed: boolean;
-        underlyingAddress: string;
+        blockNumber: string;
+        timestamp: string;
+        transactionHash: string;
+        token: string;
+        sender: string;
+        receiver: string;
+        flowRate: string;
+        totalSenderFlowRate: string;
+        totalReceiverFlowRate: string;
+        userData: string;
+        oldFlowRate: string;
+        type: number;
+        totalAmountStreamedUntilTimestamp: string;
     }>;
 };
 
-export const GetTokensDocument = {
+export const GetFlowUpdatedEventsDocument = {
     kind: "Document",
     definitions: [
         {
             kind: "OperationDefinition",
             operation: "query",
-            name: { kind: "Name", value: "getTokens" },
+            name: { kind: "Name", value: "getFlowUpdatedEvents" },
             variableDefinitions: [
                 {
                     kind: "VariableDefinition",
@@ -37,7 +44,10 @@ export const GetTokensDocument = {
                         kind: "NonNullType",
                         type: {
                             kind: "NamedType",
-                            name: { kind: "Name", value: "Token_filter" },
+                            name: {
+                                kind: "Name",
+                                value: "FlowUpdatedEvent_filter",
+                            },
                         },
                     },
                 },
@@ -76,7 +86,7 @@ export const GetTokensDocument = {
                     {
                         kind: "Field",
                         alias: { kind: "Name", value: "result" },
-                        name: { kind: "Name", value: "tokens" },
+                        name: { kind: "Name", value: "flowUpdatedEvents" },
                         arguments: [
                             {
                                 kind: "Argument",
@@ -102,6 +112,19 @@ export const GetTokensDocument = {
                                     name: { kind: "Name", value: "first" },
                                 },
                             },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderBy" },
+                                value: {
+                                    kind: "EnumValue",
+                                    value: "timestamp",
+                                },
+                            },
+                            {
+                                kind: "Argument",
+                                name: { kind: "Name", value: "orderDirection" },
+                                value: { kind: "EnumValue", value: "asc" },
+                            },
                         ],
                         selectionSet: {
                             kind: "SelectionSet",
@@ -114,33 +137,70 @@ export const GetTokensDocument = {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "createdAtTimestamp",
+                                        value: "blockNumber",
+                                    },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "timestamp" },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: {
+                                        kind: "Name",
+                                        value: "transactionHash",
+                                    },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "token" },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "sender" },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "receiver" },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "flowRate" },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: {
+                                        kind: "Name",
+                                        value: "totalSenderFlowRate",
                                     },
                                 },
                                 {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "createdAtBlockNumber",
+                                        value: "totalReceiverFlowRate",
                                     },
                                 },
                                 {
                                     kind: "Field",
-                                    name: { kind: "Name", value: "name" },
-                                },
-                                {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "symbol" },
-                                },
-                                {
-                                    kind: "Field",
-                                    name: { kind: "Name", value: "isListed" },
+                                    name: { kind: "Name", value: "userData" },
                                 },
                                 {
                                     kind: "Field",
                                     name: {
                                         kind: "Name",
-                                        value: "underlyingAddress",
+                                        value: "oldFlowRate",
+                                    },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: { kind: "Name", value: "type" },
+                                },
+                                {
+                                    kind: "Field",
+                                    name: {
+                                        kind: "Name",
+                                        value: "totalAmountStreamedUntilTimestamp",
                                     },
                                 },
                             ],
@@ -150,4 +210,7 @@ export const GetTokensDocument = {
             },
         },
     ],
-} as unknown as DocumentNode<GetTokensQuery, GetTokensQueryVariables>;
+} as unknown as DocumentNode<
+    GetFlowUpdatedEventsQuery,
+    GetFlowUpdatedEventsQueryVariables
+>;

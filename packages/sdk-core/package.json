@@ -19,10 +19,13 @@
         "build": "rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript",
         "test": "echo \"Error: no test specified\" && exit 1",
         "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
+        "fix": "run-s fix:*",
+        "fix:prettier": "prettier \"src/**/*.ts\" --write",
+        "fix:lint": "eslint src --ext .ts --fix",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint": "echo no pre-commit currently",
         "generate-web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
-        "generate-graphql-types": "graphql-codegen --config subgraph-codegen.yml"
+        "generate-graphql-types": "graphql-codegen --config subgraph-codegen.yml && yarn run fix"
     },
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"

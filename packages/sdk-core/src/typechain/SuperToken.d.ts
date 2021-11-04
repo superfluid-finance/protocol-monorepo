@@ -3,16 +3,16 @@
 /* eslint-disable */
 
 import {
-  ethers,
-  EventFilter,
-  Signer,
-  BigNumber,
-  BigNumberish,
-  PopulatedTransaction,
-  BaseContract,
-  ContractTransaction,
-  Overrides,
-  CallOverrides,
+    ethers,
+    EventFilter,
+    Signer,
+    BigNumber,
+    BigNumberish,
+    PopulatedTransaction,
+    BaseContract,
+    ContractTransaction,
+    Overrides,
+    CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
@@ -20,1215 +20,956 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface SuperTokenInterface extends ethers.utils.Interface {
-  functions: {
-    "createAgreement(bytes32,bytes32[])": FunctionFragment;
-    "getAccountActiveAgreements(address)": FunctionFragment;
-    "getAgreementData(address,bytes32,uint256)": FunctionFragment;
-    "getAgreementStateSlot(address,address,uint256,uint256)": FunctionFragment;
-    "getCodeAddress()": FunctionFragment;
-    "getHost()": FunctionFragment;
-    "isAccountCritical(address,uint256)": FunctionFragment;
-    "isAccountCriticalNow(address)": FunctionFragment;
-    "isAccountSolvent(address,uint256)": FunctionFragment;
-    "isAccountSolventNow(address)": FunctionFragment;
-    "makeLiquidationPayouts(bytes32,address,address,uint256,uint256)": FunctionFragment;
-    "realtimeBalanceOf(address,uint256)": FunctionFragment;
-    "realtimeBalanceOfNow(address)": FunctionFragment;
-    "settleBalance(address,int256)": FunctionFragment;
-    "terminateAgreement(bytes32,uint256)": FunctionFragment;
-    "updateAgreementData(bytes32,bytes32[])": FunctionFragment;
-    "updateAgreementStateSlot(address,uint256,bytes32[])": FunctionFragment;
-    "initialize(address,uint8,string,string)": FunctionFragment;
-    "proxiableUUID()": FunctionFragment;
-    "updateCode(address)": FunctionFragment;
-    "name()": FunctionFragment;
-    "symbol()": FunctionFragment;
-    "decimals()": FunctionFragment;
-    "totalSupply()": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "transfer(address,uint256)": FunctionFragment;
-    "allowance(address,address)": FunctionFragment;
-    "approve(address,uint256)": FunctionFragment;
-    "transferFrom(address,address,uint256)": FunctionFragment;
-    "increaseAllowance(address,uint256)": FunctionFragment;
-    "decreaseAllowance(address,uint256)": FunctionFragment;
-    "granularity()": FunctionFragment;
-    "send(address,uint256,bytes)": FunctionFragment;
-    "burn(uint256,bytes)": FunctionFragment;
-    "isOperatorFor(address,address)": FunctionFragment;
-    "authorizeOperator(address)": FunctionFragment;
-    "revokeOperator(address)": FunctionFragment;
-    "defaultOperators()": FunctionFragment;
-    "operatorSend(address,address,uint256,bytes,bytes)": FunctionFragment;
-    "operatorBurn(address,uint256,bytes,bytes)": FunctionFragment;
-    "selfMint(address,uint256,bytes)": FunctionFragment;
-    "selfBurn(address,uint256,bytes)": FunctionFragment;
-    "transferAll(address)": FunctionFragment;
-    "getUnderlyingToken()": FunctionFragment;
-    "upgrade(uint256)": FunctionFragment;
-    "upgradeTo(address,uint256,bytes)": FunctionFragment;
-    "downgrade(uint256)": FunctionFragment;
-    "operationApprove(address,address,uint256)": FunctionFragment;
-    "operationTransferFrom(address,address,address,uint256)": FunctionFragment;
-    "operationUpgrade(address,uint256)": FunctionFragment;
-    "operationDowngrade(address,uint256)": FunctionFragment;
-  };
+    functions: {
+        "createAgreement(bytes32,bytes32[])": FunctionFragment;
+        "getAccountActiveAgreements(address)": FunctionFragment;
+        "getAgreementData(address,bytes32,uint256)": FunctionFragment;
+        "getAgreementStateSlot(address,address,uint256,uint256)": FunctionFragment;
+        "getCodeAddress()": FunctionFragment;
+        "getHost()": FunctionFragment;
+        "isAccountCritical(address,uint256)": FunctionFragment;
+        "isAccountCriticalNow(address)": FunctionFragment;
+        "isAccountSolvent(address,uint256)": FunctionFragment;
+        "isAccountSolventNow(address)": FunctionFragment;
+        "makeLiquidationPayouts(bytes32,address,address,uint256,uint256)": FunctionFragment;
+        "realtimeBalanceOf(address,uint256)": FunctionFragment;
+        "realtimeBalanceOfNow(address)": FunctionFragment;
+        "settleBalance(address,int256)": FunctionFragment;
+        "terminateAgreement(bytes32,uint256)": FunctionFragment;
+        "updateAgreementData(bytes32,bytes32[])": FunctionFragment;
+        "updateAgreementStateSlot(address,uint256,bytes32[])": FunctionFragment;
+        "initialize(address,uint8,string,string)": FunctionFragment;
+        "proxiableUUID()": FunctionFragment;
+        "updateCode(address)": FunctionFragment;
+        "name()": FunctionFragment;
+        "symbol()": FunctionFragment;
+        "decimals()": FunctionFragment;
+        "totalSupply()": FunctionFragment;
+        "balanceOf(address)": FunctionFragment;
+        "transfer(address,uint256)": FunctionFragment;
+        "allowance(address,address)": FunctionFragment;
+        "approve(address,uint256)": FunctionFragment;
+        "transferFrom(address,address,uint256)": FunctionFragment;
+        "increaseAllowance(address,uint256)": FunctionFragment;
+        "decreaseAllowance(address,uint256)": FunctionFragment;
+        "granularity()": FunctionFragment;
+        "send(address,uint256,bytes)": FunctionFragment;
+        "burn(uint256,bytes)": FunctionFragment;
+        "isOperatorFor(address,address)": FunctionFragment;
+        "authorizeOperator(address)": FunctionFragment;
+        "revokeOperator(address)": FunctionFragment;
+        "defaultOperators()": FunctionFragment;
+        "operatorSend(address,address,uint256,bytes,bytes)": FunctionFragment;
+        "operatorBurn(address,uint256,bytes,bytes)": FunctionFragment;
+        "selfMint(address,uint256,bytes)": FunctionFragment;
+        "selfBurn(address,uint256,bytes)": FunctionFragment;
+        "transferAll(address)": FunctionFragment;
+        "getUnderlyingToken()": FunctionFragment;
+        "upgrade(uint256)": FunctionFragment;
+        "upgradeTo(address,uint256,bytes)": FunctionFragment;
+        "downgrade(uint256)": FunctionFragment;
+        "operationApprove(address,address,uint256)": FunctionFragment;
+        "operationTransferFrom(address,address,address,uint256)": FunctionFragment;
+        "operationUpgrade(address,uint256)": FunctionFragment;
+        "operationDowngrade(address,uint256)": FunctionFragment;
+    };
 
-  encodeFunctionData(
-    functionFragment: "createAgreement",
-    values: [BytesLike, BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAccountActiveAgreements",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAgreementData",
-    values: [string, BytesLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAgreementStateSlot",
-    values: [string, string, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getCodeAddress",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "getHost", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "isAccountCritical",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isAccountCriticalNow",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isAccountSolvent",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isAccountSolventNow",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "makeLiquidationPayouts",
-    values: [BytesLike, string, string, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "realtimeBalanceOf",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "realtimeBalanceOfNow",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "settleBalance",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "terminateAgreement",
-    values: [BytesLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateAgreementData",
-    values: [BytesLike, BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "updateAgreementStateSlot",
-    values: [string, BigNumberish, BytesLike[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, BigNumberish, string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "proxiableUUID",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "updateCode", values: [string]): string;
-  encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "transfer",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "allowance",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "approve",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferFrom",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "increaseAllowance",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "decreaseAllowance",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "granularity",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "send",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "burn",
-    values: [BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isOperatorFor",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "authorizeOperator",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "revokeOperator",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "defaultOperators",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "operatorSend",
-    values: [string, string, BigNumberish, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "operatorBurn",
-    values: [string, BigNumberish, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "selfMint",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "selfBurn",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "transferAll", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "getUnderlyingToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "upgrade",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "upgradeTo",
-    values: [string, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "downgrade",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "operationApprove",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "operationTransferFrom",
-    values: [string, string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "operationUpgrade",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "operationDowngrade",
-    values: [string, BigNumberish]
-  ): string;
+    encodeFunctionData(
+        functionFragment: "createAgreement",
+        values: [BytesLike, BytesLike[]]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getAccountActiveAgreements",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getAgreementData",
+        values: [string, BytesLike, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getAgreementStateSlot",
+        values: [string, string, BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getCodeAddress",
+        values?: undefined
+    ): string;
+    encodeFunctionData(functionFragment: "getHost", values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: "isAccountCritical",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "isAccountCriticalNow",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "isAccountSolvent",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "isAccountSolventNow",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "makeLiquidationPayouts",
+        values: [BytesLike, string, string, BigNumberish, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "realtimeBalanceOf",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "realtimeBalanceOfNow",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "settleBalance",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "terminateAgreement",
+        values: [BytesLike, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "updateAgreementData",
+        values: [BytesLike, BytesLike[]]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "updateAgreementStateSlot",
+        values: [string, BigNumberish, BytesLike[]]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "initialize",
+        values: [string, BigNumberish, string, string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "proxiableUUID",
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: "updateCode",
+        values: [string]
+    ): string;
+    encodeFunctionData(functionFragment: "name", values?: undefined): string;
+    encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+    encodeFunctionData(
+        functionFragment: "decimals",
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: "totalSupply",
+        values?: undefined
+    ): string;
+    encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+    encodeFunctionData(
+        functionFragment: "transfer",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "allowance",
+        values: [string, string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "approve",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "transferFrom",
+        values: [string, string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "increaseAllowance",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "decreaseAllowance",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "granularity",
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: "send",
+        values: [string, BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "burn",
+        values: [BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "isOperatorFor",
+        values: [string, string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "authorizeOperator",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "revokeOperator",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "defaultOperators",
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: "operatorSend",
+        values: [string, string, BigNumberish, BytesLike, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "operatorBurn",
+        values: [string, BigNumberish, BytesLike, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "selfMint",
+        values: [string, BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "selfBurn",
+        values: [string, BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "transferAll",
+        values: [string]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "getUnderlyingToken",
+        values?: undefined
+    ): string;
+    encodeFunctionData(
+        functionFragment: "upgrade",
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "upgradeTo",
+        values: [string, BigNumberish, BytesLike]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "downgrade",
+        values: [BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "operationApprove",
+        values: [string, string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "operationTransferFrom",
+        values: [string, string, string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "operationUpgrade",
+        values: [string, BigNumberish]
+    ): string;
+    encodeFunctionData(
+        functionFragment: "operationDowngrade",
+        values: [string, BigNumberish]
+    ): string;
 
-  decodeFunctionResult(
-    functionFragment: "createAgreement",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAccountActiveAgreements",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAgreementData",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAgreementStateSlot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getCodeAddress",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getHost", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isAccountCritical",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isAccountCriticalNow",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isAccountSolvent",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isAccountSolventNow",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "makeLiquidationPayouts",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "realtimeBalanceOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "realtimeBalanceOfNow",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "settleBalance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "terminateAgreement",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateAgreementData",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "updateAgreementStateSlot",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "proxiableUUID",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "updateCode", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "increaseAllowance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "decreaseAllowance",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "granularity",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isOperatorFor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "authorizeOperator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "revokeOperator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "defaultOperators",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "operatorSend",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "operatorBurn",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "selfMint", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "selfBurn", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "transferAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUnderlyingToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "upgrade", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "upgradeTo", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "downgrade", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "operationApprove",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "operationTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "operationUpgrade",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "operationDowngrade",
-    data: BytesLike
-  ): Result;
+    decodeFunctionResult(
+        functionFragment: "createAgreement",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "getAccountActiveAgreements",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "getAgreementData",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "getAgreementStateSlot",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "getCodeAddress",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "getHost", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "isAccountCritical",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "isAccountCriticalNow",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "isAccountSolvent",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "isAccountSolventNow",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "makeLiquidationPayouts",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "realtimeBalanceOf",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "realtimeBalanceOfNow",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "settleBalance",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "terminateAgreement",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "updateAgreementData",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "updateAgreementStateSlot",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "initialize",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "proxiableUUID",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "updateCode",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "totalSupply",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "balanceOf",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "allowance",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "transferFrom",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "increaseAllowance",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "decreaseAllowance",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "granularity",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "send", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "isOperatorFor",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "authorizeOperator",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "revokeOperator",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "defaultOperators",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "operatorSend",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "operatorBurn",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "selfMint", data: BytesLike): Result;
+    decodeFunctionResult(functionFragment: "selfBurn", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "transferAll",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "getUnderlyingToken",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(functionFragment: "upgrade", data: BytesLike): Result;
+    decodeFunctionResult(
+        functionFragment: "upgradeTo",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "downgrade",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "operationApprove",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "operationTransferFrom",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "operationUpgrade",
+        data: BytesLike
+    ): Result;
+    decodeFunctionResult(
+        functionFragment: "operationDowngrade",
+        data: BytesLike
+    ): Result;
 
-  events: {
-    "AgreementAccountStateUpdated(address,address,bytes)": EventFragment;
-    "AgreementCreated(address,bytes32,bytes32[])": EventFragment;
-    "AgreementLiquidated(address,bytes32,address,address,uint256)": EventFragment;
-    "AgreementLiquidatedBy(address,address,bytes32,address,address,uint256,uint256)": EventFragment;
-    "AgreementStateUpdated(address,address,uint256)": EventFragment;
-    "AgreementTerminated(address,bytes32)": EventFragment;
-    "AgreementUpdated(address,bytes32,bytes32[])": EventFragment;
-    "Approval(address,address,uint256)": EventFragment;
-    "AuthorizedOperator(address,address)": EventFragment;
-    "Bailout(address,uint256)": EventFragment;
-    "Burned(address,address,uint256,bytes,bytes)": EventFragment;
-    "CodeUpdated(bytes32,address)": EventFragment;
-    "Minted(address,address,uint256,bytes,bytes)": EventFragment;
-    "RevokedOperator(address,address)": EventFragment;
-    "Sent(address,address,address,uint256,bytes,bytes)": EventFragment;
-    "TokenDowngraded(address,uint256)": EventFragment;
-    "TokenUpgraded(address,uint256)": EventFragment;
-    "Transfer(address,address,uint256)": EventFragment;
-  };
+    events: {
+        "AgreementAccountStateUpdated(address,address,bytes)": EventFragment;
+        "AgreementCreated(address,bytes32,bytes32[])": EventFragment;
+        "AgreementLiquidated(address,bytes32,address,address,uint256)": EventFragment;
+        "AgreementLiquidatedBy(address,address,bytes32,address,address,uint256,uint256)": EventFragment;
+        "AgreementStateUpdated(address,address,uint256)": EventFragment;
+        "AgreementTerminated(address,bytes32)": EventFragment;
+        "AgreementUpdated(address,bytes32,bytes32[])": EventFragment;
+        "Approval(address,address,uint256)": EventFragment;
+        "AuthorizedOperator(address,address)": EventFragment;
+        "Bailout(address,uint256)": EventFragment;
+        "Burned(address,address,uint256,bytes,bytes)": EventFragment;
+        "CodeUpdated(bytes32,address)": EventFragment;
+        "Minted(address,address,uint256,bytes,bytes)": EventFragment;
+        "RevokedOperator(address,address)": EventFragment;
+        "Sent(address,address,address,uint256,bytes,bytes)": EventFragment;
+        "TokenDowngraded(address,uint256)": EventFragment;
+        "TokenUpgraded(address,uint256)": EventFragment;
+        "Transfer(address,address,uint256)": EventFragment;
+    };
 
-  getEvent(
-    nameOrSignatureOrTopic: "AgreementAccountStateUpdated"
-  ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AgreementCreated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AgreementLiquidated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AgreementLiquidatedBy"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AgreementStateUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AgreementTerminated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AgreementUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AuthorizedOperator"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Bailout"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Burned"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CodeUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Minted"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "RevokedOperator"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Sent"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenDowngraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "TokenUpgraded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+    getEvent(
+        nameOrSignatureOrTopic: "AgreementAccountStateUpdated"
+    ): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AgreementCreated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AgreementLiquidated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AgreementLiquidatedBy"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AgreementStateUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AgreementTerminated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AgreementUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "AuthorizedOperator"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Bailout"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Burned"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "CodeUpdated"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Minted"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "RevokedOperator"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Sent"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenDowngraded"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "TokenUpgraded"): EventFragment;
+    getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
 export type AgreementAccountStateUpdatedEvent = TypedEvent<
-  [string, string, string] & {
-    agreementClass: string;
-    account: string;
-    state: string;
-  }
+    [string, string, string] & {
+        agreementClass: string;
+        account: string;
+        state: string;
+    }
 >;
 
 export type AgreementCreatedEvent = TypedEvent<
-  [string, string, string[]] & {
-    agreementClass: string;
-    id: string;
-    data: string[];
-  }
+    [string, string, string[]] & {
+        agreementClass: string;
+        id: string;
+        data: string[];
+    }
 >;
 
 export type AgreementLiquidatedEvent = TypedEvent<
-  [string, string, string, string, BigNumber] & {
-    agreementClass: string;
-    id: string;
-    penaltyAccount: string;
-    rewardAccount: string;
-    rewardAmount: BigNumber;
-  }
+    [string, string, string, string, BigNumber] & {
+        agreementClass: string;
+        id: string;
+        penaltyAccount: string;
+        rewardAccount: string;
+        rewardAmount: BigNumber;
+    }
 >;
 
 export type AgreementLiquidatedByEvent = TypedEvent<
-  [string, string, string, string, string, BigNumber, BigNumber] & {
-    liquidatorAccount: string;
-    agreementClass: string;
-    id: string;
-    penaltyAccount: string;
-    bondAccount: string;
-    rewardAmount: BigNumber;
-    bailoutAmount: BigNumber;
-  }
+    [string, string, string, string, string, BigNumber, BigNumber] & {
+        liquidatorAccount: string;
+        agreementClass: string;
+        id: string;
+        penaltyAccount: string;
+        bondAccount: string;
+        rewardAmount: BigNumber;
+        bailoutAmount: BigNumber;
+    }
 >;
 
 export type AgreementStateUpdatedEvent = TypedEvent<
-  [string, string, BigNumber] & {
-    agreementClass: string;
-    account: string;
-    slotId: BigNumber;
-  }
+    [string, string, BigNumber] & {
+        agreementClass: string;
+        account: string;
+        slotId: BigNumber;
+    }
 >;
 
 export type AgreementTerminatedEvent = TypedEvent<
-  [string, string] & { agreementClass: string; id: string }
+    [string, string] & { agreementClass: string; id: string }
 >;
 
 export type AgreementUpdatedEvent = TypedEvent<
-  [string, string, string[]] & {
-    agreementClass: string;
-    id: string;
-    data: string[];
-  }
+    [string, string, string[]] & {
+        agreementClass: string;
+        id: string;
+        data: string[];
+    }
 >;
 
 export type ApprovalEvent = TypedEvent<
-  [string, string, BigNumber] & {
-    owner: string;
-    spender: string;
-    value: BigNumber;
-  }
+    [string, string, BigNumber] & {
+        owner: string;
+        spender: string;
+        value: BigNumber;
+    }
 >;
 
 export type AuthorizedOperatorEvent = TypedEvent<
-  [string, string] & { operator: string; tokenHolder: string }
+    [string, string] & { operator: string; tokenHolder: string }
 >;
 
 export type BailoutEvent = TypedEvent<
-  [string, BigNumber] & { bailoutAccount: string; bailoutAmount: BigNumber }
+    [string, BigNumber] & { bailoutAccount: string; bailoutAmount: BigNumber }
 >;
 
 export type BurnedEvent = TypedEvent<
-  [string, string, BigNumber, string, string] & {
-    operator: string;
-    from: string;
-    amount: BigNumber;
-    data: string;
-    operatorData: string;
-  }
+    [string, string, BigNumber, string, string] & {
+        operator: string;
+        from: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+    }
 >;
 
 export type CodeUpdatedEvent = TypedEvent<
-  [string, string] & { uuid: string; codeAddress: string }
+    [string, string] & { uuid: string; codeAddress: string }
 >;
 
 export type MintedEvent = TypedEvent<
-  [string, string, BigNumber, string, string] & {
-    operator: string;
-    to: string;
-    amount: BigNumber;
-    data: string;
-    operatorData: string;
-  }
+    [string, string, BigNumber, string, string] & {
+        operator: string;
+        to: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+    }
 >;
 
 export type RevokedOperatorEvent = TypedEvent<
-  [string, string] & { operator: string; tokenHolder: string }
+    [string, string] & { operator: string; tokenHolder: string }
 >;
 
 export type SentEvent = TypedEvent<
-  [string, string, string, BigNumber, string, string] & {
-    operator: string;
-    from: string;
-    to: string;
-    amount: BigNumber;
-    data: string;
-    operatorData: string;
-  }
+    [string, string, string, BigNumber, string, string] & {
+        operator: string;
+        from: string;
+        to: string;
+        amount: BigNumber;
+        data: string;
+        operatorData: string;
+    }
 >;
 
 export type TokenDowngradedEvent = TypedEvent<
-  [string, BigNumber] & { account: string; amount: BigNumber }
+    [string, BigNumber] & { account: string; amount: BigNumber }
 >;
 
 export type TokenUpgradedEvent = TypedEvent<
-  [string, BigNumber] & { account: string; amount: BigNumber }
+    [string, BigNumber] & { account: string; amount: BigNumber }
 >;
 
 export type TransferEvent = TypedEvent<
-  [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
+    [string, string, BigNumber] & { from: string; to: string; value: BigNumber }
 >;
 
 export class SuperToken extends BaseContract {
-  connect(signerOrProvider: Signer | Provider | string): this;
-  attach(addressOrName: string): this;
-  deployed(): Promise<this>;
+    connect(signerOrProvider: Signer | Provider | string): this;
+    attach(addressOrName: string): this;
+    deployed(): Promise<this>;
 
-  listeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
-  ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
-  off<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  on<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  once<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    listener: TypedListener<EventArgsArray, EventArgsObject>
-  ): this;
-  removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
-    eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
-  ): this;
+    listeners<EventArgsArray extends Array<any>, EventArgsObject>(
+        eventFilter?: TypedEventFilter<EventArgsArray, EventArgsObject>
+    ): Array<TypedListener<EventArgsArray, EventArgsObject>>;
+    off<EventArgsArray extends Array<any>, EventArgsObject>(
+        eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+        listener: TypedListener<EventArgsArray, EventArgsObject>
+    ): this;
+    on<EventArgsArray extends Array<any>, EventArgsObject>(
+        eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+        listener: TypedListener<EventArgsArray, EventArgsObject>
+    ): this;
+    once<EventArgsArray extends Array<any>, EventArgsObject>(
+        eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+        listener: TypedListener<EventArgsArray, EventArgsObject>
+    ): this;
+    removeListener<EventArgsArray extends Array<any>, EventArgsObject>(
+        eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>,
+        listener: TypedListener<EventArgsArray, EventArgsObject>
+    ): this;
+    removeAllListeners<EventArgsArray extends Array<any>, EventArgsObject>(
+        eventFilter: TypedEventFilter<EventArgsArray, EventArgsObject>
+    ): this;
 
-  listeners(eventName?: string): Array<Listener>;
-  off(eventName: string, listener: Listener): this;
-  on(eventName: string, listener: Listener): this;
-  once(eventName: string, listener: Listener): this;
-  removeListener(eventName: string, listener: Listener): this;
-  removeAllListeners(eventName?: string): this;
+    listeners(eventName?: string): Array<Listener>;
+    off(eventName: string, listener: Listener): this;
+    on(eventName: string, listener: Listener): this;
+    once(eventName: string, listener: Listener): this;
+    removeListener(eventName: string, listener: Listener): this;
+    removeAllListeners(eventName?: string): this;
 
-  queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
-    event: TypedEventFilter<EventArgsArray, EventArgsObject>,
-    fromBlockOrBlockhash?: string | number | undefined,
-    toBlock?: string | number | undefined
-  ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
+    queryFilter<EventArgsArray extends Array<any>, EventArgsObject>(
+        event: TypedEventFilter<EventArgsArray, EventArgsObject>,
+        fromBlockOrBlockhash?: string | number | undefined,
+        toBlock?: string | number | undefined
+    ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: SuperTokenInterface;
+    interface: SuperTokenInterface;
 
-  functions: {
+    functions: {
+        createAgreement(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        getAccountActiveAgreements(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<[string[]]>;
+
+        getAgreementData(
+            agreementClass: string,
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<[string[]] & { data: string[] }>;
+
+        getAgreementStateSlot(
+            agreementClass: string,
+            account: string,
+            slotId: BigNumberish,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<[string[]] & { slotData: string[] }>;
+
+        getCodeAddress(
+            overrides?: CallOverrides
+        ): Promise<[string] & { codeAddress: string }>;
+
+        getHost(
+            overrides?: CallOverrides
+        ): Promise<[string] & { host: string }>;
+
+        isAccountCritical(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<[boolean] & { isCritical: boolean }>;
+
+        isAccountCriticalNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<[boolean] & { isCritical: boolean }>;
+
+        isAccountSolvent(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<[boolean] & { isSolvent: boolean }>;
+
+        isAccountSolventNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<[boolean] & { isSolvent: boolean }>;
+
+        makeLiquidationPayouts(
+            id: BytesLike,
+            liquidator: string,
+            penaltyAccount: string,
+            rewardAmount: BigNumberish,
+            bailoutAmount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        realtimeBalanceOf(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber] & {
+                availableBalance: BigNumber;
+                deposit: BigNumber;
+                owedDeposit: BigNumber;
+            }
+        >;
+
+        realtimeBalanceOfNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber, BigNumber] & {
+                availableBalance: BigNumber;
+                deposit: BigNumber;
+                owedDeposit: BigNumber;
+                timestamp: BigNumber;
+            }
+        >;
+
+        settleBalance(
+            account: string,
+            delta: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        terminateAgreement(
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        updateAgreementData(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        updateAgreementStateSlot(
+            account: string,
+            slotId: BigNumberish,
+            slotData: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        initialize(
+            underlyingToken: string,
+            underlyingDecimals: BigNumberish,
+            n: string,
+            s: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
+
+        updateCode(
+            newAddress: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        name(overrides?: CallOverrides): Promise<[string]>;
+
+        symbol(overrides?: CallOverrides): Promise<[string]>;
+
+        decimals(overrides?: CallOverrides): Promise<[number]>;
+
+        totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        balanceOf(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<[BigNumber] & { balance: BigNumber }>;
+
+        transfer(
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        allowance(
+            account: string,
+            spender: string,
+            overrides?: CallOverrides
+        ): Promise<[BigNumber]>;
+
+        approve(
+            spender: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        transferFrom(
+            holder: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        increaseAllowance(
+            spender: string,
+            addedValue: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        decreaseAllowance(
+            spender: string,
+            subtractedValue: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        granularity(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+        send(
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        burn(
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        isOperatorFor(
+            operator: string,
+            tokenHolder: string,
+            overrides?: CallOverrides
+        ): Promise<[boolean]>;
+
+        authorizeOperator(
+            operator: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        revokeOperator(
+            operator: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        defaultOperators(overrides?: CallOverrides): Promise<[string[]]>;
+
+        operatorSend(
+            sender: string,
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        operatorBurn(
+            account: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        selfMint(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        selfBurn(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        transferAll(
+            recipient: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        getUnderlyingToken(overrides?: CallOverrides): Promise<[string]>;
+
+        upgrade(
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        upgradeTo(
+            to: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        downgrade(
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        operationApprove(
+            account: string,
+            spender: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        operationTransferFrom(
+            account: string,
+            spender: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        operationUpgrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+
+        operationDowngrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<ContractTransaction>;
+    };
+
     createAgreement(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
+        id: BytesLike,
+        data: BytesLike[],
+        overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getAccountActiveAgreements(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[string[]]>;
-
-    getAgreementData(
-      agreementClass: string,
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { data: string[] }>;
-
-    getAgreementStateSlot(
-      agreementClass: string,
-      account: string,
-      slotId: BigNumberish,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { slotData: string[] }>;
-
-    getCodeAddress(
-      overrides?: CallOverrides
-    ): Promise<[string] & { codeAddress: string }>;
-
-    getHost(overrides?: CallOverrides): Promise<[string] & { host: string }>;
-
-    isAccountCritical(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { isCritical: boolean }>;
-
-    isAccountCriticalNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { isCritical: boolean }>;
-
-    isAccountSolvent(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { isSolvent: boolean }>;
-
-    isAccountSolventNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean] & { isSolvent: boolean }>;
-
-    makeLiquidationPayouts(
-      id: BytesLike,
-      liquidator: string,
-      penaltyAccount: string,
-      rewardAmount: BigNumberish,
-      bailoutAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    realtimeBalanceOf(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        availableBalance: BigNumber;
-        deposit: BigNumber;
-        owedDeposit: BigNumber;
-      }
-    >;
-
-    realtimeBalanceOfNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        availableBalance: BigNumber;
-        deposit: BigNumber;
-        owedDeposit: BigNumber;
-        timestamp: BigNumber;
-      }
-    >;
-
-    settleBalance(
-      account: string,
-      delta: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    terminateAgreement(
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    updateAgreementData(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    updateAgreementStateSlot(
-      account: string,
-      slotId: BigNumberish,
-      slotData: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    initialize(
-      underlyingToken: string,
-      underlyingDecimals: BigNumberish,
-      n: string,
-      s: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    proxiableUUID(overrides?: CallOverrides): Promise<[string]>;
-
-    updateCode(
-      newAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    name(overrides?: CallOverrides): Promise<[string]>;
-
-    symbol(overrides?: CallOverrides): Promise<[string]>;
-
-    decimals(overrides?: CallOverrides): Promise<[number]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    balanceOf(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { balance: BigNumber }>;
-
-    transfer(
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    allowance(
-      account: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    approve(
-      spender: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    transferFrom(
-      holder: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    increaseAllowance(
-      spender: string,
-      addedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    decreaseAllowance(
-      spender: string,
-      subtractedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    granularity(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    send(
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    burn(
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    isOperatorFor(
-      operator: string,
-      tokenHolder: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    authorizeOperator(
-      operator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    revokeOperator(
-      operator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    defaultOperators(overrides?: CallOverrides): Promise<[string[]]>;
-
-    operatorSend(
-      sender: string,
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    operatorBurn(
-      account: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    selfMint(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    selfBurn(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    transferAll(
-      recipient: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    getUnderlyingToken(overrides?: CallOverrides): Promise<[string]>;
-
-    upgrade(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    upgradeTo(
-      to: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    downgrade(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    operationApprove(
-      account: string,
-      spender: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    operationTransferFrom(
-      account: string,
-      spender: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    operationUpgrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    operationDowngrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-  };
-
-  createAgreement(
-    id: BytesLike,
-    data: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  getAccountActiveAgreements(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
-
-  getAgreementData(
-    agreementClass: string,
-    id: BytesLike,
-    dataLength: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
-
-  getAgreementStateSlot(
-    agreementClass: string,
-    account: string,
-    slotId: BigNumberish,
-    dataLength: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string[]>;
-
-  getCodeAddress(overrides?: CallOverrides): Promise<string>;
-
-  getHost(overrides?: CallOverrides): Promise<string>;
-
-  isAccountCritical(
-    account: string,
-    timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isAccountCriticalNow(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isAccountSolvent(
-    account: string,
-    timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  isAccountSolventNow(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  makeLiquidationPayouts(
-    id: BytesLike,
-    liquidator: string,
-    penaltyAccount: string,
-    rewardAmount: BigNumberish,
-    bailoutAmount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  realtimeBalanceOf(
-    account: string,
-    timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
-      availableBalance: BigNumber;
-      deposit: BigNumber;
-      owedDeposit: BigNumber;
-    }
-  >;
-
-  realtimeBalanceOfNow(
-    account: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      availableBalance: BigNumber;
-      deposit: BigNumber;
-      owedDeposit: BigNumber;
-      timestamp: BigNumber;
-    }
-  >;
-
-  settleBalance(
-    account: string,
-    delta: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  terminateAgreement(
-    id: BytesLike,
-    dataLength: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  updateAgreementData(
-    id: BytesLike,
-    data: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  updateAgreementStateSlot(
-    account: string,
-    slotId: BigNumberish,
-    slotData: BytesLike[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  initialize(
-    underlyingToken: string,
-    underlyingDecimals: BigNumberish,
-    n: string,
-    s: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  proxiableUUID(overrides?: CallOverrides): Promise<string>;
-
-  updateCode(
-    newAddress: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  name(overrides?: CallOverrides): Promise<string>;
-
-  symbol(overrides?: CallOverrides): Promise<string>;
-
-  decimals(overrides?: CallOverrides): Promise<number>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  transfer(
-    recipient: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  allowance(
-    account: string,
-    spender: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  approve(
-    spender: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  transferFrom(
-    holder: string,
-    recipient: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  increaseAllowance(
-    spender: string,
-    addedValue: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  decreaseAllowance(
-    spender: string,
-    subtractedValue: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  granularity(overrides?: CallOverrides): Promise<BigNumber>;
-
-  send(
-    recipient: string,
-    amount: BigNumberish,
-    data: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  burn(
-    amount: BigNumberish,
-    data: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  isOperatorFor(
-    operator: string,
-    tokenHolder: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  authorizeOperator(
-    operator: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  revokeOperator(
-    operator: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  defaultOperators(overrides?: CallOverrides): Promise<string[]>;
-
-  operatorSend(
-    sender: string,
-    recipient: string,
-    amount: BigNumberish,
-    data: BytesLike,
-    operatorData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  operatorBurn(
-    account: string,
-    amount: BigNumberish,
-    data: BytesLike,
-    operatorData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  selfMint(
-    account: string,
-    amount: BigNumberish,
-    userData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  selfBurn(
-    account: string,
-    amount: BigNumberish,
-    userData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  transferAll(
-    recipient: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  getUnderlyingToken(overrides?: CallOverrides): Promise<string>;
-
-  upgrade(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  upgradeTo(
-    to: string,
-    amount: BigNumberish,
-    data: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  downgrade(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  operationApprove(
-    account: string,
-    spender: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  operationTransferFrom(
-    account: string,
-    spender: string,
-    recipient: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  operationUpgrade(
-    account: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  operationDowngrade(
-    account: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  callStatic: {
-    createAgreement(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    getAccountActiveAgreements(
-      account: string,
-      overrides?: CallOverrides
+        account: string,
+        overrides?: CallOverrides
     ): Promise<string[]>;
 
     getAgreementData(
-      agreementClass: string,
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
+        agreementClass: string,
+        id: BytesLike,
+        dataLength: BigNumberish,
+        overrides?: CallOverrides
     ): Promise<string[]>;
 
     getAgreementStateSlot(
-      agreementClass: string,
-      account: string,
-      slotId: BigNumberish,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
+        agreementClass: string,
+        account: string,
+        slotId: BigNumberish,
+        dataLength: BigNumberish,
+        overrides?: CallOverrides
     ): Promise<string[]>;
 
     getCodeAddress(overrides?: CallOverrides): Promise<string>;
@@ -1236,96 +977,99 @@ export class SuperToken extends BaseContract {
     getHost(overrides?: CallOverrides): Promise<string>;
 
     isAccountCritical(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
+        account: string,
+        timestamp: BigNumberish,
+        overrides?: CallOverrides
     ): Promise<boolean>;
 
     isAccountCriticalNow(
-      account: string,
-      overrides?: CallOverrides
+        account: string,
+        overrides?: CallOverrides
     ): Promise<boolean>;
 
     isAccountSolvent(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
+        account: string,
+        timestamp: BigNumberish,
+        overrides?: CallOverrides
     ): Promise<boolean>;
 
     isAccountSolventNow(
-      account: string,
-      overrides?: CallOverrides
+        account: string,
+        overrides?: CallOverrides
     ): Promise<boolean>;
 
     makeLiquidationPayouts(
-      id: BytesLike,
-      liquidator: string,
-      penaltyAccount: string,
-      rewardAmount: BigNumberish,
-      bailoutAmount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        id: BytesLike,
+        liquidator: string,
+        penaltyAccount: string,
+        rewardAmount: BigNumberish,
+        bailoutAmount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     realtimeBalanceOf(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
+        account: string,
+        timestamp: BigNumberish,
+        overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        availableBalance: BigNumber;
-        deposit: BigNumber;
-        owedDeposit: BigNumber;
-      }
+        [BigNumber, BigNumber, BigNumber] & {
+            availableBalance: BigNumber;
+            deposit: BigNumber;
+            owedDeposit: BigNumber;
+        }
     >;
 
     realtimeBalanceOfNow(
-      account: string,
-      overrides?: CallOverrides
+        account: string,
+        overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        availableBalance: BigNumber;
-        deposit: BigNumber;
-        owedDeposit: BigNumber;
-        timestamp: BigNumber;
-      }
+        [BigNumber, BigNumber, BigNumber, BigNumber] & {
+            availableBalance: BigNumber;
+            deposit: BigNumber;
+            owedDeposit: BigNumber;
+            timestamp: BigNumber;
+        }
     >;
 
     settleBalance(
-      account: string,
-      delta: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        account: string,
+        delta: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     terminateAgreement(
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        id: BytesLike,
+        dataLength: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     updateAgreementData(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+        id: BytesLike,
+        data: BytesLike[],
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     updateAgreementStateSlot(
-      account: string,
-      slotId: BigNumberish,
-      slotData: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+        account: string,
+        slotId: BigNumberish,
+        slotData: BytesLike[],
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     initialize(
-      underlyingToken: string,
-      underlyingDecimals: BigNumberish,
-      n: string,
-      s: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        underlyingToken: string,
+        underlyingDecimals: BigNumberish,
+        n: string,
+        s: string,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
-    updateCode(newAddress: string, overrides?: CallOverrides): Promise<void>;
+    updateCode(
+        newAddress: string,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -1338,1104 +1082,1411 @@ export class SuperToken extends BaseContract {
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     transfer(
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        recipient: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     allowance(
-      account: string,
-      spender: string,
-      overrides?: CallOverrides
+        account: string,
+        spender: string,
+        overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     approve(
-      spender: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        spender: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     transferFrom(
-      holder: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        holder: string,
+        recipient: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     increaseAllowance(
-      spender: string,
-      addedValue: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        spender: string,
+        addedValue: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     decreaseAllowance(
-      spender: string,
-      subtractedValue: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+        spender: string,
+        subtractedValue: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     granularity(overrides?: CallOverrides): Promise<BigNumber>;
 
     send(
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        recipient: string,
+        amount: BigNumberish,
+        data: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     burn(
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        amount: BigNumberish,
+        data: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     isOperatorFor(
-      operator: string,
-      tokenHolder: string,
-      overrides?: CallOverrides
+        operator: string,
+        tokenHolder: string,
+        overrides?: CallOverrides
     ): Promise<boolean>;
 
     authorizeOperator(
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        operator: string,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    revokeOperator(operator: string, overrides?: CallOverrides): Promise<void>;
+    revokeOperator(
+        operator: string,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     defaultOperators(overrides?: CallOverrides): Promise<string[]>;
 
     operatorSend(
-      sender: string,
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        sender: string,
+        recipient: string,
+        amount: BigNumberish,
+        data: BytesLike,
+        operatorData: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     operatorBurn(
-      account: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        account: string,
+        amount: BigNumberish,
+        data: BytesLike,
+        operatorData: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     selfMint(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        account: string,
+        amount: BigNumberish,
+        userData: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     selfBurn(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+        account: string,
+        amount: BigNumberish,
+        userData: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    transferAll(recipient: string, overrides?: CallOverrides): Promise<void>;
+    transferAll(
+        recipient: string,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getUnderlyingToken(overrides?: CallOverrides): Promise<string>;
 
-    upgrade(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    upgradeTo(
-      to: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    downgrade(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    operationApprove(
-      account: string,
-      spender: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    operationTransferFrom(
-      account: string,
-      spender: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    operationUpgrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    operationDowngrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-  };
-
-  filters: {
-    "AgreementAccountStateUpdated(address,address,bytes)"(
-      agreementClass?: string | null,
-      account?: string | null,
-      state?: null
-    ): TypedEventFilter<
-      [string, string, string],
-      { agreementClass: string; account: string; state: string }
-    >;
-
-    AgreementAccountStateUpdated(
-      agreementClass?: string | null,
-      account?: string | null,
-      state?: null
-    ): TypedEventFilter<
-      [string, string, string],
-      { agreementClass: string; account: string; state: string }
-    >;
-
-    "AgreementCreated(address,bytes32,bytes32[])"(
-      agreementClass?: string | null,
-      id?: null,
-      data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
-
-    AgreementCreated(
-      agreementClass?: string | null,
-      id?: null,
-      data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
-
-    "AgreementLiquidated(address,bytes32,address,address,uint256)"(
-      agreementClass?: string | null,
-      id?: null,
-      penaltyAccount?: string | null,
-      rewardAccount?: string | null,
-      rewardAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, BigNumber],
-      {
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        rewardAccount: string;
-        rewardAmount: BigNumber;
-      }
-    >;
-
-    AgreementLiquidated(
-      agreementClass?: string | null,
-      id?: null,
-      penaltyAccount?: string | null,
-      rewardAccount?: string | null,
-      rewardAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, BigNumber],
-      {
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        rewardAccount: string;
-        rewardAmount: BigNumber;
-      }
-    >;
-
-    "AgreementLiquidatedBy(address,address,bytes32,address,address,uint256,uint256)"(
-      liquidatorAccount?: null,
-      agreementClass?: string | null,
-      id?: null,
-      penaltyAccount?: string | null,
-      bondAccount?: string | null,
-      rewardAmount?: null,
-      bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, string, BigNumber, BigNumber],
-      {
-        liquidatorAccount: string;
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        bondAccount: string;
-        rewardAmount: BigNumber;
-        bailoutAmount: BigNumber;
-      }
-    >;
-
-    AgreementLiquidatedBy(
-      liquidatorAccount?: null,
-      agreementClass?: string | null,
-      id?: null,
-      penaltyAccount?: string | null,
-      bondAccount?: string | null,
-      rewardAmount?: null,
-      bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, string, string, string, string, BigNumber, BigNumber],
-      {
-        liquidatorAccount: string;
-        agreementClass: string;
-        id: string;
-        penaltyAccount: string;
-        bondAccount: string;
-        rewardAmount: BigNumber;
-        bailoutAmount: BigNumber;
-      }
-    >;
-
-    "AgreementStateUpdated(address,address,uint256)"(
-      agreementClass?: string | null,
-      account?: string | null,
-      slotId?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { agreementClass: string; account: string; slotId: BigNumber }
-    >;
-
-    AgreementStateUpdated(
-      agreementClass?: string | null,
-      account?: string | null,
-      slotId?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { agreementClass: string; account: string; slotId: BigNumber }
-    >;
-
-    "AgreementTerminated(address,bytes32)"(
-      agreementClass?: string | null,
-      id?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementClass: string; id: string }
-    >;
-
-    AgreementTerminated(
-      agreementClass?: string | null,
-      id?: null
-    ): TypedEventFilter<
-      [string, string],
-      { agreementClass: string; id: string }
-    >;
-
-    "AgreementUpdated(address,bytes32,bytes32[])"(
-      agreementClass?: string | null,
-      id?: null,
-      data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
-
-    AgreementUpdated(
-      agreementClass?: string | null,
-      id?: null,
-      data?: null
-    ): TypedEventFilter<
-      [string, string, string[]],
-      { agreementClass: string; id: string; data: string[] }
-    >;
-
-    "Approval(address,address,uint256)"(
-      owner?: string | null,
-      spender?: string | null,
-      value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { owner: string; spender: string; value: BigNumber }
-    >;
-
-    Approval(
-      owner?: string | null,
-      spender?: string | null,
-      value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { owner: string; spender: string; value: BigNumber }
-    >;
-
-    "AuthorizedOperator(address,address)"(
-      operator?: string | null,
-      tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
-
-    AuthorizedOperator(
-      operator?: string | null,
-      tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
-
-    "Bailout(address,uint256)"(
-      bailoutAccount?: string | null,
-      bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { bailoutAccount: string; bailoutAmount: BigNumber }
-    >;
-
-    Bailout(
-      bailoutAccount?: string | null,
-      bailoutAmount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { bailoutAccount: string; bailoutAmount: BigNumber }
-    >;
-
-    "Burned(address,address,uint256,bytes,bytes)"(
-      operator?: string | null,
-      from?: string | null,
-      amount?: null,
-      data?: null,
-      operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
-    Burned(
-      operator?: string | null,
-      from?: string | null,
-      amount?: null,
-      data?: null,
-      operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
-    "CodeUpdated(bytes32,address)"(
-      uuid?: null,
-      codeAddress?: null
-    ): TypedEventFilter<
-      [string, string],
-      { uuid: string; codeAddress: string }
-    >;
-
-    CodeUpdated(
-      uuid?: null,
-      codeAddress?: null
-    ): TypedEventFilter<
-      [string, string],
-      { uuid: string; codeAddress: string }
-    >;
-
-    "Minted(address,address,uint256,bytes,bytes)"(
-      operator?: string | null,
-      to?: string | null,
-      amount?: null,
-      data?: null,
-      operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
-    Minted(
-      operator?: string | null,
-      to?: string | null,
-      amount?: null,
-      data?: null,
-      operatorData?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber, string, string],
-      {
-        operator: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
-    "RevokedOperator(address,address)"(
-      operator?: string | null,
-      tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
-
-    RevokedOperator(
-      operator?: string | null,
-      tokenHolder?: string | null
-    ): TypedEventFilter<
-      [string, string],
-      { operator: string; tokenHolder: string }
-    >;
-
-    "Sent(address,address,address,uint256,bytes,bytes)"(
-      operator?: string | null,
-      from?: string | null,
-      to?: string | null,
-      amount?: null,
-      data?: null,
-      operatorData?: null
-    ): TypedEventFilter<
-      [string, string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
-    Sent(
-      operator?: string | null,
-      from?: string | null,
-      to?: string | null,
-      amount?: null,
-      data?: null,
-      operatorData?: null
-    ): TypedEventFilter<
-      [string, string, string, BigNumber, string, string],
-      {
-        operator: string;
-        from: string;
-        to: string;
-        amount: BigNumber;
-        data: string;
-        operatorData: string;
-      }
-    >;
-
-    "TokenDowngraded(address,uint256)"(
-      account?: string | null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
-
-    TokenDowngraded(
-      account?: string | null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
-
-    "TokenUpgraded(address,uint256)"(
-      account?: string | null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
-
-    TokenUpgraded(
-      account?: string | null,
-      amount?: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { account: string; amount: BigNumber }
-    >;
-
-    "Transfer(address,address,uint256)"(
-      from?: string | null,
-      to?: string | null,
-      value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { from: string; to: string; value: BigNumber }
-    >;
-
-    Transfer(
-      from?: string | null,
-      to?: string | null,
-      value?: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { from: string; to: string; value: BigNumber }
-    >;
-  };
-
-  estimateGas: {
-    createAgreement(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    getAccountActiveAgreements(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAgreementData(
-      agreementClass: string,
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAgreementStateSlot(
-      agreementClass: string,
-      account: string,
-      slotId: BigNumberish,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getCodeAddress(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getHost(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isAccountCritical(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isAccountCriticalNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isAccountSolvent(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    isAccountSolventNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    makeLiquidationPayouts(
-      id: BytesLike,
-      liquidator: string,
-      penaltyAccount: string,
-      rewardAmount: BigNumberish,
-      bailoutAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    realtimeBalanceOf(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    realtimeBalanceOfNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    settleBalance(
-      account: string,
-      delta: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    terminateAgreement(
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    updateAgreementData(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    updateAgreementStateSlot(
-      account: string,
-      slotId: BigNumberish,
-      slotData: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    initialize(
-      underlyingToken: string,
-      underlyingDecimals: BigNumberish,
-      n: string,
-      s: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
-
-    updateCode(
-      newAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<BigNumber>;
-
-    symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-    decimals(overrides?: CallOverrides): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    transfer(
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    allowance(
-      account: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    approve(
-      spender: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferFrom(
-      holder: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    increaseAllowance(
-      spender: string,
-      addedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    decreaseAllowance(
-      spender: string,
-      subtractedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    granularity(overrides?: CallOverrides): Promise<BigNumber>;
-
-    send(
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    burn(
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    isOperatorFor(
-      operator: string,
-      tokenHolder: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    authorizeOperator(
-      operator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    revokeOperator(
-      operator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    defaultOperators(overrides?: CallOverrides): Promise<BigNumber>;
-
-    operatorSend(
-      sender: string,
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    operatorBurn(
-      account: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    selfMint(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    selfBurn(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    transferAll(
-      recipient: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    getUnderlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
-
     upgrade(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     upgradeTo(
-      to: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+        to: string,
+        amount: BigNumberish,
+        data: BytesLike,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     downgrade(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     operationApprove(
-      account: string,
-      spender: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+        account: string,
+        spender: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     operationTransferFrom(
-      account: string,
-      spender: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+        account: string,
+        spender: string,
+        recipient: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     operationUpgrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+        account: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     operationDowngrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-  };
+        account: string,
+        amount: BigNumberish,
+        overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-  populateTransaction: {
-    createAgreement(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    callStatic: {
+        createAgreement(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    getAccountActiveAgreements(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        getAccountActiveAgreements(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<string[]>;
 
-    getAgreementData(
-      agreementClass: string,
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        getAgreementData(
+            agreementClass: string,
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<string[]>;
 
-    getAgreementStateSlot(
-      agreementClass: string,
-      account: string,
-      slotId: BigNumberish,
-      dataLength: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        getAgreementStateSlot(
+            agreementClass: string,
+            account: string,
+            slotId: BigNumberish,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<string[]>;
 
-    getCodeAddress(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        getCodeAddress(overrides?: CallOverrides): Promise<string>;
 
-    getHost(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        getHost(overrides?: CallOverrides): Promise<string>;
 
-    isAccountCritical(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        isAccountCritical(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    isAccountCriticalNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        isAccountCriticalNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    isAccountSolvent(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        isAccountSolvent(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    isAccountSolventNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        isAccountSolventNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    makeLiquidationPayouts(
-      id: BytesLike,
-      liquidator: string,
-      penaltyAccount: string,
-      rewardAmount: BigNumberish,
-      bailoutAmount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        makeLiquidationPayouts(
+            id: BytesLike,
+            liquidator: string,
+            penaltyAccount: string,
+            rewardAmount: BigNumberish,
+            bailoutAmount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    realtimeBalanceOf(
-      account: string,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        realtimeBalanceOf(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber] & {
+                availableBalance: BigNumber;
+                deposit: BigNumber;
+                owedDeposit: BigNumber;
+            }
+        >;
 
-    realtimeBalanceOfNow(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        realtimeBalanceOfNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<
+            [BigNumber, BigNumber, BigNumber, BigNumber] & {
+                availableBalance: BigNumber;
+                deposit: BigNumber;
+                owedDeposit: BigNumber;
+                timestamp: BigNumber;
+            }
+        >;
 
-    settleBalance(
-      account: string,
-      delta: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        settleBalance(
+            account: string,
+            delta: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    terminateAgreement(
-      id: BytesLike,
-      dataLength: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        terminateAgreement(
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    updateAgreementData(
-      id: BytesLike,
-      data: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        updateAgreementData(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    updateAgreementStateSlot(
-      account: string,
-      slotId: BigNumberish,
-      slotData: BytesLike[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        updateAgreementStateSlot(
+            account: string,
+            slotId: BigNumberish,
+            slotData: BytesLike[],
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    initialize(
-      underlyingToken: string,
-      underlyingDecimals: BigNumberish,
-      n: string,
-      s: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        initialize(
+            underlyingToken: string,
+            underlyingDecimals: BigNumberish,
+            n: string,
+            s: string,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        proxiableUUID(overrides?: CallOverrides): Promise<string>;
 
-    updateCode(
-      newAddress: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        updateCode(
+            newAddress: string,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        name(overrides?: CallOverrides): Promise<string>;
 
-    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        symbol(overrides?: CallOverrides): Promise<string>;
 
-    decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        decimals(overrides?: CallOverrides): Promise<number>;
 
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOf(
-      account: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        balanceOf(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
 
-    transfer(
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        transfer(
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    allowance(
-      account: string,
-      spender: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        allowance(
+            account: string,
+            spender: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
 
-    approve(
-      spender: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        approve(
+            spender: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    transferFrom(
-      holder: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        transferFrom(
+            holder: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    increaseAllowance(
-      spender: string,
-      addedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        increaseAllowance(
+            spender: string,
+            addedValue: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    decreaseAllowance(
-      spender: string,
-      subtractedValue: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        decreaseAllowance(
+            spender: string,
+            subtractedValue: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    granularity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        granularity(overrides?: CallOverrides): Promise<BigNumber>;
 
-    send(
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        send(
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    burn(
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        burn(
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    isOperatorFor(
-      operator: string,
-      tokenHolder: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        isOperatorFor(
+            operator: string,
+            tokenHolder: string,
+            overrides?: CallOverrides
+        ): Promise<boolean>;
 
-    authorizeOperator(
-      operator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        authorizeOperator(
+            operator: string,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    revokeOperator(
-      operator: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        revokeOperator(
+            operator: string,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    defaultOperators(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+        defaultOperators(overrides?: CallOverrides): Promise<string[]>;
 
-    operatorSend(
-      sender: string,
-      recipient: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        operatorSend(
+            sender: string,
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    operatorBurn(
-      account: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      operatorData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        operatorBurn(
+            account: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    selfMint(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        selfMint(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    selfBurn(
-      account: string,
-      amount: BigNumberish,
-      userData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        selfBurn(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    transferAll(
-      recipient: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        transferAll(
+            recipient: string,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    getUnderlyingToken(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+        getUnderlyingToken(overrides?: CallOverrides): Promise<string>;
 
-    upgrade(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        upgrade(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
-    upgradeTo(
-      to: string,
-      amount: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        upgradeTo(
+            to: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    downgrade(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        downgrade(
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    operationApprove(
-      account: string,
-      spender: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        operationApprove(
+            account: string,
+            spender: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    operationTransferFrom(
-      account: string,
-      spender: string,
-      recipient: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        operationTransferFrom(
+            account: string,
+            spender: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    operationUpgrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+        operationUpgrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
 
-    operationDowngrade(
-      account: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-  };
+        operationDowngrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<void>;
+    };
+
+    filters: {
+        "AgreementAccountStateUpdated(address,address,bytes)"(
+            agreementClass?: string | null,
+            account?: string | null,
+            state?: null
+        ): TypedEventFilter<
+            [string, string, string],
+            { agreementClass: string; account: string; state: string }
+        >;
+
+        AgreementAccountStateUpdated(
+            agreementClass?: string | null,
+            account?: string | null,
+            state?: null
+        ): TypedEventFilter<
+            [string, string, string],
+            { agreementClass: string; account: string; state: string }
+        >;
+
+        "AgreementCreated(address,bytes32,bytes32[])"(
+            agreementClass?: string | null,
+            id?: null,
+            data?: null
+        ): TypedEventFilter<
+            [string, string, string[]],
+            { agreementClass: string; id: string; data: string[] }
+        >;
+
+        AgreementCreated(
+            agreementClass?: string | null,
+            id?: null,
+            data?: null
+        ): TypedEventFilter<
+            [string, string, string[]],
+            { agreementClass: string; id: string; data: string[] }
+        >;
+
+        "AgreementLiquidated(address,bytes32,address,address,uint256)"(
+            agreementClass?: string | null,
+            id?: null,
+            penaltyAccount?: string | null,
+            rewardAccount?: string | null,
+            rewardAmount?: null
+        ): TypedEventFilter<
+            [string, string, string, string, BigNumber],
+            {
+                agreementClass: string;
+                id: string;
+                penaltyAccount: string;
+                rewardAccount: string;
+                rewardAmount: BigNumber;
+            }
+        >;
+
+        AgreementLiquidated(
+            agreementClass?: string | null,
+            id?: null,
+            penaltyAccount?: string | null,
+            rewardAccount?: string | null,
+            rewardAmount?: null
+        ): TypedEventFilter<
+            [string, string, string, string, BigNumber],
+            {
+                agreementClass: string;
+                id: string;
+                penaltyAccount: string;
+                rewardAccount: string;
+                rewardAmount: BigNumber;
+            }
+        >;
+
+        "AgreementLiquidatedBy(address,address,bytes32,address,address,uint256,uint256)"(
+            liquidatorAccount?: null,
+            agreementClass?: string | null,
+            id?: null,
+            penaltyAccount?: string | null,
+            bondAccount?: string | null,
+            rewardAmount?: null,
+            bailoutAmount?: null
+        ): TypedEventFilter<
+            [string, string, string, string, string, BigNumber, BigNumber],
+            {
+                liquidatorAccount: string;
+                agreementClass: string;
+                id: string;
+                penaltyAccount: string;
+                bondAccount: string;
+                rewardAmount: BigNumber;
+                bailoutAmount: BigNumber;
+            }
+        >;
+
+        AgreementLiquidatedBy(
+            liquidatorAccount?: null,
+            agreementClass?: string | null,
+            id?: null,
+            penaltyAccount?: string | null,
+            bondAccount?: string | null,
+            rewardAmount?: null,
+            bailoutAmount?: null
+        ): TypedEventFilter<
+            [string, string, string, string, string, BigNumber, BigNumber],
+            {
+                liquidatorAccount: string;
+                agreementClass: string;
+                id: string;
+                penaltyAccount: string;
+                bondAccount: string;
+                rewardAmount: BigNumber;
+                bailoutAmount: BigNumber;
+            }
+        >;
+
+        "AgreementStateUpdated(address,address,uint256)"(
+            agreementClass?: string | null,
+            account?: string | null,
+            slotId?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber],
+            { agreementClass: string; account: string; slotId: BigNumber }
+        >;
+
+        AgreementStateUpdated(
+            agreementClass?: string | null,
+            account?: string | null,
+            slotId?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber],
+            { agreementClass: string; account: string; slotId: BigNumber }
+        >;
+
+        "AgreementTerminated(address,bytes32)"(
+            agreementClass?: string | null,
+            id?: null
+        ): TypedEventFilter<
+            [string, string],
+            { agreementClass: string; id: string }
+        >;
+
+        AgreementTerminated(
+            agreementClass?: string | null,
+            id?: null
+        ): TypedEventFilter<
+            [string, string],
+            { agreementClass: string; id: string }
+        >;
+
+        "AgreementUpdated(address,bytes32,bytes32[])"(
+            agreementClass?: string | null,
+            id?: null,
+            data?: null
+        ): TypedEventFilter<
+            [string, string, string[]],
+            { agreementClass: string; id: string; data: string[] }
+        >;
+
+        AgreementUpdated(
+            agreementClass?: string | null,
+            id?: null,
+            data?: null
+        ): TypedEventFilter<
+            [string, string, string[]],
+            { agreementClass: string; id: string; data: string[] }
+        >;
+
+        "Approval(address,address,uint256)"(
+            owner?: string | null,
+            spender?: string | null,
+            value?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber],
+            { owner: string; spender: string; value: BigNumber }
+        >;
+
+        Approval(
+            owner?: string | null,
+            spender?: string | null,
+            value?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber],
+            { owner: string; spender: string; value: BigNumber }
+        >;
+
+        "AuthorizedOperator(address,address)"(
+            operator?: string | null,
+            tokenHolder?: string | null
+        ): TypedEventFilter<
+            [string, string],
+            { operator: string; tokenHolder: string }
+        >;
+
+        AuthorizedOperator(
+            operator?: string | null,
+            tokenHolder?: string | null
+        ): TypedEventFilter<
+            [string, string],
+            { operator: string; tokenHolder: string }
+        >;
+
+        "Bailout(address,uint256)"(
+            bailoutAccount?: string | null,
+            bailoutAmount?: null
+        ): TypedEventFilter<
+            [string, BigNumber],
+            { bailoutAccount: string; bailoutAmount: BigNumber }
+        >;
+
+        Bailout(
+            bailoutAccount?: string | null,
+            bailoutAmount?: null
+        ): TypedEventFilter<
+            [string, BigNumber],
+            { bailoutAccount: string; bailoutAmount: BigNumber }
+        >;
+
+        "Burned(address,address,uint256,bytes,bytes)"(
+            operator?: string | null,
+            from?: string | null,
+            amount?: null,
+            data?: null,
+            operatorData?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber, string, string],
+            {
+                operator: string;
+                from: string;
+                amount: BigNumber;
+                data: string;
+                operatorData: string;
+            }
+        >;
+
+        Burned(
+            operator?: string | null,
+            from?: string | null,
+            amount?: null,
+            data?: null,
+            operatorData?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber, string, string],
+            {
+                operator: string;
+                from: string;
+                amount: BigNumber;
+                data: string;
+                operatorData: string;
+            }
+        >;
+
+        "CodeUpdated(bytes32,address)"(
+            uuid?: null,
+            codeAddress?: null
+        ): TypedEventFilter<
+            [string, string],
+            { uuid: string; codeAddress: string }
+        >;
+
+        CodeUpdated(
+            uuid?: null,
+            codeAddress?: null
+        ): TypedEventFilter<
+            [string, string],
+            { uuid: string; codeAddress: string }
+        >;
+
+        "Minted(address,address,uint256,bytes,bytes)"(
+            operator?: string | null,
+            to?: string | null,
+            amount?: null,
+            data?: null,
+            operatorData?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber, string, string],
+            {
+                operator: string;
+                to: string;
+                amount: BigNumber;
+                data: string;
+                operatorData: string;
+            }
+        >;
+
+        Minted(
+            operator?: string | null,
+            to?: string | null,
+            amount?: null,
+            data?: null,
+            operatorData?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber, string, string],
+            {
+                operator: string;
+                to: string;
+                amount: BigNumber;
+                data: string;
+                operatorData: string;
+            }
+        >;
+
+        "RevokedOperator(address,address)"(
+            operator?: string | null,
+            tokenHolder?: string | null
+        ): TypedEventFilter<
+            [string, string],
+            { operator: string; tokenHolder: string }
+        >;
+
+        RevokedOperator(
+            operator?: string | null,
+            tokenHolder?: string | null
+        ): TypedEventFilter<
+            [string, string],
+            { operator: string; tokenHolder: string }
+        >;
+
+        "Sent(address,address,address,uint256,bytes,bytes)"(
+            operator?: string | null,
+            from?: string | null,
+            to?: string | null,
+            amount?: null,
+            data?: null,
+            operatorData?: null
+        ): TypedEventFilter<
+            [string, string, string, BigNumber, string, string],
+            {
+                operator: string;
+                from: string;
+                to: string;
+                amount: BigNumber;
+                data: string;
+                operatorData: string;
+            }
+        >;
+
+        Sent(
+            operator?: string | null,
+            from?: string | null,
+            to?: string | null,
+            amount?: null,
+            data?: null,
+            operatorData?: null
+        ): TypedEventFilter<
+            [string, string, string, BigNumber, string, string],
+            {
+                operator: string;
+                from: string;
+                to: string;
+                amount: BigNumber;
+                data: string;
+                operatorData: string;
+            }
+        >;
+
+        "TokenDowngraded(address,uint256)"(
+            account?: string | null,
+            amount?: null
+        ): TypedEventFilter<
+            [string, BigNumber],
+            { account: string; amount: BigNumber }
+        >;
+
+        TokenDowngraded(
+            account?: string | null,
+            amount?: null
+        ): TypedEventFilter<
+            [string, BigNumber],
+            { account: string; amount: BigNumber }
+        >;
+
+        "TokenUpgraded(address,uint256)"(
+            account?: string | null,
+            amount?: null
+        ): TypedEventFilter<
+            [string, BigNumber],
+            { account: string; amount: BigNumber }
+        >;
+
+        TokenUpgraded(
+            account?: string | null,
+            amount?: null
+        ): TypedEventFilter<
+            [string, BigNumber],
+            { account: string; amount: BigNumber }
+        >;
+
+        "Transfer(address,address,uint256)"(
+            from?: string | null,
+            to?: string | null,
+            value?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber],
+            { from: string; to: string; value: BigNumber }
+        >;
+
+        Transfer(
+            from?: string | null,
+            to?: string | null,
+            value?: null
+        ): TypedEventFilter<
+            [string, string, BigNumber],
+            { from: string; to: string; value: BigNumber }
+        >;
+    };
+
+    estimateGas: {
+        createAgreement(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        getAccountActiveAgreements(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        getAgreementData(
+            agreementClass: string,
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        getAgreementStateSlot(
+            agreementClass: string,
+            account: string,
+            slotId: BigNumberish,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        getCodeAddress(overrides?: CallOverrides): Promise<BigNumber>;
+
+        getHost(overrides?: CallOverrides): Promise<BigNumber>;
+
+        isAccountCritical(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        isAccountCriticalNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        isAccountSolvent(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        isAccountSolventNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        makeLiquidationPayouts(
+            id: BytesLike,
+            liquidator: string,
+            penaltyAccount: string,
+            rewardAmount: BigNumberish,
+            bailoutAmount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        realtimeBalanceOf(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        realtimeBalanceOfNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        settleBalance(
+            account: string,
+            delta: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        terminateAgreement(
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        updateAgreementData(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        updateAgreementStateSlot(
+            account: string,
+            slotId: BigNumberish,
+            slotData: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        initialize(
+            underlyingToken: string,
+            underlyingDecimals: BigNumberish,
+            n: string,
+            s: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        proxiableUUID(overrides?: CallOverrides): Promise<BigNumber>;
+
+        updateCode(
+            newAddress: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        name(overrides?: CallOverrides): Promise<BigNumber>;
+
+        symbol(overrides?: CallOverrides): Promise<BigNumber>;
+
+        decimals(overrides?: CallOverrides): Promise<BigNumber>;
+
+        totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+        balanceOf(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        transfer(
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        allowance(
+            account: string,
+            spender: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        approve(
+            spender: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        transferFrom(
+            holder: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        increaseAllowance(
+            spender: string,
+            addedValue: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        decreaseAllowance(
+            spender: string,
+            subtractedValue: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        granularity(overrides?: CallOverrides): Promise<BigNumber>;
+
+        send(
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        burn(
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        isOperatorFor(
+            operator: string,
+            tokenHolder: string,
+            overrides?: CallOverrides
+        ): Promise<BigNumber>;
+
+        authorizeOperator(
+            operator: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        revokeOperator(
+            operator: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        defaultOperators(overrides?: CallOverrides): Promise<BigNumber>;
+
+        operatorSend(
+            sender: string,
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        operatorBurn(
+            account: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        selfMint(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        selfBurn(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        transferAll(
+            recipient: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        getUnderlyingToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+        upgrade(
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        upgradeTo(
+            to: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        downgrade(
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        operationApprove(
+            account: string,
+            spender: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        operationTransferFrom(
+            account: string,
+            spender: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        operationUpgrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+
+        operationDowngrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<BigNumber>;
+    };
+
+    populateTransaction: {
+        createAgreement(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        getAccountActiveAgreements(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        getAgreementData(
+            agreementClass: string,
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        getAgreementStateSlot(
+            agreementClass: string,
+            account: string,
+            slotId: BigNumberish,
+            dataLength: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        getCodeAddress(
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        getHost(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        isAccountCritical(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        isAccountCriticalNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        isAccountSolvent(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        isAccountSolventNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        makeLiquidationPayouts(
+            id: BytesLike,
+            liquidator: string,
+            penaltyAccount: string,
+            rewardAmount: BigNumberish,
+            bailoutAmount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        realtimeBalanceOf(
+            account: string,
+            timestamp: BigNumberish,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        realtimeBalanceOfNow(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        settleBalance(
+            account: string,
+            delta: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        terminateAgreement(
+            id: BytesLike,
+            dataLength: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        updateAgreementData(
+            id: BytesLike,
+            data: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        updateAgreementStateSlot(
+            account: string,
+            slotId: BigNumberish,
+            slotData: BytesLike[],
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        initialize(
+            underlyingToken: string,
+            underlyingDecimals: BigNumberish,
+            n: string,
+            s: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        proxiableUUID(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        updateCode(
+            newAddress: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        balanceOf(
+            account: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        transfer(
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        allowance(
+            account: string,
+            spender: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        approve(
+            spender: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        transferFrom(
+            holder: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        increaseAllowance(
+            spender: string,
+            addedValue: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        decreaseAllowance(
+            spender: string,
+            subtractedValue: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        granularity(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+        send(
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        burn(
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        isOperatorFor(
+            operator: string,
+            tokenHolder: string,
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        authorizeOperator(
+            operator: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        revokeOperator(
+            operator: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        defaultOperators(
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        operatorSend(
+            sender: string,
+            recipient: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        operatorBurn(
+            account: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            operatorData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        selfMint(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        selfBurn(
+            account: string,
+            amount: BigNumberish,
+            userData: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        transferAll(
+            recipient: string,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        getUnderlyingToken(
+            overrides?: CallOverrides
+        ): Promise<PopulatedTransaction>;
+
+        upgrade(
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        upgradeTo(
+            to: string,
+            amount: BigNumberish,
+            data: BytesLike,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        downgrade(
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        operationApprove(
+            account: string,
+            spender: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        operationTransferFrom(
+            account: string,
+            spender: string,
+            recipient: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        operationUpgrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+
+        operationDowngrade(
+            account: string,
+            amount: BigNumberish,
+            overrides?: Overrides & { from?: string | Promise<string> }
+        ): Promise<PopulatedTransaction>;
+    };
 }

@@ -81,8 +81,7 @@ describe("TOGA", function () {
     }
 
     function shouldDefaultExitRate(bondAmount) {
-        // happens to be set to the max exit rate
-        return shouldMaxExitRate(bondAmount);
+        return Math.floor(bondAmount / (MIN_BOND_DURATION * 4));
     }
 
     async function assertNetFlow(token, account, expectedFlowRate) {

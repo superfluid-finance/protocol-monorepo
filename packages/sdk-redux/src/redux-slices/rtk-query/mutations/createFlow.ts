@@ -53,6 +53,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
 
                 await queryFulfilled;
 
+                // Should this be before "queryFulfilled"?
                 framework.query.on(
                     (events, unsubscribe) => {
                         console.log('boom!');
@@ -65,6 +66,10 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     arg.sender.toLowerCase(),
                     30000
                 );
+
+                // TODO: Consider optimistic update.
+
+                // TODO: Subscribe to re-org issues here or at "track transaction"?
             },
         }),
     }),

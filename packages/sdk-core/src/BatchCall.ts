@@ -42,7 +42,7 @@ export default class BatchCall {
     /**
      * @dev Gets the call agreement function arguments.
      * @param callData callData of the function
-     * @returns the function arguments
+     * @returns call agreement function arguments
      */
     getCallAgreementFunctionArgs = (callData: string) =>
         getTransactionDescription(SuperfluidABI, callData).args;
@@ -59,7 +59,7 @@ export default class BatchCall {
     ): OperationStruct => {
         const operationType = operationTypeStringToTypeMap.get(operation.type);
         if (!operationType) {
-            handleError(
+            return handleError(
                 "UNSUPPORTED_OPERATION",
                 "The operation at index " + index + " is unsupported",
                 JSON.stringify(operation.transaction)
@@ -87,7 +87,8 @@ export default class BatchCall {
                 data: functionArgs["callData"],
             };
         }
-        // Handles other cases which are not
+
+        // Handles other cases which are not call agreeement operation
         return {
             operationType: operationType!,
             target: operation.transaction.to,
@@ -105,7 +106,7 @@ export default class BatchCall {
     }
 
     /**
-     * @dev Executes a batch call given the current operations on this class.
+     * @dev Executes a batch call given the operations on this class.
      * @param signer the signer of the transaction
      * @returns ethers.ContractTransaction object
      */
@@ -116,7 +117,7 @@ export default class BatchCall {
     };
 
     /**
-     * @dev Executes a forward batch call given the current operations on this class.
+     * @dev Executes a forward batch call given the operations on this class.
      * @param signer the signer of the transaction
      * @returns ethers.ContractTransaction object
      */

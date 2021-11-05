@@ -12,13 +12,9 @@ import { handleError } from "./errorHelper";
 const EMPTY = "0x";
 
 /**
- * @dev Normalizes ethereum addresses for use in sdk-core.
- * Checks if address is a valid ethereum address,
- * throws an error if it is not, else, normalizes
- * addresses by converting to lower case so it can be used
- * by both the subgraph and web 3 calls.
+ * @dev Checks if address is a valid ethereum address and normalizes so it can be used by both subgraph and web3.
  * @param address
- * @returns {string} The normalized address.
+ * @returns The normalized address.
  */
 export const normalizeAddress = (address?: string): string => {
     if (!address) return "";
@@ -37,7 +33,7 @@ export const isNullOrEmpty = (str: string | null | undefined) => {
 };
 
 /**
- * Removes the 8-character signature hash from `callData`.
+ * @dev Removes the 8-character signature hash from `callData`.
  * @param callData
  * @returns function parameters
  */
@@ -45,8 +41,7 @@ export const removeSigHashFromCallData = (callData: string) =>
     EMPTY.concat(callData.slice(10));
 
 /**
- * A wrapper function for getting the ethers TransactionDescription
- * object given fragments (e.g. ABI), callData and the value amount sent.
+ * @dev A wrapper function for getting the ethers TransactionDescription object given fragments (e.g. ABI), callData and the value amount sent.
  * @param fragments ABI
  * @param data callData of a function
  * @param value amount of ether sent
@@ -64,6 +59,11 @@ export const getTransactionDescription = (
     return txnDescription;
 };
 
+/**
+ * @dev Gets the per second flow rate given an `amountPerYear` value.
+ * @param amountPerYear the amount you want to stream per year
+ * @returns flow rate per second
+ */
 export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
     return Math.round(
         Number(amountPerYear) *
@@ -75,6 +75,11 @@ export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
     );
 };
 
+/**
+ * @dev Gets the per second flow rate given an `amountPerMonth` value.
+ * @param amountPerMonth the amount you want to stream per month
+ * @returns flow rate per second
+ */
 export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
     return Math.round(
         Number(amountPerMonth) *
@@ -85,6 +90,11 @@ export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
     );
 };
 
+/**
+ * @dev Gets the per second flow rate given an `amountPerDay` value.
+ * @param amountPerDay the amount you want to stream per day
+ * @returns flow rate per second
+ */
 export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
     return Math.round(
         Number(amountPerDay) *

@@ -73,6 +73,12 @@ export default class SuperToken {
     }
 
     // SuperToken Contract Read Functions
+    /**
+     * @dev Returns the token balance of `address`.
+     * @param address the target address
+     * @param providerOrSigner a provider or signer for executing a web3 call
+     * @returns SuperToken balance
+     */
     balanceOf = async (
         address: string,
         providerOrSigner: ethers.providers.Provider | ethers.Signer
@@ -91,6 +97,13 @@ export default class SuperToken {
         }
     };
 
+    /**
+     * @dev Returns the real time balance of `address`.
+     * @param address the target address
+     * @param timestamp the timestamp you'd like to see the data
+     * @param providerOrSigner a provider or signer for executing a web3 call
+     * @returns [the available balance, deposit, owed deposit amount]
+     */
     realtimeBalanceOf = async (
         address: string,
         timestamp: string,
@@ -110,6 +123,12 @@ export default class SuperToken {
         }
     };
 
+    /**
+     * @dev Returns the real time balance of `address`.
+     * @param address the target address
+     * @param providerOrSigner a provider or signer for executing a web3 call
+     * @returns [the available balance, deposit, owed deposit amount, timestamp]
+     */
     realtimeBalanceOfNow = async (
         address: string,
         providerOrSigner: ethers.providers.Provider | ethers.Signer

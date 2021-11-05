@@ -40,6 +40,7 @@ export const validateFrameworkConstructorOptions = (
     }
 
     // if the user inputs a networkName or chainId that isn't part of the resolver
+    // that is, an unsupported network/chain
     if (
         (options.networkName != null &&
             !networkNames.includes(options.networkName)) ||
@@ -58,17 +59,16 @@ export const validateFrameworkConstructorOptions = (
         if (isNullOrEmpty(options.resolverAddress)) {
             handleError(
                 "FRAMEWORK_INITIALIZATION",
-                "You must input your own resolver address if you use an unsupported network with dataMode set to SUBGRAPH_ONLY or SUBGRAPH_WEB3."
+                "You must input your own resolver address if you use an unsupported network."
             );
         }
     }
 };
 
 /**
- * @dev options.networkName is casted as not null as we check
- * to ensure at least one of the settings are not null.
+ * @dev options.networkName is casted as not null as we check to ensure chainId or networkName is not null.
  * @param options
- * @returns
+ * @returns SubgraphQueriesEndpoint which is a custom endpoint or based on selected network
  */
 export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
     return options.customSubgraphQueriesEndpoint != null
@@ -86,10 +86,10 @@ interface INetworkNameParams {
 }
 
 /**
- * @dev We check that the user has input a networkName or chainId and that
- * they are both supported.
- * @param options
- * @returns
+ * @dev We check that the user has input a networkName or chainId and that they are both supported.
+ * @param options.chainId the chainId of the desired network
+ * @param options.networkName the name of the desired network
+ * @returns the network name
  */
 export const getNetworkName = (options: INetworkNameParams): NetworkName => {
     const networkName =

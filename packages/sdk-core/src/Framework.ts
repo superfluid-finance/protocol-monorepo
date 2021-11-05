@@ -85,9 +85,9 @@ export default class Framework {
         validateFrameworkConstructorOptions(options);
 
         const networkName = getNetworkName(options);
-        const data = chainIdToDataMap.get(
-            options.chainId || networkNameToChainIdMap.get(networkName)!
-        );
+        const chainId =
+            options.chainId || networkNameToChainIdMap.get(networkName)!;
+        const data = chainIdToDataMap.get(chainId);
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
         const resolverAddress =
@@ -117,17 +117,18 @@ export default class Framework {
                 options.customSubgraphQueriesEndpoint ||
                 getSubgraphQueriesEndpoint(options);
 
-            if (customSubgraphQueriesEndpoint == null) {
+            if (
+                customSubgraphQueriesEndpoint == null &&
+                options.dataMode !== "WEB3_ONLY"
+            ) {
                 return handleError(
                     "FRAMEWORK_INITIALIZATION",
-                    "You cannot have a null subgaphQueriesEndpoint."
+                    "You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
                 );
             }
 
             const settings: IFrameworkSettings = {
-                chainId:
-                    options.chainId ||
-                    networkNameToChainIdMap.get(networkName)!,
+                chainId,
                 customSubgraphQueriesEndpoint,
                 dataMode: options.dataMode || "SUBGRAPH_ONLY",
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
@@ -160,7 +161,12 @@ export default class Framework {
      * @returns `ethers.Signer` object
      */
     createSigner = (options: ISignerConstructorOptions): Signer => {
-        if (!options.privateKey && !options.provider && !options.signer && !options.web3Provider) {
+        if (
+            !options.privateKey &&
+            !options.provider &&
+            !options.signer &&
+            !options.web3Provider
+        ) {
             return handleError(
                 "CREATE_SIGNER",
                 "You must pass in a private key, provider or signer."

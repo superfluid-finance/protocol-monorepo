@@ -86,13 +86,12 @@ export default class InstantDistributionAgreementV1 {
 
     /**
      * @dev Updates the `indexValue` of an index.
+     * @description NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
      * @param indexId The id of the index.
      * @param indexValue The new indexValue.
      * @param superToken The superToken to be distributed.
      * @param userData Extra user data provided.
      * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
-     *
-     * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
      */
     updateIndexValue = async ({
         indexId,

@@ -18,6 +18,13 @@ export default class Host {
         ) as Superfluid;
     }
 
+    /**
+     * @dev Populates the `callAgreement` function on the host contract.
+     * @param agreementAddress the agreement address (cfa or ida address)
+     * @param callData the encoded callData for the function
+     * @param userData any additional user data
+     * @returns an `Operation` class
+     */
     populateCallAgreementTxnAndReturnOperation = async (
         agreementAddress: string,
         callData: string,

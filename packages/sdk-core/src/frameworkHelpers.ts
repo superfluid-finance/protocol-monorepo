@@ -6,7 +6,7 @@ import {
     networkNameToChainIdMap,
 } from "./constants";
 import { IFrameworkOptions } from "./Framework";
-import { ChainId, NetworkName } from "./interfaces";
+import { ChainId, NetworkName } from "./types";
 import { handleError } from "./errorHelper";
 
 export const validateFrameworkConstructorOptions = (

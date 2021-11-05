@@ -1,4 +1,5 @@
-import { ChainId, IResolverData, NetworkName } from "./interfaces";
+import { IResolverData } from "./interfaces";
+import { ChainId, NetworkName } from "./types";
 
 export const MONTHS_PER_YEAR = 12;
 export const DAYS_PER_MONTH = 30;

@@ -126,6 +126,16 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             // arbitrum testnet
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
         },
+
+        // Avalanche C-chain Fuji testnet
+        43113: {
+            nativeTokenSymbol: "AVAX",
+        },
+
+        // Avalanche C-chain mainnet
+        43114: {
+            nativeTokenSymbol: "AVAX",
+        },
     };
 
     let configs = {

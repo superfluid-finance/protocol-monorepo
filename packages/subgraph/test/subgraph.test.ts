@@ -166,7 +166,9 @@ describe("Subgraph Tests", () => {
                 daix.address.toLowerCase(),
                 "Super fDAI Fake Token",
                 "fDAIx",
-                true
+                true,
+                dai.address,
+                18
             );
         });
 
@@ -175,7 +177,9 @@ describe("Subgraph Tests", () => {
                 dai.address.toLowerCase(),
                 "fDAI Fake Token",
                 "fDAI",
-                false
+                false,
+                "",
+                18
             );
         });
     });

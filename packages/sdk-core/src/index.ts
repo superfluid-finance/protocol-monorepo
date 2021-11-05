@@ -10,6 +10,7 @@ export * from "./interfaces";
 export * from "./utils";
 export * from "./pagination";
 export * from "./events";
+export * from "./types";
 
 export { Framework };
 export { SuperToken };

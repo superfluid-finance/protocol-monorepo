@@ -10,8 +10,9 @@ export interface IAccountTokenSnapshotFilter {
     readonly token?: string;
 }
 
-export interface ISuperTokenRequestFilter {
-    readonly isListed?: boolean;
+export interface IAccountEventsFilter {
+    readonly account: string;
+    readonly timestamp_gte: string;
 }
 export interface IIndexRequestFilter {
     readonly indexId?: string;

@@ -1,4 +1,5 @@
 import {
+    IAccountEventsFilter,
     IAccountTokenSnapshotFilter,
     IFlowUpdatedEvent,
     IIndex,
@@ -11,7 +12,7 @@ import {
     ISuperToken,
     ISuperTokenRequestFilter,
 } from "./interfaces";
-import { DataMode } from "./types";
+import {DataMode} from "./types";
 import {
     GetIndexesDocument,
     GetIndexesQuery,
@@ -24,8 +25,8 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import { PagedResult, Paging } from "./pagination";
-import { SubgraphClient } from "./subgraph/SubgraphClient";
+import {PagedResult, Paging} from "./pagination";
+import {SubgraphClient} from "./subgraph/SubgraphClient";
 import {
     GetTokensDocument,
     GetTokensQuery,
@@ -52,13 +53,13 @@ import {
     GetFlowUpdatedEventsQuery,
     GetFlowUpdatedEventsQueryVariables,
 } from "./subgraph/queries/events/getFlowUpdatedEvents.generated";
-import { FlowUpdatedEvent_Filter } from "./subgraph/schema.generated";
+import {FlowUpdatedEvent_Filter} from "./subgraph/schema.generated";
 import {
     GetAccountEventsDocument,
     GetAccountEventsQuery,
     GetAccountEventsQueryVariables,
 } from "./subgraph/queries/events/getAccountEvents.generated";
-import { AccountEvents, TransferEvent, AllEvents } from "./events";
+import {AccountEvents, TransferEvent, AllEvents} from "./events";
 import {
     GetEventIdsDocument,
     GetEventIdsQuery,
@@ -74,6 +75,28 @@ import {
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
     readonly dataMode: DataMode;
+}
+
+function mapTransferEvent(x: {
+    __typename: "TransferEvent";
+    value: string;
+    token: string;
+    blockNumber: string;
+    transactionHash: string;
+    timestamp: string;
+    from: { id: string };
+    to: { id: string };
+}) {
+    return ({
+        __typename: x.__typename,
+        token: x.token,
+        value: x.value,
+        from: x.from.id,
+        to: x.to.id,
+        timestamp: x.timestamp,
+        blockNumber: x.blockNumber,
+        transactionHash: x.transactionHash,
+    });
 }
 
 /**
@@ -97,10 +120,8 @@ export default class Query {
     ): Promise<PagedResult<ISuperToken>> => {
         validateSuperTokenRequest(filter);
 
-        const response = await this.subgraphClient.request<
-            GetTokensQuery,
-            GetTokensQueryVariables
-        >(GetTokensDocument, {
+        const response = await this.subgraphClient.request<GetTokensQuery,
+            GetTokensQueryVariables>(GetTokensDocument, {
             where: {
                 isSuperToken: true,
                 ...filter,
@@ -118,10 +139,8 @@ export default class Query {
     ): Promise<PagedResult<IIndex>> => {
         validateIndexRequest(filter);
 
-        const response = await this.subgraphClient.request<
-            GetIndexesQuery,
-            GetIndexesQueryVariables
-        >(GetIndexesDocument, {
+        const response = await this.subgraphClient.request<GetIndexesQuery,
+            GetIndexesQueryVariables>(GetIndexesDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -136,10 +155,8 @@ export default class Query {
     ): Promise<PagedResult<IIndexSubscription>> => {
         validateIndexSubscriptionRequest(filter);
 
-        const response = await this.subgraphClient.request<
-            GetIndexSubscriptionsQuery,
-            GetIndexSubscriptionsQueryVariables
-        >(GetIndexSubscriptionsDocument, {
+        const response = await this.subgraphClient.request<GetIndexSubscriptionsQuery,
+            GetIndexSubscriptionsQueryVariables>(GetIndexSubscriptionsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -154,10 +171,8 @@ export default class Query {
     ): Promise<PagedResult<IStream>> => {
         validateStreamRequest(filter);
 
-        const response = await this.subgraphClient.request<
-            GetStreamsQuery,
-            GetStreamsQueryVariables
-        >(GetStreamsDocument, {
+        const response = await this.subgraphClient.request<GetStreamsQuery,
+            GetStreamsQueryVariables>(GetStreamsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -172,10 +187,8 @@ export default class Query {
     ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
         validateAccountTokenSnapshotRequest(filter);
 
-        const response = await this.subgraphClient.request<
-            GetAccountTokenSnapshotsQuery,
-            GetAccountTokenSnapshotsQueryVariables
-        >(GetAccountTokenSnapshotsDocument, {
+        const response = await this.subgraphClient.request<GetAccountTokenSnapshotsQuery,
+            GetAccountTokenSnapshotsQueryVariables>(GetAccountTokenSnapshotsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -194,10 +207,8 @@ export default class Query {
         filter: FlowUpdatedEvent_Filter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<IFlowUpdatedEvent>> => {
-        const response = await this.subgraphClient.request<
-            GetFlowUpdatedEventsQuery,
-            GetFlowUpdatedEventsQueryVariables
-        >(GetFlowUpdatedEventsDocument, {
+        const response = await this.subgraphClient.request<GetFlowUpdatedEventsQuery,
+            GetFlowUpdatedEventsQueryVariables>(GetFlowUpdatedEventsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -206,21 +217,58 @@ export default class Query {
         return new PagedResult<IFlowUpdatedEvent>(response.result, paging);
     };
 
+    // TODO: Need a better way of querying account events
+    listAccountEvents = async (filter: IAccountEventsFilter): Promise<AccountEvents[]> => {
+        // TODO: validate filter
+
+        const response = await this.subgraphClient.request<GetAccountEventsQuery,
+            GetAccountEventsQueryVariables>(GetAccountEventsDocument, {
+            accountBytes: filter.account,
+            accountString: filter.account,
+            timestamp_gte: filter.timestamp_gte,
+        });
+
+        const accountEvents: AccountEvents[] = [
+            ...response.flowUpdatedEvents_receiver,
+            ...response.flowUpdatedEvents_sender,
+            ...response.indexCreatedEvents,
+            ...response.indexUpdatedEvents,
+            ...response.indexUnitsUpdatedEvents_publisher,
+            ...response.indexUnitsUpdatedEvents_subscriber,
+            ...response.indexSubscribedEvents_publisher,
+            ...response.indexSubscribedEvents_subscriber,
+            ...response.indexUnsubscribedEvents_publisher,
+            ...response.indexUnsubscribedEvents_subscriber,
+            ...response.indexDistributionClaimedEvents_publisher,
+            ...response.indexDistributionClaimedEvents_subscriber,
+            ...response.transferEvents_to.map<TransferEvent>(mapTransferEvent),
+            ...response.transferEvents_from.map<TransferEvent>(mapTransferEvent),
+            ...response.tokenDowngradedEvents,
+            ...response.tokenUpgradedEvents,
+            ...response.subscriptionApprovedEvents_subscriber,
+            ...response.subscriptionApprovedEvents_publisher,
+            ...response.subscriptionDistributionClaimedEvents_subscriber,
+            ...response.subscriptionDistributionClaimedEvents_publisher,
+            ...response.subscriptionRevokedEvents_subscriber,
+            ...response.subscriptionRevokedEvents_publisher,
+            ...response.subscriptionUnitsUpdatedEvents_subscriber,
+            ...response.subscriptionUnitsUpdatedEvents_publisher,
+        ];
+
+        return accountEvents;
+    }
+
     listAllEvents = async (
         paging: Paging = new Paging()
     ): Promise<PagedResult<AllEvents>> => {
-        const getEventIdsQueryResponse = await this.subgraphClient.request<
-            GetEventIdsQuery,
-            GetEventIdsQueryVariables
-        >(GetEventIdsDocument, {
+        const getEventIdsQueryResponse = await this.subgraphClient.request<GetEventIdsQuery,
+            GetEventIdsQueryVariables>(GetEventIdsDocument, {
             skip: paging.skip,
             first: paging.takePlusOne(),
         });
 
-        const getAllEventsQueryResponse = await this.subgraphClient.request<
-            GetAllEventsQuery,
-            GetAllEventsQueryVariables
-        >(GetAllEventsDocument, {
+        const getAllEventsQueryResponse = await this.subgraphClient.request<GetAllEventsQuery,
+            GetAllEventsQueryVariables>(GetAllEventsDocument, {
             ids: getEventIdsQueryResponse.events.map((x) => x.id),
         });
 
@@ -277,78 +325,32 @@ export default class Query {
     };
 
     on(
-        callback: (events: AccountEvents[]) => void,
+        callback: (events: AccountEvents[], unsubscribe: () => void) => void,
         ms: number,
         account: string,
         timeout?: number
-    ) {
+    ): () => void {
         console.log("on");
         if (ms < 1000) throw Error("Let's not go crazy with the queries...");
 
         // TODO: Wait for answer before next query...
 
-        let nextNow = _.now();
+        const timeSkew = 25000;
+        let nextUtcNow =  new Date().getTime() - timeSkew;
         const intervalId = setInterval(async () => {
             console.log("interval");
-            const now = nextNow;
-            nextNow += ms;
+            const utcNow = nextUtcNow;
+            nextUtcNow += ms;
 
-            const response = await this.subgraphClient.request<
-                GetAccountEventsQuery,
-                GetAccountEventsQueryVariables
-            >(GetAccountEventsDocument, {
-                accountBytes: account,
-                accountString: account,
-                timestamp_gte: now.toString(),
+            const subgraphTime = Math.floor(utcNow / 1000)
+            const accountEvents: AccountEvents[] = await this.listAccountEvents({
+                account: account,
+                timestamp_gte: subgraphTime.toString()
             });
 
-            const allEvents: AccountEvents[] = [
-                ...response.flowUpdatedEvents_receiver,
-                ...response.flowUpdatedEvents_sender,
-                ...response.indexCreatedEvents,
-                ...response.indexUpdatedEvents,
-                ...response.indexUnitsUpdatedEvents_publisher,
-                ...response.indexUnitsUpdatedEvents_subscriber,
-                ...response.indexSubscribedEvents_publisher,
-                ...response.indexSubscribedEvents_subscriber,
-                ...response.indexUnsubscribedEvents_publisher,
-                ...response.indexUnsubscribedEvents_subscriber,
-                ...response.indexDistributionClaimedEvents_publisher,
-                ...response.indexDistributionClaimedEvents_subscriber,
-                ...response.transferEvents_to.map<TransferEvent>((x) => ({
-                    __typename: x.__typename,
-                    token: x.token,
-                    value: x.value,
-                    from: x.from.id,
-                    to: x.to.id,
-                    timestamp: x.timestamp,
-                    blockNumber: x.blockNumber,
-                    transactionHash: x.transactionHash,
-                })),
-                ...response.transferEvents_from.map<TransferEvent>((x) => ({
-                    __typename: x.__typename,
-                    token: x.token,
-                    value: x.value,
-                    from: x.from.id,
-                    to: x.to.id,
-                    timestamp: x.timestamp,
-                    blockNumber: x.blockNumber,
-                    transactionHash: x.transactionHash,
-                })),
-                ...response.tokenDowngradedEvents,
-                ...response.tokenUpgradedEvents,
-                ...response.subscriptionApprovedEvents_subscriber,
-                ...response.subscriptionApprovedEvents_publisher,
-                ...response.subscriptionDistributionClaimedEvents_subscriber,
-                ...response.subscriptionDistributionClaimedEvents_publisher,
-                ...response.subscriptionRevokedEvents_subscriber,
-                ...response.subscriptionRevokedEvents_publisher,
-                ...response.subscriptionUnitsUpdatedEvents_subscriber,
-                ...response.subscriptionUnitsUpdatedEvents_publisher,
-            ];
-
-            if (allEvents.length) {
-                callback(allEvents);
+            if (accountEvents.length) {
+                console.log('callback');
+                callback(accountEvents, unsubscribe);
             }
         }, ms);
 
@@ -361,7 +363,7 @@ export default class Query {
             setTimeout(() => {
                 console.log("timeout");
                 unsubscribe();
-            });
+            }, timeout);
         }
 
         return unsubscribe;

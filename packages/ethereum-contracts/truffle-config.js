@@ -257,7 +257,7 @@ module.exports = {
                     43113 // chainId
                 ),
             network_id: 1,
-            //gas: 8e6,
+            gas: 8e6,
             gasPrice: +process.env.FUJI_GAS_PRICE || 20e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)

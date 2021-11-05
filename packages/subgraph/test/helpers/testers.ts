@@ -174,6 +174,11 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         {
             flowRate: flowRate.toString(),
             oldFlowRate: pastStreamData.oldFlowRate,
+            addresses: [
+                tokenAddress.toLowerCase(),
+                sender.toLowerCase(),
+                receiver.toLowerCase(),
+            ],
             sender: sender.toLowerCase(),
             receiver: receiver.toLowerCase(),
             token: tokenAddress.toLowerCase(),
@@ -560,21 +565,25 @@ function getIDAEventDataForValidation(
         indexId.toString()
     );
     const indexEntityId = getIndexId(publisher, token, indexId.toString());
+    const baseAddresses = [token.toLowerCase(), publisher.toLowerCase()];
     const baseEventData = {
         token: token.toLowerCase(),
         publisher: publisher.toLowerCase(),
         indexId: indexId.toString(),
         userData,
+        addresses: baseAddresses
     };
     const baseSubscriptionEventData = {
         ...baseEventData,
         subscription: { id: subscriptionId },
         subscriber: subscriber.toLowerCase(),
+        addresses: [...baseAddresses, subscriber.toLowerCase()]
     };
     const baseIndexEventData = {
         ...baseEventData,
         index: { id: indexEntityId },
         subscriber: subscriber.toLowerCase(),
+        addresses: [...baseAddresses, subscriber.toLowerCase()]
     };
 
     if (type === IDAEventType.IndexCreated) {

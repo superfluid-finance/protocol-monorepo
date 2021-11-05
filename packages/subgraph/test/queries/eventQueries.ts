@@ -9,7 +9,9 @@ export const getFlowUpdatedEvents = gql`
             id
             timestamp
             transactionHash
+            name
             blockNumber
+            addresses
             token
             sender
             receiver
@@ -32,7 +34,9 @@ export const getIndexCreatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -51,7 +55,9 @@ export const getIndexDistributionClaimedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -71,7 +77,9 @@ export const getIndexUpdatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -94,7 +102,9 @@ export const getIndexSubscribedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -114,7 +124,9 @@ export const getIndexUnitsUpdatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -135,7 +147,9 @@ export const getIndexUnsubscribedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -155,7 +169,9 @@ export const getSubscriptionApprovedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             subscription {
@@ -175,7 +191,9 @@ export const getSubscriptionDistributionClaimedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             publisher
@@ -195,7 +213,9 @@ export const getSubscriptionRevokedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             subscription {
@@ -215,7 +235,9 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             subscription {

@@ -17,6 +17,8 @@ export interface IEvent {
     readonly id: string;
     readonly transactionHash: string;
     readonly blockNumber: string;
+    readonly name: string;
+    readonly addresses: string[];
     readonly timestamp: string;
 }
 
@@ -496,6 +498,7 @@ export interface IExpectedFlowUpdateEvent {
     readonly oldFlowRate: string;
     readonly receiver: string;
     readonly sender: string;
+    readonly addresses: string[];
     readonly token: string;
     readonly totalAmountStreamedUntilTimestamp: string;
     readonly totalReceiverFlowRate: string;

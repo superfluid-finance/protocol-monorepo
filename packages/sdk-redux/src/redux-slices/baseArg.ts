@@ -4,7 +4,7 @@ export interface QueryArg {
 
 export interface MutationArg {
     chainId: number;
-    confirmations?: number;
+    waitForConfirmation?: boolean;
 }
 
 export interface TransactionInfo {

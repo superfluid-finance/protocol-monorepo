@@ -45,8 +45,12 @@ export const trackTransaction = createAsyncThunk<
     TrackTransactionArg,
     { rejectValue: TransactionTracking }
 >('trackTransaction', async (arg, thunkAPI) => {
-    const framework = await superfluidSource.getFramework(arg.chainId);
     try {
+        console.log({
+            chainId: arg.chainId,
+            transactionHash: arg.hash
+        })
+        const framework = await superfluidSource.getFramework(arg.chainId);
         // TODO: What's the best confirmation amount and timeout?
         const transactionReceipt = await framework.settings.provider.waitForTransaction(
             arg.hash,
@@ -68,6 +72,8 @@ export const trackTransaction = createAsyncThunk<
             });
         }
     } catch (e) {
+        console.error(e);
+
         return thunkAPI.rejectWithValue({
             chainId: arg.chainId,
             hash: arg.hash,

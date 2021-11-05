@@ -5,6 +5,6 @@ import { rtkQuerySliceBaseQuery } from './rtkQuerySliceBaseQuery';
 export const rtkQuerySlice = createApi({
     reducerPath: 'superfluidApi',
     baseQuery: rtkQuerySliceBaseQuery(),
-    tagTypes: ['Flow'],
+    tagTypes: ['Stream', 'Event'],
     endpoints: () => ({}),
 });

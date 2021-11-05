@@ -1,6 +1,7 @@
 import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { MutationArg, TransactionInfo } from '../../baseArg';
 import { trackTransaction } from '../../transactions/transactionSlice';
+import { invalidateTagsHandler } from '../invalidateTagsHandler';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
 export interface DeleteFlowArg extends MutationArg {
@@ -26,10 +27,17 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     .then((x) => x.exec(signer as any)); // TODO(KK): as any
                 queryApi.dispatch(
                     trackTransaction({
-                        chainId: arg.chainId,
                         hash: transactionResponse.hash,
+                        chainId: arg.chainId,
                     })
                 );
+                if (arg.waitForConfirmation) {
+                    await framework.settings.provider.waitForTransaction(
+                        transactionResponse.hash,
+                        1,
+                        60000
+                    );
+                }
                 return {
                     data: {
                         chainId: arg.chainId,
@@ -38,28 +46,22 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                 };
             },
             onQueryStarted: async (arg, { dispatch, queryFulfilled }) => {
-                const queryResult = await queryFulfilled;
-                dispatch(
-                    trackTransaction({
-                        hash: queryResult.data.hash,
-                        chainId: queryResult.data.chainId,
-                    })
-                )
-                    .unwrap()
-                    .then(() => {
-                        dispatch(
-                            rtkQuerySlice.util.invalidateTags([
-                                {
-                                    type: 'Flow',
-                                    id: `${arg.chainId}_${arg.sender}`,
-                                },
-                                {
-                                    type: 'Flow',
-                                    id: `${arg.chainId}_${arg.receiver}`,
-                                },
-                            ])
-                        );
-                    });
+                await queryFulfilled;
+
+                const framework =
+                    await initializedSuperfluidSource.getFramework(arg.chainId);
+                framework.query.on(
+                    (events, unsubscribe) => {
+                        console.log('boom!');
+                        for (const event of events) {
+                            invalidateTagsHandler(arg.chainId, event, dispatch);
+                        }
+                        unsubscribe();
+                    },
+                    2000,
+                    arg.sender.toLowerCase(),
+                    30000
+                );
             },
         }),
     }),

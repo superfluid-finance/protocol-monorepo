@@ -29,6 +29,9 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         const superfluidSdk = await Framework.create({chainId: 5, provider: ethersWeb3Provider});
 
+        // @ts-ignore
+        window.sf = superfluidSdk;
+
         superfluidFrameworkSource.setFramework(
             5,
             Promise.resolve(superfluidSdk)

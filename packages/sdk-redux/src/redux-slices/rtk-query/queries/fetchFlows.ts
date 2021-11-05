@@ -32,8 +32,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
             },
             providesTags: (_1, _2, arg) => [
                 {
-                    type: 'Flow',
-                    id: `${arg.chainId}_${arg.accountAddress}`,
+                    type: 'Stream',
+                    id: `${arg.chainId}_${arg.accountAddress}`.toLowerCase(),
                 },
             ],
         }),

@@ -34,13 +34,13 @@ export default class InstantDistributionAgreementV1 {
      * @param indexId The id of the index.
      * @param superToken The address of the `index` superToken.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createIndex = async ({
+    createIndex = ({
         indexId,
         superToken,
         userData,
-    }: IBaseIDAParams): Promise<Operation> => {
+    }: IBaseIDAParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("createIndex", [
             normalizedToken,
@@ -48,7 +48,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -61,14 +61,14 @@ export default class InstantDistributionAgreementV1 {
      * @param amount The amount of `superToken` to be distributed.
      * @param superToken The superToken to be distributed.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    distribute = async ({
+    distribute = ({
         indexId,
         amount,
         superToken,
         userData,
-    }: IDistributeParams): Promise<Operation> => {
+    }: IDistributeParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("distribute", [
             normalizedToken,
@@ -77,7 +77,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -91,14 +91,14 @@ export default class InstantDistributionAgreementV1 {
      * @param indexValue The new indexValue.
      * @param superToken The superToken to be distributed.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateIndexValue = async ({
+    updateIndexValue = ({
         indexId,
         indexValue,
         superToken,
         userData,
-    }: IUpdateIndexValueParams): Promise<Operation> => {
+    }: IUpdateIndexValueParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("updateIndex", [
             normalizedToken,
@@ -107,7 +107,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -121,15 +121,15 @@ export default class InstantDistributionAgreementV1 {
      * @param subscriber The subscriber address whose units you want to update.
      * @param units The amount of units you want to update to.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateSubscriptionUnits = async ({
+    updateSubscriptionUnits = ({
         indexId,
         superToken,
         subscriber,
         units,
         userData,
-    }: IUpdateSubscriptionUnitsParams): Promise<Operation> => {
+    }: IUpdateSubscriptionUnitsParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);
         const callData = idaInterface.encodeFunctionData("updateSubscription", [
@@ -140,7 +140,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -153,14 +153,14 @@ export default class InstantDistributionAgreementV1 {
      * @param superToken The superToken of the index.
      * @param subscriber The subscriber address whose subscription you want to approve.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approveSubscription = async ({
+    approveSubscription = ({
         indexId,
         superToken,
         publisher,
         userData,
-    }: IBaseSubscriptionParams): Promise<Operation> => {
+    }: IBaseSubscriptionParams): Operation => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData(
@@ -168,7 +168,7 @@ export default class InstantDistributionAgreementV1 {
             [normalizedToken, normalizedPublisher, indexId, "0x"]
         );
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -181,14 +181,14 @@ export default class InstantDistributionAgreementV1 {
      * @param superToken The superToken of the index.
      * @param subscriber The subscriber address whose subscription you want to revoke.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    revokeSubscription = async ({
+    revokeSubscription = ({
         indexId,
         superToken,
         publisher,
         userData,
-    }: IBaseSubscriptionParams): Promise<Operation> => {
+    }: IBaseSubscriptionParams): Operation => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("revokeSubscription", [
@@ -198,7 +198,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -212,15 +212,15 @@ export default class InstantDistributionAgreementV1 {
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targetting.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteSubscription = async ({
+    deleteSubscription = ({
         indexId,
         superToken,
         subscriber,
         publisher,
         userData,
-    }: IBaseSubscriptionParams): Promise<Operation> => {
+    }: IBaseSubscriptionParams): Operation => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);
@@ -232,7 +232,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData
@@ -246,15 +246,15 @@ export default class InstantDistributionAgreementV1 {
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targetting.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    claim = async ({
+    claim = ({
         indexId,
         superToken,
         subscriber,
         publisher,
         userData,
-    }: IBaseSubscriptionParams): Promise<Operation> => {
+    }: IBaseSubscriptionParams): Operation => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);
@@ -266,7 +266,7 @@ export default class InstantDistributionAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.idaV1Address,
             callData,
             userData

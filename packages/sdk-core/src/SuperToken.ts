@@ -154,13 +154,12 @@ export default class SuperToken {
      * @param amount The amount approved.
      * @returns An instance of Operation which can be executed or batched.
      */
-    approve = async (recipient: string, amount: string) => {
+    approve = (recipient: string, amount: string): Operation => {
         try {
-            const txn =
-                await this.superTokenContract.populateTransaction.approve(
-                    recipient,
-                    amount
-                );
+            const txn = this.superTokenContract.populateTransaction.approve(
+                recipient,
+                amount
+            );
             return new Operation(txn, "ERC20_APPROVE");
         } catch (err) {
             return handleError(
@@ -176,12 +175,10 @@ export default class SuperToken {
      * @param amount The amount to be downgraded.
      * @returns An instance of Operation which can be executed or batched.
      */
-    downgrade = async (amount: string) => {
+    downgrade = (amount: string): Operation => {
         try {
             const txn =
-                await this.superTokenContract.populateTransaction.downgrade(
-                    amount
-                );
+                this.superTokenContract.populateTransaction.downgrade(amount);
             return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
         } catch (err) {
             return handleError(
@@ -198,13 +195,12 @@ export default class SuperToken {
      * @param amount The amount to be transferred.
      * @returns An instance of Operation which can be executed or batched.
      */
-    transfer = async (recipient: string, amount: string) => {
+    transfer = (recipient: string, amount: string): Operation => {
         try {
-            const txn =
-                await this.superTokenContract.populateTransaction.transfer(
-                    recipient,
-                    amount
-                );
+            const txn = this.superTokenContract.populateTransaction.transfer(
+                recipient,
+                amount
+            );
             return new Operation(txn, "UNSUPPORTED");
         } catch (err) {
             return handleError(
@@ -222,14 +218,14 @@ export default class SuperToken {
      * @param amount The amount to be transferred.
      * @returns An instance of Operation which can be executed or batched.
      */
-    transferFrom = async (
+    transferFrom = (
         sender: string,
         recipient: string,
         amount: string
-    ) => {
+    ): Operation => {
         try {
             const txn =
-                await this.superTokenContract.populateTransaction.transferFrom(
+                this.superTokenContract.populateTransaction.transferFrom(
                     sender,
                     recipient,
                     amount
@@ -249,12 +245,10 @@ export default class SuperToken {
      * @param amount The amount to be upgraded.
      * @returns An instance of Operation which can be executed or batched.
      */
-    upgrade = async (amount: string) => {
+    upgrade = (amount: string): Operation => {
         try {
             const txn =
-                await this.superTokenContract.populateTransaction.upgrade(
-                    amount
-                );
+                this.superTokenContract.populateTransaction.upgrade(amount);
             return new Operation(txn, "SUPERTOKEN_UPGRADE");
         } catch (err) {
             return handleError(
@@ -272,15 +266,15 @@ export default class SuperToken {
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlow = async ({
+    createFlow = ({
         sender,
         receiver,
         flowRate,
         userData,
-    }: ISuperTokenCreateFlowParams): Promise<Operation> => {
-        return await this.cfaV1.createFlow({
+    }: ISuperTokenCreateFlowParams): Operation => {
+        return this.cfaV1.createFlow({
             flowRate,
             receiver,
             sender,
@@ -295,15 +289,15 @@ export default class SuperToken {
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateFlow = async ({
+    updateFlow = ({
         sender,
         receiver,
         flowRate,
         userData,
-    }: ISuperTokenUpdateFlowParams): Promise<Operation> => {
-        return await this.cfaV1.updateFlow({
+    }: ISuperTokenUpdateFlowParams): Operation => {
+        return this.cfaV1.updateFlow({
             flowRate,
             receiver,
             sender,
@@ -317,14 +311,14 @@ export default class SuperToken {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteFlow = async ({
+    deleteFlow = ({
         sender,
         receiver,
         userData,
-    }: ISuperTokenDeleteFlowParams): Promise<Operation> => {
-        return await this.cfaV1.deleteFlow({
+    }: ISuperTokenDeleteFlowParams): Operation => {
+        return this.cfaV1.deleteFlow({
             superToken: this.options.address,
             sender,
             receiver,
@@ -337,13 +331,13 @@ export default class SuperToken {
      * @dev Creates an IDA Index.
      * @param indexId The id of the index.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createIndex = async ({
+    createIndex = ({
         indexId,
         userData,
-    }: ISuperTokenBaseIDAParams): Promise<Operation> => {
-        return await this.idaV1.createIndex({
+    }: ISuperTokenBaseIDAParams): Operation => {
+        return this.idaV1.createIndex({
             indexId,
             superToken: this.options.address,
             userData,
@@ -355,14 +349,14 @@ export default class SuperToken {
      * @param indexId The id of the index.
      * @param amount The amount of tokens to be distributed.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    distribute = async ({
+    distribute = ({
         indexId,
         amount,
         userData,
-    }: ISuperTokenDistributeParams): Promise<Operation> => {
-        return await this.idaV1.distribute({
+    }: ISuperTokenDistributeParams): Operation => {
+        return this.idaV1.distribute({
             indexId,
             amount,
             superToken: this.options.address,
@@ -375,16 +369,16 @@ export default class SuperToken {
      * @param indexId The id of the index.
      * @param indexValue The new indexValue.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      *
      * NOTE: It has the same effect as `distribute`, but is closer to the low level data structure of the index.
      */
-    updateIndexValue = async ({
+    updateIndexValue = ({
         indexId,
         indexValue,
         userData,
-    }: ISuperTokenUpdateIndexValueParams): Promise<Operation> => {
-        return await this.idaV1.updateIndexValue({
+    }: ISuperTokenUpdateIndexValueParams): Operation => {
+        return this.idaV1.updateIndexValue({
             indexId,
             indexValue,
             superToken: this.options.address,
@@ -398,15 +392,15 @@ export default class SuperToken {
      * @param subscriber The subscriber address whose units you want to update.
      * @param units The amount of units you want to update to.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateSubscriptionUnits = async ({
+    updateSubscriptionUnits = ({
         indexId,
         subscriber,
         units,
         userData,
-    }: ISuperTokenUpdateSubscriptionUnitsParams): Promise<Operation> => {
-        return await this.idaV1.updateSubscriptionUnits({
+    }: ISuperTokenUpdateSubscriptionUnitsParams): Operation => {
+        return this.idaV1.updateSubscriptionUnits({
             indexId,
             superToken: this.options.address,
             subscriber,
@@ -420,14 +414,14 @@ export default class SuperToken {
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose subscription you want to approve.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    approveSubscription = async ({
+    approveSubscription = ({
         indexId,
         subscriber,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
-        return await this.idaV1.approveSubscription({
+    }: ISuperTokenBaseSubscriptionParams): Operation => {
+        return this.idaV1.approveSubscription({
             indexId,
             superToken: this.options.address,
             subscriber,
@@ -440,14 +434,14 @@ export default class SuperToken {
      * @param indexId The id of the index.
      * @param subscriber The subscriber address whose subscription you want to revoke.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    revokeSubscription = async ({
+    revokeSubscription = ({
         indexId,
         subscriber,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
-        return await this.idaV1.revokeSubscription({
+    }: ISuperTokenBaseSubscriptionParams): Operation => {
+        return this.idaV1.revokeSubscription({
             indexId,
             superToken: this.options.address,
             subscriber,
@@ -461,15 +455,15 @@ export default class SuperToken {
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targetting.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteSubscription = async ({
+    deleteSubscription = ({
         indexId,
         subscriber,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
-        return await this.idaV1.deleteSubscription({
+    }: ISuperTokenBaseSubscriptionParams): Operation => {
+        return this.idaV1.deleteSubscription({
             indexId,
             superToken: this.options.address,
             subscriber,
@@ -484,15 +478,15 @@ export default class SuperToken {
      * @param subscriber The subscriber address whose subscription you want to delete.
      * @param publisher The publisher address of the index you are targetting.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    claim = async ({
+    claim = ({
         indexId,
         subscriber,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Promise<Operation> => {
-        return await this.idaV1.claim({
+    }: ISuperTokenBaseSubscriptionParams): Operation => {
+        return this.idaV1.claim({
             indexId,
             superToken: this.options.address,
             subscriber,

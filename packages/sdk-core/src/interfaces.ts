@@ -28,6 +28,9 @@ export interface IIndexSubscriptionRequestFilter {
     readonly subscriber?: string;
     readonly approved?: boolean;
 }
+export interface ISuperTokenRequestFilter {
+    readonly isListed?: boolean;
+}
 
 // write request interfaces
 export interface ISuperTokenModifyFlowParams {

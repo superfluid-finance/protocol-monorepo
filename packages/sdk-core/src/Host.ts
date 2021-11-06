@@ -19,24 +19,23 @@ export default class Host {
     }
 
     /**
-     * @dev Populates the `callAgreement` function on the host contract.
+     * @dev Creates an Operation of the `callAgreement` function on the host contract.
      * @param agreementAddress the agreement address (cfa or ida address)
      * @param callData the encoded callData for the function
      * @param userData any additional user data
      * @returns an `Operation` class
      */
-    populateCallAgreementTxnAndReturnOperation = async (
+    populateCallAgreementTxnAndReturnOperation = (
         agreementAddress: string,
         callData: string,
         userData: string | undefined
-    ) => {
+    ): Operation => {
         try {
-            const txn =
-                await this.hostContract.populateTransaction.callAgreement(
-                    agreementAddress,
-                    callData,
-                    userData || "0x"
-                );
+            const txn = this.hostContract.populateTransaction.callAgreement(
+                agreementAddress,
+                callData,
+                userData || "0x"
+            );
             return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
         } catch (err) {
             return handleError(

@@ -53,24 +53,25 @@ export default class BatchCall {
      * @param index the index of the `Operation` in the batchCall
      * @returns `OperationStruct`
      */
-    getOperationStruct = (
+    getOperationStruct = async (
         operation: Operation,
         index: number
-    ): OperationStruct => {
+    ): Promise<OperationStruct> => {
         const operationType = operationTypeStringToTypeMap.get(operation.type);
+        const populatedTransaction = await operation.populateTransactionPromise;
         if (!operationType) {
             return handleError(
                 "UNSUPPORTED_OPERATION",
                 "The operation at index " + index + " is unsupported",
-                JSON.stringify(operation.transaction)
+                JSON.stringify(populatedTransaction)
             );
         }
 
-        if (!operation.transaction.to || !operation.transaction.data) {
+        if (!populatedTransaction.to || !populatedTransaction.data) {
             return handleError(
                 "MISSING_TRANSACTION_PROPERTIES",
                 "The transaction is missing the to or data property",
-                JSON.stringify(operation.transaction)
+                JSON.stringify(populatedTransaction)
             );
         }
 
@@ -79,7 +80,7 @@ export default class BatchCall {
         // same as the to property of the transaction.
         if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
             const functionArgs = this.getCallAgreementFunctionArgs(
-                operation.transaction.data
+                populatedTransaction.data
             );
             return {
                 operationType: operationType!,
@@ -91,15 +92,15 @@ export default class BatchCall {
         // Handles other cases which are not call agreeement operation
         return {
             operationType: operationType!,
-            target: operation.transaction.to,
-            data: removeSigHashFromCallData(operation.transaction.data),
+            target: populatedTransaction.to,
+            data: removeSigHashFromCallData(populatedTransaction.data),
         };
     };
 
     /**
      * @dev Gets an array of `OperationStruct` objects to be passed to batchCall.
      */
-    get operationStructArray(): OperationStruct[] {
+    get getOperationStructArrayPromises() {
         return this.options.operations.map((x, i) =>
             this.getOperationStruct(x, i)
         );
@@ -111,9 +112,12 @@ export default class BatchCall {
      * @returns ethers.ContractTransaction object
      */
     execBatchCall = async (signer: ethers.Signer) => {
+        const operationStructArray = await Promise.all(
+            this.getOperationStructArrayPromises
+        );
         return await this.host.hostContract
             .connect(signer)
-            .batchCall(this.operationStructArray);
+            .batchCall(operationStructArray);
     };
 
     /**
@@ -122,8 +126,11 @@ export default class BatchCall {
      * @returns ethers.ContractTransaction object
      */
     execForwardBatchCall = async (signer: ethers.Signer) => {
+        const operationStructArray = await Promise.all(
+            this.getOperationStructArrayPromises
+        );
         return await this.host.hostContract
             .connect(signer)
-            .forwardBatchCall(this.operationStructArray);
+            .forwardBatchCall(operationStructArray);
     };
 }

@@ -31,14 +31,14 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlow = async ({
+    createFlow = ({
         flowRate,
         receiver,
         superToken,
         userData,
-    }: ICreateFlowParams): Promise<Operation> => {
+    }: ICreateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedReceiver = normalizeAddress(receiver);
 
@@ -49,7 +49,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData
@@ -62,14 +62,14 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    updateFlow = async ({
+    updateFlow = ({
         flowRate,
         receiver,
         superToken,
         userData,
-    }: IUpdateFlowParams): Promise<Operation> => {
+    }: IUpdateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedReceiver = normalizeAddress(receiver);
 
@@ -80,7 +80,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData
@@ -93,14 +93,14 @@ export default class ConstantFlowAgreementV1 {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
-     * @returns {Promise<Operation>} An instance of Operation which can be executed or batched.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    deleteFlow = async ({
+    deleteFlow = ({
         superToken,
         sender,
         receiver,
         userData,
-    }: IDeleteFlowParams): Promise<Operation> => {
+    }: IDeleteFlowParams): Operation => {
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSender = normalizeAddress(sender);
         const normalizedReceiver = normalizeAddress(receiver);
@@ -112,7 +112,7 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return await this.host.populateCallAgreementTxnAndReturnOperation(
+        return this.host.populateCallAgreementTxnAndReturnOperation(
             this.options.config.cfaV1Address,
             callData,
             userData

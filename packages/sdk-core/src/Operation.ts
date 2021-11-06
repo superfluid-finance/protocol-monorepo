@@ -15,19 +15,20 @@ export type OperationType =
  * @description A helper class to create `Operation` objects which can be executed or batched.
  */
 export default class Operation {
-    readonly transaction: ethers.PopulatedTransaction;
+    readonly populateTransactionPromise: Promise<ethers.PopulatedTransaction>;
     readonly type: OperationType;
 
-    constructor(txn: ethers.PopulatedTransaction, type: OperationType) {
-        this.transaction = txn;
+    constructor(
+        txn: Promise<ethers.PopulatedTransaction>,
+        type: OperationType
+    ) {
+        this.populateTransactionPromise = txn;
         this.type = type;
     }
 
     /**
      * @dev Executes the operation via the provided signer.
-     *
-     * Populates all fields of the transaction, signs it and
-     * sends it to the network.
+     * @description Populates all fields of the transaction, signs it and sends it to the network.
      * @param signer The signer of the transacation
      * @returns {ethers.providers.TransactionResponse} A TransactionResponse object which can be awaited
      */
@@ -35,7 +36,8 @@ export default class Operation {
         signer: ethers.Signer
     ): Promise<ethers.providers.TransactionResponse> => {
         try {
-            return await signer.sendTransaction(this.transaction);
+            const populatedTransaction = await this.getPopulatedTransaction();
+            return await signer.sendTransaction(populatedTransaction);
         } catch (err) {
             return handleError(
                 "EXECUTE_TRANSACTION",
@@ -46,13 +48,23 @@ export default class Operation {
     };
 
     /**
+     * @dev Get the populated transaction by awaiting `populateTransactionPromise`.
+     * @returns {Promise<ethers.PopulatedTransaction>}
+     */
+    getPopulatedTransaction = async (): Promise<ethers.PopulatedTransaction> =>
+        await this.populateTransactionPromise;
+
+    /**
      * @dev Signs the populated transaction via the provided signer (what you intend on sending to the network).
      * @param signer The signer of the transacation
      * @returns {string} Fully serialized, signed transaction
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
         try {
-            const signedTxn = await signer.signTransaction(this.transaction);
+            const populatedTransaction = await this.getPopulatedTransaction();
+            const signedTxn = await signer.signTransaction(
+                populatedTransaction
+            );
             return signedTxn;
         } catch (err) {
             return handleError(
@@ -65,8 +77,7 @@ export default class Operation {
 
     /**
      * @dev Gets the transaction hash of the transaction.
-     *
-     * Calculates this by getting the keccak256 hash of the signedTxn.
+     * @description Calculates this by getting the keccak256 hash of the signedTxn.
      * @param signer The signer of the transacation
      * @returns {string} The transaction hash of the transaction
      */

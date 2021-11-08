@@ -1,5 +1,5 @@
 query getEventIds($skip: Int!, $first: Int!) {
-    events(skip: $skip, first: $first, orderBy: blockNumber, orderDirection: asc) {
+    events(skip: $skip, first: $first, orderBy: blockNumber, orderDirection: desc) {
         __typename
         id
     }

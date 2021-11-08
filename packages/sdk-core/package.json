@@ -23,6 +23,7 @@
         "fix": "run-s fix:*",
         "fix:prettier": "prettier \"src/**/*.ts\" --write",
         "fix:lint": "eslint src --ext .ts --fix",
+        "lint": "echo linting",
         "pre-commit": "run-s pre-commit:*",
         "pre-commit:lint": "echo no pre-commit currently",
         "generate-web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",

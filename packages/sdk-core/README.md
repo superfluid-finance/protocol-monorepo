@@ -32,12 +32,12 @@ TypeScript / JavaScript (Module):
 import { Framework } from "@superfluid-finance/sdk-core";
 
 const provider = new ethers.providers.InfuraProvider(
-	"matic",
-	"<INFURA_API_KEY>"
+  "matic",
+  "<INFURA_API_KEY>"
 );
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 ```
@@ -48,12 +48,12 @@ JavaScript (CommonJS) - usually a Node.js environment:
 const { Framework } = require("@superfluid-finance/sdk-core");
 
 const provider = new ethers.providers.InfuraProvider(
-	"matic",
-	"<INFURA_API_KEY>"
+  "matic",
+  "<INFURA_API_KEY>"
 );
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 ```
 
@@ -205,7 +205,7 @@ const provider = new ethers.providers.InfuraProvider(
 
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 // create a signer
@@ -238,10 +238,10 @@ The `ConstantFlowAgreementV1` helper class provides access to create/update/dele
 import { ConstantFlowAgreementV1 } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const cfaV1 = new ConstantFlowAgreementV1({ options: config });
@@ -264,10 +264,10 @@ The `InstantDistributionAgreementV1` helper class provides access to a variety o
 import { InstantDistributionAgreementV1 } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const idaV1 = new InstantDistributionAgreementV1({ options: config });
@@ -302,7 +302,7 @@ const provider = new ethers.providers.InfuraProvider(
 
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
@@ -314,10 +314,10 @@ const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 import { SuperToken } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const usdcx = new SuperToken({
@@ -386,7 +386,7 @@ const provider = new ethers.providers.InfuraProvider(
 
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
@@ -399,10 +399,10 @@ const batchCall = sf.batchCall([<OPERATION_A>, <OPERATION_B>, ...]);
 import { SuperToken } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const batchCall = new BatchCall({

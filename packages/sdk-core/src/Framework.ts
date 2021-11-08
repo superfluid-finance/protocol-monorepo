@@ -20,6 +20,7 @@ import SuperToken from "./SuperToken";
 import Query from "./Query";
 import Operation from "./Operation";
 
+// TODO: if we use the ChainId type, users cannot input a custom chainId
 export interface IFrameworkOptions {
     chainId?: ChainId;
     customSubgraphQueriesEndpoint?: string;
@@ -90,10 +91,11 @@ export default class Framework {
         const data = chainIdToDataMap.get(chainId);
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
-        const resolverAddress =
-            options.resolverAddress || data != null
-                ? data!.resolverAddress
-                : "";
+        const resolverAddress = options.resolverAddress
+            ? options.resolverAddress
+            : data != null
+            ? data!.resolverAddress
+            : "";
         const resolver = new ethers.Contract(
             resolverAddress,
             IResolverABI,

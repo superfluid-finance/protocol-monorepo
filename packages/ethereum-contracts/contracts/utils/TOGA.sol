@@ -15,7 +15,7 @@ import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Re
  * @title TOGA: Transparent Ongoing Auction
  *
  * TOGA is a simple implementation of a continuous auction.
- * It's used to designate PICs (Patrician In Chief) - a role defined per Super Token.
+ * It's used to designate PICs (Patrician In Charge) - a role defined per Super Token.
  * Anybody can become the PIC for a Super Token by staking the highest bond (denominated in the token).
  * Staking is done by simply using ERC777.send(), transferring the bond amount to be staked to this contract.
  * Via userData parameter (abi-encoded int96), an exitRate can be defined. If omitted, a default will be chosen.

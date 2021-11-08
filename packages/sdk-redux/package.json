@@ -8,6 +8,7 @@
     "license": "MIT",
     "keywords": [],
     "scripts": {
+        "pre-commit": "echo 'TODO'",
         "build": "run-p build:*",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
@@ -40,8 +41,8 @@
         "node": ">=10"
     },
     "dependencies": {
+        "@superfluid-finance/sdk-core": "latest",
         "@reduxjs/toolkit": "^1.6.1",
-        "@superfluid-finance/js-sdk": "latest",
         "@types/jest": "^27.0.1",
         "ethers": "^5.4.5",
         "graphql-request": "^3.5.0",
@@ -67,6 +68,9 @@
         "nyc": "^15.1.0",
         "open-cli": "^6.0.1",
         "prettier": "^2.1.1",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "react-redux": "^7.2.6",
         "standard-version": "^9.0.0",
         "ts-jest": "^27.0.5",
         "ts-node": "^9.0.0",

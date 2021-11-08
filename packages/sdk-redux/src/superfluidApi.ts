@@ -12,7 +12,7 @@ export let initializedSuperfluidSource: SuperfluidSource = null!;
 
 export type SuperfluidReduxApiSliceType = typeof rtkQuerySlice;
 
-export const createSuperfluidSlice = (
+export const createPieces = (
     frameworkSource?: SuperfluidSource
 ): [
     superfluidFrameworkSource: SuperfluidSource,

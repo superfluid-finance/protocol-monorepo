@@ -39,8 +39,8 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                         skip: pagedResult.skip,
                         take: pagedResult.take,
                         hasNextPage: pagedResult.hasNextPage,
-                        nextPageSkip: nextPage?.skip,
-                        nextPageTake: nextPage?.take,
+                        nextPageSkip: nextPage ? nextPage.skip : undefined,
+                        nextPageTake: nextPage ? nextPage.take : undefined,
                     }
                 };
             },

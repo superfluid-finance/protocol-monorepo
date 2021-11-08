@@ -1,12 +1,12 @@
 import {configureStore, Dispatch} from "@reduxjs/toolkit";
-import { createSuperfluidSlice } from "@superfluid-finance/sdk-redux";
+import { createPieces } from "@superfluid-finance/sdk-redux";
 import {TypedUseSelectorHook, useDispatch, useSelector} from "react-redux";
 
 const [
     superfluidFrameworkSource,
     superfluidApiSlice,
     superfluidTransactionSlice,
-] = createSuperfluidSlice();
+] = createPieces();
 
 export const store = configureStore({
     reducer: {

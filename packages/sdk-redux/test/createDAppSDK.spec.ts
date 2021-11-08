@@ -1,16 +1,14 @@
-import {Framework} from "@superfluid-finance/js-sdk/src/Framework";
 import {mock} from "jest-mock-extended";
-import {createDAppSDK} from "../src";
-import {store} from "../src/store";
+import {createPieces, SuperfluidSource} from "../src";
 
-it('creates DApp-SDK without error', () => {
-    const superfluidSdk = mock<Framework>();
+it('creates SDK-Redux without error', () => {
+    const superfluidSource = mock<SuperfluidSource>();
 
     // Act
-    const result = createDAppSDK(superfluidSdk);
+    const result = createPieces(superfluidSource);
 
     // Assert
-    expect(result).toBeInstanceOf(Object);
-    expect(result.superfluidSdk).toBe(superfluidSdk);
-    expect(result.reduxStore).toBe(store);
+    expect(result[0]).toBeInstanceOf(superfluidSource);
+    expect(result[1]).toBeInstanceOf(Object);
+    expect(result[2]).toBeInstanceOf(Object);
 });

@@ -35,7 +35,7 @@ export const StreamTable: FC = (): ReactElement => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {flows!.map((flow: IStream, index) => (
+                            {flows!.map((flow: IStream, index: number) => (
                                 <TableRow
                                     key={index}
                                     sx={{

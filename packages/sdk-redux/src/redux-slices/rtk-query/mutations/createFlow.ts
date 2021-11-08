@@ -26,8 +26,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                         sender: arg.sender,
                         receiver: arg.receiver,
                         flowRate: arg.flowRate,
-                    })
-                    .then((operation) => operation.exec(signer as any)); // TODO(KK): "as any"
+                    }).exec(signer as any); // TODO(KK): "as any"
 
                 // Fire and forget
                 queryApi.dispatch(

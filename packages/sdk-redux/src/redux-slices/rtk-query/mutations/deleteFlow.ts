@@ -23,8 +23,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     .deleteFlow({
                         sender: arg.sender,
                         receiver: arg.receiver,
-                    })
-                    .then((x) => x.exec(signer as any)); // TODO(KK): as any
+                    }).exec(signer as any); // TODO(KK): "as any"
                 queryApi.dispatch(
                     trackTransaction({
                         hash: transactionResponse.hash,

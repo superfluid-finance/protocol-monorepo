@@ -12,7 +12,7 @@ import {
     ISuperToken,
     ISuperTokenRequestFilter,
 } from "./interfaces";
-import {DataMode} from "./types";
+import { DataMode } from "./types";
 import {
     GetIndexesDocument,
     GetIndexesQuery,
@@ -25,8 +25,8 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import {PagedResult, Paging} from "./pagination";
-import {SubgraphClient} from "./subgraph/SubgraphClient";
+import { PagedResult, Paging } from "./pagination";
+import { SubgraphClient } from "./subgraph/SubgraphClient";
 import {
     GetTokensDocument,
     GetTokensQuery,
@@ -53,13 +53,13 @@ import {
     GetFlowUpdatedEventsQuery,
     GetFlowUpdatedEventsQueryVariables,
 } from "./subgraph/queries/events/getFlowUpdatedEvents.generated";
-import {FlowUpdatedEvent_Filter} from "./subgraph/schema.generated";
+import { FlowUpdatedEvent_Filter } from "./subgraph/schema.generated";
 import {
     GetAccountEventsDocument,
     GetAccountEventsQuery,
     GetAccountEventsQueryVariables,
 } from "./subgraph/queries/events/getAccountEvents.generated";
-import {AccountEvents, TransferEvent, AllEvents} from "./events";
+import { AccountEvents, TransferEvent, AllEvents } from "./events";
 import {
     GetEventIdsDocument,
     GetEventIdsQuery,
@@ -87,7 +87,7 @@ function mapTransferEvent(x: {
     from: { id: string };
     to: { id: string };
 }) {
-    return ({
+    return {
         __typename: x.__typename,
         token: x.token,
         value: x.value,
@@ -96,7 +96,7 @@ function mapTransferEvent(x: {
         timestamp: x.timestamp,
         blockNumber: x.blockNumber,
         transactionHash: x.transactionHash,
-    });
+    };
 }
 
 /**
@@ -120,8 +120,10 @@ export default class Query {
     ): Promise<PagedResult<ISuperToken>> => {
         validateSuperTokenRequest(filter);
 
-        const response = await this.subgraphClient.request<GetTokensQuery,
-            GetTokensQueryVariables>(GetTokensDocument, {
+        const response = await this.subgraphClient.request<
+            GetTokensQuery,
+            GetTokensQueryVariables
+        >(GetTokensDocument, {
             where: {
                 isSuperToken: true,
                 ...filter,
@@ -139,8 +141,10 @@ export default class Query {
     ): Promise<PagedResult<IIndex>> => {
         validateIndexRequest(filter);
 
-        const response = await this.subgraphClient.request<GetIndexesQuery,
-            GetIndexesQueryVariables>(GetIndexesDocument, {
+        const response = await this.subgraphClient.request<
+            GetIndexesQuery,
+            GetIndexesQueryVariables
+        >(GetIndexesDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -155,8 +159,10 @@ export default class Query {
     ): Promise<PagedResult<IIndexSubscription>> => {
         validateIndexSubscriptionRequest(filter);
 
-        const response = await this.subgraphClient.request<GetIndexSubscriptionsQuery,
-            GetIndexSubscriptionsQueryVariables>(GetIndexSubscriptionsDocument, {
+        const response = await this.subgraphClient.request<
+            GetIndexSubscriptionsQuery,
+            GetIndexSubscriptionsQueryVariables
+        >(GetIndexSubscriptionsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -171,8 +177,10 @@ export default class Query {
     ): Promise<PagedResult<IStream>> => {
         validateStreamRequest(filter);
 
-        const response = await this.subgraphClient.request<GetStreamsQuery,
-            GetStreamsQueryVariables>(GetStreamsDocument, {
+        const response = await this.subgraphClient.request<
+            GetStreamsQuery,
+            GetStreamsQueryVariables
+        >(GetStreamsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -187,8 +195,10 @@ export default class Query {
     ): Promise<PagedResult<ILightAccountTokenSnapshot>> => {
         validateAccountTokenSnapshotRequest(filter);
 
-        const response = await this.subgraphClient.request<GetAccountTokenSnapshotsQuery,
-            GetAccountTokenSnapshotsQueryVariables>(GetAccountTokenSnapshotsDocument, {
+        const response = await this.subgraphClient.request<
+            GetAccountTokenSnapshotsQuery,
+            GetAccountTokenSnapshotsQueryVariables
+        >(GetAccountTokenSnapshotsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -207,8 +217,10 @@ export default class Query {
         filter: FlowUpdatedEvent_Filter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<IFlowUpdatedEvent>> => {
-        const response = await this.subgraphClient.request<GetFlowUpdatedEventsQuery,
-            GetFlowUpdatedEventsQueryVariables>(GetFlowUpdatedEventsDocument, {
+        const response = await this.subgraphClient.request<
+            GetFlowUpdatedEventsQuery,
+            GetFlowUpdatedEventsQueryVariables
+        >(GetFlowUpdatedEventsDocument, {
             where: filter,
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -218,11 +230,15 @@ export default class Query {
     };
 
     // TODO: Need a better way of querying account events
-    listAccountEvents = async (filter: IAccountEventsFilter): Promise<AccountEvents[]> => {
+    listAccountEvents = async (
+        filter: IAccountEventsFilter
+    ): Promise<AccountEvents[]> => {
         // TODO: validate filter
 
-        const response = await this.subgraphClient.request<GetAccountEventsQuery,
-            GetAccountEventsQueryVariables>(GetAccountEventsDocument, {
+        const response = await this.subgraphClient.request<
+            GetAccountEventsQuery,
+            GetAccountEventsQueryVariables
+        >(GetAccountEventsDocument, {
             accountBytes: filter.account,
             accountString: filter.account,
             timestamp_gte: filter.timestamp_gte,
@@ -242,7 +258,9 @@ export default class Query {
             ...response.indexDistributionClaimedEvents_publisher,
             ...response.indexDistributionClaimedEvents_subscriber,
             ...response.transferEvents_to.map<TransferEvent>(mapTransferEvent),
-            ...response.transferEvents_from.map<TransferEvent>(mapTransferEvent),
+            ...response.transferEvents_from.map<TransferEvent>(
+                mapTransferEvent
+            ),
             ...response.tokenDowngradedEvents,
             ...response.tokenUpgradedEvents,
             ...response.subscriptionApprovedEvents_subscriber,
@@ -256,19 +274,23 @@ export default class Query {
         ];
 
         return accountEvents;
-    }
+    };
 
     listAllEvents = async (
         paging: Paging = new Paging()
     ): Promise<PagedResult<AllEvents>> => {
-        const getEventIdsQueryResponse = await this.subgraphClient.request<GetEventIdsQuery,
-            GetEventIdsQueryVariables>(GetEventIdsDocument, {
+        const getEventIdsQueryResponse = await this.subgraphClient.request<
+            GetEventIdsQuery,
+            GetEventIdsQueryVariables
+        >(GetEventIdsDocument, {
             skip: paging.skip,
             first: paging.takePlusOne(),
         });
 
-        const getAllEventsQueryResponse = await this.subgraphClient.request<GetAllEventsQuery,
-            GetAllEventsQueryVariables>(GetAllEventsDocument, {
+        const getAllEventsQueryResponse = await this.subgraphClient.request<
+            GetAllEventsQuery,
+            GetAllEventsQueryVariables
+        >(GetAllEventsDocument, {
             ids: getEventIdsQueryResponse.events.map((x) => x.id),
         });
 
@@ -336,20 +358,23 @@ export default class Query {
         // TODO: Wait for answer before next query...
 
         const timeSkew = 25000;
-        let nextUtcNow =  new Date().getTime() - timeSkew;
+
+        let nextUtcNow = new Date().getTime() - timeSkew;
         const intervalId = setInterval(async () => {
             console.log("interval");
             const utcNow = nextUtcNow;
             nextUtcNow += ms;
 
-            const subgraphTime = Math.floor(utcNow / 1000)
-            const accountEvents: AccountEvents[] = await this.listAccountEvents({
-                account: account,
-                timestamp_gte: subgraphTime.toString()
-            });
+            const subgraphTime = Math.floor(utcNow / 1000);
+            const accountEvents: AccountEvents[] = await this.listAccountEvents(
+                {
+                    account: account,
+                    timestamp_gte: subgraphTime.toString(),
+                }
+            );
 
             if (accountEvents.length) {
-                console.log('callback');
+                console.log("callback");
                 callback(accountEvents, unsubscribe);
             }
         }, ms);

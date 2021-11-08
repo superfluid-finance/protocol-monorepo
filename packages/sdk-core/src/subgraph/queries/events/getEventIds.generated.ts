@@ -117,7 +117,7 @@ export const GetEventIdsDocument = {
                             {
                                 kind: "Argument",
                                 name: { kind: "Name", value: "orderDirection" },
-                                value: { kind: "EnumValue", value: "asc" },
+                                value: { kind: "EnumValue", value: "desc" },
                             },
                         ],
                         selectionSet: {

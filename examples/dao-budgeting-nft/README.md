@@ -1,4 +1,4 @@
-#DAO Budgeting NFTs
+# DAO Budgeting NFTs
 
 Create a DAO budgeting system that is mediated by NFTs and Superfluid streams.
 

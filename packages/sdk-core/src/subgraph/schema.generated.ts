@@ -411,15 +411,22 @@ export enum Account_OrderBy {
 
 export type AgreementClassRegisteredEvent = Event & {
     __typename?: "AgreementClassRegisteredEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     agreementType: Scalars["Bytes"];
     blockNumber: Scalars["BigInt"];
     code: Scalars["Bytes"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type AgreementClassRegisteredEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     agreementType?: Maybe<Scalars["Bytes"]>;
     agreementType_contains?: Maybe<Scalars["Bytes"]>;
     agreementType_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -448,6 +455,20 @@ export type AgreementClassRegisteredEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -465,25 +486,34 @@ export type AgreementClassRegisteredEvent_Filter = {
 };
 
 export enum AgreementClassRegisteredEvent_OrderBy {
+    Addresses = "addresses",
     AgreementType = "agreementType",
     BlockNumber = "blockNumber",
     Code = "code",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
 }
 
 export type AgreementClassUpdatedEvent = Event & {
     __typename?: "AgreementClassUpdatedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     agreementType: Scalars["Bytes"];
     blockNumber: Scalars["BigInt"];
     code: Scalars["Bytes"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type AgreementClassUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     agreementType?: Maybe<Scalars["Bytes"]>;
     agreementType_contains?: Maybe<Scalars["Bytes"]>;
     agreementType_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -512,6 +542,20 @@ export type AgreementClassUpdatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -529,16 +573,20 @@ export type AgreementClassUpdatedEvent_Filter = {
 };
 
 export enum AgreementClassUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     AgreementType = "agreementType",
     BlockNumber = "blockNumber",
     Code = "code",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
 }
 
 export type AgreementLiquidatedByEvent = Event & {
     __typename?: "AgreementLiquidatedByEvent";
+    /** Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     agreementClass: Scalars["Bytes"];
     agreementId: Scalars["Bytes"];
     bailoutAmount: Scalars["BigInt"];
@@ -546,6 +594,7 @@ export type AgreementLiquidatedByEvent = Event & {
     bondAccount: Scalars["Bytes"];
     id: Scalars["ID"];
     liquidatorAccount: Scalars["Bytes"];
+    name: Scalars["String"];
     penaltyAccount: Scalars["Bytes"];
     rewardAmount: Scalars["BigInt"];
     timestamp: Scalars["BigInt"];
@@ -554,6 +603,10 @@ export type AgreementLiquidatedByEvent = Event & {
 };
 
 export type AgreementLiquidatedByEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     agreementClass?: Maybe<Scalars["Bytes"]>;
     agreementClass_contains?: Maybe<Scalars["Bytes"]>;
     agreementClass_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -602,6 +655,20 @@ export type AgreementLiquidatedByEvent_Filter = {
     liquidatorAccount_not?: Maybe<Scalars["Bytes"]>;
     liquidatorAccount_not_contains?: Maybe<Scalars["Bytes"]>;
     liquidatorAccount_not_in?: Maybe<Array<Scalars["Bytes"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     penaltyAccount?: Maybe<Scalars["Bytes"]>;
     penaltyAccount_contains?: Maybe<Scalars["Bytes"]>;
     penaltyAccount_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -639,6 +706,7 @@ export type AgreementLiquidatedByEvent_Filter = {
 };
 
 export enum AgreementLiquidatedByEvent_OrderBy {
+    Addresses = "addresses",
     AgreementClass = "agreementClass",
     AgreementId = "agreementId",
     BailoutAmount = "bailoutAmount",
@@ -646,6 +714,7 @@ export enum AgreementLiquidatedByEvent_OrderBy {
     BondAccount = "bondAccount",
     Id = "id",
     LiquidatorAccount = "liquidatorAccount",
+    Name = "name",
     PenaltyAccount = "penaltyAccount",
     RewardAmount = "rewardAmount",
     Timestamp = "timestamp",
@@ -655,14 +724,21 @@ export enum AgreementLiquidatedByEvent_OrderBy {
 
 export type AppRegisteredEvent = Event & {
     __typename?: "AppRegisteredEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     app: Scalars["Bytes"];
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type AppRegisteredEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     app?: Maybe<Scalars["Bytes"]>;
     app_contains?: Maybe<Scalars["Bytes"]>;
     app_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -685,6 +761,20 @@ export type AppRegisteredEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -702,9 +792,11 @@ export type AppRegisteredEvent_Filter = {
 };
 
 export enum AppRegisteredEvent_OrderBy {
+    Addresses = "addresses",
     App = "app",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
 }
@@ -716,11 +808,14 @@ export type Block_Height = {
 
 export type BurnedEvent = Event & {
     __typename?: "BurnedEvent";
+    /** Holds the token and from addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     data: Scalars["Bytes"];
     from: Scalars["Bytes"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     operator: Scalars["Bytes"];
     operatorData: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -728,6 +823,10 @@ export type BurnedEvent = Event & {
 };
 
 export type BurnedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -764,6 +863,20 @@ export type BurnedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     operator?: Maybe<Scalars["Bytes"]>;
     operatorData?: Maybe<Scalars["Bytes"]>;
     operatorData_contains?: Maybe<Scalars["Bytes"]>;
@@ -793,11 +906,13 @@ export type BurnedEvent_Filter = {
 };
 
 export enum BurnedEvent_OrderBy {
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Data = "data",
     From = "from",
     Id = "id",
+    Name = "name",
     Operator = "operator",
     OperatorData = "operatorData",
     Timestamp = "timestamp",
@@ -806,17 +921,24 @@ export enum BurnedEvent_OrderBy {
 
 export type CfAv1LiquidationPeriodChangedEvent = Event & {
     __typename?: "CFAv1LiquidationPeriodChangedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     host: Scalars["Bytes"];
     id: Scalars["ID"];
     isSet: Scalars["Boolean"];
     liquidationPeriod: Scalars["BigInt"];
+    name: Scalars["String"];
     superToken: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type CfAv1LiquidationPeriodChangedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -851,6 +973,20 @@ export type CfAv1LiquidationPeriodChangedEvent_Filter = {
     liquidationPeriod_lte?: Maybe<Scalars["BigInt"]>;
     liquidationPeriod_not?: Maybe<Scalars["BigInt"]>;
     liquidationPeriod_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     superToken?: Maybe<Scalars["Bytes"]>;
     superToken_contains?: Maybe<Scalars["Bytes"]>;
     superToken_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -874,11 +1010,13 @@ export type CfAv1LiquidationPeriodChangedEvent_Filter = {
 };
 
 export enum CfAv1LiquidationPeriodChangedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Host = "host",
     Id = "id",
     IsSet = "isSet",
     LiquidationPeriod = "liquidationPeriod",
+    Name = "name",
     SuperToken = "superToken",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
@@ -886,11 +1024,14 @@ export enum CfAv1LiquidationPeriodChangedEvent_OrderBy {
 
 export type ConfigChangedEvent = Event & {
     __typename?: "ConfigChangedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     host: Scalars["Bytes"];
     id: Scalars["ID"];
     isSet: Scalars["Boolean"];
     key: Scalars["Bytes"];
+    name: Scalars["String"];
     superToken: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
@@ -898,6 +1039,10 @@ export type ConfigChangedEvent = Event & {
 };
 
 export type ConfigChangedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -930,6 +1075,20 @@ export type ConfigChangedEvent_Filter = {
     key_not?: Maybe<Scalars["Bytes"]>;
     key_not_contains?: Maybe<Scalars["Bytes"]>;
     key_not_in?: Maybe<Array<Scalars["Bytes"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     superToken?: Maybe<Scalars["Bytes"]>;
     superToken_contains?: Maybe<Scalars["Bytes"]>;
     superToken_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -961,11 +1120,13 @@ export type ConfigChangedEvent_Filter = {
 };
 
 export enum ConfigChangedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Host = "host",
     Id = "id",
     IsSet = "isSet",
     Key = "key",
+    Name = "name",
     SuperToken = "superToken",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
@@ -974,14 +1135,21 @@ export enum ConfigChangedEvent_OrderBy {
 
 export type CustomSuperTokenCreatedEvent = Event & {
     __typename?: "CustomSuperTokenCreatedEvent";
+    /** Holds the token address. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     token: Scalars["Bytes"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type CustomSuperTokenCreatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -998,6 +1166,20 @@ export type CustomSuperTokenCreatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -1021,8 +1203,10 @@ export type CustomSuperTokenCreatedEvent_Filter = {
 };
 
 export enum CustomSuperTokenCreatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     Token = "token",
     TransactionHash = "transactionHash",
@@ -1034,13 +1218,20 @@ export enum CustomSuperTokenCreatedEvent_OrderBy {
  * data.
  */
 export type Event = {
+    /** Holds the addresses for accounts that were impacted by the event. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type Event_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -1057,6 +1248,20 @@ export type Event_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -1074,8 +1279,10 @@ export type Event_Filter = {
 };
 
 export enum Event_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
 }
@@ -1086,10 +1293,13 @@ export enum Event_OrderBy {
  */
 export type FlowUpdatedEvent = Event & {
     __typename?: "FlowUpdatedEvent";
+    /** Holds the token, sender and receiver addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     /** The flow rate per second. */
     flowRate: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     /** The previous flow rate. */
     oldFlowRate: Scalars["BigInt"];
     receiver: Scalars["Bytes"];
@@ -1118,6 +1328,10 @@ export type FlowUpdatedEvent = Event & {
 };
 
 export type FlowUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -1142,6 +1356,20 @@ export type FlowUpdatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     oldFlowRate?: Maybe<Scalars["BigInt"]>;
     oldFlowRate_gt?: Maybe<Scalars["BigInt"]>;
     oldFlowRate_gte?: Maybe<Scalars["BigInt"]>;
@@ -1237,9 +1465,11 @@ export type FlowUpdatedEvent_Filter = {
 };
 
 export enum FlowUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     FlowRate = "flowRate",
     Id = "id",
+    Name = "name",
     OldFlowRate = "oldFlowRate",
     Receiver = "receiver",
     Sender = "sender",
@@ -1256,15 +1486,22 @@ export enum FlowUpdatedEvent_OrderBy {
 
 export type GovernanceReplacedEvent = Event & {
     __typename?: "GovernanceReplacedEvent";
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     newGovernance: Scalars["Bytes"];
+    /** Empty addresses array. */
     oldGovernance: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type GovernanceReplacedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -1281,6 +1518,20 @@ export type GovernanceReplacedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     newGovernance?: Maybe<Scalars["Bytes"]>;
     newGovernance_contains?: Maybe<Scalars["Bytes"]>;
     newGovernance_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -1310,8 +1561,10 @@ export type GovernanceReplacedEvent_Filter = {
 };
 
 export enum GovernanceReplacedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     NewGovernance = "newGovernance",
     OldGovernance = "oldGovernance",
     Timestamp = "timestamp",
@@ -1420,10 +1673,13 @@ export type IndexSubscriptionsArgs = {
 
 export type IndexCreatedEvent = Event & {
     __typename?: "IndexCreatedEvent";
+    /** Holds the token and publisher addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     index: Index;
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
     token: Scalars["Bytes"];
@@ -1432,6 +1688,10 @@ export type IndexCreatedEvent = Event & {
 };
 
 export type IndexCreatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -1470,6 +1730,20 @@ export type IndexCreatedEvent_Filter = {
     index_not_in?: Maybe<Array<Scalars["String"]>>;
     index_not_starts_with?: Maybe<Scalars["String"]>;
     index_starts_with?: Maybe<Scalars["String"]>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -1505,10 +1779,12 @@ export type IndexCreatedEvent_Filter = {
 };
 
 export enum IndexCreatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     Index = "index",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Timestamp = "timestamp",
     Token = "token",
@@ -1518,11 +1794,14 @@ export enum IndexCreatedEvent_OrderBy {
 
 export type IndexDistributionClaimedEvent = Event & {
     __typename?: "IndexDistributionClaimedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     index: Index;
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -1531,6 +1810,10 @@ export type IndexDistributionClaimedEvent = Event & {
 };
 
 export type IndexDistributionClaimedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -1577,6 +1860,20 @@ export type IndexDistributionClaimedEvent_Filter = {
     index_not_in?: Maybe<Array<Scalars["String"]>>;
     index_not_starts_with?: Maybe<Scalars["String"]>;
     index_starts_with?: Maybe<Scalars["String"]>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -1612,11 +1909,13 @@ export type IndexDistributionClaimedEvent_Filter = {
 };
 
 export enum IndexDistributionClaimedEvent_OrderBy {
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Id = "id",
     Index = "index",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Subscriber = "subscriber",
     Timestamp = "timestamp",
@@ -1626,10 +1925,13 @@ export enum IndexDistributionClaimedEvent_OrderBy {
 
 export type IndexSubscribedEvent = Event & {
     __typename?: "IndexSubscribedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     index: Index;
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -1639,6 +1941,10 @@ export type IndexSubscribedEvent = Event & {
 };
 
 export type IndexSubscribedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -1677,6 +1983,20 @@ export type IndexSubscribedEvent_Filter = {
     index_not_in?: Maybe<Array<Scalars["String"]>>;
     index_not_starts_with?: Maybe<Scalars["String"]>;
     index_starts_with?: Maybe<Scalars["String"]>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -1718,10 +2038,12 @@ export type IndexSubscribedEvent_Filter = {
 };
 
 export enum IndexSubscribedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     Index = "index",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Subscriber = "subscriber",
     Timestamp = "timestamp",
@@ -1939,10 +2261,13 @@ export enum IndexSubscription_OrderBy {
 
 export type IndexUnitsUpdatedEvent = Event & {
     __typename?: "IndexUnitsUpdatedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     index: Index;
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     oldUnits: Scalars["BigInt"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
@@ -1954,6 +2279,10 @@ export type IndexUnitsUpdatedEvent = Event & {
 };
 
 export type IndexUnitsUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -1992,6 +2321,20 @@ export type IndexUnitsUpdatedEvent_Filter = {
     index_not_in?: Maybe<Array<Scalars["String"]>>;
     index_not_starts_with?: Maybe<Scalars["String"]>;
     index_starts_with?: Maybe<Scalars["String"]>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     oldUnits?: Maybe<Scalars["BigInt"]>;
     oldUnits_gt?: Maybe<Scalars["BigInt"]>;
     oldUnits_gte?: Maybe<Scalars["BigInt"]>;
@@ -2049,10 +2392,12 @@ export type IndexUnitsUpdatedEvent_Filter = {
 };
 
 export enum IndexUnitsUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     Index = "index",
     IndexId = "indexId",
+    Name = "name",
     OldUnits = "oldUnits",
     Publisher = "publisher",
     Subscriber = "subscriber",
@@ -2065,10 +2410,13 @@ export enum IndexUnitsUpdatedEvent_OrderBy {
 
 export type IndexUnsubscribedEvent = Event & {
     __typename?: "IndexUnsubscribedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     index: Index;
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -2078,6 +2426,10 @@ export type IndexUnsubscribedEvent = Event & {
 };
 
 export type IndexUnsubscribedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -2116,6 +2468,20 @@ export type IndexUnsubscribedEvent_Filter = {
     index_not_in?: Maybe<Array<Scalars["String"]>>;
     index_not_starts_with?: Maybe<Scalars["String"]>;
     index_starts_with?: Maybe<Scalars["String"]>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -2157,10 +2523,12 @@ export type IndexUnsubscribedEvent_Filter = {
 };
 
 export enum IndexUnsubscribedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     Index = "index",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Subscriber = "subscriber",
     Timestamp = "timestamp",
@@ -2171,10 +2539,13 @@ export enum IndexUnsubscribedEvent_OrderBy {
 
 export type IndexUpdatedEvent = Event & {
     __typename?: "IndexUpdatedEvent";
+    /** Holds the token and publisher addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     index: Index;
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     newIndexValue: Scalars["BigInt"];
     oldIndexValue: Scalars["BigInt"];
     publisher: Scalars["Bytes"];
@@ -2187,6 +2558,10 @@ export type IndexUpdatedEvent = Event & {
 };
 
 export type IndexUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -2225,6 +2600,20 @@ export type IndexUpdatedEvent_Filter = {
     index_not_in?: Maybe<Array<Scalars["String"]>>;
     index_not_starts_with?: Maybe<Scalars["String"]>;
     index_starts_with?: Maybe<Scalars["String"]>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     newIndexValue?: Maybe<Scalars["BigInt"]>;
     newIndexValue_gt?: Maybe<Scalars["BigInt"]>;
     newIndexValue_gte?: Maybe<Scalars["BigInt"]>;
@@ -2292,10 +2681,12 @@ export type IndexUpdatedEvent_Filter = {
 };
 
 export enum IndexUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     Index = "index",
     IndexId = "indexId",
+    Name = "name",
     NewIndexValue = "newIndexValue",
     OldIndexValue = "oldIndexValue",
     Publisher = "publisher",
@@ -2476,15 +2867,22 @@ export enum Index_OrderBy {
 
 export type JailEvent = Event & {
     __typename?: "JailEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     app: Scalars["Bytes"];
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     reason: Scalars["BigInt"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type JailEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     app?: Maybe<Scalars["Bytes"]>;
     app_contains?: Maybe<Scalars["Bytes"]>;
     app_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -2507,6 +2905,20 @@ export type JailEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     reason?: Maybe<Scalars["BigInt"]>;
     reason_gt?: Maybe<Scalars["BigInt"]>;
     reason_gte?: Maybe<Scalars["BigInt"]>;
@@ -2532,9 +2944,11 @@ export type JailEvent_Filter = {
 };
 
 export enum JailEvent_OrderBy {
+    Addresses = "addresses",
     App = "app",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Reason = "reason",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
@@ -2542,10 +2956,13 @@ export enum JailEvent_OrderBy {
 
 export type MintedEvent = Event & {
     __typename?: "MintedEvent";
+    /** Holds the token, operator and to addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     data: Scalars["Bytes"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     operator: Scalars["Bytes"];
     operatorData: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -2554,6 +2971,10 @@ export type MintedEvent = Event & {
 };
 
 export type MintedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -2584,6 +3005,20 @@ export type MintedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     operator?: Maybe<Scalars["Bytes"]>;
     operatorData?: Maybe<Scalars["Bytes"]>;
     operatorData_contains?: Maybe<Scalars["Bytes"]>;
@@ -2619,10 +3054,12 @@ export type MintedEvent_Filter = {
 };
 
 export enum MintedEvent_OrderBy {
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Data = "data",
     Id = "id",
+    Name = "name",
     Operator = "operator",
     OperatorData = "operatorData",
     Timestamp = "timestamp",
@@ -2696,6 +3133,8 @@ export type Query = {
     sentEvent?: Maybe<SentEvent>;
     sentEvents: Array<SentEvent>;
     stream?: Maybe<Stream>;
+    streamPeriod?: Maybe<StreamPeriod>;
+    streamPeriods: Array<StreamPeriod>;
     streamRevision?: Maybe<StreamRevision>;
     streamRevisions: Array<StreamRevision>;
     streams: Array<Stream>;
@@ -3187,6 +3626,22 @@ export type QueryStreamArgs = {
     subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type QueryStreamPeriodArgs = {
+    block?: Maybe<Block_Height>;
+    id: Scalars["ID"];
+    subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type QueryStreamPeriodsArgs = {
+    block?: Maybe<Block_Height>;
+    first?: Maybe<Scalars["Int"]>;
+    orderBy?: Maybe<StreamPeriod_OrderBy>;
+    orderDirection?: Maybe<OrderDirection>;
+    skip?: Maybe<Scalars["Int"]>;
+    subgraphError?: _SubgraphErrorPolicy_;
+    where?: Maybe<StreamPeriod_Filter>;
+};
+
 export type QueryStreamRevisionArgs = {
     block?: Maybe<Block_Height>;
     id: Scalars["ID"];
@@ -3439,10 +3894,13 @@ export type QueryTrustedForwarderChangedEventsArgs = {
 
 export type RewardAddressChangedEvent = Event & {
     __typename?: "RewardAddressChangedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     host: Scalars["Bytes"];
     id: Scalars["ID"];
     isSet: Scalars["Boolean"];
+    name: Scalars["String"];
     rewardAddress: Scalars["Bytes"];
     superToken: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -3450,6 +3908,10 @@ export type RewardAddressChangedEvent = Event & {
 };
 
 export type RewardAddressChangedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -3476,6 +3938,20 @@ export type RewardAddressChangedEvent_Filter = {
     isSet_in?: Maybe<Array<Scalars["Boolean"]>>;
     isSet_not?: Maybe<Scalars["Boolean"]>;
     isSet_not_in?: Maybe<Array<Scalars["Boolean"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     rewardAddress?: Maybe<Scalars["Bytes"]>;
     rewardAddress_contains?: Maybe<Scalars["Bytes"]>;
     rewardAddress_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -3505,10 +3981,12 @@ export type RewardAddressChangedEvent_Filter = {
 };
 
 export enum RewardAddressChangedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Host = "host",
     Id = "id",
     IsSet = "isSet",
+    Name = "name",
     RewardAddress = "rewardAddress",
     SuperToken = "superToken",
     Timestamp = "timestamp",
@@ -3517,8 +3995,11 @@ export enum RewardAddressChangedEvent_OrderBy {
 
 export type RoleAdminChangedEvent = Event & {
     __typename?: "RoleAdminChangedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     newAdminRole: Scalars["Bytes"];
     previousAdminRole: Scalars["Bytes"];
     role: Scalars["Bytes"];
@@ -3527,6 +4008,10 @@ export type RoleAdminChangedEvent = Event & {
 };
 
 export type RoleAdminChangedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -3543,6 +4028,20 @@ export type RoleAdminChangedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     newAdminRole?: Maybe<Scalars["Bytes"]>;
     newAdminRole_contains?: Maybe<Scalars["Bytes"]>;
     newAdminRole_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -3578,8 +4077,10 @@ export type RoleAdminChangedEvent_Filter = {
 };
 
 export enum RoleAdminChangedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     NewAdminRole = "newAdminRole",
     PreviousAdminRole = "previousAdminRole",
     Role = "role",
@@ -3590,8 +4091,11 @@ export enum RoleAdminChangedEvent_OrderBy {
 export type RoleGrantedEvent = Event & {
     __typename?: "RoleGrantedEvent";
     account: Scalars["Bytes"];
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     role: Scalars["Bytes"];
     sender: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -3605,6 +4109,10 @@ export type RoleGrantedEvent_Filter = {
     account_not?: Maybe<Scalars["Bytes"]>;
     account_not_contains?: Maybe<Scalars["Bytes"]>;
     account_not_in?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -3621,6 +4129,20 @@ export type RoleGrantedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     role?: Maybe<Scalars["Bytes"]>;
     role_contains?: Maybe<Scalars["Bytes"]>;
     role_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -3651,8 +4173,10 @@ export type RoleGrantedEvent_Filter = {
 
 export enum RoleGrantedEvent_OrderBy {
     Account = "account",
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Role = "role",
     Sender = "sender",
     Timestamp = "timestamp",
@@ -3662,8 +4186,11 @@ export enum RoleGrantedEvent_OrderBy {
 export type RoleRevokedEvent = Event & {
     __typename?: "RoleRevokedEvent";
     account: Scalars["Bytes"];
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     role: Scalars["Bytes"];
     sender: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -3677,6 +4204,10 @@ export type RoleRevokedEvent_Filter = {
     account_not?: Maybe<Scalars["Bytes"]>;
     account_not_contains?: Maybe<Scalars["Bytes"]>;
     account_not_in?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -3693,6 +4224,20 @@ export type RoleRevokedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     role?: Maybe<Scalars["Bytes"]>;
     role_contains?: Maybe<Scalars["Bytes"]>;
     role_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -3723,8 +4268,10 @@ export type RoleRevokedEvent_Filter = {
 
 export enum RoleRevokedEvent_OrderBy {
     Account = "account",
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Role = "role",
     Sender = "sender",
     Timestamp = "timestamp",
@@ -3733,10 +4280,13 @@ export enum RoleRevokedEvent_OrderBy {
 
 export type SentEvent = Event & {
     __typename?: "SentEvent";
+    /** Holds the token, operator and from addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     data: Scalars["Bytes"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     operator: Scalars["Bytes"];
     operatorData: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
@@ -3745,6 +4295,10 @@ export type SentEvent = Event & {
 };
 
 export type SentEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -3775,6 +4329,20 @@ export type SentEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     operator?: Maybe<Scalars["Bytes"]>;
     operatorData?: Maybe<Scalars["Bytes"]>;
     operatorData_contains?: Maybe<Scalars["Bytes"]>;
@@ -3810,10 +4378,12 @@ export type SentEvent_Filter = {
 };
 
 export enum SentEvent_OrderBy {
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Data = "data",
     Id = "id",
+    Name = "name",
     Operator = "operator",
     OperatorData = "operatorData",
     Timestamp = "timestamp",
@@ -3838,6 +4408,7 @@ export type Stream = {
     id: Scalars["ID"];
     receiver: Account;
     sender: Account;
+    streamPeriods: Array<StreamPeriod>;
     /**
      * The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
      * amount is:
@@ -3864,9 +4435,204 @@ export type StreamFlowUpdatedEventsArgs = {
     where?: Maybe<FlowUpdatedEvent_Filter>;
 };
 
+/**
+ * Stream: A HOL entity that represents the lifetime of a stream between a `sender` and a `receiver`.
+ * A account can start a stream, update the flow rate, but when they close it, it is
+ * considered "dead". The next stream you create with the same `sender` and `receiver`
+ * will create a new stream entity. Therefore, multiple stream entities can be created
+ * between the same `sender` and `receiver`.
+ */
+export type StreamStreamPeriodsArgs = {
+    first?: Maybe<Scalars["Int"]>;
+    orderBy?: Maybe<StreamPeriod_OrderBy>;
+    orderDirection?: Maybe<OrderDirection>;
+    skip?: Maybe<Scalars["Int"]>;
+    where?: Maybe<StreamPeriod_Filter>;
+};
+
+/** StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate. */
+export type StreamPeriod = {
+    __typename?: "StreamPeriod";
+    flowRate: Scalars["BigInt"];
+    /** ID composed of: streamId - periodRevisionIndex */
+    id: Scalars["ID"];
+    receiver: Account;
+    sender: Account;
+    startedAtBlockNumber: Scalars["BigInt"];
+    startedAtEvent: FlowUpdatedEvent;
+    startedAtTimestamp: Scalars["BigInt"];
+    stoppedAtBlockNumber?: Maybe<Scalars["BigInt"]>;
+    stoppedAtEvent?: Maybe<FlowUpdatedEvent>;
+    /** Following values are null until the StreamPeriod is terminated */
+    stoppedAtTimestamp?: Maybe<Scalars["BigInt"]>;
+    stream: Stream;
+    token: Token;
+    totalAmountStreamed?: Maybe<Scalars["BigInt"]>;
+};
+
+export type StreamPeriod_Filter = {
+    flowRate?: Maybe<Scalars["BigInt"]>;
+    flowRate_gt?: Maybe<Scalars["BigInt"]>;
+    flowRate_gte?: Maybe<Scalars["BigInt"]>;
+    flowRate_in?: Maybe<Array<Scalars["BigInt"]>>;
+    flowRate_lt?: Maybe<Scalars["BigInt"]>;
+    flowRate_lte?: Maybe<Scalars["BigInt"]>;
+    flowRate_not?: Maybe<Scalars["BigInt"]>;
+    flowRate_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    id?: Maybe<Scalars["ID"]>;
+    id_gt?: Maybe<Scalars["ID"]>;
+    id_gte?: Maybe<Scalars["ID"]>;
+    id_in?: Maybe<Array<Scalars["ID"]>>;
+    id_lt?: Maybe<Scalars["ID"]>;
+    id_lte?: Maybe<Scalars["ID"]>;
+    id_not?: Maybe<Scalars["ID"]>;
+    id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    receiver?: Maybe<Scalars["String"]>;
+    receiver_contains?: Maybe<Scalars["String"]>;
+    receiver_ends_with?: Maybe<Scalars["String"]>;
+    receiver_gt?: Maybe<Scalars["String"]>;
+    receiver_gte?: Maybe<Scalars["String"]>;
+    receiver_in?: Maybe<Array<Scalars["String"]>>;
+    receiver_lt?: Maybe<Scalars["String"]>;
+    receiver_lte?: Maybe<Scalars["String"]>;
+    receiver_not?: Maybe<Scalars["String"]>;
+    receiver_not_contains?: Maybe<Scalars["String"]>;
+    receiver_not_ends_with?: Maybe<Scalars["String"]>;
+    receiver_not_in?: Maybe<Array<Scalars["String"]>>;
+    receiver_not_starts_with?: Maybe<Scalars["String"]>;
+    receiver_starts_with?: Maybe<Scalars["String"]>;
+    sender?: Maybe<Scalars["String"]>;
+    sender_contains?: Maybe<Scalars["String"]>;
+    sender_ends_with?: Maybe<Scalars["String"]>;
+    sender_gt?: Maybe<Scalars["String"]>;
+    sender_gte?: Maybe<Scalars["String"]>;
+    sender_in?: Maybe<Array<Scalars["String"]>>;
+    sender_lt?: Maybe<Scalars["String"]>;
+    sender_lte?: Maybe<Scalars["String"]>;
+    sender_not?: Maybe<Scalars["String"]>;
+    sender_not_contains?: Maybe<Scalars["String"]>;
+    sender_not_ends_with?: Maybe<Scalars["String"]>;
+    sender_not_in?: Maybe<Array<Scalars["String"]>>;
+    sender_not_starts_with?: Maybe<Scalars["String"]>;
+    sender_starts_with?: Maybe<Scalars["String"]>;
+    startedAtBlockNumber?: Maybe<Scalars["BigInt"]>;
+    startedAtBlockNumber_gt?: Maybe<Scalars["BigInt"]>;
+    startedAtBlockNumber_gte?: Maybe<Scalars["BigInt"]>;
+    startedAtBlockNumber_in?: Maybe<Array<Scalars["BigInt"]>>;
+    startedAtBlockNumber_lt?: Maybe<Scalars["BigInt"]>;
+    startedAtBlockNumber_lte?: Maybe<Scalars["BigInt"]>;
+    startedAtBlockNumber_not?: Maybe<Scalars["BigInt"]>;
+    startedAtBlockNumber_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    startedAtEvent?: Maybe<Scalars["String"]>;
+    startedAtEvent_contains?: Maybe<Scalars["String"]>;
+    startedAtEvent_ends_with?: Maybe<Scalars["String"]>;
+    startedAtEvent_gt?: Maybe<Scalars["String"]>;
+    startedAtEvent_gte?: Maybe<Scalars["String"]>;
+    startedAtEvent_in?: Maybe<Array<Scalars["String"]>>;
+    startedAtEvent_lt?: Maybe<Scalars["String"]>;
+    startedAtEvent_lte?: Maybe<Scalars["String"]>;
+    startedAtEvent_not?: Maybe<Scalars["String"]>;
+    startedAtEvent_not_contains?: Maybe<Scalars["String"]>;
+    startedAtEvent_not_ends_with?: Maybe<Scalars["String"]>;
+    startedAtEvent_not_in?: Maybe<Array<Scalars["String"]>>;
+    startedAtEvent_not_starts_with?: Maybe<Scalars["String"]>;
+    startedAtEvent_starts_with?: Maybe<Scalars["String"]>;
+    startedAtTimestamp?: Maybe<Scalars["BigInt"]>;
+    startedAtTimestamp_gt?: Maybe<Scalars["BigInt"]>;
+    startedAtTimestamp_gte?: Maybe<Scalars["BigInt"]>;
+    startedAtTimestamp_in?: Maybe<Array<Scalars["BigInt"]>>;
+    startedAtTimestamp_lt?: Maybe<Scalars["BigInt"]>;
+    startedAtTimestamp_lte?: Maybe<Scalars["BigInt"]>;
+    startedAtTimestamp_not?: Maybe<Scalars["BigInt"]>;
+    startedAtTimestamp_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    stoppedAtBlockNumber?: Maybe<Scalars["BigInt"]>;
+    stoppedAtBlockNumber_gt?: Maybe<Scalars["BigInt"]>;
+    stoppedAtBlockNumber_gte?: Maybe<Scalars["BigInt"]>;
+    stoppedAtBlockNumber_in?: Maybe<Array<Scalars["BigInt"]>>;
+    stoppedAtBlockNumber_lt?: Maybe<Scalars["BigInt"]>;
+    stoppedAtBlockNumber_lte?: Maybe<Scalars["BigInt"]>;
+    stoppedAtBlockNumber_not?: Maybe<Scalars["BigInt"]>;
+    stoppedAtBlockNumber_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    stoppedAtEvent?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_contains?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_ends_with?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_gt?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_gte?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_in?: Maybe<Array<Scalars["String"]>>;
+    stoppedAtEvent_lt?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_lte?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_not?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_not_contains?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_not_ends_with?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_not_in?: Maybe<Array<Scalars["String"]>>;
+    stoppedAtEvent_not_starts_with?: Maybe<Scalars["String"]>;
+    stoppedAtEvent_starts_with?: Maybe<Scalars["String"]>;
+    stoppedAtTimestamp?: Maybe<Scalars["BigInt"]>;
+    stoppedAtTimestamp_gt?: Maybe<Scalars["BigInt"]>;
+    stoppedAtTimestamp_gte?: Maybe<Scalars["BigInt"]>;
+    stoppedAtTimestamp_in?: Maybe<Array<Scalars["BigInt"]>>;
+    stoppedAtTimestamp_lt?: Maybe<Scalars["BigInt"]>;
+    stoppedAtTimestamp_lte?: Maybe<Scalars["BigInt"]>;
+    stoppedAtTimestamp_not?: Maybe<Scalars["BigInt"]>;
+    stoppedAtTimestamp_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    stream?: Maybe<Scalars["String"]>;
+    stream_contains?: Maybe<Scalars["String"]>;
+    stream_ends_with?: Maybe<Scalars["String"]>;
+    stream_gt?: Maybe<Scalars["String"]>;
+    stream_gte?: Maybe<Scalars["String"]>;
+    stream_in?: Maybe<Array<Scalars["String"]>>;
+    stream_lt?: Maybe<Scalars["String"]>;
+    stream_lte?: Maybe<Scalars["String"]>;
+    stream_not?: Maybe<Scalars["String"]>;
+    stream_not_contains?: Maybe<Scalars["String"]>;
+    stream_not_ends_with?: Maybe<Scalars["String"]>;
+    stream_not_in?: Maybe<Array<Scalars["String"]>>;
+    stream_not_starts_with?: Maybe<Scalars["String"]>;
+    stream_starts_with?: Maybe<Scalars["String"]>;
+    token?: Maybe<Scalars["String"]>;
+    token_contains?: Maybe<Scalars["String"]>;
+    token_ends_with?: Maybe<Scalars["String"]>;
+    token_gt?: Maybe<Scalars["String"]>;
+    token_gte?: Maybe<Scalars["String"]>;
+    token_in?: Maybe<Array<Scalars["String"]>>;
+    token_lt?: Maybe<Scalars["String"]>;
+    token_lte?: Maybe<Scalars["String"]>;
+    token_not?: Maybe<Scalars["String"]>;
+    token_not_contains?: Maybe<Scalars["String"]>;
+    token_not_ends_with?: Maybe<Scalars["String"]>;
+    token_not_in?: Maybe<Array<Scalars["String"]>>;
+    token_not_starts_with?: Maybe<Scalars["String"]>;
+    token_starts_with?: Maybe<Scalars["String"]>;
+    totalAmountStreamed?: Maybe<Scalars["BigInt"]>;
+    totalAmountStreamed_gt?: Maybe<Scalars["BigInt"]>;
+    totalAmountStreamed_gte?: Maybe<Scalars["BigInt"]>;
+    totalAmountStreamed_in?: Maybe<Array<Scalars["BigInt"]>>;
+    totalAmountStreamed_lt?: Maybe<Scalars["BigInt"]>;
+    totalAmountStreamed_lte?: Maybe<Scalars["BigInt"]>;
+    totalAmountStreamed_not?: Maybe<Scalars["BigInt"]>;
+    totalAmountStreamed_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+};
+
+export enum StreamPeriod_OrderBy {
+    FlowRate = "flowRate",
+    Id = "id",
+    Receiver = "receiver",
+    Sender = "sender",
+    StartedAtBlockNumber = "startedAtBlockNumber",
+    StartedAtEvent = "startedAtEvent",
+    StartedAtTimestamp = "startedAtTimestamp",
+    StoppedAtBlockNumber = "stoppedAtBlockNumber",
+    StoppedAtEvent = "stoppedAtEvent",
+    StoppedAtTimestamp = "stoppedAtTimestamp",
+    Stream = "stream",
+    Token = "token",
+    TotalAmountStreamed = "totalAmountStreamed",
+}
+
 export type StreamRevision = {
     __typename?: "StreamRevision";
     id: Scalars["ID"];
+    periodRevisionIndex: Scalars["Int"];
     revisionIndex: Scalars["Int"];
 };
 
@@ -3879,6 +4645,14 @@ export type StreamRevision_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    periodRevisionIndex?: Maybe<Scalars["Int"]>;
+    periodRevisionIndex_gt?: Maybe<Scalars["Int"]>;
+    periodRevisionIndex_gte?: Maybe<Scalars["Int"]>;
+    periodRevisionIndex_in?: Maybe<Array<Scalars["Int"]>>;
+    periodRevisionIndex_lt?: Maybe<Scalars["Int"]>;
+    periodRevisionIndex_lte?: Maybe<Scalars["Int"]>;
+    periodRevisionIndex_not?: Maybe<Scalars["Int"]>;
+    periodRevisionIndex_not_in?: Maybe<Array<Scalars["Int"]>>;
     revisionIndex?: Maybe<Scalars["Int"]>;
     revisionIndex_gt?: Maybe<Scalars["Int"]>;
     revisionIndex_gte?: Maybe<Scalars["Int"]>;
@@ -3891,6 +4665,7 @@ export type StreamRevision_Filter = {
 
 export enum StreamRevision_OrderBy {
     Id = "id",
+    PeriodRevisionIndex = "periodRevisionIndex",
     RevisionIndex = "revisionIndex",
 }
 
@@ -4003,6 +4778,7 @@ export enum Stream_OrderBy {
     Id = "id",
     Receiver = "receiver",
     Sender = "sender",
+    StreamPeriods = "streamPeriods",
     StreamedUntilUpdatedAt = "streamedUntilUpdatedAt",
     Token = "token",
     UpdatedAtBlockNumber = "updatedAtBlockNumber",
@@ -4070,6 +4846,8 @@ export type Subscription = {
     sentEvent?: Maybe<SentEvent>;
     sentEvents: Array<SentEvent>;
     stream?: Maybe<Stream>;
+    streamPeriod?: Maybe<StreamPeriod>;
+    streamPeriods: Array<StreamPeriod>;
     streamRevision?: Maybe<StreamRevision>;
     streamRevisions: Array<StreamRevision>;
     streams: Array<Stream>;
@@ -4561,6 +5339,22 @@ export type SubscriptionStreamArgs = {
     subgraphError?: _SubgraphErrorPolicy_;
 };
 
+export type SubscriptionStreamPeriodArgs = {
+    block?: Maybe<Block_Height>;
+    id: Scalars["ID"];
+    subgraphError?: _SubgraphErrorPolicy_;
+};
+
+export type SubscriptionStreamPeriodsArgs = {
+    block?: Maybe<Block_Height>;
+    first?: Maybe<Scalars["Int"]>;
+    orderBy?: Maybe<StreamPeriod_OrderBy>;
+    orderDirection?: Maybe<OrderDirection>;
+    skip?: Maybe<Scalars["Int"]>;
+    subgraphError?: _SubgraphErrorPolicy_;
+    where?: Maybe<StreamPeriod_Filter>;
+};
+
 export type SubscriptionStreamRevisionArgs = {
     block?: Maybe<Block_Height>;
     id: Scalars["ID"];
@@ -4813,9 +5607,12 @@ export type SubscriptionTrustedForwarderChangedEventsArgs = {
 
 export type SubscriptionApprovedEvent = Event & {
     __typename?: "SubscriptionApprovedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
     subscription: IndexSubscription;
@@ -4826,6 +5623,10 @@ export type SubscriptionApprovedEvent = Event & {
 };
 
 export type SubscriptionApprovedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -4850,6 +5651,20 @@ export type SubscriptionApprovedEvent_Filter = {
     indexId_lte?: Maybe<Scalars["BigInt"]>;
     indexId_not?: Maybe<Scalars["BigInt"]>;
     indexId_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -4905,9 +5720,11 @@ export type SubscriptionApprovedEvent_Filter = {
 };
 
 export enum SubscriptionApprovedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Subscriber = "subscriber",
     Subscription = "subscription",
@@ -4919,10 +5736,13 @@ export enum SubscriptionApprovedEvent_OrderBy {
 
 export type SubscriptionDistributionClaimedEvent = Event & {
     __typename?: "SubscriptionDistributionClaimedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
     subscription: IndexSubscription;
@@ -4932,6 +5752,10 @@ export type SubscriptionDistributionClaimedEvent = Event & {
 };
 
 export type SubscriptionDistributionClaimedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -4964,6 +5788,20 @@ export type SubscriptionDistributionClaimedEvent_Filter = {
     indexId_lte?: Maybe<Scalars["BigInt"]>;
     indexId_not?: Maybe<Scalars["BigInt"]>;
     indexId_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -5013,10 +5851,12 @@ export type SubscriptionDistributionClaimedEvent_Filter = {
 };
 
 export enum SubscriptionDistributionClaimedEvent_OrderBy {
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Id = "id",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Subscriber = "subscriber",
     Subscription = "subscription",
@@ -5027,9 +5867,12 @@ export enum SubscriptionDistributionClaimedEvent_OrderBy {
 
 export type SubscriptionRevokedEvent = Event & {
     __typename?: "SubscriptionRevokedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
     subscription: IndexSubscription;
@@ -5040,6 +5883,10 @@ export type SubscriptionRevokedEvent = Event & {
 };
 
 export type SubscriptionRevokedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5064,6 +5911,20 @@ export type SubscriptionRevokedEvent_Filter = {
     indexId_lte?: Maybe<Scalars["BigInt"]>;
     indexId_not?: Maybe<Scalars["BigInt"]>;
     indexId_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     publisher?: Maybe<Scalars["Bytes"]>;
     publisher_contains?: Maybe<Scalars["Bytes"]>;
     publisher_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -5119,9 +5980,11 @@ export type SubscriptionRevokedEvent_Filter = {
 };
 
 export enum SubscriptionRevokedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     IndexId = "indexId",
+    Name = "name",
     Publisher = "publisher",
     Subscriber = "subscriber",
     Subscription = "subscription",
@@ -5133,9 +5996,12 @@ export enum SubscriptionRevokedEvent_OrderBy {
 
 export type SubscriptionUnitsUpdatedEvent = Event & {
     __typename?: "SubscriptionUnitsUpdatedEvent";
+    /** Holds the token, publisher and subscriber addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
     indexId: Scalars["BigInt"];
+    name: Scalars["String"];
     oldUnits: Scalars["BigInt"];
     publisher: Scalars["Bytes"];
     subscriber: Scalars["Bytes"];
@@ -5148,6 +6014,10 @@ export type SubscriptionUnitsUpdatedEvent = Event & {
 };
 
 export type SubscriptionUnitsUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5172,6 +6042,20 @@ export type SubscriptionUnitsUpdatedEvent_Filter = {
     indexId_lte?: Maybe<Scalars["BigInt"]>;
     indexId_not?: Maybe<Scalars["BigInt"]>;
     indexId_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     oldUnits?: Maybe<Scalars["BigInt"]>;
     oldUnits_gt?: Maybe<Scalars["BigInt"]>;
     oldUnits_gte?: Maybe<Scalars["BigInt"]>;
@@ -5243,9 +6127,11 @@ export type SubscriptionUnitsUpdatedEvent_Filter = {
 };
 
 export enum SubscriptionUnitsUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
     IndexId = "indexId",
+    Name = "name",
     OldUnits = "oldUnits",
     Publisher = "publisher",
     Subscriber = "subscriber",
@@ -5259,14 +6145,21 @@ export enum SubscriptionUnitsUpdatedEvent_OrderBy {
 
 export type SuperTokenCreatedEvent = Event & {
     __typename?: "SuperTokenCreatedEvent";
+    /** Holds the token address. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     token: Scalars["Bytes"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type SuperTokenCreatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5283,6 +6176,20 @@ export type SuperTokenCreatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -5306,8 +6213,10 @@ export type SuperTokenCreatedEvent_Filter = {
 };
 
 export enum SuperTokenCreatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     Token = "token",
     TransactionHash = "transactionHash",
@@ -5315,14 +6224,21 @@ export enum SuperTokenCreatedEvent_OrderBy {
 
 export type SuperTokenFactoryUpdatedEvent = Event & {
     __typename?: "SuperTokenFactoryUpdatedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     newFactory: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type SuperTokenFactoryUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5339,6 +6255,20 @@ export type SuperTokenFactoryUpdatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     newFactory?: Maybe<Scalars["Bytes"]>;
     newFactory_contains?: Maybe<Scalars["Bytes"]>;
     newFactory_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -5362,8 +6292,10 @@ export type SuperTokenFactoryUpdatedEvent_Filter = {
 };
 
 export enum SuperTokenFactoryUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     NewFactory = "newFactory",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",
@@ -5371,14 +6303,21 @@ export enum SuperTokenFactoryUpdatedEvent_OrderBy {
 
 export type SuperTokenLogicCreatedEvent = Event & {
     __typename?: "SuperTokenLogicCreatedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     tokenLogic: Scalars["Bytes"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type SuperTokenLogicCreatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5395,6 +6334,20 @@ export type SuperTokenLogicCreatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -5418,8 +6371,10 @@ export type SuperTokenLogicCreatedEvent_Filter = {
 };
 
 export enum SuperTokenLogicCreatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     TokenLogic = "tokenLogic",
     TransactionHash = "transactionHash",
@@ -5427,15 +6382,22 @@ export enum SuperTokenLogicCreatedEvent_OrderBy {
 
 export type SuperTokenLogicUpdatedEvent = Event & {
     __typename?: "SuperTokenLogicUpdatedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     code: Scalars["Bytes"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     token: Scalars["Bytes"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type SuperTokenLogicUpdatedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5458,6 +6420,20 @@ export type SuperTokenLogicUpdatedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -5481,9 +6457,11 @@ export type SuperTokenLogicUpdatedEvent_Filter = {
 };
 
 export enum SuperTokenLogicUpdatedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Code = "code",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     Token = "token",
     TransactionHash = "transactionHash",
@@ -5497,6 +6475,7 @@ export type Token = {
     __typename?: "Token";
     createdAtBlockNumber: Scalars["BigInt"];
     createdAtTimestamp: Scalars["BigInt"];
+    decimals: Scalars["Int"];
     /** ID: the token address */
     id: Scalars["ID"];
     /** This indicates whether the token is a part of our resolver list. */
@@ -5506,14 +6485,22 @@ export type Token = {
     symbol: Scalars["String"];
     /** The address of the underlying ERC20 token. */
     underlyingAddress: Scalars["Bytes"];
+    /**
+     * The underlying ERC20 token for a SuperToken or
+     * null for a regular ERC20 token.
+     */
+    underlyingToken?: Maybe<Token>;
 };
 
 export type TokenDowngradedEvent = Event & {
     __typename?: "TokenDowngradedEvent";
     account: Account;
+    /** Holds the token and account addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     token: Scalars["Bytes"];
     transactionHash: Scalars["Bytes"];
@@ -5534,6 +6521,10 @@ export type TokenDowngradedEvent_Filter = {
     account_not_in?: Maybe<Array<Scalars["String"]>>;
     account_not_starts_with?: Maybe<Scalars["String"]>;
     account_starts_with?: Maybe<Scalars["String"]>;
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -5558,6 +6549,20 @@ export type TokenDowngradedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -5582,9 +6587,11 @@ export type TokenDowngradedEvent_Filter = {
 
 export enum TokenDowngradedEvent_OrderBy {
     Account = "account",
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     Token = "token",
     TransactionHash = "transactionHash",
@@ -5785,9 +6792,12 @@ export enum TokenStatistic_OrderBy {
 export type TokenUpgradedEvent = Event & {
     __typename?: "TokenUpgradedEvent";
     account: Account;
+    /** Holds the token and account addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     amount: Scalars["BigInt"];
     blockNumber: Scalars["BigInt"];
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     token: Scalars["Bytes"];
     transactionHash: Scalars["Bytes"];
@@ -5808,6 +6818,10 @@ export type TokenUpgradedEvent_Filter = {
     account_not_in?: Maybe<Array<Scalars["String"]>>;
     account_not_starts_with?: Maybe<Scalars["String"]>;
     account_starts_with?: Maybe<Scalars["String"]>;
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     amount?: Maybe<Scalars["BigInt"]>;
     amount_gt?: Maybe<Scalars["BigInt"]>;
     amount_gte?: Maybe<Scalars["BigInt"]>;
@@ -5832,6 +6846,20 @@ export type TokenUpgradedEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -5856,9 +6884,11 @@ export type TokenUpgradedEvent_Filter = {
 
 export enum TokenUpgradedEvent_OrderBy {
     Account = "account",
+    Addresses = "addresses",
     Amount = "amount",
     BlockNumber = "blockNumber",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     Token = "token",
     TransactionHash = "transactionHash",
@@ -5881,6 +6911,14 @@ export type Token_Filter = {
     createdAtTimestamp_lte?: Maybe<Scalars["BigInt"]>;
     createdAtTimestamp_not?: Maybe<Scalars["BigInt"]>;
     createdAtTimestamp_not_in?: Maybe<Array<Scalars["BigInt"]>>;
+    decimals?: Maybe<Scalars["Int"]>;
+    decimals_gt?: Maybe<Scalars["Int"]>;
+    decimals_gte?: Maybe<Scalars["Int"]>;
+    decimals_in?: Maybe<Array<Scalars["Int"]>>;
+    decimals_lt?: Maybe<Scalars["Int"]>;
+    decimals_lte?: Maybe<Scalars["Int"]>;
+    decimals_not?: Maybe<Scalars["Int"]>;
+    decimals_not_in?: Maybe<Array<Scalars["Int"]>>;
     id?: Maybe<Scalars["ID"]>;
     id_gt?: Maybe<Scalars["ID"]>;
     id_gte?: Maybe<Scalars["ID"]>;
@@ -5931,24 +6969,43 @@ export type Token_Filter = {
     underlyingAddress_not?: Maybe<Scalars["Bytes"]>;
     underlyingAddress_not_contains?: Maybe<Scalars["Bytes"]>;
     underlyingAddress_not_in?: Maybe<Array<Scalars["Bytes"]>>;
+    underlyingToken?: Maybe<Scalars["String"]>;
+    underlyingToken_contains?: Maybe<Scalars["String"]>;
+    underlyingToken_ends_with?: Maybe<Scalars["String"]>;
+    underlyingToken_gt?: Maybe<Scalars["String"]>;
+    underlyingToken_gte?: Maybe<Scalars["String"]>;
+    underlyingToken_in?: Maybe<Array<Scalars["String"]>>;
+    underlyingToken_lt?: Maybe<Scalars["String"]>;
+    underlyingToken_lte?: Maybe<Scalars["String"]>;
+    underlyingToken_not?: Maybe<Scalars["String"]>;
+    underlyingToken_not_contains?: Maybe<Scalars["String"]>;
+    underlyingToken_not_ends_with?: Maybe<Scalars["String"]>;
+    underlyingToken_not_in?: Maybe<Array<Scalars["String"]>>;
+    underlyingToken_not_starts_with?: Maybe<Scalars["String"]>;
+    underlyingToken_starts_with?: Maybe<Scalars["String"]>;
 };
 
 export enum Token_OrderBy {
     CreatedAtBlockNumber = "createdAtBlockNumber",
     CreatedAtTimestamp = "createdAtTimestamp",
+    Decimals = "decimals",
     Id = "id",
     IsListed = "isListed",
     IsSuperToken = "isSuperToken",
     Name = "name",
     Symbol = "symbol",
     UnderlyingAddress = "underlyingAddress",
+    UnderlyingToken = "underlyingToken",
 }
 
 export type TransferEvent = Event & {
     __typename?: "TransferEvent";
+    /** Holds the token, from and to addresses. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     from: Account;
     id: Scalars["ID"];
+    name: Scalars["String"];
     timestamp: Scalars["BigInt"];
     to: Account;
     token: Scalars["Bytes"];
@@ -5957,6 +7014,10 @@ export type TransferEvent = Event & {
 };
 
 export type TransferEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -5987,6 +7048,20 @@ export type TransferEvent_Filter = {
     id_lte?: Maybe<Scalars["ID"]>;
     id_not?: Maybe<Scalars["ID"]>;
     id_not_in?: Maybe<Array<Scalars["ID"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     timestamp?: Maybe<Scalars["BigInt"]>;
     timestamp_gt?: Maybe<Scalars["BigInt"]>;
     timestamp_gte?: Maybe<Scalars["BigInt"]>;
@@ -6032,9 +7107,11 @@ export type TransferEvent_Filter = {
 };
 
 export enum TransferEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     From = "from",
     Id = "id",
+    Name = "name",
     Timestamp = "timestamp",
     To = "to",
     Token = "token",
@@ -6044,18 +7121,25 @@ export enum TransferEvent_OrderBy {
 
 export type TrustedForwarderChangedEvent = Event & {
     __typename?: "TrustedForwarderChangedEvent";
+    /** Empty addresses array. */
+    addresses: Array<Scalars["Bytes"]>;
     blockNumber: Scalars["BigInt"];
     enabled: Scalars["Boolean"];
     forwarder: Scalars["Bytes"];
     host: Scalars["Bytes"];
     id: Scalars["ID"];
     isSet: Scalars["Boolean"];
+    name: Scalars["String"];
     superToken: Scalars["Bytes"];
     timestamp: Scalars["BigInt"];
     transactionHash: Scalars["Bytes"];
 };
 
 export type TrustedForwarderChangedEvent_Filter = {
+    addresses?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_contains?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not?: Maybe<Array<Scalars["Bytes"]>>;
+    addresses_not_contains?: Maybe<Array<Scalars["Bytes"]>>;
     blockNumber?: Maybe<Scalars["BigInt"]>;
     blockNumber_gt?: Maybe<Scalars["BigInt"]>;
     blockNumber_gte?: Maybe<Scalars["BigInt"]>;
@@ -6092,6 +7176,20 @@ export type TrustedForwarderChangedEvent_Filter = {
     isSet_in?: Maybe<Array<Scalars["Boolean"]>>;
     isSet_not?: Maybe<Scalars["Boolean"]>;
     isSet_not_in?: Maybe<Array<Scalars["Boolean"]>>;
+    name?: Maybe<Scalars["String"]>;
+    name_contains?: Maybe<Scalars["String"]>;
+    name_ends_with?: Maybe<Scalars["String"]>;
+    name_gt?: Maybe<Scalars["String"]>;
+    name_gte?: Maybe<Scalars["String"]>;
+    name_in?: Maybe<Array<Scalars["String"]>>;
+    name_lt?: Maybe<Scalars["String"]>;
+    name_lte?: Maybe<Scalars["String"]>;
+    name_not?: Maybe<Scalars["String"]>;
+    name_not_contains?: Maybe<Scalars["String"]>;
+    name_not_ends_with?: Maybe<Scalars["String"]>;
+    name_not_in?: Maybe<Array<Scalars["String"]>>;
+    name_not_starts_with?: Maybe<Scalars["String"]>;
+    name_starts_with?: Maybe<Scalars["String"]>;
     superToken?: Maybe<Scalars["Bytes"]>;
     superToken_contains?: Maybe<Scalars["Bytes"]>;
     superToken_in?: Maybe<Array<Scalars["Bytes"]>>;
@@ -6115,12 +7213,14 @@ export type TrustedForwarderChangedEvent_Filter = {
 };
 
 export enum TrustedForwarderChangedEvent_OrderBy {
+    Addresses = "addresses",
     BlockNumber = "blockNumber",
     Enabled = "enabled",
     Forwarder = "forwarder",
     Host = "host",
     Id = "id",
     IsSet = "isSet",
+    Name = "name",
     SuperToken = "superToken",
     Timestamp = "timestamp",
     TransactionHash = "transactionHash",

@@ -12,8 +12,14 @@ event entities and contains basic transaction
 data.
 """
 interface Event {
+    """
+
+    Holds the addresses for accounts that were impacted by the event.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
@@ -114,24 +120,41 @@ type AccountTokenSnapshot {
 }
 
 type AgreementClassRegisteredEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     agreementType: Bytes!
     blockNumber: BigInt!
     code: Bytes!
     id: ID!
+    name: String!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
 
 type AgreementClassUpdatedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     agreementType: Bytes!
     blockNumber: BigInt!
     code: Bytes!
     id: ID!
+    name: String!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
 
 type AgreementLiquidatedByEvent implements Event {
+    """
+
+    Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
+    """
+    addresses: [Bytes!]!
     agreementClass: Bytes!
     agreementId: Bytes!
     bailoutAmount: BigInt!
@@ -139,6 +162,7 @@ type AgreementLiquidatedByEvent implements Event {
     bondAccount: Bytes!
     id: ID!
     liquidatorAccount: Bytes!
+    name: String!
     penaltyAccount: Bytes!
     rewardAmount: BigInt!
     timestamp: BigInt!
@@ -147,19 +171,31 @@ type AgreementLiquidatedByEvent implements Event {
 }
 
 type AppRegisteredEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     app: Bytes!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
 
 type BurnedEvent implements Event {
+    """
+
+    Holds the token and from addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     data: Bytes!
     from: Bytes!
     id: ID!
+    name: String!
     operator: Bytes!
     operatorData: Bytes!
     timestamp: BigInt!
@@ -167,22 +203,34 @@ type BurnedEvent implements Event {
 }
 
 type CFAv1LiquidationPeriodChangedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     id: ID!
     isSet: Boolean!
     liquidationPeriod: BigInt!
+    name: String!
     superToken: Bytes!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
 
 type ConfigChangedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     id: ID!
     isSet: Boolean!
     key: Bytes!
+    name: String!
     superToken: Bytes!
     timestamp: BigInt!
     transactionHash: Bytes!
@@ -190,8 +238,14 @@ type ConfigChangedEvent implements Event {
 }
 
 type CustomSuperTokenCreatedEvent implements Event {
+    """
+
+    Holds the token address.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     token: Bytes!
     transactionHash: Bytes!
@@ -203,6 +257,11 @@ FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
 type FlowUpdatedEvent implements Event {
+    """
+
+    Holds the token, sender and receiver addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     """
 
@@ -210,6 +269,7 @@ type FlowUpdatedEvent implements Event {
     """
     flowRate: BigInt!
     id: ID!
+    name: String!
     """
 
     The previous flow rate.
@@ -249,9 +309,15 @@ type FlowUpdatedEvent implements Event {
 }
 
 type GovernanceReplacedEvent implements Event {
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     newGovernance: Bytes!
+    """
+
+    Empty addresses array.
+    """
     oldGovernance: Bytes!
     timestamp: BigInt!
     transactionHash: Bytes!
@@ -327,10 +393,16 @@ type Index {
 }
 
 type IndexCreatedEvent implements Event {
+    """
+
+    Holds the token and publisher addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     index: Index!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     timestamp: BigInt!
     token: Bytes!
@@ -339,11 +411,17 @@ type IndexCreatedEvent implements Event {
 }
 
 type IndexDistributionClaimedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     id: ID!
     index: Index!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     subscriber: Bytes!
     timestamp: BigInt!
@@ -352,10 +430,16 @@ type IndexDistributionClaimedEvent implements Event {
 }
 
 type IndexSubscribedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     index: Index!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     subscriber: Bytes!
     timestamp: BigInt!
@@ -417,10 +501,16 @@ type IndexSubscription {
 }
 
 type IndexUnitsUpdatedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     index: Index!
     indexId: BigInt!
+    name: String!
     oldUnits: BigInt!
     publisher: Bytes!
     subscriber: Bytes!
@@ -432,10 +522,16 @@ type IndexUnitsUpdatedEvent implements Event {
 }
 
 type IndexUnsubscribedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     index: Index!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     subscriber: Bytes!
     timestamp: BigInt!
@@ -445,10 +541,16 @@ type IndexUnsubscribedEvent implements Event {
 }
 
 type IndexUpdatedEvent implements Event {
+    """
+
+    Holds the token and publisher addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     index: Index!
     indexId: BigInt!
+    name: String!
     newIndexValue: BigInt!
     oldIndexValue: BigInt!
     publisher: Bytes!
@@ -461,19 +563,31 @@ type IndexUpdatedEvent implements Event {
 }
 
 type JailEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     app: Bytes!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     reason: BigInt!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
 
 type MintedEvent implements Event {
+    """
+
+    Holds the token, operator and to addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     data: Bytes!
     id: ID!
+    name: String!
     operator: Bytes!
     operatorData: Bytes!
     timestamp: BigInt!
@@ -995,6 +1109,24 @@ type Query {
         "Set to `allow` to receive data even if the subgraph has skipped over errors while syncing."
         subgraphError: _SubgraphErrorPolicy_! = deny
     ): Stream
+    streamPeriod(
+        "The block at which the query should be executed. Can either be an `{ number: Int }` containing the block number or a `{ hash: Bytes }` value containing a block hash. Defaults to the latest block when omitted."
+        block: Block_height,
+        id: ID!,
+        "Set to `allow` to receive data even if the subgraph has skipped over errors while syncing."
+        subgraphError: _SubgraphErrorPolicy_! = deny
+    ): StreamPeriod
+    streamPeriods(
+        "The block at which the query should be executed. Can either be an `{ number: Int }` containing the block number or a `{ hash: Bytes }` value containing a block hash. Defaults to the latest block when omitted."
+        block: Block_height,
+        first: Int = 100,
+        orderBy: StreamPeriod_orderBy,
+        orderDirection: OrderDirection,
+        skip: Int = 0,
+        "Set to `allow` to receive data even if the subgraph has skipped over errors while syncing."
+        subgraphError: _SubgraphErrorPolicy_! = deny,
+        where: StreamPeriod_filter
+    ): [StreamPeriod!]!
     streamRevision(
         "The block at which the query should be executed. Can either be an `{ number: Int }` containing the block number or a `{ hash: Bytes }` value containing a block hash. Defaults to the latest block when omitted."
         block: Block_height,
@@ -1279,10 +1411,16 @@ type Query {
 }
 
 type RewardAddressChangedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     id: ID!
     isSet: Boolean!
+    name: String!
     rewardAddress: Bytes!
     superToken: Bytes!
     timestamp: BigInt!
@@ -1290,8 +1428,14 @@ type RewardAddressChangedEvent implements Event {
 }
 
 type RoleAdminChangedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     newAdminRole: Bytes!
     previousAdminRole: Bytes!
     role: Bytes!
@@ -1301,8 +1445,14 @@ type RoleAdminChangedEvent implements Event {
 
 type RoleGrantedEvent implements Event {
     account: Bytes!
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     role: Bytes!
     sender: Bytes!
     timestamp: BigInt!
@@ -1311,8 +1461,14 @@ type RoleGrantedEvent implements Event {
 
 type RoleRevokedEvent implements Event {
     account: Bytes!
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     role: Bytes!
     sender: Bytes!
     timestamp: BigInt!
@@ -1320,10 +1476,16 @@ type RoleRevokedEvent implements Event {
 }
 
 type SentEvent implements Event {
+    """
+
+    Holds the token, operator and from addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     data: Bytes!
     id: ID!
+    name: String!
     operator: Bytes!
     operatorData: Bytes!
     timestamp: BigInt!
@@ -1351,6 +1513,7 @@ type Stream {
     id: ID!
     receiver: Account!
     sender: Account!
+    streamPeriods(first: Int = 100, orderBy: StreamPeriod_orderBy, orderDirection: OrderDirection, skip: Int = 0, where: StreamPeriod_filter): [StreamPeriod!]!
     """
 
     The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
@@ -1363,8 +1526,37 @@ type Stream {
     updatedAtTimestamp: BigInt!
 }
 
+"""
+
+StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
+"""
+type StreamPeriod {
+    flowRate: BigInt!
+    """
+
+    ID composed of: streamId - periodRevisionIndex
+    """
+    id: ID!
+    receiver: Account!
+    sender: Account!
+    startedAtBlockNumber: BigInt!
+    startedAtEvent: FlowUpdatedEvent!
+    startedAtTimestamp: BigInt!
+    stoppedAtBlockNumber: BigInt
+    stoppedAtEvent: FlowUpdatedEvent
+    """
+
+    Following values are null until the StreamPeriod is terminated
+    """
+    stoppedAtTimestamp: BigInt
+    stream: Stream!
+    token: Token!
+    totalAmountStreamed: BigInt
+}
+
 type StreamRevision {
     id: ID!
+    periodRevisionIndex: Int!
     revisionIndex: Int!
 }
 
@@ -1882,6 +2074,24 @@ type Subscription {
         "Set to `allow` to receive data even if the subgraph has skipped over errors while syncing."
         subgraphError: _SubgraphErrorPolicy_! = deny
     ): Stream
+    streamPeriod(
+        "The block at which the query should be executed. Can either be an `{ number: Int }` containing the block number or a `{ hash: Bytes }` value containing a block hash. Defaults to the latest block when omitted."
+        block: Block_height,
+        id: ID!,
+        "Set to `allow` to receive data even if the subgraph has skipped over errors while syncing."
+        subgraphError: _SubgraphErrorPolicy_! = deny
+    ): StreamPeriod
+    streamPeriods(
+        "The block at which the query should be executed. Can either be an `{ number: Int }` containing the block number or a `{ hash: Bytes }` value containing a block hash. Defaults to the latest block when omitted."
+        block: Block_height,
+        first: Int = 100,
+        orderBy: StreamPeriod_orderBy,
+        orderDirection: OrderDirection,
+        skip: Int = 0,
+        "Set to `allow` to receive data even if the subgraph has skipped over errors while syncing."
+        subgraphError: _SubgraphErrorPolicy_! = deny,
+        where: StreamPeriod_filter
+    ): [StreamPeriod!]!
     streamRevision(
         "The block at which the query should be executed. Can either be an `{ number: Int }` containing the block number or a `{ hash: Bytes }` value containing a block hash. Defaults to the latest block when omitted."
         block: Block_height,
@@ -2166,9 +2376,15 @@ type Subscription {
 }
 
 type SubscriptionApprovedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     subscriber: Bytes!
     subscription: IndexSubscription!
@@ -2179,10 +2395,16 @@ type SubscriptionApprovedEvent implements Event {
 }
 
 type SubscriptionDistributionClaimedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     id: ID!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     subscriber: Bytes!
     subscription: IndexSubscription!
@@ -2192,9 +2414,15 @@ type SubscriptionDistributionClaimedEvent implements Event {
 }
 
 type SubscriptionRevokedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     indexId: BigInt!
+    name: String!
     publisher: Bytes!
     subscriber: Bytes!
     subscription: IndexSubscription!
@@ -2205,9 +2433,15 @@ type SubscriptionRevokedEvent implements Event {
 }
 
 type SubscriptionUnitsUpdatedEvent implements Event {
+    """
+
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
     indexId: BigInt!
+    name: String!
     oldUnits: BigInt!
     publisher: Bytes!
     subscriber: Bytes!
@@ -2220,33 +2454,57 @@ type SubscriptionUnitsUpdatedEvent implements Event {
 }
 
 type SuperTokenCreatedEvent implements Event {
+    """
+
+    Holds the token address.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     token: Bytes!
     transactionHash: Bytes!
 }
 
 type SuperTokenFactoryUpdatedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     newFactory: Bytes!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
 
 type SuperTokenLogicCreatedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     tokenLogic: Bytes!
     transactionHash: Bytes!
 }
 
 type SuperTokenLogicUpdatedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     code: Bytes!
     id: ID!
+    name: String!
     timestamp: BigInt!
     token: Bytes!
     transactionHash: Bytes!
@@ -2260,6 +2518,7 @@ Superfluid's host contract address set as the host).
 type Token {
     createdAtBlockNumber: BigInt!
     createdAtTimestamp: BigInt!
+    decimals: Int!
     """
 
     ID: the token address
@@ -2278,13 +2537,25 @@ type Token {
     The address of the underlying ERC20 token.
     """
     underlyingAddress: Bytes!
+    """
+
+    The underlying ERC20 token for a SuperToken or
+    null for a regular ERC20 token.
+    """
+    underlyingToken: Token
 }
 
 type TokenDowngradedEvent implements Event {
     account: Account!
+    """
+
+    Holds the token and account addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     token: Bytes!
     transactionHash: Bytes!
@@ -2365,18 +2636,30 @@ type TokenStatistic {
 
 type TokenUpgradedEvent implements Event {
     account: Account!
+    """
+
+    Holds the token and account addresses.
+    """
+    addresses: [Bytes!]!
     amount: BigInt!
     blockNumber: BigInt!
     id: ID!
+    name: String!
     timestamp: BigInt!
     token: Bytes!
     transactionHash: Bytes!
 }
 
 type TransferEvent implements Event {
+    """
+
+    Holds the token, from and to addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     from: Account!
     id: ID!
+    name: String!
     timestamp: BigInt!
     to: Account!
     token: Bytes!
@@ -2385,12 +2668,18 @@ type TransferEvent implements Event {
 }
 
 type TrustedForwarderChangedEvent implements Event {
+    """
+
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     enabled: Boolean!
     forwarder: Bytes!
     host: Bytes!
     id: ID!
     isSet: Boolean!
+    name: String!
     superToken: Bytes!
     timestamp: BigInt!
     transactionHash: Bytes!
@@ -2456,24 +2745,29 @@ enum Account_orderBy {
 }
 
 enum AgreementClassRegisteredEvent_orderBy {
+    addresses
     agreementType
     blockNumber
     code
     id
+    name
     timestamp
     transactionHash
 }
 
 enum AgreementClassUpdatedEvent_orderBy {
+    addresses
     agreementType
     blockNumber
     code
     id
+    name
     timestamp
     transactionHash
 }
 
 enum AgreementLiquidatedByEvent_orderBy {
+    addresses
     agreementClass
     agreementId
     bailoutAmount
@@ -2481,6 +2775,7 @@ enum AgreementLiquidatedByEvent_orderBy {
     bondAccount
     id
     liquidatorAccount
+    name
     penaltyAccount
     rewardAmount
     timestamp
@@ -2489,19 +2784,23 @@ enum AgreementLiquidatedByEvent_orderBy {
 }
 
 enum AppRegisteredEvent_orderBy {
+    addresses
     app
     blockNumber
     id
+    name
     timestamp
     transactionHash
 }
 
 enum BurnedEvent_orderBy {
+    addresses
     amount
     blockNumber
     data
     from
     id
+    name
     operator
     operatorData
     timestamp
@@ -2509,22 +2808,26 @@ enum BurnedEvent_orderBy {
 }
 
 enum CFAv1LiquidationPeriodChangedEvent_orderBy {
+    addresses
     blockNumber
     host
     id
     isSet
     liquidationPeriod
+    name
     superToken
     timestamp
     transactionHash
 }
 
 enum ConfigChangedEvent_orderBy {
+    addresses
     blockNumber
     host
     id
     isSet
     key
+    name
     superToken
     timestamp
     transactionHash
@@ -2532,24 +2835,30 @@ enum ConfigChangedEvent_orderBy {
 }
 
 enum CustomSuperTokenCreatedEvent_orderBy {
+    addresses
     blockNumber
     id
+    name
     timestamp
     token
     transactionHash
 }
 
 enum Event_orderBy {
+    addresses
     blockNumber
     id
+    name
     timestamp
     transactionHash
 }
 
 enum FlowUpdatedEvent_orderBy {
+    addresses
     blockNumber
     flowRate
     id
+    name
     oldFlowRate
     receiver
     sender
@@ -2565,8 +2874,10 @@ enum FlowUpdatedEvent_orderBy {
 }
 
 enum GovernanceReplacedEvent_orderBy {
+    addresses
     blockNumber
     id
+    name
     newGovernance
     oldGovernance
     timestamp
@@ -2574,10 +2885,12 @@ enum GovernanceReplacedEvent_orderBy {
 }
 
 enum IndexCreatedEvent_orderBy {
+    addresses
     blockNumber
     id
     index
     indexId
+    name
     publisher
     timestamp
     token
@@ -2586,11 +2899,13 @@ enum IndexCreatedEvent_orderBy {
 }
 
 enum IndexDistributionClaimedEvent_orderBy {
+    addresses
     amount
     blockNumber
     id
     index
     indexId
+    name
     publisher
     subscriber
     timestamp
@@ -2599,10 +2914,12 @@ enum IndexDistributionClaimedEvent_orderBy {
 }
 
 enum IndexSubscribedEvent_orderBy {
+    addresses
     blockNumber
     id
     index
     indexId
+    name
     publisher
     subscriber
     timestamp
@@ -2630,10 +2947,12 @@ enum IndexSubscription_orderBy {
 }
 
 enum IndexUnitsUpdatedEvent_orderBy {
+    addresses
     blockNumber
     id
     index
     indexId
+    name
     oldUnits
     publisher
     subscriber
@@ -2645,10 +2964,12 @@ enum IndexUnitsUpdatedEvent_orderBy {
 }
 
 enum IndexUnsubscribedEvent_orderBy {
+    addresses
     blockNumber
     id
     index
     indexId
+    name
     publisher
     subscriber
     timestamp
@@ -2658,10 +2979,12 @@ enum IndexUnsubscribedEvent_orderBy {
 }
 
 enum IndexUpdatedEvent_orderBy {
+    addresses
     blockNumber
     id
     index
     indexId
+    name
     newIndexValue
     oldIndexValue
     publisher
@@ -2698,19 +3021,23 @@ enum Index_orderBy {
 }
 
 enum JailEvent_orderBy {
+    addresses
     app
     blockNumber
     id
+    name
     reason
     timestamp
     transactionHash
 }
 
 enum MintedEvent_orderBy {
+    addresses
     amount
     blockNumber
     data
     id
+    name
     operator
     operatorData
     timestamp
@@ -2724,10 +3051,12 @@ enum OrderDirection {
 }
 
 enum RewardAddressChangedEvent_orderBy {
+    addresses
     blockNumber
     host
     id
     isSet
+    name
     rewardAddress
     superToken
     timestamp
@@ -2735,8 +3064,10 @@ enum RewardAddressChangedEvent_orderBy {
 }
 
 enum RoleAdminChangedEvent_orderBy {
+    addresses
     blockNumber
     id
+    name
     newAdminRole
     previousAdminRole
     role
@@ -2746,8 +3077,10 @@ enum RoleAdminChangedEvent_orderBy {
 
 enum RoleGrantedEvent_orderBy {
     account
+    addresses
     blockNumber
     id
+    name
     role
     sender
     timestamp
@@ -2756,8 +3089,10 @@ enum RoleGrantedEvent_orderBy {
 
 enum RoleRevokedEvent_orderBy {
     account
+    addresses
     blockNumber
     id
+    name
     role
     sender
     timestamp
@@ -2765,10 +3100,12 @@ enum RoleRevokedEvent_orderBy {
 }
 
 enum SentEvent_orderBy {
+    addresses
     amount
     blockNumber
     data
     id
+    name
     operator
     operatorData
     timestamp
@@ -2776,8 +3113,25 @@ enum SentEvent_orderBy {
     transactionHash
 }
 
+enum StreamPeriod_orderBy {
+    flowRate
+    id
+    receiver
+    sender
+    startedAtBlockNumber
+    startedAtEvent
+    startedAtTimestamp
+    stoppedAtBlockNumber
+    stoppedAtEvent
+    stoppedAtTimestamp
+    stream
+    token
+    totalAmountStreamed
+}
+
 enum StreamRevision_orderBy {
     id
+    periodRevisionIndex
     revisionIndex
 }
 
@@ -2789,6 +3143,7 @@ enum Stream_orderBy {
     id
     receiver
     sender
+    streamPeriods
     streamedUntilUpdatedAt
     token
     updatedAtBlockNumber
@@ -2796,9 +3151,11 @@ enum Stream_orderBy {
 }
 
 enum SubscriptionApprovedEvent_orderBy {
+    addresses
     blockNumber
     id
     indexId
+    name
     publisher
     subscriber
     subscription
@@ -2809,10 +3166,12 @@ enum SubscriptionApprovedEvent_orderBy {
 }
 
 enum SubscriptionDistributionClaimedEvent_orderBy {
+    addresses
     amount
     blockNumber
     id
     indexId
+    name
     publisher
     subscriber
     subscription
@@ -2822,9 +3181,11 @@ enum SubscriptionDistributionClaimedEvent_orderBy {
 }
 
 enum SubscriptionRevokedEvent_orderBy {
+    addresses
     blockNumber
     id
     indexId
+    name
     publisher
     subscriber
     subscription
@@ -2835,9 +3196,11 @@ enum SubscriptionRevokedEvent_orderBy {
 }
 
 enum SubscriptionUnitsUpdatedEvent_orderBy {
+    addresses
     blockNumber
     id
     indexId
+    name
     oldUnits
     publisher
     subscriber
@@ -2850,33 +3213,41 @@ enum SubscriptionUnitsUpdatedEvent_orderBy {
 }
 
 enum SuperTokenCreatedEvent_orderBy {
+    addresses
     blockNumber
     id
+    name
     timestamp
     token
     transactionHash
 }
 
 enum SuperTokenFactoryUpdatedEvent_orderBy {
+    addresses
     blockNumber
     id
+    name
     newFactory
     timestamp
     transactionHash
 }
 
 enum SuperTokenLogicCreatedEvent_orderBy {
+    addresses
     blockNumber
     id
+    name
     timestamp
     tokenLogic
     transactionHash
 }
 
 enum SuperTokenLogicUpdatedEvent_orderBy {
+    addresses
     blockNumber
     code
     id
+    name
     timestamp
     token
     transactionHash
@@ -2884,9 +3255,11 @@ enum SuperTokenLogicUpdatedEvent_orderBy {
 
 enum TokenDowngradedEvent_orderBy {
     account
+    addresses
     amount
     blockNumber
     id
+    name
     timestamp
     token
     transactionHash
@@ -2912,9 +3285,11 @@ enum TokenStatistic_orderBy {
 
 enum TokenUpgradedEvent_orderBy {
     account
+    addresses
     amount
     blockNumber
     id
+    name
     timestamp
     token
     transactionHash
@@ -2923,18 +3298,22 @@ enum TokenUpgradedEvent_orderBy {
 enum Token_orderBy {
     createdAtBlockNumber
     createdAtTimestamp
+    decimals
     id
     isListed
     isSuperToken
     name
     symbol
     underlyingAddress
+    underlyingToken
 }
 
 enum TransferEvent_orderBy {
+    addresses
     blockNumber
     from
     id
+    name
     timestamp
     to
     token
@@ -2943,12 +3322,14 @@ enum TransferEvent_orderBy {
 }
 
 enum TrustedForwarderChangedEvent_orderBy {
+    addresses
     blockNumber
     enabled
     forwarder
     host
     id
     isSet
+    name
     superToken
     timestamp
     transactionHash
@@ -3144,6 +3525,10 @@ input Account_filter {
 }
 
 input AgreementClassRegisteredEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     agreementType: Bytes
     agreementType_contains: Bytes
     agreementType_in: [Bytes!]
@@ -3172,6 +3557,20 @@ input AgreementClassRegisteredEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -3189,6 +3588,10 @@ input AgreementClassRegisteredEvent_filter {
 }
 
 input AgreementClassUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     agreementType: Bytes
     agreementType_contains: Bytes
     agreementType_in: [Bytes!]
@@ -3217,6 +3620,20 @@ input AgreementClassUpdatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -3234,6 +3651,10 @@ input AgreementClassUpdatedEvent_filter {
 }
 
 input AgreementLiquidatedByEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     agreementClass: Bytes
     agreementClass_contains: Bytes
     agreementClass_in: [Bytes!]
@@ -3282,6 +3703,20 @@ input AgreementLiquidatedByEvent_filter {
     liquidatorAccount_not: Bytes
     liquidatorAccount_not_contains: Bytes
     liquidatorAccount_not_in: [Bytes!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     penaltyAccount: Bytes
     penaltyAccount_contains: Bytes
     penaltyAccount_in: [Bytes!]
@@ -3319,6 +3754,10 @@ input AgreementLiquidatedByEvent_filter {
 }
 
 input AppRegisteredEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     app: Bytes
     app_contains: Bytes
     app_in: [Bytes!]
@@ -3341,6 +3780,20 @@ input AppRegisteredEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -3363,6 +3816,10 @@ input Block_height {
 }
 
 input BurnedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -3399,6 +3856,20 @@ input BurnedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     operator: Bytes
     operatorData: Bytes
     operatorData_contains: Bytes
@@ -3428,6 +3899,10 @@ input BurnedEvent_filter {
 }
 
 input CFAv1LiquidationPeriodChangedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3462,6 +3937,20 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
     liquidationPeriod_lte: BigInt
     liquidationPeriod_not: BigInt
     liquidationPeriod_not_in: [BigInt!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     superToken: Bytes
     superToken_contains: Bytes
     superToken_in: [Bytes!]
@@ -3485,6 +3974,10 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
 }
 
 input ConfigChangedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3517,6 +4010,20 @@ input ConfigChangedEvent_filter {
     key_not: Bytes
     key_not_contains: Bytes
     key_not_in: [Bytes!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     superToken: Bytes
     superToken_contains: Bytes
     superToken_in: [Bytes!]
@@ -3548,6 +4055,10 @@ input ConfigChangedEvent_filter {
 }
 
 input CustomSuperTokenCreatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3564,6 +4075,20 @@ input CustomSuperTokenCreatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -3587,6 +4112,10 @@ input CustomSuperTokenCreatedEvent_filter {
 }
 
 input Event_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3603,6 +4132,20 @@ input Event_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -3620,6 +4163,10 @@ input Event_filter {
 }
 
 input FlowUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3644,6 +4191,20 @@ input FlowUpdatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     oldFlowRate: BigInt
     oldFlowRate_gt: BigInt
     oldFlowRate_gte: BigInt
@@ -3739,6 +4300,10 @@ input FlowUpdatedEvent_filter {
 }
 
 input GovernanceReplacedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3755,6 +4320,20 @@ input GovernanceReplacedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     newGovernance: Bytes
     newGovernance_contains: Bytes
     newGovernance_in: [Bytes!]
@@ -3784,6 +4363,10 @@ input GovernanceReplacedEvent_filter {
 }
 
 input IndexCreatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3822,6 +4405,20 @@ input IndexCreatedEvent_filter {
     index_not_in: [String!]
     index_not_starts_with: String
     index_starts_with: String
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -3857,6 +4454,10 @@ input IndexCreatedEvent_filter {
 }
 
 input IndexDistributionClaimedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -3903,6 +4504,20 @@ input IndexDistributionClaimedEvent_filter {
     index_not_in: [String!]
     index_not_starts_with: String
     index_starts_with: String
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -3938,6 +4553,10 @@ input IndexDistributionClaimedEvent_filter {
 }
 
 input IndexSubscribedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -3976,6 +4595,20 @@ input IndexSubscribedEvent_filter {
     index_not_in: [String!]
     index_not_starts_with: String
     index_starts_with: String
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -4116,6 +4749,10 @@ input IndexSubscription_filter {
 }
 
 input IndexUnitsUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4154,6 +4791,20 @@ input IndexUnitsUpdatedEvent_filter {
     index_not_in: [String!]
     index_not_starts_with: String
     index_starts_with: String
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     oldUnits: BigInt
     oldUnits_gt: BigInt
     oldUnits_gte: BigInt
@@ -4211,6 +4862,10 @@ input IndexUnitsUpdatedEvent_filter {
 }
 
 input IndexUnsubscribedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4249,6 +4904,20 @@ input IndexUnsubscribedEvent_filter {
     index_not_in: [String!]
     index_not_starts_with: String
     index_starts_with: String
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -4290,6 +4959,10 @@ input IndexUnsubscribedEvent_filter {
 }
 
 input IndexUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4328,6 +5001,20 @@ input IndexUpdatedEvent_filter {
     index_not_in: [String!]
     index_not_starts_with: String
     index_starts_with: String
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     newIndexValue: BigInt
     newIndexValue_gt: BigInt
     newIndexValue_gte: BigInt
@@ -4536,6 +5223,10 @@ input Index_filter {
 }
 
 input JailEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     app: Bytes
     app_contains: Bytes
     app_in: [Bytes!]
@@ -4558,6 +5249,20 @@ input JailEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     reason: BigInt
     reason_gt: BigInt
     reason_gte: BigInt
@@ -4583,6 +5288,10 @@ input JailEvent_filter {
 }
 
 input MintedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -4613,6 +5322,20 @@ input MintedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     operator: Bytes
     operatorData: Bytes
     operatorData_contains: Bytes
@@ -4648,6 +5371,10 @@ input MintedEvent_filter {
 }
 
 input RewardAddressChangedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4674,6 +5401,20 @@ input RewardAddressChangedEvent_filter {
     isSet_in: [Boolean!]
     isSet_not: Boolean
     isSet_not_in: [Boolean!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     rewardAddress: Bytes
     rewardAddress_contains: Bytes
     rewardAddress_in: [Bytes!]
@@ -4703,6 +5444,10 @@ input RewardAddressChangedEvent_filter {
 }
 
 input RoleAdminChangedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4719,6 +5464,20 @@ input RoleAdminChangedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     newAdminRole: Bytes
     newAdminRole_contains: Bytes
     newAdminRole_in: [Bytes!]
@@ -4760,6 +5519,10 @@ input RoleGrantedEvent_filter {
     account_not: Bytes
     account_not_contains: Bytes
     account_not_in: [Bytes!]
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4776,6 +5539,20 @@ input RoleGrantedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     role: Bytes
     role_contains: Bytes
     role_in: [Bytes!]
@@ -4811,6 +5588,10 @@ input RoleRevokedEvent_filter {
     account_not: Bytes
     account_not_contains: Bytes
     account_not_in: [Bytes!]
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -4827,6 +5608,20 @@ input RoleRevokedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     role: Bytes
     role_contains: Bytes
     role_in: [Bytes!]
@@ -4856,6 +5651,10 @@ input RoleRevokedEvent_filter {
 }
 
 input SentEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -4886,6 +5685,20 @@ input SentEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     operator: Bytes
     operatorData: Bytes
     operatorData_contains: Bytes
@@ -4920,6 +5733,149 @@ input SentEvent_filter {
     transactionHash_not_in: [Bytes!]
 }
 
+input StreamPeriod_filter {
+    flowRate: BigInt
+    flowRate_gt: BigInt
+    flowRate_gte: BigInt
+    flowRate_in: [BigInt!]
+    flowRate_lt: BigInt
+    flowRate_lte: BigInt
+    flowRate_not: BigInt
+    flowRate_not_in: [BigInt!]
+    id: ID
+    id_gt: ID
+    id_gte: ID
+    id_in: [ID!]
+    id_lt: ID
+    id_lte: ID
+    id_not: ID
+    id_not_in: [ID!]
+    receiver: String
+    receiver_contains: String
+    receiver_ends_with: String
+    receiver_gt: String
+    receiver_gte: String
+    receiver_in: [String!]
+    receiver_lt: String
+    receiver_lte: String
+    receiver_not: String
+    receiver_not_contains: String
+    receiver_not_ends_with: String
+    receiver_not_in: [String!]
+    receiver_not_starts_with: String
+    receiver_starts_with: String
+    sender: String
+    sender_contains: String
+    sender_ends_with: String
+    sender_gt: String
+    sender_gte: String
+    sender_in: [String!]
+    sender_lt: String
+    sender_lte: String
+    sender_not: String
+    sender_not_contains: String
+    sender_not_ends_with: String
+    sender_not_in: [String!]
+    sender_not_starts_with: String
+    sender_starts_with: String
+    startedAtBlockNumber: BigInt
+    startedAtBlockNumber_gt: BigInt
+    startedAtBlockNumber_gte: BigInt
+    startedAtBlockNumber_in: [BigInt!]
+    startedAtBlockNumber_lt: BigInt
+    startedAtBlockNumber_lte: BigInt
+    startedAtBlockNumber_not: BigInt
+    startedAtBlockNumber_not_in: [BigInt!]
+    startedAtEvent: String
+    startedAtEvent_contains: String
+    startedAtEvent_ends_with: String
+    startedAtEvent_gt: String
+    startedAtEvent_gte: String
+    startedAtEvent_in: [String!]
+    startedAtEvent_lt: String
+    startedAtEvent_lte: String
+    startedAtEvent_not: String
+    startedAtEvent_not_contains: String
+    startedAtEvent_not_ends_with: String
+    startedAtEvent_not_in: [String!]
+    startedAtEvent_not_starts_with: String
+    startedAtEvent_starts_with: String
+    startedAtTimestamp: BigInt
+    startedAtTimestamp_gt: BigInt
+    startedAtTimestamp_gte: BigInt
+    startedAtTimestamp_in: [BigInt!]
+    startedAtTimestamp_lt: BigInt
+    startedAtTimestamp_lte: BigInt
+    startedAtTimestamp_not: BigInt
+    startedAtTimestamp_not_in: [BigInt!]
+    stoppedAtBlockNumber: BigInt
+    stoppedAtBlockNumber_gt: BigInt
+    stoppedAtBlockNumber_gte: BigInt
+    stoppedAtBlockNumber_in: [BigInt!]
+    stoppedAtBlockNumber_lt: BigInt
+    stoppedAtBlockNumber_lte: BigInt
+    stoppedAtBlockNumber_not: BigInt
+    stoppedAtBlockNumber_not_in: [BigInt!]
+    stoppedAtEvent: String
+    stoppedAtEvent_contains: String
+    stoppedAtEvent_ends_with: String
+    stoppedAtEvent_gt: String
+    stoppedAtEvent_gte: String
+    stoppedAtEvent_in: [String!]
+    stoppedAtEvent_lt: String
+    stoppedAtEvent_lte: String
+    stoppedAtEvent_not: String
+    stoppedAtEvent_not_contains: String
+    stoppedAtEvent_not_ends_with: String
+    stoppedAtEvent_not_in: [String!]
+    stoppedAtEvent_not_starts_with: String
+    stoppedAtEvent_starts_with: String
+    stoppedAtTimestamp: BigInt
+    stoppedAtTimestamp_gt: BigInt
+    stoppedAtTimestamp_gte: BigInt
+    stoppedAtTimestamp_in: [BigInt!]
+    stoppedAtTimestamp_lt: BigInt
+    stoppedAtTimestamp_lte: BigInt
+    stoppedAtTimestamp_not: BigInt
+    stoppedAtTimestamp_not_in: [BigInt!]
+    stream: String
+    stream_contains: String
+    stream_ends_with: String
+    stream_gt: String
+    stream_gte: String
+    stream_in: [String!]
+    stream_lt: String
+    stream_lte: String
+    stream_not: String
+    stream_not_contains: String
+    stream_not_ends_with: String
+    stream_not_in: [String!]
+    stream_not_starts_with: String
+    stream_starts_with: String
+    token: String
+    token_contains: String
+    token_ends_with: String
+    token_gt: String
+    token_gte: String
+    token_in: [String!]
+    token_lt: String
+    token_lte: String
+    token_not: String
+    token_not_contains: String
+    token_not_ends_with: String
+    token_not_in: [String!]
+    token_not_starts_with: String
+    token_starts_with: String
+    totalAmountStreamed: BigInt
+    totalAmountStreamed_gt: BigInt
+    totalAmountStreamed_gte: BigInt
+    totalAmountStreamed_in: [BigInt!]
+    totalAmountStreamed_lt: BigInt
+    totalAmountStreamed_lte: BigInt
+    totalAmountStreamed_not: BigInt
+    totalAmountStreamed_not_in: [BigInt!]
+}
+
 input StreamRevision_filter {
     id: ID
     id_gt: ID
@@ -4929,6 +5885,14 @@ input StreamRevision_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    periodRevisionIndex: Int
+    periodRevisionIndex_gt: Int
+    periodRevisionIndex_gte: Int
+    periodRevisionIndex_in: [Int!]
+    periodRevisionIndex_lt: Int
+    periodRevisionIndex_lte: Int
+    periodRevisionIndex_not: Int
+    periodRevisionIndex_not_in: [Int!]
     revisionIndex: Int
     revisionIndex_gt: Int
     revisionIndex_gte: Int
@@ -5041,6 +6005,10 @@ input Stream_filter {
 }
 
 input SubscriptionApprovedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5065,6 +6033,20 @@ input SubscriptionApprovedEvent_filter {
     indexId_lte: BigInt
     indexId_not: BigInt
     indexId_not_in: [BigInt!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -5120,6 +6102,10 @@ input SubscriptionApprovedEvent_filter {
 }
 
 input SubscriptionDistributionClaimedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -5152,6 +6138,20 @@ input SubscriptionDistributionClaimedEvent_filter {
     indexId_lte: BigInt
     indexId_not: BigInt
     indexId_not_in: [BigInt!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -5201,6 +6201,10 @@ input SubscriptionDistributionClaimedEvent_filter {
 }
 
 input SubscriptionRevokedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5225,6 +6229,20 @@ input SubscriptionRevokedEvent_filter {
     indexId_lte: BigInt
     indexId_not: BigInt
     indexId_not_in: [BigInt!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     publisher: Bytes
     publisher_contains: Bytes
     publisher_in: [Bytes!]
@@ -5280,6 +6298,10 @@ input SubscriptionRevokedEvent_filter {
 }
 
 input SubscriptionUnitsUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5304,6 +6326,20 @@ input SubscriptionUnitsUpdatedEvent_filter {
     indexId_lte: BigInt
     indexId_not: BigInt
     indexId_not_in: [BigInt!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     oldUnits: BigInt
     oldUnits_gt: BigInt
     oldUnits_gte: BigInt
@@ -5375,6 +6411,10 @@ input SubscriptionUnitsUpdatedEvent_filter {
 }
 
 input SuperTokenCreatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5391,6 +6431,20 @@ input SuperTokenCreatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5414,6 +6468,10 @@ input SuperTokenCreatedEvent_filter {
 }
 
 input SuperTokenFactoryUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5430,6 +6488,20 @@ input SuperTokenFactoryUpdatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     newFactory: Bytes
     newFactory_contains: Bytes
     newFactory_in: [Bytes!]
@@ -5453,6 +6525,10 @@ input SuperTokenFactoryUpdatedEvent_filter {
 }
 
 input SuperTokenLogicCreatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5469,6 +6545,20 @@ input SuperTokenLogicCreatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5492,6 +6582,10 @@ input SuperTokenLogicCreatedEvent_filter {
 }
 
 input SuperTokenLogicUpdatedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5514,6 +6608,20 @@ input SuperTokenLogicUpdatedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5551,6 +6659,10 @@ input TokenDowngradedEvent_filter {
     account_not_in: [String!]
     account_not_starts_with: String
     account_starts_with: String
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -5575,6 +6687,20 @@ input TokenDowngradedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5741,6 +6867,10 @@ input TokenUpgradedEvent_filter {
     account_not_in: [String!]
     account_not_starts_with: String
     account_starts_with: String
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     amount: BigInt
     amount_gt: BigInt
     amount_gte: BigInt
@@ -5765,6 +6895,20 @@ input TokenUpgradedEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5804,6 +6948,14 @@ input Token_filter {
     createdAtTimestamp_lte: BigInt
     createdAtTimestamp_not: BigInt
     createdAtTimestamp_not_in: [BigInt!]
+    decimals: Int
+    decimals_gt: Int
+    decimals_gte: Int
+    decimals_in: [Int!]
+    decimals_lt: Int
+    decimals_lte: Int
+    decimals_not: Int
+    decimals_not_in: [Int!]
     id: ID
     id_gt: ID
     id_gte: ID
@@ -5854,9 +7006,27 @@ input Token_filter {
     underlyingAddress_not: Bytes
     underlyingAddress_not_contains: Bytes
     underlyingAddress_not_in: [Bytes!]
+    underlyingToken: String
+    underlyingToken_contains: String
+    underlyingToken_ends_with: String
+    underlyingToken_gt: String
+    underlyingToken_gte: String
+    underlyingToken_in: [String!]
+    underlyingToken_lt: String
+    underlyingToken_lte: String
+    underlyingToken_not: String
+    underlyingToken_not_contains: String
+    underlyingToken_not_ends_with: String
+    underlyingToken_not_in: [String!]
+    underlyingToken_not_starts_with: String
+    underlyingToken_starts_with: String
 }
 
 input TransferEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5887,6 +7057,20 @@ input TransferEvent_filter {
     id_lte: ID
     id_not: ID
     id_not_in: [ID!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     timestamp: BigInt
     timestamp_gt: BigInt
     timestamp_gte: BigInt
@@ -5932,6 +7116,10 @@ input TransferEvent_filter {
 }
 
 input TrustedForwarderChangedEvent_filter {
+    addresses: [Bytes!]
+    addresses_contains: [Bytes!]
+    addresses_not: [Bytes!]
+    addresses_not_contains: [Bytes!]
     blockNumber: BigInt
     blockNumber_gt: BigInt
     blockNumber_gte: BigInt
@@ -5968,6 +7156,20 @@ input TrustedForwarderChangedEvent_filter {
     isSet_in: [Boolean!]
     isSet_not: Boolean
     isSet_not_in: [Boolean!]
+    name: String
+    name_contains: String
+    name_ends_with: String
+    name_gt: String
+    name_gte: String
+    name_in: [String!]
+    name_lt: String
+    name_lte: String
+    name_not: String
+    name_not_contains: String
+    name_not_ends_with: String
+    name_not_in: [String!]
+    name_not_starts_with: String
+    name_starts_with: String
     superToken: Bytes
     superToken_contains: Bytes
     superToken_in: [Bytes!]

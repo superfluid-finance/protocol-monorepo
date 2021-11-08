@@ -46,6 +46,7 @@ jobs:
           yarn test
         env:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
   coverage:
     name: Run coverage test of dev branch
@@ -100,6 +101,8 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Build
         run: yarn build
@@ -144,6 +147,8 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Deploy to ${{ matrix.network }}
         run: |

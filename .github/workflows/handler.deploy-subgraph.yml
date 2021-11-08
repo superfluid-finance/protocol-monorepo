@@ -30,6 +30,8 @@ jobs:
       - name: "Install contract dependencies"
         run: yarn
         working-directory: ${{ env.contracts-working-directory }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: "Build contracts"
         run: yarn run build:contracts
@@ -38,6 +40,8 @@ jobs:
       - name: "Install subgraph dependencies"
         run: yarn
         working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: "Get ABI"
         run: node scripts/getAbi.js

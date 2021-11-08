@@ -63,6 +63,8 @@ jobs:
           yarn install --frozen-lockfile
           yarn lint
           yarn build
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Test ethereum-contracts
         run: |
@@ -88,6 +90,8 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Run coverage test
         run: |
@@ -118,6 +122,8 @@ jobs:
           yarn install --frozen-lockfilepull_request
           yarn lint
           yarn build
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Test js-sdk
         run: |
@@ -164,11 +170,11 @@ jobs:
           chmod +x setup.sh
           ./setup.sh
         working-directory: ./graph-node/docker
-      
+
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ./graph-node/docker
-      
+
       - name: "Install yarn"
         run: npm install -g yarn ganache-cli
 

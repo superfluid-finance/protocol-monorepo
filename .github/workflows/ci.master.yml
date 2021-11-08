@@ -43,6 +43,7 @@ jobs:
           yarn test
         env:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
   coverage:
     name: Run coverage test of master branch
@@ -63,6 +64,8 @@ jobs:
           yarn build
           cd packages/ethereum-contracts
           yarn test-coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2

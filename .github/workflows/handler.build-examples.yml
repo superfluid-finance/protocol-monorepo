@@ -54,6 +54,8 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           yarn test
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Deployment
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}

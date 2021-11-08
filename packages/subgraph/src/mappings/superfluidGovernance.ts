@@ -16,6 +16,8 @@ export function handleConfigChanged(event: ConfigChanged): void {
     let ev = new ConfigChangedEvent(createEventID("ConfigChanged", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "ConfigChanged";
+    ev.addresses = [];
     ev.blockNumber = event.block.number;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -31,6 +33,8 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "RewardAddressChanged";
+    ev.addresses = [];
     ev.blockNumber = event.block.number;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -47,6 +51,8 @@ export function handleCFAv1LiquidationPeriodChanged(
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "CFAv1LiquidationPeriodChanged";
+    ev.addresses = [];
     ev.blockNumber = event.block.number;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -63,6 +69,8 @@ export function handleTrustedForwarderChanged(
     );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "TrustedForwarderChanged";
+    ev.addresses = [];
     ev.blockNumber = event.block.number;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;

@@ -17,6 +17,8 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.name = "RoleAdminChanged";
+    ev.addresses = [];
     ev.role = event.params.role;
     ev.previousAdminRole = event.params.previousAdminRole;
     ev.newAdminRole = event.params.newAdminRole;
@@ -28,6 +30,8 @@ export function handleRoleGranted(event: RoleGranted): void {
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.name = "RoleGranted";
+    ev.addresses = [];
     ev.role = event.params.role;
     ev.account = event.params.account;
     ev.sender = event.params.sender;
@@ -38,6 +42,8 @@ export function handleRoleRevoked(event: RoleRevoked): void {
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
+    ev.name = "RoleRevoked";
+    ev.addresses = [];
     ev.role = event.params.role;
     ev.account = event.params.account;
     ev.sender = event.params.sender;

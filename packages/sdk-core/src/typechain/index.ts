@@ -4,19 +4,13 @@
 export type { IConstantFlowAgreementV1 } from "./IConstantFlowAgreementV1";
 export type { IInstantDistributionAgreementV1 } from "./IInstantDistributionAgreementV1";
 export type { IResolver } from "./IResolver";
-export type { ISuperfluid } from "./ISuperfluid";
-export type { ISuperfluidGovernance } from "./ISuperfluidGovernance";
-export type { ISuperToken } from "./ISuperToken";
-export type { ISuperTokenFactory } from "./ISuperTokenFactory";
-export type { SuperfluidGovernanceBase } from "./SuperfluidGovernanceBase";
-export type { TestResolver } from "./TestResolver";
+export type { Superfluid } from "./Superfluid";
+export type { SuperfluidLoader } from "./SuperfluidLoader";
+export type { SuperToken } from "./SuperToken";
 
 export { IConstantFlowAgreementV1__factory } from "./factories/IConstantFlowAgreementV1__factory";
 export { IInstantDistributionAgreementV1__factory } from "./factories/IInstantDistributionAgreementV1__factory";
 export { IResolver__factory } from "./factories/IResolver__factory";
-export { ISuperfluid__factory } from "./factories/ISuperfluid__factory";
-export { ISuperfluidGovernance__factory } from "./factories/ISuperfluidGovernance__factory";
-export { ISuperToken__factory } from "./factories/ISuperToken__factory";
-export { ISuperTokenFactory__factory } from "./factories/ISuperTokenFactory__factory";
-export { SuperfluidGovernanceBase__factory } from "./factories/SuperfluidGovernanceBase__factory";
-export { TestResolver__factory } from "./factories/TestResolver__factory";
+export { Superfluid__factory } from "./factories/Superfluid__factory";
+export { SuperfluidLoader__factory } from "./factories/SuperfluidLoader__factory";
+export { SuperToken__factory } from "./factories/SuperToken__factory";

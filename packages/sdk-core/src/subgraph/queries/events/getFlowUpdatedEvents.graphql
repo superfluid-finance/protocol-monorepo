@@ -1,0 +1,24 @@
+query getFlowUpdatedEvents($where: FlowUpdatedEvent_filter!, $skip: Int!, $first: Int!) {
+    result: flowUpdatedEvents(
+        where: $where,
+        skip: $skip
+        first: $first,
+        orderBy: timestamp,
+        orderDirection: asc
+    ) {
+        id
+        blockNumber
+        timestamp
+        transactionHash
+        token
+        sender
+        receiver
+        flowRate
+        totalSenderFlowRate
+        totalReceiverFlowRate
+        userData
+        oldFlowRate
+        type
+        totalAmountStreamedUntilTimestamp
+    }
+}

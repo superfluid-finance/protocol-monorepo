@@ -1,16 +1,19 @@
-import Ajv, { JSONSchemaType } from "ajv";
+import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 import { ethers } from "ethers";
+import { handleError } from "./errorHelper";
 import {
+    IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
     IIndexSubscriptionRequestFilter,
-    IPaginateRequest,
     IStreamRequestFilter,
+    ISuperTokenRequestFilter,
 } from "./interfaces";
 
 const ajv = new Ajv();
 ajv.addFormat("addressOrEmpty", {
     type: "string",
-    validate: (x: string) => x === "" || ethers.utils.isAddress(x),
+    validate: (x: string) =>
+        x === "" || (ethers.utils.isAddress(x) && x === x.toLowerCase()), // TODO(KK): Handle lower-case use-case better. Probably should not be a matter of validation.
 });
 ajv.addFormat("stringNumber", {
     type: "string",
@@ -18,12 +21,11 @@ ajv.addFormat("stringNumber", {
 });
 
 // Schemas
-const paginateSchema: JSONSchemaType<IPaginateRequest> = {
+const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
     type: "object",
     additionalProperties: false,
     properties: {
-        first: { type: "number", nullable: true },
-        skip: { type: "number", nullable: true },
+        isListed: { type: "boolean", nullable: true },
     },
 };
 
@@ -36,6 +38,20 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
         token: { type: "string", format: "addressOrEmpty", nullable: true },
     },
 };
+
+const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> =
+    {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            account: {
+                type: "string",
+                format: "addressOrEmpty",
+                nullable: true,
+            },
+            token: { type: "string", format: "addressOrEmpty", nullable: true },
+        },
+    };
 
 const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> =
     {
@@ -61,18 +77,36 @@ const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     },
 };
 
-// Validate functions
-export const validateIndexRequest = ajv.compile(indexRequestSchema);
-export const validateIndexSubscriptionRequest = ajv.compile(indexSubscriptionRequestSchema);
-export const validatePaginateOptions = ajv.compile(paginateSchema);
-export const validateStreamRequest = ajv.compile(streamRequestSchema);
+function wrapValidationWithCustomError<T>(
+    validateFunction: ValidateFunction<T>
+) {
+    return (filter: T) => {
+        if (!validateFunction(filter)) {
+            handleError(
+                "INVALID_OBJECT",
+                "Invalid Filter Object",
+                JSON.stringify(validateFunction.errors)
+            );
+        }
+    };
+}
 
-// Validate function helper
-export const handleValidatePaginate = (paginateOptions: IPaginateRequest) => {
-    if (!validatePaginateOptions(paginateOptions)) {
-        throw new Error(
-            "Invalid paginate object - " +
-                JSON.stringify(validatePaginateOptions.errors)
-        );
-    }
-};
+// Validate functions
+export const validateSuperTokenRequest = wrapValidationWithCustomError(
+    ajv.compile<ISuperTokenRequestFilter>(superTokenRequestSchema)
+);
+export const validateIndexRequest = wrapValidationWithCustomError(
+    ajv.compile<IIndexRequestFilter>(indexRequestSchema)
+);
+export const validateIndexSubscriptionRequest = wrapValidationWithCustomError(
+    ajv.compile<IIndexSubscriptionRequestFilter>(indexSubscriptionRequestSchema)
+);
+export const validateStreamRequest = wrapValidationWithCustomError(
+    ajv.compile<IStreamRequestFilter>(streamRequestSchema)
+);
+export const validateAccountTokenSnapshotRequest =
+    wrapValidationWithCustomError(
+        ajv.compile<IAccountTokenSnapshotFilter>(
+            accountTokenSnapshotRequestSchema
+        )
+    );

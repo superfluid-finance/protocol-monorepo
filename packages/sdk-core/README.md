@@ -22,125 +22,319 @@
 
 # Usage
 
-## Read-only Initialization
+## Framework Initialization
 
-Here is a quick look at using the SDK in different environments:
+Here is a quick look at initialzing the SDK in different environments:
 
-TypeScript:
+TypeScript / JavaScript (Module):
 
 ```ts
-import SuperfluidSDK, {
-    ChainId,
-    NetworkName,
-} from "@superfluid-finance/sdk-core";
+import { Framework } from "@superfluid-finance/sdk-core";
 
-const sf = new SuperfluidSDK.Framework({
-    chainId: ChainId.MATIC,
-    networkName: NetworkName.MATIC
+const provider = new ethers.providers.InfuraProvider(
+	"matic",
+	"<INFURA_API_KEY>"
+);
+const sf = await Framework.create({
+  networkName: "matic",
+	provider
 });
-```
 
-JavaScript (Module):
-
-```js
-import SuperfluidSDK from "@superfluid-finance/sdk-core";
-
-const sf = new SuperfluidSDK.Framework({
-    chainId: 137,
-    networkName: "matic"
-});
 ```
 
 JavaScript (CommonJS) - usually a Node.js environment:
 
 ```js
-const SuperfluidSDK = require("@superfluid-finance/sdk-core");
+const { Framework } = require("@superfluid-finance/sdk-core");
 
-const sf = new SuperfluidSDK.Framework({
-    chainId: 137,
-    networkName: "matic"
+const provider = new ethers.providers.InfuraProvider(
+	"matic",
+	"<INFURA_API_KEY>"
+);
+const sf = await Framework.create({
+  networkName: "matic",
+	provider
 });
 ```
 
 > Note: You specify your project type in `package.json` - `"type": "module"` or `"type": "commonjs"`.
 
-This is the absolute minimum you need to provide the constructor (`chainId` or `networkName`) if all you want to do is query data.
+This is the absolute minimum you need to provide the constructor (`chainId` or `networkName` and a `provider` object) if all you want to do are read operations.
 
-## Queries
+## Helper Classes
 
-Once you have initialized the sf framework, you can make queries using it easily.
+The `Framework` includes a variety of helper classes which can be directly accessed upon initialization, but can also be initialized as standalone classes if desired.
 
-### Pre-Defined Queries
+### Query
+
+Once you have initialized the `Framework` class using `Framework.create`, you can make queries using it easily.
+
+#### Pre-Defined Queries
 
 A list of the pre-defined queries:
-```ts
-sf.query.
-	listAllSuperTokens()
-	listStreams({ sender?: string, receiver?: string, token?: string }, { first?: number, skip?: number })
-	listUserInteractedSuperTokens({ account?: string })
-```
-
-### Pagination
-
-Some of the pre-defined query functions will accept pagination options: `({ first?: number, skip?: number })`. You can also write custom queries which take these options
-
-### Custom Queries
-
-If you would like, you can also build your own custom queries and pass them into the following function:
-```ts
-sf.query.custom(query: string, variables?: { [key: string]: any })
-```
-
-You may want to query some data which isn't part of the list of the pre-built queries. If you are interested, you can check out our schema in our [docs](https://docs.superfluid.finance/superfluid/docs/subgraph). You can do the following with the custom query function:
 
 ```ts
-import { gql } from "graphql-request";
-let query = gql`
-	{
-		response: accountTokenSnapshots(where: { account: $account, token: $token }, first: $first, skip: $skip) {
-			id
-			totalNumberOfActiveStreams
-			totalNumberOfClosedStreams
-			token {
-				id
-				name
-				symbol
-			}
-		}
-	}
-`;
+const { Framework } = require("@superfluid-finance/sdk-core");
 
-// Note: it is important to convert all addresses to lower case when querying the graph using an address.
-const id = {
-	account: "0x001fbfe0e74adedea03e6ad3e2fc1eee1a2d5045",
-	token: "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3",
-	first: 150,
-	skip: 25
-};
+const provider = new ethers.providers.InfuraProvider(
+	"matic",
+	"<INFURA_API_KEY>"
+);
+const sf = await Framework.create({
+  networkName: "matic",
+	provider
+});
 
-const accountResponse = await sf.query.custom(query, id);
-console.log(accountResponse);
-
-/**
-Prints out:
-{
-	response: {
-		id: "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3",
-		accountTokenSnapshots: [
-			{
-				id: "0x...",
-				totalNumberOfStreams: 0,
-				totalNumberOfClosedStreams: 0,
-				token: {
-					id: "0x...",
-					name: "Super MATIC",
-					symbol: "MATICx"
-				}
-			}
-		]
-	}	
-}
-*/
+const pageResult = await sf.query.
+  listAllSuperTokens({ isListed?: boolean }, { skip: number, take: number });
+  listIndexes({ indexId?: string, publisher?: string, token?: string }, { skip: number, take: number });
+  listIndexSubscriptions({ subscriber?: string, approved?: boolean }, { skip: number, take: number });
+  listStreams({ sender?: string, receiver?: string, token?: string }, { skip: number, take: number });
+  listUserInteractedSuperTokens({ account?: string, token?: string }, { skip: number, take: number });
 ```
+
+#### Direct Initialization
+
+If you'd like, you can also initialize the `Query` class as a standalone class like so:
+
+```ts
+import { Query } from "@superfluid-finance/sdk-core";
+const query = new Query({ customSubgraphQueriesEndpoint: "<A_CUSTOM_ENDPOINT>", dataMode: "SUBGRAPH_ONLY" | "SUBGRAPH_WEB3" | "WEB3_ONLY" });
+query.listAllSuperTokens({ isListed?: boolean }, { skip: number, take: number })
+//...same queries as above...
+```
+
+#### Pagination
+
+All of the pre-defined query functions will accept pagination options: `({ skip: number, take: number })`, if you don't pass anything in, it will use a default of: `{ skip: 0, take: 100 }`.
 
 > Note: this example uses the `graphql-request` library, but you just need to provide a valid query which is a string.
+
+### Creating a Signer
+
+In order to execute a transaction on the blockchain, you need to have a signer. That is, you need to have access to an EOA (Externally Owned Account) to trigger any sort of change. You can do this through a contract, but an EOA still has to be the one which triggers the contract to interact with another contract. The signer that is returned will be passed when executing transactions.
+
+#### Web3Provider Signer Example
+
+Below is an example of using the `Web3Provider` object to create a signer. This will likely be the way that most client-side applications create a signer.
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import Web3Modal from "web3modal";
+import { Web3Provider } from "@ethersproject/providers";
+
+// web3Modal example
+const web3ModalRawProvider = await web3Modal.connect();
+const web3ModalProvider = new Web3Provider(web3ModalRawProvider, "any");
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider: web3ModalProvider,
+});
+
+const web3ModalSigner = sf.createSigner(web3ModalProvider);
+
+// MetaMask example
+const metamaskProvider = new Web3Provider(window.ethereum);
+const metaMaskSigner = sf.createSigner(metamaskProvider);
+```
+
+#### Hardhat Signer Example
+
+Below is an example of creating a signer in a `Hardhat` + `ethers.js` environment. This will likely be the way that the `sdk-core` is used in a testing environment.
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "hardhat";
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider: ethers.provider,
+});
+
+const signer = sf.createSigner({
+  privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>",
+  provider: ethers.provider,
+});
+```
+
+// TODO: web3.js/truffle
+
+#### Signer/Wallet Example
+
+Below is an example of creating a signer passing in a signer object (this can be a wallet for example). This will likely be the way that the `sdk-core` is used in a Node.js environment (back-end) or a testing environment.
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
+const wallet = new ethers.Wallet(
+  "cf2bea4c6aad8dbc387d5dd68bf408999b0b1ee949e04ff1d96dd60bc3553a49",
+  provider
+);
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider,
+});
+
+const signer = sf.createSigner({
+  signer: wallet
+});
+```
+
+### Operation
+
+The `Operation` class is an object that is returned after you execute a contract call from this package - instead of immediately executing, we return the `Operation` class which can be executed to actual broadcast the transaction or used to create a `BatchCall` class.
+
+#### Usage
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const sf = await Framework.create({
+  networkName: "matic",
+	provider
+});
+
+// create a signer
+const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
+
+// load the usdcx SuperToken via the Framework
+const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+
+// create an approve operation
+const approveOperation = await usdcx.approve("0xab...", ethers.utils.parseUnits("100"));
+
+// execute the approve operation, passing in a signer
+const txn = await approveOperation.exec(signer);
+
+// wait for the transaction to be confirmed
+const receipt = await txn.wait();
+```
+
+### ConstantFlowAgreementV1
+
+The `ConstantFlowAgreementV1` helper class provides access to create/update/delete flows. You can access this via the `Framework` class (`sf.cfaV1`) or initialize this as a standalone class.
+
+#### Direct Initialization
+
+```ts
+import { ConstantFlowAgreementV1 } from "@superfluid-finance/sdk-core";
+
+const config = {
+	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+};
+
+const cfaV1 = new ConstantFlowAgreementV1({ options: config });
+```
+
+#### CFAV1 Functions
+```ts
+await sf.cfaV1.createFlow({ sender: string, receiver: string, token: string, flowRate: string, userData?: string });
+await sf.cfaV1.updateFlow({ sender: string, receiver: string, token: string, flowRate: string, userData?: string });
+await sf.cfaV1.deleteFlow({ sender: string, receiver: string, token: string, userData?: string });
+```
+
+### InstantDistributionAgreementV1
+
+The `InstantDistributionAgreementV1` helper class provides access to a variety of IDA functions. You can access this via the `Framework` class (`sf.idaV1`) or initialize this as a standalone class.
+
+#### Direct Initialization
+
+```ts
+import { InstantDistributionAgreementV1 } from "@superfluid-finance/sdk-core";
+
+const config = {
+	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+	idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+};
+
+const idaV1 = new InstantDistributionAgreementV1({ options: config });
+```
+
+#### IDAV1 Functions
+```ts
+await sf.idaV1.createIndex({ indexId: string, userData: string });
+await sf.idaV1.distribute({ indexId: string, amount: string, userData: string });
+await sf.idaV1.updateIndexValue({ indexId: string, indexValue: string, userData: string });
+await sf.idaV1.updateSubscriptionUnits({ indexId: string, subscriber: string, units: string, userData: string });
+await sf.idaV1.approveSubscription({ indexId: string, subscriber: string, userData: string });
+await sf.idaV1.revokeSubscription({ indexId: string, subscriber: string, userData: string });
+await sf.idaV1.deleteSubscription({ indexId: string, subscriber: string, publisher: string, userData: string });
+await sf.idaV1.claim({ indexId: string, subscriber: string, publisher: string, userData: string });
+```
+
+### SuperToken
+
+The `SuperToken` class can also be accessed via the `Framework` class and allows you read from/write to the blockchain. It also provides write functions for both the CFAV1 and IDAV1 contracts in the context of the token. That is, the token field for these different methods will be the token address specified during the creation of this class. 
+
+#### Framework based initialization
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+
+const sf = await Framework.create({
+  networkName: "matic",
+	provider
+});
+
+const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+```
+
+#### Direct Initialization
+
+```ts
+import { SuperToken } from "@superfluid-finance/sdk-core";
+
+const config = {
+	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+};
+
+const usdcx = new SuperToken({
+  address: "0xCAa7349CEA390F89641fe306D93591f87595dc1F",
+  config,
+  networkName: "matic",
+});
+```
+
+#### SuperToken Functions
+
+```ts
+const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
+
+// SuperToken Read Functions
+await usdcx.balanceOf(address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer);
+await usdcx.realtimeBalanceOf(address: string, timestamp: string, providerOrSigner: ethers.providers.Provider | ethers.Signer);
+await usdcx.realtimeBalanceOfNow(address: string, providerOrSigner: ethers.providers.Provider | ethers.Signer);
+
+// Write Functions
+// All write functions return Promise<Operation>
+
+// SuperToken Write Functions
+await usdcx.approve(recipient: string, amount: string);
+await usdcx.downgrade(amount: string);
+await usdcx.transfer(recipient: string, amount: string);
+await usdcx.transferFrom(sender: string, recipient: string, amount: string);
+await usdcx.upgrade(amount: string);
+
+// SuperToken CFAV1/IDAV1 Functions are the same as the 
+// ConstantFlowAgreementV1/InstantDistributionAgreementV1 class functions
+// except instead of the sf.cfaV1/idaV1.function() signature, it is token.function()
+// and you don't need to pass in a token as a parameter as it uses the token address
+// of the instantiated class.
+```

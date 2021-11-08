@@ -1,0 +1,15 @@
+query getTokens($where: Token_filter!, $skip: Int!, $first: Int!) {
+    result: tokens(
+        where: $where,
+        skip: $skip
+        first: $first,
+    ) {
+        id
+        createdAtTimestamp
+        createdAtBlockNumber
+        name
+        symbol
+        isListed
+        underlyingAddress
+    }
+}

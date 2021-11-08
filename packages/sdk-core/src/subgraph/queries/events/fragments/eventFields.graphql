@@ -1,0 +1,6 @@
+fragment eventFields on Event {
+    __typename
+    blockNumber
+    transactionHash
+    timestamp
+}

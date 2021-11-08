@@ -1,0 +1,6 @@
+query getEventIds($skip: Int!, $first: Int!) {
+    events(skip: $skip, first: $first, orderBy: blockNumber, orderDirection: asc) {
+        __typename
+        id
+    }
+}

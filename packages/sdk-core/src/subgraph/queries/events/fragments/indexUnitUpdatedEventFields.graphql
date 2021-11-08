@@ -1,0 +1,10 @@
+fragment indexUnitUpdatedEventFields on IndexUnitsUpdatedEvent {
+    token
+    publisher
+    indexId
+    subscriber
+    units
+    userData
+    oldUnits
+    ...eventFields
+}

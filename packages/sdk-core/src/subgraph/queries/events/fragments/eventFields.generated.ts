@@ -1,4 +1,3 @@
-import * as Types from "../../../schema.generated";
 
 import { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
 export type EventFields_AgreementClassRegisteredEvent_Fragment = {

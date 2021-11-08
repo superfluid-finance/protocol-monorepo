@@ -32,12 +32,12 @@ TypeScript / JavaScript (Module):
 import { Framework } from "@superfluid-finance/sdk-core";
 
 const provider = new ethers.providers.InfuraProvider(
-	"matic",
-	"<INFURA_API_KEY>"
+  "matic",
+  "<INFURA_API_KEY>"
 );
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 ```
@@ -48,18 +48,18 @@ JavaScript (CommonJS) - usually a Node.js environment:
 const { Framework } = require("@superfluid-finance/sdk-core");
 
 const provider = new ethers.providers.InfuraProvider(
-	"matic",
-	"<INFURA_API_KEY>"
+  "matic",
+  "<INFURA_API_KEY>"
 );
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 ```
 
 > Note: You specify your project type in `package.json` - `"type": "module"` or `"type": "commonjs"`.
 
-This is the absolute minimum you need to provide the constructor (`chainId` or `networkName` and a `provider` object) if all you want to do are read operations.
+This is the absolute minimum you need to provide the constructor (`chainId` or `networkName` and a `provider` object) if all you want to do are read operations. It is also important to note that the provider does not need to be an InfuraProvider - it just needs to satisfy the `ethers.Provider` interface.
 
 ## Helper Classes
 
@@ -190,7 +190,7 @@ const signer = sf.createSigner({
 
 ### Operation
 
-The `Operation` class is an object that is returned after you execute a contract call from this package - instead of immediately executing, we return the `Operation` class which can be executed to actual broadcast the transaction or used to create a `BatchCall` class.
+The `Operation` class is an object that is returned after you execute a contract call from this package - instead of immediately executing, we return the `Operation` class which can be either executed to broadcast the transaction or used to create and execute a `BatchCall`.
 
 #### Usage
 
@@ -198,9 +198,14 @@ The `Operation` class is an object that is returned after you execute a contract
 import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
 
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 // create a signer
@@ -210,13 +215,17 @@ const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provi
 const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 
 // create an approve operation
-const approveOperation = await usdcx.approve("0xab...", ethers.utils.parseUnits("100"));
+const approveOperation = usdcx.approve("0xab...", ethers.utils.parseUnits("100"));
 
 // execute the approve operation, passing in a signer
 const txn = await approveOperation.exec(signer);
 
 // wait for the transaction to be confirmed
 const receipt = await txn.wait();
+
+// or you can create and execute the transaction in a single line
+const approveTxn = await usdcx.approve("0xab...", ethers.utils.parseUnits("100")).exec(signer);
+const approveTxnReceipt = await approveTxn.wait();
 ```
 
 ### ConstantFlowAgreementV1
@@ -229,10 +238,10 @@ The `ConstantFlowAgreementV1` helper class provides access to create/update/dele
 import { ConstantFlowAgreementV1 } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const cfaV1 = new ConstantFlowAgreementV1({ options: config });
@@ -255,10 +264,10 @@ The `InstantDistributionAgreementV1` helper class provides access to a variety o
 import { InstantDistributionAgreementV1 } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  idaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const idaV1 = new InstantDistributionAgreementV1({ options: config });
@@ -284,10 +293,16 @@ The `SuperToken` class can also be accessed via the `Framework` class and allows
 
 ```ts
 import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
 
 const sf = await Framework.create({
   networkName: "matic",
-	provider
+  provider
 });
 
 const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
@@ -299,10 +314,10 @@ const usdcx = sf.loadToken("0xCAa7349CEA390F89641fe306D93591f87595dc1F");
 import { SuperToken } from "@superfluid-finance/sdk-core";
 
 const config = {
-	hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-	superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-	cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-	idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
 };
 
 const usdcx = new SuperToken({
@@ -337,4 +352,77 @@ await usdcx.upgrade(amount: string);
 // except instead of the sf.cfaV1/idaV1.function() signature, it is token.function()
 // and you don't need to pass in a token as a parameter as it uses the token address
 // of the instantiated class.
+```
+
+### Batch Call
+
+The `BatchCall` class allows the user to batch multiple supported operations/transactions in one operation. Similar to the other helper classes, we can create this either through the `Framework` or directly initialize this.
+
+#### Supported Operations
+
+Not all operations are supported by the batch call feature, below is a list of the supported operations:
+
+- ERC20_APPROVE (SuperToken only)
+- ERC20_TRANSFER_FROM
+- SUPERTOKEN_UPGRADE
+- SUPERTOKEN_DOWNGRADE
+- SUPERFLUID_CALL_AGREEMENT
+- CALL_APP_ACTION
+
+Most of the token methods are self explanatory, but some additional context for the last two operations is helpful.
+`SUPERFLUID_CALL_AGREEMENT` refers to all operations related to the CFA or IDA (`createFlow`, `updateIndex`, `distribute`, etc.).
+`CALL_APP_ACTION` refers to an operation which is created from calling a function that exists on a super app you have created. Refer to Usage below to see how you can create a `CALL_APP_ACTION` operation.
+
+#### Framework based initialization
+
+```ts
+import { Framework } from "@superfluid-finance/sdk-core";
+import { ethers } from "ethers";
+
+const provider = new ethers.providers.InfuraProvider(
+  "matic",
+  "<INFURA_API_KEY>"
+);
+
+const sf = await Framework.create({
+  networkName: "matic",
+  provider
+});
+
+const signer = sf.createSigner({ privateKey: "<TEST_ACCOUNT_PRIVATE_KEY>", provider });
+const batchCall = sf.batchCall([<OPERATION_A>, <OPERATION_B>, ...]);
+```
+
+#### Direct Initialization
+
+```ts
+import { SuperToken } from "@superfluid-finance/sdk-core";
+
+const config = {
+  hostAddress: "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
+  superTokenFactoryAddress: "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
+  cfaV1Address: "0x6EeE6060f715257b970700bc2656De21dEdF074C",
+  idaV1Address: "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1"
+};
+
+const batchCall = new BatchCall({
+  config,
+  operations: [<OPERATION_A>, <OPERATION_B>, ...],
+});
+```
+
+#### Usage
+
+```ts
+const txn = await batchCall.execute(signer);
+
+// creating an operation from a super app function
+// initialize your super app contract
+const superApp = new ethers.Contract("0x...", <SUPER_APP_ABI>);
+
+// populate the transaction
+const superAppTransactionPromise = superApp.populateTransaction.helloWorld("hello world");
+
+// create the super app operation you can execute this operation directly or pass it in to a batch call
+const superAppOperation = new Operation(superAppOperation, "CALL_APP_ACTION");
 ```

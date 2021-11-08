@@ -19,11 +19,7 @@ import {
 
 // Simple contract which allows users to create NFTs with attached streams
 
-//add access controls
-//finish split and merge
-//write scripts, add to separate branch, but don't ask miao to merge until CI/CD stuff is good to go
 
-//could probably rename to NFTBudgeting
 contract BudgetNFT is ERC721, Ownable {
 
     ISuperfluid private _host; // host
@@ -109,11 +105,8 @@ contract BudgetNFT is ERC721, Ownable {
         address newReceiver,
         uint256 tokenId
     ) internal override {
-        //blocks transfers to superApps
+        //blocks transfers to superApps - done for simplicity, but you could support super apps in a new version!
         require(!_host.isApp(ISuperApp(newReceiver)) || newReceiver == address(this), "New receiver can not be a superApp"); 
-        // why? Because I haven't thought of how things could go wrong... 
-        // could be quite interesting, in fact, think about all the possibilities... 
-
 
         // @dev delete flowRate of this token from old receiver
         // ignores minting case
@@ -167,7 +160,7 @@ contract BudgetNFT is ERC721, Ownable {
     /**************************************************************************
      * Library
      *************************************************************************/
-     //maybe call this reduceOrDelete()
+     //this will reduce the flow or delete it
     function _reduceFlow(address to, int96 flowRate) internal {
         if(to == address(this)) return;
         
@@ -181,11 +174,9 @@ contract BudgetNFT is ERC721, Ownable {
             _updateFlow(to, outFlowRate - flowRate);
         } 
         // won't do anything if outFlowRate < flowRate
-        // so if you try to reduce it more than possible, nothing will happen. 
-        // might be better if it went to zero, or reverted? 
     } 
     
-     //maybe call this increaseOrBegin()
+     //this will increase the flow or delete it
     function _increaseFlow(address to, int96 flowRate) internal {
         (, int96 outFlowRate, , ) = _cfa.getFlow(_acceptedToken, address(this), to); //returns 0 if stream doesn't exist
         if (outFlowRate == 0) {

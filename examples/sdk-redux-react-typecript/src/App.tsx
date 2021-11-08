@@ -28,6 +28,7 @@ import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
 import { SerializedError } from "@reduxjs/toolkit";
 import {Web3Provider} from "@ethersproject/providers";
+import {EventTable} from "./EventTable";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -188,7 +189,7 @@ function App() {
         <Container maxWidth={false}>
             <Box sx={{ my: 4 }}>
                 <Typography variant="h2" component="h2" gutterBottom>
-                    Redux-SDK example
+                    SDK-Redux example
                 </Typography>
                 {!superfluidSdk ? (
                     <InitializeSuperfluidSdk
@@ -223,9 +224,9 @@ function App() {
                                 component="h3"
                                 gutterBottom
                             >
-                                Active Streams
+                                Transactions
                             </Typography>
-                            <StreamTable />
+                            <TransactionTable />
                         </Box>
                         <Box maxWidth="xl">
                             <Typography
@@ -233,9 +234,19 @@ function App() {
                                 component="h3"
                                 gutterBottom
                             >
-                                Transactions
+                                All Events
                             </Typography>
-                            <TransactionTable />
+                            <EventTable />
+                        </Box>
+                        <Box maxWidth="xl">
+                            <Typography
+                                variant="h3"
+                                component="h3"
+                                gutterBottom
+                            >
+                                Active Streams
+                            </Typography>
+                            <StreamTable />
                         </Box>
                     </SignerContext.Provider>
                 )}

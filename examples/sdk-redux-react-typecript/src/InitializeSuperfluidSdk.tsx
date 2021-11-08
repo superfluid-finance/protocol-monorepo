@@ -27,7 +27,10 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         const web3ModalProvider = await web3Modal.connect();
         const ethersWeb3Provider = new Web3Provider(web3ModalProvider);
 
-        const superfluidSdk = await Framework.create({chainId: 5, provider: ethersWeb3Provider});
+        const superfluidSdk = await Framework.create({
+            chainId: 5,
+            provider: ethersWeb3Provider,
+        });
 
         // @ts-ignore
         window.sf = superfluidSdk;
@@ -40,6 +43,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
             5,
             Promise.resolve(ethersWeb3Provider.getSigner() as any) // TODO(KK): as any
         );
+
         onSuperfluidSdkInitialized(superfluidSdk, ethersWeb3Provider);
     };
 

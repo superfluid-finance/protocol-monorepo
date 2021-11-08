@@ -19,6 +19,7 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                     await initializedSuperfluidSource.getFrameworkAndSigner(
                         arg.chainId
                     );
+
                 const superToken = framework.loadSuperToken(arg.superToken);
                 const transactionResponse = await superToken
                     .createFlow({
@@ -26,13 +27,16 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                         receiver: arg.receiver,
                         flowRate: arg.flowRate,
                     })
-                    .then((x) => x.exec(signer as any)); // TODO(KK): "as any"
+                    .then((operation) => operation.exec(signer as any)); // TODO(KK): "as any"
+
+                // Fire and forget
                 queryApi.dispatch(
                     trackTransaction({
                         hash: transactionResponse.hash,
                         chainId: arg.chainId,
                     })
                 );
+
                 if (arg.waitForConfirmation) {
                     await framework.settings.provider.waitForTransaction(
                         transactionResponse.hash,

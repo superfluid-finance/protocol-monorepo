@@ -8,6 +8,17 @@ export const invalidateTagsHandler = (
     event: AllEvents,
     dispatch: ThunkDispatch<any, any, AnyAction>
 ) => {
+
+    // TODO: Make it single dispatch every time.
+    dispatch(
+        rtkQuerySlice.util.invalidateTags([
+            {
+                type: 'Event',
+                id: `${chainId}`.toLowerCase(),
+            }
+        ])
+    );
+
     switch (event.__typename) {
         case "SubscriptionApprovedEvent":
             break;

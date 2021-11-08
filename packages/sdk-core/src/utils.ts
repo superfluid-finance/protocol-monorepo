@@ -72,7 +72,7 @@ export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
             HOURS_PER_DAY *
             MINUTES_PER_HOUR *
             SECONDS_PER_MINUTE
-    );
+    ).toString();
 };
 
 /**
@@ -87,7 +87,7 @@ export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
             HOURS_PER_DAY *
             MINUTES_PER_HOUR *
             SECONDS_PER_MINUTE
-    );
+    ).toString();
 };
 
 /**
@@ -101,5 +101,5 @@ export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
             HOURS_PER_DAY *
             MINUTES_PER_HOUR *
             SECONDS_PER_MINUTE
-    );
+    ).toString();
 };

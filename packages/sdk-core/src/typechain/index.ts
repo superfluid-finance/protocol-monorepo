@@ -7,6 +7,7 @@ export type { IResolver } from "./IResolver";
 export type { Superfluid } from "./Superfluid";
 export type { SuperfluidLoader } from "./SuperfluidLoader";
 export type { SuperToken } from "./SuperToken";
+export type { TestToken } from "./TestToken";
 
 export { IConstantFlowAgreementV1__factory } from "./factories/IConstantFlowAgreementV1__factory";
 export { IInstantDistributionAgreementV1__factory } from "./factories/IInstantDistributionAgreementV1__factory";
@@ -14,3 +15,4 @@ export { IResolver__factory } from "./factories/IResolver__factory";
 export { Superfluid__factory } from "./factories/Superfluid__factory";
 export { SuperfluidLoader__factory } from "./factories/SuperfluidLoader__factory";
 export { SuperToken__factory } from "./factories/SuperToken__factory";
+export { TestToken__factory } from "./factories/TestToken__factory";

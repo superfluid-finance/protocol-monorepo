@@ -3,17 +3,19 @@ import { abi as TestTokenABI } from "../src/abi/TestToken.json";
 import { abi as IResolverABI } from "../src/abi/IResolver.json";
 import { abi as SuperTokenABI } from "../src/abi/SuperToken.json";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
+import { abi as IInstantDistributionAgreementV1ABI } from "../src/abi/IInstantDistributionAgreementV1.json";
 import {
     IConstantFlowAgreementV1,
+    IInstantDistributionAgreementV1,
     IResolver,
     SuperToken,
     TestToken,
 } from "../src/typechain";
-import { ChainId, Framework } from "../src";
+import { Framework } from "../src";
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
 // test test test test test test test test test test test junk
-const resolverAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
+export const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
 export const setup = async (amount?: string) => {
     const [Deployer, Alpha] = await ethers.getSigners();
@@ -27,7 +29,7 @@ export const setup = async (amount?: string) => {
         throw new Error("No provider");
     }
     const resolver = new ethers.Contract(
-        resolverAddress,
+        RESOLVER_ADDRESS,
         IResolverABI,
         Deployer
     ) as IResolver;
@@ -44,18 +46,22 @@ export const setup = async (amount?: string) => {
         Deployer
     ) as TestToken;
     const frameworkClass = await Framework.create({
-        chainId: 1337 as ChainId,
-        resolverAddress,
+        networkName: "custom",
+        resolverAddress: RESOLVER_ADDRESS,
         provider,
         customSubgraphQueriesEndpoint: "",
         protocolReleaseVersion: "test",
     });
-    const constantFlowAgreementV1 = new ethers.Contract(
+    const CFAV1 = new ethers.Contract(
         frameworkClass.settings.config.cfaV1Address,
         IConstantFlowAgreementV1ABI,
         Deployer
     ) as IConstantFlowAgreementV1;
-    const CFAV1 = constantFlowAgreementV1;
+    const IDAV1 = new ethers.Contract(
+        frameworkClass.settings.config.idaV1Address,
+        IInstantDistributionAgreementV1ABI,
+        Deployer
+    ) as IInstantDistributionAgreementV1;
 
     if (amount) {
         const initialAmount = ethers.utils.parseUnits(amount);
@@ -75,6 +81,7 @@ export const setup = async (amount?: string) => {
 
     return {
         CFAV1,
+        IDAV1,
         frameworkClass,
         Deployer,
         Alpha,

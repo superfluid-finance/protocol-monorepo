@@ -5,7 +5,7 @@ module.exports = async function (callback) {
     try {
         await eval(`(${detectTruffleAndConfigure.toString()})({})`);
 
-        // infer deployment from AgreementClassRegistered revents
+        // infer deployment from AgreementClassRegistered events
         const AgreementClassRegistered = web3.utils.sha3(
             "AgreementClassRegistered(bytes32,address)"
         );

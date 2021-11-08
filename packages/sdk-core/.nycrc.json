@@ -1,0 +1,3 @@
+{
+    "exclude": ["hardhat.config.ts", "test"]
+}

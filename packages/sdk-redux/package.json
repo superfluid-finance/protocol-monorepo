@@ -15,6 +15,7 @@
         "fix": "run-s fix:*",
         "fix:prettier": "prettier \"src/**/*.ts\" --write",
         "fix:lint": "eslint src --ext .ts --fix",
+        "lint": "echo 'TODO: build server tests fail'",
         "test": "jest",
         "test:lint": "eslint src --ext .ts",
         "test:prettier": "prettier \"src/**/*.ts\" --list-different",

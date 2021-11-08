@@ -1,7 +1,12 @@
 import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { TestResolver } from "../generated/ResolverV1/TestResolver";
-import { StreamRevision, IndexSubscription, Token, Stream } from "../generated/schema";
+import {
+    StreamRevision,
+    IndexSubscription,
+    Token,
+    Stream,
+} from "../generated/schema";
 
 /**************************************************************************
  * Constants
@@ -9,7 +14,9 @@ import { StreamRevision, IndexSubscription, Token, Stream } from "../generated/s
 
 export let BIG_INT_ZERO = BigInt.fromI32(0);
 export let BIG_INT_ONE = BigInt.fromI32(1);
-export let ZERO_ADDRESS = Address.fromString("0x0000000000000000000000000000000000000000");
+export let ZERO_ADDRESS = Address.fromString(
+    "0x0000000000000000000000000000000000000000"
+);
 
 /**************************************************************************
  * Event entities util functions
@@ -116,9 +123,7 @@ export function getStreamPeriodID(
     streamId: string,
     periodRevisionIndex: number
 ): string {
-    return streamId
-        .concat("-")
-        .concat(periodRevisionIndex.toString());
+    return streamId.concat("-").concat(periodRevisionIndex.toString());
 }
 
 export function getSubscriptionID(

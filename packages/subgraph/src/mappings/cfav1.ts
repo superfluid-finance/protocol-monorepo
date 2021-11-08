@@ -34,6 +34,12 @@ function createFlowUpdatedEntity(
 ): FlowUpdatedEvent {
     let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
     ev.transactionHash = event.transaction.hash;
+    ev.name = "FlowUpdated";
+    ev.addresses = [
+        event.params.token,
+        event.params.sender,
+        event.params.receiver,
+    ];
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
@@ -74,7 +80,10 @@ function handleStreamPeriodUpdate(
         eventEntity.receiver.toHex(),
         eventEntity.token.toHex()
     );
-    let flowActionType = getFlowActionType(previousFlowRate, eventEntity.flowRate);
+    let flowActionType = getFlowActionType(
+        previousFlowRate,
+        eventEntity.flowRate
+    );
     let previousStreamPeriod = StreamPeriod.load(
         getStreamPeriodID(stream.id, streamRevision.periodRevisionIndex)
     );

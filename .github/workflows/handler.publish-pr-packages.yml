@@ -1,4 +1,6 @@
 name: Publish PR Packages
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   workflow_run:
@@ -56,8 +58,6 @@ jobs:
           for f in `ls` ; do
             npm --userconfig .npmrc publish $f --tag "PR$pr_number"
           done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Find Comment
         uses: peter-evans/find-comment@v1

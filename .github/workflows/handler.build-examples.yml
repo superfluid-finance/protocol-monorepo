@@ -1,4 +1,6 @@
 name: Build Examples
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   push:
@@ -54,8 +56,6 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           yarn test
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Deployment
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
@@ -86,8 +86,6 @@ jobs:
             yarn build
             yarn test
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
   build-examples-done:
     name: Build examples done # An aggregated job used for PR criteria

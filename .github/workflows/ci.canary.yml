@@ -1,4 +1,6 @@
 name: CI Canary
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   push:
@@ -46,7 +48,6 @@ jobs:
           yarn test
         env:
           GOERLI_PROVIDER_URL: ${{ secrets.GOERLI_PROVIDER_URL }}
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
   coverage:
     name: Run coverage test of dev branch
@@ -68,8 +69,6 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
@@ -103,8 +102,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Build
         run: yarn build
@@ -149,8 +146,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Deploy to ${{ matrix.network }}
         run: |

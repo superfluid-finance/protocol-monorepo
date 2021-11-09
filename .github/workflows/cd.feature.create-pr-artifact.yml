@@ -1,4 +1,6 @@
 name: Create PR Artifact
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   pull_request:
@@ -41,8 +43,6 @@ jobs:
       - name: Install dependencies
         if: env.PUBLISH_PR_ARTIFACT == 1
         run: yarn install --frozen-lockfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Build
         if: env.PUBLISH_PR_ARTIFACT == 1

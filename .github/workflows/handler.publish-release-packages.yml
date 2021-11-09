@@ -1,4 +1,6 @@
 name: Publish Release Package
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   release:
@@ -33,8 +35,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
-        env:
-          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Publish ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1

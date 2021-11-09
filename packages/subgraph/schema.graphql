@@ -956,6 +956,7 @@ type Token @entity {
     id: ID!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
+    decimals: Int!
     name: String!
     symbol: String!
     isSuperToken: Boolean!
@@ -969,6 +970,11 @@ type Token @entity {
     The address of the underlying ERC20 token.
     """
     underlyingAddress: Bytes! # Underlying ERC20
+    """
+    The underlying ERC20 token for a SuperToken or
+    null for a regular ERC20 token.
+    """
+    underlyingToken: Token
 }
 
 ####################

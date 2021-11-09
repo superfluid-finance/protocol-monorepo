@@ -7,7 +7,9 @@ export const fetchTokenAndValidate = async (
     address: string,
     expectedName: string,
     expectedSymbol: string,
-    expectedIsListed: boolean
+    expectedIsListed: boolean,
+    expectedUnderlyingAddress: string,
+    expectedDecimals: number
 ) => {
     const token = await fetchEntityAndEnsureExistence<IToken>(
         getToken,
@@ -15,14 +17,23 @@ export const fetchTokenAndValidate = async (
         "Token"
     );
 
-    validateTokenEntity(token, expectedName, expectedSymbol, expectedIsListed);
+    validateTokenEntity(
+        token,
+        expectedName,
+        expectedSymbol,
+        expectedIsListed,
+        expectedUnderlyingAddress,
+        expectedDecimals
+    );
 };
 
 export const validateTokenEntity = (
     subgraphToken: IToken,
     expectedName: string,
     expectedSymbol: string,
-    expectedIsListed: boolean
+    expectedIsListed: boolean,
+    expectedUnderlyingAddress: string,
+    expectedDecimals: number
 ) => {
     expect(subgraphToken.name, "SuperToken: name error").to.be.equal(
         expectedName
@@ -33,4 +44,14 @@ export const validateTokenEntity = (
     expect(subgraphToken.isListed, "SuperToken: isListed error").to.be.equal(
         expectedIsListed
     );
+    expect(subgraphToken.decimals).to.be.equal(expectedDecimals);
+
+    if (subgraphToken.underlyingAddress === "0x") {
+        expect(subgraphToken.underlyingToken).to.be.equal(null);
+    } else {
+        // NOTE: underlyingToken should not be null here
+        expect(subgraphToken.underlyingToken!.id).to.be.equal(
+            expectedUnderlyingAddress.toLowerCase()
+        );
+    }
 };

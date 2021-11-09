@@ -167,10 +167,12 @@ export interface IAccount extends IBaseEntity {
 }
 
 export interface IToken extends IBaseEntity {
+    readonly decimals: number;
     readonly name: string;
     readonly symbol: string;
     readonly underlyingAddress: string;
     readonly isListed: boolean;
+    readonly underlyingToken: ILightEntity | null;
 }
 
 export interface IStream extends IBaseEntity {

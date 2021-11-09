@@ -4077,10 +4077,10 @@
   resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.8.2.tgz#a6a5e93ac8dca6884a99a532f133beba59b87b69"
   integrity sha512-8LySx3qrNXPgB5JiULfG10O3V7QTxI/TLzSw5hFQhXWSkVxZBAv4rZQ0sYgLEbc8g3L2lmnujj1hKul38Eu5NQ==
 
-"@superfluid-finance/sdk-core@@superfluid-finance/sdk-core@1.0.1-PR462.ba7f8fe.0":
-  version "1.0.1-PR462.ba7f8fe.0"
-  resolved "https://npm.pkg.github.com/download/@superfluid-finance/sdk-core/1.0.1-PR462.ba7f8fe.0/749f8863f43158bd23592e75fc696ecad59fe90b683fc1d3aa69f7befe7adf08#35ec604236497ff6e2ede605b7fef1e1f511dfab"
-  integrity sha512-SqZ3zWHKwiDqylfXnVtMzUDJmT7qU0TXq9bTsz8k0ugzdh0n+u/kJlgjLzzdRs3zYtljIoAB/cElZEZw5m2sDA==
+"@superfluid-finance/sdk-core@@superfluid-finance/sdk-core@1.0.1-PR462.a498be6.0":
+  version "1.0.1-PR462.a498be6.0"
+  resolved "https://npm.pkg.github.com/download/@superfluid-finance/sdk-core/1.0.1-PR462.a498be6.0/26b4e17ba67237fd7e27d67cc6e6edd43f44c16e6937ebc43410d3826973c8d4#a516a65e4490a0947c05fd6327869496aa8a6cfb"
+  integrity sha512-y9QRnZZBS1Vis5CU1Xw0aAxObAcUYcCtg8pJKVlk5AHZhaKCFmVuw+eSqaA7XZ3ysjIjPFsDOa9e6y43G7gFFw==
   dependencies:
     "@ethersproject/providers" "^5.5.0"
     "@rollup/plugin-json" "^4.1.0"

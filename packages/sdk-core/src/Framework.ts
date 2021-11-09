@@ -84,7 +84,11 @@ export default class Framework {
      * @returns `Framework` class
      */
     static create = async (options: IFrameworkOptions) => {
-        validateFrameworkConstructorOptions(options);
+        validateFrameworkConstructorOptions({
+            ...options,
+            dataMode: options.dataMode || "SUBGRAPH_ONLY",
+            protocolReleaseVersion: options.protocolReleaseVersion || "v1",
+        });
 
         const networkName = getNetworkName(options);
         const chainId =
@@ -94,15 +98,7 @@ export default class Framework {
         const customSubgraphQueriesEndpoint =
             options.customSubgraphQueriesEndpoint ||
             getSubgraphQueriesEndpoint(options);
-        if (
-            !customSubgraphQueriesEndpoint &&
-            options.dataMode !== "WEB3_ONLY"
-        ) {
-            return handleError(
-                "FRAMEWORK_INITIALIZATION",
-                "You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
-            );
-        }
+
         try {
             const data = chainIdToDataMap.get(chainId);
             const resolverAddress = options.resolverAddress
@@ -151,7 +147,7 @@ export default class Framework {
                 "There was an error initializing the framework"
             );
         }
-        
+
         /* istanbul ignore next */
         return handleError(
             "FRAMEWORK_INITIALIZATION",
@@ -194,6 +190,8 @@ export default class Framework {
             return options.signer;
         }
 
+        // NOTE: tested by sdk-redux already
+        /* istanbul ignore next */
         if (options.web3Provider) {
             return options.web3Provider.getSigner();
         }

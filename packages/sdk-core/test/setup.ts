@@ -19,7 +19,7 @@ export const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
 interface ISetupProps {
     readonly amount?: string;
-    readonly fakeSubgraphEndpoint?: string;
+    readonly subgraphEndpoint?: string;
 }
 
 export const setup = async (props: ISetupProps) => {
@@ -54,7 +54,7 @@ export const setup = async (props: ISetupProps) => {
         networkName: "custom",
         resolverAddress: RESOLVER_ADDRESS,
         provider,
-        customSubgraphQueriesEndpoint: props.fakeSubgraphEndpoint,
+        customSubgraphQueriesEndpoint: props.subgraphEndpoint,
         protocolReleaseVersion: "test",
     });
     const CFAV1 = new ethers.Contract(

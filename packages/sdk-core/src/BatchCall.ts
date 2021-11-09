@@ -112,12 +112,20 @@ export default class BatchCall {
      * @returns ethers.ContractTransaction object
      */
     execBatchCall = async (signer: ethers.Signer) => {
-        const operationStructArray = await Promise.all(
-            this.getOperationStructArrayPromises
-        );
-        return await this.host.hostContract
-            .connect(signer)
-            .batchCall(operationStructArray);
+        try {
+            const operationStructArray = await Promise.all(
+                this.getOperationStructArrayPromises
+            );
+            return await this.host.hostContract
+                .connect(signer)
+                .batchCall(operationStructArray);
+        } catch (err) {
+            return handleError(
+                "BATCH_CALL_ERROR",
+                "There was an error executing your batch call:",
+                JSON.stringify(err)
+            );
+        }
     };
 
     /**
@@ -126,11 +134,19 @@ export default class BatchCall {
      * @returns ethers.ContractTransaction object
      */
     execForwardBatchCall = async (signer: ethers.Signer) => {
-        const operationStructArray = await Promise.all(
-            this.getOperationStructArrayPromises
-        );
-        return await this.host.hostContract
-            .connect(signer)
-            .forwardBatchCall(operationStructArray);
+        try {
+            const operationStructArray = await Promise.all(
+                this.getOperationStructArrayPromises
+            );
+            return await this.host.hostContract
+                .connect(signer)
+                .forwardBatchCall(operationStructArray);
+        } catch (err) {
+            return handleError(
+                "BATCH_CALL_ERROR",
+                "There was an error executing your batch call:",
+                JSON.stringify(err)
+            );
+        }
     };
 }

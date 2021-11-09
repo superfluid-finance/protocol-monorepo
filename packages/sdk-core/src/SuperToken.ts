@@ -136,7 +136,12 @@ export default class SuperToken {
             const realtimeBalanceOfNow = await this.superTokenContract
                 .connect(providerOrSigner)
                 .realtimeBalanceOfNow(address);
-            return realtimeBalanceOfNow.availableBalance;
+            return {
+                availableBalance: realtimeBalanceOfNow.availableBalance,
+                deposit: realtimeBalanceOfNow.deposit,
+                owedDeposit: realtimeBalanceOfNow.owedDeposit,
+                timestamp: realtimeBalanceOfNow.timestamp
+            };
         } catch (err) {
             return handleError(
                 "SUPERTOKEN_READ",

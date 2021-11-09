@@ -23,6 +23,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_JS_SDK=1
         BUILD_SDK_CORE=1
+        BUILD_SDK_REDUX=1
     fi
     # if ethereum-contracts package changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
@@ -40,6 +41,11 @@ if ! [ -z "$GITHUB_ENV" ];then
 		BUILD_SDK_CORE=1
 		echo SDK CORE will be tested.
 	fi
+	# if sdk-redux package changed
+	if grep -E "^packages/sdk-redux/(src/|test/|package.json)" changed-files.list;then
+		BUILD_SDK_REDUX=1
+		echo SDK REDUX will be tested.
+	fi
     # if subgraph package changed
     if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|test|truffle-config.js|package.json)" changed-files.list;then
         BUILD_SUBGRAH=1
@@ -53,9 +59,10 @@ if ! [ -z "$GITHUB_ENV" ];then
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
     echo "BUILD_JS_SDK=${BUILD_JS_SDK}" >> $GITHUB_ENV
 	echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
+	echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAH=${BUILD_SUBGRAH}" >> $GITHUB_ENV
     echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
-    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ];then
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_JS_SDK" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
     fi

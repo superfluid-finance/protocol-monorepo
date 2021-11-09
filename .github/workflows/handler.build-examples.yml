@@ -86,6 +86,8 @@ jobs:
             yarn build
             yarn test
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
   build-examples-done:
     name: Build examples done # An aggregated job used for PR criteria

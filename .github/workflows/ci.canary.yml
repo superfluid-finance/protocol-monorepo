@@ -68,6 +68,8 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2

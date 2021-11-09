@@ -2,10 +2,15 @@
     "name": "@superfluid-finance/sdk-redux",
     "version": "1.0.0",
     "description": "Quickly build dApps with Superfluid!",
+    "homepage": "https://docs.superfluid.finance/",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git#dev"
+    },
+    "license": "MIT",
     "main": "build/main/index.js",
     "typings": "build/main/index.d.ts",
     "module": "build/module/index.js",
-    "license": "MIT",
     "keywords": [],
     "scripts": {
         "pre-commit": "echo 'TODO: pre-commit'",
@@ -99,7 +104,6 @@
     "bugs": {
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
-    "homepage": "https://docs.superfluid.finance/",
     "directories": {
         "test": "test"
     }

@@ -1,6 +1,5 @@
 import { createContext } from "react";
-import {ChainId} from "@superfluid-finance/sdk-redux";
 
 export const SignerContext = createContext<
-    [chainId: ChainId, signerAddress: string]
+    [chainId: number, signerAddress: string]
 >(undefined!);

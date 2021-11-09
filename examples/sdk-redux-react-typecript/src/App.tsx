@@ -16,7 +16,6 @@ import {
 } from "@mui/material";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import {
-    ChainId,
     Framework,
     useCreateFlowMutation,
     useDeleteFlowMutation,
@@ -170,7 +169,7 @@ function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
 
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
-    const [chainId, setChainId] = useState<ChainId | undefined>();
+    const [chainId, setChainId] = useState<number | undefined>();
 
     const onSuperfluidSdkInitialized = async (superfluidSdk: Framework, provider: Web3Provider) => {
         setSuperfluidSdk(superfluidSdk);
@@ -182,7 +181,7 @@ function App() {
 
         provider
             .getNetwork()
-            .then((network) => setChainId(network.chainId as ChainId));
+            .then((network) => setChainId(network.chainId));
     };
 
     return (

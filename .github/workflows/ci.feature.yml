@@ -187,6 +187,8 @@ jobs:
       - name: "Install contract dependencies"
         run: yarn install
         working-directory: ${{ env.contracts-working-directory }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
       - name: "Build contracts"
         run: yarn run build:contracts

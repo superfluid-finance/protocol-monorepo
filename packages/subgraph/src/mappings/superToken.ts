@@ -190,9 +190,18 @@ export function handleMinted(event: Minted): void {
  * Create Event Entity Helper Functions
  *************************************************************************/
 function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
-    let ev = new AgreementLiquidatedByEvent(createEventID(event));
+    let ev = new AgreementLiquidatedByEvent(
+        createEventID("AgreementLiquidatedBy", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "AgreementLiquidatedBy";
+    ev.addresses = [
+        event.address,
+        event.params.liquidatorAccount,
+        event.params.penaltyAccount,
+        event.params.bondAccount,
+    ];
     ev.blockNumber = event.block.number;
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
@@ -206,9 +215,11 @@ function createAgreementLiquidatedByEntity(event: AgreementLiquidatedBy): void {
 }
 
 function createBurnedEntity(event: Burned): void {
-    let ev = new BurnedEvent(createEventID(event));
+    let ev = new BurnedEvent(createEventID("Burned", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "Burned";
+    ev.addresses = [event.address, event.params.from];
     ev.blockNumber = event.block.number;
     ev.operator = event.params.operator;
     ev.from = event.params.from;
@@ -219,9 +230,11 @@ function createBurnedEntity(event: Burned): void {
 }
 
 function createMintedEntity(event: Minted): void {
-    let ev = new MintedEvent(createEventID(event));
+    let ev = new MintedEvent(createEventID("Minted", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "Minted";
+    ev.addresses = [event.address, event.params.operator, event.params.to];
     ev.blockNumber = event.block.number;
     ev.operator = event.params.operator;
     ev.to = event.params.to;
@@ -232,9 +245,11 @@ function createMintedEntity(event: Minted): void {
 }
 
 function createSentEntity(event: Sent): void {
-    let ev = new SentEvent(createEventID(event));
+    let ev = new SentEvent(createEventID("Sent", event));
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "Sent";
+    ev.addresses = [event.address, event.params.operator, event.params.to];
     ev.blockNumber = event.block.number;
     ev.amount = event.params.amount;
     ev.data = event.params.data;
@@ -245,10 +260,12 @@ function createSentEntity(event: Sent): void {
 }
 
 function createTokenUpgradedEntity(event: TokenUpgraded): void {
-    let ev = new TokenUpgradedEvent(createEventID(event));
+    let ev = new TokenUpgradedEvent(createEventID("TokenUpgraded", event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "TokenUpgraded";
+    ev.addresses = [event.address, event.params.account];
     ev.blockNumber = event.block.number;
     ev.token = event.address;
     ev.amount = event.params.amount;
@@ -256,10 +273,12 @@ function createTokenUpgradedEntity(event: TokenUpgraded): void {
 }
 
 function createTokenDowngradedEntity(event: TokenDowngraded): void {
-    let ev = new TokenDowngradedEvent(createEventID(event));
+    let ev = new TokenDowngradedEvent(createEventID("TokenDowngraded", event));
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "TokenDowngraded";
+    ev.addresses = [event.address, event.params.account];
     ev.blockNumber = event.block.number;
     ev.token = event.address;
     ev.amount = event.params.amount;
@@ -267,10 +286,12 @@ function createTokenDowngradedEntity(event: TokenDowngraded): void {
 }
 
 function createTransferEntity(event: Transfer): void {
-    let ev = new TransferEvent(createEventID(event));
+    let ev = new TransferEvent(createEventID("Transfer", event));
     let value = event.params.value;
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "Transfer";
+    ev.addresses = [event.address, event.params.from, event.params.to];
     ev.blockNumber = event.block.number;
     ev.from = event.params.from.toHex();
     ev.to = event.params.to.toHex();

@@ -15,7 +15,7 @@ describe("Framework Tests", () => {
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken } = await setup({
-            amount: "100000",
+            amount: "10000000000000",
             subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
         });
         framework = frameworkClass;

@@ -95,9 +95,12 @@ export default class Framework {
             options.chainId || networkNameToChainIdMap.get(networkName)!;
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
+        // NOTE: endpoint can be empty in WEB3_ONLY mode
         const customSubgraphQueriesEndpoint =
-            options.customSubgraphQueriesEndpoint ||
-            getSubgraphQueriesEndpoint(options);
+            options.dataMode === "WEB3_ONLY"
+                ? ""
+                : options.customSubgraphQueriesEndpoint ||
+                  getSubgraphQueriesEndpoint(options);
 
         try {
             const data = chainIdToDataMap.get(chainId);

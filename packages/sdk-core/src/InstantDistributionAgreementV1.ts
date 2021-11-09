@@ -151,7 +151,7 @@ export default class InstantDistributionAgreementV1 {
      * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
      * @param superToken The superToken of the index.
-     * @param subscriber The subscriber address whose subscription you want to approve.
+     * @param publisher The publisher of the index you want to approve.
      * @param userData Extra user data provided.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -160,7 +160,7 @@ export default class InstantDistributionAgreementV1 {
         superToken,
         publisher,
         userData,
-    }: IBaseSubscriptionParams): Operation => {
+    }: IBaseIDAParams): Operation => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData(
@@ -188,7 +188,7 @@ export default class InstantDistributionAgreementV1 {
         superToken,
         publisher,
         userData,
-    }: IBaseSubscriptionParams): Operation => {
+    }: IBaseIDAParams): Operation => {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const callData = idaInterface.encodeFunctionData("revokeSubscription", [
@@ -224,7 +224,7 @@ export default class InstantDistributionAgreementV1 {
         const normalizedPublisher = normalizeAddress(publisher);
         const normalizedToken = normalizeAddress(superToken);
         const normalizedSubscriber = normalizeAddress(subscriber);
-        const callData = idaInterface.encodeFunctionData("revokeSubscription", [
+        const callData = idaInterface.encodeFunctionData("deleteSubscription", [
             normalizedToken,
             normalizedPublisher,
             indexId,

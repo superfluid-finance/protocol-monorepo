@@ -27,8 +27,12 @@ export const getToken = gql`
             id
             name
             symbol
+            decimals
             underlyingAddress
             isListed
+            underlyingToken {
+                id
+            }
         }
     }
 `;

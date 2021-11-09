@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import { NetworkName } from "./types";
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -223,7 +222,7 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
 
 export interface IResolverData {
     readonly subgraphAPIEndpoint: string;
-    readonly networkName: NetworkName;
+    readonly networkName: string;
     readonly resolverAddress: string;
 }
 

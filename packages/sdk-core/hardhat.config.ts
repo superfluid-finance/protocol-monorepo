@@ -1,7 +1,11 @@
 import { HardhatUserConfig } from "hardhat/config";
-import '@typechain/hardhat';
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
+import { resolve } from "path";
+import { config as dotenvConfig } from "dotenv";
+
+dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 /**
  * This Hardhat config is only used for testing the subgraph.

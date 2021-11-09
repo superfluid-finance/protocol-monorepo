@@ -6,7 +6,6 @@ import {
     networkNameToChainIdMap,
 } from "./constants";
 import { IFrameworkOptions } from "./Framework";
-import { ChainId, NetworkName } from "./types";
 import { handleError } from "./errorHelper";
 
 export const validateFrameworkConstructorOptions = (
@@ -71,18 +70,29 @@ export const validateFrameworkConstructorOptions = (
  * @returns SubgraphQueriesEndpoint which is a custom endpoint or based on selected network
  */
 export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
-    return options.customSubgraphQueriesEndpoint != null
-        ? options.customSubgraphQueriesEndpoint
-        : options.chainId
-        ? chainIdToDataMap.get(options.chainId)!.subgraphAPIEndpoint
-        : chainIdToDataMap.get(
-              networkNameToChainIdMap.get(options.networkName!)!
-          )!.subgraphAPIEndpoint;
+    if (options.customSubgraphQueriesEndpoint) {
+        return options.customSubgraphQueriesEndpoint || "";
+    }
+    if (options.chainId && chainIdToDataMap.get(options.chainId)) {
+        return chainIdToDataMap.get(options.chainId)?.subgraphAPIEndpoint || "";
+    }
+    if (
+        options.networkName &&
+        networkNameToChainIdMap.get(options.networkName) &&
+        chainIdToDataMap.get(networkNameToChainIdMap.get(options.networkName)!)
+    ) {
+        return (
+            chainIdToDataMap.get(
+                networkNameToChainIdMap.get(options.networkName!)!
+            )!.subgraphAPIEndpoint || ""
+        );
+    }
+    return "";
 };
 
 interface INetworkNameParams {
-    readonly chainId?: ChainId;
-    readonly networkName?: NetworkName;
+    readonly chainId?: number;
+    readonly networkName?: string;
 }
 
 /**
@@ -91,7 +101,7 @@ interface INetworkNameParams {
  * @param options.networkName the name of the desired network
  * @returns the network name
  */
-export const getNetworkName = (options: INetworkNameParams): NetworkName => {
+export const getNetworkName = (options: INetworkNameParams): string => {
     const networkName =
         chainIdToDataMap.get(options.chainId!) != null
             ? chainIdToDataMap.get(options.chainId!)!.networkName

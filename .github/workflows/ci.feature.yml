@@ -60,6 +60,7 @@ jobs:
 
       - name: Install, lint and build
         run: |
+          echo "Sanity check"
           yarn install --frozen-lockfile
           yarn lint
           yarn build

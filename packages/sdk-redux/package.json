@@ -102,6 +102,5 @@
     "homepage": "https://docs.superfluid.finance/",
     "directories": {
         "test": "test"
-    },
-    "author": ""
+    }
 }

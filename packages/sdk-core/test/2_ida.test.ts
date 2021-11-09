@@ -158,11 +158,13 @@ describe("IDA V1 Tests", () => {
 
     it.skip("Should be able to update index value", async () => {
         await expect(
-            framework.idaV1.updateIndexValue({
-                indexId: "0",
-                indexValue: ethers.utils.parseUnits("100").toString(),
-                superToken: superToken.address,
-            }).exec(deployer)
+            framework.idaV1
+                .updateIndexValue({
+                    indexId: "0",
+                    indexValue: ethers.utils.parseUnits("100").toString(),
+                    superToken: superToken.address,
+                })
+                .exec(deployer)
         )
             .to.emit(idaV1, "IndexUpdated")
             .withArgs(
@@ -240,25 +242,44 @@ describe("IDA V1 Tests", () => {
             );
     });
 
-    it("Should be able to claim", async () => {
-        // TODO: add handling of the claim event
-        await framework.idaV1
-            .claim({
-                indexId: "0",
-                superToken: superToken.address,
-                subscriber: alpha.address,
-                publisher: deployer.address,
-            })
-            .exec(alpha);
+    it.skip("Should be able to claim", async () => {
+        await expect(
+            framework.idaV1
+                .claim({
+                    indexId: "0",
+                    superToken: superToken.address,
+                    subscriber: alpha.address,
+                    publisher: deployer.address,
+                })
+                .exec(alpha)
+        )
+            .to.emit(idaV1, "SubscriptionDistributionClaimed")
+            .withArgs(
+                superToken.address,
+                deployer.address,
+                0,
+                alpha.address,
+                ethers.utils.parseUnits("10000")
+            );
 
-        await framework.idaV1
-            .claim({
-                indexId: "0",
-                superToken: superToken.address,
-                subscriber: bravo.address,
-                publisher: deployer.address,
-            })
-            .exec(bravo);
+        await expect(
+            framework.idaV1
+                .claim({
+                    indexId: "0",
+                    superToken: superToken.address,
+                    subscriber: bravo.address,
+                    publisher: deployer.address,
+                })
+                .exec(bravo)
+        )
+            .to.emit(idaV1, "IndexDistributionClaimed")
+            .withArgs(
+                superToken.address,
+                bravo.address,
+                deployer.address,
+                0,
+                ethers.utils.parseUnits("10000")
+            );
     });
 
     it("Should be able to delete subscription", async () => {

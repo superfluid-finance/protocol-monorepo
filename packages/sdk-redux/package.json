@@ -41,8 +41,10 @@
     "engines": {
         "node": ">=10"
     },
+    "peerDependencies": {
+        "@superfluid-finance/sdk-core": "latest"
+    },
     "dependencies": {
-        "@superfluid-finance/sdk-core": "latest",
         "@reduxjs/toolkit": "^1.6.1",
         "@types/jest": "^27.0.1",
         "ethers": "^5.4.5",

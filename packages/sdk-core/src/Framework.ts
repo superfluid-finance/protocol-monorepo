@@ -10,7 +10,7 @@ import {
 } from "./frameworkHelpers";
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
-import { ChainId, DataMode, NetworkName } from "./types";
+import { DataMode } from "./types";
 import { handleError } from "./errorHelper";
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -20,22 +20,23 @@ import SuperToken from "./SuperToken";
 import Query from "./Query";
 import Operation from "./Operation";
 
-// TODO: if we use the ChainId type, users cannot input a custom chainId
+// TODO: we will not use ChainId or NetworkName type
+// there will be implications and this needs to be handled appropriately
 export interface IFrameworkOptions {
-    chainId?: ChainId;
+    chainId?: number;
     customSubgraphQueriesEndpoint?: string;
     dataMode?: DataMode;
-    networkName?: NetworkName;
+    networkName?: string;
     resolverAddress?: string;
     protocolReleaseVersion?: string;
     provider: ethers.providers.Provider;
 }
 
 export interface IFrameworkSettings {
-    chainId: ChainId;
+    chainId: number;
     customSubgraphQueriesEndpoint: string;
     dataMode: DataMode;
-    networkName: NetworkName;
+    networkName: string;
     protocolReleaseVersion: string;
     provider: ethers.providers.Provider;
     config: IConfig;
@@ -88,21 +89,33 @@ export default class Framework {
         const networkName = getNetworkName(options);
         const chainId =
             options.chainId || networkNameToChainIdMap.get(networkName)!;
-        const data = chainIdToDataMap.get(chainId);
         const releaseVersion = options.protocolReleaseVersion || "v1";
 
-        const resolverAddress = options.resolverAddress
-            ? options.resolverAddress
-            : data != null
-            ? data!.resolverAddress
-            : "";
-        const resolver = new ethers.Contract(
-            resolverAddress,
-            IResolverABI,
-            options.provider
-        ) as IResolver;
-
+        const customSubgraphQueriesEndpoint =
+            options.customSubgraphQueriesEndpoint ||
+            getSubgraphQueriesEndpoint(options);
+        if (
+            !customSubgraphQueriesEndpoint &&
+            options.dataMode !== "WEB3_ONLY"
+        ) {
+            return handleError(
+                "FRAMEWORK_INITIALIZATION",
+                "You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
+            );
+        }
         try {
+            const data = chainIdToDataMap.get(chainId);
+            const resolverAddress = options.resolverAddress
+                ? options.resolverAddress
+                : data != null
+                ? data!.resolverAddress
+                : "";
+            const resolver = new ethers.Contract(
+                resolverAddress,
+                IResolverABI,
+                options.provider
+            ) as IResolver;
+
             const superfluidLoaderAddress = await resolver.get(
                 "SuperfluidLoader-v1"
             );
@@ -115,19 +128,6 @@ export default class Framework {
             const framework = await superfluidLoader.loadFramework(
                 releaseVersion
             );
-            const customSubgraphQueriesEndpoint =
-                options.customSubgraphQueriesEndpoint ||
-                getSubgraphQueriesEndpoint(options);
-
-            if (
-                customSubgraphQueriesEndpoint == null &&
-                options.dataMode !== "WEB3_ONLY"
-            ) {
-                return handleError(
-                    "FRAMEWORK_INITIALIZATION",
-                    "You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
-                );
-            }
 
             const settings: IFrameworkSettings = {
                 chainId,
@@ -146,12 +146,17 @@ export default class Framework {
 
             return new Framework(options, settings);
         } catch (err) {
-            return handleError(
+            handleError(
                 "FRAMEWORK_INITIALIZATION",
-                "There was an error initializing the framework",
-                JSON.stringify(err)
+                "There was an error initializing the framework"
             );
         }
+        
+        /* istanbul ignore next */
+        return handleError(
+            "FRAMEWORK_INITIALIZATION",
+            "Something went wrong, this should never occur."
+        );
     };
 
     /**
@@ -193,6 +198,7 @@ export default class Framework {
             return options.web3Provider.getSigner();
         }
 
+        /* istanbul ignore next */
         return handleError(
             "CREATE_SIGNER",
             "Something went wrong, this should never occur."

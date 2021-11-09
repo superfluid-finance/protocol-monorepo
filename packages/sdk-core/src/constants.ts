@@ -1,5 +1,4 @@
 import { IResolverData } from "./interfaces";
-import { ChainId, NetworkName } from "./types";
 
 export const MONTHS_PER_YEAR = 12;
 export const DAYS_PER_MONTH = 30;
@@ -17,7 +16,7 @@ export const chainIds = [
     80001, // MUMBAI
 ];
 
-export const networkNames: NetworkName[] = [
+export const networkNames: string[] = [
     "ropsten",
     "rinkeby",
     "goerli",
@@ -27,7 +26,7 @@ export const networkNames: NetworkName[] = [
     "mumbai",
 ];
 
-export const chainIdToDataMap = new Map<ChainId, IResolverData>([
+export const chainIdToDataMap = new Map<number, IResolverData>([
     [
         3,
         {
@@ -93,7 +92,7 @@ export const chainIdToDataMap = new Map<ChainId, IResolverData>([
     ],
 ]);
 
-export const networkNameToChainIdMap = new Map<NetworkName, ChainId>([
+export const networkNameToChainIdMap = new Map<string, number>([
     ["ropsten", 3],
     ["rinkeby", 4],
     ["goerli", 5],

@@ -14,7 +14,6 @@ import {
     ISuperTokenUpdateIndexValueParams,
     ISuperTokenUpdateSubscriptionUnitsParams,
 } from "./interfaces";
-import { ChainId, NetworkName } from "./types";
 import Operation from "./Operation";
 import { handleError } from "./errorHelper";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -23,14 +22,14 @@ import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 export interface ITokenConstructorOptions {
     readonly address: string;
     readonly config: IConfig;
-    readonly chainId?: ChainId;
-    readonly networkName?: NetworkName;
+    readonly chainId?: number;
+    readonly networkName?: string;
 }
 export interface ITokenOptions {
     readonly address: string;
     readonly config: IConfig;
-    readonly chainId: ChainId;
-    readonly networkName: NetworkName;
+    readonly chainId: number;
+    readonly networkName: string;
 }
 
 /**

@@ -17,12 +17,17 @@ import { Framework } from "../src";
 // test test test test test test test test test test test junk
 export const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
-export const setup = async (amount?: string) => {
+interface ISetupProps {
+    readonly amount?: string;
+    readonly fakeSubgraphEndpoint?: string;
+}
+
+export const setup = async (props: ISetupProps) => {
     const [Deployer, Alpha] = await ethers.getSigners();
     if (!Deployer || !Alpha) {
         throw new Error("No deployer");
     }
-    const userAddresses = [Deployer, Alpha].map((x) => x.address);
+    const signers = [Deployer, Alpha];
 
     const provider = Deployer.provider;
     if (!provider) {
@@ -36,20 +41,20 @@ export const setup = async (amount?: string) => {
     const superTokenAddress = await resolver.get("supertokens.test.fDAIx");
     const SuperToken = new ethers.Contract(
         superTokenAddress,
-        SuperTokenABI,
-        Deployer
+        SuperTokenABI
     ) as SuperToken;
-    const underlyingToken = await SuperToken.getUnderlyingToken();
+    const underlyingToken = await SuperToken.connect(
+        Deployer
+    ).getUnderlyingToken();
     const Token = new ethers.Contract(
         underlyingToken,
-        TestTokenABI,
-        Deployer
+        TestTokenABI
     ) as TestToken;
     const frameworkClass = await Framework.create({
         networkName: "custom",
         resolverAddress: RESOLVER_ADDRESS,
         provider,
-        customSubgraphQueriesEndpoint: "",
+        customSubgraphQueriesEndpoint: props.fakeSubgraphEndpoint,
         protocolReleaseVersion: "test",
     });
     const CFAV1 = new ethers.Contract(
@@ -62,19 +67,22 @@ export const setup = async (amount?: string) => {
         IInstantDistributionAgreementV1ABI,
         Deployer
     ) as IInstantDistributionAgreementV1;
-
-    if (amount) {
-        const initialAmount = ethers.utils.parseUnits(amount);
-        for (let i = 0; i < userAddresses.length; i++) {
-            const address = userAddresses[i]!;
-            await Token.mint(address, initialAmount, {
-                from: Deployer.address,
+    if (props.amount) {
+        const initialAmount = ethers.utils.parseUnits(props.amount);
+        for (let i = 0; i < signers.length; i++) {
+            const signer = signers[i]!;
+            await Token.connect(signer).mint(signer.address, initialAmount, {
+                from: signer.address,
             });
-            await Token.approve(SuperToken.address, initialAmount, {
-                from: address,
-            });
-            await SuperToken.upgrade(initialAmount, {
-                from: address,
+            await Token.connect(signer).approve(
+                SuperToken.address,
+                initialAmount,
+                {
+                    from: signer.address,
+                }
+            );
+            await SuperToken.connect(signer).upgrade(initialAmount, {
+                from: signer.address,
             });
         }
     }

@@ -10,7 +10,7 @@
     "license": "MIT",
     "main": "dist/main/index.js",
     "module": "dist/module/index.js",
-    "types": "dist/main/index.d.ts",
+    "types": "dist/main/src/index.d.ts",
     "files": [
         "dist/**/*.js",
         "dist/**/*.d.ts"
@@ -58,6 +58,7 @@
         "chai": "^4.3.4",
         "chai-ethers": "^0.0.1",
         "coveralls": "^3.1.1",
+        "dotenv": "^10.0.0",
         "ethereum-waffle": "^3.4.0",
         "ethers": "^5.5.1",
         "hardhat": "^2.6.7",

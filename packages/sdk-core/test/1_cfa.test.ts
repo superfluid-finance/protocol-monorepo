@@ -15,7 +15,7 @@ describe("CFA V1 Tests", () => {
 
     before(async () => {
         const { CFAV1, frameworkClass, Deployer, Alpha, SuperToken } =
-            await setup();
+            await setup({});
         cfaV1 = CFAV1;
         framework = frameworkClass;
         deployer = Deployer;

@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@superfluid-finance/sdk-redux": "1.0.0",
         "@emotion/react": "latest",
         "@emotion/styled": "latest",
         "@ethersproject/contracts": "latest",

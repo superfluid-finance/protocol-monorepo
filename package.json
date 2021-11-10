@@ -38,7 +38,8 @@
             "packages/js-sdk",
             "packages/sdk-core",
             "packages/sdk-redux",
-            "packages/subgraph"
+            "packages/subgraph",
+            "examples/sdk-redux-react-typecript"
         ],
         "nohoist": [
             "**/webpack",

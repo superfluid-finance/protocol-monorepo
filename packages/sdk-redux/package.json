@@ -45,20 +45,15 @@
     "engines": {
         "node": ">=10"
     },
-
     "dependencies": {
-        "@superfluid-finance/sdk-core": "@superfluid-finance/sdk-core@1.0.1-PR462.a498be6.0",
+        "@superfluid-finance/sdk-core": "1.0.0",
         "@reduxjs/toolkit": "^1.6.1",
-        "@types/jest": "^27.0.1",
         "ethers": "^5.4.5",
         "graphql-request": "^3.5.0",
-        "jest-mock-extended": "^2.0.2-beta2",
-        "lodash": "^4.17.21",
-        "ts-jest": "^27.0.5"
+        "lodash": "^4.17.21"
     },
     "devDependencies": {
         "@istanbuljs/nyc-config-typescript": "^1.0.1",
-        "@types/jest": "^27.0.1",
         "@typescript-eslint/eslint-plugin": "^4.0.1",
         "@typescript-eslint/parser": "^4.0.1",
         "codecov": "^3.5.0",
@@ -77,8 +72,6 @@
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
         "react-redux": "^7.2.6",
-        "standard-version": "^9.0.0",
-        "ts-jest": "^27.0.5",
         "ts-node": "^9.0.0",
         "typedoc": "^0.19.0",
         "typescript": "^4.3.5"

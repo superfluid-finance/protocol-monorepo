@@ -82,15 +82,7 @@ export default class Operation {
      * @returns {string} The transaction hash of the transaction
      */
     getTransactionHash = async (signer: ethers.Signer): Promise<string> => {
-        try {
-            const signedTxn = await this.getSignedTransaction(signer);
-            return ethers.utils.keccak256(signedTxn);
-        } catch (err) {
-            return handleError(
-                "GET_TRANSACTION_HASH",
-                "There was an error getting the transaction hash",
-                JSON.stringify(err)
-            );
-        }
+        const signedTxn = await this.getSignedTransaction(signer);
+        return ethers.utils.keccak256(signedTxn);
     };
 }

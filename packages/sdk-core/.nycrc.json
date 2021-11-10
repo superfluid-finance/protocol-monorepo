@@ -1,3 +1,14 @@
 {
-    "exclude": ["hardhat.config.ts", "test", "src/subgraph/queries"]
+    "exclude": [
+        "hardhat.config.ts",
+        "test",
+        "src/subgraph",
+        "src/Query.ts",
+        "src/pagination.ts",
+        "src/utils.ts",
+        "src/validation.ts",
+        "src/errorHelper.ts",
+        "src/constants.ts",
+        "src/frameworkHelpers.ts"
+    ]
 }

@@ -103,3 +103,21 @@ export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
             SECONDS_PER_MINUTE
     ).toString();
 };
+export const getRawTransaction = (tx: any) => {
+    function addKey(accum: any, key: any) {
+      if (tx[key]) { accum[key] = tx[key]; }
+      return accum;
+    }
+  
+    // Extract the relevant parts of the transaction and signature
+    const txFields = "accessList chainId data gasPrice gasLimit maxFeePerGas maxPriorityFeePerGas nonce to type value".split(" ");
+    const sigFields = "v r s".split(" ");
+  
+    // Seriailze the signed transaction
+    const raw = ethers.utils.serializeTransaction(txFields.reduce(addKey, { }), sigFields.reduce(addKey, { }));
+  
+    // Double check things went well
+    if (ethers.utils.keccak256(raw) !== tx.hash) { throw new Error("serializing failed!"); }
+  
+    return raw;
+  }

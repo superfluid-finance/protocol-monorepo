@@ -25,11 +25,87 @@
 SDK-Redux is a wrapper library around SDK-Core which adds state management to Superfluid related queries and operations.
 Under the hood, SDK-Redux leverages popular Redux libraries Redux Toolkit & RTK Query.
 
-# How to set up
+# Plugging into Redux store
 
-TODO:
-* write about setting up Redux store
-* write about setting up Superfluid Framework source
+Requirements:
+* Project with Redux store & Redux Toolkit
+
+A brand-new scaffolded Redux store configuration looks something like this:
+```
+import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
+
+export const store = configureStore({
+  reducer: {
+  },
+});
+
+export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>;
+```
+
+We need to plug in the Superfluid pieces.
+
+Import this function: `import { createPieces } from "@superfluid-finance/sdk-redux";`
+
+Then create the pieces:
+```
+const [
+    superfluidFrameworkSource,
+    superfluidApiSlice,
+    superfluidTransactionSlice,
+] = createPieces();
+```
+
+Plug in the reducer slices:
+```
+export const store = configureStore({
+  reducer: {
+    //
+    "superfluidApi": superfluidApiSlice.reducer,
+    "superfluidTransactions": superfluidTransactionSlice.reducer,
+    //
+  },
+});
+```
+
+Add the middleware:
+```
+export const store = configureStore({
+  reducer: {
+    "superfluidApi": superfluidApiSlice.reducer,
+    "superfluidTransactions": superfluidTransactionSlice.reducer,
+  },
+  //
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(superfluidApiSlice.middleware)
+  //
+});
+```
+
+Export the SDK-Core source:
+```
+export { superfluidFrameworkSource };
+```
+
+Somewhere in your code, give instructions to the `superfluidFrameworkSource` to locate `Framework` and `Signer`:
+```
+superfluidFrameworkSource.setFramework(
+    chainId,
+    Promise.resolve(superfluidSdk)
+);
+superfluidFrameworkSource.setSigner(
+    chainId,
+    Promise.resolve(ethersWeb3Provider.getSigner())
+);
+```
+
+That should be it! You should now be able to dispatch messages to Superfluid reducers & use the React hooks.
 
 # Examples
 

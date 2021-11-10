@@ -9,6 +9,7 @@
     "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
+        "first-time-after-git-clone": "yarn install && yarn build",
         "lint": "yarn workspaces run lint",
         "build": "for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
         "clean": "rm -rf node_modules; rm -rf packages/*/node_modules",

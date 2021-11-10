@@ -165,5 +165,66 @@ contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, 
         underlying.approve(address(token), amount);
         token.upgradeTo(address(this), amount, "");
     }
+}
 
+contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
+    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
+
+    function tokensReceived(
+        address /*operator*/,
+        address /*from*/,
+        address /*to*/,
+        uint256 /*amount*/,
+        bytes calldata /*userData*/,
+        bytes calldata /*operatorData*/
+    ) external pure override {
+        revert("they shall not pass");
+    }
+
+    // allow anybody to use the hook
+    function canImplementInterfaceForAddress(bytes32 interfaceHash, address /*addr*/)
+        external pure override
+        returns(bytes32)
+    {
+        return
+            interfaceHash == _TOKENS_RECIPIENT_INTERFACE_HASH ?
+            keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC")) :
+            bytes32(0x00);
+    }
+}
+
+/*
+* ERC777Recipient which drains all gas it gets, trying to make the caller run out of gas
+*/
+contract ERC777RecipientDrainingGas is IERC777Recipient, IERC1820Implementer {
+    bytes32 constant private _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
+    uint256 internal _uselessVar = 1;
+
+    event DrainedGas(uint256 allowance, uint256 burned);
+
+    function tokensReceived(
+        address /*operator*/,
+        address /*from*/,
+        address /*to*/,
+        uint256 /*amount*/,
+        bytes calldata /*userData*/,
+        bytes calldata /*operatorData*/
+    ) external override {
+        uint256 initialGas = gasleft();
+        while (gasleft() > 30000) { // need to leave enough for the send() itself to not fail
+            _uselessVar++; // SSTORE drains much faster than an empty loop
+        }
+        emit DrainedGas(initialGas, gasleft());
+    }
+
+    // allow anybody to use the hook
+    function canImplementInterfaceForAddress(bytes32 interfaceHash, address /*addr*/)
+        external pure override
+        returns(bytes32)
+    {
+        return
+            interfaceHash == _TOKENS_RECIPIENT_INTERFACE_HASH ?
+            keccak256(abi.encodePacked("ERC1820_ACCEPT_MAGIC")) :
+            bytes32(0x00);
+    }
 }

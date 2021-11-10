@@ -19,9 +19,13 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
         return;
     }
 
-    let ev = new SuperTokenCreatedEvent(createEventID(event));
+    let ev = new SuperTokenCreatedEvent(
+        createEventID("SuperTokenCreated", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "SuperTokenCreated";
+    ev.addresses = [event.params.token];
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.save();
@@ -38,9 +42,13 @@ export function handleCustomSuperTokenCreated(
         return;
     }
 
-    let ev = new CustomSuperTokenCreatedEvent(createEventID(event));
+    let ev = new CustomSuperTokenCreatedEvent(
+        createEventID("CustomSuperTokenCreated", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "CustomSuperTokenCreated";
+    ev.addresses = [event.params.token];
     ev.blockNumber = event.block.number;
     ev.token = event.params.token;
     ev.save();
@@ -57,9 +65,13 @@ export function handleSuperTokenLogicCreated(
         return;
     }
 
-    let ev = new SuperTokenLogicCreatedEvent(createEventID(event));
+    let ev = new SuperTokenLogicCreatedEvent(
+        createEventID("SuperTokenLogicCreated", event)
+    );
     ev.transactionHash = event.transaction.hash;
     ev.timestamp = event.block.timestamp;
+    ev.name = "SuperTokenLogicCreated";
+    ev.addresses = [];
     ev.blockNumber = event.block.number;
     ev.tokenLogic = event.params.tokenLogic;
     ev.save();

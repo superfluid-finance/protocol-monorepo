@@ -22,6 +22,7 @@ import {
 import {
     actionTypeToActiveStreamsDeltaMap,
     actionTypeToClosedStreamsDeltaMap,
+    actionTypeToPeriodRevisionIndexDeltaMap,
     FlowActionType,
 } from "./constants";
 import { getCurrentTotalAmountStreamed, toBN } from "./helpers";
@@ -33,21 +34,40 @@ export const getExpectedStreamData = (
     lastUpdatedAtTimestamp: string,
     streamedAmountSinceUpdatedAt: BigNumber
 ) => {
-    const revisionIndexDelta =
-        actionTypeToClosedStreamsDeltaMap.get(actionType)!;
-    const revisionIndex = (
-        Number(currentStreamData.revisionIndex) + revisionIndexDelta
-    ).toString();
+    const {
+        revisionIndex: currentRevisionIndex,
+        periodRevisionIndex: currentPeriodRevisionIndex,
+    } = currentStreamData;
+    const revisionIndex = getUpdatedIndex(
+        currentRevisionIndex,
+        actionTypeToClosedStreamsDeltaMap,
+        actionType
+    );
+    const periodRevisionIndex = getUpdatedIndex(
+        currentPeriodRevisionIndex,
+        actionTypeToPeriodRevisionIndexDeltaMap,
+        actionType
+    );
     const updatedStreamedUntilUpdatedAt = toBN(
         currentStreamData.streamedUntilUpdatedAt
     ).add(streamedAmountSinceUpdatedAt);
     return {
         ...currentStreamData,
         revisionIndex,
+        periodRevisionIndex,
         oldFlowRate,
         streamedUntilUpdatedAt: updatedStreamedUntilUpdatedAt.toString(),
         updatedAtTimestamp: lastUpdatedAtTimestamp,
     } as IStreamData;
+};
+
+const getUpdatedIndex = (
+    currentIndex: string,
+    actionToIndexDeltaMap: Map<FlowActionType, number>,
+    actionType: FlowActionType
+) => {
+    const indexDelta = actionToIndexDeltaMap.get(actionType)!;
+    return (Number(currentIndex) + indexDelta).toString();
 };
 
 /**
@@ -359,6 +379,11 @@ export const getExpectedDataForIndexUpdated = async (
     };
 };
 
+/**
+ * Same expected data for IndexSubscribed
+ * @param data
+ * @returns
+ */
 export const getExpectedDataForSubscriptionApproved = async (
     data: IGetExpectedIDADataParams
 ) => {
@@ -465,6 +490,89 @@ export const getExpectedDataForSubscriptionApproved = async (
     };
 };
 
+/**
+ * Same expected data for IndexDistributionClaimed
+ * @param data 
+ * @returns 
+ */
+export const getExpectedDataForSubscriptionDistributionClaimed = async (
+    data: IGetExpectedIDADataParams
+) => {
+    const {
+        token,
+        currentIndex,
+        currentSubscription,
+        currentPublisherATS,
+        currentSubscriberATS,
+        currentTokenStats,
+        updatedAtBlockNumber,
+        timestamp,
+    } = data;
+    const distributionDelta = toBN(currentSubscription.units).mul(
+        toBN(currentIndex.indexValue).sub(
+            toBN(currentSubscription.indexValueUntilUpdatedAt)
+        )
+    );
+
+    let updatedTokenStats: ITokenStatistic = {
+        ...currentTokenStats,
+    };
+
+    let updatedIndex: IIndex = {
+        ...currentIndex,
+    };
+
+    let updatedSubscription: IIndexSubscription = {
+        ...currentSubscription,
+        totalAmountReceivedUntilUpdatedAt: toBN(
+            currentSubscription.totalAmountReceivedUntilUpdatedAt
+        )
+            .add(distributionDelta)
+            .toString(),
+        indexValueUntilUpdatedAt: updatedIndex.indexValue,
+    };
+
+    let updatedSubscriberATS: IAccountTokenSnapshot = {
+        ...(await getExpectedATSForCFAEvent(
+            token,
+            currentSubscriberATS,
+            updatedAtBlockNumber,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
+
+    let updatedPublisherATS: IAccountTokenSnapshot = {
+        ...(await getExpectedATSForCFAEvent(
+            token,
+            currentPublisherATS,
+            updatedAtBlockNumber,
+            timestamp,
+            FlowActionType.Update,
+            true,
+            toBN(0),
+            toBN(0)
+        )),
+    };
+
+    return {
+        updatedIndex,
+        updatedSubscription,
+        updatedPublisherATS,
+        updatedSubscriberATS,
+        updatedTokenStats,
+    };
+};
+
+/**
+ * @dev Same expected data for IndexUnsubscribed
+ * @param data
+ * @param isRevoke
+ * @returns
+ */
 export const getExpectedDataForRevokeOrDeleteSubscription = async (
     data: IGetExpectedIDADataParams,
     isRevoke: boolean

@@ -136,7 +136,12 @@ export default class SuperToken {
             const realtimeBalanceOfNow = await this.superTokenContract
                 .connect(providerOrSigner)
                 .realtimeBalanceOfNow(address);
-            return realtimeBalanceOfNow.availableBalance;
+            return {
+                availableBalance: realtimeBalanceOfNow.availableBalance,
+                deposit: realtimeBalanceOfNow.deposit,
+                owedDeposit: realtimeBalanceOfNow.owedDeposit,
+                timestamp: realtimeBalanceOfNow.timestamp
+            };
         } catch (err) {
             return handleError(
                 "SUPERTOKEN_READ",
@@ -411,39 +416,39 @@ export default class SuperToken {
     /**
      * @dev Approves a Subscription, so the Subscriber won't need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
-     * @param subscriber The subscriber address whose subscription you want to approve.
+     * @param publisher The publisher address whose subscription you want to approve.
      * @param userData Extra user data provided.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     approveSubscription = ({
         indexId,
-        subscriber,
+        publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Operation => {
+    }: ISuperTokenBaseIDAParams): Operation => {
         return this.idaV1.approveSubscription({
             indexId,
             superToken: this.options.address,
-            subscriber,
+            publisher,
             userData,
         });
     };
 
     /**
-     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributres.
+     * @dev Revokes a Subscription, so the Subscriber will need to claim tokens when the Publisher distributes.
      * @param indexId The id of the index.
-     * @param subscriber The subscriber address whose subscription you want to revoke.
+     * @param publisher The index publisher address you want to revoke for the subscriber.
      * @param userData Extra user data provided.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     revokeSubscription = ({
         indexId,
-        subscriber,
+        publisher,
         userData,
     }: ISuperTokenBaseSubscriptionParams): Operation => {
         return this.idaV1.revokeSubscription({
             indexId,
             superToken: this.options.address,
-            subscriber,
+            publisher,
             userData,
         });
     };

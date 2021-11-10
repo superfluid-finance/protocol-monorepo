@@ -16,7 +16,8 @@ type ErrorType =
     | "SIGN_TRANSACTION"
     | "GET_TRANSACTION_HASH"
     | "UNSUPPORTED_OPERATION"
-    | "MISSING_TRANSACTION_PROPERTIES";
+    | "MISSING_TRANSACTION_PROPERTIES"
+    | "BATCH_CALL_ERROR";
 
 const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["FRAMEWORK_INITIALIZATION", "Framework Initialization"],
@@ -37,6 +38,7 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["GET_TRANSACTION_HASH", "Get Transaction Hash"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
+    ["BATCH_CALL_ERROR", "Batch Call Error"]
 ]);
 
 export const handleError = (

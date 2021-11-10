@@ -11,7 +11,7 @@ import {
     SuperToken,
     TestToken,
 } from "../src/typechain";
-import { Framework } from "../src";
+import { DataMode, Framework } from "../src";
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
 // test test test test test test test test test test test junk
@@ -19,15 +19,16 @@ export const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 
 interface ISetupProps {
     readonly amount?: string;
-    readonly fakeSubgraphEndpoint?: string;
+    readonly dataMode?: DataMode;
+    readonly subgraphEndpoint?: string;
 }
 
 export const setup = async (props: ISetupProps) => {
-    const [Deployer, Alpha] = await ethers.getSigners();
-    if (!Deployer || !Alpha) {
-        throw new Error("No deployer");
+    const [Deployer, Alpha, Bravo] = await ethers.getSigners();
+    if (!Deployer || !Alpha || !Bravo) {
+        throw new Error("Empty signer not allowed!");
     }
-    const signers = [Deployer, Alpha];
+    const signers = [Deployer, Alpha, Bravo];
 
     const provider = Deployer.provider;
     if (!provider) {
@@ -54,7 +55,8 @@ export const setup = async (props: ISetupProps) => {
         networkName: "custom",
         resolverAddress: RESOLVER_ADDRESS,
         provider,
-        customSubgraphQueriesEndpoint: props.fakeSubgraphEndpoint,
+        dataMode: props.dataMode,
+        customSubgraphQueriesEndpoint: props.subgraphEndpoint,
         protocolReleaseVersion: "test",
     });
     const CFAV1 = new ethers.Contract(
@@ -93,6 +95,7 @@ export const setup = async (props: ISetupProps) => {
         frameworkClass,
         Deployer,
         Alpha,
+        Bravo,
         SuperToken,
         Token,
     };

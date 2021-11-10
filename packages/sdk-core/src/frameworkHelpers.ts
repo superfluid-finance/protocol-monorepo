@@ -46,8 +46,7 @@ export const validateFrameworkConstructorOptions = (
         (options.chainId != null && !chainIds.includes(options.chainId))
     ) {
         if (
-            (options.dataMode === "SUBGRAPH_ONLY" ||
-                options.dataMode === "SUBGRAPH_WEB3") &&
+            options.dataMode !== "WEB3_ONLY" &&
             isNullOrEmpty(options.customSubgraphQueriesEndpoint)
         ) {
             handleError(
@@ -70,24 +69,24 @@ export const validateFrameworkConstructorOptions = (
  * @returns SubgraphQueriesEndpoint which is a custom endpoint or based on selected network
  */
 export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
-    if (options.customSubgraphQueriesEndpoint) {
-        return options.customSubgraphQueriesEndpoint || "";
-    }
     if (options.chainId && chainIdToDataMap.get(options.chainId)) {
-        return chainIdToDataMap.get(options.chainId)?.subgraphAPIEndpoint || "";
+        return chainIdToDataMap.get(options.chainId)!.subgraphAPIEndpoint;
     }
     if (
         options.networkName &&
         networkNameToChainIdMap.get(options.networkName) &&
         chainIdToDataMap.get(networkNameToChainIdMap.get(options.networkName)!)
     ) {
-        return (
-            chainIdToDataMap.get(
-                networkNameToChainIdMap.get(options.networkName!)!
-            )!.subgraphAPIEndpoint || ""
-        );
+        return chainIdToDataMap.get(
+            networkNameToChainIdMap.get(options.networkName!)!
+        )!.subgraphAPIEndpoint;
     }
-    return "";
+
+    /* istanbul ignore next */
+    return handleError(
+        "FRAMEWORK_INITIALIZATION",
+        "Something went wrong, this should never occur."
+    );
 };
 
 interface INetworkNameParams {

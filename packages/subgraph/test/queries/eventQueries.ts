@@ -7,8 +7,11 @@ export const getFlowUpdatedEvents = gql`
             where: { transactionHash: $transactionHash }
         ) {
             id
+            timestamp
             transactionHash
+            name
             blockNumber
+            addresses
             token
             sender
             receiver
@@ -31,7 +34,9 @@ export const getIndexCreatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -42,6 +47,29 @@ export const getIndexCreatedEvents = gql`
         }
     }
 `;
+
+export const getIndexDistributionClaimedEvents = gql`
+    query getIndexDistributionClaimedEvents($transactionHash: Bytes!) {
+        response: indexDistributionClaimedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            transactionHash
+            name
+            blockNumber
+            addresses
+            token
+            publisher
+            indexId
+            subscriber
+            amount
+            index {
+                id
+            }
+        }
+    }
+`;
+
 export const getIndexUpdatedEvents = gql`
     query getIndexUpdatedEvents($transactionHash: Bytes!) {
         response: indexUpdatedEvents(
@@ -49,7 +77,9 @@ export const getIndexUpdatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -72,7 +102,9 @@ export const getIndexSubscribedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -92,7 +124,9 @@ export const getIndexUnitsUpdatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -113,7 +147,9 @@ export const getIndexUnsubscribedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             publisher
             indexId
@@ -133,7 +169,9 @@ export const getSubscriptionApprovedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             subscription {
@@ -146,6 +184,28 @@ export const getSubscriptionApprovedEvents = gql`
     }
 `;
 
+export const getSubscriptionDistributionClaimedEvents = gql`
+    query getSubscriptionDistributionClaimedEvents($transactionHash: Bytes!) {
+        response: subscriptionDistributionClaimedEvents(
+            where: { transactionHash: $transactionHash }
+        ) {
+            id
+            transactionHash
+            name
+            blockNumber
+            addresses
+            token
+            subscriber
+            publisher
+            indexId
+            amount
+            subscription {
+                id
+            }
+        }
+    }
+`;
+
 export const getSubscriptionRevokedEvents = gql`
     query getSubscriptionRevokedEvents($transactionHash: Bytes!) {
         response: subscriptionRevokedEvents(
@@ -153,7 +213,9 @@ export const getSubscriptionRevokedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             subscription {
@@ -173,7 +235,9 @@ export const getSubscriptionUnitsUpdatedEvents = gql`
         ) {
             id
             transactionHash
+            name
             blockNumber
+            addresses
             token
             subscriber
             subscription {

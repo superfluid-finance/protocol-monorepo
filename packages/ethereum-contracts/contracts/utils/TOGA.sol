@@ -15,7 +15,7 @@ import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Re
  * @title TOGA: Transparent Ongoing Auction
  *
  * TOGA is a simple implementation of a continuous auction.
- * It's used to designate PICs (Patrician In Chief) - a role defined per Super Token.
+ * It's used to designate PICs (Patrician In Charge) - a role defined per Super Token.
  * Anybody can become the PIC for a Super Token by staking the highest bond (denominated in the token).
  * Staking is done by simply using ERC777.send(), transferring the bond amount to be staked to this contract.
  * Via userData parameter (abi-encoded int96), an exitRate can be defined. If omitted, a default will be chosen.
@@ -104,6 +104,8 @@ contract TOGA is ITOGAv1, IERC777Recipient {
     uint256 public immutable minBondDuration;
     IERC1820Registry constant internal _ERC1820_REGISTRY =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+    // solhint-disable-next-line var-name-mixedcase
+    uint64 immutable public ERC777_SEND_GAS_LIMIT = 3000000;
 
     constructor(ISuperfluid host_, uint256 minBondDuration_) {
         _host = ISuperfluid(host_);
@@ -135,14 +137,14 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         public view override
         returns(int96 exitRate)
     {
-        return int96(bondAmount / minBondDuration);
+        return int96(bondAmount / (minBondDuration * 4));
     }
 
-    function getMaxExitRateFor(ISuperToken token, uint256 bondAmount)
+    function getMaxExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
         external view override
         returns(int96 exitRate)
     {
-        return getDefaultExitRateFor(token, bondAmount);
+        return int96(bondAmount / minBondDuration);
     }
 
     function changeExitRate(ISuperToken token, int96 newExitRate) external override {
@@ -202,9 +204,6 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         (int256 availBal, uint256 deposit, , ) = token.realtimeBalanceOfNow(address(this));
         // The protocol guarantees that we get no values leading to an overflow here
         return availBal + int256(deposit) > 0 ? uint256(availBal + int256(deposit)) : 0;
-
-        //(,, uint256 deposit,) = _cfa.getFlow(token, address(this), _currentPICs[token].addr);
-        //return token.balanceOf(address(this));// + deposit;
     }
 
     // This is the logic for designating a PIC via successful bid - invoked only by the ERC777 send() hook
@@ -237,11 +236,10 @@ contract TOGA is ITOGAv1, IERC777Recipient {
         }
 
         // send remaining bond to current PIC
-        // send() allows the PIC to automatically re-bid
         // If the current PIC causes the send() to fail (iff contract with failing hook), we're sorry for them.
         // In this case the new PIC will "inherit" the remainder of their bond.
         // solhint-disable-next-line check-send-result
-        try token.send(currentPICAddr, currentPICBond, "0x")
+        try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
         // solhint-disable-next-line no-empty-blocks
         {} catch {}
 

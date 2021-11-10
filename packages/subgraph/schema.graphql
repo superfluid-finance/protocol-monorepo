@@ -9,6 +9,12 @@ data.
 interface Event {
     id: ID!
     blockNumber: BigInt!
+    name: String!
+
+    """
+    Holds the addresses for accounts that were impacted by the event.
+    """
+    addresses: [Bytes!]!
     timestamp: BigInt!
     transactionHash: Bytes!
 }
@@ -22,6 +28,12 @@ type FlowUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, sender and receiver addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
 
     """
@@ -71,6 +83,12 @@ type IndexCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token and publisher addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     publisher: Bytes!
@@ -81,10 +99,37 @@ type IndexCreatedEvent implements Event @entity {
     index: Index!
 }
 
+type IndexDistributionClaimedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    token: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    subscriber: Bytes!
+    amount: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    index: Index!
+}
+
 type IndexUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token and publisher addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     publisher: Bytes!
@@ -103,6 +148,12 @@ type IndexSubscribedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     publisher: Bytes!
@@ -118,6 +169,12 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     publisher: Bytes!
@@ -137,6 +194,12 @@ type IndexUnsubscribedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     publisher: Bytes!
@@ -152,6 +215,12 @@ type SubscriptionApprovedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     subscriber: Bytes!
@@ -163,10 +232,37 @@ type SubscriptionApprovedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
+type SubscriptionDistributionClaimedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    token: Bytes!
+    subscriber: Bytes!
+    publisher: Bytes!
+    indexId: BigInt!
+    amount: BigInt!
+
+    # ---------------------------------- links ----------------------------------
+    subscription: IndexSubscription!
+}
+
 type SubscriptionRevokedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     subscriber: Bytes!
@@ -182,6 +278,12 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, publisher and subscriber addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     subscriber: Bytes!
@@ -203,6 +305,12 @@ type AgreementClassRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     agreementType: Bytes!
     code: Bytes!
@@ -212,6 +320,12 @@ type AgreementClassUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     agreementType: Bytes!
     code: Bytes!
@@ -221,6 +335,12 @@ type AppRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     app: Bytes!
 }
@@ -229,7 +349,13 @@ type GovernanceReplacedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+    addresses: [Bytes!]!
     blockNumber: BigInt!
+
+    """
+    Empty addresses array.
+    """
     oldGovernance: Bytes!
     newGovernance: Bytes!
 }
@@ -238,6 +364,12 @@ type JailEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     app: Bytes!
     reason: BigInt!
@@ -247,6 +379,12 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     newFactory: Bytes!
 }
@@ -255,6 +393,12 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     code: Bytes!
@@ -265,6 +409,12 @@ type RoleAdminChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     role: Bytes!
     previousAdminRole: Bytes!
@@ -275,6 +425,12 @@ type RoleGrantedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     role: Bytes!
     account: Bytes!
@@ -285,6 +441,12 @@ type RoleRevokedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     role: Bytes!
     account: Bytes!
@@ -296,6 +458,12 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
@@ -307,6 +475,12 @@ type ConfigChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
@@ -319,6 +493,12 @@ type RewardAddressChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
@@ -330,6 +510,12 @@ type TrustedForwarderChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     host: Bytes!
     superToken: Bytes!
@@ -343,6 +529,12 @@ type AgreementLiquidatedByEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     liquidatorAccount: Bytes!
@@ -358,6 +550,12 @@ type BurnedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token and from addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     operator: Bytes!
     from: Bytes!
@@ -370,6 +568,12 @@ type MintedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, operator and to addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     operator: Bytes!
     to: Bytes!
@@ -382,6 +586,12 @@ type SentEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, operator and from addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     operator: Bytes!
     to: Bytes!
@@ -394,6 +604,12 @@ type TransferEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token, from and to addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     from: Account!
     to: Account!
@@ -406,6 +622,12 @@ type TokenDowngradedEvent implements Event @entity {
     account: Account!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token and account addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     amount: BigInt!
@@ -416,6 +638,12 @@ type TokenUpgradedEvent implements Event @entity {
     account: Account!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token and account addresses.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
     amount: BigInt!
@@ -427,6 +655,12 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token address.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
 }
@@ -435,6 +669,12 @@ type SuperTokenCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Holds the token address.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     token: Bytes!
 }
@@ -443,6 +683,12 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
     blockNumber: BigInt!
     tokenLogic: Bytes!
 }
@@ -554,6 +800,9 @@ type Index @entity {
     """
     indexCreatedEvent: IndexCreatedEvent!
 
+    indexDistributionClaimedEvents: [IndexDistributionClaimedEvent!]!
+        @derivedFrom(field: "index")
+
     indexUpdatedEvents: [IndexUpdatedEvent!]! @derivedFrom(field: "index")
     indexSubscribedEvents: [IndexSubscribedEvent!]! @derivedFrom(field: "index")
     indexUnitsUpdatedEvents: [IndexUnitsUpdatedEvent!]!
@@ -611,6 +860,9 @@ type IndexSubscription @entity {
     subscriptionApprovedEvents: [SubscriptionApprovedEvent!]!
         @derivedFrom(field: "subscription")
 
+    subscriptionDistributionClaimedEvents: [SubscriptionDistributionClaimedEvent!]!
+        @derivedFrom(field: "subscription")
+
     subscriptionRevokedEvents: [SubscriptionRevokedEvent!]!
         @derivedFrom(field: "subscription")
 
@@ -649,6 +901,38 @@ type Stream @entity {
     receiver: Account!
 
     flowUpdatedEvents: [FlowUpdatedEvent!]! @derivedFrom(field: "stream")
+    streamPeriods: [StreamPeriod!]! @derivedFrom(field: "stream")
+}
+
+"""
+StreamPeriod: A HOL entity that represents a period of time in a Stream with a constant flowRate.
+"""
+type StreamPeriod @entity {
+    """
+    ID composed of: streamId - periodRevisionIndex
+    """
+    id: ID!
+
+    stream: Stream!
+
+    sender: Account!
+    receiver: Account!
+
+    token: Token!
+
+    flowRate: BigInt!
+
+    startedAtTimestamp: BigInt!
+    startedAtBlockNumber: BigInt!
+    startedAtEvent: FlowUpdatedEvent!
+    """
+    Following values are null until the StreamPeriod is terminated
+    """
+    stoppedAtTimestamp: BigInt
+    stoppedAtBlockNumber: BigInt
+    stoppedAtEvent: FlowUpdatedEvent
+
+    totalAmountStreamed: BigInt
 }
 
 ####################
@@ -657,6 +941,7 @@ type Stream @entity {
 type StreamRevision @entity {
     id: ID!
     revisionIndex: Int!
+    periodRevisionIndex: Int!
 }
 
 """

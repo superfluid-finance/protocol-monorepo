@@ -17,6 +17,8 @@ export interface IEvent {
     readonly id: string;
     readonly transactionHash: string;
     readonly blockNumber: string;
+    readonly name: string;
+    readonly addresses: string[];
     readonly timestamp: string;
 }
 
@@ -178,6 +180,23 @@ export interface IStream extends IBaseEntity {
     readonly sender: ILightEntity;
     readonly receiver: ILightEntity;
     readonly flowUpdatedEvents: ILightEntity[];
+    readonly streamPeriods: ILightEntity[];
+}
+
+export interface IStreamPeriod extends IBaseEntity {
+    readonly id: string;
+    readonly stream: ILightEntity;
+    readonly sender: ILightEntity;
+    readonly receiver: ILightEntity;
+    readonly token: ILightEntity;
+    readonly flowRate: string;
+    readonly startedAtTimestamp: string;
+    readonly startedAtBlockNumber: string;
+    readonly startedAtEvent: ILightEntity;
+    readonly stoppedAtTimestamp: string;
+    readonly stoppedAtBlockNumber: string;
+    readonly stoppedAtEvent: ILightEntity;
+    readonly totalAmountStreamed: string;
 }
 
 export interface IIndexSubscription extends IBaseEntity {
@@ -189,6 +208,7 @@ export interface IIndexSubscription extends IBaseEntity {
     readonly index: ILightIndex;
 
     readonly subscriptionApprovedEvents?: ILightEntity[];
+    readonly subscriptionDistributionClaimedEvents?: ILightEntity[];
     readonly subscriptionRevokedEvents?: ILightEntity[];
     readonly subscriptionUnitsUpdatedEvents?: ILightEntity[];
 }
@@ -212,6 +232,7 @@ export interface IIndex extends IBaseEntity {
 
     readonly subscriptions?: ILightEntity[];
     readonly indexCreatedEvent?: ILightEntity;
+    readonly indexDistributionClaimedEvents?: ILightEntity[];
     readonly indexUpdatedEvents?: ILightEntity[];
     readonly indexSubscribedEvents?: ILightEntity[];
     readonly indexUnitsUpdatedEvents?: ILightEntity[];
@@ -269,6 +290,7 @@ export interface ILightEntity {
 export interface IStreamData {
     id: string;
     revisionIndex: string;
+    periodRevisionIndex: string;
     oldFlowRate: string;
     streamedUntilUpdatedAt: string;
     updatedAtTimestamp: string;
@@ -328,6 +350,7 @@ export interface IBaseTestData {
 
 export interface IStreamLocalData extends IAggregateLocalData {
     readonly revisionIndexes: { [id: string]: number | undefined };
+    readonly periodRevisionIndexes: { [id: string]: number | undefined };
     readonly streamData: { [id: string]: IStreamData | undefined };
 }
 export interface IDistributionLocalData extends IAggregateLocalData {
@@ -413,6 +436,7 @@ export interface IExtraEventData {
     readonly newIndexValue?: BigNumber;
     readonly totalUnitsApproved?: BigNumber;
     readonly totalUnitsPending?: BigNumber;
+    readonly distributionDelta?: BigNumber;
 }
 
 export interface IExtraExpectedData extends IExtraEventData {
@@ -435,11 +459,13 @@ export interface IInstantDistributionTestData
 
 export interface IIDAEvents {
     readonly IndexCreatedEvent?: IEvent;
+    readonly IndexDistributionClaimedEvent?: IEvent;
     readonly IndexUpdatedEvent?: IEvent;
     readonly IndexSubscribedEvent?: IEvent;
     readonly IndexUnitsUpdatedEvent?: IEvent;
     readonly IndexUnsubscribedEvent?: IEvent;
     readonly SubscriptionApprovedEvent?: IEvent;
+    readonly SubscriptionDistributionClaimedEvent?: IEvent;
     readonly SubscriptionRevokedEvent?: IEvent;
     readonly SubscriptionUnitsUpdatedEvent?: IEvent;
 }
@@ -472,6 +498,7 @@ export interface IExpectedFlowUpdateEvent {
     readonly oldFlowRate: string;
     readonly receiver: string;
     readonly sender: string;
+    readonly addresses: string[];
     readonly token: string;
     readonly totalAmountStreamedUntilTimestamp: string;
     readonly totalReceiverFlowRate: string;

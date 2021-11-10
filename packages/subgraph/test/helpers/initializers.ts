@@ -29,10 +29,17 @@ export const getOrInitRevisionIndex = (
 ): number => {
     return revisionIndexes[revisionIndexId] || 0;
 };
+export const getOrInitPeriodRevisionIndex = (
+    periodRevisionIndexes: { [id: string]: number | undefined },
+    revisionIndexId: string
+): number => {
+    return periodRevisionIndexes[revisionIndexId] || 0;
+};
 
 export const getOrInitStreamData = (
     streamData: { [id: string]: IStreamData | undefined },
     revisionIndex: string,
+    periodRevisionIndex: string,
     streamId: string,
     updatedAtTimestamp: string
 ): IStreamData => {
@@ -41,6 +48,7 @@ export const getOrInitStreamData = (
         return {
             id: streamId,
             revisionIndex,
+            periodRevisionIndex,
             oldFlowRate: "0",
             streamedUntilUpdatedAt: "0",
             updatedAtTimestamp,
@@ -188,6 +196,7 @@ export function getOrInitializeDataForFlowUpdated(
         updatedAtTimestamp,
         receiver,
         revisionIndexes,
+        periodRevisionIndexes,
         sender,
         streamData,
         token,
@@ -201,6 +210,10 @@ export function getOrInitializeDataForFlowUpdated(
         revisionIndexes,
         revisionIndexId
     );
+    const currentPeriodRevisionIndex = getOrInitPeriodRevisionIndex(
+        periodRevisionIndexes,
+        revisionIndexId
+    );
     const streamId = getStreamId(
         sender,
         receiver,
@@ -210,6 +223,7 @@ export function getOrInitializeDataForFlowUpdated(
     const pastStreamData = getOrInitStreamData(
         streamData,
         currentRevisionIndex.toString(),
+        currentPeriodRevisionIndex.toString(),
         streamId,
         updatedAtTimestamp
     );
@@ -234,7 +248,7 @@ export function getOrInitializeDataForFlowUpdated(
         updatedAtTimestamp,
         totalSupply
     );
-
+    
     return {
         currentSenderATS,
         currentReceiverATS,

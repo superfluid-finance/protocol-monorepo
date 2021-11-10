@@ -13,7 +13,7 @@ contract TestResolver is IResolver, AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function set(string calldata name, address target) external {
+    function set(string calldata name, address target) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Caller is not an admin");
         _registry[name] = target;
     }

@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@superfluid-finance/sdk-redux": "1.0.0",
         "@emotion/react": "latest",
         "@emotion/styled": "latest",
         "@ethersproject/contracts": "latest",
@@ -22,7 +23,9 @@
     },
     "scripts": {
         "start": "react-scripts start",
-        "build": "react-scripts build"
+        "build": "react-scripts build",
+        "test": "echo test",
+        "pre-commit": "echo pre-commit"
     },
     "eslintConfig": {
         "extends": "react-app"

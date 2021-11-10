@@ -29,7 +29,7 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
 
         const superfluidSdk = await Framework.create({
             chainId: 5,
-            provider: ethersWeb3Provider,
+            provider: ethersWeb3Provider as any, // TODO(KK): as any
         });
 
         // @ts-ignore

@@ -444,7 +444,7 @@ export default class SuperToken {
         indexId,
         publisher,
         userData,
-    }: ISuperTokenBaseSubscriptionParams): Operation => {
+    }: ISuperTokenBaseIDAParams): Operation => {
         return this.idaV1.revokeSubscription({
             indexId,
             superToken: this.options.address,

@@ -57,7 +57,7 @@ describe("IDA V1 Tests", () => {
                     indexId: "0",
                     superToken: superToken.address,
                     subscriber: alpha.address,
-                    units: ethers.utils.parseUnits("100").toString(),
+                    units: ethers.utils.parseUnits("0.001").toString(),
                 })
                 .exec(deployer)
         )
@@ -67,7 +67,7 @@ describe("IDA V1 Tests", () => {
                 alpha.address,
                 deployer.address,
                 0,
-                ethers.utils.parseUnits("100").toString(),
+                ethers.utils.parseUnits("0.001").toString(),
                 "0x"
             );
 
@@ -77,7 +77,7 @@ describe("IDA V1 Tests", () => {
                     indexId: "0",
                     superToken: superToken.address,
                     subscriber: bravo.address,
-                    units: ethers.utils.parseUnits("100").toString(),
+                    units: ethers.utils.parseUnits("0.001").toString(),
                 })
                 .exec(deployer)
         )
@@ -87,21 +87,18 @@ describe("IDA V1 Tests", () => {
                 deployer.address,
                 0,
                 bravo.address,
-                ethers.utils.parseUnits("100").toString(),
+                ethers.utils.parseUnits("0.001").toString(),
                 "0x"
             );
     });
 
-    it.skip("Should be able to distribute to subscriptions", async () => {
-        const amount = ethers.utils
-            .parseUnits("10000")
-            .div(ethers.utils.parseUnits("200"));
+    it("Should be able to distribute to subscriptions", async () => {
         await expect(
             framework.idaV1
                 .distribute({
                     indexId: "0",
                     superToken: superToken.address,
-                    amount: ethers.utils.parseUnits("10000").toString(),
+                    amount: ethers.utils.parseUnits("1").toString(),
                 })
                 .exec(deployer)
         )
@@ -110,9 +107,9 @@ describe("IDA V1 Tests", () => {
                 superToken.address,
                 deployer.address,
                 0,
-                "5",
-                amount.toString(),
-                ethers.utils.parseUnits("200").toString(),
+                "0",
+                "500",
+                ethers.utils.parseUnits("0.002").toString(),
                 ethers.utils.parseUnits("0").toString(),
                 "0x"
             );
@@ -128,7 +125,7 @@ describe("IDA V1 Tests", () => {
                 })
                 .exec(alpha)
         )
-            .to.emit(idaV1, "SubscriptionApproved")
+            .to.emit(idaV1.connect(alpha), "SubscriptionApproved")
             .withArgs(
                 superToken.address,
                 alpha.address,
@@ -146,7 +143,7 @@ describe("IDA V1 Tests", () => {
                 })
                 .exec(bravo)
         )
-            .to.emit(idaV1, "IndexSubscribed")
+            .to.emit(idaV1.connect(bravo), "IndexSubscribed")
             .withArgs(
                 superToken.address,
                 deployer.address,
@@ -156,12 +153,12 @@ describe("IDA V1 Tests", () => {
             );
     });
 
-    it.skip("Should be able to update index value", async () => {
+    it("Should be able to update index value", async () => {
         await expect(
             framework.idaV1
                 .updateIndexValue({
                     indexId: "0",
-                    indexValue: ethers.utils.parseUnits("100").toString(),
+                    indexValue: ethers.utils.parseUnits("0.002").toString(),
                     superToken: superToken.address,
                 })
                 .exec(deployer)
@@ -171,10 +168,10 @@ describe("IDA V1 Tests", () => {
                 superToken.address,
                 deployer.address,
                 0,
-                "5",
-                ethers.utils.parseUnits("100").add("5"),
+                "500",
+                ethers.utils.parseUnits("0.002").toString(),
                 "0",
-                ethers.utils.parseUnits("300"),
+                ethers.utils.parseUnits("0.002").toString(),
                 "0x"
             );
     });
@@ -189,7 +186,7 @@ describe("IDA V1 Tests", () => {
                 })
                 .exec(alpha)
         )
-            .to.emit(idaV1, "SubscriptionRevoked")
+            .to.emit(idaV1.connect(alpha), "SubscriptionRevoked")
             .withArgs(
                 superToken.address,
                 alpha.address,
@@ -207,7 +204,7 @@ describe("IDA V1 Tests", () => {
                 })
                 .exec(bravo)
         )
-            .to.emit(idaV1, "IndexUnsubscribed")
+            .to.emit(idaV1.connect(bravo), "IndexUnsubscribed")
             .withArgs(
                 superToken.address,
                 deployer.address,
@@ -217,12 +214,12 @@ describe("IDA V1 Tests", () => {
             );
     });
 
-    it.skip("Should be able to update index value", async () => {
+    it("Should be able to update index value", async () => {
         await expect(
             framework.idaV1
                 .updateIndexValue({
                     indexId: "0",
-                    indexValue: ethers.utils.parseUnits("100").toString(),
+                    indexValue: ethers.utils.parseUnits("0.002").toString(),
                     superToken: superToken.address,
                 })
                 .exec(deployer)
@@ -232,17 +229,15 @@ describe("IDA V1 Tests", () => {
                 superToken.address,
                 deployer.address,
                 0,
-                ethers.utils.parseUnits("100").add("5"),
-                ethers.utils
-                    .parseUnits("150")
-                    .add(ethers.utils.parseUnits("100").add("5")),
-                "300",
+                ethers.utils.parseUnits("0.002").toString(),
+                ethers.utils.parseUnits("0.002").toString(),
+                ethers.utils.parseUnits("0.002").toString(),
                 "0",
                 "0x"
             );
     });
 
-    it.skip("Should be able to claim", async () => {
+    it("Should be able to claim", async () => {
         await expect(
             framework.idaV1
                 .claim({
@@ -253,12 +248,12 @@ describe("IDA V1 Tests", () => {
                 })
                 .exec(alpha)
         )
-            .to.emit(idaV1, "SubscriptionDistributionClaimed")
+            .to.emit(idaV1.connect(alpha), "SubscriptionDistributionClaimed")
             .withArgs(
                 superToken.address,
+                alpha.address,
                 deployer.address,
                 0,
-                alpha.address,
                 ethers.utils.parseUnits("10000")
             );
 
@@ -272,11 +267,11 @@ describe("IDA V1 Tests", () => {
                 })
                 .exec(bravo)
         )
-            .to.emit(idaV1, "IndexDistributionClaimed")
+            .to.emit(idaV1.connect(bravo), "IndexDistributionClaimed")
             .withArgs(
                 superToken.address,
-                bravo.address,
                 deployer.address,
+                bravo.address,
                 0,
                 ethers.utils.parseUnits("10000")
             );

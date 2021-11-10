@@ -229,7 +229,7 @@ describe("SuperToken Tests", () => {
                     .updateSubscriptionUnits({
                         indexId: "0",
                         subscriber: deployer.address,
-                        units: ethers.utils.parseUnits("100").toString(),
+                        units: ethers.utils.parseUnits("0.001").toString(),
                     })
                     .exec(alpha)
             )
@@ -239,7 +239,7 @@ describe("SuperToken Tests", () => {
                     deployer.address,
                     alpha.address,
                     0,
-                    ethers.utils.parseUnits("100").toString(),
+                    ethers.utils.parseUnits("0.001").toString(),
                     "0x"
                 );
 
@@ -248,7 +248,7 @@ describe("SuperToken Tests", () => {
                     .updateSubscriptionUnits({
                         indexId: "0",
                         subscriber: bravo.address,
-                        units: ethers.utils.parseUnits("100").toString(),
+                        units: ethers.utils.parseUnits("0.001").toString(),
                     })
                     .exec(alpha)
             )
@@ -258,20 +258,17 @@ describe("SuperToken Tests", () => {
                     alpha.address,
                     0,
                     bravo.address,
-                    ethers.utils.parseUnits("100").toString(),
+                    ethers.utils.parseUnits("0.001").toString(),
                     "0x"
                 );
         });
 
-        it.skip("Should be able to distribute", async () => {
-            const amount = ethers.utils
-                .parseUnits("10000")
-                .div(ethers.utils.parseUnits("200"));
+        it("Should be able to distribute", async () => {
             await expect(
                 daix
                     .distribute({
                         indexId: "0",
-                        amount: ethers.utils.parseUnits("10000").toString(),
+                        amount: ethers.utils.parseUnits("1").toString(),
                     })
                     .exec(alpha)
             )
@@ -280,9 +277,9 @@ describe("SuperToken Tests", () => {
                     superToken.address,
                     alpha.address,
                     0,
-                    "5",
-                    amount.toString(),
-                    ethers.utils.parseUnits("200").toString(),
+                    "0",
+                    "500",
+                    ethers.utils.parseUnits("0.002").toString(),
                     ethers.utils.parseUnits("0").toString(),
                     "0x"
                 );
@@ -360,13 +357,12 @@ describe("SuperToken Tests", () => {
                 );
         });
 
-        it.skip("Should be able to update index value", async () => {
+        it("Should be able to update index value", async () => {
             await expect(
-                framework.idaV1
+                daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils.parseUnits("100").toString(),
-                        superToken: superToken.address,
+                        indexValue: ethers.utils.parseUnits("0.002").toString(),
                     })
                     .exec(alpha)
             )
@@ -375,22 +371,19 @@ describe("SuperToken Tests", () => {
                     superToken.address,
                     alpha.address,
                     0,
-                    ethers.utils.parseUnits("100").add("5"),
-                    ethers.utils
-                        .parseUnits("150")
-                        .add(ethers.utils.parseUnits("100").add("5")),
-                    "300",
+                    "500",
+                    ethers.utils.parseUnits("0.002").toString(),
+                    ethers.utils.parseUnits("0.002").toString(),
                     "0",
                     "0x"
                 );
         });
 
-        it.skip("Should be able to claim pending units", async () => {
+        it("Should be able to claim pending units", async () => {""
             await expect(
-                framework.idaV1
+                daix
                     .claim({
                         indexId: "0",
-                        superToken: superToken.address,
                         subscriber: deployer.address,
                         publisher: alpha.address,
                     })
@@ -399,17 +392,16 @@ describe("SuperToken Tests", () => {
                 .to.emit(idaV1, "SubscriptionDistributionClaimed")
                 .withArgs(
                     superToken.address,
+                    deployer.address,
                     alpha.address,
                     0,
-                    deployer.address,
                     ethers.utils.parseUnits("10000")
                 );
 
             await expect(
-                framework.idaV1
+                daix
                     .claim({
                         indexId: "0",
-                        superToken: superToken.address,
                         subscriber: bravo.address,
                         publisher: alpha.address,
                     })
@@ -418,20 +410,19 @@ describe("SuperToken Tests", () => {
                 .to.emit(idaV1, "IndexDistributionClaimed")
                 .withArgs(
                     superToken.address,
-                    bravo.address,
                     alpha.address,
                     0,
+                    bravo.address,
                     ethers.utils.parseUnits("10000")
                 );
         });
 
         it("Should be able to delete subscription", async () => {
             await expect(
-                framework.idaV1
+                daix
                     .deleteSubscription({
                         indexId: "0",
                         subscriber: deployer.address,
-                        superToken: superToken.address,
                         publisher: alpha.address,
                     })
                     .exec(alpha)
@@ -446,11 +437,10 @@ describe("SuperToken Tests", () => {
                 );
 
             await expect(
-                framework.idaV1
+                daix
                     .deleteSubscription({
                         indexId: "0",
                         subscriber: bravo.address,
-                        superToken: superToken.address,
                         publisher: alpha.address,
                     })
                     .exec(alpha)

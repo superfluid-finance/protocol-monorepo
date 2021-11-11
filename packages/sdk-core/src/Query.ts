@@ -84,8 +84,7 @@ export default class Query {
             GetTokensQueryVariables
         >(GetTokensDocument, {
             where: {
-                isSuperToken: true,
-                ...filter,
+                isSuperToken: true
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -104,9 +103,13 @@ export default class Query {
             GetIndexesQuery,
             GetIndexesQueryVariables
         >(GetIndexesDocument, {
-            where: filter,
+            where: {
+                indexId: filter.indexId,
+                publisher: filter.publisher,
+                token: filter.token
+            },
             skip: paging.skip,
-            first: paging.takePlusOne(),
+            first: paging.takePlusOne()
         });
 
         return createPagedResult<IIndex>(response.result, paging);
@@ -122,7 +125,10 @@ export default class Query {
             GetIndexSubscriptionsQuery,
             GetIndexSubscriptionsQueryVariables
         >(GetIndexSubscriptionsDocument, {
-            where: filter,
+            where: {
+                subscriber: filter.subscriber,
+                approved: filter.approved
+            },
             skip: paging.skip,
             first: paging.takePlusOne(),
         });
@@ -140,7 +146,11 @@ export default class Query {
             GetStreamsQuery,
             GetStreamsQueryVariables
         >(GetStreamsDocument, {
-            where: filter,
+            where: {
+                sender: filter.sender,
+                receiver: filter.receiver,
+                token: filter.token
+            },
             skip: paging.skip,
             first: paging.takePlusOne(),
         });
@@ -158,7 +168,10 @@ export default class Query {
             GetAccountTokenSnapshotsQuery,
             GetAccountTokenSnapshotsQueryVariables
         >(GetAccountTokenSnapshotsDocument, {
-            where: filter,
+            where: {
+                account: filter.account,
+                token: filter.token
+            },
             skip: paging.skip,
             first: paging.takePlusOne(),
         });

@@ -146,7 +146,8 @@ export default class Framework {
         } catch (err) {
             handleError(
                 "FRAMEWORK_INITIALIZATION",
-                "There was an error initializing the framework"
+                "There was an error initializing the framework:",
+                JSON.stringify(err)
             );
         }
 

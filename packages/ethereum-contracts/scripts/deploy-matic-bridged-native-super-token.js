@@ -1,7 +1,7 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const {
-    parseColonArgs,
+    getScriptRunnerFactory: S,
     extractWeb3Options,
     detectTruffleAndConfigure,
     builtTruffleContractLoader,
@@ -19,80 +19,67 @@ const {
  * Usage: npx truffle exec scripts/deploy-matic-bridged-native-super-token.js : {NAME} {SYMBOL} {CHILD_CHAIN_MANAGER}
  *        CHILD_CHAIN_MANAGER is the bridge contract account calling the deposit function which mints tokens
  */
-module.exports = async function (callback, argv, options = {}) {
-    try {
-        console.log(
-            "======== Deploying unlisted Matic bridged native super token ========"
-        );
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
+    console.log(
+        "======== Deploying unlisted Matic bridged native super token ========"
+    );
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
-        let { protocolReleaseVersion } = options;
+    await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+    let { protocolReleaseVersion } = options;
 
-        const args = parseColonArgs(argv || process.argv);
-        if (args.length !== 3) {
-            throw new Error("Wrong number of arguments");
-        }
-        const childChainManager = args.pop();
-        const superTokenSymbol = args.pop();
-        const superTokenName = args.pop();
-        console.log("Super token name", superTokenName);
-        console.log("Super token symbol", superTokenSymbol);
-
-        if (!web3.utils.isAddress(childChainManager)) {
-            throw new Error(`not a valid address: ${childChainManager}`);
-        }
-        console.log("Child chain manager", childChainManager);
-
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-        console.log("chain ID: ", chainId);
-        console.log("protocol release version:", protocolReleaseVersion);
-
-        const sf = new SuperfluidSDK.Framework({
-            ...extractWeb3Options(options),
-            version: protocolReleaseVersion,
-            additionalContracts: [
-                "MaticBridgedNativeSuperTokenProxy",
-                "IMaticBridgedNativeSuperToken",
-            ],
-            contractLoader: builtTruffleContractLoader,
-        });
-        await sf.initialize();
-
-        const {
-            MaticBridgedNativeSuperTokenProxy,
-            IMaticBridgedNativeSuperToken,
-        } = sf.contracts;
-
-        const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
-            await sf.host.getSuperTokenFactory.call()
-        );
-
-        console.log("Deploying MaticBridgedNativeSuperTokenProxy...");
-        const proxy = await MaticBridgedNativeSuperTokenProxy.new(
-            childChainManager
-        );
-
-        const token = await IMaticBridgedNativeSuperToken.at(proxy.address);
-
-        console.log("Invoking initializeCustomSuperToken...");
-        await superTokenFactory.initializeCustomSuperToken(token.address);
-
-        console.log("Invoking initialize...");
-        await token.initialize(
-            ZERO_ADDRESS,
-            18,
-            superTokenName,
-            superTokenSymbol
-        );
-
-        console.log(
-            `Matic Bridged Native SuperToken deployed at ${token.address}`
-        );
-
-        callback();
-    } catch (err) {
-        callback(err);
+    if (args.length !== 3) {
+        throw new Error("Wrong number of arguments");
     }
-};
+    const childChainManager = args.pop();
+    const superTokenSymbol = args.pop();
+    const superTokenName = args.pop();
+    console.log("Super token name", superTokenName);
+    console.log("Super token symbol", superTokenSymbol);
+
+    if (!web3.utils.isAddress(childChainManager)) {
+        throw new Error(`not a valid address: ${childChainManager}`);
+    }
+    console.log("Child chain manager", childChainManager);
+
+    protocolReleaseVersion =
+        protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
+    const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+    console.log("chain ID: ", chainId);
+    console.log("protocol release version:", protocolReleaseVersion);
+
+    const sf = new SuperfluidSDK.Framework({
+        ...extractWeb3Options(options),
+        version: protocolReleaseVersion,
+        additionalContracts: [
+            "MaticBridgedNativeSuperTokenProxy",
+            "IMaticBridgedNativeSuperToken",
+        ],
+        contractLoader: builtTruffleContractLoader,
+    });
+    await sf.initialize();
+
+    const { MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken } =
+        sf.contracts;
+
+    const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
+        await sf.host.getSuperTokenFactory.call()
+    );
+
+    console.log("Deploying MaticBridgedNativeSuperTokenProxy...");
+    const proxy = await MaticBridgedNativeSuperTokenProxy.new(
+        childChainManager
+    );
+
+    const token = await IMaticBridgedNativeSuperToken.at(proxy.address);
+
+    console.log("Invoking initializeCustomSuperToken...");
+    await superTokenFactory.initializeCustomSuperToken(token.address);
+
+    console.log("Invoking initialize...");
+    await token.initialize(ZERO_ADDRESS, 18, superTokenName, superTokenSymbol);
+
+    console.log(`Matic Bridged Native SuperToken deployed at ${token.address}`);
+});

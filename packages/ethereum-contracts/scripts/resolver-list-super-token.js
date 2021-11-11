@@ -1,9 +1,8 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
+    getScriptRunnerFactory: S,
     ZERO_ADDRESS,
-    parseColonArgs,
     extractWeb3Options,
-    setupScriptEnvironment,
     builtTruffleContractLoader,
     setResolver,
 } = require("./libs/common");
@@ -18,63 +17,55 @@ const {
  *
  * Usage: npx truffle exec scripts/resolver-list-super-token : {SUPER_TOKEN_ADDRESS}
  */
-module.exports = async function (callback, argv, options = {}) {
-    try {
-        console.log("======== List new super token ========");
-        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
+    console.log("======== List new super token ========");
+    let { resetToken, protocolReleaseVersion } = options;
 
-        let { resetToken, protocolReleaseVersion } = options;
-
-        const args = parseColonArgs(argv || process.argv);
-        if (args.length !== 1) {
-            throw new Error("Not enough arguments");
-        }
-        const superTokenAddress = args.pop();
-        console.log("Super Token Address", superTokenAddress);
-
-        resetToken = resetToken || !!process.env.RESET_TOKEN;
-        console.log("protocol release version:", protocolReleaseVersion);
-
-        const sf = new SuperfluidSDK.Framework({
-            ...extractWeb3Options(options),
-            version: protocolReleaseVersion,
-            additionalContracts: [
-                "Ownable",
-                "IMultiSigWallet",
-                "SuperfluidGovernanceBase",
-                "SuperToken",
-                "TestResolver",
-            ],
-            contractLoader: builtTruffleContractLoader,
-        });
-        await sf.initialize();
-
-        const superToken = await sf.contracts.SuperToken.at(superTokenAddress);
-        if (
-            (await superToken.proxiableUUID.call()) !==
-            web3.utils.sha3(
-                "org.superfluid-finance.contracts.SuperToken.implementation"
-            )
-        ) {
-            throw new Error("Not a super token");
-        }
-        const tokenSymbol = await superToken.symbol.call();
-        const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
-        console.log("Super token key", superTokenKey);
-
-        const resolver = await sf.contracts.TestResolver.at(
-            sf.resolver.address
-        );
-        if (
-            (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
-            !resetToken
-        ) {
-            throw new Error("Super token already listed");
-        }
-        await setResolver(sf, superTokenKey, superTokenAddress);
-
-        callback();
-    } catch (err) {
-        callback(err);
+    if (args.length !== 1) {
+        throw new Error("Not enough arguments");
     }
-};
+    const superTokenAddress = args.pop();
+    console.log("Super Token Address", superTokenAddress);
+
+    resetToken = resetToken || !!process.env.RESET_TOKEN;
+    console.log("protocol release version:", protocolReleaseVersion);
+
+    const sf = new SuperfluidSDK.Framework({
+        ...extractWeb3Options(options),
+        version: protocolReleaseVersion,
+        additionalContracts: [
+            "Ownable",
+            "IMultiSigWallet",
+            "SuperfluidGovernanceBase",
+            "SuperToken",
+            "TestResolver",
+        ],
+        contractLoader: builtTruffleContractLoader,
+    });
+    await sf.initialize();
+
+    const superToken = await sf.contracts.SuperToken.at(superTokenAddress);
+    if (
+        (await superToken.proxiableUUID.call()) !==
+        web3.utils.sha3(
+            "org.superfluid-finance.contracts.SuperToken.implementation"
+        )
+    ) {
+        throw new Error("Not a super token");
+    }
+    const tokenSymbol = await superToken.symbol.call();
+    const superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
+    console.log("Super token key", superTokenKey);
+
+    const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
+    if (
+        (await resolver.get.call(superTokenKey)) !== ZERO_ADDRESS &&
+        !resetToken
+    ) {
+        throw new Error("Super token already listed");
+    }
+    await setResolver(sf, superTokenKey, superTokenAddress);
+});

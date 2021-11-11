@@ -8,7 +8,6 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 /****************************************************************
  * Truffle scripts utilities
  ****************************************************************/
-
 /**
  * @dev Promisified readline question utility
  */
@@ -32,97 +31,6 @@ async function rl() {
     return answer;
 }
 
-/**
- * @dev Parse colon marked arguments
- *
- * NOTE:
- * Provide arguments to the script through ":" separator
- */
-function parseColonArgs(argv) {
-    const argIndex = argv.indexOf(":");
-    if (argIndex < 0) {
-        console.log("No colon arguments");
-        return [];
-    } else {
-        const args = argv.slice(argIndex + 1);
-        console.log("Colon arguments", args);
-        return args;
-    }
-}
-
-/**
- * @dev Detect if we are running inside the truffle exec and configure the options
- * @param {Object} options the options object to be configured
- *
- * NOTE:
- * 1. This has to be invoked within the same context of the caller, in order
- * to use "web3", "artifacts" from the truffle execution context.
- * The correct way of using this then should be:
- * ```
- * await eval(`(${setupScriptEnvironment.toString()})()`)
- * ```
- * 2. This will expose `web3` object to global
- */
-async function setupScriptEnvironment(options) {
-    //
-    // Detect truffle environment
-    //
-    function _detectTruffle() {
-        const stackTrace = require("stack-trace");
-        const trace = stackTrace.get();
-        //trace.forEach((callSite) => console.debug(callSite.getFileName()));
-        const truffleDetected =
-            trace.filter((callSite) =>
-                (callSite.getFileName() || "").match(
-                    /node_modules\/truffle\/build\/[^/]+\.bundled\.js/
-                )
-            ).length > 0;
-        console.log("truffle detected", truffleDetected);
-        return truffleDetected;
-    }
-
-    const truffleDetected = _detectTruffle();
-    // if isTruffle is not set explicitly
-    if (!("isTruffle" in options)) {
-        if ("DISABLE_NATIVE_TRUFFLE" in process.env) {
-            options.isTruffle = !process.env.DISABLE_NATIVE_TRUFFLE;
-        } else {
-            options.isTruffle = truffleDetected;
-        }
-    }
-
-    console.log("use truffle native environment", options.isTruffle);
-    if (options.isTruffle) {
-        if (options.web3) {
-            throw Error(
-                "Flag 'isTruffle' cannot be 'true' when using a web3 instance."
-            );
-        }
-        // set these globally so that it's available throughout the executions
-        global.web3 = web3;
-        global.artifacts = artifacts;
-    } else {
-        if (!truffleDetected) {
-            if (!options.web3) {
-                throw Error(
-                    "A web3 instance is not provided when not using truffle."
-                );
-            }
-            global.web3 = options.web3;
-        } else {
-            // use web3 of truffle
-            options.web3 = global.web3 = web3;
-        }
-    }
-
-    //
-    // Use common environment variables
-    //
-    options.protocolReleaseVersion =
-        options.protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-    console.log("protocol release version:", options.protocolReleaseVersion);
-}
-
 /// @dev Extract the web3 options used to initialize the SDK
 function extractWeb3Options({ isTruffle, web3, ethers, from }) {
     return { isTruffle, web3, ethers, from };
@@ -139,6 +47,23 @@ function builtTruffleContractLoader(name) {
             `Cannot load built truffle contract ${name}. Have you built?`
         );
     }
+}
+
+//
+// Detect truffle environment
+//
+function detectTruffle() {
+    const stackTrace = require("stack-trace");
+    const trace = stackTrace.get();
+    //trace.forEach((callSite) => console.debug(callSite.getFileName()));
+    const truffleDetected =
+        trace.filter((callSite) =>
+            (callSite.getFileName() || "").match(
+                /node_modules\/truffle\/build\/[^/]+\.bundled\.js/
+            )
+        ).length > 0;
+    console.log("truffle detected", truffleDetected);
+    return truffleDetected;
 }
 
 /****************************************************************
@@ -349,14 +274,45 @@ async function getPastEvents({ config, contract, eventName, filter, topics }) {
     return result;
 }
 
+/****************************************************************
+ * Script Runner helpers
+ ****************************************************************/
+
+/**
+ * @dev Get script runner factory
+ *
+ * NOTE:
+ * Due tue truffle only inject web3, artifacts, etc. in node execution context,
+ * It is required that the script need to access these context within the same
+ * script file. Hence you would need to do something like this:
+ * ```
+ *  eval(`(${getScriptRunnerFactory.toString()})()`)
+ * ```
+ * Crazy stuff.
+ */
+function getScriptRunnerFactory(runnerOpts = {}) {
+    return (logicFn) => {
+        const { detectTruffle } = require("./libs/common");
+        return require("./libs/truffleScriptRunnerFactory")(
+            () => ({
+                artifacts:
+                    typeof artifacts !== "undefined" ? artifacts : undefined,
+                web3: typeof web3 !== "undefined" ? web3 : undefined,
+                truffleDetected: detectTruffle(),
+            }),
+            logicFn,
+            runnerOpts
+        );
+    };
+}
+
 module.exports = {
     ZERO_ADDRESS,
 
     rl,
-    parseColonArgs,
-    setupScriptEnvironment,
     extractWeb3Options,
     builtTruffleContractLoader,
+    detectTruffle,
 
     hasCode,
     codeChanged,
@@ -367,4 +323,6 @@ module.exports = {
     sendGovernanceAction,
 
     getPastEvents,
+
+    getScriptRunnerFactory,
 };

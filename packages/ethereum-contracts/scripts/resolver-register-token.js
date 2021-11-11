@@ -4,9 +4,8 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const getConfig = require("./libs/getConfig");
 
 const {
-    parseColonArgs,
+    getScriptRunnerFactory: S,
     extractWeb3Options,
-    setupScriptEnvironment,
     builtTruffleContractLoader,
 } = require("./libs/common");
 
@@ -20,55 +19,50 @@ const {
  *
  * Usage: npx truffle exec scripts/resolver-register-token.js : {TOKEN_NAME} {TOKEN_ADDRESS}
  */
-module.exports = async function (callback, argv, options = {}) {
-    try {
-        console.log("======== Register test token ========");
-        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
+    console.log("======== Register test token ========");
+    let { resetToken } = options;
 
-        let { resetToken } = options;
-
-        const args = parseColonArgs(argv || process.argv);
-        if (args.length !== 2) {
-            throw new Error("Not enough arguments");
-        }
-        const tokenAddress = args.pop();
-        const tokenName = args.pop();
-        console.log("Token name", tokenName);
-        console.log("Token name", tokenAddress);
-
-        resetToken = resetToken || !!process.env.RESET_TOKEN;
-        const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
-        const config = getConfig(chainId);
-        console.log("reset token: ", resetToken);
-        console.log("chain ID: ", chainId);
-
-        const { TestResolver } = await SuperfluidSDK.loadContracts({
-            ...extractWeb3Options(options),
-            additionalContracts: ["TestResolver"],
-            contractLoader: builtTruffleContractLoader,
-        });
-
-        const testResolver = await TestResolver.at(config.resolverAddress);
-        console.log("Resolver address", testResolver.address);
-
-        const name = `tokens.${tokenName}`;
-        let testTokenAddress = await testResolver.get(name);
-
-        if (
-            resetToken ||
-            testTokenAddress === "0x0000000000000000000000000000000000000000"
-        ) {
-            await web3tx(testResolver.set, `TestResolver set ${name}`)(
-                name,
-                tokenAddress
-            );
-        } else {
-            console.log("Token already set");
-        }
-
-        console.log("======== Test token registered ======");
-        callback();
-    } catch (err) {
-        callback(err);
+    if (args.length !== 2) {
+        throw new Error("Not enough arguments");
     }
-};
+    const tokenAddress = args.pop();
+    const tokenName = args.pop();
+    console.log("Token name", tokenName);
+    console.log("Token name", tokenAddress);
+
+    resetToken = resetToken || !!process.env.RESET_TOKEN;
+    const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
+    const config = getConfig(chainId);
+    console.log("reset token: ", resetToken);
+    console.log("chain ID: ", chainId);
+
+    const { TestResolver } = await SuperfluidSDK.loadContracts({
+        ...extractWeb3Options(options),
+        additionalContracts: ["TestResolver"],
+        contractLoader: builtTruffleContractLoader,
+    });
+
+    const testResolver = await TestResolver.at(config.resolverAddress);
+    console.log("Resolver address", testResolver.address);
+
+    const name = `tokens.${tokenName}`;
+    let testTokenAddress = await testResolver.get(name);
+
+    if (
+        resetToken ||
+        testTokenAddress === "0x0000000000000000000000000000000000000000"
+    ) {
+        await web3tx(testResolver.set, `TestResolver set ${name}`)(
+            name,
+            tokenAddress
+        );
+    } else {
+        console.log("Token already set");
+    }
+
+    console.log("======== Test token registered ======");
+});

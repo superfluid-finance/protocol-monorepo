@@ -4,11 +4,11 @@ const { web3tx } = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
 const {
+    getScriptRunnerFactory: S,
     ZERO_ADDRESS,
     hasCode,
     codeChanged,
     isProxiable,
-    setupScriptEnvironment,
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
@@ -89,479 +89,456 @@ async function deployContractIfCodeChanged(
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
-module.exports = async function (callback, options = {}) {
-    try {
-        console.log("======== Deploying superfluid framework ========");
-        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        let {
-            newTestResolver,
-            useMocks,
-            nonUpgradable,
-            appWhiteListing,
-            protocolReleaseVersion,
-        } = options;
-        resetSuperfluidFramework = options.resetSuperfluidFramework;
+module.exports = eval(`(${S.toString()})({ skipArgv: true })`)(async function (
+    args,
+    options = {}
+) {
+    console.log("======== Deploying superfluid framework ========");
+    let {
+        newTestResolver,
+        useMocks,
+        nonUpgradable,
+        appWhiteListing,
+        protocolReleaseVersion,
+    } = options;
+    resetSuperfluidFramework = options.resetSuperfluidFramework;
 
-        resetSuperfluidFramework =
-            resetSuperfluidFramework ||
-            !!process.env.RESET_SUPERFLUID_FRAMEWORK;
-        console.log("reset superfluid framework: ", resetSuperfluidFramework);
+    resetSuperfluidFramework =
+        resetSuperfluidFramework || !!process.env.RESET_SUPERFLUID_FRAMEWORK;
+    console.log("reset superfluid framework: ", resetSuperfluidFramework);
 
-        const networkType = await this.web3.eth.net.getNetworkType();
-        const networkId = await web3.eth.net.getId();
-        const chainId = await this.web3.eth.getChainId();
-        console.log("network Type: ", networkType);
-        console.log("network ID: ", networkId);
-        console.log("chain ID: ", chainId);
-        const config = getConfig(chainId);
+    const networkType = await this.web3.eth.net.getNetworkType();
+    const networkId = await web3.eth.net.getId();
+    const chainId = await this.web3.eth.getChainId();
+    console.log("network Type: ", networkType);
+    console.log("network ID: ", networkId);
+    console.log("chain ID: ", chainId);
+    const config = getConfig(chainId);
 
-        const CFAv1_TYPE = web3.utils.sha3(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-        );
-        const IDAv1_TYPE = web3.utils.sha3(
-            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-        );
+    const CFAv1_TYPE = web3.utils.sha3(
+        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+    );
+    const IDAv1_TYPE = web3.utils.sha3(
+        "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+    );
 
-        newTestResolver = newTestResolver || !!process.env.NEW_TEST_RESOLVER;
-        useMocks = useMocks || !!process.env.USE_MOCKS;
-        nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
-        appWhiteListing =
-            appWhiteListing ||
-            config.gov_enableAppWhiteListing ||
-            !!process.env.ENABLE_APP_WHITELISTING;
-        if (newTestResolver) {
-            console.log("**** !ATTN! CREATING NEW RESOLVER ****");
-        }
-        if (useMocks) {
-            console.log("**** !ATTN! USING MOCKS CONTRACTS ****");
-        }
-        if (nonUpgradable) {
-            console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
-        }
-        if (appWhiteListing) {
-            console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
-        }
+    newTestResolver = newTestResolver || !!process.env.NEW_TEST_RESOLVER;
+    useMocks = useMocks || !!process.env.USE_MOCKS;
+    nonUpgradable = nonUpgradable || !!process.env.NON_UPGRADABLE;
+    appWhiteListing =
+        appWhiteListing ||
+        config.gov_enableAppWhiteListing ||
+        !!process.env.ENABLE_APP_WHITELISTING;
+    if (newTestResolver) {
+        console.log("**** !ATTN! CREATING NEW RESOLVER ****");
+    }
+    if (useMocks) {
+        console.log("**** !ATTN! USING MOCKS CONTRACTS ****");
+    }
+    if (nonUpgradable) {
+        console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
+    }
+    if (appWhiteListing) {
+        console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
+    }
 
-        await deployERC1820(
-            (err) => {
-                if (err) throw err;
-            },
-            { web3, ...(options.from ? { from: options.from } : {}) }
-        );
+    await deployERC1820(
+        (err) => {
+            if (err) throw err;
+        },
+        { web3, ...(options.from ? { from: options.from } : {}) }
+    );
 
-        const contracts = [
-            "Ownable",
-            "IMultiSigWallet",
-            "SuperfluidGovernanceBase",
-            "TestResolver",
-            "SuperfluidLoader",
-            "Superfluid",
-            "SuperTokenFactory",
-            "SuperTokenFactoryHelper",
-            "SuperToken",
-            "TestGovernance",
-            "ISuperfluidGovernance",
-            "UUPSProxy",
-            "UUPSProxiable",
-            "SlotsBitmapLibrary",
-            "ConstantFlowAgreementV1",
-            "InstantDistributionAgreementV1",
-        ];
-        const mockContracts = [
-            "SuperfluidMock",
-            "SuperTokenFactoryMock",
-            "SuperTokenFactoryMockHelper",
-            "SuperTokenMock",
-        ];
-        const {
-            Ownable,
-            IMultiSigWallet,
-            SuperfluidGovernanceBase,
-            TestResolver,
-            SuperfluidLoader,
-            Superfluid,
-            SuperfluidMock,
-            SuperTokenFactory,
-            SuperTokenFactoryHelper,
-            SuperTokenFactoryMock,
-            SuperTokenFactoryMockHelper,
-            SuperToken,
-            SuperTokenMock,
+    const contracts = [
+        "Ownable",
+        "IMultiSigWallet",
+        "SuperfluidGovernanceBase",
+        "TestResolver",
+        "SuperfluidLoader",
+        "Superfluid",
+        "SuperTokenFactory",
+        "SuperTokenFactoryHelper",
+        "SuperToken",
+        "TestGovernance",
+        "ISuperfluidGovernance",
+        "UUPSProxy",
+        "UUPSProxiable",
+        "SlotsBitmapLibrary",
+        "ConstantFlowAgreementV1",
+        "InstantDistributionAgreementV1",
+    ];
+    const mockContracts = [
+        "SuperfluidMock",
+        "SuperTokenFactoryMock",
+        "SuperTokenFactoryMockHelper",
+        "SuperTokenMock",
+    ];
+    const {
+        Ownable,
+        IMultiSigWallet,
+        SuperfluidGovernanceBase,
+        TestResolver,
+        SuperfluidLoader,
+        Superfluid,
+        SuperfluidMock,
+        SuperTokenFactory,
+        SuperTokenFactoryHelper,
+        SuperTokenFactoryMock,
+        SuperTokenFactoryMockHelper,
+        SuperToken,
+        SuperTokenMock,
+        TestGovernance,
+        ISuperfluidGovernance,
+        UUPSProxy,
+        UUPSProxiable,
+        SlotsBitmapLibrary,
+        ConstantFlowAgreementV1,
+        InstantDistributionAgreementV1,
+    } = await SuperfluidSDK.loadContracts({
+        ...extractWeb3Options(options),
+        additionalContracts: contracts.concat(useMocks ? mockContracts : []),
+        contractLoader: builtTruffleContractLoader,
+        networkId,
+    });
+
+    if (!newTestResolver && config.resolverAddress) {
+        testResolver = await TestResolver.at(config.resolverAddress);
+    } else {
+        testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
+        // make it available for the sdk for testing purpose
+        process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
+    }
+    console.log("Resolver address", testResolver.address);
+
+    // deploy new governance contract
+    let governanceInitializationRequired = false;
+    let governance;
+    if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
+        governance = await deployAndRegisterContractIf(
             TestGovernance,
-            ISuperfluidGovernance,
-            UUPSProxy,
-            UUPSProxiable,
-            SlotsBitmapLibrary,
-            ConstantFlowAgreementV1,
-            InstantDistributionAgreementV1,
-        } = await SuperfluidSDK.loadContracts({
-            ...extractWeb3Options(options),
-            additionalContracts: contracts.concat(
-                useMocks ? mockContracts : []
-            ),
-            contractLoader: builtTruffleContractLoader,
-            networkId,
-        });
-
-        if (!newTestResolver && config.resolverAddress) {
-            testResolver = await TestResolver.at(config.resolverAddress);
-        } else {
-            testResolver = await web3tx(TestResolver.new, "TestResolver.new")();
-            // make it available for the sdk for testing purpose
-            process.env.TEST_RESOLVER_ADDRESS = testResolver.address;
-        }
-        console.log("Resolver address", testResolver.address);
-
-        // deploy new governance contract
-        let governanceInitializationRequired = false;
-        let governance;
-        if (!config.disableTestGovernance && !process.env.NO_NEW_GOVERNANCE) {
-            governance = await deployAndRegisterContractIf(
-                TestGovernance,
-                `TestGovernance.${protocolReleaseVersion}`,
-                async (contractAddress) =>
-                    await codeChanged(web3, TestGovernance, contractAddress),
-                async () => {
-                    governanceInitializationRequired = true;
-                    return await web3tx(
-                        TestGovernance.new,
-                        "TestGovernance.new"
-                    )();
-                }
-            );
-        }
-
-        // deploy superfluid loader
-        await deployAndRegisterContractIf(
-            SuperfluidLoader,
-            "SuperfluidLoader-v1",
-            async (contractAddress) => contractAddress === ZERO_ADDRESS,
-            async () => {
-                return await web3tx(
-                    SuperfluidLoader.new,
-                    "SuperfluidLoader.new"
-                )(testResolver.address);
-            }
-        );
-
-        // deploy new superfluid host contract
-        const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
-        let superfluid = await deployAndRegisterContractIf(
-            SuperfluidLogic,
-            `Superfluid.${protocolReleaseVersion}`,
-            async (contractAddress) => !(await hasCode(web3, contractAddress)),
+            `TestGovernance.${protocolReleaseVersion}`,
+            async (contractAddress) =>
+                await codeChanged(web3, TestGovernance, contractAddress),
             async () => {
                 governanceInitializationRequired = true;
-                let superfluidAddress;
+                return await web3tx(TestGovernance.new, "TestGovernance.new")();
+            }
+        );
+    }
+
+    // deploy superfluid loader
+    await deployAndRegisterContractIf(
+        SuperfluidLoader,
+        "SuperfluidLoader-v1",
+        async (contractAddress) => contractAddress === ZERO_ADDRESS,
+        async () => {
+            return await web3tx(
+                SuperfluidLoader.new,
+                "SuperfluidLoader.new"
+            )(testResolver.address);
+        }
+    );
+
+    // deploy new superfluid host contract
+    const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
+    let superfluid = await deployAndRegisterContractIf(
+        SuperfluidLogic,
+        `Superfluid.${protocolReleaseVersion}`,
+        async (contractAddress) => !(await hasCode(web3, contractAddress)),
+        async () => {
+            governanceInitializationRequired = true;
+            let superfluidAddress;
+            const superfluidLogic = await web3tx(
+                SuperfluidLogic.new,
+                "SuperfluidLogic.new"
+            )(nonUpgradable, appWhiteListing);
+            console.log(
+                `Superfluid new code address ${superfluidLogic.address}`
+            );
+            if (!nonUpgradable) {
+                const proxy = await web3tx(
+                    UUPSProxy.new,
+                    "Create Superfluid proxy"
+                )();
+                await web3tx(
+                    proxy.initializeProxy,
+                    "proxy.initializeProxy"
+                )(superfluidLogic.address);
+                superfluidAddress = proxy.address;
+            } else {
+                superfluidAddress = superfluidLogic.address;
+            }
+            const superfluid = await Superfluid.at(superfluidAddress);
+            await web3tx(
+                superfluid.initialize,
+                "Superfluid.initialize"
+            )(governance.address);
+            if (!nonUpgradable) {
+                if (
+                    await codeChanged(
+                        web3,
+                        SuperfluidLogic,
+                        await superfluid.getCodeAddress()
+                    )
+                ) {
+                    throw new Error(
+                        "Unexpected code change from fresh deployment"
+                    );
+                }
+            }
+            return superfluid;
+        }
+    );
+
+    // load existing governance if needed
+    if (!governance) {
+        governance = await ISuperfluidGovernance.at(
+            await superfluid.getGovernance.call()
+        );
+        console.log("Governance address", governance.address);
+    }
+
+    // initialize the new governance
+    if (governanceInitializationRequired) {
+        const accounts = await web3.eth.getAccounts();
+        await web3tx(governance.initialize, "governance.initialize")(
+            superfluid.address,
+            // let rewardAddress the first account
+            accounts[0],
+            // liquidationPeriod
+            config.liquidationPeriod,
+            // trustedForwarders
+            config.biconomyForwarder ? [config.biconomyForwarder] : []
+        );
+    }
+
+    // replace with new governance
+    if ((await superfluid.getGovernance.call()) !== governance.address) {
+        const currentGovernance = await ISuperfluidGovernance.at(
+            await superfluid.getGovernance.call()
+        );
+        await web3tx(
+            currentGovernance.replaceGovernance,
+            "governance.replaceGovernance"
+        )(superfluid.address, governance.address);
+    }
+
+    // list CFA v1
+    const deployCFAv1 = async () => {
+        const agreement = await web3tx(
+            ConstantFlowAgreementV1.new,
+            "ConstantFlowAgreementV1.new"
+        )();
+        console.log("New ConstantFlowAgreementV1 address", agreement.address);
+        return agreement;
+    };
+    if (!(await superfluid.isAgreementTypeListed.call(CFAv1_TYPE))) {
+        const cfa = await deployCFAv1();
+        await web3tx(
+            governance.registerAgreementClass,
+            "Governance registers CFA"
+        )(superfluid.address, cfa.address);
+    }
+
+    // list IDA v1
+    const deploySlotsBitmapLibrary = async () => {
+        const lib = await web3tx(
+            SlotsBitmapLibrary.new,
+            "SlotsBitmapLibrary.new"
+        )();
+        InstantDistributionAgreementV1.link("SlotsBitmapLibrary", lib.address);
+        return lib.address;
+    };
+    const deployIDAv1 = async () => {
+        await deploySlotsBitmapLibrary();
+        const agreement = await web3tx(
+            InstantDistributionAgreementV1.new,
+            "InstantDistributionAgreementV1.new"
+        )();
+        console.log(
+            "New InstantDistributionAgreementV1 address",
+            agreement.address
+        );
+        return agreement;
+    };
+    if (!(await superfluid.isAgreementTypeListed.call(IDAv1_TYPE))) {
+        await deploySlotsBitmapLibrary();
+        const ida = await deployIDAv1();
+        await web3tx(
+            governance.registerAgreementClass,
+            "Governance registers IDA"
+        )(superfluid.address, ida.address);
+    } else {
+        let slotsBitmapLibraryAddress = ZERO_ADDRESS;
+        try {
+            slotsBitmapLibraryAddress = await (
+                await InstantDistributionAgreementV1.at(
+                    await superfluid.getAgreementClass.call(IDAv1_TYPE)
+                )
+            ).SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+        } catch (e) {
+            console.warn("Cannot get slotsBitmapLibrary address", e.toString());
+        }
+        if (
+            (await deployContractIfCodeChanged(
+                web3,
+                SlotsBitmapLibrary,
+                slotsBitmapLibraryAddress,
+                deploySlotsBitmapLibrary
+            )) == ZERO_ADDRESS
+        ) {
+            // code not changed, link with existing library
+            InstantDistributionAgreementV1.link(
+                "SlotsBitmapLibrary",
+                slotsBitmapLibraryAddress
+            );
+        }
+    }
+
+    let superfluidNewLogicAddress = ZERO_ADDRESS;
+    const agreementsToUpdate = [];
+    if (!nonUpgradable) {
+        if (await superfluid.NON_UPGRADABLE_DEPLOYMENT.call()) {
+            throw new Error("Superfluid is not upgradable");
+        }
+
+        // deploy new superfluid host logic
+        superfluidNewLogicAddress = await deployContractIfCodeChanged(
+            web3,
+            SuperfluidLogic,
+            await superfluid.getCodeAddress(),
+            async () => {
+                if (!(await isProxiable(UUPSProxiable, superfluid.address))) {
+                    throw new Error("Superfluid is non-upgradable");
+                }
                 const superfluidLogic = await web3tx(
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
                 )(nonUpgradable, appWhiteListing);
-                console.log(
-                    `Superfluid new code address ${superfluidLogic.address}`
-                );
-                if (!nonUpgradable) {
-                    const proxy = await web3tx(
-                        UUPSProxy.new,
-                        "Create Superfluid proxy"
-                    )();
-                    await web3tx(
-                        proxy.initializeProxy,
-                        "proxy.initializeProxy"
-                    )(superfluidLogic.address);
-                    superfluidAddress = proxy.address;
-                } else {
-                    superfluidAddress = superfluidLogic.address;
-                }
-                const superfluid = await Superfluid.at(superfluidAddress);
-                await web3tx(
-                    superfluid.initialize,
-                    "Superfluid.initialize"
-                )(governance.address);
-                if (!nonUpgradable) {
-                    if (
-                        await codeChanged(
-                            web3,
-                            SuperfluidLogic,
-                            await superfluid.getCodeAddress()
-                        )
-                    ) {
-                        throw new Error(
-                            "Unexpected code change from fresh deployment"
-                        );
-                    }
-                }
-                return superfluid;
+                return superfluidLogic.address;
             }
         );
 
-        // load existing governance if needed
-        if (!governance) {
-            governance = await ISuperfluidGovernance.at(
-                await superfluid.getGovernance.call()
-            );
-            console.log("Governance address", governance.address);
-        }
-
-        // initialize the new governance
-        if (governanceInitializationRequired) {
-            const accounts = await web3.eth.getAccounts();
-            await web3tx(governance.initialize, "governance.initialize")(
-                superfluid.address,
-                // let rewardAddress the first account
-                accounts[0],
-                // liquidationPeriod
-                config.liquidationPeriod,
-                // trustedForwarders
-                config.biconomyForwarder ? [config.biconomyForwarder] : []
-            );
-        }
-
-        // replace with new governance
-        if ((await superfluid.getGovernance.call()) !== governance.address) {
-            const currentGovernance = await ISuperfluidGovernance.at(
-                await superfluid.getGovernance.call()
-            );
-            await web3tx(
-                currentGovernance.replaceGovernance,
-                "governance.replaceGovernance"
-            )(superfluid.address, governance.address);
-        }
-
-        // list CFA v1
-        const deployCFAv1 = async () => {
-            const agreement = await web3tx(
-                ConstantFlowAgreementV1.new,
-                "ConstantFlowAgreementV1.new"
-            )();
-            console.log(
-                "New ConstantFlowAgreementV1 address",
-                agreement.address
-            );
-            return agreement;
-        };
-        if (!(await superfluid.isAgreementTypeListed.call(CFAv1_TYPE))) {
-            const cfa = await deployCFAv1();
-            await web3tx(
-                governance.registerAgreementClass,
-                "Governance registers CFA"
-            )(superfluid.address, cfa.address);
-        }
-
-        // list IDA v1
-        const deploySlotsBitmapLibrary = async () => {
-            const lib = await web3tx(
-                SlotsBitmapLibrary.new,
-                "SlotsBitmapLibrary.new"
-            )();
-            InstantDistributionAgreementV1.link(
-                "SlotsBitmapLibrary",
-                lib.address
-            );
-            return lib.address;
-        };
-        const deployIDAv1 = async () => {
-            await deploySlotsBitmapLibrary();
-            const agreement = await web3tx(
-                InstantDistributionAgreementV1.new,
-                "InstantDistributionAgreementV1.new"
-            )();
-            console.log(
-                "New InstantDistributionAgreementV1 address",
-                agreement.address
-            );
-            return agreement;
-        };
-        if (!(await superfluid.isAgreementTypeListed.call(IDAv1_TYPE))) {
-            await deploySlotsBitmapLibrary();
-            const ida = await deployIDAv1();
-            await web3tx(
-                governance.registerAgreementClass,
-                "Governance registers IDA"
-            )(superfluid.address, ida.address);
-        } else {
-            let slotsBitmapLibraryAddress = ZERO_ADDRESS;
-            try {
-                slotsBitmapLibraryAddress = await (
-                    await InstantDistributionAgreementV1.at(
-                        await superfluid.getAgreementClass.call(IDAv1_TYPE)
-                    )
-                ).SLOTS_BITMAP_LIBRARY_ADDRESS.call();
-            } catch (e) {
-                console.warn(
-                    "Cannot get slotsBitmapLibrary address",
-                    e.toString()
-                );
-            }
-            if (
-                (await deployContractIfCodeChanged(
-                    web3,
-                    SlotsBitmapLibrary,
-                    slotsBitmapLibraryAddress,
-                    deploySlotsBitmapLibrary
-                )) == ZERO_ADDRESS
-            ) {
-                // code not changed, link with existing library
-                InstantDistributionAgreementV1.link(
-                    "SlotsBitmapLibrary",
-                    slotsBitmapLibraryAddress
-                );
-            }
-        }
-
-        let superfluidNewLogicAddress = ZERO_ADDRESS;
-        const agreementsToUpdate = [];
-        if (!nonUpgradable) {
-            if (await superfluid.NON_UPGRADABLE_DEPLOYMENT.call()) {
-                throw new Error("Superfluid is not upgradable");
-            }
-
-            // deploy new superfluid host logic
-            superfluidNewLogicAddress = await deployContractIfCodeChanged(
-                web3,
-                SuperfluidLogic,
-                await superfluid.getCodeAddress(),
-                async () => {
-                    if (
-                        !(await isProxiable(UUPSProxiable, superfluid.address))
-                    ) {
-                        throw new Error("Superfluid is non-upgradable");
-                    }
-                    const superfluidLogic = await web3tx(
-                        SuperfluidLogic.new,
-                        "SuperfluidLogic.new"
-                    )(nonUpgradable, appWhiteListing);
-                    return superfluidLogic.address;
-                }
-            );
-
-            // deploy new CFA logic
-            const cfaNewLogicAddress = await deployContractIfCodeChanged(
-                web3,
-                ConstantFlowAgreementV1,
-                await (
-                    await UUPSProxiable.at(
-                        await superfluid.getAgreementClass.call(CFAv1_TYPE)
-                    )
-                ).getCodeAddress(),
-                async () => (await deployCFAv1()).address
-            );
-            if (cfaNewLogicAddress !== ZERO_ADDRESS)
-                agreementsToUpdate.push(cfaNewLogicAddress);
-
-            // deploy new IDA logic
-            const idaNewLogicAddress = await deployContractIfCodeChanged(
-                web3,
-                InstantDistributionAgreementV1,
-                await (
-                    await UUPSProxiable.at(
-                        await superfluid.getAgreementClass.call(IDAv1_TYPE)
-                    )
-                ).getCodeAddress(),
-                async () => (await deployIDAv1()).address
-            );
-            if (idaNewLogicAddress !== ZERO_ADDRESS)
-                agreementsToUpdate.push(idaNewLogicAddress);
-        }
-
-        // deploy new super token factory logic
-        const SuperTokenFactoryHelperLogic = useMocks
-            ? SuperTokenFactoryMockHelper
-            : SuperTokenFactoryHelper;
-        const SuperTokenFactoryLogic = useMocks
-            ? SuperTokenFactoryMock
-            : SuperTokenFactory;
-        const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
-        const superTokenFactoryNewLogicAddress = await deployContractIf(
+        // deploy new CFA logic
+        const cfaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
-            SuperTokenFactoryLogic,
-            async () => {
-                // check if super token factory or super token logic changed
-                try {
-                    const factoryAddress =
-                        await superfluid.getSuperTokenFactory.call();
-                    if (factoryAddress === ZERO_ADDRESS) return true;
-                    const factory = await SuperTokenFactoryLogic.at(
-                        factoryAddress
-                    );
-                    return (
-                        (await codeChanged(
-                            web3,
-                            SuperTokenFactoryLogic,
-                            await superfluid.getSuperTokenFactoryLogic.call()
-                        )) ||
-                        (await codeChanged(
-                            web3,
-                            SuperTokenLogic,
-                            await factory.getSuperTokenLogic.call(),
-                            // this replacement does not support SuperTokenMock
-                            [
-                                // See SuperToken constructor parameter
-                                superfluid.address
-                                    .toLowerCase()
-                                    .slice(2)
-                                    .padStart(64, "0"),
-                            ]
-                        ))
-                    );
-                } catch (e) {
-                    console.log(e.toString());
-                    // recreate contract on any errors
-                    return true;
-                }
-            },
-            async () => {
-                let superTokenFactoryLogic;
-                const helper = await web3tx(
-                    SuperTokenFactoryHelperLogic.new,
-                    "SuperTokenFactoryHelperLogic.new"
-                )();
-                superTokenFactoryLogic = await web3tx(
-                    SuperTokenFactoryLogic.new,
-                    "SuperTokenFactoryLogic.new"
-                )(superfluid.address, helper.address);
-                return superTokenFactoryLogic.address;
-            }
+            ConstantFlowAgreementV1,
+            await (
+                await UUPSProxiable.at(
+                    await superfluid.getAgreementClass.call(CFAv1_TYPE)
+                )
+            ).getCodeAddress(),
+            async () => (await deployCFAv1()).address
         );
+        if (cfaNewLogicAddress !== ZERO_ADDRESS)
+            agreementsToUpdate.push(cfaNewLogicAddress);
 
-        if (
-            superfluidNewLogicAddress !== ZERO_ADDRESS ||
-            agreementsToUpdate.length > 0 ||
-            superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
-        ) {
-            await sendGovernanceAction(
-                {
-                    host: superfluid,
-                    contracts: {
-                        Ownable,
-                        IMultiSigWallet,
-                        SuperfluidGovernanceBase,
-                    },
-                },
-                (gov) =>
-                    gov.updateContracts(
-                        superfluid.address,
-                        superfluidNewLogicAddress,
-                        agreementsToUpdate,
-                        superTokenFactoryNewLogicAddress
-                    )
-            );
-        }
-
-        console.log("======== Superfluid framework deployed ========");
-
-        if (process.env.TEST_RESOLVER_ADDRESS) {
-            console.log(
-                "=============== TEST ENVIRONMENT RESOLVER ======================"
-            );
-            console.log(
-                `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
-            );
-        }
-
-        callback();
-    } catch (err) {
-        callback(err);
+        // deploy new IDA logic
+        const idaNewLogicAddress = await deployContractIfCodeChanged(
+            web3,
+            InstantDistributionAgreementV1,
+            await (
+                await UUPSProxiable.at(
+                    await superfluid.getAgreementClass.call(IDAv1_TYPE)
+                )
+            ).getCodeAddress(),
+            async () => (await deployIDAv1()).address
+        );
+        if (idaNewLogicAddress !== ZERO_ADDRESS)
+            agreementsToUpdate.push(idaNewLogicAddress);
     }
-};
+
+    // deploy new super token factory logic
+    const SuperTokenFactoryHelperLogic = useMocks
+        ? SuperTokenFactoryMockHelper
+        : SuperTokenFactoryHelper;
+    const SuperTokenFactoryLogic = useMocks
+        ? SuperTokenFactoryMock
+        : SuperTokenFactory;
+    const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
+    const superTokenFactoryNewLogicAddress = await deployContractIf(
+        web3,
+        SuperTokenFactoryLogic,
+        async () => {
+            // check if super token factory or super token logic changed
+            try {
+                const factoryAddress =
+                    await superfluid.getSuperTokenFactory.call();
+                if (factoryAddress === ZERO_ADDRESS) return true;
+                const factory = await SuperTokenFactoryLogic.at(factoryAddress);
+                return (
+                    (await codeChanged(
+                        web3,
+                        SuperTokenFactoryLogic,
+                        await superfluid.getSuperTokenFactoryLogic.call()
+                    )) ||
+                    (await codeChanged(
+                        web3,
+                        SuperTokenLogic,
+                        await factory.getSuperTokenLogic.call(),
+                        // this replacement does not support SuperTokenMock
+                        [
+                            // See SuperToken constructor parameter
+                            superfluid.address
+                                .toLowerCase()
+                                .slice(2)
+                                .padStart(64, "0"),
+                        ]
+                    ))
+                );
+            } catch (e) {
+                console.log(e.toString());
+                // recreate contract on any errors
+                return true;
+            }
+        },
+        async () => {
+            let superTokenFactoryLogic;
+            const helper = await web3tx(
+                SuperTokenFactoryHelperLogic.new,
+                "SuperTokenFactoryHelperLogic.new"
+            )();
+            superTokenFactoryLogic = await web3tx(
+                SuperTokenFactoryLogic.new,
+                "SuperTokenFactoryLogic.new"
+            )(superfluid.address, helper.address);
+            return superTokenFactoryLogic.address;
+        }
+    );
+
+    if (
+        superfluidNewLogicAddress !== ZERO_ADDRESS ||
+        agreementsToUpdate.length > 0 ||
+        superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
+    ) {
+        await sendGovernanceAction(
+            {
+                host: superfluid,
+                contracts: {
+                    Ownable,
+                    IMultiSigWallet,
+                    SuperfluidGovernanceBase,
+                },
+            },
+            (gov) =>
+                gov.updateContracts(
+                    superfluid.address,
+                    superfluidNewLogicAddress,
+                    agreementsToUpdate,
+                    superTokenFactoryNewLogicAddress
+                )
+        );
+    }
+
+    console.log("======== Superfluid framework deployed ========");
+
+    if (process.env.TEST_RESOLVER_ADDRESS) {
+        console.log(
+            "=============== TEST ENVIRONMENT RESOLVER ======================"
+        );
+        console.log(
+            `export TEST_RESOLVER_ADDRESS=${process.env.TEST_RESOLVER_ADDRESS}`
+        );
+    }
+});

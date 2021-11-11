@@ -2,8 +2,8 @@ const _ = require("lodash");
 const async = require("async");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
+    getScriptRunnerFactory: S,
     ZERO_ADDRESS,
-    setupScriptEnvironment,
     extractWeb3Options,
 } = require("./libs/common");
 
@@ -254,53 +254,48 @@ async function printSuperTokensInformation({
  *
  * Usage: npx truffle exec scripts/show-protocol-info.js
  */
-module.exports = async function (callback, argv, options = {}) {
-    try {
-        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
+    let { protocolReleaseVersion } = options;
 
-        let { protocolReleaseVersion } = options;
+    const sf = new SuperfluidSDK.Framework({
+        ...extractWeb3Options(options),
+        version: protocolReleaseVersion,
+        additionalContracts: [
+            "AccessControl",
+            "Ownable",
+            "UUPSProxiable",
+            "Superfluid",
+            "SuperTokenFactory",
+            "SuperToken",
+            "SuperfluidGovernanceBase",
+        ],
+        loadSuperNativeToken: true,
+    });
+    await sf.initialize();
 
-        const sf = new SuperfluidSDK.Framework({
-            ...extractWeb3Options(options),
-            version: protocolReleaseVersion,
-            additionalContracts: [
-                "AccessControl",
-                "Ownable",
-                "UUPSProxiable",
-                "Superfluid",
-                "SuperTokenFactory",
-                "SuperToken",
-                "SuperfluidGovernanceBase",
-            ],
-            loadSuperNativeToken: true,
-        });
-        await sf.initialize();
+    console.log("\n===== Protocol Information =====\n");
 
-        console.log("\n===== Protocol Information =====\n");
+    await printHostInformation({ sf });
+    console.log("");
 
-        await printHostInformation({ sf });
-        console.log("");
+    await printGovernanceInformation({ sf });
+    console.log("");
 
-        await printGovernanceInformation({ sf });
-        console.log("");
+    console.log("# Super Token Factory\n");
+    const { superTokenFactory, latestSuperTokenLogicAddress } =
+        await printSuperTokenFactoryInformation({ sf });
+    console.log("");
 
-        console.log("# Super Token Factory\n");
-        const { superTokenFactory, latestSuperTokenLogicAddress } =
-            await printSuperTokenFactoryInformation({ sf });
-        console.log("");
+    console.log("# Managed Super Tokens\n");
+    await printSuperTokensInformation({
+        sf,
+        superTokenFactory,
+        latestSuperTokenLogicAddress,
+    });
 
-        console.log("# Managed Super Tokens\n");
-        await printSuperTokensInformation({
-            sf,
-            superTokenFactory,
-            latestSuperTokenLogicAddress,
-        });
-
-        console.log("\n===== Resolver Information =====\n");
-        await printResolverInformation({ sf });
-
-        callback();
-    } catch (err) {
-        callback(err);
-    }
-};
+    console.log("\n===== Resolver Information =====\n");
+    await printResolverInformation({ sf });
+});

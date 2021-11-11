@@ -1,9 +1,8 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 
 const {
-    parseColonArgs,
+    getScriptRunnerFactory: S,
     extractWeb3Options,
-    setupScriptEnvironment,
     builtTruffleContractLoader,
 } = require("./libs/common");
 
@@ -17,57 +16,51 @@ const {
  *
  * Usage: npx truffle exec scripts/deploy-unlisted-native-super-token.js : {NAME} {SYMBOL} {INITIAL SUPPLY}
  */
-module.exports = async function (callback, argv, options = {}) {
-    try {
-        console.log("======== Deploying unlisted native super token ========");
-        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
+    console.log("======== Deploying unlisted native super token ========");
+    let { protocolReleaseVersion } = options;
 
-        let { protocolReleaseVersion } = options;
-
-        const args = parseColonArgs(argv || process.argv);
-        if (args.length !== 3) {
-            throw new Error("Wrong number of arguments");
-        }
-        const initialSupply = args.pop();
-        const superTokenSymbol = args.pop();
-        const superTokenName = args.pop();
-        console.log("Super token name", superTokenName);
-        console.log("Super token symbol", superTokenSymbol);
-        console.log("Super token initial supply", initialSupply);
-
-        const sf = new SuperfluidSDK.Framework({
-            ...extractWeb3Options(options),
-            version: protocolReleaseVersion,
-            additionalContracts: ["NativeSuperTokenProxy", "INativeSuperToken"],
-            contractLoader: builtTruffleContractLoader,
-        });
-        await sf.initialize();
-
-        const { NativeSuperTokenProxy, INativeSuperToken } = sf.contracts;
-
-        const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
-            await sf.host.getSuperTokenFactory.call()
-        );
-
-        console.log("Deploying NativeSuperTokenProxy...");
-        const proxy = await NativeSuperTokenProxy.new();
-
-        const token = await INativeSuperToken.at(proxy.address);
-
-        console.log("Invoking initializeCustomSuperToken...");
-        await superTokenFactory.initializeCustomSuperToken(token.address);
-
-        console.log("Invoking initialize...");
-        await token.initialize(
-            superTokenName,
-            superTokenSymbol,
-            web3.utils.toWei(String(initialSupply))
-        );
-
-        console.log(`Native SuperToken deployed at ${token.address}`);
-
-        callback();
-    } catch (err) {
-        callback(err);
+    if (args.length !== 3) {
+        throw new Error("Wrong number of arguments");
     }
-};
+    const initialSupply = args.pop();
+    const superTokenSymbol = args.pop();
+    const superTokenName = args.pop();
+    console.log("Super token name", superTokenName);
+    console.log("Super token symbol", superTokenSymbol);
+    console.log("Super token initial supply", initialSupply);
+
+    const sf = new SuperfluidSDK.Framework({
+        ...extractWeb3Options(options),
+        version: protocolReleaseVersion,
+        additionalContracts: ["NativeSuperTokenProxy", "INativeSuperToken"],
+        contractLoader: builtTruffleContractLoader,
+    });
+    await sf.initialize();
+
+    const { NativeSuperTokenProxy, INativeSuperToken } = sf.contracts;
+
+    const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
+        await sf.host.getSuperTokenFactory.call()
+    );
+
+    console.log("Deploying NativeSuperTokenProxy...");
+    const proxy = await NativeSuperTokenProxy.new();
+
+    const token = await INativeSuperToken.at(proxy.address);
+
+    console.log("Invoking initializeCustomSuperToken...");
+    await superTokenFactory.initializeCustomSuperToken(token.address);
+
+    console.log("Invoking initialize...");
+    await token.initialize(
+        superTokenName,
+        superTokenSymbol,
+        web3.utils.toWei(String(initialSupply))
+    );
+
+    console.log(`Native SuperToken deployed at ${token.address}`);
+});

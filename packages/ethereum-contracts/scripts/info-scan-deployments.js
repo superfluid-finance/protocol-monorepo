@@ -1,6 +1,6 @@
 const _ = require("lodash");
-const getConfig = require("./getConfig");
-const { setupScriptEnvironment, getPastEvents } = require("./utils");
+const getConfig = require("./libs/getConfig");
+const { setupScriptEnvironment, getPastEvents } = require("./libs/common");
 
 module.exports = async function (callback) {
     try {

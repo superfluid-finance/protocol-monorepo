@@ -4,7 +4,7 @@ const {
     setupScriptEnvironment,
     parseColonArgs,
     extractWeb3Options,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Inspect accounts and their agreements

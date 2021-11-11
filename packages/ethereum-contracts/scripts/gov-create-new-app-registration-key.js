@@ -5,7 +5,7 @@ const {
     setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Create a new super app registration key.

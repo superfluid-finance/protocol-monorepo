@@ -1,6 +1,6 @@
-const getConfig = require("./getConfig");
+const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { setupScriptEnvironment, parseColonArgs } = require("./utils");
+const { setupScriptEnvironment, parseColonArgs } = require("./libs/common");
 
 function normalizeFlowRate(fr) {
     return ((fr.toString() / 1e18) * 3600 * 24 * 30).toFixed(4) + " / mo";

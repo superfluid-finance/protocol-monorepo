@@ -349,10 +349,6 @@ async function getPastEvents({ config, contract, eventName, filter, topics }) {
     return result;
 }
 
-/**
- * @dev
- */
-
 module.exports = {
     ZERO_ADDRESS,
 

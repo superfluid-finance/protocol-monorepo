@@ -7,7 +7,7 @@ const {
     setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Deploy a listed super token (ERC20 wrapper type) to the network.

@@ -5,7 +5,7 @@ const {
     detectTruffleAndConfigure,
     builtTruffleContractLoader,
     sendGovernanceAction,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Set the reward address for a super token.

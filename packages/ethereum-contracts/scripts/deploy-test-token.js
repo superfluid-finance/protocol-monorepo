@@ -1,13 +1,13 @@
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const getConfig = require("./getConfig");
+const getConfig = require("./libs/getConfig");
 
 const {
     parseColonArgs,
     extractWeb3Options,
     setupScriptEnvironment,
     builtTruffleContractLoader,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Deploy test token (Mintable ERC20) to the network.

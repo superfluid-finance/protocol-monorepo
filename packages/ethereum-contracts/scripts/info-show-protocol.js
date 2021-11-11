@@ -5,7 +5,7 @@ const {
     ZERO_ADDRESS,
     setupScriptEnvironment,
     extractWeb3Options,
-} = require("./utils");
+} = require("./libs/common");
 
 const MAX_REQUESTS = 100;
 

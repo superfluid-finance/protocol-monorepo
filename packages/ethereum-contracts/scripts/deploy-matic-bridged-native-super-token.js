@@ -6,7 +6,7 @@ const {
     detectTruffleAndConfigure,
     builtTruffleContractLoader,
     ZERO_ADDRESS,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Deploy unlisted native super token to the network.

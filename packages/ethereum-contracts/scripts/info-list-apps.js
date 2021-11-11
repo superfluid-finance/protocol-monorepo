@@ -1,5 +1,5 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { setupScriptEnvironment, extractWeb3Options } = require("./utils");
+const { setupScriptEnvironment, extractWeb3Options } = require("./libs/common");
 
 module.exports = async function (callback, argv, options = {}) {
     try {

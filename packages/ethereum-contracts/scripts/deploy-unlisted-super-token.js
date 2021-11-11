@@ -5,7 +5,7 @@ const {
     extractWeb3Options,
     setupScriptEnvironment,
     builtTruffleContractLoader,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Deploy unlisted super token to the network.

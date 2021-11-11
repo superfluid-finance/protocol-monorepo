@@ -6,7 +6,7 @@ const {
     setupScriptEnvironment,
     builtTruffleContractLoader,
     setResolver,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev List a super token in resolver.

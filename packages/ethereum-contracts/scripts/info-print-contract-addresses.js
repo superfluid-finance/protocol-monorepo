@@ -1,4 +1,4 @@
-const getConfig = require("./getConfig");
+const getConfig = require("./libs/getConfig");
 const fs = require("fs");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
@@ -6,7 +6,7 @@ const {
     parseColonArgs,
     getCodeAddress,
     extractWeb3Options,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Inspect accounts and their agreements

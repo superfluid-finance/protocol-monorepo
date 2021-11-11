@@ -4,7 +4,7 @@ const assert = require("assert").strict;
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
 const ERC1820Registry = require("../artifacts/ERC1820Registry.json");
-const { hasCode } = require("./utils");
+const { hasCode } = require("./libs/common");
 
 /**
  * @dev Deploy ERC1820 to the network.

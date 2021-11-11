@@ -1,10 +1,10 @@
-const getConfig = require("./getConfig");
+const getConfig = require("./libs/getConfig");
 const fs = require("fs");
 const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
 
-const { parseColonArgs, setupScriptEnvironment } = require("./utils");
+const { parseColonArgs, setupScriptEnvironment } = require("./libs/common");
 
 async function takeEvmSnapshot() {
     return new Promise((resolve, reject) => {

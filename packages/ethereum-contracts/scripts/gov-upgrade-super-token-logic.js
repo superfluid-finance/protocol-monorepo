@@ -6,7 +6,7 @@ const {
     setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
-} = require("./utils");
+} = require("./libs/common");
 
 /**
  * @dev Upgrade a managed super token to the latest logic

@@ -84,12 +84,21 @@ module.exports = function getConfig(networkId) {
         },
 
         //
-        // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
+        // Optimistic Ethereum: https://community.optimism.io/docs/
         //
+        10: {
+            // op mainnet
+        },
+        69: {
+            // op kovan
+        },
 
         //
-        // ARBITRUM (testnet rinkeby)
+        // Arbitrum: https://developer.offchainlabs.com
         //
+        42161: {
+            // arbitrum one mainnet
+        },
         421611: {
             // arbitrum testnet
         },
@@ -99,6 +108,23 @@ module.exports = function getConfig(networkId) {
         //
         0x03c401: {
             // (artis) tau1 testnet
+        },
+
+        //
+        // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
+        //
+        43114: {
+            // avalanche mainnet
+        },
+        43113: {
+            // avalanche fuji testnet
+        },
+
+        //
+        // Celo: https://github.com/celo-org/celo-monorepo#docs
+        //
+        42220: {
+            // celo mainnet
         },
     };
 

@@ -20,6 +20,14 @@
 
 ### 📖 [Docs](https://docs.superfluid.finance)
 
+# Prerequisites
+
+To get the package up and running you'll need to install the necessary dependencies and build the project:
+
+```bash
+yarn install && yarn build
+```
+
 # Usage
 
 ## Framework Initialization

@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/set-reward-address.js : {TOKEN ADDRESS} {REWARD ADDRESS}
+ * Usage: npx truffle exec scripts/gov-set-reward-address.js : {TOKEN ADDRESS} {REWARD ADDRESS}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {

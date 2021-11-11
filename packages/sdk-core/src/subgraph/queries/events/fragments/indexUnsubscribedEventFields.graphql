@@ -1,8 +1,0 @@
-fragment indexUnsubscribedEventFields on IndexUnsubscribedEvent {
-    token
-    publisher
-    indexId
-    subscriber
-    userData
-    ...eventFields
-}

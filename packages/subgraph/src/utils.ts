@@ -45,11 +45,13 @@ export function getTokenInfoAndReturn(
     let underlyingAddressResult = tokenContract.try_getUnderlyingToken();
     let nameResult = tokenContract.try_name();
     let symbolResult = tokenContract.try_symbol();
+    let decimalsResult = tokenContract.try_decimals();
     token.underlyingAddress = underlyingAddressResult.reverted
         ? new Address(0)
         : underlyingAddressResult.value;
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
+    token.decimals = decimalsResult.reverted ? 0 : decimalsResult.value;
     return token;
 }
 

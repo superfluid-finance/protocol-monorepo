@@ -1,7 +1,0 @@
-fragment flowUpdatedEventFields on FlowUpdatedEvent {
-    token
-    sender
-    receiver
-    flowRate
-    ...eventFields
-}

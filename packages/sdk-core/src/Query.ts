@@ -23,7 +23,7 @@ import {
     validateStreamRequest,
     validateSuperTokenRequest,
 } from "./validation";
-import { PagedResult, Paging } from "./pagination";
+import {createPagedResult, PagedResult, Paging} from "./pagination";
 import { SubgraphClient } from "./subgraph/SubgraphClient";
 import {
     GetTokensDocument,
@@ -50,7 +50,7 @@ import {
     GetAllEventsDocument,
     GetAllEventsQuery,
     GetAllEventsQueryVariables,
-} from "./subgraph/queries/events/getAllEvents.generated";
+} from "./subgraph/queries/getAllEvents.generated";
 import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
 
 export interface IQueryOptions {
@@ -91,7 +91,7 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return new PagedResult<ISuperToken>(response.result, paging);
+        return createPagedResult<ISuperToken>(response.result, paging);
     };
 
     listIndexes = async (
@@ -109,7 +109,7 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return new PagedResult<IIndex>(response.result, paging);
+        return createPagedResult<IIndex>(response.result, paging);
     };
 
     listIndexSubscriptions = async (
@@ -127,7 +127,7 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return new PagedResult<IIndexSubscription>(response.result, paging);
+        return createPagedResult<IIndexSubscription>(response.result, paging);
     };
 
     listStreams = async (
@@ -145,7 +145,7 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return new PagedResult<IStream>(response.result, paging);
+        return createPagedResult<IStream>(response.result, paging);
     };
 
     listUserInteractedSuperTokens = async (
@@ -163,7 +163,7 @@ export default class Query {
             first: paging.takePlusOne(),
         });
 
-        return new PagedResult<ILightAccountTokenSnapshot>(
+        return createPagedResult<ILightAccountTokenSnapshot>(
             response.result,
             paging
         );
@@ -186,7 +186,7 @@ export default class Query {
             skip: paging.skip,
             first: paging.takePlusOne(),
         });
-        return new PagedResult<AllEvents>(
+        return createPagedResult<AllEvents>(
             mapGetAllEventsQueryEvents(response),
             paging
         );

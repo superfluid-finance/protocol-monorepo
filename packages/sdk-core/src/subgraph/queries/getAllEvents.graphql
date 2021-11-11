@@ -284,3 +284,10 @@ query getAllEvents($where: Event_filter = {}, $skip: Int = 10, $first: Int = 10)
         }
     }
 }
+
+fragment eventFields on Event {
+    __typename
+    blockNumber
+    transactionHash
+    timestamp
+}

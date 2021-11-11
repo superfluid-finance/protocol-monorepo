@@ -5,7 +5,7 @@ const {
     extractWeb3Options,
     detectTruffleAndConfigure,
     builtTruffleContractLoader,
-    ZERO_ADDRESS
+    ZERO_ADDRESS,
 } = require("./utils");
 
 /**
@@ -21,7 +21,9 @@ const {
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
-        console.log("======== Deploying unlisted Matic bridged native super token ========");
+        console.log(
+            "======== Deploying unlisted Matic bridged native super token ========"
+        );
 
         await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
@@ -36,7 +38,7 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Super token name", superTokenName);
         console.log("Super token symbol", superTokenSymbol);
 
-        if (! web3.utils.isAddress(childChainManager)) {
+        if (!web3.utils.isAddress(childChainManager)) {
             throw new Error(`not a valid address: ${childChainManager}`);
         }
         console.log("Child chain manager", childChainManager);
@@ -50,19 +52,27 @@ module.exports = async function (callback, argv, options = {}) {
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
             version: protocolReleaseVersion,
-            additionalContracts: ["MaticBridgedNativeSuperTokenProxy", "IMaticBridgedNativeSuperToken"],
+            additionalContracts: [
+                "MaticBridgedNativeSuperTokenProxy",
+                "IMaticBridgedNativeSuperToken",
+            ],
             contractLoader: builtTruffleContractLoader,
         });
         await sf.initialize();
 
-        const { MaticBridgedNativeSuperTokenProxy, IMaticBridgedNativeSuperToken } = sf.contracts;
+        const {
+            MaticBridgedNativeSuperTokenProxy,
+            IMaticBridgedNativeSuperToken,
+        } = sf.contracts;
 
         const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
             await sf.host.getSuperTokenFactory.call()
         );
 
         console.log("Deploying MaticBridgedNativeSuperTokenProxy...");
-        const proxy = await MaticBridgedNativeSuperTokenProxy.new(childChainManager);
+        const proxy = await MaticBridgedNativeSuperTokenProxy.new(
+            childChainManager
+        );
 
         const token = await IMaticBridgedNativeSuperToken.at(proxy.address);
 
@@ -77,7 +87,9 @@ module.exports = async function (callback, argv, options = {}) {
             superTokenSymbol
         );
 
-        console.log(`Matic Bridged Native SuperToken deployed at ${token.address}`);
+        console.log(
+            `Matic Bridged Native SuperToken deployed at ${token.address}`
+        );
 
         callback();
     } catch (err) {

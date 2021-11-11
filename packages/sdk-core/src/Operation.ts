@@ -1,3 +1,4 @@
+import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 import { handleError } from "./errorHelper";
 
@@ -36,7 +37,8 @@ export default class Operation {
         signer: ethers.Signer
     ): Promise<ethers.providers.TransactionResponse> => {
         try {
-            const populatedTransaction = await this.getPopulatedTransaction();
+            const populatedTransaction =
+                await this.getPopulatedTransactionRequest(signer);
             return await signer.sendTransaction(populatedTransaction);
         } catch (err) {
             return handleError(
@@ -49,11 +51,24 @@ export default class Operation {
 
     /**
      * @dev Get the populated transaction by awaiting `populateTransactionPromise`.
+     * @description Note that we need to populate the txn with the signer.
      * @returns {Promise<ethers.PopulatedTransaction>}
      */
-    getPopulatedTransaction = async (): Promise<ethers.PopulatedTransaction> =>
-        await this.populateTransactionPromise;
-
+    getPopulatedTransactionRequest = async (
+        signer: ethers.Signer
+    ): Promise<TransactionRequest> => {
+        try {
+            const fakePopulated = await this.populateTransactionPromise;
+            return await signer.populateTransaction(fakePopulated);
+        } catch (err) {
+            /* istanbul ignore next */
+            return handleError(
+                "POPULATE_TRANSACTION",
+                "There was an error populating the transaction",
+                JSON.stringify(err)
+            );
+        }
+    };
     /**
      * @dev Signs the populated transaction via the provided signer (what you intend on sending to the network).
      * @param signer The signer of the transacation
@@ -61,7 +76,8 @@ export default class Operation {
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
         try {
-            const populatedTransaction = await this.getPopulatedTransaction();
+            const populatedTransaction =
+                await this.getPopulatedTransactionRequest(signer);
             const signedTxn = await signer.signTransaction(
                 populatedTransaction
             );
@@ -82,15 +98,7 @@ export default class Operation {
      * @returns {string} The transaction hash of the transaction
      */
     getTransactionHash = async (signer: ethers.Signer): Promise<string> => {
-        try {
-            const signedTxn = await this.getSignedTransaction(signer);
-            return ethers.utils.keccak256(signedTxn);
-        } catch (err) {
-            return handleError(
-                "GET_TRANSACTION_HASH",
-                "There was an error getting the transaction hash",
-                JSON.stringify(err)
-            );
-        }
+        const signedTxn = await this.getSignedTransaction(signer);
+        return ethers.utils.keccak256(signedTxn);
     };
 }

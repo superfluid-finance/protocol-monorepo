@@ -1,6 +1,5 @@
 import { ethers } from "ethers";
 import { abi as SuperfluidABI } from "./abi/Superfluid.json";
-import { handleError } from "./errorHelper";
 import Operation from "./Operation";
 import { Superfluid } from "./typechain";
 
@@ -30,19 +29,11 @@ export default class Host {
         callData: string,
         userData: string | undefined
     ): Operation => {
-        try {
-            const txn = this.hostContract.populateTransaction.callAgreement(
-                agreementAddress,
-                callData,
-                userData || "0x"
-            );
-            return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
+        const txn = this.hostContract.populateTransaction.callAgreement(
+            agreementAddress,
+            callData,
+            userData || "0x"
+        );
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };
 }

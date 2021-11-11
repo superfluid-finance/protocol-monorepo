@@ -67,6 +67,7 @@ export default class BatchCall {
             );
         }
 
+        /* istanbul ignore next */
         if (!populatedTransaction.to || !populatedTransaction.data) {
             return handleError(
                 "MISSING_TRANSACTION_PROPERTIES",
@@ -111,7 +112,7 @@ export default class BatchCall {
      * @param signer the signer of the transaction
      * @returns ethers.ContractTransaction object
      */
-    execBatchCall = async (signer: ethers.Signer) => {
+    exec = async (signer: ethers.Signer) => {
         try {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises
@@ -128,12 +129,15 @@ export default class BatchCall {
         }
     };
 
+    /* istanbul ignore next */
+    // TODO: user signs the transaction they'd like to execute and gives
+    // this data to the trusted forwarder to sign
     /**
      * @dev Executes a forward batch call given the operations on this class.
      * @param signer the signer of the transaction
      * @returns ethers.ContractTransaction object
      */
-    execForwardBatchCall = async (signer: ethers.Signer) => {
+    execForward = async (signer: ethers.Signer) => {
         try {
             const operationStructArray = await Promise.all(
                 this.getOperationStructArrayPromises

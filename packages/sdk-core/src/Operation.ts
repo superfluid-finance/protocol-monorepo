@@ -51,9 +51,19 @@ export default class Operation {
      * @dev Get the populated transaction by awaiting `populateTransactionPromise`.
      * @returns {Promise<ethers.PopulatedTransaction>}
      */
-    getPopulatedTransaction = async (): Promise<ethers.PopulatedTransaction> =>
-        await this.populateTransactionPromise;
-
+    getPopulatedTransaction =
+        async (): Promise<ethers.PopulatedTransaction> => {
+            try {
+                return await this.populateTransactionPromise;
+            } catch (err) {
+                /* istanbul ignore next */
+                return handleError(
+                    "POPULATE_TRANSACTION",
+                    "There was an error populating the transaction",
+                    JSON.stringify(err)
+                );
+            }
+        };
     /**
      * @dev Signs the populated transaction via the provided signer (what you intend on sending to the network).
      * @param signer The signer of the transacation

@@ -140,7 +140,7 @@ export default class SuperToken {
                 availableBalance: realtimeBalanceOfNow.availableBalance,
                 deposit: realtimeBalanceOfNow.deposit,
                 owedDeposit: realtimeBalanceOfNow.owedDeposit,
-                timestamp: realtimeBalanceOfNow.timestamp
+                timestamp: realtimeBalanceOfNow.timestamp,
             };
         } catch (err) {
             return handleError(
@@ -159,19 +159,11 @@ export default class SuperToken {
      * @returns An instance of Operation which can be executed or batched.
      */
     approve = (recipient: string, amount: string): Operation => {
-        try {
-            const txn = this.superTokenContract.populateTransaction.approve(
-                recipient,
-                amount
-            );
-            return new Operation(txn, "ERC20_APPROVE");
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
+        const txn = this.superTokenContract.populateTransaction.approve(
+            recipient,
+            amount
+        );
+        return new Operation(txn, "ERC20_APPROVE");
     };
 
     /**
@@ -180,68 +172,41 @@ export default class SuperToken {
      * @returns An instance of Operation which can be executed or batched.
      */
     downgrade = (amount: string): Operation => {
-        try {
-            const txn =
-                this.superTokenContract.populateTransaction.downgrade(amount);
-            return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
+        const txn =
+            this.superTokenContract.populateTransaction.downgrade(amount);
+        return new Operation(txn, "SUPERTOKEN_DOWNGRADE");
     };
 
-    /**
-     * @dev Transfer `recipient` `amount` tokens.
+    /**     * @dev Transfer `recipient` `amount` tokens.
      * @param recipient The recipient of the transfer.
      * @param amount The amount to be transferred.
      * @returns An instance of Operation which can be executed or batched.
      */
     transfer = (recipient: string, amount: string): Operation => {
-        try {
-            const txn = this.superTokenContract.populateTransaction.transfer(
-                recipient,
-                amount
-            );
-            return new Operation(txn, "UNSUPPORTED");
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
+        const txn = this.superTokenContract.populateTransaction.transfer(
+            recipient,
+            amount
+        );
+        return new Operation(txn, "UNSUPPORTED");
     };
 
     /**
      * @dev Transfer from `sender` to `recipient` `amount` tokens.
      * @param sender The sender of the transfer.
      * @param recipient The recipient of the transfer.
-     * @param amount The amount to be transferred.
-     * @returns An instance of Operation which can be executed or batched.
+     * @param amount The amount to be transferred.     * @returns An instance of Operation which can be executed or batched.
      */
     transferFrom = (
         sender: string,
         recipient: string,
         amount: string
     ): Operation => {
-        try {
-            const txn =
-                this.superTokenContract.populateTransaction.transferFrom(
-                    sender,
-                    recipient,
-                    amount
-                );
-            return new Operation(txn, "ERC20_TRANSFER_FROM");
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
+        const txn = this.superTokenContract.populateTransaction.transferFrom(
+            sender,
+            recipient,
+            amount
+        );
+        return new Operation(txn, "ERC20_TRANSFER_FROM");
     };
 
     /**
@@ -250,17 +215,8 @@ export default class SuperToken {
      * @returns An instance of Operation which can be executed or batched.
      */
     upgrade = (amount: string): Operation => {
-        try {
-            const txn =
-                this.superTokenContract.populateTransaction.upgrade(amount);
-            return new Operation(txn, "SUPERTOKEN_UPGRADE");
-        } catch (err) {
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
-        }
+        const txn = this.superTokenContract.populateTransaction.upgrade(amount);
+        return new Operation(txn, "SUPERTOKEN_UPGRADE");
     };
 
     // CFA Functions

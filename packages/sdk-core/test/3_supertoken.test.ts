@@ -69,6 +69,30 @@ describe("SuperToken Tests", () => {
             }
         });
 
+        it("Should throw an error on SuperToken read operations when incorrect input is passed.", async () => {
+            try {
+                await daix.balanceOf(alpha.address + "x", deployer);
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting balanceOf"
+                );
+            }
+            try {
+                await daix.realtimeBalanceOf(alpha.address, "-1", deployer);
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting realtimeBalanceOf"
+                );
+            }
+            try {
+                await daix.realtimeBalanceOfNow(alpha.address + "x", deployer);
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "SuperToken Read Error - There was an error getting realtimeBalanceOfNow"
+                );
+            }
+        });
+
         it("Should properly initialize SuperToken", () => {
             const daixTest = framework.loadSuperToken(superToken.address);
             expect(superToken.address).to.equal(daixTest.options.address);
@@ -321,6 +345,28 @@ describe("SuperToken Tests", () => {
                 );
         });
 
+        it("Should be able to update index value", async () => {
+            await expect(
+                daix
+                    .updateIndexValue({
+                        indexId: "0",
+                        indexValue: ethers.utils.parseUnits("0.002").toString(),
+                    })
+                    .exec(alpha)
+            )
+                .to.emit(idaV1, "IndexUpdated")
+                .withArgs(
+                    superToken.address,
+                    alpha.address,
+                    0,
+                    "500",
+                    ethers.utils.parseUnits("0.002").toString(),
+                    "0",
+                    ethers.utils.parseUnits("0.002").toString(),
+                    "0x"
+                );
+        });
+
         it("Should be able to revoke subscription", async () => {
             await expect(
                 daix
@@ -362,7 +408,7 @@ describe("SuperToken Tests", () => {
                 daix
                     .updateIndexValue({
                         indexId: "0",
-                        indexValue: ethers.utils.parseUnits("0.002").toString(),
+                        indexValue: ethers.utils.parseUnits("0.003").toString(),
                     })
                     .exec(alpha)
             )
@@ -371,15 +417,16 @@ describe("SuperToken Tests", () => {
                     superToken.address,
                     alpha.address,
                     0,
-                    "500",
                     ethers.utils.parseUnits("0.002").toString(),
+                    ethers.utils.parseUnits("0.003").toString(),
                     ethers.utils.parseUnits("0.002").toString(),
                     "0",
                     "0x"
                 );
         });
 
-        it("Should be able to claim pending units", async () => {""
+        it("Should be able to claim pending units", async () => {
+            ("");
             await expect(
                 daix
                     .claim({
@@ -395,7 +442,7 @@ describe("SuperToken Tests", () => {
                     deployer.address,
                     alpha.address,
                     0,
-                    ethers.utils.parseUnits("10000")
+                    ethers.utils.parseUnits("1000000000000")
                 );
 
             await expect(
@@ -413,7 +460,7 @@ describe("SuperToken Tests", () => {
                     alpha.address,
                     0,
                     bravo.address,
-                    ethers.utils.parseUnits("10000")
+                    ethers.utils.parseUnits("1000000000000")
                 );
         });
 

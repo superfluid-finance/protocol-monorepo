@@ -57,6 +57,21 @@ describe("Operation Tests", () => {
         }
     });
 
+    it("Should throw error when trying to sign a transaction", async () => {
+        const operation = framework.cfaV1.createFlow({
+            flowRate: getPerSecondFlowRateByMonth("100"),
+            receiver: bravo.address,
+            superToken: superToken.address,
+        });
+        try {
+            await operation.getSignedTransaction(alpha);
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "Sign Transaction Error - There was an error signing the transaction"
+            );
+        }
+    });
+
     // TODO: figure out how to get the expected value for the signed transaction
     // and expected txn hash
     it("Should be able to get signed transaction", async () => {

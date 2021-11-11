@@ -20,29 +20,27 @@ export class Paging {
 }
 
 /**
- * @dev PagedResult Helper Class
+ * @dev PagedResult Interface
  */
-export class PagedResult<T> {
+export interface PagedResult<T> {
     readonly hasNextPage: boolean;
     readonly skip: number;
     readonly take: number;
     readonly data: T[];
-
-    constructor(dataPlusOne: T[], paging: Paging) {
-        this.take = paging.take;
-        this.skip = paging.skip;
-        this.hasNextPage = dataPlusOne.length > paging.take;
-        this.data = dataPlusOne.slice(0, paging.take);
-    }
-
-    /**
-     * @dev Gets the next page given the skip/take used to initialize the `PagedResult` class.
-     * @returns the `Paging` class with the next page
-     */
-    public nextPage(): Paging {
-        return new Paging({
-            skip: this.take,
-            take: this.take + (this.take - this.skip),
-        });
-    }
 }
+
+export const createPagedResult = <T>(dataPlusOne: T[], paging: Paging): PagedResult<T> => ({
+    take: paging.take,
+    skip: paging.skip,
+    hasNextPage: dataPlusOne.length > paging.take,
+    data: dataPlusOne.slice(0, paging.take),
+});
+
+/**
+ * @dev Gets the next page given the skip/take used to initialize the `PagedResult` interface.
+ * @returns the `Paging` class with the next page
+ */
+export const nextPage = (paging: Paging) => new Paging({
+    skip: paging.take,
+    take: paging.take + (paging.take - paging.skip),
+});

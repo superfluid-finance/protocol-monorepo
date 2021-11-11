@@ -1,7 +1,7 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const { web3tx } = require("@decentral.ee/web3-helpers");
 const {
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     parseColonArgs,
     extractWeb3Options,
 } = require("./utils");
@@ -13,12 +13,14 @@ const {
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/transfer-framework-ownwership.js : new_owner
+ * Usage: npx truffle exec scripts/gov-transfer-framework-ownership.js : new_owner
  */
 
 module.exports = async function (callback, argv, options = {}) {
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
         if (args.length != 1) {
@@ -32,7 +34,7 @@ module.exports = async function (callback, argv, options = {}) {
 
         const sf = new SuperfluidSDK.Framework({
             ...extractWeb3Options(options),
-            version: process.env.RELEASE_VERSION || "test",
+            version: protocolReleaseVersion,
             additionalContracts: ["AccessControl", "Ownable"],
         });
         await sf.initialize();

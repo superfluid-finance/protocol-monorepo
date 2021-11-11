@@ -5,7 +5,7 @@ const getConfig = require("./getConfig");
 const {
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
 } = require("./utils");
 
@@ -22,8 +22,8 @@ const {
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Deploying test token ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { resetToken } = options;
 
         const args = parseColonArgs(argv || process.argv);
@@ -34,10 +34,15 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Token symbol", tokenSymbol);
 
         resetToken = resetToken || !!process.env.RESET_TOKEN;
-        const chainId = await web3.eth.net.getId(); // TODO use eth.getChainId;
-        const config = getConfig(chainId);
         console.log("reset token: ", resetToken);
+
+        const networkType = await this.web3.eth.net.getNetworkType();
+        const networkId = await web3.eth.net.getId();
+        const chainId = await this.web3.eth.getChainId();
+        console.log("network Type: ", networkType);
+        console.log("network ID: ", networkId);
         console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
 
         const { TestResolver, TestToken } = await SuperfluidSDK.loadContracts({
             ...extractWeb3Options(options),

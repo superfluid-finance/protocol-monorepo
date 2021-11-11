@@ -4,7 +4,7 @@ const deployFramework = require("./deploy-framework");
 const deployTestToken = require("./deploy-test-token");
 const deploySuperToken = require("./deploy-super-token");
 
-const { parseColonArgs, detectTruffleAndConfigure } = require("./utils");
+const { parseColonArgs, setupScriptEnvironment } = require("./utils");
 
 async function takeEvmSnapshot() {
     return new Promise((resolve, reject) => {
@@ -40,9 +40,13 @@ module.exports = async function (callback, argv, options = {}) {
     };
 
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
+        const networkType = await this.web3.eth.net.getNetworkType();
+        const networkId = await web3.eth.net.getId();
+        const chainId = await this.web3.eth.getChainId();
+        console.log("network Type: ", networkType);
+        console.log("network ID: ", networkId);
         console.log("chain ID: ", chainId);
         const config = getConfig(chainId);
 

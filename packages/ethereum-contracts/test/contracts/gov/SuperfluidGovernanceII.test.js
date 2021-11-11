@@ -69,6 +69,12 @@ describe("Superfluid Ownable Governance Contract", function () {
             governance.updateSuperTokenLogic(superfluid.address, ZERO_ADDRESS),
             onlyOwnerReason
         );
+        await expectRevert(
+            governance.batchUpdateSuperTokenLogic(superfluid.address, [
+                ZERO_ADDRESS,
+            ]),
+            onlyOwnerReason
+        );
 
         await expectRevert(
             governance.updateCode(FAKE_ADDRESS1),

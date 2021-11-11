@@ -3,7 +3,7 @@ const {
     ZERO_ADDRESS,
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
     setResolver,
 } = require("./utils");
@@ -16,13 +16,13 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/list-super-token.js : {SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec scripts/resolver-list-super-token : {SUPER_TOKEN_ADDRESS}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== List new super token ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { resetToken, protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
@@ -33,8 +33,6 @@ module.exports = async function (callback, argv, options = {}) {
         console.log("Super Token Address", superTokenAddress);
 
         resetToken = resetToken || !!process.env.RESET_TOKEN;
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

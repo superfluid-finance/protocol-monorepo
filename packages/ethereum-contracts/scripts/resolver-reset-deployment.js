@@ -9,7 +9,7 @@ const { parseColonArgs, rl } = require("./utils");
  * @dev Reset the superfluid framework deployment.
  * @param {Array} argv Overriding command line arguments
  *
- * Usage: npx truffle exec scripts/reset-deployment.js : {VERSION}
+ * Usage: npx truffle exec scripts/resolver-reset-deployment.js : {VERSION}
  */
 module.exports = async function (callback, argv) {
     try {
@@ -24,12 +24,16 @@ module.exports = async function (callback, argv) {
             callback();
         }
 
+        const networkType = await this.web3.eth.net.getNetworkType();
         const networkId = await web3.eth.net.getId();
+        const chainId = await this.web3.eth.getChainId();
+        console.log("network Type: ", networkType);
         console.log("network ID: ", networkId);
+        console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
+
         // make sure that we are using the same web3 provider in the helpers
         setWeb3Provider(web3.currentProvider);
-
-        const config = getConfig(networkId);
 
         let testResolver;
         if (config.resolverAddress) {

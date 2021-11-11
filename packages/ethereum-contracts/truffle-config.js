@@ -88,7 +88,7 @@ module.exports = {
                 ),
             network_id: 4,
             //gas: 8e6,
-            gasPrice: 10e9,
+            gasPrice: +process.env.RINKEBY_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -106,7 +106,7 @@ module.exports = {
                 ),
             network_id: 3,
             //gas: 7.9e6,
-            gasPrice: 10e9,
+            gasPrice: +process.env.ROPSTEN_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -124,7 +124,7 @@ module.exports = {
                 ),
             network_id: 5,
             //gas: 8e6,
-            gasPrice: +process.env.GOERLI_GAS_PRICE || 10e9,
+            gasPrice: +process.env.GOERLI_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -145,7 +145,7 @@ module.exports = {
             },
             network_id: 42,
             //gas: 8e6,
-            gasPrice: +process.env.KOVAN_GAS_PRICE || 10e9,
+            gasPrice: +process.env.KOVAN_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -181,7 +181,7 @@ module.exports = {
             },
             network_id: 0x64,
             //gas: 8e6,
-            gasPrice: +process.env.XDAI_GAS_PRICE || 10e9,
+            gasPrice: +process.env.XDAI_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -202,7 +202,7 @@ module.exports = {
             },
             network_id: 137,
             //gas: 8e6,
-            gasPrice: +process.env.MATIC_GAS_PRICE || 25e9,
+            gasPrice: +process.env.MATIC_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -220,7 +220,7 @@ module.exports = {
                 ),
             network_id: 80001,
             //gas: 8e6,
-            gasPrice: +process.env.MUMBAI_GAS_PRICE || 20e9,
+            gasPrice: +process.env.MUMBAI_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -238,7 +238,25 @@ module.exports = {
                 ),
             network_id: 0x03c401, // artis tau1 network
             //gas: 8e6,
-            gasPrice: +process.env.ARTIS_GAS_PRICE || 1e9, // default 1 gwei
+            gasPrice: +process.env.ARTIS_GAS_PRICE,
+            //confirmations: 6, // # of confs to wait between deployments. (default: 0)
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        bsc: {
+            provider: () =>
+                new HDWalletProvider(
+                    process.env.BSC_MNEMONIC,
+                    process.env.BSC_PROVIDER_URL,
+                    0, //address_index
+                    10, // num_addresses
+                    true // shareNonce
+                ),
+            network_id: 56,
+            //gas: 8e6,
+            gasPrice: +process.env.BSC_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -256,7 +274,7 @@ module.exports = {
                 ),
             network_id: 1, // mainnet's id
             //gas: 8e6,
-            gasPrice: +process.env.MAINNET_GAS_PRICE || 1e9, // default 1 gwei
+            gasPrice: +process.env.MAINNET_GAS_PRICE,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )

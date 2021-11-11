@@ -2,7 +2,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./utils");
@@ -20,8 +20,8 @@ const {
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Creating new app registration key ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
@@ -32,8 +32,6 @@ module.exports = async function (callback, argv, options = {}) {
         const deployer = args.pop();
         console.log("Deployer", deployer);
 
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

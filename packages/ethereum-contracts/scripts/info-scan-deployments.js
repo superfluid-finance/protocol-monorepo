@@ -1,29 +1,27 @@
 const _ = require("lodash");
-const { detectTruffleAndConfigure } = require("./utils");
+const getConfig = require("./getConfig");
+const { setupScriptEnvironment, getPastEvents } = require("./utils");
 
 module.exports = async function (callback) {
     try {
-        await eval(`(${detectTruffleAndConfigure.toString()})({})`);
+        await eval(`(${setupScriptEnvironment.toString()})({})`);
+
+        const networkType = await this.web3.eth.net.getNetworkType();
+        const networkId = await web3.eth.net.getId();
+        const chainId = await this.web3.eth.getChainId();
+        console.log("network Type: ", networkType);
+        console.log("network ID: ", networkId);
+        console.log("chain ID: ", chainId);
+        const config = getConfig(chainId);
 
         // infer deployment from AgreementClassRegistered events
         const AgreementClassRegistered = web3.utils.sha3(
             "AgreementClassRegistered(bytes32,address)"
         );
-        const AgreementClassUpdated = web3.utils.sha3(
-            "AgreementClassUpdated(bytes32,address)"
-        );
-        const events = [
-            ...(await web3.eth.getPastLogs({
-                fromBlock: "0",
-                toBlock: "latest",
-                topics: [AgreementClassRegistered],
-            })),
-            ...(await web3.eth.getPastLogs({
-                fromBlock: "0",
-                toBlock: "latest",
-                topics: [AgreementClassUpdated],
-            })),
-        ];
+        const events = await getPastEvents({
+            config,
+            topics: [AgreementClassRegistered],
+        });
 
         const deployments = events.reduce((acc, cur) => {
             acc[cur.address] = _.defaults(acc[cur.address], {
@@ -34,6 +32,9 @@ module.exports = async function (callback) {
             acc[cur.address].transactions.add(cur.transactionHash);
             return acc;
         }, {});
+
+        if (deployments.length == 0)
+            throw new Error("No Superfluid is ever deployed!?");
 
         const deployers = new Set();
         await Promise.all(

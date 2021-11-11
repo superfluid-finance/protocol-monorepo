@@ -1,6 +1,6 @@
 const getConfig = require("./getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const { parseColonArgs } = require("./utils");
+const { setupScriptEnvironment, parseColonArgs } = require("./utils");
 
 function normalizeFlowRate(fr) {
     return ((fr.toString() / 1e18) * 3600 * 24 * 30).toFixed(4) + " / mo";
@@ -10,27 +10,29 @@ function normalizeFlowRate(fr) {
  * @dev Inspect accounts and their agreements
  * @param {Array} argv Overriding command line arguments
  *
- * Usage: npx truffle exec scripts/inspect-account.js : 0xACC1 0xACC2 ...
+ * Usage: npx truffle exec scripts/info-inspect-account.js : 0xACC1 0xACC2 ...
  */
-module.exports = async function (callback, argv) {
+module.exports = async function (callback, argv, options = {}) {
     try {
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
+
+        let { protocolReleaseVersion } = options;
+
         const args = parseColonArgs(argv || process.argv);
         if (args.length < 1) {
             throw new Error("Not enough arguments");
         }
 
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-        console.log("chain ID: ", chainId);
-        const config = getConfig(chainId);
-
-        const tokens = config.tokenList;
         const sf = new SuperfluidSDK.Framework({
-            version: process.env.RELEASE_VERSION || "test",
+            version: protocolReleaseVersion,
             web3,
-            tokens,
             loadSuperNativeToken: true,
         });
         await sf.initialize();
+        const config = getConfig(sf.chainId);
+        for (let i = 0; i < config.tokenList.length; ++i) {
+            await sf.loadToken(config.tokenList[i]);
+        }
         const superTokens = Object.keys(sf.superTokens);
 
         while (args.length) {

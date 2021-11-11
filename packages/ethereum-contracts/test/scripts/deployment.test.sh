@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-ENVFILE=test.ignore.sh
+export TESTENV_SNAPSHOT_VARS=$PWD/test.ignore.vars
+VITALIK_ADDRESS=0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045
 
 # Exit script as soon as a command fails.
 set -o errexit
@@ -9,7 +10,7 @@ set -o errexit
 trap cleanup EXIT
 
 cleanup() {
-    rm -f $ENVFILE
+    rm -f $TESTENV_SNAPSHOT_VARS
     yarn testenv:stop
 }
 yarn testenv:start >/dev/null &
@@ -36,10 +37,21 @@ export DISABLE_NATIVE_TRUFFLE=1
 # if any of them fail, exit
 set -xe
 
-> $ENVFILE
-npx truffle exec scripts/deploy-test-environment.js | tee >(tail -n1 > $ENVFILE)
-# read the TEST_RESOLVER_ADDRESS variable
-source $ENVFILE
+npx truffle exec scripts/deploy-test-environment.js
 
-npx truffle exec scripts/print-addresses.js : >(cat)
-npx truffle exec scripts/inspect-account.js : 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045 # check vitalik
+# deployment result is stored in TESTENV_SNAPSHOT_VARS
+cat $TESTENV_SNAPSHOT_VARS
+
+# Use the newly created resolver
+source $TESTENV_SNAPSHOT_VARS
+export TEST_RESOLVER_ADDRESS=$TEST_RESOLVER_ADDRESS
+
+# Test all info scripts
+npx truffle exec scripts/info-scan-deployments.js
+npx truffle exec scripts/info-show-protocol.js
+npx truffle exec scripts/info-print-contract-addresses.js : >(cat)
+npx truffle exec scripts/info-inspect-account.js : $VITALIK_ADDRESS
+npx truffle exec scripts/info-list-apps.js
+#FIXME npx truffle exec scripts/info-list-addresses.js
+
+npx truffle exec scripts/gov-transfer-framework-ownership.js : $VITALIK_ADDRESS

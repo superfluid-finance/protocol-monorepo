@@ -4,7 +4,7 @@ const {
     parseColonArgs,
     ZERO_ADDRESS,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./utils");
@@ -31,8 +31,8 @@ const {
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Deploying super token ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { resetToken, protocolReleaseVersion } = options;
 
         const args = parseColonArgs(argv || process.argv);
@@ -42,11 +42,7 @@ module.exports = async function (callback, argv, options = {}) {
         const tokenSymbolOrAddress = args.pop();
 
         resetToken = resetToken || !!process.env.RESET_TOKEN;
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
         console.log("reset token: ", resetToken);
-        console.log("chain ID: ", chainId);
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

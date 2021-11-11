@@ -3,7 +3,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     parseColonArgs,
     extractWeb3Options,
-    detectTruffleAndConfigure,
+    setupScriptEnvironment,
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./utils");
@@ -16,13 +16,13 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/upgrade-super-token-logic.js : {SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec scripts/gov-upgrade-super-token-logic.js : {SUPER_TOKEN_ADDRESS}
  */
 module.exports = async function (callback, argv, options = {}) {
     try {
         console.log("======== Upgrade super token logic ========");
+        await eval(`(${setupScriptEnvironment.toString()})(options)`);
 
-        await eval(`(${detectTruffleAndConfigure.toString()})(options)`);
         let { protocolReleaseVersion } = options;
 
         const superTokenAddresses = parseColonArgs(argv || process.argv);
@@ -30,10 +30,6 @@ module.exports = async function (callback, argv, options = {}) {
             throw new Error("Not enough arguments");
         }
 
-        protocolReleaseVersion =
-            protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-        const chainId = await web3.eth.net.getId(); // MAYBE? use eth.getChainId;
-        console.log("chain ID: ", chainId);
         console.log("protocol release version:", protocolReleaseVersion);
 
         const sf = new SuperfluidSDK.Framework({

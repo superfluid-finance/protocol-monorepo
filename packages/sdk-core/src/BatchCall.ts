@@ -4,7 +4,7 @@ import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 import Host from "./Host";
 import { IConfig } from "./interfaces";
 import Operation, { OperationType } from "./Operation";
-import { handleError } from "./errorHelper";
+import SFError from "./SFError";
 
 interface IBatchCallOptions {
     config: IConfig;
@@ -60,20 +60,20 @@ export default class BatchCall {
         const operationType = operationTypeStringToTypeMap.get(operation.type);
         const populatedTransaction = await operation.populateTransactionPromise;
         if (!operationType) {
-            return handleError(
-                "UNSUPPORTED_OPERATION",
-                "The operation at index " + index + " is unsupported",
-                JSON.stringify(populatedTransaction)
-            );
+            throw new SFError({
+                type: "UNSUPPORTED_OPERATION",
+                customMessage:
+                    "The operation at index " + index + " is unsupported.",
+            });
         }
 
         /* istanbul ignore next */
         if (!populatedTransaction.to || !populatedTransaction.data) {
-            return handleError(
-                "MISSING_TRANSACTION_PROPERTIES",
-                "The transaction is missing the to or data property",
-                JSON.stringify(populatedTransaction)
-            );
+            throw new SFError({
+                type: "MISSING_TRANSACTION_PROPERTIES",
+                customMessage:
+                    "The transaction is missing the to or data property.",
+            });
         }
 
         // Handles the Superfluid Call Agreement
@@ -120,12 +120,12 @@ export default class BatchCall {
             return await this.host.hostContract
                 .connect(signer)
                 .batchCall(operationStructArray);
-        } catch (err) {
-            return handleError(
-                "BATCH_CALL_ERROR",
-                "There was an error executing your batch call:",
-                JSON.stringify(err)
-            );
+        } catch (err: any) {
+            throw new SFError({
+                type: "BATCH_CALL_ERROR",
+                customMessage: "There was an error executing your batch call:",
+                errorObject: err,
+            });
         }
     };
 
@@ -145,12 +145,12 @@ export default class BatchCall {
             return await this.host.hostContract
                 .connect(signer)
                 .forwardBatchCall(operationStructArray);
-        } catch (err) {
-            return handleError(
-                "BATCH_CALL_ERROR",
-                "There was an error executing your batch call:",
-                JSON.stringify(err)
-            );
+        } catch (err: any) {
+            throw new SFError({
+                type: "BATCH_CALL_ERROR",
+                customMessage: "There was an error executing your batch call:",
+                errorObject: err,
+            });
         }
     };
 }

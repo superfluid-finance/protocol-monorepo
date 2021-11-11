@@ -6,15 +6,15 @@ import {
     networkNameToChainIdMap,
 } from "./constants";
 import { IFrameworkOptions } from "./Framework";
-import { handleError } from "./errorHelper";
+import SFError from "./SFError";
 
 export const validateFrameworkConstructorOptions = (
     options: IFrameworkOptions
 ) => {
     if (!options.chainId && !options.networkName) {
-        handleError(
-            "FRAMEWORK_INITIALIZATION",
-            "You must input chainId or networkName."
+        throw new SFError({
+            type: "FRAMEWORK_INITIALIZATION",
+            customMessage: "You must input chainId or networkName."}
         );
     }
     // if the user inputs a custom network (local, they have to specify this)
@@ -25,16 +25,16 @@ export const validateFrameworkConstructorOptions = (
         chainIds.includes(options.chainId) &&
         networkNameToChainIdMap.get(options.networkName) !== options.chainId
     ) {
-        handleError(
-            "FRAMEWORK_INITIALIZATION",
-            "The network name and chainId you have selected don't match."
+        throw new SFError({
+            type: "FRAMEWORK_INITIALIZATION",
+            customMessage: "The network name and chainId you have selected don't match."}
         );
     }
 
     if (!options.provider) {
-        handleError(
-            "FRAMEWORK_INITIALIZATION",
-            "You must pass in a provider when initializing the framework."
+        throw new SFError({
+            type: "FRAMEWORK_INITIALIZATION",
+            customMessage: "You must pass in a provider when initializing the framework."}
         );
     }
 
@@ -49,15 +49,15 @@ export const validateFrameworkConstructorOptions = (
             options.dataMode !== "WEB3_ONLY" &&
             isNullOrEmpty(options.customSubgraphQueriesEndpoint)
         ) {
-            handleError(
-                "FRAMEWORK_INITIALIZATION",
-                "You must input your own custom subgraph query endpoint if you use an unsupported network with dataMode set to SUBGRAPH_ONLY or SUBGRAPH_WEB3."
+            throw new SFError({
+                type: "FRAMEWORK_INITIALIZATION",
+                customMessage: "You must input your own custom subgraph query endpoint if you use an unsupported network with dataMode set to SUBGRAPH_ONLY or SUBGRAPH_WEB3."}
             );
         }
         if (isNullOrEmpty(options.resolverAddress)) {
-            handleError(
-                "FRAMEWORK_INITIALIZATION",
-                "You must input your own resolver address if you use an unsupported network."
+            throw new SFError({
+                type: "FRAMEWORK_INITIALIZATION",
+                customMessage: "You must input your own resolver address if you use an unsupported network."}
             );
         }
     }
@@ -83,9 +83,9 @@ export const getSubgraphQueriesEndpoint = (options: IFrameworkOptions) => {
     }
 
     /* istanbul ignore next */
-    return handleError(
-        "FRAMEWORK_INITIALIZATION",
-        "Something went wrong, this should never occur."
+    throw new SFError({
+        type: "FRAMEWORK_INITIALIZATION",
+        customMessage: "Something went wrong, this should never occur."}
     );
 };
 

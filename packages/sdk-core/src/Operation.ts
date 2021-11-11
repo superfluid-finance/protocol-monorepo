@@ -1,6 +1,6 @@
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
-import { handleError } from "./errorHelper";
+import SFError from "./SFError";
 
 export type OperationType =
     | "UNSUPPORTED" // 0
@@ -41,11 +41,11 @@ export default class Operation {
                 await this.getPopulatedTransactionRequest(signer);
             return await signer.sendTransaction(populatedTransaction);
         } catch (err) {
-            return handleError(
-                "EXECUTE_TRANSACTION",
-                "There was an error executing the transaction",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "EXECUTE_TRANSACTION",
+                customMessage: "There was an error executing the transaction",
+                errorObject: err,
+            });
         }
     };
 
@@ -58,15 +58,15 @@ export default class Operation {
         signer: ethers.Signer
     ): Promise<TransactionRequest> => {
         try {
-            const fakePopulated = await this.populateTransactionPromise;
-            return await signer.populateTransaction(fakePopulated);
+            const prePopulated = await this.populateTransactionPromise;
+            return await signer.populateTransaction(prePopulated);
         } catch (err) {
             /* istanbul ignore next */
-            return handleError(
-                "POPULATE_TRANSACTION",
-                "There was an error populating the transaction",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "POPULATE_TRANSACTION",
+                customMessage: "There was an error populating the transaction",
+                errorObject: err,
+            });
         }
     };
     /**
@@ -83,11 +83,11 @@ export default class Operation {
             );
             return signedTxn;
         } catch (err) {
-            return handleError(
-                "SIGN_TRANSACTION",
-                "There was an error signing the transaction",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "SIGN_TRANSACTION",
+                customMessage: "There was an error signing the transaction",
+                errorObject: err,
+            });
         }
     };
 

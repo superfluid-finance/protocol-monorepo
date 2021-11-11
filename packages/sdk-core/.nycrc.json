@@ -7,8 +7,9 @@
         "src/pagination.ts",
         "src/utils.ts",
         "src/validation.ts",
-        "src/errorHelper.ts",
+        "src/CustomError.ts",
         "src/constants.ts",
-        "src/frameworkHelpers.ts"
+        "src/frameworkHelpers.ts",
+        "src/mapGetAllEventsQueryEvents.ts"
     ]
 }

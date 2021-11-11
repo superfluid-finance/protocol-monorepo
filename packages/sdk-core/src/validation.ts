@@ -1,6 +1,5 @@
 import Ajv, { JSONSchemaType, ValidateFunction } from "ajv";
 import { ethers } from "ethers";
-import { handleError } from "./errorHelper";
 import {
     IAccountTokenSnapshotFilter,
     IIndexRequestFilter,
@@ -8,6 +7,7 @@ import {
     IStreamRequestFilter,
     ISuperTokenRequestFilter,
 } from "./interfaces";
+import SFError from "./SFError";
 
 const ajv = new Ajv();
 ajv.addFormat("addressOrEmpty", {
@@ -82,11 +82,11 @@ function wrapValidationWithCustomError<T>(
 ) {
     return (filter: T) => {
         if (!validateFunction(filter)) {
-            handleError(
-                "INVALID_OBJECT",
-                "Invalid Filter Object",
-                JSON.stringify(validateFunction.errors)
-            );
+            throw new SFError({
+                type: "INVALID_OBJECT",
+                customMessage: "Invalid Filter Object",
+                errorObject: validateFunction.errors,
+            });
         }
     };
 }

@@ -7,7 +7,7 @@ import {
     MONTHS_PER_YEAR,
     SECONDS_PER_MINUTE,
 } from "./constants";
-import { handleError } from "./errorHelper";
+import SFError from "./SFError";
 
 const EMPTY = "0x";
 
@@ -19,10 +19,11 @@ const EMPTY = "0x";
 export const normalizeAddress = (address?: string): string => {
     if (!address) return "";
     if (ethers.utils.isAddress(address) === false) {
-        handleError(
-            "INVALID_ADDRESS",
-            "The address you have entered is not a valid ethereum address."
-        );
+        throw new SFError({
+            type: "INVALID_ADDRESS",
+            customMessage:
+                "The address you have entered is not a valid ethereum address.",
+        });
     }
 
     return address.toLowerCase();

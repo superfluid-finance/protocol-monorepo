@@ -11,7 +11,6 @@ import {
 import { chainIdToDataMap, networkNameToChainIdMap } from "./constants";
 import { IConfig, ISignerConstructorOptions } from "./interfaces";
 import { DataMode } from "./types";
-import { handleError } from "./errorHelper";
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import Host from "./Host";
@@ -19,6 +18,7 @@ import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import SuperToken from "./SuperToken";
 import Query from "./Query";
 import Operation from "./Operation";
+import SFError from "./SFError";
 
 // there will be implications and this needs to be handled appropriately
 export interface IFrameworkOptions {
@@ -101,13 +101,27 @@ export default class Framework {
                 : options.customSubgraphQueriesEndpoint ||
                   getSubgraphQueriesEndpoint(options);
 
+        const network = await options.provider.getNetwork();
+        if (network.chainId !== chainId && chainId != null) {
+            throw new SFError({
+                type: "NETWORK_MISMATCH",
+                customMessage:
+                    "Your provider network chainId is: " +
+                    network.chainId +
+                    " whereas your desired chainId is: " +
+                    chainId,
+            });
+        }
+
         try {
-            const data = chainIdToDataMap.get(chainId);
+            const data = chainIdToDataMap.get(chainId) || {
+                subgraphAPIEndpoint: "",
+                resolverAddress: "",
+                networkName: "",
+            };
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
-                : data != null
-                ? data!.resolverAddress
-                : "";
+                : data.resolverAddress;
             const resolver = new ethers.Contract(
                 resolverAddress,
                 IResolverABI,
@@ -144,18 +158,12 @@ export default class Framework {
 
             return new Framework(options, settings);
         } catch (err) {
-            handleError(
-                "FRAMEWORK_INITIALIZATION",
-                "There was an error initializing the framework:",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "FRAMEWORK_INITIALIZATION",
+                customMessage: "There was an error initializing the framework",
+                errorObject: err,
+            });
         }
-
-        /* istanbul ignore next */
-        return handleError(
-            "FRAMEWORK_INITIALIZATION",
-            "Something went wrong, this should never occur."
-        );
     };
 
     /**
@@ -173,37 +181,36 @@ export default class Framework {
             !options.signer &&
             !options.web3Provider
         ) {
-            return handleError(
-                "CREATE_SIGNER",
-                "You must pass in a private key, provider or signer."
-            );
+            throw new SFError({
+                type: "CREATE_SIGNER",
+                customMessage:
+                    "You must pass in a private key, provider or signer.",
+            });
         }
-
+        
+        /* istanbul ignore else  */
         if (options.privateKey) {
             if (!options.provider) {
-                return handleError(
-                    "CREATE_SIGNER",
-                    "You must pass in a provider with your private key."
-                );
+                throw new SFError({
+                    type: "CREATE_SIGNER",
+                    customMessage:
+                        "You must pass in a provider with your private key.",
+                });
             }
             return new ethers.Wallet(options.privateKey, options.provider);
-        }
-
-        if (options.signer) {
+        } else if (options.signer) {
             return options.signer;
         }
-
         // NOTE: tested by sdk-redux already
-        /* istanbul ignore next */
-        if (options.web3Provider) {
+        else if (options.web3Provider) {
             return options.web3Provider.getSigner();
         }
 
         /* istanbul ignore next */
-        return handleError(
-            "CREATE_SIGNER",
-            "Something went wrong, this should never occur."
-        );
+        throw new SFError({
+            type: "CREATE_SIGNER",
+            customMessage: "Something went wrong, this should never occur.",
+        });
     };
 
     /**

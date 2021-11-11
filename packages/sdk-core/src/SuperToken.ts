@@ -15,9 +15,9 @@ import {
     ISuperTokenUpdateSubscriptionUnitsParams,
 } from "./interfaces";
 import Operation from "./Operation";
-import { handleError } from "./errorHelper";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
+import SFError from "./SFError";
 
 export interface ITokenConstructorOptions {
     readonly address: string;
@@ -43,10 +43,10 @@ export default class SuperToken {
 
     constructor(options: ITokenConstructorOptions) {
         if (!options.chainId && !options.networkName) {
-            handleError(
-                "SUPERTOKEN_INITIALIZATION",
-                "You must input chainId or networkName."
-            );
+            throw new SFError({
+                type: "SUPERTOKEN_INITIALIZATION",
+                customMessage: "You must input chainId or networkName.",
+            });
         }
         const networkName = getNetworkName(options);
         this.options = {
@@ -88,11 +88,11 @@ export default class SuperToken {
                 .balanceOf(address);
             return balanceOf;
         } catch (err) {
-            return handleError(
-                "SUPERTOKEN_READ",
-                "There was an error getting balanceOf",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "SUPERTOKEN_READ",
+                customMessage: "There was an error getting balanceOf",
+                errorObject: err,
+            });
         }
     };
 
@@ -114,11 +114,11 @@ export default class SuperToken {
                 .realtimeBalanceOf(address, timestamp);
             return realtimeBalanceOf.availableBalance;
         } catch (err) {
-            return handleError(
-                "SUPERTOKEN_READ",
-                "There was an error getting realtimeBalanceOf",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "SUPERTOKEN_READ",
+                customMessage: "There was an error getting realtimeBalanceOf",
+                errorObject: err,
+            });
         }
     };
 
@@ -143,11 +143,12 @@ export default class SuperToken {
                 timestamp: realtimeBalanceOfNow.timestamp,
             };
         } catch (err) {
-            return handleError(
-                "SUPERTOKEN_READ",
-                "There was an error getting realtimeBalanceOfNow",
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "SUPERTOKEN_READ",
+                customMessage:
+                    "There was an error getting realtimeBalanceOfNow",
+                errorObject: err,
+            });
         }
     };
 

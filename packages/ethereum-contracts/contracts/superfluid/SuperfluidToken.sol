@@ -11,7 +11,7 @@ import { Math } from "@openzeppelin/contracts/math/Math.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
 import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import { FixedSizeData } from "../utils/FixedSizeData.sol";
+import { FixedSizeData } from "../libs/FixedSizeData.sol";
 
 
 /**

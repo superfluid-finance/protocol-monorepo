@@ -14,7 +14,7 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
-import { ERC777Helper } from "../utils/ERC777Helper.sol";
+import { ERC777Helper } from "../libs/ERC777Helper.sol";
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";

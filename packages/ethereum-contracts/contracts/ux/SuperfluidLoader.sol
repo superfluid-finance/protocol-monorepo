@@ -8,7 +8,8 @@ import {
     ISuperTokenFactory,
     ISuperAgreement
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { Strings } from "../utils/Strings.sol";
+
+import { Strings } from "../libs/Strings.sol";
 
 
 /**

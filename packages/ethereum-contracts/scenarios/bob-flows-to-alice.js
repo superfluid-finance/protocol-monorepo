@@ -7,7 +7,6 @@ const {
     toBN,
 } = require("@decentral.ee/web3-helpers");
 
-// FIXME it's broken!!
 contract("Scenario: Bob flows to Alice", (accounts) => {
     const [, alice, bob] = accounts;
     let sf;

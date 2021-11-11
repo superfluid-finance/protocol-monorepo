@@ -1,125 +1,286 @@
-query getAllEvents($ids: [ID!]!) {
-    agreementClassRegisteredEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    agreementClassUpdatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    agreementLiquidatedByEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    appRegisteredEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    burnedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    cfav1LiquidationPeriodChangedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    configChangedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    customSuperTokenCreatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    flowUpdatedEvents(where: { id_in: $ids}) {
-        ...flowUpdatedEventFields
-    }
-    governanceReplacedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    indexCreatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-        token,
-        publisher,
-        indexId,
-        userData,
-    }
-    indexDistributionClaimedEvents(where: { id_in: $ids}) {
-        ...indexDistributionClaimedEventFields
-    }
-    indexSubscribedEvents(where: { id_in: $ids}) {
-        ...indexSubscribedEventFields
-    }
-    indexUnitsUpdatedEvents(where: { id_in: $ids}) {
-        ...indexUnitUpdatedEventFields
-    }
-    indexUnsubscribedEvents(where: { id_in: $ids}) {
-        ...indexUnsubscribedEventFields
-    }
-    indexUpdatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-        token,
-        publisher,
-        indexId,
-        oldIndexValue,
-        newIndexValue,
-        totalUnitsPending,
-        totalUnitsApproved,
-        userData,
-    }
-    jailEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    mintedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    rewardAddressChangedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    roleAdminChangedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    roleGrantedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    roleRevokedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    sentEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    subscriptionApprovedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    subscriptionDistributionClaimedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    subscriptionRevokedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    subscriptionUnitsUpdatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    superTokenCreatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    superTokenFactoryUpdatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    superTokenLogicCreatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    superTokenLogicUpdatedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    tokenDowngradedEvents(where: { id_in: $ids}) {
-        ...eventFields
-        amount
-        token
-    }
-    transferEvents(where: { id_in: $ids}) {
-        ...transferEventFields
-    }
-    trustedForwarderChangedEvents(where: { id_in: $ids}) {
-        ...eventFields
-    }
-    tokenUpgradedEvents(where: { id_in: $ids}) {
-        ...eventFields
-        amount
-        token
+query getAllEvents($where: Event_filter = {}, $skip: Int = 10, $first: Int = 10) {
+    events(where: $where, skip: $skip, first: $first, orderBy: blockNumber, orderDirection: desc) {
+        ... on FlowUpdatedEvent {
+            ...eventFields
+            userData
+            type
+            token
+            sender
+            receiver
+            flowRate
+        }
+        ... on IndexCreatedEvent {
+            ...eventFields
+            userData
+            token
+            publisher
+            indexId
+            index {
+                id
+            }
+        }
+        ... on IndexDistributionClaimedEvent {
+            ...eventFields
+            token
+            subscriber
+            publisher
+            indexId
+            index {
+                id
+            }
+            amount
+        }
+        ... on IndexUpdatedEvent {
+            ...eventFields
+            userData
+            totalUnitsPending
+            totalUnitsApproved
+            token
+            publisher
+            oldIndexValue
+            newIndexValue
+            indexId
+            index {
+                id
+            }
+        }
+        ... on IndexSubscribedEvent {
+            ...eventFields
+            id
+            userData
+            token
+            subscriber
+            publisher
+            indexId
+            index {
+                id
+            }
+        }
+        ... on IndexUnitsUpdatedEvent {
+            ...eventFields
+            userData
+            units
+            token
+            subscriber
+            publisher
+            oldUnits
+            indexId
+            index {
+                id
+            }
+        }
+        ... on IndexUnsubscribedEvent {
+            ...eventFields
+            userData
+            token
+            subscriber
+            publisher
+            indexId
+            index {
+                id
+            }
+        }
+        ... on SubscriptionApprovedEvent {
+            ...eventFields
+            userData
+            token
+            subscription {
+                id
+            }
+            subscriber
+            publisher
+            indexId
+        }
+        ... on SubscriptionDistributionClaimedEvent {
+            ...eventFields
+            token
+            subscription {
+                id
+            }
+            subscriber
+            publisher
+            indexId
+            amount
+        }
+        ... on SubscriptionRevokedEvent {
+            ...eventFields
+            userData
+            subscription {
+                id
+            }
+            subscriber
+            publisher
+            indexId
+            token
+        }
+        ... on SubscriptionUnitsUpdatedEvent {
+            ...eventFields
+            userData
+            units
+            token
+            subscription {
+                id
+            }
+            subscriber
+            publisher
+            oldUnits
+            indexId
+        }
+        ... on TransferEvent {
+            ...eventFields
+            value
+            token
+            to {
+                id
+            }
+            from {
+                id
+            }
+        }
+        ... on TokenUpgradedEvent {
+            ...eventFields
+            amount
+            token
+            account {
+                id
+            }
+        }
+        ... on TokenDowngradedEvent {
+            ...eventFields
+            token
+            blockNumber
+            amount
+            account {
+                id
+            }
+        }
+        ... on AgreementClassRegisteredEvent {
+            ...eventFields
+            code
+            agreementType
+        }
+        ... on AgreementClassUpdatedEvent {
+            ...eventFields
+            code
+            agreementType
+        }
+        ... on AppRegisteredEvent {
+            ...eventFields
+            blockNumber
+            app
+        }
+        ... on GovernanceReplacedEvent {
+            ...eventFields
+            oldGovernance
+            newGovernance
+        }
+        ... on JailEvent {
+            ...eventFields
+            reason
+            app
+        }
+        ... on SuperTokenFactoryUpdatedEvent {
+            ...eventFields
+            newFactory
+        }
+        ... on SuperTokenLogicUpdatedEvent {
+            ...eventFields
+            token
+            code
+        }
+        ... on RoleAdminChangedEvent {
+            ...eventFields
+            role
+            previousAdminRole
+            newAdminRole
+        }
+        ... on RoleGrantedEvent {
+            ...eventFields
+            sender
+            role
+            account
+        }
+        ... on RoleRevokedEvent {
+            ...eventFields
+            sender
+            role
+            account
+        }
+        ... on CFAv1LiquidationPeriodChangedEvent {
+            ...eventFields
+            superToken
+            liquidationPeriod
+            isSet
+        }
+        ... on ConfigChangedEvent {
+            ...eventFields
+            value
+            superToken
+            key
+            isSet
+            host
+        }
+        ... on RewardAddressChangedEvent {
+            ...eventFields
+            superToken
+            rewardAddress
+            isSet
+            host
+        }
+        ... on TrustedForwarderChangedEvent {
+            ...eventFields
+            isSet
+            host
+            forwarder
+            enabled
+            superToken
+        }
+        ... on AgreementLiquidatedByEvent {
+            ...eventFields
+            token
+            rewardAmount
+            penaltyAccount
+            liquidatorAccount
+            bondAccount
+            bailoutAmount
+            agreementId
+            agreementClass
+        }
+        ... on BurnedEvent {
+            ...eventFields
+            operatorData
+            operator
+            from
+            data
+            amount
+        }
+        ... on MintedEvent {
+            ...eventFields
+            operatorData
+            operator
+            data
+            amount
+            to
+        }
+        ... on SentEvent {
+            ...eventFields
+            to
+            operatorData
+            operator
+            data
+            amount
+        }
+        ... on CustomSuperTokenCreatedEvent {
+            ...eventFields
+            token
+        }
+        ... on SuperTokenCreatedEvent {
+            ...eventFields
+            token
+        }
+        ... on SuperTokenLogicCreatedEvent {
+            ...eventFields
+            tokenLogic
+        }
     }
 }
-
-

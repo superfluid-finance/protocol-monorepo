@@ -2,6 +2,7 @@ schema: "src/subgraph/schema.graphql"
 documents: "src/subgraph/**/*.graphql"
 overwrite: true
 config:
+    skipDocumentsValidation: true
     scalars:
         Bytes: string
         BigInt: string

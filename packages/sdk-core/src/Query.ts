@@ -1,7 +1,5 @@
 import {
-    IAccountEventsFilter,
     IAccountTokenSnapshotFilter,
-    IFlowUpdatedEvent,
     IIndex,
     IIndexRequestFilter,
     IIndexSubscription,
@@ -47,56 +45,17 @@ import {
     GetAccountTokenSnapshotsQuery,
     GetAccountTokenSnapshotsQueryVariables,
 } from "./subgraph/queries/getAccountTokenSnapshots.generated";
-import _ from "lodash";
-import {
-    GetFlowUpdatedEventsDocument,
-    GetFlowUpdatedEventsQuery,
-    GetFlowUpdatedEventsQueryVariables,
-} from "./subgraph/queries/events/getFlowUpdatedEvents.generated";
-import { FlowUpdatedEvent_Filter } from "./subgraph/schema.generated";
-import {
-    GetAccountEventsDocument,
-    GetAccountEventsQuery,
-    GetAccountEventsQueryVariables,
-} from "./subgraph/queries/events/getAccountEvents.generated";
-import { AccountEvents, TransferEvent, AllEvents } from "./events";
-import {
-    GetEventIdsDocument,
-    GetEventIdsQuery,
-    GetEventIdsQueryVariables,
-} from "./subgraph/queries/events/getEventIds.generated";
-
+import { AccountEvents, AllEvents, IEventFilter } from "./events";
 import {
     GetAllEventsDocument,
     GetAllEventsQuery,
     GetAllEventsQueryVariables,
 } from "./subgraph/queries/events/getAllEvents.generated";
+import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
 
 export interface IQueryOptions {
     readonly customSubgraphQueriesEndpoint: string;
     readonly dataMode: DataMode;
-}
-
-function mapTransferEvent(x: {
-    __typename: "TransferEvent";
-    value: string;
-    token: string;
-    blockNumber: string;
-    transactionHash: string;
-    timestamp: string;
-    from: { id: string };
-    to: { id: string };
-}) {
-    return {
-        __typename: x.__typename,
-        token: x.token,
-        value: x.value,
-        from: x.from.id,
-        to: x.to.id,
-        timestamp: x.timestamp,
-        blockNumber: x.blockNumber,
-        transactionHash: x.transactionHash,
-    };
 }
 
 /**
@@ -210,140 +169,27 @@ export default class Query {
         );
     };
 
-    // NOTE: Kaspar's unfinished stuff below!
-    // TODO(KK): Don't use "FlowUpdatedEvent_Filter"
-
-    listFlowUpdatedEvents = async (
-        filter: FlowUpdatedEvent_Filter,
-        paging: Paging = new Paging()
-    ): Promise<PagedResult<IFlowUpdatedEvent>> => {
-        const response = await this.subgraphClient.request<
-            GetFlowUpdatedEventsQuery,
-            GetFlowUpdatedEventsQueryVariables
-        >(GetFlowUpdatedEventsDocument, {
-            where: filter,
-            skip: paging.skip,
-            first: paging.takePlusOne(),
-        });
-
-        return new PagedResult<IFlowUpdatedEvent>(response.result, paging);
-    };
-
-    // TODO: Need a better way of querying account events
-    listAccountEvents = async (
-        filter: IAccountEventsFilter
-    ): Promise<AccountEvents[]> => {
-        // TODO: validate filter
-
-        const response = await this.subgraphClient.request<
-            GetAccountEventsQuery,
-            GetAccountEventsQueryVariables
-        >(GetAccountEventsDocument, {
-            accountBytes: filter.account,
-            accountString: filter.account,
-            timestamp_gte: filter.timestamp_gte,
-        });
-
-        const accountEvents: AccountEvents[] = [
-            ...response.flowUpdatedEvents_receiver,
-            ...response.flowUpdatedEvents_sender,
-            ...response.indexCreatedEvents,
-            ...response.indexUpdatedEvents,
-            ...response.indexUnitsUpdatedEvents_publisher,
-            ...response.indexUnitsUpdatedEvents_subscriber,
-            ...response.indexSubscribedEvents_publisher,
-            ...response.indexSubscribedEvents_subscriber,
-            ...response.indexUnsubscribedEvents_publisher,
-            ...response.indexUnsubscribedEvents_subscriber,
-            ...response.indexDistributionClaimedEvents_publisher,
-            ...response.indexDistributionClaimedEvents_subscriber,
-            ...response.transferEvents_to.map<TransferEvent>(mapTransferEvent),
-            ...response.transferEvents_from.map<TransferEvent>(
-                mapTransferEvent
-            ),
-            ...response.tokenDowngradedEvents,
-            ...response.tokenUpgradedEvents,
-            ...response.subscriptionApprovedEvents_subscriber,
-            ...response.subscriptionApprovedEvents_publisher,
-            ...response.subscriptionDistributionClaimedEvents_subscriber,
-            ...response.subscriptionDistributionClaimedEvents_publisher,
-            ...response.subscriptionRevokedEvents_subscriber,
-            ...response.subscriptionRevokedEvents_publisher,
-            ...response.subscriptionUnitsUpdatedEvents_subscriber,
-            ...response.subscriptionUnitsUpdatedEvents_publisher,
-        ];
-
-        return accountEvents;
-    };
-
-    listAllEvents = async (
+    listEvents = async (
+        filter: IEventFilter,
         paging: Paging = new Paging()
     ): Promise<PagedResult<AllEvents>> => {
-        const getEventIdsQueryResponse = await this.subgraphClient.request<
-            GetEventIdsQuery,
-            GetEventIdsQueryVariables
-        >(GetEventIdsDocument, {
-            skip: paging.skip,
-            first: paging.takePlusOne(),
-        });
-
-        const getAllEventsQueryResponse = await this.subgraphClient.request<
+        const response = await this.subgraphClient.request<
             GetAllEventsQuery,
             GetAllEventsQueryVariables
         >(GetAllEventsDocument, {
-            ids: getEventIdsQueryResponse.events.map((x) => x.id),
+            where: {
+                addresses_contains: filter.account
+                    ? [filter.account]
+                    : undefined,
+                timestamp_gte: filter.timestamp_gte,
+            },
+            skip: paging.skip,
+            first: paging.takePlusOne(),
         });
-
-        const resultEvents: AllEvents[] = [
-            ...getAllEventsQueryResponse.agreementClassRegisteredEvents,
-            ...getAllEventsQueryResponse.agreementClassUpdatedEvents,
-            ...getAllEventsQueryResponse.agreementLiquidatedByEvents,
-            ...getAllEventsQueryResponse.appRegisteredEvents,
-            ...getAllEventsQueryResponse.burnedEvents,
-            ...getAllEventsQueryResponse.cfav1LiquidationPeriodChangedEvents,
-            ...getAllEventsQueryResponse.configChangedEvents,
-            ...getAllEventsQueryResponse.customSuperTokenCreatedEvents,
-            ...getAllEventsQueryResponse.flowUpdatedEvents,
-            ...getAllEventsQueryResponse.governanceReplacedEvents,
-            ...getAllEventsQueryResponse.indexCreatedEvents,
-            ...getAllEventsQueryResponse.indexDistributionClaimedEvents,
-            ...getAllEventsQueryResponse.indexSubscribedEvents,
-            ...getAllEventsQueryResponse.indexUnitsUpdatedEvents,
-            ...getAllEventsQueryResponse.indexUnsubscribedEvents,
-            ...getAllEventsQueryResponse.indexUpdatedEvents,
-            ...getAllEventsQueryResponse.jailEvents,
-            ...getAllEventsQueryResponse.mintedEvents,
-            ...getAllEventsQueryResponse.rewardAddressChangedEvents,
-            ...getAllEventsQueryResponse.roleAdminChangedEvents,
-            ...getAllEventsQueryResponse.roleGrantedEvents,
-            ...getAllEventsQueryResponse.roleRevokedEvents,
-            ...getAllEventsQueryResponse.sentEvents,
-            ...getAllEventsQueryResponse.subscriptionApprovedEvents,
-            ...getAllEventsQueryResponse.subscriptionDistributionClaimedEvents,
-            ...getAllEventsQueryResponse.subscriptionRevokedEvents,
-            ...getAllEventsQueryResponse.subscriptionUnitsUpdatedEvents,
-            ...getAllEventsQueryResponse.superTokenCreatedEvents,
-            ...getAllEventsQueryResponse.superTokenFactoryUpdatedEvents,
-            ...getAllEventsQueryResponse.superTokenLogicCreatedEvents,
-            ...getAllEventsQueryResponse.superTokenLogicUpdatedEvents,
-            ...getAllEventsQueryResponse.tokenDowngradedEvents,
-            ...getAllEventsQueryResponse.transferEvents.map<TransferEvent>(
-                (x) => ({
-                    __typename: x.__typename,
-                    token: x.token,
-                    value: x.value,
-                    from: x.from.id,
-                    to: x.to.id,
-                    timestamp: x.timestamp,
-                    blockNumber: x.blockNumber,
-                    transactionHash: x.transactionHash,
-                })
-            ),
-            ...getAllEventsQueryResponse.trustedForwarderChangedEvents,
-            ...getAllEventsQueryResponse.tokenUpgradedEvents,
-        ];
-
-        return new PagedResult<AllEvents>(resultEvents, paging);
+        return new PagedResult<AllEvents>(
+            mapGetAllEventsQueryEvents(response),
+            paging
+        );
     };
 
     on(
@@ -366,12 +212,10 @@ export default class Query {
             nextUtcNow += ms;
 
             const subgraphTime = Math.floor(utcNow / 1000);
-            const accountEvents: AccountEvents[] = await this.listAccountEvents(
-                {
-                    account: account,
-                    timestamp_gte: subgraphTime.toString(),
-                }
-            );
+            const accountEvents: AccountEvents[] = await this.listEvents({
+                account: account,
+                timestamp_gte: subgraphTime.toString(),
+            }).then((x) => x.data as AccountEvents[]); // TODO(KK): Any way to do it without unsafe cast?
 
             if (accountEvents.length) {
                 console.log("callback");

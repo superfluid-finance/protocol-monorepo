@@ -23,6 +23,9 @@ interface ISetupProps {
     readonly subgraphEndpoint?: string;
 }
 
+// NOTE: It is essential to pass in a Deployer into the contracts for initialization
+// This is because when we are testing the emit, the passed in contract expects a
+// provider and will throw an error if this doesn't exist.
 export const setup = async (props: ISetupProps) => {
     const [Deployer, Alpha, Bravo] = await ethers.getSigners();
     if (!Deployer || !Alpha || !Bravo) {
@@ -42,14 +45,16 @@ export const setup = async (props: ISetupProps) => {
     const superTokenAddress = await resolver.get("supertokens.test.fDAIx");
     const SuperToken = new ethers.Contract(
         superTokenAddress,
-        SuperTokenABI
+        SuperTokenABI,
+        Deployer
     ) as SuperToken;
     const underlyingToken = await SuperToken.connect(
         Deployer
     ).getUnderlyingToken();
     const Token = new ethers.Contract(
         underlyingToken,
-        TestTokenABI
+        TestTokenABI,
+        Deployer
     ) as TestToken;
     const frameworkClass = await Framework.create({
         networkName: "custom",

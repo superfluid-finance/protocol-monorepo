@@ -4,3 +4,4 @@ fragment eventFields on Event {
     transactionHash
     timestamp
 }
+

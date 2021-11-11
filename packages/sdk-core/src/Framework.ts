@@ -20,7 +20,6 @@ import SuperToken from "./SuperToken";
 import Query from "./Query";
 import Operation from "./Operation";
 
-// TODO: we will not use ChainId or NetworkName type
 // there will be implications and this needs to be handled appropriately
 export interface IFrameworkOptions {
     chainId?: number;

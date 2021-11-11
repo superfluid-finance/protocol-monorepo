@@ -21,6 +21,22 @@ export const getAccount = gql`
     }
 `;
 
+export const getToken = gql`
+    query getToken($id: ID!) {
+        response: token(id: $id) {
+            id
+            name
+            symbol
+            decimals
+            underlyingAddress
+            isListed
+            underlyingToken {
+                id
+            }
+        }
+    }
+`;
+
 export const getStream = gql`
     query getStream($id: ID!) {
         response: stream(id: $id) {
@@ -39,6 +55,44 @@ export const getStream = gql`
             flowUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
                 id
             }
+            streamPeriods(orderBy: startedAtTimestamp, orderDirection: asc) {
+                id
+            }
+        }
+    }
+`;
+
+export const getStreamPeriod = gql`
+    query getStreamPeriod($id: ID!) {
+        response: streamPeriod(id: $id) {
+            id
+            flowRate
+
+            token {
+                id
+            }
+            sender {
+                id
+            }
+            receiver {
+                id
+            }
+            startedAtTimestamp
+            startedAtBlockNumber
+            startedAtEvent {
+                id
+            }
+
+            stoppedAtTimestamp
+            stoppedAtBlockNumber
+            stoppedAtEvent {
+                id
+            }
+            stream {
+                id
+            }
+
+            totalAmountStreamed
         }
     }
 `;
@@ -64,6 +118,12 @@ export const getIndex = gql`
                 id
             }
             indexCreatedEvent(orderBy: timestamp, orderDirection: asc) {
+                id
+            }
+            indexDistributionClaimedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
                 id
             }
             indexUpdatedEvents(orderBy: timestamp, orderDirection: asc) {
@@ -104,6 +164,12 @@ export const getSubscription = gql`
                 }
             }
             subscriptionApprovedEvents(
+                orderBy: timestamp
+                orderDirection: asc
+            ) {
+                id
+            }
+            subscriptionDistributionClaimedEvents(
                 orderBy: timestamp
                 orderDirection: asc
             ) {

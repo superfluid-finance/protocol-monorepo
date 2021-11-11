@@ -20,7 +20,10 @@ export const fetchEventAndValidate = async <
         queryName
     );
 
-    validateEventData(event, expectedData, receipt);
+    // Note: we parse the name of the query (e.g. FlowUpdatedEvent)
+    // and use this to validate that the name property has been set properly.
+    const parsedQueryName = queryName.split("Event")[0];
+    validateEventData(event, expectedData, receipt, parsedQueryName);
 
     return event;
 };
@@ -40,19 +43,22 @@ export const validateData = <T>(
 
 export const validateBaseEventData = (
     queriedEvent: IEvent,
-    receipt: ContractReceipt
+    receipt: ContractReceipt,
+    queryName: string
 ) => {
     expect(receipt.transactionHash.toLowerCase()).to.eq(
         queriedEvent.transactionHash
     );
     expect(receipt.blockNumber.toString()).to.eq(queriedEvent.blockNumber);
+    expect(queriedEvent.name).to.eq(queryName);
 };
 
 export const validateEventData = (
     queriedEvent: IEvent,
     expectedData: { [key: string]: any },
-    receipt: ContractReceipt
+    receipt: ContractReceipt,
+    queryName: string
 ) => {
-    validateBaseEventData(queriedEvent, receipt);
+    validateBaseEventData(queriedEvent, receipt, queryName);
     validateData(queriedEvent, expectedData);
 };

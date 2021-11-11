@@ -21,6 +21,7 @@ import {
     getSubscriptionID,
     getTokenInfoAndReturn,
     streamRevisionExists,
+    ZERO_ADDRESS,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -83,18 +84,20 @@ export function getOrInitSuperToken(
     let currentTimestamp = block.timestamp;
     let resolverAddress = getResolverAddress();
 
+    if (tokenAddress.equals(ZERO_ADDRESS)) {
+        return token as Token;
+    }
+
     if (token == null) {
         token = new Token(tokenId);
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token = getIsListedToken(
-            token as Token,
-            tokenAddress,
-            resolverAddress,
-            token.symbol
-        );
+        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
+        let underlyingAddress = token.underlyingAddress;
+        token.underlyingToken = underlyingAddress.toHexString();
+
         token.save();
 
         // Note: we initalize and create tokenStatistic whenever we create a
@@ -105,8 +108,6 @@ export function getOrInitSuperToken(
         // Note: this is necessary otherwise we will not be able to capture
         // template data source events.
         SuperTokenTemplate.create(tokenAddress);
-
-        let underlyingAddress = token.underlyingAddress;
 
         // If the token has an underlying ERC20, we create a token entity for it.
         let underlyingToken = Token.load(token.underlyingAddress.toHex());
@@ -124,12 +125,11 @@ export function getOrInitSuperToken(
     // // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token as Token, tokenAddress);
-        token = getIsListedToken(
-            token as Token,
-            tokenAddress,
-            resolverAddress,
-            token.symbol
-        );
+        token.save();
+    }
+
+    if (token.isListed == false) {
+        token = getIsListedToken(token as Token, tokenAddress, resolverAddress);
         token.save();
     }
 
@@ -177,6 +177,7 @@ export function getOrInitStreamRevision(
     if (streamRevision == null) {
         streamRevision = new StreamRevision(streamRevisionId);
         streamRevision.revisionIndex = 0;
+        streamRevision.periodRevisionIndex = 0;
     }
     return streamRevision as StreamRevision;
 }

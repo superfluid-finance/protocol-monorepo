@@ -5,7 +5,7 @@ import {
     IConstantFlowAgreementV1,
     SuperToken as SuperTokenType,
 } from "../src/typechain";
-import { getPerSecondFlowRateByMonth, getRawTransaction } from "../src/utils";
+import { getPerSecondFlowRateByMonth } from "../src/utils";
 import { setup } from "./setup";
 import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
@@ -72,58 +72,47 @@ describe("Operation Tests", () => {
         }
     });
 
-    // TODO: figure out how to get the expected value for the signed transaction
-    // and expected txn hash
     it("Should be able to get signed transaction", async () => {
-        const callData = cfaInterface.encodeFunctionData("createFlow", [
-            superToken.address,
-            alpha.address,
-            getPerSecondFlowRateByMonth("100"),
-            "0x",
-        ]);
-        const txn =
-            framework.host.hostContract.populateTransaction.callAgreement(
-                cfaV1.address,
-                callData,
-                "0x"
-            );
+        const daix = framework.loadSuperToken(superToken.address);
+        const flowRate = getPerSecondFlowRateByMonth("100");
         // NOTE: the hardhat signer does not support signing transactions, therefore, we must create
         // our own signer with a custom private key
         const signer = framework.createSigner({
             privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
             provider: deployer.provider,
         });
-        const operation = new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
-        const signedTxn = await operation.getSignedTransaction(signer);
-        const executedTxn = await operation.exec(signer);
-        const rawSignedTxn = getRawTransaction(executedTxn);
-        // expect(signedTxn).to.equal(rawSignedTxn);
+        const createFlowOp = daix.createFlow({
+            sender: deployer.address,
+            receiver: alpha.address,
+            flowRate,
+        });
+        const signedTxn = await createFlowOp.getSignedTransaction(signer);
+        await expect(deployer.provider!.sendTransaction(signedTxn))
+            .to.emit(cfaV1, "FlowUpdated")
+            .withArgs(
+                superToken.address,
+                deployer.address,
+                alpha.address,
+                Number(flowRate),
+                Number(flowRate) * -1,
+                Number(flowRate),
+                "0x"
+            );
     });
 
     it("Should be able to get transaction hash and it should be equal to transaction hash once executed.", async () => {
-        const callData = cfaInterface.encodeFunctionData("deleteFlow", [
-            superToken.address,
-            deployer.address,
-            alpha.address,
-            "0x",
-        ]);
-        const txn =
-            framework.host.hostContract.populateTransaction.callAgreement(
-                cfaV1.address,
-                callData,
-                "0x"
-            );
+        const deleteFlowOp = framework.cfaV1.deleteFlow({
+            superToken: superToken.address,
+            sender: deployer.address,
+            receiver: alpha.address,
+        });
         const signer = framework.createSigner({
             privateKey: process.env.TEST_ACCOUNT_PRIVATE_KEY,
             provider: deployer.provider,
         });
-        const operation = new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
-        const populatedTxn = await operation.populateTransactionPromise;
-        const signedTxn = await operation.getSignedTransaction(signer);
-        const opTxnHash = await operation.getTransactionHash(signer);
-        const executedTxn = await operation.exec(signer);
-        const rawTxn = getRawTransaction(executedTxn);
+        const opTxnHash = await deleteFlowOp.getTransactionHash(signer);
+        const executedTxn = await deleteFlowOp.exec(signer);
         const receipt = await executedTxn.wait();
-        // expect(opTxnHash).to.equal(receipt.transactionHash);
+        expect(opTxnHash).to.equal(receipt.transactionHash);
     });
 });

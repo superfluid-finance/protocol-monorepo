@@ -1,8 +1,0 @@
-fragment indexDistributionClaimedEventFields on IndexDistributionClaimedEvent {
-    token
-    publisher
-    indexId
-    subscriber
-    amount
-    ...eventFields
-}

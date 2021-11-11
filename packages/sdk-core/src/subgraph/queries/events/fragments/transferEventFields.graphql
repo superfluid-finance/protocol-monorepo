@@ -1,7 +1,0 @@
-fragment transferEventFields on TransferEvent {
-    from {id}
-    to {id}
-    value
-    token
-    ...eventFields
-}

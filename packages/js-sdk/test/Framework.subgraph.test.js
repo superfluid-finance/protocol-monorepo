@@ -59,32 +59,12 @@ describe("Framework subgraph (goerli) support", function () {
     });
 
     it("cfa.listFlows", async () => {
-        const flows = await sf.cfa.listFlows({
+        const events = await sf.cfa.listFlows({
             superToken: sf.tokens.fDAIx.address,
             account: "0xEb85888b31FADF79CB264d065EdcB4a14551c28d",
         });
-        assert.isTrue(flows.inFlows.length > 0);
-        assert.isTrue(flows.outFlows.length > 0);
-    });
-
-    it("ida.listIndices", async () => {
-        const indexes = await sf.ida.listIndices({
-            superToken: sf.tokens.fDAIx.address,
-            publisher: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE",
-        });
-        assert.equal(indexes.length, 1);
-        assert.equal(indexes[0], 0);
-    });
-
-    it("ida.listSubcribers", async () => {
-        const subscribers = await sf.ida.listSubcribers({
-            superToken: sf.tokens.fDAIx.address,
-            publisher: "0x39aA80Fc05eD0b3549be279589Fc67f06b7e35EE",
-            indexId: 0,
-        });
-        assert.isTrue(subscribers.length > 0);
-        assert.isDefined(subscribers[0].subscriber);
-        assert.isDefined(subscribers[0].units);
+        assert.isTrue(events.inFlows.length > 0);
+        assert.isTrue(events.outFlows.length > 0);
     });
 
     it("getPastEvents IndexCreated", async () => {

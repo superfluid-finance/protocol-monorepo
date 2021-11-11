@@ -93,7 +93,6 @@ module.exports = class Framework {
         console.log("version", this.version);
         console.log("networkType", this.networkType);
         console.log("networkId", this.networkId);
-        console.log("chainId", this.chainId);
 
         this.config = getConfig(this.chainId, this.version);
 
@@ -431,7 +430,8 @@ module.exports = class Framework {
      */
     async getPastEvents(contract, eventName, filter = {}, { forceWeb3 } = {}) {
         function lcfirst(str) {
-            return str.replace(/[A-Z]+/, (i) => i.toLowerCase());
+            var firstLetter = str.substr(0, 1);
+            return firstLetter.toLowerCase() + str.substr(1);
         }
 
         const eventABI = contract.abi.filter((i) => i.name === eventName)[0];

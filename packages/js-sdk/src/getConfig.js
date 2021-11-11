@@ -5,22 +5,22 @@ if (typeof module === "undefined") module = {};
 Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
     const DEFAULT_CONFIGS = {
         //
-        // Local testing
+        // Testing environemts
         //
+        31337: {
+            // for local testing hardhat
+            nativeTokenSymbol: "ETH",
+        },
         1337: {
-            // for default ganache setup
+            // for local testing localhost
             nativeTokenSymbol: "ETH",
         },
         4447: {
-            // for local testing (truffle internal ganache and TestEnvironment)
+            // for local testing (truffle internal ganache)
             nativeTokenSymbol: "ETH",
         },
         5777: {
             // for local testing (external ganache)
-            nativeTokenSymbol: "ETH",
-        },
-        31337: {
-            // for local testing hardhat
             nativeTokenSymbol: "ETH",
         },
 

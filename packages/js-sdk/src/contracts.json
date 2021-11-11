@@ -1,6 +1,4 @@
 [
-    "Ownable",
-    "AccessControl",
     "UUPSProxiable",
     "IERC20",
     "TokenInfo",
@@ -8,16 +6,12 @@
     "IResolver",
     "SuperfluidLoader",
     "ISuperfluid",
-    "Superfluid",
     "ISuperToken",
-    "SuperToken",
     "ISuperTokenFactory",
-    "SuperTokenFactory",
     "ISuperAgreement",
     "ISuperfluidGovernance",
-    "SuperfluidGovernanceBase",
     "IConstantFlowAgreementV1",
     "IInstantDistributionAgreementV1",
-    "TestToken",
-    "ISETH"
+    "ISETH",
+    "TestToken"
 ]

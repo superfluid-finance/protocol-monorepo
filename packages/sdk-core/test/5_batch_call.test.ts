@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
+import { getPerSecondFlowRateByMonth } from "../src/utils";
 import { SuperToken as SuperTokenType } from "../src/typechain";
 import { setup } from "./setup";
 import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
@@ -36,6 +37,22 @@ describe("Batch Call Tests", () => {
         } catch (err: any) {
             expect(err.message).to.contain(
                 "Unsupported Batch Call Operation Error - The operation at index 0 is unsupported"
+            );
+        }
+    });
+
+    it("Should throw an error if batch call fails", async () => {
+        const daix = framework.loadSuperToken(superToken.address);
+        const createFlowOp = daix.createFlow({
+            sender: alpha.address,
+            receiver: deployer.address,
+            flowRate: getPerSecondFlowRateByMonth("10000000000"),
+        });
+        try {
+            await framework.batchCall([createFlowOp]).exec(deployer);
+        } catch (err: any) {
+            expect(err.message).to.contain(
+                "Batch Call Error - There was an error executing your batch call:"
             );
         }
     });

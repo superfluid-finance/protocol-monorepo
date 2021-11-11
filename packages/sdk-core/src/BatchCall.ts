@@ -129,6 +129,7 @@ export default class BatchCall {
         }
     };
 
+    /* istanbul ignore next */
     // TODO: user signs the transaction they'd like to execute and gives
     // this data to the trusted forwarder to sign
     /**

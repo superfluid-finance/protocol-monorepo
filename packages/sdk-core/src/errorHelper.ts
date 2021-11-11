@@ -36,7 +36,7 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["SIGN_TRANSACTION", "Sign Transaction"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],
     ["MISSING_TRANSACTION_PROPERTIES", "Missing Transaction Properties"],
-    ["BATCH_CALL_ERROR", "Batch Call Error"],
+    ["BATCH_CALL_ERROR", "Batch Call"],
 ]);
 
 export const handleError = (

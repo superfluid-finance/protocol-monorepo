@@ -23,7 +23,7 @@ ajv.addFormat("stringNumber", {
 // Schemas
 const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
     type: "object",
-    additionalProperties: false,
+    additionalProperties: true,
     properties: {
         isListed: { type: "boolean", nullable: true },
     },
@@ -31,7 +31,7 @@ const superTokenRequestSchema: JSONSchemaType<ISuperTokenRequestFilter> = {
 
 const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
     type: "object",
-    additionalProperties: false,
+    additionalProperties: true,
     properties: {
         indexId: { type: "string", format: "stringNumber", nullable: true },
         publisher: { type: "string", format: "addressOrEmpty", nullable: true },
@@ -42,7 +42,7 @@ const indexRequestSchema: JSONSchemaType<IIndexRequestFilter> = {
 const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFilter> =
     {
         type: "object",
-        additionalProperties: false,
+        additionalProperties: true,
         properties: {
             account: {
                 type: "string",
@@ -56,7 +56,7 @@ const accountTokenSnapshotRequestSchema: JSONSchemaType<IAccountTokenSnapshotFil
 const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFilter> =
     {
         type: "object",
-        additionalProperties: false,
+        additionalProperties: true,
         properties: {
             subscriber: {
                 type: "string",
@@ -69,7 +69,7 @@ const indexSubscriptionRequestSchema: JSONSchemaType<IIndexSubscriptionRequestFi
 
 const streamRequestSchema: JSONSchemaType<IStreamRequestFilter> = {
     type: "object",
-    additionalProperties: false,
+    additionalProperties: true,
     properties: {
         sender: { type: "string", format: "addressOrEmpty", nullable: true },
         receiver: { type: "string", format: "addressOrEmpty", nullable: true },

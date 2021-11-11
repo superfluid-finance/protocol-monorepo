@@ -1,17 +1,7 @@
 const path = require("path");
-const async = require("async");
 const { promisify } = require("util");
 const readline = require("readline");
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
-/****************************************************************
- * Truffle scripts utilities
- ****************************************************************/
-
-/**
- * @dev Promisified readline question utility
- */
 async function rl() {
     // promisify the readline
     const rl = readline.createInterface({
@@ -32,12 +22,7 @@ async function rl() {
     return answer;
 }
 
-/**
- * @dev Parse colon marked arguments
- *
- * NOTE:
- * Provide arguments to the script through ":" separator
- */
+// Provide arguments to the script through ":" separator
 function parseColonArgs(argv) {
     const argIndex = argv.indexOf(":");
     if (argIndex < 0) {
@@ -50,112 +35,13 @@ function parseColonArgs(argv) {
     }
 }
 
-/**
- * @dev Detect if we are running inside the truffle exec and configure the options
- * @param {Object} options the options object to be configured
- *
- * NOTE:
- * 1. This has to be invoked within the same context of the caller, in order
- * to use "web3", "artifacts" from the truffle execution context.
- * The correct way of using this then should be:
- * ```
- * await eval(`(${setupScriptEnvironment.toString()})()`)
- * ```
- * 2. This will expose `web3` object to global
- */
-async function setupScriptEnvironment(options) {
-    //
-    // Detect truffle environment
-    //
-    function _detectTruffle() {
-        const stackTrace = require("stack-trace");
-        const trace = stackTrace.get();
-        //trace.forEach((callSite) => console.debug(callSite.getFileName()));
-        const truffleDetected =
-            trace.filter((callSite) =>
-                (callSite.getFileName() || "").match(
-                    /node_modules\/truffle\/build\/[^/]+\.bundled\.js/
-                )
-            ).length > 0;
-        console.log("truffle detected", truffleDetected);
-        return truffleDetected;
-    }
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 
-    const truffleDetected = _detectTruffle();
-    // if isTruffle is not set explicitly
-    if (!("isTruffle" in options)) {
-        if ("DISABLE_NATIVE_TRUFFLE" in process.env) {
-            options.isTruffle = !process.env.DISABLE_NATIVE_TRUFFLE;
-        } else {
-            options.isTruffle = truffleDetected;
-        }
-    }
-
-    console.log("use truffle native environment", options.isTruffle);
-    if (options.isTruffle) {
-        if (options.web3) {
-            throw Error(
-                "Flag 'isTruffle' cannot be 'true' when using a web3 instance."
-            );
-        }
-        // set these globally so that it's available throughout the executions
-        global.web3 = web3;
-        global.artifacts = artifacts;
-    } else {
-        if (!truffleDetected) {
-            if (!options.web3) {
-                throw Error(
-                    "A web3 instance is not provided when not using truffle."
-                );
-            }
-            global.web3 = options.web3;
-        } else {
-            // use web3 of truffle
-            options.web3 = global.web3 = web3;
-        }
-    }
-
-    //
-    // Use common environment variables
-    //
-    options.protocolReleaseVersion =
-        options.protocolReleaseVersion || process.env.RELEASE_VERSION || "test";
-    console.log("protocol release version:", options.protocolReleaseVersion);
-}
-
-/// @dev Extract the web3 options used to initialize the SDK
-function extractWeb3Options({ isTruffle, web3, ethers, from }) {
-    return { isTruffle, web3, ethers, from };
-}
-
-/// @dev Load contract from truffle built artifacts
-function builtTruffleContractLoader(name) {
-    try {
-        const directoryPath = path.join(__dirname, "../build/contracts");
-        const builtContract = require(path.join(directoryPath, name + ".json"));
-        return builtContract;
-    } catch (e) {
-        throw new Error(
-            `Cannot load built truffle contract ${name}. Have you built?`
-        );
-    }
-}
-
-/****************************************************************
- * Contracts upgradability utilities
- ****************************************************************/
-
-/**
- * @dev Is the address a contract (it has code, not an EOA)
- */
 async function hasCode(web3, address) {
     const code = await web3.eth.getCode(address);
     return code.length > 3;
 }
 
-/**
- * @dev Check if the code at the address differs from the contract object provided
- */
 async function codeChanged(
     web3,
     contract,
@@ -199,9 +85,11 @@ async function codeChanged(
     return binaryTrimed !== codeTrimed;
 }
 
-/**
- * @dev Check if the address is a UUPS proxiable
- */
+async function getCodeAddress(UUPSProxiable, proxyAddress) {
+    const proxiable = await UUPSProxiable.at(proxyAddress);
+    return await proxiable.getCodeAddress();
+}
+
 async function isProxiable(UUPSProxiable, address) {
     const p = await UUPSProxiable.at(address);
     const codeAddress = await p.getCodeAddress.call();
@@ -209,24 +97,83 @@ async function isProxiable(UUPSProxiable, address) {
 }
 
 /**
- * @dev Get code address from an UUPS proxiable
+ * @dev Detect if we are running inside the truffle exec and configure the options
+ * @param {Object} options the options object to be configured
+ *
+ * NOTE:
+ * 1. This has to be invoked within the same context of the caller, in order
+ * to use "web3", "artifacts" from the truffle execution context.
+ * The correct way of using this then should be:
+ * ```
+ * eval(`(${detectIsTruffle.toString()})()`)
+ * ```
+ * 2. This will expose `web3` object to global
  */
-async function getCodeAddress(UUPSProxiable, proxyAddress) {
-    const proxiable = await UUPSProxiable.at(proxyAddress);
-    return await proxiable.getCodeAddress();
+async function detectTruffleAndConfigure(options) {
+    function _detectTruffle() {
+        const stackTrace = require("stack-trace");
+        const trace = stackTrace.get();
+        //trace.forEach((callSite) => console.debug(callSite.getFileName()));
+        return (
+            trace.filter((callSite) =>
+                (callSite.getFileName() || "").match(
+                    /node_modules\/truffle\/build\/[^/]+\.bundled\.js/
+                )
+            ).length > 0
+        );
+    }
+
+    const truffleDetected = _detectTruffle();
+    // if isTruffle is not set explicitly
+    if (!("isTruffle" in options)) {
+        if ("DISABLE_NATIVE_TRUFFLE" in process.env) {
+            options.isTruffle = !process.env.DISABLE_NATIVE_TRUFFLE;
+        } else {
+            options.isTruffle = truffleDetected;
+        }
+    }
+    if (options.isTruffle) {
+        if (options.web3) {
+            throw Error(
+                "Flag 'isTruffle' cannot be 'true' when using a web3 instance."
+            );
+        }
+        // set these globally so that it's available throughout the executions
+        global.web3 = web3;
+        global.artifacts = artifacts;
+    } else {
+        if (!truffleDetected) {
+            if (!options.web3) {
+                throw Error(
+                    "A web3 instance is not provided when not using truffle."
+                );
+            }
+            global.web3 = options.web3;
+        } else {
+            // use web3 of truffle
+            options.web3 = global.web3 = web3;
+        }
+    }
 }
 
-/****************************************************************
- * Admin (resolver and governance) utilities
- ****************************************************************/
+/// @dev Extract the web3 options used to initialize the SDK
+function extractWeb3Options({ isTruffle, web3, ethers, from }) {
+    return { isTruffle, web3, ethers, from };
+}
 
-/**
- * @dev Set resolver key-value
- *
- * process.env.RESOLVER_ADMIN_TYPE:
- * - MULTISIG
- * - (default) ownable
- */
+/// @dev Load contract from truffle built artifacts
+function builtTruffleContractLoader(name) {
+    try {
+        const directoryPath = path.join(__dirname, "../build/contracts");
+        const builtContract = require(path.join(directoryPath, name + ".json"));
+        return builtContract;
+    } catch (e) {
+        throw new Error(
+            `Cannot load built truffle contract ${name}. Have you built?`
+        );
+    }
+}
+
 async function setResolver(sf, key, value) {
     console.log(`Setting resolver ${key} -> ${value} ...`);
     const resolver = await sf.contracts.TestResolver.at(sf.resolver.address);
@@ -260,13 +207,6 @@ async function setResolver(sf, key, value) {
     }
 }
 
-/**
- * @dev Send governance action
- *
- * process.env.GOVERNANCE_ADMIN_TYPE:
- * - MULTISIG
- * - (default) ownable
- */
 async function sendGovernanceAction(sf, actionFn) {
     const gov = await sf.contracts.SuperfluidGovernanceBase.at(
         await sf.host.getGovernance.call()
@@ -296,79 +236,17 @@ async function sendGovernanceAction(sf, actionFn) {
     }
 }
 
-/****************************************************************
- * Event queries
- ****************************************************************/
-
-function _toHex(n) {
-    return "0x" + n.toString(16);
-}
-
-async function getPastEvents({ config, contract, eventName, filter, topics }) {
-    const initialBlockNumber = config.data.initialBlockNumber || 0;
-    const latestBlock = await web3.eth.getBlock("latest");
-    let blockRanges = [];
-    if (!config.data.getLogsRange) {
-        blockRanges.push([
-            _toHex(initialBlockNumber),
-            _toHex(latestBlock.number),
-        ]);
-    } else {
-        let i = initialBlockNumber;
-        do {
-            blockRanges.push([_toHex(i), _toHex(i + config.data.getLogsRange)]);
-        } while ((i += config.data.getLogsRange) <= latestBlock.number);
-        console.debug(
-            "blockRanges",
-            blockRanges.length,
-            initialBlockNumber,
-            latestBlock.number
-        );
-    }
-    const result = await async.concatSeries(blockRanges, async (r) => {
-        if (blockRanges.length > 1) process.stdout.write(".");
-        let ret;
-        if (contract) {
-            ret = contract.getPastEvents(eventName, {
-                fromBlock: r[0],
-                toBlock: r[1],
-                filter,
-            });
-        } else {
-            ret = web3.eth.getPastLogs({
-                fromBlock: r[0],
-                toBlock: r[1],
-                topics,
-            });
-        }
-        if (blockRanges.length > 1 && ret.length > 0)
-            process.stdout.write(ret.length.toString());
-        return ret;
-    });
-    if (blockRanges.length > 1) process.stdout.write("\n");
-    return result;
-}
-
-/**
- * @dev
- */
-
 module.exports = {
     ZERO_ADDRESS,
-
-    rl,
     parseColonArgs,
-    setupScriptEnvironment,
-    extractWeb3Options,
-    builtTruffleContractLoader,
-
     hasCode,
     codeChanged,
     getCodeAddress,
     isProxiable,
-
+    extractWeb3Options,
+    detectTruffleAndConfigure,
+    rl,
+    builtTruffleContractLoader,
     setResolver,
     sendGovernanceAction,
-
-    getPastEvents,
 };

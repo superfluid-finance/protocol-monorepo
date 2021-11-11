@@ -5,13 +5,13 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
  * - https://docs.biconomy.io/misc/contract-addresses
  */
 
-module.exports = function getConfig(chainId) {
+module.exports = function getConfig(networkId) {
     const DEFAULT_CONFIGS = {
         //
         // Local Testing
         //
         4447: {
-            // for local testing (truffle internal ganache and TestEnvironment)
+            // for local testing (truffle internal ganache)
             // this is a fake forwarder address, it is to test the deployment script
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
@@ -65,12 +65,10 @@ module.exports = function getConfig(chainId) {
             tokenList: ["DAIx", "USDCx", "ETHx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
+            // matic node eth_getLogs is no longer functional
+            hack_disableGetLogs: true,
             // misc
             disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 10000000,
-                getLogsRange: 10000,
-            },
         },
 
         //
@@ -86,20 +84,8 @@ module.exports = function getConfig(chainId) {
         },
 
         //
-        // BSC: https://docs.binance.org/smart-chain/developer/rpc.html
+        // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
         //
-        56: {
-            liquidationPeriod: 3600 * 4,
-            tokenList: [],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 5000000,
-                getLogsRange: 5000,
-            },
-        },
 
         //
         // ARBITRUM (testnet rinkeby)
@@ -123,11 +109,10 @@ module.exports = function getConfig(chainId) {
             liquidationPeriod: 3600,
             // default token list for the test deployments
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
-            data: {},
         },
         // network specific configs
-        ...DEFAULT_CONFIGS[chainId],
+        ...DEFAULT_CONFIGS[networkId],
         // SDK provided configs
-        ...SuperfluidSDK.getConfig(chainId),
+        ...SuperfluidSDK.getConfig(networkId),
     };
 };

@@ -4,6 +4,11 @@ export type EventBase = {
     timestamp: string;
 };
 
+export interface IEventFilter {
+    readonly account?: string;
+    readonly timestamp_gte?: string;
+}
+
 export type AccountEvents =
     | FlowUpdatedEvent
     | IndexCreatedEvent
@@ -46,7 +51,7 @@ export type OtherEvents =
 export type AllEvents = AccountEvents | OtherEvents;
 
 export interface FlowUpdatedEvent extends EventBase {
-    __typename: "FlowUpdatedEvent";
+    name: "FlowUpdated";
     token: string;
     sender: string;
     receiver: string;
@@ -54,7 +59,7 @@ export interface FlowUpdatedEvent extends EventBase {
 }
 
 export interface IndexCreatedEvent extends EventBase {
-    __typename: "IndexCreatedEvent";
+    name: "IndexCreated";
     token: string;
     publisher: string;
     indexId: string;
@@ -62,7 +67,7 @@ export interface IndexCreatedEvent extends EventBase {
 }
 
 export interface IndexDistributionClaimedEvent extends EventBase {
-    __typename: "IndexDistributionClaimedEvent";
+    name: "IndexDistributionClaimed";
     token: string;
     publisher: string;
     indexId: string;
@@ -71,7 +76,7 @@ export interface IndexDistributionClaimedEvent extends EventBase {
 }
 
 export interface IndexSubscribedEvent extends EventBase {
-    __typename: "IndexSubscribedEvent";
+    name: "IndexSubscribed";
     token: string;
     publisher: string;
     indexId: string;
@@ -79,7 +84,7 @@ export interface IndexSubscribedEvent extends EventBase {
 }
 
 export interface IndexUnitsUpdatedEvent extends EventBase {
-    __typename: "IndexUnitsUpdatedEvent";
+    name: "IndexUnitsUpdated";
     token: string;
     publisher: string;
     indexId: string;
@@ -90,7 +95,7 @@ export interface IndexUnitsUpdatedEvent extends EventBase {
 }
 
 export interface IndexUnsubscribedEvent extends EventBase {
-    __typename: "IndexUnsubscribedEvent";
+    name: "IndexUnsubscribed";
     token: string;
     publisher: string;
     indexId: string;
@@ -99,7 +104,7 @@ export interface IndexUnsubscribedEvent extends EventBase {
 }
 
 export interface IndexUpdatedEvent extends EventBase {
-    __typename: "IndexUpdatedEvent";
+    name: "IndexUpdated";
     token: string;
     publisher: string;
     indexId: string;
@@ -111,19 +116,19 @@ export interface IndexUpdatedEvent extends EventBase {
 }
 
 export interface TokenDowngradedEvent extends EventBase {
-    __typename: "TokenDowngradedEvent";
+    name: "TokenDowngraded";
     token: string;
     amount: string;
 }
 
 export interface TokenUpgradedEvent extends EventBase {
-    __typename: "TokenUpgradedEvent";
+    name: "TokenUpgraded";
     token: string;
     amount: string;
 }
 
 export interface TransferEvent extends EventBase {
-    __typename: "TransferEvent";
+    name: "Transfer";
     from: string;
     to: string;
     value: string;
@@ -131,101 +136,101 @@ export interface TransferEvent extends EventBase {
 }
 
 export interface AgreementClassRegisteredEvent extends EventBase {
-    __typename: "AgreementClassRegisteredEvent";
+    name: "AgreementClassRegistered";
 }
 
 export interface AgreementClassUpdatedEvent extends EventBase {
-    __typename: "AgreementClassUpdatedEvent";
+    name: "AgreementClassUpdated";
 }
 
 export interface AgreementLiquidatedByEvent extends EventBase {
-    __typename: "AgreementLiquidatedByEvent";
+    name: "AgreementLiquidatedBy";
 }
 
 export interface AppRegisteredEvent extends EventBase {
-    __typename: "AppRegisteredEvent";
+    name: "AppRegistered";
 }
 
 export interface BurnedEvent extends EventBase {
-    __typename: "BurnedEvent";
+    name: "Burned";
 }
 
 export interface CFAv1LiquidationPeriodChangedEvent extends EventBase {
-    __typename: "CFAv1LiquidationPeriodChangedEvent";
+    name: "CFAv1LiquidationPeriodChanged";
 }
 
 export interface ConfigChangedEvent extends EventBase {
-    __typename: "ConfigChangedEvent";
+    name: "ConfigChanged";
 }
 
 export interface CustomSuperTokenCreatedEvent extends EventBase {
-    __typename: "CustomSuperTokenCreatedEvent";
+    name: "CustomSuperTokenCreated";
 }
 
 export interface GovernanceReplacedEvent extends EventBase {
-    __typename: "GovernanceReplacedEvent";
+    name: "GovernanceReplaced";
 }
 
 export interface JailEvent extends EventBase {
-    __typename: "JailEvent";
+    name: "Jail";
 }
 
 export interface MintedEvent extends EventBase {
-    __typename: "MintedEvent";
+    name: "Minted";
 }
 
 export interface RewardAddressChangedEvent extends EventBase {
-    __typename: "RewardAddressChangedEvent";
+    name: "RewardAddressChanged";
 }
 
 export interface RoleAdminChangedEvent extends EventBase {
-    __typename: "RoleAdminChangedEvent";
+    name: "RoleAdminChanged";
 }
 
 export interface RoleGrantedEvent extends EventBase {
-    __typename: "RoleGrantedEvent";
+    name: "RoleGranted";
 }
 
 export interface RoleRevokedEvent extends EventBase {
-    __typename: "RoleRevokedEvent";
+    name: "RoleRevoked";
 }
 
 export interface SentEvent extends EventBase {
-    __typename: "SentEvent";
+    name: "Sent";
 }
 
 export interface SubscriptionApprovedEvent extends EventBase {
-    __typename: "SubscriptionApprovedEvent";
+    name: "SubscriptionApproved";
 }
 
 export interface SubscriptionDistributionClaimedEvent extends EventBase {
-    __typename: "SubscriptionDistributionClaimedEvent";
+    name: "SubscriptionDistributionClaimed";
 }
 
 export interface SubscriptionRevokedEvent extends EventBase {
-    __typename: "SubscriptionRevokedEvent";
+    name: "SubscriptionRevoked";
 }
 
 export interface SubscriptionUnitsUpdatedEvent extends EventBase {
-    __typename: "SubscriptionUnitsUpdatedEvent";
+    name: "SubscriptionUnitsUpdated";
 }
 
 export interface SuperTokenCreatedEvent extends EventBase {
-    __typename: "SuperTokenCreatedEvent";
+    name: "SuperTokenCreated";
 }
 
 export interface SuperTokenFactoryUpdatedEvent extends EventBase {
-    __typename: "SuperTokenFactoryUpdatedEvent";
+    name: "SuperTokenFactoryUpdated";
 }
 
 export interface SuperTokenLogicCreatedEvent extends EventBase {
-    __typename: "SuperTokenLogicCreatedEvent";
+    name: "SuperTokenLogicCreated";
 }
 
 export interface SuperTokenLogicUpdatedEvent extends EventBase {
-    __typename: "SuperTokenLogicUpdatedEvent";
+    name: "SuperTokenLogicUpdated";
 }
 
 export interface TrustedForwarderChangedEvent extends EventBase {
-    __typename: "TrustedForwarderChangedEvent";
+    name: "TrustedForwarderChanged";
 }

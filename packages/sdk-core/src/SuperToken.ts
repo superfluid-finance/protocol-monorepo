@@ -140,7 +140,7 @@ export default class SuperToken {
                 availableBalance: realtimeBalanceOfNow.availableBalance,
                 deposit: realtimeBalanceOfNow.deposit,
                 owedDeposit: realtimeBalanceOfNow.owedDeposit,
-                timestamp: realtimeBalanceOfNow.timestamp
+                timestamp: realtimeBalanceOfNow.timestamp,
             };
         } catch (err) {
             return handleError(

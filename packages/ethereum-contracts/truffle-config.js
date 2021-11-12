@@ -271,7 +271,8 @@ module.exports = {
                 );
             },
             network_id: 69,
-            gasPrice: +process.env.OPKOVAN_GAS_PRICE || 15e6,
+            gasPrice: +process.env.OPKOVAN_GAS_PRICE || 10e3,
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         //
@@ -328,11 +329,11 @@ module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
-        fuji: {
+        avafuji: {
             provider: () =>
                 new HDWalletProvider(
-                    process.env.FUJI_MNEMONIC,
-                    process.env.FUJI_PROVIDER_URL,
+                    process.env.AVAFUJI_MNEMONIC,
+                    process.env.AVAFUJI_PROVIDER_URL,
                     0, //address_index
                     10, // num_addresses
                     true, // shareNonce
@@ -341,7 +342,7 @@ module.exports = {
                 ),
             network_id: 1,
             //gas: 8e6,
-            gasPrice: +process.env.FUJI_GAS_PRICE,
+            //gasPrice: +process.env.AVAFUJI_GAS_PRICE || 25e9,
             //confirmations: 6, // # of confs to wait between deployments. (default: 0)
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )

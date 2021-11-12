@@ -26,8 +26,18 @@ import { SignerContext } from "./SignerContext";
 import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
 import { SerializedError } from "@reduxjs/toolkit";
-import {Web3Provider} from "@ethersproject/providers";
-import {EventTable} from "./EventTable";
+import { Web3Provider } from "@ethersproject/providers";
+import { EventTable } from "./EventTable";
+import { ListIndexes } from "./ListIndexes";
+import ListSubheader from "@mui/material/ListSubheader";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Collapse from "@mui/material/Collapse";
+import InboxIcon from "@mui/icons-material/MoveToInbox";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -52,15 +62,11 @@ export const CreateStream: FC = (): ReactElement => {
     const [flowRate, setFlowRate] = useState<string>("");
 
     const isAnythingLoading =
-        createFlowIsLoading ||
-        updateFlowIsLoading ||
-        deleteFlowIsLoading;
+        createFlowIsLoading || updateFlowIsLoading || deleteFlowIsLoading;
 
-    const errors = [
-        createFlowError,
-        updateFlowError,
-        deleteFlowError
-    ].filter((item): item is Error | SerializedError => !!item);
+    const errors = [createFlowError, updateFlowError, deleteFlowError].filter(
+        (item): item is Error | SerializedError => !!item
+    );
 
     const handleCreateStream = (e: SyntheticEvent) => {
         createFlow({
@@ -171,7 +177,10 @@ function App() {
     const [signerAddress, setSignerAddress] = useState<string | undefined>();
     const [chainId, setChainId] = useState<number | undefined>();
 
-    const onSuperfluidSdkInitialized = async (superfluidSdk: Framework, provider: Web3Provider) => {
+    const onSuperfluidSdkInitialized = async (
+        superfluidSdk: Framework,
+        provider: Web3Provider
+    ) => {
         setSuperfluidSdk(superfluidSdk);
 
         provider
@@ -179,10 +188,14 @@ function App() {
             .getAddress()
             .then((address) => setSignerAddress(address));
 
-        provider
-            .getNetwork()
-            .then((network) => setChainId(network.chainId));
+        provider.getNetwork().then((network) => setChainId(network.chainId));
     };
+
+    const [isListIndexesOpen, setIsListIndexesOpen] = useState(false);
+    const [isActiveStreamsOpen, setIsActiveStreamsOpen] = useState(false);
+    const [isCreateStreamOpen, setIsCreateStreamOpen] = useState(false);
+    const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
+    const [isListEventsOpen, setIsListEventsOpen] = useState(false);
 
     return (
         <Container maxWidth={false}>
@@ -199,54 +212,171 @@ function App() {
                 ) : !chainId || !signerAddress ? (
                     <Loader />
                 ) : (
-                    <SignerContext.Provider
-                        value={[chainId, signerAddress]}
-                    >
+                    <SignerContext.Provider value={[chainId, signerAddress]}>
                         <Box maxWidth="sm">
                             <Typography sx={{ mb: 4 }}>
-                                You are connected. You are on network [
-                                {chainId}] and your wallet address is [
-                                {signerAddress}].
+                                You are connected. You are on network [{chainId}
+                                ] and your wallet address is [{signerAddress}].
                             </Typography>
-                            <Typography
-                                variant="h3"
-                                component="h3"
-                                gutterBottom
-                            >
-                                Create Stream
-                            </Typography>
-                            <CreateStream />
                         </Box>
-                        <Box maxWidth="xl">
-                            <Typography
-                                variant="h3"
-                                component="h3"
-                                gutterBottom
-                            >
-                                Transactions
-                            </Typography>
-                            <TransactionTable />
-                        </Box>
-                        <Box maxWidth="xl">
-                            <Typography
-                                variant="h3"
-                                component="h3"
-                                gutterBottom
-                            >
-                                All Events
-                            </Typography>
-                            <EventTable />
-                        </Box>
-                        <Box maxWidth="xl">
-                            <Typography
-                                variant="h3"
-                                component="h3"
-                                gutterBottom
-                            >
-                                Active Streams
-                            </Typography>
-                            <StreamTable />
-                        </Box>
+
+                        <List
+                            sx={{
+                                width: "100%",
+                                bgcolor: "background.paper",
+                            }}
+                            component="nav"
+                            aria-labelledby="nested-list-subheader"
+                            subheader={
+                                <ListSubheader
+                                    component="div"
+                                    id="nested-list-subheader"
+                                >
+                                    SDK-Redux functionalities
+                                </ListSubheader>
+                            }
+                        >
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsTransactionsOpen(
+                                            !isTransactionsOpen
+                                        )
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Transactions" />
+                                    {isTransactionsOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isTransactionsOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <TransactionTable />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsCreateStreamOpen(
+                                            !isCreateStreamOpen
+                                        )
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Create Stream" />
+                                    {isCreateStreamOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isCreateStreamOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <CreateStream />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsActiveStreamsOpen(
+                                            !isActiveStreamsOpen
+                                        )
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="Active Streams" />
+                                    {isActiveStreamsOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isActiveStreamsOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <StreamTable />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsListIndexesOpen(!isListIndexesOpen)
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="List Indexes" />
+                                    {isListIndexesOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isListIndexesOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <ListIndexes />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsListEventsOpen(!isListEventsOpen)
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="List Events" />
+                                    {isListEventsOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isListEventsOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <EventTable />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+                        </List>
                     </SignerContext.Provider>
                 )}
             </Box>

@@ -1,4 +1,4 @@
-export interface QueryArg {
+export interface QueryArg extends Record<string, unknown> {
     chainId: number;
 }
 
@@ -13,7 +13,7 @@ export interface PaginatedQueryResult {
     hasNextPage: boolean;
 }
 
-export interface MutationArg {
+export interface MutationArg extends Record<string, unknown> {
     chainId: number;
     waitForConfirmation?: boolean;
 }

@@ -63,7 +63,7 @@ module.exports = async function (callback, { web3, from } = {}) {
             await web3.eth.sendSignedTransaction(res.rawTx);
             console.log("Deployment done.");
         } else {
-            console.log("ERC1820 is already deployoed.");
+            console.log("ERC1820 is already deployed.");
         }
         callback();
     } catch (err) {

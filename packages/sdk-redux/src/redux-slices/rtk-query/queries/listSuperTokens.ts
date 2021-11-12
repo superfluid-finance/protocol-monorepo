@@ -9,16 +9,18 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import { PaginatedQueryArg } from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface ListAllSuperTokensArg extends PaginatedQueryArg, ISuperTokenRequestFilter {
+export interface ListSuperTokensArg
+    extends PaginatedQueryArg,
+        ISuperTokenRequestFilter {
     // Get rid of undefined to be more about cache getting hit (cache doesn't know that "false" and "undefined" are the same).
     isListed: boolean;
 }
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        listAllSuperTokens: builder.query<
+        listSuperTokens: builder.query<
             PagedResult<ISuperToken>,
-            ListAllSuperTokensArg
+            ListSuperTokensArg
         >({
             queryFn: async (arg) => {
                 const framework =
@@ -36,5 +38,5 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     overrideExisting: false,
 });
 
-export const { useListAllSuperTokensQuery, useLazyListAllSuperTokensQuery } =
+export const { useListSuperTokensQuery, useLazyListSuperTokensQuery } =
     extendedApi;

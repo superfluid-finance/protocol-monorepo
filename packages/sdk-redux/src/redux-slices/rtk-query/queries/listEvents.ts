@@ -4,12 +4,12 @@ import { initializedSuperfluidSource } from '../../../superfluidApi';
 import {PaginatedQueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface ListAllEventsArg extends PaginatedQueryArg, IEventFilter {
+export interface ListEventsArg extends PaginatedQueryArg, IEventFilter {
 }
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        listAllEvents: builder.query<PagedResult<AllEvents>, ListAllEventsArg>({
+        listEvents: builder.query<PagedResult<AllEvents>, ListEventsArg>({
             queryFn: async (arg) => {
                 const framework =
                     await initializedSuperfluidSource.getFramework(arg.chainId);
@@ -32,5 +32,5 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
     overrideExisting: false,
 });
 
-export const { useListAllEventsQuery, useLazyListAllEventsQuery } =
+export const { useListEventsQuery, useLazyListEventsQuery } =
     extendedApi;

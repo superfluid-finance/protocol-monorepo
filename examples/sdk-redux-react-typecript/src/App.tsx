@@ -27,7 +27,7 @@ import { StreamTable } from "./StreamTable";
 import { TransactionTable } from "./TransactionTable";
 import { SerializedError } from "@reduxjs/toolkit";
 import { Web3Provider } from "@ethersproject/providers";
-import { EventTable } from "./EventTable";
+import { ListEvents } from "./ListEvents";
 import { ListIndexes } from "./ListIndexes";
 import ListSubheader from "@mui/material/ListSubheader";
 import List from "@mui/material/List";
@@ -38,8 +38,8 @@ import Collapse from "@mui/material/Collapse";
 import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
-import {ListIndexSubscriptions} from "./ListIndexSubscriptions";
-import {ListUserInteractedSuperTokens} from "./ListUserInteractedSuperTokens";
+import { ListIndexSubscriptions } from "./ListIndexSubscriptions";
+import { ListUserInteractedSuperTokens } from "./ListUserInteractedSuperTokens";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -194,12 +194,16 @@ function App() {
     };
 
     const [isListIndexesOpen, setIsListIndexesOpen] = useState(false);
-    const [isListIndexSubscriptionsOpen, setIsListIndexSubscriptionsOpen] = useState(false);
+    const [isListIndexSubscriptionsOpen, setIsListIndexSubscriptionsOpen] =
+        useState(false);
     const [isActiveStreamsOpen, setIsActiveStreamsOpen] = useState(false);
     const [isCreateStreamOpen, setIsCreateStreamOpen] = useState(false);
     const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
     const [isListEventsOpen, setIsListEventsOpen] = useState(false);
-    const [isListUserInteractedSuperTokensOpen, setIsListUserInteractedSuperTokensOpen] = useState(false);
+    const [
+        isListUserInteractedSuperTokensOpen,
+        setIsListUserInteractedSuperTokensOpen,
+    ] = useState(false);
 
     return (
         <Container maxWidth={false}>
@@ -272,7 +276,9 @@ function App() {
                             <Box>
                                 <ListItemButton
                                     onClick={() =>
-                                        setIsListUserInteractedSuperTokensOpen(!isListUserInteractedSuperTokensOpen)
+                                        setIsListUserInteractedSuperTokensOpen(
+                                            !isListUserInteractedSuperTokensOpen
+                                        )
                                     }
                                 >
                                     <ListItemIcon>
@@ -384,7 +390,9 @@ function App() {
                             <Box>
                                 <ListItemButton
                                     onClick={() =>
-                                        setIsListIndexSubscriptionsOpen(!isListIndexSubscriptionsOpen)
+                                        setIsListIndexSubscriptionsOpen(
+                                            !isListIndexSubscriptionsOpen
+                                        )
                                     }
                                 >
                                     <ListItemIcon>
@@ -430,7 +438,7 @@ function App() {
                                     unmountOnExit
                                 >
                                     <Box maxWidth="xl">
-                                        <EventTable />
+                                        <ListEvents />
                                     </Box>
                                 </Collapse>
                             </Box>

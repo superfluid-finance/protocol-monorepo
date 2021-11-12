@@ -129,6 +129,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         69: {
             // op kovan
             nativeTokenSymbol: "ETH",
+            resolverAddress: "0xE5ed6b5bFcDBcae6BA32082adaB05A6F21e7B923",
         },
 
         //

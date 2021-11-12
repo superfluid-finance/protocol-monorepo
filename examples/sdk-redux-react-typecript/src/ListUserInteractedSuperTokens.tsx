@@ -6,7 +6,10 @@ import React, {
     useEffect,
     useState,
 } from "react";
-import { useListIndexesQuery, IIndex } from "@superfluid-finance/sdk-redux";
+import {
+    useListUserInteractedSuperTokensQuery,
+    ILightAccountTokenSnapshot,
+} from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {
     FormGroup,
@@ -24,29 +27,27 @@ import { Error } from "./Error";
 
 const pageSize = 10;
 
-export const ListIndexes: FC = (): ReactElement => {
+export const ListUserInteractedSuperTokens: FC = (): ReactElement => {
     const [chainId, signerAddress] = useContext(SignerContext);
     const [page, setPage] = useState<number>(1);
 
-    const [indexId, setIndexId] = useState<string>("");
-    const [publisherAddress, setPublisherAddress] = useState<string>("");
-    const [superTokenAddress, setSuperTokenAddress] = useState<string>("");
+    const [accountAddress, setAccountAddress] = useState<string>(signerAddress);
+    const [superTokenAddress, setSuperTokenAddress] = useState("");
 
     useEffect(() => {
         setPage(1);
-    }, [chainId, indexId, publisherAddress, superTokenAddress]);
+    }, [chainId, superTokenAddress, accountAddress]);
 
     const {
-        data: pagedIndexes,
+        data: pagedIndexSubscriptions,
         isFetching,
         isLoading,
         error,
         refetch,
-    } = useListIndexesQuery({
-        chainId: chainId,
-        indexId: indexId,
-        publisher: publisherAddress,
+    } = useListUserInteractedSuperTokensQuery({
+        account: accountAddress,
         token: superTokenAddress,
+        chainId: chainId,
         skip: (page - 1) * pageSize,
         take: pageSize,
     });
@@ -57,16 +58,10 @@ export const ListIndexes: FC = (): ReactElement => {
                 <FormGroup>
                     <TextField
                         sx={{ m: 1 }}
-                        label="Index ID"
-                        value={indexId}
-                        onChange={(e) => setIndexId(e.currentTarget.value)}
-                    />
-                    <TextField
-                        sx={{ m: 1 }}
-                        label="Publisher Address"
-                        value={publisherAddress}
+                        value={accountAddress}
+                        label="Account Address"
                         onChange={(e) =>
-                            setPublisherAddress(e.currentTarget.value)
+                            setAccountAddress(e.currentTarget.value)
                         }
                     />
                     <TextField
@@ -94,22 +89,34 @@ export const ListIndexes: FC = (): ReactElement => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {pagedIndexes!.data.map((index: IIndex) => (
-                                        <TableRow key={index.id}>
-                                            <TableCell>
-                                                <pre>
-                                                    {JSON.stringify(index)}
-                                                </pre>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
+                                    {pagedIndexSubscriptions!.data.map(
+                                        (
+                                            tokenSnapshot: ILightAccountTokenSnapshot
+                                        ) => (
+                                            <TableRow
+                                                key={tokenSnapshot.id}
+                                            >
+                                                <TableCell>
+                                                    <pre>
+                                                        {JSON.stringify(
+                                                            tokenSnapshot
+                                                        )}
+                                                    </pre>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    )}
                                 </TableBody>
                             </Table>
                         </TableContainer>
                     )}
-                    {(pagedIndexes && !error) && (
+                    {pagedIndexSubscriptions && !error && (
                         <Pagination
-                            count={pagedIndexes.hasNextPage ? page + 1 : page}
+                            count={
+                                pagedIndexSubscriptions.hasNextPage
+                                    ? page + 1
+                                    : page
+                            }
                             size="small"
                             onChange={(
                                 event: React.ChangeEvent<unknown>,

@@ -39,6 +39,7 @@ import InboxIcon from "@mui/icons-material/MoveToInbox";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import {ListIndexSubscriptions} from "./ListIndexSubscriptions";
+import {ListUserInteractedSuperTokens} from "./ListUserInteractedSuperTokens";
 
 export const CreateStream: FC = (): ReactElement => {
     const [
@@ -198,6 +199,7 @@ function App() {
     const [isCreateStreamOpen, setIsCreateStreamOpen] = useState(false);
     const [isTransactionsOpen, setIsTransactionsOpen] = useState(false);
     const [isListEventsOpen, setIsListEventsOpen] = useState(false);
+    const [isListUserInteractedSuperTokensOpen, setIsListUserInteractedSuperTokensOpen] = useState(false);
 
     return (
         <Container maxWidth={false}>
@@ -263,6 +265,33 @@ function App() {
                                 >
                                     <Box maxWidth="xl">
                                         <TransactionTable />
+                                    </Box>
+                                </Collapse>
+                            </Box>
+
+                            <Box>
+                                <ListItemButton
+                                    onClick={() =>
+                                        setIsListUserInteractedSuperTokensOpen(!isListUserInteractedSuperTokensOpen)
+                                    }
+                                >
+                                    <ListItemIcon>
+                                        <InboxIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary="List User-Interacted SuperTokens" />
+                                    {isListUserInteractedSuperTokensOpen ? (
+                                        <ExpandLess />
+                                    ) : (
+                                        <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                                <Collapse
+                                    in={isListUserInteractedSuperTokensOpen}
+                                    timeout="auto"
+                                    unmountOnExit
+                                >
+                                    <Box maxWidth="xl">
+                                        <ListUserInteractedSuperTokens />
                                     </Box>
                                 </Collapse>
                             </Box>

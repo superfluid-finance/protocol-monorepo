@@ -67,6 +67,7 @@ export const ListIndexSubscriptions: FC = (): ReactElement => {
                     <TextField
                         sx={{ m: 1 }}
                         label="Subscriber Address"
+                        value={subscriberAddress}
                         onChange={(e) =>
                             setSubscriberAddress(e.currentTarget.value)
                         }

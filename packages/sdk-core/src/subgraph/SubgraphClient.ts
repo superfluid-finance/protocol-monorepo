@@ -51,7 +51,7 @@ export class SubgraphClient {
 function cleanVariables<V = Variables>(variables: V): V {
     return Object.fromEntries(
         Object.entries(variables)
-            .filter(([_, value]) => value === 0 || !!value)
+            .filter(([_, value]) => value !== "" && value !== null && value !== undefined)
             .map(([key, value]) => [key, value === Object(value) ? cleanVariables(value) : value])
     ) as V;
 }

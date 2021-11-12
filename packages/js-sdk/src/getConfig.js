@@ -147,14 +147,14 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         //
         // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
         //
-        43113: {
-            // avalanche c-chain fuji testnet
-            nativeTokenSymbol: "AVAX",
-        },
-
         43114: {
             // avalanche c-chain mainnet
             nativeTokenSymbol: "AVAX",
+        },
+        43113: {
+            // avalanche c-chain fuji testnet
+            nativeTokenSymbol: "AVAX",
+            resolverAddress: "0x659635Fab0A0cef1293f7eb3c7934542B6A6B31A",
         },
 
         //

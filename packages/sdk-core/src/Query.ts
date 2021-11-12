@@ -105,8 +105,8 @@ export default class Query {
         >(GetIndexesDocument, {
             where: {
                 indexId: filter.indexId,
-                publisher: filter.publisher,
-                token: filter.token
+                publisher: filter.publisher?.toLowerCase(),
+                token: filter.token?.toLowerCase()
             },
             skip: paging.skip,
             first: paging.takePlusOne()
@@ -126,7 +126,7 @@ export default class Query {
             GetIndexSubscriptionsQueryVariables
         >(GetIndexSubscriptionsDocument, {
             where: {
-                subscriber: filter.subscriber,
+                subscriber: filter.subscriber?.toLowerCase(),
                 approved: filter.approved
             },
             skip: paging.skip,
@@ -147,9 +147,9 @@ export default class Query {
             GetStreamsQueryVariables
         >(GetStreamsDocument, {
             where: {
-                sender: filter.sender,
-                receiver: filter.receiver,
-                token: filter.token
+                sender: filter.sender?.toLowerCase(),
+                receiver: filter.receiver?.toLowerCase(),
+                token: filter.token?.toLowerCase()
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -169,8 +169,8 @@ export default class Query {
             GetAccountTokenSnapshotsQueryVariables
         >(GetAccountTokenSnapshotsDocument, {
             where: {
-                account: filter.account,
-                token: filter.token
+                account: filter.account?.toLowerCase(),
+                token: filter.token?.toLowerCase()
             },
             skip: paging.skip,
             first: paging.takePlusOne(),
@@ -192,7 +192,7 @@ export default class Query {
         >(GetAllEventsDocument, {
             where: {
                 addresses_contains: filter.account
-                    ? [filter.account]
+                    ? [filter.account?.toLowerCase()]
                     : undefined,
                 timestamp_gte: filter.timestamp_gte,
             },

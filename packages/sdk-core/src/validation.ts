@@ -13,7 +13,7 @@ const ajv = new Ajv();
 ajv.addFormat("addressOrEmpty", {
     type: "string",
     validate: (x: string) =>
-        x === "" || (ethers.utils.isAddress(x) && x === x.toLowerCase()), // TODO(KK): Handle lower-case use-case better. Probably should not be a matter of validation.
+        x === "" || (ethers.utils.isAddress(x)),
 });
 ajv.addFormat("stringNumber", {
     type: "string",

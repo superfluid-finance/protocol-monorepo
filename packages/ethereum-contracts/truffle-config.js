@@ -311,6 +311,7 @@ module.exports = {
                     0, //address_index
                     10, // num_addresses
                     true, // shareNonce
+                    "m/44'/60'/0'/0/", // needed bcs we want to add chainId
                     43114 // chainId
                 ),
             network_id: 1,
@@ -330,6 +331,7 @@ module.exports = {
                     0, //address_index
                     10, // num_addresses
                     true, // shareNonce
+                    "m/44'/60'/0'/0/", // needed bcs we want to add chainId
                     43113 // chainId
                 ),
             network_id: 1,

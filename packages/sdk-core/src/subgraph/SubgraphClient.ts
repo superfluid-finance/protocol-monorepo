@@ -48,6 +48,10 @@ export class SubgraphClient {
 
 // Inspired by: https://stackoverflow.com/a/38340730
 // Remove properties with null, undefined, empty string values.
-function cleanVariables<V = Variables>(variables: V) {
-    return Object.fromEntries(Object.entries(variables).filter(([_, value]) => value === 0 || !!value)) as V;
+function cleanVariables<V = Variables>(variables: V): V {
+    return Object.fromEntries(
+        Object.entries(variables)
+            .filter(([_, value]) => value === 0 || !!value)
+            .map(([key, value]) => [key, value === Object(value) ? cleanVariables(value) : value])
+    ) as V;
 }

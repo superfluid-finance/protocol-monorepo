@@ -1,6 +1,6 @@
 import { DocumentNode } from "graphql";
 import { request, batchRequests } from "graphql-request";
-import { handleError } from "../errorHelper";
+import SFError from "../SFError";
 
 type RequestDocument = string | DocumentNode;
 
@@ -25,11 +25,11 @@ export class SubgraphClient {
         try {
             return await request<T, V>(this.subgraphUrl, document, variables);
         } catch (err) {
-            return handleError(
-                "SUBGRAPH_ERROR",
-                `Failed call to subgraph with query ${document}`,
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "SUBGRAPH_ERROR",
+                customMessage: `Failed call to subgraph with query ${document}`,
+                errorObject: err,
+            });
         }
     }
 
@@ -41,11 +41,11 @@ export class SubgraphClient {
         try {
             return await batchRequests<T, V>(this.subgraphUrl, documents);
         } catch (err) {
-            return handleError(
-                "SUBGRAPH_ERROR",
-                `Failed call to subgraph with query...`, // TODO(KK): Better error message
-                JSON.stringify(err)
-            );
+            throw new SFError({
+                type: "SUBGRAPH_ERROR",
+                customMessage: `Failed call to subgraph with query...`, // TODO(KK): Better error message
+                errorObject: err,
+            });
         }
     }
 }

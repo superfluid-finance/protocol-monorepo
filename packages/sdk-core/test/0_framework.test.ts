@@ -34,6 +34,22 @@ describe("Framework Tests", () => {
             }
         });
 
+        it("Should be able to set up framework with networkName = custom.", async () => {
+            try {
+                await Framework.create({
+                    networkName: "custom",
+                    provider: deployer.provider!,
+                    dataMode: "WEB3_ONLY",
+                    resolverAddress: RESOLVER_ADDRESS,
+                    protocolReleaseVersion: "test"
+                });
+            } catch (err: any) {
+                expect(err.message).to.equal(
+                    "Framework Initialization Error - The network name and chainId you have selected don't match."
+                );
+            }
+        });
+
         it("Should throw an error if network and chainId don't match.", async () => {
             try {
                 // NOTE: as any to get this to compile to test no provider initialization (as if this was JS)
@@ -45,6 +61,22 @@ describe("Framework Tests", () => {
             } catch (err: any) {
                 expect(err.message).to.equal(
                     "Framework Initialization Error - The network name and chainId you have selected don't match."
+                );
+            }
+        });
+
+        it("Should throw an error if your provider network and selected chainId/networkName don't match.", async () => {
+            try {
+                await Framework.create({
+                    chainId: 4,
+                    provider: deployer.provider!,
+                });
+            } catch (err: any) {
+                expect(err.message).to.equal(
+                    "Network Mismatch Error - Your provider network chainId is: " +
+                        1337 +
+                        " whereas your desired chainId is: " +
+                        4
                 );
             }
         });
@@ -97,7 +129,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if loadFramework fails.", async () => {
             try {
                 await Framework.create({
-                    networkName: "custom",
+                    chainId: 1337,
                     provider: deployer.provider!,
                     customSubgraphQueriesEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
                     resolverAddress:
@@ -113,15 +145,18 @@ describe("Framework Tests", () => {
 
         it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected.", async () => {
             try {
+                const infuraProvider = new ethers.providers.InfuraProvider(
+                    "matic",
+                    process.env.INFURA_API_KEY
+                );
                 await Framework.create({
                     networkName: "matic",
-                    provider: deployer.provider!,
+                    provider: infuraProvider,
                     customSubgraphQueriesEndpoint: "",
-                    resolverAddress: RESOLVER_ADDRESS,
-                    protocolReleaseVersion: "test",
+                    resolverAddress:
+                        "0xE0cc76334405EE8b39213E620587d815967af39C", // MATIC resolver address
                 });
             } catch (err: any) {
-                console.log(err.message);
                 expect(err.message).to.equal(
                     "Framework Initialization Error - You cannot have a null subgaphQueriesEndpoint if you haven't selected 'WEB3_ONLY' as your dataMode."
                 );

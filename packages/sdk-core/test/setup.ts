@@ -56,8 +56,9 @@ export const setup = async (props: ISetupProps) => {
         TestTokenABI,
         Deployer
     ) as TestToken;
+    const chainId = (await provider.getNetwork()).chainId;
     const frameworkClass = await Framework.create({
-        networkName: "custom",
+        chainId,
         resolverAddress: RESOLVER_ADDRESS,
         provider,
         dataMode: props.dataMode,

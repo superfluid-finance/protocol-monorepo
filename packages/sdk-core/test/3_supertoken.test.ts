@@ -98,6 +98,14 @@ describe("SuperToken Tests", () => {
             expect(superToken.address).to.equal(daixTest.options.address);
         });
 
+        it("Should be able to initialize SuperToken with networkName.", () => {
+            new SuperToken({
+                address: superToken.address,
+                config: framework.settings.config,
+                networkName: "custom",
+            });
+        });
+
         it("Should be able to get balanceOf, realtimeBalanceOf, realtimeBalanceOfNow", async () => {
             const balance = await daix.balanceOf(deployer.address, deployer);
             const { availableBalance, timestamp } =

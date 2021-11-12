@@ -16,8 +16,8 @@
         "dist/**/*.d.ts"
     ],
     "scripts": {
-        "build": "rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript",
-        "test": "TS_NODE_PROJECT='./tsconfig.commonjs.json' nyc --reporter=html --reporter=text npx hardhat test --network localhost",
+        "build": "mkdir src/abi && tasks/build-abi-json.sh && yarn generate-web3-types && rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript",
+        "test": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter=html --reporter=text npx hardhat test --network localhost",
         "coverage": "nyc report --reporter=text-lcov | coveralls",
         "doc:html": "typedoc src/ --exclude **/*.spec.ts --target ES6 --mode file --out build/docs",
         "fix": "run-s fix:*",

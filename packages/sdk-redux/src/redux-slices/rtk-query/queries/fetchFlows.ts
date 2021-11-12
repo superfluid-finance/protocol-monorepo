@@ -1,16 +1,17 @@
 import { IStream } from '@superfluid-finance/sdk-core';
 
 import { initializedSuperfluidSource } from '../../../superfluidApi';
-import { QueryArg } from '../../baseArg';
+import { QueryArg} from '../../baseArg';
 import { rtkQuerySlice } from '../rtkQuerySlice';
 
-export interface FetchFlowsArg extends QueryArg {
+export interface ListStreamsArg
+    extends QueryArg{
     accountAddress: string;
 }
 
 const extendedApi = rtkQuerySlice.injectEndpoints({
     endpoints: (builder) => ({
-        fetchFlows: builder.query<IStream[], FetchFlowsArg>({
+        fetchFlows: builder.query<IStream[], ListStreamsArg>({
             queryFn: async (arg) => {
                 const framework =
                     await initializedSuperfluidSource.getFramework(arg.chainId);
@@ -26,7 +27,14 @@ const extendedApi = rtkQuerySlice.injectEndpoints({
                 });
 
                 // TODO: Ugly sorting logic...
-                const result = [...inflows.data, ...outflows.data].sort(function(a, b){return Number(b.createdAtTimestamp) - Number(a.createdAtTimestamp)});
+                const result = [...inflows.data, ...outflows.data].sort(
+                    function (a, b) {
+                        return (
+                            Number(b.createdAtTimestamp) -
+                            Number(a.createdAtTimestamp)
+                        );
+                    }
+                );
                 return {
                     data: result,
                 };

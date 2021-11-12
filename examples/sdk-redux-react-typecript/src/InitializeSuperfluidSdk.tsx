@@ -30,7 +30,8 @@ export const InitializeSuperfluidSdk: FC<Props> = ({
         const chainId = 5;
         const superfluidSdk = await Framework.create({
             chainId: chainId,
-            provider: ethersWeb3Provider as any, // TODO(KK): as any
+            provider: ethersWeb3Provider,
+            customSubgraphQueriesEndpoint: "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-feature-goerli"
         });
 
         // @ts-ignore

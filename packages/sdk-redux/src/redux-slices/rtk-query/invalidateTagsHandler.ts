@@ -19,10 +19,10 @@ export const invalidateTagsHandler = (
         ])
     );
 
-    switch (event.__typename) {
-        case "SubscriptionApprovedEvent":
+    switch (event.name) {
+        case "SubscriptionApproved":
             break;
-        case "FlowUpdatedEvent":
+        case "FlowUpdated":
             dispatch(
                 rtkQuerySlice.util.invalidateTags([
                     {
@@ -36,71 +36,71 @@ export const invalidateTagsHandler = (
                 ])
             );
             break;
-        case "IndexCreatedEvent":
+        case "IndexCreated":
             break;
-        case "IndexDistributionClaimedEvent":
+        case "IndexDistributionClaimed":
             break;
-        case "IndexSubscribedEvent":
+        case "IndexSubscribed":
             break;
-        case "IndexUnitsUpdatedEvent":
+        case "IndexUnitsUpdated":
             break;
-        case "IndexUnsubscribedEvent":
+        case "IndexUnsubscribed":
             break;
-        case "IndexUpdatedEvent":
+        case "IndexUpdated":
             break;
-        case "TokenDowngradedEvent":
+        case "TokenDowngraded":
             break;
-        case "TransferEvent":
+        case "Transfer":
             break;
-        case "TokenUpgradedEvent":
+        case "TokenUpgraded":
             break;
-        case "SubscriptionDistributionClaimedEvent":
+        case "SubscriptionDistributionClaimed":
             break;
-        case "SubscriptionRevokedEvent":
+        case "SubscriptionRevoked":
             break;
-        case "SubscriptionUnitsUpdatedEvent":
+        case "SubscriptionUnitsUpdated":
             break;
-        case "AgreementClassRegisteredEvent":
+        case "AgreementClassRegistered":
             break;
-        case "AgreementClassUpdatedEvent":
+        case "AgreementClassUpdated":
             break;
-        case "AgreementLiquidatedByEvent":
+        case "AgreementLiquidatedBy":
             break;
-        case "AppRegisteredEvent":
+        case "AppRegistered":
             break;
-        case "BurnedEvent":
+        case "Burned":
             break;
-        case "CFAv1LiquidationPeriodChangedEvent":
+        case "CFAv1LiquidationPeriodChanged":
             break;
-        case "ConfigChangedEvent":
+        case "ConfigChanged":
             break;
-        case "CustomSuperTokenCreatedEvent":
+        case "CustomSuperTokenCreated":
             break;
-        case "GovernanceReplacedEvent":
+        case "GovernanceReplaced":
             break;
-        case "JailEvent":
+        case "Jail":
             break;
-        case "MintedEvent":
+        case "Minted":
             break;
-        case "RewardAddressChangedEvent":
+        case "RewardAddressChanged":
             break;
-        case "RoleAdminChangedEvent":
+        case "RoleAdminChanged":
             break;
-        case "RoleGrantedEvent":
+        case "RoleGranted":
             break;
-        case "RoleRevokedEvent":
+        case "RoleRevoked":
             break;
-        case "SentEvent":
+        case "Sent":
             break;
-        case "SuperTokenCreatedEvent":
+        case "SuperTokenCreated":
             break;
-        case "SuperTokenFactoryUpdatedEvent":
+        case "SuperTokenFactoryUpdated":
             break;
-        case "SuperTokenLogicCreatedEvent":
+        case "SuperTokenLogicCreated":
             break;
-        case "SuperTokenLogicUpdatedEvent":
+        case "SuperTokenLogicUpdated":
             break;
-        case "TrustedForwarderChangedEvent":
+        case "TrustedForwarderChanged":
             break;
         default:
             throw Error('Unknown event type!');

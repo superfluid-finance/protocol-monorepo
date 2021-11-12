@@ -1,8 +1,5 @@
 import React, { FC, ReactElement, useContext, useState } from "react";
-import {
-    AllEvents,
-    useFetchAllEventsQuery,
-} from "@superfluid-finance/sdk-redux";
+import { AllEvents, useListAllEventsQuery } from "@superfluid-finance/sdk-redux";
 import { Loader } from "./Loader";
 import {
     Pagination,
@@ -24,7 +21,7 @@ export const EventTable: FC = (): ReactElement => {
         data: pagedResult,
         isFetching,
         isLoading,
-    } = useFetchAllEventsQuery({
+    } = useListAllEventsQuery({
         chainId: chainId,
         skip: (page - 1) * pageSize,
         take: pageSize,
@@ -61,7 +58,7 @@ export const EventTable: FC = (): ReactElement => {
                                     }}
                                 >
                                     <TableCell>{flow.blockNumber}</TableCell>
-                                    <TableCell>{flow.__typename}</TableCell>
+                                    <TableCell>{flow.name}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
